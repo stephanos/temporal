@@ -50,6 +50,7 @@ pub fn resource_bounds(selection: &Selection) -> Bounds {
 }
 
 pub struct Prepared {
+    pub(crate) request: Option<super::module_recipes::RequestRecipe>,
     pub observation_receipt_sha256: Option<String>,
     pub guest: preparation::Prepared,
     pub module_path: PathBuf,
@@ -72,6 +73,9 @@ impl Prepared {
             return Err("retained native module or provenance changed".into());
         }
         let config = &self.guest.configuration;
+        if let Some(recipe) = &self.request {
+            return request_input(self, recipe, seed);
+        }
         let model=config.model.as_ref().map(|value|{
             let mut value=value.clone();let object=value.as_object_mut().ok_or("invalid prepared native model")?;
             if object.insert("seed".into(),seed.into()).is_some(){return Err("prepared native model must derive seed".to_string());}
@@ -85,6 +89,54 @@ impl Prepared {
         )
     }
 }
+pub(crate) fn request_input(
+    prepared: &Prepared,
+    recipe: &super::module_recipes::RequestRecipe,
+    seed: u64,
+) -> Result<Value, String> {
+    let mut converted = crate::install::config::convert(recipe.configuration.clone(), COOPERATIVE)?;
+    converted.model["seed"] = json!(seed);
+    converted.model["limit"] = json!(recipe.choice_bytes);
+    converted.model["diagnostics"] = json!(recipe.diagnostics);
+    converted.model["digest_only"] = json!(recipe.digest_transcript);
+    let checked: gomad_wasmhost::linked::ModelConfig =
+        serde_json::from_value(converted.model.clone()).map_err(|e| e.to_string())?;
+    checked.validate().map_err(|e| e.to_string())?;
+    let environment = recipe.configuration["Environment"]
+        .as_array()
+        .ok_or("original environment absent")?
+        .iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .map(str::to_owned)
+                .ok_or("original environment entry is not a string")
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let output = recipe.configuration["Limits"]["OutputBytes"]
+        .as_u64()
+        .ok_or("original output limit absent")?;
+    let evidence = recipe
+        .choice_bytes
+        .checked_add(output.checked_mul(2).ok_or("evidence overflow")?)
+        .and_then(|v| v.checked_add(128 << 20))
+        .ok_or("evidence overflow")?;
+    Ok(
+        json!({"kind":"standalone","guest":{"module":prepared.module_path,"module_sha256":canonical::digest(&prepared.guest.module),
+        "limits":{"fuel":recipe.fuel,"memory_bytes":recipe.memory_bytes,"wall_millis":u64::try_from(recipe.timeout.as_millis()).map_err(|e|e.to_string())?,"output_bytes":output,"evidence_bytes":evidence},
+        "model":{"configuration":converted.model,"arguments":converted.arguments,"environment":environment,"replay_trace":null},
+        "namespace":converted.namespace,"storage":converted.storage},"network":converted.network}),
+    )
+}
+
+pub(crate) fn prepare_terminal(
+    proof: &CheckoutProof,
+    call: &Invocation,
+    root: &Path,
+) -> Result<Prepared, String> {
+    prepare_selection_controlled(proof, call, root, &Selection::Workflow, None, "", true)
+}
+
 fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     let mut bytes = Vec::new();
     fs::File::open(path)
@@ -253,11 +305,11 @@ fn options(
     source: &str,
     args: &[String],
     tags: &[String],
-    runtime: bool,
-    timeout: Duration,
+    bounds: &Bounds,
+    choice_bytes: u64,
     scenario: Option<Vec<u8>>,
 ) -> Result<(ExploreOptions, Vec<String>, Option<PathBuf>), String> {
-    let timeout = format!("{}ns", timeout.as_nanos());
+    let timeout = format!("{}ns", bounds.timeout.as_nanos());
     let mut arguments = vec![
         "--working-dir".into(),
         directory.to_string_lossy().into_owned(),
@@ -270,17 +322,13 @@ fn options(
         "--parallel".into(),
         "1".into(),
         "--output-limit".into(),
-        if runtime {
-            (1_u64 << 20).to_string()
-        } else {
-            (256_u64 << 20).to_string()
-        },
+        bounds.output_bytes.to_string(),
     ];
     if scenario.is_none() {
         arguments.extend([
             "--choices".into(),
             "--choice-bytes".into(),
-            (64_u64 << 20).to_string(),
+            choice_bytes.to_string(),
         ]);
     }
     for tag in tags {
@@ -311,7 +359,7 @@ fn prepare_selection(
     selection: &Selection,
     scenario: Option<(String, Vec<u8>)>,
 ) -> Result<Prepared, String> {
-    prepare_selection_controlled(proof, call, root, selection, scenario, "")
+    prepare_selection_controlled(proof, call, root, selection, scenario, "", false)
 }
 /// # Errors
 /// Refuses unsupported variants and returns guest installation or preparation errors.
@@ -325,7 +373,7 @@ pub fn prepare_variant(
     if !matches!(gowasm, "" | "satconv,signext") {
         return Err("unexpected diagnostic GOWASM variant".into());
     }
-    prepare_selection_controlled(proof, call, root, selection, None, gowasm)
+    prepare_selection_controlled(proof, call, root, selection, None, gowasm, false)
 }
 #[expect(
     clippy::too_many_lines,
@@ -338,6 +386,7 @@ fn prepare_selection_controlled(
     selection: &Selection,
     scenario: Option<(String, Vec<u8>)>,
     gowasm: &str,
+    terminal: bool,
 ) -> Result<Prepared, String> {
     if proof.repo() != call.repo || !root.is_absolute() {
         return Err(
@@ -372,23 +421,41 @@ fn prepare_selection_controlled(
             vec![format!("-test.run={run}")]
         }
     };
-    let config = if runtime {
-        runtime_configuration()?
+    let request = if terminal {
+        None
+    } else if runtime {
+        Some(super::module_recipes::runtime_request()?)
     } else {
         let mut args = selectors;
         args.extend([
             "-persistenceType=sql".into(),
             "-persistenceDriver=sqlite".into(),
         ]);
-        temporal_configuration(
+        let cwd = if let Selection::Target { cwd, .. } = selection {
+            cwd.as_str()
+        } else {
+            "/workspace/tests"
+        };
+        let package = cwd
+            .strip_prefix("/workspace/")
+            .or_else(|| (cwd == "/workspace").then_some("."))
+            .ok_or("Temporal working directory outside workspace")?;
+        Some(super::module_recipes::temporal_request(
             proof.repo(),
-            if let Selection::Target { cwd, .. } = selection {
-                cwd
-            } else {
-                "/workspace/tests"
-            },
+            package,
             &args,
-        )?
+            bounds.timeout,
+        )?)
+    };
+    let config = if terminal {
+        bounds.output_bytes = 1 << 20;
+        super::module_recipes::terminal_exit(proof.repo())?.configuration
+    } else {
+        request
+            .as_ref()
+            .ok_or("execution request absent")?
+            .configuration
+            .clone()
     };
     let config_path = root.join("guest-config.json");
     write(&config_path, &canonical::encode(&config)?)?;
@@ -446,43 +513,28 @@ fn prepare_selection_controlled(
         },
         |(source, scenario)| (source, Some(scenario)),
     );
-    let args = config["Args"]
-        .as_array()
-        .map(|args| {
-            args.iter()
-                .skip(1)
-                .map(|arg| {
-                    arg.as_str()
-                        .map(str::to_owned)
-                        .ok_or("native Temporal argument must be a string")
-                })
-                .collect::<Result<Vec<_>, _>>()
-        })
-        .transpose()?
-        .unwrap_or_default();
-    let tags = if runtime {
-        vec![]
+    let mut recipe = if runtime {
+        super::module_recipes::runtime_cost(proof.repo())
+    } else if call.name == "host-owner-profile" {
+        super::module_recipes::slim_host_owner(proof.repo())
+    } else if matches!(selection, Selection::Cluster) {
+        super::module_recipes::derived_temporal_test(&directory, &source)
     } else {
-        [
-            "disable_grpc_modules",
-            "gomad_wasm_slim",
-            "sqlite3_dotlk",
-            "test_dep",
-        ]
-        .into_iter()
-        .map(str::to_owned)
-        .collect()
+        super::module_recipes::temporal_test(&directory, &source)
     };
+    recipe.source = source;
     let (options, preparation_arguments, scenario_path) = options(
         root,
-        &directory,
+        &recipe.directory,
         &installation_path,
-        if runtime { "go-run" } else { "go-test" },
-        &source,
-        &args,
-        &tags,
-        runtime,
-        bounds.timeout,
+        recipe.kind,
+        &recipe.source,
+        &recipe.target_arguments,
+        &recipe.build_tags,
+        &bounds,
+        request
+            .as_ref()
+            .map_or(1 << 30, |request| request.choice_bytes),
         scenario,
     )?;
     let mut controls = compiler_controls(call)?;
@@ -501,6 +553,7 @@ fn prepare_selection_controlled(
     )
     .map_err(|error| error.to_string())?;
     Ok(Prepared {
+        request,
         observation_receipt_sha256: None,
         guest,
         module_path,

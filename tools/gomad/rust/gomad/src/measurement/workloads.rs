@@ -714,7 +714,8 @@ pub(super) fn execute_admitted(
         64 << 20,
     );
     let after = role.verify(proof);
-    let result = evidence::read_profile_run(&output, evidence::ReadLimits::default());
+    let result = evidence::ReadLimits::for_request(input)
+        .and_then(|limits| evidence::read_profile_run(&output, limits));
     let mut failures = Vec::new();
     for failure in [
         command.as_ref().err(),
@@ -1538,11 +1539,19 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
         }
         let provenance = crate::qualify::spec::strict(&read(&guest.provenance, 16 << 20)?)?;
         crate::campaign::prepare::typed_provenance(&provenance)?;
-        let expected_source = proof.repo().join("tools/gomad").join(match name {
-            "choices" => "internal/backends/wasm/toolchain/testdata/choices",
-            "runtime_probes" => "internal/backends/wasm/testdata/runtime_probes",
-            _ => "internal/backends/wasm/testdata/time_probes",
-        });
+        let expected_source = if name == "choices" {
+            let recipe = super::module_recipes::diagnostic_probe(proof.repo());
+            recipe.directory.join(recipe.source)
+        } else {
+            proof
+                .repo()
+                .join("tools/gomad")
+                .join(if name == "runtime_probes" {
+                    "internal/backends/wasm/testdata/runtime_probes"
+                } else {
+                    "internal/backends/wasm/testdata/time_probes"
+                })
+        };
         let actual_directory = Path::new(
             provenance["inputs"]["directory"]
                 .as_str()

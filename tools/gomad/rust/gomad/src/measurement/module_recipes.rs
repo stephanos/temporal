@@ -76,7 +76,7 @@ fn integration_configuration() -> Result<Value, String> {
     Ok(configuration)
 }
 
-/// The original TestPrepareTemporalTerminalExitModule used integrationProvider defaults,
+/// The original `TestPrepareTemporalTerminalExitModule` used `integrationProvider` defaults,
 /// overriding only profile, clock step, memory and fuel; its target Spec had no Args.
 pub(crate) fn terminal_exit(repo: &Path) -> Result<PreparationRecipe, String> {
     let configuration = integration_configuration()?;
@@ -105,7 +105,7 @@ pub(crate) fn diagnostic_probe(repo: &Path) -> ModuleRecipe {
     }
 }
 
-/// Original prototypeRequest used the full Temporal prototype policy, not installation networking.
+/// Original `prototypeRequest` used the full Temporal prototype policy, not installation networking.
 pub(crate) fn temporal_request(
     repo: &Path,
     package: &str,
@@ -136,7 +136,7 @@ pub(crate) fn temporal_request(
     })
 }
 
-/// Original cooperativeModuleRequest, also used by the diagnostic choices feature probe.
+/// Original `cooperativeModuleRequest`, also used by the diagnostic choices feature probe.
 pub(crate) fn diagnostic_probe_request() -> Result<RequestRecipe, String> {
     let mut configuration = integration_configuration()?;
     configuration["Args"] = json!(["guest", "literal $arg"]);
@@ -156,7 +156,7 @@ pub(crate) fn diagnostic_probe_request() -> Result<RequestRecipe, String> {
     })
 }
 
-/// measureRuntimeCostProfile starts with cooperativeModuleRequest, then applies these overrides.
+/// `measureRuntimeCostProfile` starts with `cooperativeModuleRequest`, then applies these overrides.
 pub(crate) fn runtime_request() -> Result<RequestRecipe, String> {
     let mut request = diagnostic_probe_request()?;
     request.configuration["Clock"]["ReadStepNanos"] = json!(0);

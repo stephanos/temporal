@@ -280,8 +280,8 @@ fn runtime_selection_retains_actual_preparation_bounds() {
         "./runtime_cost",
         &[],
         &[],
-        true,
-        Duration::from_secs(180),
+        &resource_bounds(&Selection::Runtime),
+        64 << 20,
         None,
     )
     .unwrap();
@@ -324,4 +324,61 @@ fn runtime_configuration_preserves_original_request_without_widening() {
         config["Limits"],
         json!({"OutputBytes":1<<20,"TranscriptBytes":64<<20,"Calls":1<<20,"Descriptors":64,"Files":1000,"FilesystemBytes":8<<20,"PendingEvents":4096})
     );
+}
+
+#[test]
+fn runtime_execution_projection_keeps_original_argv_independent_of_compiler_configuration() {
+    let temp = Temporary::new();
+    let configuration = serde_json::from_value(json!({
+        "engine":"fixture", "profile":COOPERATIVE,
+        "limits":{"memory_bytes":1,"fuel":1,"wall_millis":1,"output_bytes":1,"evidence_bytes":1},
+        "arguments":["gomad-target"],"environment":{},"runtime_sha256":null,"model":null,"namespace":null
+    })).unwrap();
+    let prepared = Prepared {
+        request: None,
+        observation_receipt_sha256: None,
+        guest: preparation::Prepared {
+            auxiliary: BTreeMap::new(),
+            compile_cache_root: None,
+            module: b"fixture".to_vec(),
+            configuration,
+            toolchain: String::new(),
+            choice_identity: None,
+            scenario: None,
+            network: None,
+            soft_assertion_report_only: false,
+            provenance: Vec::new(),
+        },
+        module_path: temp.0.join("module.wasm"),
+        provenance_path: temp.0.join("module-provenance.json"),
+        installation_path: temp.0.join("installation.json"),
+        module_metadata: Value::Null,
+        preparation_arguments: Vec::new(),
+        scenario_path: None,
+    };
+    let input = request_input(
+        &prepared,
+        &super::super::module_recipes::runtime_request().unwrap(),
+        7,
+    )
+    .unwrap();
+    assert_eq!(
+        input["guest"]["model"]["arguments"],
+        json!(["guest", "literal $arg"])
+    );
+    assert_eq!(
+        input["guest"]["model"]["environment"],
+        json!(["PWD=/workspace", "TZ=UTC", "ONLY=captured"])
+    );
+    assert_eq!(input["guest"]["model"]["configuration"]["seed"], 7);
+    assert_eq!(input["guest"]["model"]["configuration"]["limit"], 64 << 20);
+    assert_eq!(
+        input["guest"]["model"]["configuration"]["digest_only"],
+        false
+    );
+    assert_eq!(input["guest"]["limits"]["memory_bytes"], 256 << 20);
+    assert_eq!(input["guest"]["limits"]["fuel"], 1_u64 << 40);
+    assert_eq!(prepared.guest.configuration.arguments, ["gomad-target"]);
+    let limits = super::super::evidence::ReadLimits::for_request(&input).unwrap();
+    assert!(limits.stream_bytes >= 64 << 20);
 }

@@ -290,6 +290,12 @@ pub struct CommandObservation {
     pub environment: BTreeMap<String, String>,
     pub pid: Option<u32>,
     #[serde(default)]
+    pub parent_pid: Option<u32>,
+    #[serde(default)]
+    pub clock: Option<String>,
+    #[serde(default)]
+    pub started_monotonic_nanos: Option<u64>,
+    #[serde(default)]
     pub reaped_monotonic_nanos: Option<u64>,
     pub exit_code: Option<i32>,
     pub signal: Option<i32>,
@@ -391,6 +397,8 @@ pub(super) fn observe_command(
 ) -> CommandObservation {
     use std::os::unix::process::ExitStatusExt;
     let started = Instant::now();
+    let started_monotonic_nanos = gomad_wasmhost::linked::monotonic_nanos().ok();
+    let parent_pid = Some(std::process::id());
     let stdout = root.join(format!("{label}.stdout"));
     let stderr = root.join(format!("{label}.stderr"));
     let mut child = None;
@@ -544,6 +552,9 @@ pub(super) fn observe_command(
         directory: cwd.into(),
         environment: environment.clone(),
         pid,
+        parent_pid,
+        clock: Some("CLOCK_MONOTONIC".into()),
+        started_monotonic_nanos,
         reaped_monotonic_nanos,
         exit_code: status.and_then(|status| status.code()),
         signal: status.and_then(|status| status.signal()),

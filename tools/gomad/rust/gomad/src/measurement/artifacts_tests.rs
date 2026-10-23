@@ -103,7 +103,7 @@ fn change_json(path: &Path, change: impl FnOnce(&mut Value)) {
 fn rebind_metadata(output: &Path, field: &str, file: &str) {
     let sha256 = canonical::digest(&std::fs::read(output.join(file)).unwrap());
     change_json(&output.join("canonical-streams.json"), |catalog| {
-        catalog[field] = json!(sha256)
+        catalog[field] = json!(sha256);
     });
 }
 fn mutate_digest_receipt(output: &Path, mutation: usize) {
@@ -131,7 +131,7 @@ fn mutate_digest_receipt(output: &Path, mutation: usize) {
             });
             let sha256 = canonical::digest(&std::fs::read(output.join("request.json")).unwrap());
             change_json(&output.join("report.json"), |report| {
-                report["request_sha256"] = json!(sha256)
+                report["request_sha256"] = json!(sha256);
             });
         }
         2 => {
@@ -150,14 +150,14 @@ fn mutate_digest_receipt(output: &Path, mutation: usize) {
                         "transcript_sha256"
                     });
             });
-            rebind_metadata(&output, "outcome_sha256", "outcome.json");
+            rebind_metadata(output, "outcome_sha256", "outcome.json");
         }
         4 => {
             change_json(&output.join("streams.json"), |native| {
-                native["transcript"] = json!({"bytes":0,"sha256":canonical::digest(b"")})
+                native["transcript"] = json!({"bytes":0,"sha256":canonical::digest(b"")});
             });
             std::fs::write(output.join("transcript"), b"").unwrap();
-            rebind_metadata(&output, "native_streams_sha256", "streams.json");
+            rebind_metadata(output, "native_streams_sha256", "streams.json");
         }
         5 => change_json(&output.join("canonical-streams.json"), |catalog| {
             catalog["streams"]["wasi"]
@@ -167,12 +167,12 @@ fn mutate_digest_receipt(output: &Path, mutation: usize) {
         }),
         6 => {
             change_json(&output.join("outcome.json"), |outcome| {
-                outcome["local_model"]["transcript_sha256"] = json!("g".repeat(64))
+                outcome["local_model"]["transcript_sha256"] = json!("g".repeat(64));
             });
             change_json(&output.join("canonical-streams.json"), |catalog| {
-                catalog["streams"]["wasi"]["sha256"] = json!("g".repeat(64))
+                catalog["streams"]["wasi"]["sha256"] = json!("g".repeat(64));
             });
-            rebind_metadata(&output, "outcome_sha256", "outcome.json");
+            rebind_metadata(output, "outcome_sha256", "outcome.json");
         }
         _ => std::fs::set_permissions(
             output.join("outcome.json"),

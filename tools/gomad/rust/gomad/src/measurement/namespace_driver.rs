@@ -605,6 +605,7 @@ fn load_prepared(common: &CommonReceipt) -> Result<module::Prepared, String> {
         return Err("native namespace common module bytes changed".into());
     }
     let mut prepared = module::Prepared {
+        request: None,
         observation_receipt_sha256: Some(common.preparation_receipt_sha256.clone()),
         guest: crate::campaign::prepare::Prepared {
             auxiliary: BTreeMap::new(),
@@ -754,7 +755,12 @@ pub fn run_sample(
     } else {
         let path = Path::new(replay);
         clean(path)?;
-        let recorded = evidence::read_profile_run(path, evidence::ReadLimits::default())?;
+        let planned = common
+            .requests
+            .get(&seed)
+            .ok_or("undeclared namespace seed")?;
+        let recorded =
+            evidence::read_profile_run(path, evidence::ReadLimits::for_request(planned)?)?;
         if recorded.report["host_sha256"] != role.executable.sha256 {
             return Err(
                 "namespace replay requires a retained native source run from this admitted helper"
@@ -916,8 +922,10 @@ fn operations(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<P
             }
             digest_retention(&recorded[0], &recorded[1])?;
             let reference_root = controls.join(format!("{label}-reference-seed{seed}"));
-            let reference =
-                evidence::read_profile_run(&reference_root, evidence::ReadLimits::default())?;
+            let reference = evidence::read_profile_run(
+                &reference_root,
+                evidence::ReadLimits::for_request(&input)?,
+            )?;
             for field in [
                 "host_sha256",
                 "host_implementation_sha256",

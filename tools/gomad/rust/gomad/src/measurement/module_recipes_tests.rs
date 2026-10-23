@@ -7,7 +7,7 @@ fn terminal_preparation_preserves_original_backend_tuple_without_execution_argum
     assert_eq!(recipe.module.source, "./tests");
     assert_eq!(recipe.module.directory, Path::new("/frozen/checkout"));
     assert_eq!(recipe.module.build_tags, ORIGINAL_TEMPORAL_TAGS);
-    assert!(recipe.module.target_arguments.is_empty());
+    assert_eq!(recipe.module.target_arguments, Vec::<String>::new());
     assert_eq!(recipe.memory_bytes, 4 << 30);
     assert_eq!(recipe.fuel, 1 << 50);
     let config = recipe.configuration;
@@ -32,7 +32,7 @@ fn original_temporal_compile_selects_full_three_tags_without_run_selection() {
     let full = temporal_test(Path::new("/repo"), "./tests");
     assert_eq!(full.kind, "go-test");
     assert_eq!(full.build_tags, ORIGINAL_TEMPORAL_TAGS);
-    assert!(full.target_arguments.is_empty());
+    assert_eq!(full.target_arguments, Vec::<String>::new());
     assert!(!full.build_tags.iter().any(|tag| tag == "gomad_wasm_slim"));
     let derived = derived_temporal_test(Path::new("/external/source-module"), "./.tmp/derived");
     assert_eq!(derived.directory, Path::new("/external/source-module"));
@@ -52,8 +52,8 @@ fn runtime_and_probe_compile_preserve_the_original_mapped_fixture_and_no_tags() 
         runtime.source,
         "./internal/model/wasi/testdata/runtime_cost"
     );
-    assert!(runtime.build_tags.is_empty());
-    assert!(runtime.target_arguments.is_empty());
+    assert_eq!(runtime.build_tags, Vec::<String>::new());
+    assert_eq!(runtime.target_arguments, Vec::<String>::new());
     let probe = diagnostic_probe(Path::new("/repo"));
     assert_eq!(probe.kind, "go-run");
     assert_eq!(probe.directory, runtime.directory);
@@ -61,8 +61,8 @@ fn runtime_and_probe_compile_preserve_the_original_mapped_fixture_and_no_tags() 
         probe.source,
         "./internal/backends/wasm/toolchain/testdata/choices"
     );
-    assert!(probe.build_tags.is_empty());
-    assert!(probe.target_arguments.is_empty());
+    assert_eq!(probe.build_tags, Vec::<String>::new());
+    assert_eq!(probe.target_arguments, Vec::<String>::new());
 }
 
 #[test]
@@ -102,12 +102,12 @@ fn temporal_request_retains_full_prototype_limits_independently_of_module_prepar
         repo,
         "tests",
         &["-test.run=^Exact$".into()],
-        Duration::from_secs(1800),
+        Duration::from_mins(30),
     )
     .unwrap();
     assert_eq!(request.memory_bytes, 4 << 30);
     assert_eq!(request.fuel, 1 << 50);
-    assert_eq!(request.timeout, Duration::from_secs(1800));
+    assert_eq!(request.timeout, Duration::from_mins(30));
     assert_eq!(request.choice_bytes, 1 << 30);
     assert!(!request.diagnostics);
     assert!(request.digest_transcript);
@@ -133,7 +133,7 @@ fn temporal_request_retains_full_prototype_limits_independently_of_module_prepar
     let admitted = crate::install::config::convert(request.configuration, COOPERATIVE).unwrap();
     assert_eq!(admitted.arguments.last().unwrap(), "-test.run=^Exact$");
     let preparation = terminal_exit(repo).unwrap();
-    assert!(preparation.module.target_arguments.is_empty());
+    assert_eq!(preparation.module.target_arguments, Vec::<String>::new());
     assert!(preparation.configuration["Args"].is_null());
     assert_eq!(preparation.configuration["Limits"]["OutputBytes"], 1 << 20);
 }
@@ -151,7 +151,7 @@ fn original_configurations_pass_the_real_native_configuration_admission() {
             Path::new("/repo"),
             "/absolute",
             &[],
-            Duration::from_secs(1800)
+            Duration::from_mins(30)
         )
         .is_err()
     );
@@ -160,7 +160,7 @@ fn original_configurations_pass_the_real_native_configuration_admission() {
             Path::new("/repo"),
             "../escape",
             &[],
-            Duration::from_secs(1800)
+            Duration::from_mins(30)
         )
         .is_err()
     );
@@ -180,7 +180,7 @@ fn host_owner_alone_preserves_its_original_explicit_slim_build_profile() {
             "test_dep"
         ]
     );
-    assert!(recipe.target_arguments.is_empty());
+    assert_eq!(recipe.target_arguments, Vec::<String>::new());
     assert!(
         !temporal_test(Path::new("/repo"), "./tests")
             .build_tags
