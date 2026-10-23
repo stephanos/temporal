@@ -55,3 +55,46 @@ executes no compiler, harness, CLI or guest.
 
 Focused Python tests use synthetic protocol counterexamples and a tiny ordinary
 Python process. They establish no actual Go execution or fn233 acceptance.
+
+The fn233 callback acceptance stage is required separately from the fn232 rewrite
+ladder. The frozen 96 stage labels and 146 final subgates have no interception
+label; their completion supplies no fn233 callback acceptance. Run the following
+reader after producing both the controlled callback proof above and the genuine
+compiled-Go closed-consumer proof using `interception-callback-check.py`:
+
+```sh
+python3 tools/gomad/rust/driver/interception_callbacks.py --bindings /absolute/callback-bindings.json
+```
+
+The binding document has exactly these fields (all paths canonical and absolute):
+
+```json
+{
+  "schema": "gomad.interception-callback-bindings/v1",
+  "main_build": "/absolute/main/main-build.json",
+  "harness_build": "/absolute/streaming/main-build.json",
+  "installation": "/absolute/ordinary-installation.json",
+  "streaming_root": "/absolute/fresh-streaming-proof",
+  "closed_root": "/absolute/fresh-closed-consumer-proof",
+  "inputs": "/absolute/prepared-interception-inputs.json"
+}
+```
+
+Both proofs must use that same ordinary installation and frozen release candidate.
+The reader reopens the full authentic `release` and `interception-harness` build
+roles, the controlled marker/controller-action/exit/replay evidence, and the closed
+consumer's actual process/FD-close/partial-evidence journals. Each producer keeps
+its original whole 600-second deadline. Cached `proof.json` and `observation.json`
+are not acceptance inputs. WAT or tiny Python controls earn no compiled-Go credit.
+
+This stage receives only the two callback obligations. Full fn233 acceptance also
+requires the unchanged 81-case corpus, its second byte-identical regeneration,
+21 real cases, launcher/Make checks, automatic frontend/manual/P2 receiving, and
+scoped hidden retained replays. This reader does not replace any of those gates.
+
+The closed proof retains its original `gomad.intercepted-origin/v1` schema and
+`intercepted-go` identity. After the public checker authenticates that complete
+origin, the callback acceptance reader uses a copied provenance view with only
+that authenticated extension removed to reuse structural identity validation.
+It never changes retained bytes and never credits intercepted evidence as
+qualification; the shared qualification reader continues to reject that evidence.

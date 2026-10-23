@@ -208,13 +208,13 @@ def refuse_stdout(runner, argv, extra):
     return runner.read_process('closed-stdout', argv, 3, extra, closed=True)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['binary', 'installation', 'inputs', 'work']:
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--read-only', action='store_true')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     started_ns = time.monotonic_ns()
     if not 1 <= args.timeout <= 600:
         parser.error('timeout must preserve the original overall bound, 1..600 seconds')
@@ -283,6 +283,7 @@ def main():
         runner.remaining()
         (args.work / 'observation.json').write_bytes(check.parity.canonical(observation) + b'\n')
     print('compiled Go closed-consumer partial evidence authenticated')
+    return observation
 
 
 if __name__ == '__main__':
