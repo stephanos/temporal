@@ -277,6 +277,9 @@ def main():
         assert sum(group['count'] for group in inspected_minimum['final_forced_by_symbol']) == inspected_minimum['final_forced_decisions']
         assert all('symbol' in decision for reduction in inspected_minimum['accepted'] for decision in reduction['removed'])
         assert (Path(minimized['artifact_path']) / 'evidence/inspection.json').read_bytes() == raw_before
+        display = runpy.run_path(str(Path(__file__).with_name('site-minimizer-display.py')))
+        (args.work / 'scope-minimizer-display.json').write_bytes(
+            display['check'](minimized, inspected_minimum, Path(minimized['artifact_path'])))
         replayed = run('scope-failure-minimum-replay', [args.binary, 'replay', minimized['artifact_path']], (1,))
         assert b'reproduced=true' in replayed
         malformed = args.work / 'scope-failure-invalid-context'

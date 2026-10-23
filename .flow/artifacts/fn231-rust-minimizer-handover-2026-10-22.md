@@ -579,3 +579,52 @@ its removed library intermediates were regenerated under the explicit lease.
 No Go compilation, full generation retry or golden overwrite ran. Independent
 review, integrated gates and two fresh complete public generations remain with
 the conductor.
+
+
+## Positive display golden from the two completed scope runs
+
+The literal task2 golden coverage now includes inspect's complete per-removed
+`symbol` objects, alongside package/function final groups and minimize scope and
+removal counts. `site-minimizer-display.py` reuses the existing campaign artifact
+authenticator/canonical encoding, authenticates the actual record and all bound
+payloads, checks the complete inspect minimization block against retained raw
+metadata, and verifies CLI candidate/removed identities exactly before selecting
+only explicitly declared presentation fields. No record, evidence, choice or
+identity value is rewritten to make two runs match.
+
+The two inputs were the already completed and authenticated
+`/home/agent/wt/evidence/fn231-public-provenancefix-01/scope-01` and
+`/home/agent/wt/evidence/fn231-public-provenancefix-02/scope-02`. Their projections
+were checked byte-identical before the new checked write. Both are 938 bytes,
+SHA-256 `4d50ea6bf4def5cee39e09755672f23d99dc52e2f62642b0e2090fc8a365549d`.
+The new checked path is `goldens-minimize/scoped-display.json`. The checker also
+enforces repeated equality before regeneration under the existing
+`GOMAD_GOLDEN_REGENERATE=1` convention, requiring distinct authenticated scope
+outputs. The live scope path strictly compares the golden after existing report
+and raw-byte checks; it writes its observed display view to the work directory.
+No new host CLI or runtime control is involved.
+
+The portable copied input fixture retains actual full candidate identities and
+raw minimization metadata; it omits only the external artifact path. Fourteen
+offline tests cover positive main.choose/main.go:6/inline main.main symbols,
+missing and changed symbols/groups, counts (including a balanced but wrong
+classification), ordinals, exact identities, raw predicate metadata, scope and
+the two-run regeneration gate. These compare copied actual output to the frozen
+reviewed golden, rather than deriving expected symbols from checker logic.
+
+Verification commands (all exit0):
+`python3 tools/gomad/testdata/parity/site-minimizer-display-tests.py`;
+`python3 tools/gomad/testdata/parity/site-minimizer-display.py --scope-output
+/home/agent/wt/evidence/fn231-public-provenancefix-01/scope-01 --scope-output
+/home/agent/wt/evidence/fn231-public-provenancefix-02/scope-02`; three Python AST
+checks and `git diff --check`. Logs are
+`/home/agent/evidence/fn231-scoped-display-portable-tests.log` and
+`fn231-scoped-display-actual-check.log`. Independent before/after hashes of each
+actual record, manifest, inspection block, choice and retained source tape are
+unchanged, recorded in `fn231-scoped-display-proof.json`. Checker SHA-256 is
+`d744cee766cdf1fa77215414e6bb12a83057c2d8aad6e2ef677e5ca509df1efb`;
+portable tests SHA-256 is
+`624f5ff9d7efe3cefa24ed6430f4bef29e271f5906b019591e57fc813f8be49b`.
+The original `semantic.json` remains byte-identical in this isolated checkout
+(SHA-256 d8f7795d...). No Rust, Cargo, Go, guest, complete generation, lifecycle
+transition or push ran for this Python-only coverage addition.
