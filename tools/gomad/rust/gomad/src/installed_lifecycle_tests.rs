@@ -534,7 +534,7 @@ fn retained_projected_cluster(damage: &str) -> Retained {
     let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
     let mut payloads = BTreeMap::new();
     for (name, entry) in &opened.manifest().files {
-        if name == "target/module.wasm" || name.starts_with("output/") {
+        if name == "target/module.wasm" {
             payloads.insert(name.clone(), opened.payload(name, entry.bytes).unwrap());
         }
     }
