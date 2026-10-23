@@ -1773,3 +1773,7 @@ mod interrupted_coverage_tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "scenario_preservation_tests.rs"]
+mod preservation_tests;
