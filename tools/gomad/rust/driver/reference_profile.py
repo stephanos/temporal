@@ -187,7 +187,9 @@ def raw_run(raw, output, owner):
     return run
 
 
-def bind_preparation(native, provenance):
+def bind_preparation(native, provenance, *, original_runtime=False):
+    if original_runtime:
+        return bind_original_runtime_preparation(native, provenance)
     configuration = provenance['configuration']
     guest = native['guest']
     expected = copy.deepcopy(configuration['model'])
@@ -202,6 +204,48 @@ def bind_preparation(native, provenance):
         and guest['limits'] == configuration['limits'] and guest['namespace'] == configuration['namespace']
         and guest['storage'] == configuration.get('storage') and native.get('network') == configuration.get('network'),
         'native request differs from exact prepared configuration')
+
+
+
+def bind_original_runtime_preparation(native, provenance):
+    """Bind the original direct Run request separately from native compiler defaults."""
+    inputs, configuration = provenance['inputs'], provenance['configuration']
+    directory = custody.absolute(inputs['directory'])
+    source = directory / 'internal/model/wasi/testdata/runtime_cost/main.go'
+    source_sha = '81a802dcdbbdad7df57c457537396cfd36e8cac4982817a48ef8421c611b362d'
+    custody.require(inputs['kind'] == 'go-run' and inputs['source'] == './internal/model/wasi/testdata/runtime_cost'
+                    and inputs['arguments'] == [] and inputs['tags'] == []
+                    and inputs['sources'].get(str(source)) == source_sha
+                    and custody.snapshot(source, 1 << 20) == dict(bytes=368, sha256=source_sha),
+                    'original runtime source/preparation recipe changed')
+    guest, model = native['guest'], native['guest']['model']
+    original_model = dict(entropy_key=[1, 2, 3] + [0] * 29,
+        working_directory_sha256=custody.digest(b'/workspace'), arguments=dict(bytes=0, count=0, chunks=0),
+        environment=dict(bytes=0, count=0, chunks=0), seed=7, mode=1, limit=64 << 20,
+        diagnostics=False, digest_only=False, epoch_nanos=946684800000000000, read_step_nanos=0, now=1,
+        limits=dict(calls=1 << 20, transcript_bytes=64 << 20, pending_events=4096))
+    custody.require(model == dict(configuration=original_model, arguments=['guest', 'literal $arg'],
+            environment=['PWD=/workspace', 'TZ=UTC', 'ONLY=captured'], replay_trace=None),
+            'original runtime raw argv/environment/model changed')
+    prepared_model = copy.deepcopy(original_model)
+    del prepared_model['seed']
+    del prepared_model['digest_only']
+    custody.require(configuration['model'] == prepared_model and configuration['arguments'] == ['gomad-target']
+        and configuration['environment'] == dict(PWD='/workspace', TZ='UTC', ONLY='captured',
+            GOMAD_IO_PROFILE='wasm', GOMAD_CHOICE_PROFILE='gomad-choice-trace/v4')
+        and configuration['derive_seed_environment'] is True,
+        'original runtime native preparation normalization changed')
+    limits, namespace = guest['limits'], guest['namespace']
+    custody.require(limits['fuel'] == 1 << 40 and limits['memory_bytes'] == 256 << 20
+        and limits['wall_millis'] == 180000 and limits['output_bytes'] == 1 << 20
+        and namespace['limits'] == dict(descriptors=64, files=1000, filesystem_bytes=8 << 20, output_bytes=1 << 20)
+        and namespace['working_directory'] == list(b'/workspace')
+        and namespace['writable_directories'] == [list(b'/workspace'), list(b'/tmp')]
+        and namespace['epoch_nanos'] == 946684800000000000 and namespace['stdin'] == []
+        and configuration['limits'] == limits and configuration['namespace'] == namespace
+        and guest['storage'] is None and configuration.get('storage') is None
+        and native.get('network') is None and configuration.get('network') is None,
+        'original runtime execution/preparation bounds changed')
 
 
 def same_original_evidence(left, right):
@@ -249,9 +293,11 @@ def helper_sources(repo, commit):
     fixed = {package / 'build.rs', package / 'Cargo.toml', package.parent / 'Cargo.toml',
              package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'}
     tracked = subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-rz', '--name-only', commit,
-                                      '--', 'tools/gomad/rust/wasmhost/src']).split(b'\0')
-    expected = {repo / path.decode() for path in tracked if path.endswith(b'.rs')} | fixed
-    actual = set(package.joinpath('src').rglob('*.rs')) | fixed
+                                      '--', 'tools/gomad/rust/wasmhost']).split(b'\0')
+    root = package.relative_to(repo)
+    members = [Path(path.decode()) for path in tracked if path.endswith(b'.rs')]
+    expected = {repo / path for path in members if path.is_relative_to(root / 'src') or path.parent == root} | fixed
+    actual = set(package.joinpath('src').rglob('*.rs')) | set(package.glob('*.rs')) | fixed
     custody.require(actual == expected, 'helper immutable source membership changed')
     paths = sorted(expected)
     files = {}
@@ -375,7 +421,7 @@ def run(derived, native_request, request_sha256, provenance, provenance_sha256, 
     provenance_value, provenance_identity = custody.document(provenance)
     custody.require(native_identity['sha256'] == request_sha256 and provenance_identity['sha256'] == provenance_sha256,
                     'changed actual native request/provenance')
-    bind_preparation(native, provenance_value)
+    bind_preparation(native, provenance_value, original_runtime=True)
     module = custody.absolute(native['guest']['module'])
     module_identity = custody.snapshot(module, 512 << 20)
     custody.require(module_identity['sha256'] == native['guest']['module_sha256'] == provenance_value['module_sha256']

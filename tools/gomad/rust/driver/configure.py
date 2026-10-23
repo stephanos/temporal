@@ -173,6 +173,11 @@ def freeze(bindings, output, source_manifest):
                     and sha(path) == expected, 'changed installation compiler input: ' + path)
             inputs.add(path)
     inputs.update((config['binary'], config['build_receipt']))
+    import main_cli_build
+    inputs.update(main_cli_build.input_paths(config['build_receipt']))
+    fixture_role = config.get('live_corpus', {}).get('roles', {}).get('host-fixture')
+    if fixture_role:
+        inputs.update(main_cli_build.input_paths(fixture_role['build_receipt']))
     inputs.update(native_bootstrap_inputs(config))
     inputs.update(native_profile_inputs(config))
     if config.get('identity_harness') is not None:
@@ -220,6 +225,9 @@ def freeze(bindings, output, source_manifest):
         native_roles.validate_build(config, entry['build_receipt'], role)
         if entry.get('admission'):
             native_roles.validate_admission(config, entry['admission'], role)
+    main_cli_build.read_build(config['build_receipt'], config, expected_role='release')
+    if fixture_role:
+        main_cli_build.read_build(fixture_role['build_receipt'], config, expected_role='host-fixture')
     import final_profiles
     final_profiles.preflight(config)
     if config.get('identity_harness') is not None:

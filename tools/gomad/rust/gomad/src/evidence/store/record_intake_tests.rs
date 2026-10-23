@@ -230,3 +230,38 @@ fn resealed_exit_record_without_exit_status_is_rejected_by_public_intake() {
         reason: String::new(),
     });
 }
+
+#[test]
+fn resealed_unknown_nested_record_fields_refuse_before_inspection_output() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let published = publish(&root.0.join("store"), "");
+    assert_genuine(&published.path);
+    let manifest_path = published.path.join("manifest.json");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&manifest_path).unwrap()).unwrap();
+    manifest["record"]["outcome"]["future"] = true.into();
+    let bytes = canonical::encode(&manifest["record"]).unwrap();
+    let digest = canonical::digest(&bytes);
+    manifest["record_sha256"] = digest.clone().into();
+    manifest["files"]["record.json"]["sha256"] = digest.into();
+    manifest["files"]["record.json"]["bytes"] = bytes.len().into();
+    std::fs::write(published.path.join("record.json"), &bytes).unwrap();
+    std::fs::write(&manifest_path, canonical::encode(&manifest).unwrap()).unwrap();
+    for (name, entry) in manifest["files"].as_object().unwrap() {
+        let bytes = std::fs::read(published.path.join(name)).unwrap();
+        assert_eq!(entry["bytes"], bytes.len());
+        assert_eq!(entry["sha256"], canonical::digest(&bytes));
+    }
+    let error = Opened::open(&published.path).err().unwrap();
+    assert!(error.contains("unknown field `future`"), "{error}");
+    let mut output = Vec::new();
+    let error = inspect(&published.path, &mut output).err().unwrap();
+    assert!(
+        error.message.contains("unknown field `future`"),
+        "{}",
+        error.message
+    );
+    assert_eq!(output, Vec::<u8>::new());
+}

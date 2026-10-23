@@ -73,6 +73,28 @@ class CompositionTests(unittest.TestCase):
         with self.assertRaisesRegex(Refusal, 'missing actual mandatory installation'):
             compose.bind_primitives(config, Path('/sealed/config'))
 
+    def test_existing_gnu_pinned_static_plan_is_recomputed_and_never_overwritten(self):
+        import tempfile
+        import json
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);temporary=root/'temporary';temporary.mkdir();plan=root/'static-plan.json'
+            declared={'schema':'gomad.driver-static-plan/v1','reviewed':'fixedactualtoolsandrecipes'}
+            plan.write_text(json.dumps(declared));before=plan.read_bytes()
+            def assemble(inputs,base,actual,output):
+                actual.write_text(json.dumps(declared))
+                return dict(stages={'validate':dict(argv=['python','static','--plan',str(actual)],checker=['python','static','--plan',str(actual)])},
+                            inputs=[str(actual),'/actual/tool'])
+            with patch.object(compose.static_stages,'assemble',side_effect=assemble):
+                result=compose.assemble_static({}, {}, plan, temporary)
+            self.assertEqual(plan.read_bytes(),before)
+            self.assertEqual(result['stages']['validate']['argv'][-1],str(plan))
+            self.assertEqual(result['stages']['validate']['checker'][-1],str(plan))
+            self.assertEqual(result['inputs'],sorted([str(plan),'/actual/tool']))
+            plan.write_text(json.dumps(dict(declared,reviewed='foreign')))
+            with patch.object(compose.static_stages,'assemble',side_effect=assemble),self.assertRaisesRegex(Refusal,'provisioned static plan differs'):
+                compose.assemble_static({}, {}, plan, temporary)
+
     def test_fixed_final_partition_and_order(self):
         sections = compose.final_sections('/sealed/python', Path('/sealed/driver.json'))
         self.assertEqual(len([item for row in sections.values() for item in row['required']]), 8)

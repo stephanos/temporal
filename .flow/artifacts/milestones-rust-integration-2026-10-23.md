@@ -470,3 +470,83 @@ experiment and all frozen-cycle qualification remain outstanding. Native scratch
 is below the12GiB admission floor; source preparation uses checkout storage and
 an owner-controlled verified cache offload is underway. Full milestone work stays
 active, including broad original receiving and remaining legacy contracts.
+
+## Native scratch restored and remaining references revalidated
+
+The exact current evidence resolver still fails with15 unresolved legacy
+references. A preceding zero-selected filter earns no credit. Both numeric exits
+and raw logs remain in the companion JSON.
+
+The measurement owner copied its released idle target to checkout storage and
+verified all6749 entries; an independent auditor compared every mode, file hash,
+size and symlink literal. The old path remains a historical read alias, retired
+for builds. This recovered17.14GiB of allocation and restored native scratch to
+27.12GiB free, above the12GiB floor. Active targets and open evidence remain intact.
+The fresh genuine release build is running on checkout storage. Its runtime
+experiment still needs an exact original-recipe preparation binding repair and
+actual execution; no runtime or final qualification pass is claimed.
+
+The interception audit identified a missing fresh auto-derived Frontend execution
+route beyond existing compile-only auto cases. That receiving automation and the
+broad native preservation batch continue without changing frozen96 labels.
+
+## Retained Go namespace producer received
+
+At `530b6973f3`,20 evidence references now name the surviving Go model test.
+All510 inventory identities/sites and every other field remain unchanged.
+Independent review verifies original assertions,174scripts,192unchanged JSON
+fixtures,100fixed seeds,18legacy projections and25captured SQLite inputs.
+The actual pinned stockGo drift check passes174subcases without skips or
+regeneration. This proves reference corpus conformance only.
+
+The full evidence resolver remains red with14unique unresolved references,
+down from15. The native and retained-model reference check separately passes.
+The genuine ordinary release measurement binary built successfully in296seconds
+from exactcda source; root independently verified its executable hash. Module
+preparation is underway, while actual three-leg runtime execution, mainCLI
+finalbuild, full frozen qualification and milestone completion remain pending.
+
+## Exact runtime request and release admission readers
+
+At `edf48a7a87`, the two reviewed controller repairs pass all319 joined Python
+tests. Release admission now expects the unchanged current public CLI refusal
+message and refuses boolean build exits. The runtime-cost binding preserves
+the exact original ordered request separately from compiler-normalized campaign
+configuration; generic bindings remain unchanged. Historical causal RED, focused
+mutation tests and the joined result are retained. These are reader/source tests,
+not actual mainCLI admission or runtime qualification.
+
+Module preparation continues under the measurement owner's Go lease. A newly
+found reference-helper source-receipt gap must include the actual build-identity
+root module before its next build. Full original runtime comparisons,14remaining
+legacy references and the complete milestone qualification remain open.
+
+## Assertion migration receiving and actual runtime source discrepancy
+
+At `0923e4d58d`,39source/runtime inventory tests pass with only the known
+reference resolver excluded. The full resolver still fails on five references.
+Six explicit removed-peer-wire contracts retain every original assertion and
+original_pass=false; unresolved output/fuel claims cannot resolve. Actual native
+callback, execute-request and nested retained-record refusal tests pass. A schema
+integration failure and Clippy failure were repaired with a reviewed bounded
+reference grammar, preserving both original RED logs. Four environment references
+now name the unchanged retained Go model test; all11original cases actually pass.
+
+Strict release workspace Clippy and all328 joined Python driver tests pass. New
+fn233 receiving routes pass16offlinecontrols; installedoperator receiving routes
+pass6purecontrols and preserve original inspection-total assertions. Their actual
+Go/installed/hidden executions remain pending. The closed mainCLI build producer
+and stronger freezer/admission reader are integrated; actual mainbuild awaits
+fresh GNUmetadata and source-custody followup.
+
+The uncached native and two original ownership runs all exit0 and are reaped.
+Independent reading proves exact six raw streams,200037calls and100000poll/result
+pairs with original rawargv/environment/seed/bounds. This raw behavior match does
+not establish exact-original source custody: extraction silently shortened one
+symlink literal, and the old verifier accepted its matching derived manifest.
+The old source and runs are retained as incomplete evidence. A fresh exact copy,
+archive-to-tree verifier repair, Go rebuild and rerun are required before source
+acceptance. No performance or final qualification claim is made.
+
+Broad native receiving, the five unresolved references, final96stage cycle and
+the full milestone objective remain open.

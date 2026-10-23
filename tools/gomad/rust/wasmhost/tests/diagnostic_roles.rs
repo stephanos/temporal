@@ -342,3 +342,37 @@ fn every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_st
         }
     }
 }
+
+#[test]
+fn malformed_native_callback_memory_publishes_no_output_or_transcript() {
+    let mut prepared = linked::prepare(input::request(
+        "(drop (call $write (i32.const 1) (i32.const -1) (i32.const 1) (i32.const 0)))",
+    ))
+    .unwrap();
+    prepared.conditions(Conditions::compiled());
+    let capture = Arc::new(Output::default());
+    prepared.output(capture.clone());
+    let execution_result = std::thread::scope(|scope| {
+        scope
+            .spawn(move || linked::execute_prepared(prepared))
+            .join()
+            .unwrap()
+            .unwrap()
+    });
+    assert_eq!(execution_result.outcome.termination, "trap");
+    assert_eq!(execution_result.outcome.exit_code, None);
+    for stream in ["stdout", "stderr", "transcript"] {
+        assert!(
+            execution_result
+                .evidence
+                .get(stream)
+                .is_none_or(Vec::is_empty),
+            "{stream}"
+        );
+    }
+    let model = execution_result.outcome.local_model.unwrap();
+    assert_eq!(model["calls"], 0);
+    assert_eq!(model["transcript_bytes"], 0);
+    assert_eq!(*capture.0.lock().unwrap(), Vec::<u8>::new());
+    assert_eq!(Arc::strong_count(&capture), 1);
+}

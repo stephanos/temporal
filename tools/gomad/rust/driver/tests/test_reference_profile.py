@@ -113,6 +113,52 @@ class RequestMapping(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 mapped(native)
 
+    def test_original_runtime_request_has_a_distinct_closed_preparation_projection(self):
+        native = native_input()
+        native['guest']['model']['environment'] = ['PWD=/workspace', 'TZ=UTC', 'ONLY=captured']
+        native['guest']['model']['configuration']['digest_only'] = False
+        model = copy.deepcopy(native['guest']['model']['configuration'])
+        del model['seed']
+        del model['digest_only']
+        repo = HERE.parents[3]
+        directory = repo / 'tools/gomad'
+        source = directory / 'internal/model/wasi/testdata/runtime_cost/main.go'
+        proof = dict(configuration=dict(model=model, arguments=['gomad-target'],
+            environment=dict(ONLY='captured', PWD='/workspace', TZ='UTC',
+                GOMAD_IO_PROFILE='wasm', GOMAD_CHOICE_PROFILE='gomad-choice-trace/v4'),
+            derive_seed_environment=True, limits=native['guest']['limits'],
+            namespace=native['guest']['namespace'], storage=None, network=None),
+            inputs=dict(kind='go-run', source='./internal/model/wasi/testdata/runtime_cost',
+                directory=str(directory), arguments=[], tags=[],
+                sources={str(source): hashlib.sha256(source.read_bytes()).hexdigest()}))
+        reference.bind_preparation(native, proof, original_runtime=True)
+        for mutation in range(11):
+            changed, provenance = copy.deepcopy(native), copy.deepcopy(proof)
+            if mutation == 0:
+                changed['guest']['model']['environment'].append('GOMADSEED=7')
+            elif mutation == 1:
+                changed['guest']['model']['environment'].reverse()
+            elif mutation == 2:
+                changed['guest']['model']['arguments'][0] = 'gomad-target'
+            elif mutation == 3:
+                changed['guest']['model']['configuration']['seed'] = 8
+            elif mutation == 4:
+                provenance['inputs']['arguments'] = ['literal $arg']
+            elif mutation == 5:
+                provenance['inputs']['tags'] = ['gomad_wasm_slim']
+            elif mutation == 6:
+                provenance['inputs']['sources'][str(source)] = '0' * 64
+            elif mutation == 7:
+                provenance['inputs']['source'] = './another'
+            elif mutation == 8:
+                provenance['configuration']['arguments'].append('literal $arg')
+            elif mutation == 9:
+                provenance['configuration']['model']['entropy_key'] = [0] * 32
+            else:
+                changed['guest']['model']['configuration']['limit'] += 1
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                reference.bind_preparation(changed, provenance, original_runtime=True)
+
     def test_actual_request_must_match_prepared_configuration_except_derived_seed(self):
         native = native_input()
         guest = native['guest']
@@ -192,13 +238,29 @@ class HelperCopyCustody(unittest.TestCase):
             root = Path(temporary)
             package = root / 'tools/gomad/rust/wasmhost'
             (package / 'src').mkdir(parents=True)
-            for name in ('src/lib.rs', 'src/conformance.rs', 'build.rs', 'Cargo.toml', '../Cargo.toml', '../Cargo.lock', '../rust-toolchain.toml'):
+            for name in ('src/lib.rs', 'src/conformance.rs', 'build.rs', 'build_identity.rs', 'Cargo.toml', '../Cargo.toml', '../Cargo.lock', '../rust-toolchain.toml'):
                 (package / name).write_text('bounded source fixture\n')
             subprocess.run(['git', 'init', '-q', str(root)], check=True)
             subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
             subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
             commit = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
-            reference.helper_sources(root, commit)
+            measured = reference.helper_sources(root, commit)
+            identity_module = package / 'build_identity.rs'
+            self.assertIn(str(identity_module), measured)
+            original = identity_module.read_bytes()
+            identity_module.write_text('mutated implementation preimage algorithm\n')
+            with self.assertRaisesRegex(ValueError, 'immutable Git input'):
+                reference.helper_sources(root, commit)
+            identity_module.write_bytes(original)
+            identity_module.unlink()
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+            identity_module.write_bytes(original)
+            extra_root = package / 'untracked_algorithm.rs'
+            extra_root.write_text('undeclared implementation algorithm\n')
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+            extra_root.unlink()
             path = package / 'src/conformance.rs'
             raw = path.read_bytes()
             path.unlink()
@@ -208,6 +270,12 @@ class HelperCopyCustody(unittest.TestCase):
             (package / 'src/extra.rs').write_text('undeclared source\n')
             with self.assertRaisesRegex(ValueError, 'membership'):
                 reference.helper_sources(root, commit)
+            (package / 'src/extra.rs').unlink()
+            subprocess.run(['git', '-C', str(root), 'rm', '-q', str(identity_module)], check=True)
+            subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                            'commit', '-qm', 'historical source without identity module'], check=True)
+            historical = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
+            self.assertNotIn(str(identity_module), reference.helper_sources(root, historical))
 
     def test_exact_copy_raw_artifact_compiler_and_process_are_required(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-helper-receipt-fixture-') as temporary:
