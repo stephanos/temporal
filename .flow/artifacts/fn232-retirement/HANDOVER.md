@@ -383,3 +383,28 @@ Those observations do not qualify this newer World/storage candidate. Root's
 new fixture build63477 owns the live-corpus target/jobs2. Subsequent provisional
 fn233 corpus/shim/wrapper/Make source still requires synchronization and all
 integrated/frozen runtime/parity/qualification obligations remain pending.
+
+## Strict original-Start selector synchronization through efaf38efea
+
+Inspected the complete incoming four-file diff and merged rootefaf38efea without
+conflicts. Incoming code is limited to live-broker-cluster-check.py's strict
+selection of original Starta1/b1 controls and the new authenticated offline
+live-broker-stream-test.py; the other two files are source/conductor handovers.
+Both Python files match exact main bytes and declared SHA256 values:
+74e89ad0d5c82e629ca7bc5d060070d06b357df9af6d970a46c588116694350d and
+8571f6e0ea5b33525714f32dba5b2e220e98061b2405e2d5b648aac407001a96.
+Rust delta0 against both399 and this branch's previous checkpoint. Direct pinned
+rustfmt checks on host/helper roots, complete helper-path mapping, include/path
+attributes, Python AST parsing, exact127 original helper lock entries and diff
+checks exit0. No policy edit, Cargo, Go, guest, runtime test, golden or pin change
+occurred. Main checkout, caches and unrelated user paths were untouched.
+
+The incoming handovers record the completed broker77 subset and separate
+private35 proof honestly under their actual compiled source/driver identities;
+those results do not qualify this prospective relocated source or complete all39
+roots/finalR12. The current fn231 semantic failure remains preserved, with further
+fn231 fixes and the remaining fn233 corpus/shim/wrapper/Make source pending.
+The live-corpus owner is separately checking final39root/21×4 reader endpoint
+wiring; any later parity-script patch is also pending a future synchronization.
+Final runtime/lint/parity gates, identity freeze, source-size closeout and main
+retirement remain root-owned and unaccepted by this source-only checkpoint.
