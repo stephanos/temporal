@@ -472,12 +472,12 @@ umpire-check-model-slice:
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
 		CGO_ENABLED=0 \
-			mise exec -- go test -v -count=1 -timeout 2m -tags 'test_dep integration' \
-			./tests -run '^TestTestpilotModelSlice$$' > "$$temporary" 2>&1 || status=$$?; \
+			mise exec -- go test -v -count=1 -timeout 10m -tags 'test_dep integration' \
+			./tests -run '^TestTestpilotModelSlice(ThroughUmpire)?$$' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		if [ "$$status" -ne 0 ]; then exit "$$status"; fi; \
 		awk '/^[[:space:]]*--- PASS:/ { passed[$$3] = 1 } \
-			END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Complete TestTestpilotModelSlice/Fail TestTestpilotModelSlice/HostRefusal TestTestpilotModelSlice/Cancellation", required, " "); \
+			END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Complete TestTestpilotModelSlice/Fail TestTestpilotModelSlice/HostRefusal TestTestpilotModelSlice/Cancellation TestTestpilotModelSliceThroughUmpire TestTestpilotModelSliceThroughUmpire/Complete TestTestpilotModelSliceThroughUmpire/Cancellation TestTestpilotModelSliceThroughUmpire/RetryThenComplete TestTestpilotModelSliceThroughUmpire/Fail TestTestpilotModelSliceThroughUmpire/HostRefusal TestTestpilotModelSliceThroughUmpire/UnreachableEndpoint TestTestpilotModelSliceThroughUmpire/ReplayWithoutServer", required, " "); \
 				for (i = 1; i <= count; i++) if (!passed[required[i]]) { \
 					printf "Required Model slice test did not pass: %s\n", required[i]; failed = 1 \
 				} exit failed }' "$$temporary"
