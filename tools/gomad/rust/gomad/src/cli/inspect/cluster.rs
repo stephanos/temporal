@@ -212,6 +212,9 @@ fn validate_owners(opened: &Opened, owners: &BTreeMap<(String, u64), bool>) -> R
         if configured.len() != inputs.configuration.incarnations.len() {
             return Err("duplicate configured cluster instance".into());
         }
+        if configured.len() != inputs.retained.len() {
+            return Err("retained cluster incarnation count mismatch".into());
+        }
         let mut retained = BTreeMap::new();
         for item in inputs.retained {
             let handle = (item.handle.node, item.handle.incarnation);

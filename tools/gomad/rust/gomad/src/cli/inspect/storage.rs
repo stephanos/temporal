@@ -119,8 +119,12 @@ mod tests {
         assert_eq!(super::latest(&handles).unwrap(), vec![1, 2]);
         assert!(super::latest(&[("a".into(), 1), ("a".into(), 1)]).is_err());
     }
-    #[test]
-    fn installed_lifecycle_inspection_reads_actual_volume_image_not_configured_count() {
+    fn storage_fixture(
+        extra_owner: bool,
+    ) -> (
+        crate::installed_lifecycle_tests::Retained,
+        crate::evidence::store::Published,
+    ) {
         use crate::evidence::{
             canonical,
             record::Stream,
@@ -147,13 +151,18 @@ mod tests {
                 "choice_identity":{"TargetSHA256":vec![0u8;32],"ToolchainBuildKey":"1".repeat(64),
                     "GOOS":"wasip1","GOARCH":"wasm","ImplementationSHA256":vec![0u8;32]}}],
             "steps":[],"boundaries":[],"crash_groups":[]});
-        let inputs: crate::replay::cluster::Inputs = serde_json::from_value(json!({"schema":"gomad.cluster-replay-inputs/v1",
+        let mut inputs: crate::replay::cluster::Inputs = serde_json::from_value(json!({"schema":"gomad.cluster-replay-inputs/v1",
             "helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
             "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),
             "runtime_implementation_sha256":env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256"),
             "toolchain_sha256":fixture.record.identity.toolchain,"configuration":configuration,
             "retained":[{"handle":{"node":"a","incarnation":2},"interrupted":false,"evidence":{
                 "storage_image":{"file":file,"bytes":image.len(),"sha256":canonical::digest(&image),"limit":1<<20}}}]})).unwrap();
+        if extra_owner {
+            let mut extra = inputs.configuration.incarnations[0].clone();
+            extra.handle.node = "b".into();
+            inputs.configuration.incarnations.push(extra);
+        }
         let raw = canonical::encode(&inputs).unwrap();
         let opened = Opened::open(&fixture.published.path).unwrap();
         let mut payloads = BTreeMap::new();
@@ -198,6 +207,29 @@ mod tests {
             fault: None,
         };
         let published = store.publish(Publication { record, payloads }).unwrap();
+        (fixture, published)
+    }
+
+    #[test]
+    fn installed_lifecycle_inspection_refuses_configured_but_unretained_owner() {
+        let (_fixture, published) = storage_fixture(true);
+        let error = crate::cli::inspect::run(
+            &["--json".into(), published.path.to_str().unwrap().into()],
+            &mut Vec::new(),
+        )
+        .expect_err("configured but unretained owner was accepted");
+        assert!(
+            error.message.contains("cluster incarnation count mismatch"),
+            "{}",
+            error.message
+        );
+    }
+
+    #[test]
+    fn installed_lifecycle_inspection_reads_actual_volume_image_not_configured_count() {
+        use serde_json::json;
+        let (_fixture, published) = storage_fixture(false);
+        let file = "evidence/cluster/a/2/storage_image";
         let arguments = vec!["--json".into(), published.path.to_str().unwrap().to_owned()];
         let mut output = Vec::new();
         crate::cli::inspect::run(&arguments, &mut output)
