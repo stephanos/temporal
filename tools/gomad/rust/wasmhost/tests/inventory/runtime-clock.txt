@@ -1,0 +1,22 @@
+wasip1/wasm|internal/trace/internal/testgen/trace.go|walltime|4|unrelated|
+wasip1/wasm|runtime/badlinkname.go|cputicks|1|implementation|
+wasip1/wasm|runtime/chan.go|cputicks|6|virtual|block profiling samples waits with cputicks, which is nanotime on wasm and so the transcribed virtual clock
+wasip1/wasm|runtime/debuglog.go|cputicks|1|inactive|debuglog_off selects the no-op logger for the qualified target configuration
+wasip1/wasm|runtime/gomad_wasm.go|nanotime|1|virtual|note sleeps compute their virtual deadline from the transcribed clock
+wasip1/wasm|runtime/mgc.go|time_now|1|virtual|GC LastGC and PauseEnd stamps read the virtual wall clock; GC timing is allocation-driven on the single seeded thread
+wasip1/wasm|runtime/os_wasip1.go|clock_time_get|6|implementation|
+wasip1/wasm|runtime/os_wasip1.go|nanotime1|1|implementation|
+wasip1/wasm|runtime/os_wasip1.go|walltime|1|implementation|
+wasip1/wasm|runtime/os_wasip1.go|walltime1|2|implementation|
+wasip1/wasm|runtime/os_wasm.go|cputicks|1|implementation|
+wasip1/wasm|runtime/os_wasm.go|time_now|1|virtual|syscall.now reads the virtual wall clock
+wasip1/wasm|runtime/runtime.go|cputicks|2|virtual|profile ticks-per-second conversion reads the virtual clock through nanotime
+wasip1/wasm|runtime/select.go|cputicks|1|virtual|block profiling samples waits with the virtual clock
+wasip1/wasm|runtime/sema.go|cputicks|5|virtual|block and mutex profiling sample waits with the virtual clock
+wasip1/wasm|runtime/time.go|time_now|2|virtual|time_runtimeNow and the FIPS monoTime read the virtual clock; no unguarded host read exists on wasip1
+wasip1/wasm|runtime/time_nofake.go|nanotime1|1|implementation|
+wasip1/wasm|runtime/timestub.go|time_now|2|implementation|
+wasip1/wasm|runtime/timestub.go|walltime|1|implementation|
+wasip1/wasm|runtime/tracetime.go|cputicks|1|inactive|the branch is compile-time unreachable because osHasLowResClock is false on wasip1
+wasip1/wasm|runtime/tracetime.go|time_now|1|virtual|the execution tracer's clock snapshot reads the virtual clock
+wasip1/wasm|syscall/syscall_wasip1.go|clock_time_get|3|virtual|syscall.Gettimeofday and friends call the clock_time_get import, answered by the helper's virtual clock

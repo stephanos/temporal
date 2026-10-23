@@ -17,10 +17,10 @@ const ABI: &str = include_str!("../src/abi.rs");
 const SCHEMA: &str = "gomad.wasm-determinism-inventory/v1";
 const IDENTITY_HISTORY: &str =
     include_str!("../../../internal/backends/wasm/determinism/identity-history.json");
-// Matches the reviewed prefix in determinism/identity_history.go.
-const ACCEPTED_IDENTITY_COUNT: usize = 263;
+// The accepted 276-record prefix is reviewed in fn232-determinism-reach.
+const ACCEPTED_IDENTITY_COUNT: usize = 276;
 const ACCEPTED_IDENTITY_SHA256: &str =
-    "571a435d3eed2e5533450ef8210e3ad0f1d4e779ffc0853287d31775a1b66475";
+    "6ae785f83f0b8325df082e577699059728954b9b9efcf0c2637fca72aaf92f55";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -100,7 +100,7 @@ struct Inventory {
     entries: Vec<Entry>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct Reviewed {
     date: String,
@@ -1180,3 +1180,224 @@ fn serde_json_objects_serialize_in_sorted_key_order() {
     let value = serde_json::json!({"b": 1, "a": {"d": 2, "c": 3}});
     assert_eq!(value.to_string(), r#"{"a":{"c":3,"d":2},"b":1}"#);
 }
+
+const REVIEW_HISTORY: &str =
+    include_str!("../../../internal/backends/wasm/determinism/review-history.json");
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ReviewRecord {
+    timestamp: String,
+    reviewed: Reviewed,
+}
+
+fn timestamp_key(text: &str) -> Result<[u32; 7], String> {
+    let invalid = || "review history requires an explicit UTC timestamp".to_string();
+    let Some(body) = text.strip_suffix('Z') else {
+        return Err(invalid());
+    };
+    let bytes = body.as_bytes();
+    if bytes.len() < 19
+        || !calendar_date(&body[..10])
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[11..19]
+            .iter()
+            .enumerate()
+            .any(|(i, byte)| i != 2 && i != 5 && !byte.is_ascii_digit())
+    {
+        return Err(invalid());
+    }
+    let hour: u32 = body[11..13].parse().map_err(|_| invalid())?;
+    let minute: u32 = body[14..16].parse().map_err(|_| invalid())?;
+    let second: u32 = body[17..19].parse().map_err(|_| invalid())?;
+    if hour > 23 || minute > 59 || second > 59 {
+        return Err(invalid());
+    }
+    let mut nanos = String::new();
+    if bytes.len() > 19 {
+        let fraction = body[19..].strip_prefix('.').ok_or_else(invalid)?;
+        if fraction.is_empty() || !fraction.bytes().all(|byte| byte.is_ascii_digit()) {
+            return Err(invalid());
+        }
+        nanos.extend(fraction.chars().take(9));
+    }
+    while nanos.len() < 9 {
+        nanos.push('0');
+    }
+    Ok([
+        body[..4].parse().unwrap(),
+        body[5..7].parse().unwrap(),
+        body[8..10].parse().unwrap(),
+        hour,
+        minute,
+        second,
+        nanos.parse().unwrap(),
+    ])
+}
+
+fn check_review_history(text: &str, reviewed: &Reviewed) -> Result<(), String> {
+    let records: Vec<ReviewRecord> =
+        serde_json::from_str(text).map_err(|error| error.to_string())?;
+    let first = records
+        .first()
+        .ok_or("review history removed an accepted review")?;
+    if first.timestamp != "2026-10-20T15:00:00Z"
+        || first.reviewed
+            != (Reviewed {
+                date: "2026-10-20".into(),
+                go_toolchain: "go1.27.1".into(),
+                wasmtime: "47.0.3".into(),
+                rust: "1.99.1".into(),
+            })
+    {
+        return Err("review history changed accepted review; append a new dated record".into());
+    }
+    let mut previous = [0; 7];
+    for record in &records {
+        let key = timestamp_key(&record.timestamp)?;
+        if key <= previous {
+            return Err("review history timestamp must advance".into());
+        }
+        if record.timestamp.get(..10) != Some(record.reviewed.date.as_str()) {
+            return Err("review history date differs from timestamp".into());
+        }
+        if [
+            &record.reviewed.go_toolchain,
+            &record.reviewed.wasmtime,
+            &record.reviewed.rust,
+        ]
+        .iter()
+        .any(|version| version.trim().is_empty())
+        {
+            return Err("review history has incomplete versions".into());
+        }
+        previous = key;
+    }
+    if &records.last().unwrap().reviewed != reviewed {
+        return Err("append a new dated review record for inventory versions or date".into());
+    }
+    Ok(())
+}
+
+#[test]
+fn inventory_pins_require_append_only_dated_reviews() {
+    let inventory = parse(INVENTORY).unwrap();
+    check_review_history(REVIEW_HISTORY, &inventory.reviewed).unwrap();
+    let mut changed = inventory.reviewed.clone();
+    changed.wasmtime.push_str(".new");
+    assert!(
+        check_review_history(REVIEW_HISTORY, &changed)
+            .unwrap_err()
+            .contains("append a new dated review record")
+    );
+    let mut history: serde_json::Value = serde_json::from_str(REVIEW_HISTORY).unwrap();
+    history[0]["reviewed"]["wasmtime"] = changed.wasmtime.clone().into();
+    assert!(
+        check_review_history(&history.to_string(), &changed)
+            .unwrap_err()
+            .contains("changed accepted review")
+    );
+    assert!(check_review_history("[]", &changed).is_err());
+    assert!(check_review_history(&format!("{REVIEW_HISTORY} {{}}"), &changed).is_err());
+}
+
+#[test]
+fn review_history_rejects_stale_dates_and_non_utc_timestamps() {
+    let base: serde_json::Value = serde_json::from_str(REVIEW_HISTORY).unwrap();
+    for (timestamp, expected) in [
+        ("2026-10-20T15:00:00Z", "timestamp must advance"),
+        ("2026-10-20T16:00:00Z", ""),
+        ("2026-10-21T15:00:00Z", "date differs"),
+        ("2026-10-20T16:00:00+00:00", "explicit UTC"),
+        ("2026-10-20T16:00:00.1Z", ""),
+        ("2026-10-20T25:00:00Z", "explicit UTC"),
+        ("2026-02-30T16:00:00Z", "explicit UTC"),
+    ] {
+        let mut history = base.clone();
+        let mut next = history[0].clone();
+        next["timestamp"] = timestamp.into();
+        next["reviewed"]["wasmtime"] = "47.0.4".into();
+        let reviewed: Reviewed = serde_json::from_value(next["reviewed"].clone()).unwrap();
+        history.as_array_mut().unwrap().push(next);
+        let result = check_review_history(&history.to_string(), &reviewed);
+        if expected.is_empty() {
+            result.unwrap();
+        } else {
+            assert!(result.unwrap_err().contains(expected), "{timestamp}");
+        }
+    }
+}
+
+fn one_pin<'a>(source: &'a str, prefix: &str, suffix: &str) -> Result<&'a str, String> {
+    let values = source
+        .match_indices(prefix)
+        .map(|(at, _)| {
+            source[at + prefix.len()..]
+                .split_once(suffix)
+                .map(|(value, _)| value)
+        })
+        .collect::<Option<Vec<_>>>()
+        .ok_or("unclosed version pin")?;
+    if values.len() != 1 {
+        return Err(format!("expected one version pin, found {}", values.len()));
+    }
+    Ok(values[0])
+}
+
+#[test]
+fn inventory_reviewed_versions_match_exact_candidate_pins() {
+    let inventory = parse(INVENTORY).unwrap();
+    let overlay = include_str!("../../../internal/backends/wasm/toolchain/overlay.go");
+    assert_eq!(
+        inventory.reviewed.go_toolchain,
+        one_pin(overlay, "string(version), \"\\n\", 2)[0] != \"", "\"").unwrap()
+    );
+    let lock = include_str!("../../Cargo.lock");
+    assert_eq!(
+        inventory.reviewed.wasmtime,
+        one_pin(lock, "name = \"wasmtime\"\nversion = \"", "\"").unwrap()
+    );
+    let rust = include_str!("../../rust-toolchain.toml");
+    assert_eq!(
+        inventory.reviewed.rust,
+        one_pin(rust, "channel = \"", "\"").unwrap()
+    );
+    assert!(one_pin("channel = \"1\"\nchannel = \"2\"", "channel = \"", "\"").is_err());
+}
+
+#[test]
+fn every_escape_resolves_a_readme_heading() {
+    let inventory = parse(INVENTORY).unwrap();
+    let readme = include_str!("../../../internal/backends/wasm/README.md");
+    let headings: BTreeSet<String> = readme
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix('#'))
+        .map(|title| {
+            format!(
+                "README.md#{}",
+                title
+                    .trim_start_matches('#')
+                    .trim()
+                    .to_lowercase()
+                    .replace(' ', "-")
+            )
+        })
+        .collect();
+    for row in inventory
+        .entries
+        .iter()
+        .filter(|row| row.disposition == "escape")
+    {
+        assert!(
+            headings.contains(&row.readme_anchor),
+            "{}: {}",
+            row.id,
+            row.readme_anchor
+        );
+    }
+}
+
+#[path = "inventory/runtime.rs"]
+mod runtime_inventory;

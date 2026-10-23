@@ -15,17 +15,21 @@
    "disposition": "controlled",
    "owner": "wasmhost linked_cluster.rs",
    "rule": "Each typed cluster execution owns and joins its watchdog; controller and incarnation threads share one bounded execution-local diagnostic session.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.linked-cluster.watchdog-timeout",
    "layer": "helper",
    "class": "clock",
    "site": "helper-source:linked_cluster.rs|recv_timeout|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost linked_cluster.rs",
-   "rule": "The declared host wall bound advances the engine epoch and aborts the broker without advancing modeled time. Synchronous compilation retains fn232.1's documented hard-wall gap.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "rule": "The one-receive identity is retired. The typed cluster now has three bounded receives: watchdog completion, controller-output observation and cleanup acknowledgment; helper.linked-cluster.bounded-receives reviews the active source count.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.linked-cluster.incarnation-thread",
@@ -35,7 +39,10 @@
    "disposition": "controlled",
    "owner": "wasmhost linked_cluster.rs",
    "rule": "Each retained incarnation runs in a fresh store on an owned thread. The existing broker admits modeled effects in deterministic order; execution joins every started thread before returning.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried", "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"
+   ]
   },
   {
    "id": "engine.linked-epoch-watchdog",
@@ -45,7 +52,9 @@
    "disposition": "controlled",
    "owner": "wasmhost engine.rs configuration",
    "rule": "Linked executions enable epoch interruption for their declared host watchdog; framed transport enables it only for the existing guest-profile sampler. Guest virtual clocks remain model-owned.",
-   "evidence": ["rust:tests/inventory.rs:engine_settings_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
+   ]
   },
   {
    "id": "helper.linked.scoped-watchdog",
@@ -55,7 +64,9 @@
    "disposition": "controlled",
    "owner": "wasmhost linked.rs",
    "rule": "Each fresh execution owns one scoped watchdog, cancels it on completion and joins it before returning; it cannot mutate guest model clocks or scheduling.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.linked.watchdog-timeout",
@@ -65,7 +76,9 @@
    "disposition": "controlled",
    "owner": "wasmhost linked.rs",
    "rule": "Only the declared host wall bound advances the engine epoch and yields watchdog_timeout; the timeout never advances virtual time or enters canonical records as host metadata.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.guest-profile.recv-timeout",
@@ -75,7 +88,9 @@
    "disposition": "recorded",
    "owner": "wasmhost guest_profile.rs",
    "rule": "The existing diagnostic profiling interval wakes the profiling sampler only; it does not supply guest model time or evidence.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.build.compiler-identity",
@@ -85,7 +100,9 @@
    "disposition": "recorded",
    "owner": "wasmhost build.rs",
    "rule": "Build time queries the selected Rust compiler version and hashes it with sorted source bytes, Cargo inputs, target, profile and feature bindings into the actual linked implementation identity; no execution starts a subprocess.",
-   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
   },
   {
    "id": "helper.event-order-diagnostics",
@@ -95,7 +112,11 @@
    "disposition": "recorded",
    "owner": "feature-gated event_order recorder and modeled commit sites",
    "rule": "Explicit diagnostic roles emit bounded helper commit receipts and authentic inspection boundary markers on helper stderr only; missing owner context, capacity or truncation cannot establish complete ordering. Release helpers compile the recorder out and canonical evidence formats do not change.",
-   "evidence": ["rust:src/event_order.rs:event_order_records_full_values_and_actual_coordinates_in_commit_order", "rust:src/event_order.rs:event_order_never_marks_a_dropped_or_disabled_stream_complete", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+   "evidence": [
+    "rust:src/event_order.rs:event_order_records_full_values_and_actual_coordinates_in_commit_order",
+    "rust:src/event_order.rs:event_order_never_marks_a_dropped_or_disabled_stream_complete",
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+   ]
   },
   {
    "id": "fixture.output-before-clock",
@@ -105,7 +126,10 @@
    "disposition": "rejected",
    "owner": "determinism-fixture helper and copied runtime overlay",
    "rule": "The feature helper privately selects changed guest output and arms a later clock shift only after actual output commit, proving exact earliest-event reporting within one retained inspection interval. The signal is removed before seeding and is absent from guest declared environment and release helpers.",
-   "evidence": ["go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts", "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"]
+   "evidence": [
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
+    "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
+   ]
   },
   {
    "id": "fixture.runtime-seeded-draw",
@@ -115,7 +139,10 @@
    "disposition": "rejected",
    "owner": "determinism-fixture helper and copied runtime in backend integration fixture",
    "rule": "Only the feature helper can signal the private fixture runtime to consume one additional actual seeded draw; release helpers omit the signal and the runtime hook exists only in the fixture overlay.",
-   "evidence": ["rust:src/determinism_fixture.rs:fixture_draw_signal_preserves_declared_seed_bits", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+   "evidence": [
+    "rust:src/determinism_fixture.rs:fixture_draw_signal_preserves_declared_seed_bits",
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+   ]
   },
   {
    "id": "fixture.clock-shift",
@@ -125,7 +152,10 @@
    "disposition": "rejected",
    "owner": "determinism-fixture Fault and model::clock_read",
    "rule": "The feature helper can advance one clock read by one nanosecond after a retained execution prefix; the fault is compiled out of release helpers.",
-   "evidence": ["rust:src/determinism_fixture.rs:fixture_clock_shift_occurs_once_after_a_retained_prefix", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+   "evidence": [
+    "rust:src/determinism_fixture.rs:fixture_clock_shift_occurs_once_after_a_retained_prefix",
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+   ]
   },
   {
    "id": "fixture.cluster-handoff",
@@ -135,7 +165,10 @@
    "disposition": "rejected",
    "owner": "determinism-fixture Fault and broker::schedule",
    "rule": "The feature helper can choose the second runnable member once after two completed handoffs; release helpers retain their normal scheduler.",
-   "evidence": ["rust:src/determinism_fixture.rs:fixture_handoff_reorders_two_runnable_members_once", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+   "evidence": [
+    "rust:src/determinism_fixture.rs:fixture_handoff_reorders_two_runnable_members_once",
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+   ]
   },
   {
    "id": "fixture.engine-admission",
@@ -145,7 +178,9 @@
    "disposition": "rejected",
    "owner": "wasi SetDeterminismFixtureConditions",
    "rule": "The distinct fault helper configuration requires explicit private fixture admission and is refused for ordinary qualification; host fault selection never changes declared guest inputs.",
-   "evidence": ["go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"]
+   "evidence": [
+    "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
+   ]
   },
   {
    "id": "boundary.execute.fields-and-kinds",
@@ -155,7 +190,10 @@
    "disposition": "rejected",
    "owner": "wasmhost protocol::decode_boundary and Execute::validate",
    "rule": "Unknown execute fields, nested fields and kinds are refused as unsupported before started.",
-   "evidence": ["rust:tests/engine.rs:determinism_refuses_unknown_execute_fields_and_kinds_before_started", "go:internal/backends/wasm/wasi:TestDeterminismRefuseExecuteRequest"]
+   "evidence": [
+    "rust:tests/engine.rs:determinism_refuses_unknown_execute_fields_and_kinds_before_started",
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseExecuteRequest"
+   ]
   },
   {
    "id": "boundary.callback.fields-and-kinds",
@@ -165,7 +203,11 @@
    "disposition": "rejected",
    "owner": "wasi validatedFrame and frameSink",
    "rule": "Unknown helper frame kinds or callback fields, including split remote callbacks, are refused as unsupported before a modeled host effect.",
-   "evidence": ["go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames", "go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields", "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal"]
+   "evidence": [
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames",
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields",
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal"
+   ]
   },
   {
    "id": "boundary.remote-reply.fields-and-kinds",
@@ -175,7 +217,10 @@
    "disposition": "rejected",
    "owner": "wasmhost State::callback and protocol::decode_boundary",
    "rule": "Unknown remote reply fields or kinds are refused as unsupported before the guest resumes or the split owner adopts the reply.",
-   "evidence": ["rust:tests/engine.rs:determinism_refuses_unknown_remote_reply_fields_and_kinds", "rust:tests/engine.rs:determinism_refuses_unknown_split_remote_reply_fields_and_kinds"]
+   "evidence": [
+    "rust:tests/engine.rs:determinism_refuses_unknown_remote_reply_fields_and_kinds",
+    "rust:tests/engine.rs:determinism_refuses_unknown_split_remote_reply_fields_and_kinds"
+   ]
   },
   {
    "id": "boundary.started.engine-configuration",
@@ -185,7 +230,9 @@
    "disposition": "rejected",
    "owner": "wasi validateEngineConfiguration",
    "rule": "An engine configuration outside the release pin or an explicitly admitted diagnostic revision is refused as unsupported before authorization, even if the caller repeats the off-pin identity.",
-   "evidence": ["go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"]
+   "evidence": [
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"
+   ]
   },
   {
    "id": "host-go.wasi.protocol.refuseunknownfields.map-range.fields",
@@ -195,7 +242,9 @@
    "disposition": "controlled",
    "owner": "wasi refuseUnknownFields",
    "rule": "The lexically first unknown field determines the refusal message independently of map traversal order.",
-   "evidence": ["go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownFieldOrder"]
+   "evidence": [
+    "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownFieldOrder"
+   ]
   },
   {
    "id": "import.wasi.clock_time_get",
@@ -2770,7 +2819,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "idle hook hands the next virtual timer deadline to the helper's idle import instead of sleeping on the host",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2782,7 +2831,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "note sleeps park on the virtual clock through gomadWasmNoteSleep; no host sleep",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2794,7 +2843,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "records the last transcribed clock_time_get answer, and inspection returns it instead of issuing a clock import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2806,7 +2855,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "inspection does not sleep; outside inspection usleep is the stock poll_oneoff on the virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2818,7 +2867,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "inspection returns the last virtual time instead of issuing a clock import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2830,7 +2879,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "run queue pick is a seeded choice recorded on the choice tape",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2842,7 +2891,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "batch shuffle draws come from the seeded scheduler stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2854,7 +2903,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "batch shuffling is forced on under Gomad so every batch order is a seeded draw",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2866,7 +2915,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "seed and diagnostic flag come from the config import before randinit",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2878,7 +2927,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "cheaprand on a P draws from the seeded runtime cheaprand stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2890,7 +2939,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "the single M's per-M streams are seeded from the declared seed",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2902,7 +2951,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "rand on a P draws from the seeded runtime rand stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2914,7 +2963,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "the global seed is the declared seed instead of startup entropy",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2926,7 +2975,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "select poll order is a seeded draw recorded on the choice tape",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2938,7 +2987,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "modified timers redraw their heap tie-break from the seeded timer stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2950,7 +2999,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "timer heap tie-break draws from the seeded timer stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2962,7 +3011,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "re-queued timers redraw their heap tie-break from the seeded timer stream",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2974,7 +3023,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed unrelated clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2986,7 +3035,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -2998,7 +3047,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "block profiling samples waits with cputicks, which is nanotime on wasm and so the transcribed virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3010,7 +3059,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "debuglog_off selects the no-op logger for the qualified target configuration",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3022,7 +3071,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "note sleeps compute their virtual deadline from the transcribed clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3034,7 +3083,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "GC LastGC and PauseEnd stamps read the virtual wall clock; GC timing is allocation-driven on the single seeded thread",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3046,7 +3095,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3058,7 +3107,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3070,7 +3119,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3082,7 +3131,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3094,7 +3143,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3106,7 +3155,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "syscall.now reads the virtual wall clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3118,7 +3167,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "profile ticks-per-second conversion reads the virtual clock through nanotime",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3130,7 +3179,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "block profiling samples waits with the virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3142,7 +3191,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "block and mutex profiling sample waits with the virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3154,7 +3203,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "time_runtimeNow and the FIPS monoTime read the virtual clock; no unguarded host read exists on wasip1",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3166,7 +3215,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3178,7 +3227,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3190,7 +3239,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "Reviewed implementation clock reference; this identifier is not an independent host clock read.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3202,7 +3251,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "the branch is compile-time unreachable because osHasLowResClock is false on wasip1",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3214,7 +3263,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "the execution tracer's clock snapshot reads the virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3226,7 +3275,7 @@
    "owner": "stock runtime under the WASM overlay",
    "rule": "syscall.Gettimeofday and friends call the clock_time_get import, answered by the helper's virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3238,7 +3287,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "routes Gomad network streams to the net_stream import (network model); no draw or clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3250,7 +3299,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "routes Gomad listeners to the net_stream import (network model); no draw or clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3262,7 +3311,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "network stream close goes through the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3274,7 +3323,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "network stream reads go through the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3286,7 +3335,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "stream deadlines are virtual-time arguments to the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3298,7 +3347,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "stream deadlines are virtual-time arguments to the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3310,7 +3359,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "stream deadlines are virtual-time arguments to the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3322,7 +3371,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "network stream writes go through the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3334,7 +3383,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "accepted streams come from the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3346,7 +3395,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "half-close goes through the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3358,7 +3407,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "half-close goes through the net_stream import",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3370,7 +3419,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "adds the stream handle and per-direction mutexes to fakeNetFD",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3382,7 +3431,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "throws on clearing a note with an active waiter; no draw or clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3394,7 +3443,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "wakes a parked note waiter in program order; no draw or clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3406,7 +3455,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "inspection does not poll; outside inspection netpoll is the stock poll_oneoff on the virtual clock",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3418,7 +3467,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "adds waiter, deadline and status fields to note for virtual-clock parking",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3430,7 +3479,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "renames the stock exit so the glue's finalizer reports the terminal outcome first",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3442,7 +3491,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "throws if inspection would dispatch application code",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3454,7 +3503,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "inspection runs only inspection goroutines",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3466,7 +3515,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "starts the debug registration and seeded user-code identity before main.main",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3478,7 +3527,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "assigns each new goroutine a deterministic identity from its creator and call site",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3490,7 +3539,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "forces GOMAXPROCS=1 under Gomad, so there is one P and the GC pacer's random P pick is unreachable at startup",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3502,7 +3551,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "locked-M handoff is skipped during inspection only",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3514,7 +3563,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "adds goroutine identity fields used by choice records",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3526,7 +3575,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "records select sites, readiness and results on the choice tape",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3538,7 +3587,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "forces timer re-randomization under Gomad so the gomadTimerRand draw rows apply to every timer",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3550,7 +3599,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "records timer firings and their callbacks on the choice tape",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3562,7 +3611,7 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "records the creating call site of each timer",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
    ]
   },
   {
@@ -3574,7 +3623,43 @@
    "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
    "rule": "adds creator identity and firing count fields to timers",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+    "rust:tests/inventory/runtime.rs:wasip1_runtime_draw_and_clock_references_are_reviewed"
+   ]
+  },
+  {
+   "id": "helper.linked.phase-clocks",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:linked.rs|Instant::now|4",
+   "disposition": "controlled",
+   "owner": "typed linked execution",
+   "rule": "The four monotonic samples measure preparation, authorization, instantiation and execution phases. Metrics do not advance guest model clocks or enter canonical evidence.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.linked-cluster.phase-clocks",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:linked_cluster.rs|Instant::now|4",
+   "disposition": "controlled",
+   "owner": "typed linked execution",
+   "rule": "The four monotonic samples measure per-store authorization, instantiation and execution plus the controller wall deadline. These samples never supply virtual model time.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.linked-cluster.bounded-receives",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:linked_cluster.rs|recv_timeout|3",
+   "disposition": "controlled",
+   "owner": "typed linked execution",
+   "rule": "The three host-time receives bound watchdog completion, controller-output observation and cleanup acknowledgment within the declared wall budget; they do not advance modeled time.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
   }
  ]

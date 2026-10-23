@@ -1102,5 +1102,17 @@
  {
   "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_creations",
   "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc creations|1"
+ },
+ {
+  "id": "helper.linked.phase-clocks",
+  "site": "helper-source:linked.rs|Instant::now|4"
+ },
+ {
+  "id": "helper.linked-cluster.phase-clocks",
+  "site": "helper-source:linked_cluster.rs|Instant::now|4"
+ },
+ {
+  "id": "helper.linked-cluster.bounded-receives",
+  "site": "helper-source:linked_cluster.rs|recv_timeout|3"
  }
 ]
