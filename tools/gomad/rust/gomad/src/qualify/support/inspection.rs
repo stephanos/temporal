@@ -1,3 +1,5 @@
+mod recording;
+
 use super::{
     BTreeMap, BTreeSet, Candidate, Configuration, FileBinding, MAXIMUM_LIST, Opened, Path, PathBuf,
     Value, absolute, bound_file, canonical, digest, inventory, json, open, read, source, spec,
@@ -227,6 +229,11 @@ fn preparation(value: &Value, failure: &Opened, candidate: &Candidate) -> Result
     );
     source::inspection_staged(&provenance, &staged, candidate)?;
     policy(&provenance, metadata, &staged, candidate)?;
+    if provenance["scenario"] != json!(recording::scenario(&value["recording_scenario"])?) {
+        return Err(
+            "inspection recording scenario differs from authenticated prepared provenance".into(),
+        );
+    }
     let overlay: inventory::Overlay = serde_json::from_value(value["compiler_overlay"].clone())
         .map_err(|error| error.to_string())?;
     let inventory = inventory::from_provenance(&provenance, Some(overlay))?;
@@ -239,7 +246,24 @@ fn preparation(value: &Value, failure: &Opened, candidate: &Candidate) -> Result
     );
     let cache = path(&value["cache_origin"])?;
     absolute(&cache)?;
-    if inventory.compiler_path != private.join("compiler/bin/go")
+    let candidate_cache = candidate
+        .inventory
+        .overlay
+        .path
+        .parent()
+        .and_then(Path::parent)
+        .and_then(Path::parent)
+        .ok_or("candidate overlay cache root missing")?;
+    let receipt_root = Path::new(
+        value["recording_scenario"]["path"]
+            .as_str()
+            .ok_or("inspection scenario path missing")?,
+    )
+    .parent()
+    .ok_or("inspection scenario root missing")?;
+    if cache != receipt_root.join("preparation-cache")
+        || path(&value["cache_request_origin"])? != candidate_cache
+        || inventory.compiler_path != private.join("compiler/bin/go")
         || inventory.runtime_root != private.join("runtime")
         || path(&value["compiler_origin"])? != candidate.inventory.compiler_path
         || path(&value["runtime_origin"])? != candidate.inventory.runtime_root
@@ -405,6 +429,12 @@ fn commands(value: &Value, candidate: &Candidate, receipt_root: &Path) -> Result
             && command["environment_intent"]["detached"] != true
         {
             return Err("inspection detached replay intent missing".into());
+        }
+        if ["install", "explore"].contains(&name) {
+            recording::command(name, &command, value, candidate, receipt_root)?;
+        }
+        if name == "explore" {
+            recording::response(&command, value)?;
         }
         if name == "stopped-inspection" {
             let report: Value = spec::strict(&read(

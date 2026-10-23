@@ -412,7 +412,7 @@ fn original_descriptor_reconstruction_uses_retained_bytes_after_inputs_disappear
     );
 }
 
-fn source_candidate() -> Candidate {
+pub(super) fn source_candidate() -> Candidate {
     let mut result = policy_fixture(SELECTIONS[0]);
     let inventory =
         compiler_inventory_fixture("/original/go", "/original/runtime", "/original/cache");

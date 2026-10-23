@@ -174,7 +174,13 @@ inspection templates. Every success artifact must retain complete record-bound
 stdout with exactly one named verbose PASS and no selected-test skip.
 
 Inspection retains its preparation plan/artifact/provenance and complete raw
-overlay descriptor bytes. Its explicit compiler/runtime/cache alias roots define
+overlay descriptor bytes. Its unchanged raw scenario witness is captured before
+and after recording, limited to the owner's 256 KiB bound, and authenticated
+against both the exact original boot/address/start-wait/fault envelope and typed
+prepared provenance. Exact install/explore argv retain the original campaign
+bounds, including the 1 MiB world-transition cap. Private compiler aliases use
+a fresh inspection preparation cache; the requested original cache remains bound
+to the candidate inventory. Its explicit compiler/runtime/cache alias roots define
 a typed inventory view: stock files and runtime inputs compare by their declared
 root-relative names, generated replacements by the descriptor's exact membership,
 and shared generator sources by their unchanged absolute names. Every member and
