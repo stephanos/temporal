@@ -40,7 +40,20 @@ fn request(body: &str) -> linked::Request {
             environment: vec!["PWD=/".into()],
             replay_trace: None,
         }),
-        namespace: None,
+        namespace: Some(linked::NamespaceImage {
+            entries: Vec::new(),
+            writable_directories: Vec::new(),
+            preopens: vec![b"/".to_vec()],
+            working_directory: b"/".to_vec(),
+            stdin: Vec::new(),
+            limits: linked::NamespaceLimits {
+                files: 16,
+                descriptors: 16,
+                filesystem_bytes: 4096,
+                output_bytes: 4096,
+            },
+            epoch_nanos: 0,
+        }),
         storage: None,
     }
 }
