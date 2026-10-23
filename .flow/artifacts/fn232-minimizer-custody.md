@@ -83,3 +83,7 @@ history before deleting it. This bounded scan is not a proof that arbitrary
 binary or larger files contain no path strings. Preserve all candidates until
 root's final dependency check and deletion authorization. No committed portable
 test requires these external roots; actual forensic reproductions do.
+
+## Obsolete evidence cleanup after complete dependency scan
+
+Root scanned every byte of7833 files (2545170984B, including binary and >10MB payloads) and every symlink in the seven retained accepted/causal/build roots against the five obsolete candidate absolute paths; no references found. A fresh /proc cwd/exe/maps/environment/fd scan found no live references. Deleted exactly /home/agent/wt/evidence/{fn231-integrated-fixture-00a97c42,fn231-minimize-focused-01,fn231-provenance-controlled-01,fn231-provenance-host-red-01,fn231-public-poolfix-01},324828124B. These are superseded closed-spec outputs, not accepted or receiving inputs; required raw proofs, shared Go inputs and original source history remain. Detailed scan/removal receipt: /home/agent/evidence/fn232-obsolete-minimizer-evidence-cleanup.json. Kept fn231-public-00a97c42 explicitly in open fn232 causal custody because retained public-modulefix/preparation.json cites it as previous_attempt; no immutable receipt rewritten. Other earlier-listed cleanup candidates are dispositions, not runtime passes.
