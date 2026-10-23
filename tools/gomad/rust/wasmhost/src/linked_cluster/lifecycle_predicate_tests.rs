@@ -1062,6 +1062,7 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
     }
     let states = observations[0].1["data"]["States"].as_array().unwrap();
     for (state_index, state) in states.iter().enumerate() {
+        let mut previous = None;
         for (fresh_execution, (context, _, _)) in observations.iter().enumerate() {
             let mut descriptor = baseline.clone();
             descriptor["crash_selection"] = json!({"data":state["SelectedOperations"]});
@@ -1072,6 +1073,15 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
             assert_eq!(result.outcome.termination, "exit");
             assert_eq!(result.outcome.exit_code, Some(0));
             assert!(result.outcome.peak_memory_bytes > 0);
+            let evidence = (
+                result.evidence["storage_state"].clone(),
+                result.evidence["storage"].clone(),
+                result.evidence["storage_image"].clone(),
+            );
+            if let Some(previous) = &previous {
+                assert_eq!(&evidence, previous);
+            }
+            previous = Some(evidence);
             let image = &result.evidence["storage_image"];
             let recovered = crate::volume::Storage::recover(
                 model.clone(),
