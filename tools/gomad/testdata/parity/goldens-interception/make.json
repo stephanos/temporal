@@ -1,0 +1,140 @@
+{
+ "schema": "gomad.interception-make-golden/v1",
+ "stages": {
+  "default-race": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "actual_child_status": 2,
+    "race_refused": true
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "default-race"
+  },
+  "direct-race": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "actual_child_status": 2,
+    "race_refused": true
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "direct-race"
+  },
+  "expansion": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "default": [
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log"
+    ],
+    "positive": [
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m    -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m    -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m    -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log"
+    ],
+    "race-on": [
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log",
+     "CGO_ENABLED=0 go test ./tests/gomadfunctional -timeout=5m -race   -run=^TestFrontendSystemInfo$ -v -count=1 -tags disable_grpc_modules,,test_dep, -persistenceType=sql -persistenceDriver=sqlite 2>&1 | tee -a test.log"
+    ]
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "expansion"
+  },
+  "host-passthrough": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "generator": {
+     "host_passthrough": true,
+     "status": 0
+    },
+    "host-env": {
+     "host_passthrough": true,
+     "status": 0
+    },
+    "linter": {
+     "host_passthrough": true,
+     "status": 0
+    }
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "host-passthrough"
+  },
+  "positive": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "campaigns": [
+     {
+      "configuration_sha256": "fb29a4503022b261a48388d857e82a115907aa6f3eface6c701b359684a72bed",
+      "executions": 1,
+      "origin": "intercepted-go",
+      "original_argv": [
+       "$GO_SHIM",
+       "test",
+       "./tests/gomadfunctional",
+       "-timeout=5m",
+       "-run=^TestFrontendSystemInfo$",
+       "-v",
+       "-count=1",
+       "-tags",
+       "disable_grpc_modules,,test_dep,",
+       "-persistenceType=sql",
+       "-persistenceDriver=sqlite"
+      ],
+      "outcome": "success"
+     },
+     {
+      "configuration_sha256": "fb29a4503022b261a48388d857e82a115907aa6f3eface6c701b359684a72bed",
+      "executions": 1,
+      "origin": "intercepted-go",
+      "original_argv": [
+       "$GO_SHIM",
+       "test",
+       "./tests/gomadfunctional",
+       "-timeout=5m",
+       "-run=^TestFrontendSystemInfo$",
+       "-v",
+       "-count=1",
+       "-tags",
+       "disable_grpc_modules,,test_dep,",
+       "-persistenceType=sql",
+       "-persistenceDriver=sqlite"
+      ],
+      "outcome": "success"
+     },
+     {
+      "configuration_sha256": "fb29a4503022b261a48388d857e82a115907aa6f3eface6c701b359684a72bed",
+      "executions": 1,
+      "origin": "intercepted-go",
+      "original_argv": [
+       "$GO_SHIM",
+       "test",
+       "./tests/gomadfunctional",
+       "-timeout=5m",
+       "-run=^TestFrontendSystemInfo$",
+       "-v",
+       "-count=1",
+       "-tags",
+       "disable_grpc_modules,,test_dep,",
+       "-persistenceType=sql",
+       "-persistenceDriver=sqlite"
+      ],
+      "outcome": "success"
+     }
+    ],
+    "support_cells": 1
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "positive"
+  },
+  "race-on": {
+   "makefile_sha256": "2930105ce5613529e8355fb45abebc69eb3bf754a9824055756ad2cd10f73aa1",
+   "observations": {
+    "actual_child_status": 2,
+    "race_refused": true
+   },
+   "schema": "gomad.interception-make-corpus/v1",
+   "stage": "race-on"
+  }
+ }
+}

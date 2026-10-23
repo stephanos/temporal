@@ -647,15 +647,14 @@ fn execute_registered(
         .mode(0o700)
         .create(&module_root)
         .map_err(|e| e.to_string())?;
-    let mut command = guest_env::command(
-        &contract.compiler,
+    let mut command = driver_command(
+        contract,
         &argv[1..],
         &shared.packages[0].environment,
+        &module_root,
+        &root.join("invocation.json"),
+        &canonical::digest(&bytes),
     );
-    command
-        .env("GOTMPDIR", &module_root)
-        .env("GOMAD_SHIM_INVOCATION", root.join("invocation.json"))
-        .env("GOMAD_SHIM_INVOCATION_SHA256", canonical::digest(&bytes));
     let registration = origin::DriverRegistration {
         schema: "gomad.driver-registration/v1".into(),
         process_id: std::process::id(),
@@ -667,6 +666,27 @@ fn execute_registered(
     };
     crate::cli::run_guest::registered_exec(&root, &registration, &mut command)?;
     Err("registered Go exec unexpectedly returned".into())
+}
+
+/// The guest build environment is exact, so the wrapper identity and campaign selection
+/// must be restated for the launchers that Go starts through `-exec`.
+fn driver_command(
+    contract: &Contract,
+    arguments: &[OsString],
+    environment: &std::collections::BTreeMap<String, String>,
+    module_root: &Path,
+    invocation: &Path,
+    invocation_sha256: &str,
+) -> std::process::Command {
+    let mut command = guest_env::command(&contract.compiler, arguments, environment);
+    command
+        .env("GOTMPDIR", module_root)
+        .env("GOMAD_SHIM_INVOCATION", invocation)
+        .env("GOMAD_SHIM_INVOCATION_SHA256", invocation_sha256)
+        .env("GOMAD_SHIM_RUN", &contract.run)
+        .env("GOMAD_SHIM_ARTIFACTS", &contract.artifacts)
+        .env("GOMAD_SHIM_SEEDS", &contract.seeds);
+    command
 }
 
 #[cfg(test)]
@@ -765,6 +785,42 @@ mod tests {
             .unwrap();
         assert_eq!(request.parsed.tags, [OsString::from("admitted")]);
         assert_eq!(fs::read(&counter).unwrap(), b"x");
+    }
+
+    #[test]
+    fn exact_guest_driver_environment_restates_wrapper_campaign_selection() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let mut contract = fixture_contract(&root.0, root.0.join("go"));
+        contract.seeds = "0,7".into();
+        let environment = [("GOFLAGS".to_owned(), String::new())].into();
+        let command = driver_command(
+            &contract,
+            &[OsString::from("test")],
+            &environment,
+            &root.0.join("go-build"),
+            &root.0.join("invocation.json"),
+            "digest",
+        );
+        let observed = command
+            .get_envs()
+            .map(|(name, value)| (name.to_owned(), value.map(OsStr::to_owned)))
+            .collect::<std::collections::BTreeMap<_, _>>();
+        assert_eq!(
+            observed[OsStr::new("GOMAD_SHIM_ARTIFACTS")].as_deref(),
+            Some(root.0.join("artifacts").as_os_str())
+        );
+        assert_eq!(
+            observed[OsStr::new("GOMAD_SHIM_SEEDS")].as_deref(),
+            Some(OsStr::new("0,7"))
+        );
+        assert_eq!(
+            observed[OsStr::new("GOMAD_SHIM_RUN")].as_deref(),
+            Some(OsStr::new(&contract.run))
+        );
+        assert_eq!(
+            observed[OsStr::new("GOFLAGS")].as_deref(),
+            Some(OsStr::new(""))
+        );
     }
 
     fn fixture_contract(root: &Path, compiler: PathBuf) -> Contract {
