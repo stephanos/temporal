@@ -178,6 +178,7 @@ class Gate:
                                GOMAD_COMPILER=str(self.root / 'compiler-unavailable'),
                                GOMAD_RUNTIME_ROOT=str(self.root / 'runtime-unavailable'))
         stdout, stderr = self.root / (name + '.stdout'), self.root / (name + '.stderr')
+        start_ns = time.time_ns()
         started = datetime.now(timezone.utc).isoformat()
         clock = time.monotonic()
         timed_out = False
@@ -199,11 +200,17 @@ class Gate:
                     self.private_observations, process.pid, command, read(stdout, 32 << 20))
             except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
                 capture_error = str(error)
-        receipt = dict(name=name, command=command, pid=process.pid, exit=process.returncode, timed_out=timed_out,
+        receipt = dict(name=name, command=command, argv=command, cwd=str(self.repo), pid=process.pid,
+                       start_ns=start_ns, end_ns=time.time_ns(), exit=process.returncode, timed_out=timed_out,
                        started=started, ended=datetime.now(timezone.utc).isoformat(),
                        elapsed_seconds=time.monotonic() - clock, timeout_seconds=timeout,
                        environment_intent=dict(mandatory_workloads=False, detached=detached),
-                       environment={key: value for key, value in environment.items() if key.startswith('GOMAD_')},
+                       environment={key: environment.get(key) for key in (
+                           'PATH', 'GOMAD_WASM_INSTALLATION', 'GOMAD_COMPILER', 'GOMAD_RUNTIME_ROOT',
+                           'GOMAD_STOCK_GO', 'GOMAD_WASM_RUNTIME_ROOT', 'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE',
+                           'GOMAD_WASM_TEMPORAL_BUILD_CACHE', 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES',
+                           'GOMAD_WASM_QUALIFY_WORKLOADS')},
+                       environment_sha256=hashlib.sha256(workloads.canonical(environment)).hexdigest(),
                        stdout=str(stdout), stderr=str(stderr), stdout_sha256=digest(stdout), stderr_sha256=digest(stderr))
         if private_seal is not None:
             receipt['private_observations'] = private_seal
@@ -268,8 +275,12 @@ def main():
     binary, repo, root = args.binary.resolve(strict=True), args.repo.resolve(strict=True), args.root.resolve()
     private_observations = producer.private_configuration(args.private_observation_config, binary, repo, root) if args.private_observation_config else None
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
-    if private_observations is not None:
+    if hasattr(producer, 'owned_root'):
         producer.owned_root(root)
+    else:
+        producer.write(root / 'producer-root.json', dict(schema='gomad.rust-producer-root/v1', root=str(root),
+                       argv=sys.argv, cwd=os.getcwd(), pid=os.getpid(), start_ns=time.time_ns()))
+    if private_observations is not None:
         producer.private_admission(private_observations, root)
     gate = Gate(root, binary, repo, private_observations)
     guest_profile = gate.environment.get('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', '')

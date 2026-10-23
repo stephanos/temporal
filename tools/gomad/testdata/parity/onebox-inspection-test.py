@@ -236,6 +236,9 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual((self.root / (name + '.stderr')).stat().st_mode & 0o777, 0o600)
             self.assertIn('started', receipt)
             self.assertIn('ended', receipt)
+            self.assertEqual(receipt['cwd'], str(self.root))
+            self.assertGreaterEqual(receipt['end_ns'], receipt['start_ns'])
+            self.assertEqual(receipt['environment_sha256'], gate.hashlib.sha256(gate.workloads.canonical(lane.environment)).hexdigest())
 
     def test_native_command_stays_in_outer_session_and_timeout_kills_descendants(self):
         command = [sys.executable, '-c', 'import subprocess,sys,time; child=subprocess.Popen([sys.executable,"-c","import time; time.sleep(60)"], start_new_session=True); print(child.pid, flush=True); time.sleep(60)']
