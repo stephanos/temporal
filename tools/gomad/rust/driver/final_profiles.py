@@ -85,6 +85,7 @@ def exact_bounds(spec, *, runtime=False):
                 and spec['choice_bytes'] == 64 << 20 and spec['runtime_diagnostics'] is False,
                 'changed original runtime-cost bounds')
     else:
+        require(spec['choice_bytes'] == 1 << 30, 'changed original Temporal 1GiB choice bound')
         require(spec['package'] == './tests' and spec['working_directory'] == '/workspace/tests'
                 and spec['selection'] in (WORKFLOW, ACTIVITY), 'substituted original Temporal selection')
         require(spec['arguments'] == ['-test.run=' + spec['selection'], '-persistenceType=sql',
@@ -131,6 +132,8 @@ def bound_native_request(config, path, spec, *, runtime=False, dynamic_root=None
                 and model['configuration']['diagnostics'] == spec['runtime_diagnostics'], 'native original runtime bounds changed')
         preparation_proof(config, spec, guest, runtime=True, dynamic_root=dynamic_root)
     else:
+        require(spec['choice_bytes'] == 1 << 30 and model['configuration']['limit'] == spec['choice_bytes'],
+                'native original Temporal choice bound changed')
         require(model['arguments'][1:] == spec['arguments'], 'native original Temporal arguments changed')
         cwd = spec['working_directory'].encode()
         require(model['configuration']['working_directory_sha256'] == hashlib.sha256(cwd).hexdigest()
@@ -176,8 +179,9 @@ def runtime_pair(root, spec, release, diagnostic):
                 'missing original runtime-cost timing/select witness')
 
 
-def select_polls(raw):
-    require(raw and len(raw) % 96 == 0 and len(raw) <= 64 << 20,
+def select_polls(raw, maximum=64 << 20):
+    require(type(maximum) is int and maximum in (64 << 20, 1 << 30), 'foreign original choice capacity')
+    require(raw and len(raw) % 96 == 0 and len(raw) <= maximum,
             'malformed original runtime-cost choice framing')
     polls = 0
     for ordinal in range(len(raw) // 96):
@@ -272,7 +276,7 @@ def native_run(root):
     request = read(root / 'request.json')
     streams = native_canonical_streams(root, outcome)
     model = outcome['local_model']
-    polls = select_polls((root / 'choice').read_bytes())
+    polls = select_polls((root / 'choice').read_bytes(), request['guest']['model']['configuration']['limit'])
     result = dict(streams=streams, select_poll=polls, reaped=True, termination=outcome['termination'],
                   exit_code=outcome.get('exit_code'), calls=model['calls'], time_advances=model['advances'],
                   environment_identity=request['guest']['model'], fuel_remaining=outcome['fuel_remaining'],

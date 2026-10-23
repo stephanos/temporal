@@ -125,11 +125,12 @@ class FinalProfiles(unittest.TestCase):
 
     def test_full_activity_selection_and_original_capacity(self):
         spec = dict(profile='gomad.wasi-cooperative/v1', clock_read_step_nanos=0,
-                    fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000,
+                    fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000, choice_bytes=1 << 30,
                     package='./tests', working_directory='/workspace/tests', selection=gate.ACTIVITY,
                     arguments=['-test.run=' + gate.ACTIVITY, '-persistenceType=sql', '-persistenceDriver=sqlite'])
         gate.exact_bounds(spec)
         for field, value in [('fuel', 1 << 40), ('memory_bytes', 256 << 20),
+                             ('choice_bytes', 64 << 20),
                              ('selection', '^TestActivityTestSuite$/TestActivity'),
                              ('package', './testdata/activity')]:
             changed = dict(spec, **{field: value})
@@ -148,13 +149,13 @@ class FinalProfiles(unittest.TestCase):
     def test_actual_cwd_and_module_provenance_are_required(self):
         module = self.root / 'tests.wasm'
         module.write_bytes(b'actual-module')
-        spec = dict(fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000,
+        spec = dict(fuel=1 << 50, memory_bytes=4 << 30, wall_nanos=1_800_000_000_000, choice_bytes=1 << 30,
                     clock_read_step_nanos=0, seed=0, arguments=['-test.run=' + gate.ACTIVITY],
                     working_directory='/workspace/tests', module=str(module),
                     module_sha256=hashlib.sha256(module.read_bytes()).hexdigest())
         request = dict(kind='standalone', guest=dict(module=str(module), module_sha256=spec['module_sha256'],
                        limits=dict(fuel=spec['fuel'], memory_bytes=spec['memory_bytes'], wall_millis=1800000),
-                       model=dict(configuration=dict(seed=0, read_step_nanos=0,
+                       model=dict(configuration=dict(seed=0, read_step_nanos=0, limit=1 << 30,
                                   working_directory_sha256=hashlib.sha256(b'/workspace/tests').hexdigest()),
                                   arguments=['guest', *spec['arguments']]),
                        namespace=dict(working_directory=list(b'/workspace/tests'))))

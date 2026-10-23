@@ -2,7 +2,8 @@
   "schema": "gomad.final-profile-original-recipes/v1",
   "original_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
   "original_sources": {
-    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
+    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0",
+    "tools/gomad/internal/model/choice/session.go": "3d4a58acdcc704561ba3b96319bb818419f9cbb969133efcc3a1093a1a6f0a7c"
   },
   "recipes": {
     "terminal": {
@@ -63,7 +64,8 @@
         "time_advances",
         "environment_identity",
         "fuel_remaining"
-      ]
+      ],
+      "choice_bytes": 1073741824
     }
   },
   "pending_native_gaps": [
