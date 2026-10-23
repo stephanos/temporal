@@ -669,7 +669,8 @@ class Retained:
                 and inputs['runtime_implementation'] == installation['runtime_implementation_sha256'],
                 'runtime frozen compiler/collector/runtime implementation changed')
         require(all(inputs['environment'].get(key) == value for key,value in dict(GOOS='wasip1',GOARCH='wasm',CGO_ENABLED='0',
-                GOEXPERIMENT='nogreenteagc',GOENV='off',GOTOOLCHAIN='local',GOWORK='off').items()),
+                GOEXPERIMENT='nogreenteagc',GOENV='off',GOTOOLCHAIN='local',GOWORK='off',GOPROXY='off',GOSUMDB='off',
+                GOPRIVATE='',GONOPROXY='none',GOVCS='*:off',GOFLAGS='',GOCACHEPROG='',GOWASM='',GODEBUG='').items()),
                 'runtime original compiler target/collector environment changed')
         source = str(Path(self.config['repo'])/'tools/gomad/internal/backends/wasm/testdata/runtime_probes/main.go')
         require(inputs['sources'] and source in inputs['sources'] and inputs['compiler']

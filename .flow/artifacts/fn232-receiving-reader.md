@@ -231,3 +231,22 @@ The separate uncommitted support-list unit is excluded from that count. Source
 map spans were refreshed without changing its 72 UNEXECUTED roots or 41 gaps.
 No actual runtime/guest/Go/qualification run occurred. Actual final runtime proof
 and complete frozen transitive source/compiler pins remain required.
+
+### Review: native compiler controls
+
+Review of runtime checkpoint 1574 found two remaining inventory-membership and
+compiler-environment gaps. The environment repair now binds all sixteen native
+forced compiler controls, including offline module controls and the required
+empty GOFLAGS, GOCACHEPROG, GOWASM and GODEBUG values. A production-shaped bounded
+fixture self-consistently reseals every missing or changed control. RED log
+`fn232-runtime-env-red.log` has exit 1 and 18 failing subcases; GREEN log
+`fn232-runtime-env-green.log` has exit 0. All 70 committed-scope portable driver
+tests pass (`fn232-runtime-env-suite.log`, exit 0).
+
+The exact full source/compiler inventory membership finding remains OPEN.
+Admitted subsets are not completeness proof. Root authorized a separate native
+auxiliary observation retention repair for the already-executed compiler commands
+and independent complete projection, without changing public CLI/Result/provenance
+or canonical execution identities. That repair is not implemented or tested by
+this checkpoint. Snapshot optimization remains a separate saved patch and is
+not included. Actual runtime/qualification remain UNRUN.

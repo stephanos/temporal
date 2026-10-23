@@ -49,7 +49,8 @@ class RuntimePreparationBinding(unittest.TestCase):
             compiler=inventory,host='a'*64,helper='b'*64,sources={self.source:self.config['files'][self.source]},
             arguments=['literal $arg'],directory=str(self.root/'tools/gomad'),kind='go-run',source='./internal/backends/wasm/testdata/runtime_probes',
             go_version='go1.27.1',runtime_implementation='d'*64,runtime='e'*64,tags=[],soft_assertion_report_only=False,
-            build_flags=['-mod=readonly','-trimpath','-buildvcs=false','-pgo=off'],environment=dict(GOOS='wasip1',GOARCH='wasm',CGO_ENABLED='0',GOEXPERIMENT='nogreenteagc',GOENV='off',GOTOOLCHAIN='local',GOWORK='off'))
+            build_flags=['-mod=readonly','-trimpath','-buildvcs=false','-pgo=off'],environment=dict(GOOS='wasip1',GOARCH='wasm',CGO_ENABLED='0',GOEXPERIMENT='nogreenteagc',GOENV='off',GOTOOLCHAIN='local',GOWORK='off',
+                GOPROXY='off',GOSUMDB='off',GOPRIVATE='',GONOPROXY='none',GOVCS='*:off',GOFLAGS='',GOCACHEPROG='',GOWASM='',GODEBUG=''))
         self.provenance = dict(schema='gomad.rust-wasm-provenance/v1',inputs=inputs,configuration=configuration,network=None,scenario=None,
             module_metadata=inputs['module_metadata'],module_sha256=receiving.digest(self.module))
         self.reseal()
@@ -98,3 +99,15 @@ class RuntimePreparationBinding(unittest.TestCase):
         self.record = original
         with self.assertRaises(driver.Refusal):
             receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module+b'\0',3)
+
+    def test_all_native_forced_build_environment_controls_are_bound(self):
+        original = copy.deepcopy(self.provenance)
+        for key in original['inputs']['environment']:
+            self.provenance = copy.deepcopy(original)
+            self.provenance['inputs']['environment'][key] = 'foreign'
+            self.reseal()
+            with self.subTest(changed=key), self.assertRaises(driver.Refusal): self.validate()
+            self.provenance = copy.deepcopy(original)
+            del self.provenance['inputs']['environment'][key]
+            self.reseal()
+            with self.subTest(missing=key), self.assertRaises(driver.Refusal): self.validate()
