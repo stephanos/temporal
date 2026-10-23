@@ -37,8 +37,13 @@ class BroadHarness(unittest.TestCase):
                 self.assertEqual(argv[-2:], ['--nocapture', '--test-threads=1'])
                 if row.role in broad.ALLOCATION_ROLES:
                     self.assertEqual(argv[1:], ['--ignored', '--exact', 'allocation_receiving', '--nocapture', '--test-threads=1'])
+                elif row.name == 'host-inspection-scale':
+                    self.assertEqual(argv[1:], ['--ignored', '--exact',
+                        'replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads',
+                        '--nocapture', '--test-threads=1'])
                 else:
                     self.assertNotIn('--exact', argv)
+            self.assertEqual([row.name for row in rows[:2]], ['helper-lib', 'host-inspection-scale'])
             guest = [row for row in rows if row.name == 'host-broad-guest']
             self.assertEqual(bool(guest), stage is not broad.Stage.FUNCTIONAL)
             if guest:
@@ -76,13 +81,15 @@ class BroadHarness(unittest.TestCase):
                     if row.name == 'host-broad-guest':
                         continue
                     observed, environment = broad.invocation_context(config, stage, row, evidence)
-                    if row.role is broad.Role.HELPER:
+                    if row.role is broad.Role.HELPER or row.name == 'host-inspection-scale':
                         path = environment['GOMAD_INSPECTION_RAW_DIR']
                         self.assertEqual(path, '/owned/cycle/broad-harness/' + stage.value + '/helper-lib-raw')
                         self.assertEqual(observed['repo'], config['repo'])
                         roots.add(path)
                     else:
                         self.assertNotIn('GOMAD_INSPECTION_RAW_DIR', environment)
+                    self.assertNotIn('GOMAD_STOCK_GO', environment)
+                    self.assertNotIn('GOMAD_TEST_BROAD_GUEST_ROOT', environment)
                     if row.role in broad.ALLOCATION_ROLES:
                         self.assertEqual(observed['repo'], '/owned/cycle/broad-harness/' + stage.value + '/' + row.name)
                     else:

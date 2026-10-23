@@ -91,6 +91,7 @@ class Invocation:
     role: Role
     selector: str = ''
     ignored: bool = False
+    exact: bool = False
 
 
 HOST_SELECTORS = (
@@ -107,10 +108,13 @@ HOST_SELECTORS = (
 
 def catalog(stage):
     require(type(stage) is Stage, 'unknown broad stage')
-    rows = [Invocation('helper-lib', Role.HELPER)]
+    rows = [Invocation('helper-lib', Role.HELPER),
+            Invocation('host-inspection-scale', Role.HOST,
+                       'replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads',
+                       ignored=True, exact=True)]
     rows.extend(Invocation(name, Role.HOST, selector) for name, selector in HOST_SELECTORS)
-    rows.extend((Invocation('helper-allocation', Role.HELPER_ALLOCATION, 'allocation_receiving', True),
-                 Invocation('host-allocation', Role.HOST_ALLOCATION, 'allocation_receiving', True), Invocation('identity', Role.IDENTITY)))
+    rows.extend((Invocation('helper-allocation', Role.HELPER_ALLOCATION, 'allocation_receiving', ignored=True, exact=True),
+                 Invocation('host-allocation', Role.HOST_ALLOCATION, 'allocation_receiving', ignored=True, exact=True), Invocation('identity', Role.IDENTITY)))
     if stage in (Stage.PROVIDER, Stage.RETAINED):
         rows.append(Invocation('host-broad-guest', Role.HOST, 'replay::cluster::broad_guest_tests', True))
     return tuple(rows)
@@ -122,9 +126,9 @@ def test_argv(config, stage, name):
     row = rows[0]
     argv = [str(owned_root(config) / 'admitted' / row.role.value)]
     if target(row.role).harness:
-        argv += (['--ignored', '--exact'] if row.role in ALLOCATION_ROLES else [])
+        argv += (['--ignored'] if row.ignored and row.exact else []) + (['--exact'] if row.exact else [])
         argv += ([row.selector] if row.selector else [])
-        argv += (['--ignored'] if row.ignored and row.role not in ALLOCATION_ROLES else []) + ['--nocapture', '--test-threads=1']
+        argv += (['--ignored'] if row.ignored and not row.exact else []) + ['--nocapture', '--test-threads=1']
     return argv
 
 
@@ -133,7 +137,7 @@ def invocation_context(config, stage, row, evidence):
     destination = stage_root(config, stage)
     environment = fixed().environment(config, owned_root(config), evidence['context']['bindings']['TARGET'])
     cwd = Path(config['repo'])
-    if row.role is Role.HELPER:
+    if row.role is Role.HELPER or row.name == 'host-inspection-scale':
         environment['GOMAD_INSPECTION_RAW_DIR'] = str(destination / 'helper-lib-raw')
     if row.role in ALLOCATION_ROLES:
         cwd = destination / row.name
@@ -378,9 +382,9 @@ def read(config, stage):
                 rows[row.name] = dict(role=row.role.value, cwd=observed['repo'], stdout=str(destination / (row.name + '.stdout')),
                                       stderr=str(destination / (row.name + '.stderr')), pid=receipt['pid'],
                                       argv=test_argv(config, candidate, row.name), source=target(row.role).source,
-                                      features=list(target(row.role).features), ignored=row.ignored, harness=target(row.role).harness, command=command_hashes(destination, row.name),
+                                      features=list(target(row.role).features), ignored=row.ignored, exact=row.exact, harness=target(row.role).harness, command=command_hashes(destination, row.name),
                                       build=evidence['roles'][row.role.value])
-                if row.role is Role.HELPER:
+                if row.role is Role.HELPER or row.name == 'host-inspection-scale':
                     artifact_root = Path(environment['GOMAD_INSPECTION_RAW_DIR'])
                     require(artifact_root.resolve() == artifact_root and artifact_root.is_dir(),
                             'broad helper inspection artifact root is foreign')
