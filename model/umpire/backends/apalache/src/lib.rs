@@ -20,6 +20,11 @@ pub const VERSION: &str = "0.62.4";
 pub const ARCHIVE_SHA256: &str = "b781b53bba32fac14ac2e02b0332e1dc2edc64cb7b850c0608d8142cc7aa2ef4";
 /// SHA-256 of its unmodified assembly jar.
 pub const JAR_SHA256: &str = "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262";
+
+// A Kettle property at its native bound takes about a minute alone; the gate runs several
+// checks concurrently on a shared machine. A timeout only refuses, so headroom never admits.
+const CHECK_TIMEOUT: Duration = Duration::from_secs(600);
+
 /// A bounded symbolic answer, distinct from admission failure and native replay.
 #[derive(Debug)]
 pub enum Bounded {
@@ -146,7 +151,7 @@ impl Apalache {
                 root: root.clone(),
                 jar,
                 java,
-                limits: Limits { timeout: Duration::from_secs(120), ..Limits::default() },
+                limits: Limits { timeout: CHECK_TIMEOUT, ..Limits::default() },
             };
             let mut command = tool.command(&scratch.0);
             command.arg("version");
