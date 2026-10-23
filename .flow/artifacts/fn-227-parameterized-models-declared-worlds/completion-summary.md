@@ -10,7 +10,7 @@ Shipped: 0 PRs (locally complete on umpire; no publication requested).
 Next: execute fn-211-apalache-backend-for-umpire-in-rust.1, then remaining fn211 and fn228 tasks. fn237 and fn238.5/.6 retain owner-approved deferment.
 
 stage: impl-review - ran (task-scoped receipts retained).
-stage: completion-review - ran [2026-10-22T23:55..2026-10-23T00:01:19Z] (model: gpt-6.1-sol high). Same GPT family as writer. Initial default-base artifact-size rejection occurred before reviewer dispatch; retry used recorded original fn227 run base 3b841dc568b10934d87d491d3d0799ce23b90069 without truncation or force.
+stage: completion-review - ran (terminal verdict recorded 2026-10-23T00:01:19Z) (model: gpt-6.1-sol high). Same GPT family as writer. Initial default-base artifact-size rejection occurred before reviewer dispatch; retry used recorded original fn227 run base 3b841dc568b10934d87d491d3d0799ce23b90069 without truncation or force.
 stage: plan-sync - skipped(config: planSync.enabled=false).
 stage: QA - skipped(config: pipeline.qa=off; required live checks retained in task evidence).
 
