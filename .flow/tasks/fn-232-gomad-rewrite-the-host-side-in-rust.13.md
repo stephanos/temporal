@@ -100,17 +100,17 @@ The darwin/arm64-only `gomad-choice-trace/v3` baselines (`tools/gomad/internal/r
 
 ### Closeout ledger: Go versus Rust code size (pre-freeze row, 2026-10-23)
 
-Counter `gomad-source-size/v1` (sha256 e9e4a58c…), baseline 1d7b37f00a (frozen Go baseline), candidate fac2e3f4cb (`fn232-retirement-v2`). Full table, commands and path-group rules: `.flow/artifacts/fn232-retirement/source-size-2026-10-23.md`. Code = physical lexical code lines.
+Counter `gomad-source-size/v1` (sha256 e9e4a58c…), baseline 1d7b37f00a (frozen Go baseline), candidate tree 2185b5d140 (`fn232-retirement-v2`). Full table, commands and path-group rules: `.flow/artifacts/fn232-retirement/source-size-2026-10-23.md`. Code = physical lexical code lines.
 
 | Group | Baseline files / bytes / code | Candidate files / bytes / code |
 | --- | --- | --- |
 | Go host retired by fn-232 (prod 51,329 + tests 53,341 code) | 432 / 4,755,828 / 104,670 | 6 / 8,243 / 336 (cmd/gomad testdata fixtures) |
 | Rust host outside the engine (`rust/gomad`, `rust/driver`, workload tools): Rust prod 84,230 + tests 22,701, Python 19,715 + 11,588, other | 0 | 415 / 6,372,871 / 138,368 |
 | Linked Rust engine (preexisting helper relocated and extended) | 83 / 1,710,919 / 43,336 | 152 / 2,647,488 / 67,221 |
-| Go WASI reference (moved to internal/model/wasi) | 85 / 1,286,015 / 30,346 | 74 / 858,915 / 21,209 |
-| Retained Go models/oracles/toolchain/support | 328 / 2,754,813 / 68,628 | 305 / 2,246,407 / 56,971 |
+| Go WASI reference (moved to internal/model/wasi) | 85 / 1,286,015 / 30,346 | 74 / 858,916 / 21,209 |
+| Retained Go models/oracles/toolchain/support | 328 / 2,754,813 / 68,628 | 305 / 2,246,307 / 56,963 |
 | Go native backend (removed by fn-223, not this port) | 558 / 4,289,404 / 101,564 | 0 |
-| Whole repository (all tracked blobs) | 9,938 files / 238,487,870 bytes | 9,825 files / 271,649,866 bytes |
+| Whole repository (all tracked blobs) | 9,938 files / 238,487,870 bytes | 9,827 files / 271,660,908 bytes |
 
 Headline: the retired Go host (104,670 code lines) is replaced by 106,931 Rust lines (mostly the `gomad` crate) plus 31,303 Python driver/tool lines; the linked engine grew by 23,885 lines over the preexisting helper. Final row: rerun on the frozen candidate.
 
@@ -153,3 +153,15 @@ Development and provisioning only. No final qualification pass is claimed.
   - `6a901adddc` and `28fa92eecb`: harness changes and goldens.
 - **fn-233 evidence on fixed binary 12ae1f83…** All 81 shim cases pass in two generations, and the comparison writes the golden (`/home/agent/evidence/fn233-final-shim-v3`). All six Make stages pass in two byte-identical generations, and the three positive artifacts replay exactly (`/home/agent/evidence/fn233-final-make-v2`). For R5, a run with no explicit installation passes, and the derived configuration equals the `install` configuration (`/home/agent/evidence/fn233-final-r5-v1`).
 - **Open finding: identity depends on cache location.** Go test source inventories record `-compiled` files under the caller's GOCACHE path, so the runtime/configuration identity differs between GOCACHE locations. The second generation reused the first generation's cache path, with a fresh empty cache. The first cache is retained as `shim-cache-first.gen1`.
+
+### Worker B notes (2026-10-23): helper corpus fix and parked retirement-gap branch
+
+- Corpus root cause, found by first-parent bisect of `helper_corpus` (b64f3dcb89 good, gomad bad): cae886df69 moved two linked-only decisions into the shared helper. Those were the `sock_accept`/`sock_shutdown` namespace refusal and the conversion of an exit with an unfinished runtime trace to `invalid`. The reference transport forwards sockets to its remote host and leaves trace collection to it. Fix 807520bc96 adds `State::helper_owned`, set only by linked standalone and cluster execution. No corpus expectation changed.
+- The default-lane failures masked a second fault: 25 diagnostic, fuel-off and guest-profile sidecars still carried pre-6aca443134 `source_sha256` values for the eight storage_context cases. Commit 24f1403f80 rebinds the hash only and leaves every expected block unchanged.
+- `make validate` (also run inside test-wasm) was red on two retained Go tests whose fixture paths b64f3dcb89 had relocated. Commit e4d3e68f42 fixes the paths only.
+- Gate on branch `fn232-corpus-fix` (e4d3e68f42, rebased on 10763834f0, stock Go 1.27.1 first on PATH): `make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism` exited 0 on 24f1403f80. On e4d3e68f42, `make validate` and `make test-wasm` both exited 0.
+- Parked branch `fn232-retirement-v2`, rebased on the corpus fix. It adds the archcheck `retired-host-import` finding and its test, rewrites the ARCHITECTURE.md module map, makes small CLI.md/README edits, removes the orphaned `diagnostic-identity-plain*` baselines, resolves the darwin note and records the pre-freeze size row above.
+  - Open: `rust/driver/static_stages.py` pins `internal/archcheck/inventory.go` in `GO_SCOPE_SOURCES`. The archcheck edit therefore fails `test_original_scope_skip_is_source_bound_and_never_pass` (gate and validate exit 2). Before merging, rebind that pin or move the new check out of `inventory.go`.
+  - Verified: Go build/vet exits 0 and `make build` exits 0.
+  - Already on gomad before this branch: CI/Make on cargo and the single workspace.
+- Worktrees kept: `/home/agent/wt/fn232-corpus-fix` (merge source) and `/home/agent/wt/fn232-retirement-v2` (parked). Cargo target kept: `/home/agent/.cache/codex-build/fn232-corpus-target` (seeded from a copy of fn188-gates-target). Size evidence kept: `/home/agent/wt/evidence/fn232/source-size-2026-10-23/`.
