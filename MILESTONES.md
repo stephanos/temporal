@@ -58,6 +58,18 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+### fn-232.13 scope rulings (conductor, under the owner's 2026-10-23 delegation)
+
+The owner's goal says to follow the conductor's own recommendations when in doubt. These rulings apply until the owner says otherwise:
+
+1. **Behavioral reach of `test-wasm`.** Map each original test root and named subtest onto the Rust suites, parity lanes, the 39 transferred live roots and the qualification cells.
+   - A Go-host-only unit test that checks an implementation detail of deleted Go code is retired with that code. Each retirement gets a one-line reason in the reach map. An example is the helper's `wait4` telemetry.
+   - Every user-visible behavior of a retained feature keeps a mapped Rust test with its original assertions and bounds.
+   - The 752 original callables are not ported one by one.
+2. **`TestDeterminismExecutedDivergenceArtifacts/handoff`.** Its "every incarnation exits" assertion also fails on the original Go baseline. It is superseded by the fn-235 fail-fast behavior the owner has already authorized. The original failure is kept as history.
+3. **One-hour limit.** First time the critical-path stages on the Rust binary. Raise the limit with the owner only if those stages measurably don't fit. Until then the limit stays unchanged.
+4. **Cache-path identity.** Compiled files located in the Go cache are recorded by content, not by absolute path. A guest's identity must not depend on the caller's cache location.
+
 ### Native backend hibernation (owner decision, 2026-10-14)
 
 The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance was deferred while the WASM section was completed. This waiver superseded the earlier exception for newly introduced fn-153/fn-154/fn-179 native gates and inherited native gates. It waived those gates as conditions of WASM/source completion without recording an execution pass or completing native qualification. The ledger below is historical; retirement and removal superseded its revival conditions.
