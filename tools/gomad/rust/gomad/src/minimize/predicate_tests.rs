@@ -72,6 +72,7 @@ fn present_provenance_remains_byte_identical_and_invalid_schema_still_refuses() 
     let store = store();
     let original = fixture(0);
     let configuration = preflight::Configuration {
+        world_transition_bytes: None,
         engine: linked::Conditions::compiled().configuration(),
         profile: original.record.profile.clone(),
         limits: original.record.limits.clone(),

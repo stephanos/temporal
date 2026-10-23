@@ -473,6 +473,7 @@ pub(crate) fn replay_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
                 runtime_implementation_sha256: runtime
                     .then(|| env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256").into()),
                 configuration: Configuration {
+        world_transition_bytes: None,
                     engine: linked::CONFIGURATION.into(),
                     profile: profile.into(),
                     limits: publication.record.limits.clone(),

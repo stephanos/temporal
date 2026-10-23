@@ -21,6 +21,7 @@ fn prepared_module_with_wall(
     wall_millis: u64,
 ) -> Prepared {
     let configuration = Configuration {
+        world_transition_bytes: None,
         engine: gomad_wasmhost::linked::Conditions::compiled().configuration(),
         profile: "gomad.wasi-stock-exploratory/v1".into(),
         limits: crate::evidence::record::Limits {
