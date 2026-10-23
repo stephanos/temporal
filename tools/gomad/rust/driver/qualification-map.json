@@ -2682,10 +2682,14 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
+            "tools/gomad/rust/workload_tools/workloads.py#guest_build_tags",
+            "tools/gomad/rust/workload_tools/workloads.py#qualification_spec",
             "tools/gomad/rust/workload_tools/workloads.py#support_spec",
-            "tools/gomad/rust/workload_tools/test_workloads.py#test_support_rows_keep_exact_selection_argument_order_and_nil_network"
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_guest_default_slim_full_unknown_and_fresh_return",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_specs_bind_full_variant_without_changing_other_inputs",
+            "tools/gomad/rust/driver/receiving.py#private_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -2696,21 +2700,36 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
+            "tools/gomad/rust/workload_tools/workloads.py#guest_build_tags",
+            "tools/gomad/rust/workload_tools/workloads.py#qualification_spec",
             "tools/gomad/rust/workload_tools/workloads.py#support_spec",
-            "tools/gomad/rust/workload_tools/test_workloads.py#test_support_rows_keep_exact_selection_argument_order_and_nil_network"
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_guest_default_slim_full_unknown_and_fresh_return",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_specs_bind_full_variant_without_changing_other_inputs",
+            "tools/gomad/rust/driver/receiving.py#private_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Default/slim/full guest selections produce exactly original tags and refuse unknown profile values.",
+      "contract": "Default/slim/full selects exactly original tags; unknown values refuse and each returned list is fresh. Producer specification and independently frozen receiving controls bind the selection.",
       "evidence": [],
-      "gaps": [
-        "Only fixed slim tags exist in current workload tooling; exact default/slim/full selection and unknown-value refusal remain unported. No new public guest-profile CLI should be invented."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_guest_default_slim_full_unknown_and_fresh_return",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_specs_bind_full_variant_without_changing_other_inputs",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
+        "tools/gomad/rust/workload_tools/workloads.py#guest_build_tags",
+        "tools/gomad/rust/workload_tools/workloads.py#qualification_spec",
         "tools/gomad/rust/workload_tools/workloads.py#support_spec",
-        "tools/gomad/rust/workload_tools/test_workloads.py#test_support_rows_keep_exact_selection_argument_order_and_nil_network"
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_guest_default_slim_full_unknown_and_fresh_return",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_specs_bind_full_variant_without_changing_other_inputs",
+        "tools/gomad/rust/driver/receiving.py#private_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/guest_profile_test.go#TestQualificationGuestProfilesBindOnlySlimSelection",
@@ -4683,7 +4702,7 @@
       "contract": "Workflow-type smoke and frontend exact selections preserve argument order/nil network/configuration, actual selected leaf PASS, canary and unchanged module.",
       "evidence": [],
       "gaps": [
-        "Original helper full/slim tag variant remains a separate explicit gap; receiving frontend/support gate is not yet integrated."
+        "Private full/slim selection source controls now exist; receiving frontend/support gate is not yet integrated."
       ],
       "named_native_cases": [],
       "native_anchors": [
@@ -4888,7 +4907,7 @@
       "contract": "Workflow-type smoke and frontend exact selections preserve argument order/nil network/configuration, actual selected leaf PASS, canary and unchanged module.",
       "evidence": [],
       "gaps": [
-        "Original helper full/slim tag variant remains a separate explicit gap; receiving frontend/support gate is not yet integrated."
+        "Private full/slim selection source controls now exist; receiving frontend/support gate is not yet integrated."
       ],
       "named_native_cases": [],
       "native_anchors": [
@@ -11704,7 +11723,7 @@
       "contract": "Independent Temporal replication uses unchanged fixtures, independently seeded role boots, strict peer topology, partition/heal, grouped crash/reopen, original budgets and raw converged histories.",
       "evidence": [],
       "gaps": [
-        "Old optional full/slim, private shared cache, Linux boundary-admission and host-diagnostic controls remain separately explicit gaps; default final run cannot stand in for their negative variants."
+        "Private full/slim/cache/Linux boundary controls are now source-implemented and independently read, but actual original variant executions and host-memory diagnostics remain unbound; default final run cannot stand in for them."
       ],
       "named_native_cases": [],
       "native_anchors": [
@@ -11895,9 +11914,13 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/workload_tools/producer.py#main"
+            "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_private_default_and_explicit_shared_cache",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_competing_private_cache_refuses_before_dispatch",
+            "tools/gomad/rust/driver/receiving.py#private_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -11908,9 +11931,13 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/workload_tools/producer.py#main"
+            "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_private_default_and_explicit_shared_cache",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_competing_private_cache_refuses_before_dispatch",
+            "tools/gomad/rust/driver/receiving.py#private_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -11921,19 +11948,34 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/workload_tools/producer.py#main"
+            "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_private_default_and_explicit_shared_cache",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_competing_private_cache_refuses_before_dispatch",
+            "tools/gomad/rust/driver/receiving.py#private_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Default compiler cache is explicit/private; reviewed shared verified override is admitted and unsafe override modes/types refuse.",
+      "contract": "Compiler-cache admission retains the original private default and clean absolute non-root explicit shared override, refusing dirty paths and competing frozen producer arguments before dispatch.",
       "evidence": [],
-      "gaps": [
-        "No exact receiving/native default-vs-explicit-shared-cache safety regression; cache_root comparison alone does not validate original override acceptance/refusal matrix. Owner: installation/preparation cache admission."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_private_default_and_explicit_shared_cache",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_competing_private_cache_refuses_before_dispatch",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
-        "tools/gomad/rust/workload_tools/producer.py#main"
+        "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache",
+        "tools/gomad/rust/workload_tools/producer.py#main",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_private_default_and_explicit_shared_cache",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_competing_private_cache_refuses_before_dispatch",
+        "tools/gomad/rust/driver/receiving.py#private_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/temporal_cluster_test.go#TestTemporalQualificationBuildCacheRemainsExplicitAndPrivate",
@@ -12297,9 +12339,21 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -12310,9 +12364,21 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -12323,19 +12389,62 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Opt-in Linux MemAvailable reads bounded8KiB, exact decimal/kB grammar and checked multiplication; original8193/8192/8191 boundary precedes dispatch, invalid/platform controls refuse and absent opt-in does no read.",
+      "contract": "Optional Linux MemAvailable keeps bounded8KiB bytes, unique exact decimal/kB field, checked uint64 conversion and8193/8192/8191 threshold; absent opt-in never reads and explicit rejection precedes producer dispatch. Independent reader binds original raw bytes, frozen controls and actual nested environments.",
       "evidence": [],
-      "gaps": [
-        "No equivalent exact optional threshold/platform/malformed-input admission function exists in Rust workload tooling. Scheduler8GiB live guard and exclusive host admission do not cover this original opt-in predicate. Owner: receiving host admission."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_linux_available_boundary",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_malformed_and_oversized_linux_observations",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_explicit_threshold_platform_and_no_optin_no_read",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
-        "tools/gomad/rust/driver/driver.py#guard"
+        "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+        "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+        "tools/gomad/rust/workload_tools/producer.py#main",
+        "tools/gomad/rust/driver/receiving.py#memory_observation",
+        "tools/gomad/rust/driver/receiving.py#private_controls",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionChecksBoundaryBeforeDispatch",
@@ -12384,9 +12493,21 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -12397,9 +12518,21 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -12410,19 +12543,62 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Opt-in Linux MemAvailable reads bounded8KiB, exact decimal/kB grammar and checked multiplication; original8193/8192/8191 boundary precedes dispatch, invalid/platform controls refuse and absent opt-in does no read.",
+      "contract": "Optional Linux MemAvailable keeps bounded8KiB bytes, unique exact decimal/kB field, checked uint64 conversion and8193/8192/8191 threshold; absent opt-in never reads and explicit rejection precedes producer dispatch. Independent reader binds original raw bytes, frozen controls and actual nested environments.",
       "evidence": [],
-      "gaps": [
-        "No equivalent exact optional threshold/platform/malformed-input admission function exists in Rust workload tooling. Scheduler8GiB live guard and exclusive host admission do not cover this original opt-in predicate. Owner: receiving host admission."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_linux_available_boundary",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_malformed_and_oversized_linux_observations",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_explicit_threshold_platform_and_no_optin_no_read",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
-        "tools/gomad/rust/driver/driver.py#guard"
+        "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+        "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+        "tools/gomad/rust/workload_tools/producer.py#main",
+        "tools/gomad/rust/driver/receiving.py#memory_observation",
+        "tools/gomad/rust/driver/receiving.py#private_controls",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionIsExplicitAndPlatformBounded",
@@ -12465,19 +12641,62 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Opt-in Linux MemAvailable reads bounded8KiB, exact decimal/kB grammar and checked multiplication; original8193/8192/8191 boundary precedes dispatch, invalid/platform controls refuse and absent opt-in does no read.",
+      "contract": "Optional Linux MemAvailable keeps bounded8KiB bytes, unique exact decimal/kB field, checked uint64 conversion and8193/8192/8191 threshold; absent opt-in never reads and explicit rejection precedes producer dispatch. Independent reader binds original raw bytes, frozen controls and actual nested environments.",
       "evidence": [],
-      "gaps": [
-        "No equivalent exact optional threshold/platform/malformed-input admission function exists in Rust workload tooling. Scheduler8GiB live guard and exclusive host admission do not cover this original opt-in predicate. Owner: receiving host admission."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_linux_available_boundary",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_malformed_and_oversized_linux_observations",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_explicit_threshold_platform_and_no_optin_no_read",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
-        "tools/gomad/rust/driver/driver.py#guard"
+        "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+        "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+        "tools/gomad/rust/workload_tools/producer.py#main",
+        "tools/gomad/rust/driver/receiving.py#memory_observation",
+        "tools/gomad/rust/driver/receiving.py#private_controls",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionReadsActualBoundedLinuxObservation",
@@ -12525,9 +12744,21 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         },
         {
           "assertion": {
@@ -12538,19 +12769,62 @@
           },
           "limitation": "Named native cases and raw receiving proofs must execute on their exact candidate; source correlation does not establish assertion equivalence or PASS.",
           "native_anchors": [
-            "tools/gomad/rust/driver/driver.py#guard"
+            "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+            "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+            "tools/gomad/rust/workload_tools/producer.py#main",
+            "tools/gomad/rust/driver/receiving.py#memory_observation",
+            "tools/gomad/rust/driver/receiving.py#private_controls",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+            "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+            "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
           ],
-          "status": "SOURCE_REVIEW_WITH_GAPS"
+          "status": "SOURCE_REVIEW_UNRUN"
         }
       ],
-      "contract": "Opt-in Linux MemAvailable reads bounded8KiB, exact decimal/kB grammar and checked multiplication; original8193/8192/8191 boundary precedes dispatch, invalid/platform controls refuse and absent opt-in does no read.",
+      "contract": "Optional Linux MemAvailable keeps bounded8KiB bytes, unique exact decimal/kB field, checked uint64 conversion and8193/8192/8191 threshold; absent opt-in never reads and explicit rejection precedes producer dispatch. Independent reader binds original raw bytes, frozen controls and actual nested environments.",
       "evidence": [],
-      "gaps": [
-        "No equivalent exact optional threshold/platform/malformed-input admission function exists in Rust workload tooling. Scheduler8GiB live guard and exclusive host admission do not cover this original opt-in predicate. Owner: receiving host admission."
+      "gaps": [],
+      "named_native_cases": [
+        {
+          "name": "test_original_linux_available_boundary",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_malformed_and_oversized_linux_observations",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_original_explicit_threshold_platform_and_no_optin_no_read",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        },
+        {
+          "name": "test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+          "source": "tools/gomad/rust/workload_tools/test_qualification_controls.py"
+        }
       ],
-      "named_native_cases": [],
       "native_anchors": [
-        "tools/gomad/rust/driver/driver.py#guard"
+        "tools/gomad/rust/workload_tools/producer.py#memory_decimal",
+        "tools/gomad/rust/workload_tools/producer.py#memory_admission",
+        "tools/gomad/rust/workload_tools/producer.py#main",
+        "tools/gomad/rust/driver/receiving.py#memory_observation",
+        "tools/gomad/rust/driver/receiving.py#private_controls",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch",
+        "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement",
+        "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls"
       ],
       "original": {
         "callable": "tools/gomad/internal/backends/wasm/qualification/temporal_memory_test.go#TestTemporalMemoryAdmissionRejectsMalformedAndOversizedReadings",
@@ -12769,9 +13043,9 @@
   "contract": "All72originalqualificationroots reviewed with original/helper assertions and12dynamic subtest sites expanded. Source implementation/case correlation only; no runtime equivalence or qualification credit.",
   "counts": {
     "assertion_sites": 538,
-    "native_anchors": 97,
+    "native_anchors": 115,
     "roots": 72,
-    "roots_with_gaps": 47
+    "roots_with_gaps": 41
   },
   "native_anchors": {
     "tools/gomad/rust/driver/adapters.py#corpus": {
@@ -12802,39 +13076,39 @@
       "start_line": 104,
       "symbol": "validate_cell_spec"
     },
-    "tools/gomad/rust/driver/driver.py#guard": {
-      "end_line": 293,
-      "path": "tools/gomad/rust/driver/driver.py",
-      "sha256": "284be4a22aba008b43e1f959933dc393646e817b556757e3d8515048d4f7c6af",
-      "start_line": 259,
-      "symbol": "guard"
-    },
     "tools/gomad/rust/driver/receiving.py#artifact": {
-      "end_line": 430,
+      "end_line": 458,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "b9e79b25cb54e2b6c3edf2d2520ad4d0466472e917c11a30d27d1df9f46051a6",
-      "start_line": 409,
+      "start_line": 437,
       "symbol": "artifact"
     },
     "tools/gomad/rust/driver/receiving.py#catalogue": {
-      "end_line": 711,
+      "end_line": 739,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "e824c08424b1c024d0d73c2db2484ae0c793af2729db64f05a72fd5527a61f93",
-      "start_line": 693,
+      "start_line": 721,
       "symbol": "catalogue"
     },
     "tools/gomad/rust/driver/receiving.py#mandatory": {
-      "end_line": 613,
+      "end_line": 641,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "abf131e4250acc8dd41901e9722a099d912b163ef50341b9a28fd010fd213f1b",
-      "start_line": 609,
+      "start_line": 637,
       "symbol": "mandatory"
     },
+    "tools/gomad/rust/driver/receiving.py#memory_observation": {
+      "end_line": 374,
+      "path": "tools/gomad/rust/driver/receiving.py",
+      "sha256": "f8be8002c1accbb07e3657f5487bf9687c15d0cae7ade342cfb2714759fb104b",
+      "start_line": 349,
+      "symbol": "memory_observation"
+    },
     "tools/gomad/rust/driver/receiving.py#native_catalogue": {
-      "end_line": 637,
+      "end_line": 665,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "791685810f7e59f90da8c1e2161751ddec44e828e58db6948e6c5f278ccc8858",
-      "start_line": 615,
+      "start_line": 643,
       "symbol": "native_catalogue"
     },
     "tools/gomad/rust/driver/receiving.py#native_state": {
@@ -12844,32 +13118,39 @@
       "start_line": 195,
       "symbol": "native_state"
     },
-    "tools/gomad/rust/driver/receiving.py#producer": {
-      "end_line": 845,
+    "tools/gomad/rust/driver/receiving.py#private_controls": {
+      "end_line": 846,
       "path": "tools/gomad/rust/driver/receiving.py",
-      "sha256": "478e9608e4f10e1303d0fba8c628541ff8bec4cf86cf8605fe6bb9e2fdb58fdd",
-      "start_line": 787,
+      "sha256": "c0946924b719fe56501e8b7083f7fdae03c4418cc17d62ae8a203e712dd58318",
+      "start_line": 815,
+      "symbol": "private_controls"
+    },
+    "tools/gomad/rust/driver/receiving.py#producer": {
+      "end_line": 910,
+      "path": "tools/gomad/rust/driver/receiving.py",
+      "sha256": "cd1d7345cbc41ad3e1e9db142f10962d14de2cca860fd51790528d3d3f6b119c",
+      "start_line": 848,
       "symbol": "producer"
     },
     "tools/gomad/rust/driver/receiving.py#replication": {
-      "end_line": 879,
+      "end_line": 944,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef",
-      "start_line": 852,
+      "start_line": 917,
       "symbol": "replication"
     },
     "tools/gomad/rust/driver/receiving.py#result": {
-      "end_line": 586,
+      "end_line": 614,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "58e6da4dd30330077a3b6020367d362cd35808698b6c297a19ed0bf42b86d958",
-      "start_line": 480,
+      "start_line": 508,
       "symbol": "result"
     },
     "tools/gomad/rust/driver/receiving.py#selected": {
-      "end_line": 691,
+      "end_line": 719,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "b2f8c7299a414736787acdae82be3bfd6be11123111ec4c184788235edddb6e3",
-      "start_line": 668,
+      "start_line": 696,
       "symbol": "selected"
     },
     "tools/gomad/rust/driver/receiving.py#selected_marker": {
@@ -12880,24 +13161,24 @@
       "symbol": "selected_marker"
     },
     "tools/gomad/rust/driver/receiving.py#smoke": {
-      "end_line": 850,
+      "end_line": 915,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734",
-      "start_line": 847,
+      "start_line": 912,
       "symbol": "smoke"
     },
     "tools/gomad/rust/driver/receiving.py#sources": {
-      "end_line": 785,
+      "end_line": 813,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "20d716fe8db4e38087f21f7ac335b3ef17d99c3be15339f355f580a40f563eea",
-      "start_line": 767,
+      "start_line": 795,
       "symbol": "sources"
     },
     "tools/gomad/rust/driver/receiving.py#sqlite_primary": {
-      "end_line": 666,
+      "end_line": 694,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "ca67980abb539b223c6d19b02f2f1176c18f7d48715fda2ce5aa6a22aa6849b9",
-      "start_line": 656,
+      "start_line": 684,
       "symbol": "sqlite_primary"
     },
     "tools/gomad/rust/driver/receiving.py#state_identity": {
@@ -12955,6 +13236,27 @@
       "sha256": "c92173558d18de72e66dbedf294403447095263de4364fb329edce68f1cc610f",
       "start_line": 300,
       "symbol": "test_selected_marker_full_metadata_and_absence_preserve_original_variants"
+    },
+    "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_bound_raw_admission_and_frozen_private_controls": {
+      "end_line": 40,
+      "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
+      "sha256": "635f57aeb1002a34b33c9e3712dc734985bf64a10c89e351d848dae5e464340c",
+      "start_line": 39,
+      "symbol": "test_bound_raw_admission_and_frozen_private_controls"
+    },
+    "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_nested_command_env_cannot_disagree_with_frozen_controls": {
+      "end_line": 71,
+      "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
+      "sha256": "d518f3ab236a61c1fca8d749cc193b42ea46f6d2dfe4f188f18dee78b5893ad0",
+      "start_line": 67,
+      "symbol": "test_nested_command_env_cannot_disagree_with_frozen_controls"
+    },
+    "tools/gomad/rust/driver/tests/test_receiving_controls.py#test_self_reported_available_bytes_cannot_replace_raw_measurement": {
+      "end_line": 56,
+      "path": "tools/gomad/rust/driver/tests/test_receiving_controls.py",
+      "sha256": "ea6df217a54e8b715e28d41e4d33f0114e5b048fc08f2350cf50f7b464653c64",
+      "start_line": 52,
+      "symbol": "test_self_reported_available_bytes_cannot_replace_raw_measurement"
     },
     "tools/gomad/rust/driver/tests/test_sqlite.py#test_actual_catalogue_is_complete_exact_four_states_and_context_bound": {
       "end_line": 71,
@@ -13041,37 +13343,37 @@
       "symbol": "terminal"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_128_scalar_edge_is_accepted": {
-      "end_line": 111,
+      "end_line": 161,
       "path": "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs",
-      "sha256": "b9085100dda5e8ff919be140f548d7404d761805ef69f1363150c0c298ff8a63",
+      "sha256": "1f1c0d20646d77ab4312e762709df293c849d9b710e7f2bd07c276b3b121a779",
       "start_line": 9,
       "symbol": "original_depth_128_scalar_edge_is_accepted"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_129_empty_container_edge_is_accepted": {
-      "end_line": 111,
+      "end_line": 161,
       "path": "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs",
-      "sha256": "7b0a5d359844f329747685f13bc5f29361db40dfb261394aaada0d0015a731fc",
+      "sha256": "15097e3deb7e677a47cc68382a47a832926107423cd6bbd39f4343de12b9f324",
       "start_line": 30,
       "symbol": "original_depth_129_empty_container_edge_is_accepted"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_129_malformed_overflow_precedes_child_syntax": {
-      "end_line": 111,
+      "end_line": 161,
       "path": "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs",
-      "sha256": "50203d7f5d15884380d2e5d32c306dd6292518565edce450e162ba9bd8f35b59",
+      "sha256": "a216f9834fcb0bc5dffb8217463f6cb521c4154f237c9da2ffbf904af4e3f169",
       "start_line": 22,
       "symbol": "original_depth_129_malformed_overflow_precedes_child_syntax"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_129_scalar_overflow_keeps_nesting_error": {
-      "end_line": 111,
+      "end_line": 161,
       "path": "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs",
-      "sha256": "ed0c61070991798325db3187065147ae18faf4ad5902ab05d2808f49cac4dded",
+      "sha256": "f72681d390a4f952b65bb5bd7aa19358a1c2df3c190467adf7428d6e8707bf3c",
       "start_line": 14,
       "symbol": "original_depth_129_scalar_overflow_keeps_nesting_error"
     },
     "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs#original_depth_130_empty_container_overflow_is_refused": {
-      "end_line": 111,
+      "end_line": 161,
       "path": "tools/gomad/rust/gomad/src/qualify/receiving_depth_tests.rs",
-      "sha256": "09fba6752ae74263664c97961eeaf3801c7a7d8b15459f9873d76bef38ace255",
+      "sha256": "8a210686fe5a57a69ce00a09fcba3ff420403f05c006b52751b803074ffc877e",
       "start_line": 35,
       "symbol": "original_depth_130_empty_container_overflow_is_refused"
     },
@@ -13216,37 +13518,37 @@
       "symbol": "validate_source_manifest"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#decode_first": {
-      "end_line": 289,
+      "end_line": 293,
       "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "sha256": "8267abcd3469adb3a2af759f75bbddd1a89524d6b23abc3c5c93d9630886e4f0",
+      "sha256": "f16c8983377185488ae5f234123ecf1218bc96daf547f9a56457423788fef7ef",
       "start_line": 149,
       "symbol": "decode_first"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#read": {
-      "end_line": 289,
+      "end_line": 293,
       "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
       "sha256": "6e1ce5a1827e6d3b275abb9256b4faa6d976964aab50a5cbff6e943b7cb01d8c",
-      "start_line": 259,
+      "start_line": 263,
       "symbol": "read"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#read_bounded": {
-      "end_line": 289,
+      "end_line": 293,
       "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
       "sha256": "1e0d03053737df02e20ddafc4983926a580142e2e32eea9f11191f76fe8298f0",
-      "start_line": 234,
+      "start_line": 238,
       "symbol": "read_bounded"
     },
     "tools/gomad/rust/gomad/src/qualify/spec.rs#strict": {
-      "end_line": 289,
+      "end_line": 293,
       "path": "tools/gomad/rust/gomad/src/qualify/spec.rs",
-      "sha256": "b45d574ece96dbe7555e7de2a6b56f842efabe34b7aa8a1ef5ff1a8e812710a4",
+      "sha256": "2b0f862fd19d031126a242cac5f4f7423b28ad55f1fef924fa2812d0cee127b5",
       "start_line": 138,
       "symbol": "strict"
     },
     "tools/gomad/rust/gomad/src/qualify/spec/preflight.rs#first": {
-      "end_line": 125,
+      "end_line": 164,
       "path": "tools/gomad/rust/gomad/src/qualify/spec/preflight.rs",
-      "sha256": "55547720c463bd7984a7ba26b340f1d8d719e920190ccd0b5ea5e199ca0c348f",
+      "sha256": "cfb2b729343d91108169e49e66fd6878c494a69b270cf0c5caff637f44e9c54e",
       "start_line": 4,
       "symbol": "first"
     },
@@ -13328,18 +13630,39 @@
       "symbol": "temporal_bound_seals_role_entropy_peer_services_and_grouped_crash"
     },
     "tools/gomad/rust/workload_tools/producer.py#captured": {
-      "end_line": 99,
+      "end_line": 103,
       "path": "tools/gomad/rust/workload_tools/producer.py",
       "sha256": "77db983844b8859a7ce725de76b1c085153a887f7a58accd54dceb37e10e654a",
-      "start_line": 62,
+      "start_line": 66,
       "symbol": "captured"
     },
     "tools/gomad/rust/workload_tools/producer.py#main": {
+      "end_line": 227,
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "9d2618836deede751114fccade549746034535f5c7840beac4489827441d0093",
+      "start_line": 156,
+      "symbol": "main"
+    },
+    "tools/gomad/rust/workload_tools/producer.py#memory_admission": {
       "end_line": 153,
       "path": "tools/gomad/rust/workload_tools/producer.py",
-      "sha256": "33912fe1de4a62eabe3c358edf09e95ac452178366eeb14f2216593cf7e68842",
-      "start_line": 102,
-      "symbol": "main"
+      "sha256": "7a7aa4f8aabc808e8489e87a24ea73f4f2bb1dc3455d688b425e7158f3d1b85f",
+      "start_line": 119,
+      "symbol": "memory_admission"
+    },
+    "tools/gomad/rust/workload_tools/producer.py#memory_decimal": {
+      "end_line": 116,
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "b97bc3c2c6232799759a392636f1de6bb1c93bef4ed91bfc66d9f7809621c67d",
+      "start_line": 113,
+      "symbol": "memory_decimal"
+    },
+    "tools/gomad/rust/workload_tools/producer.py#qualification_build_cache": {
+      "end_line": 110,
+      "path": "tools/gomad/rust/workload_tools/producer.py",
+      "sha256": "40428fb9651c6ef8b18f5edead1abf6d5028da2212806b81f3338f85a30e178f",
+      "start_line": 106,
+      "symbol": "qualification_build_cache"
     },
     "tools/gomad/rust/workload_tools/temporal-support.py#main": {
       "end_line": 79,
@@ -13355,6 +13678,69 @@
       "start_line": 13,
       "symbol": "selected_pass"
     },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_admission_retains_exact_raw_bytes_before_success_or_refusal": {
+      "end_line": 101,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "a22032320bcab7d1077384ebb6d6e18af27592dc1ab369e3264deb52d0313c46",
+      "start_line": 84,
+      "symbol": "test_admission_retains_exact_raw_bytes_before_success_or_refusal"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_competing_private_cache_refuses_before_dispatch": {
+      "end_line": 116,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "e92546829b2b898d14cb57d2f19fb6186f44b628c0822d11fb2bd08f7aeda173",
+      "start_line": 108,
+      "symbol": "test_competing_private_cache_refuses_before_dispatch"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_explicit_bad_admission_stops_real_producer_before_any_dispatch": {
+      "end_line": 82,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "197818452b8b31f21a2dc806d57afade099d8009199ae3ef689156d71fc0c7aa",
+      "start_line": 74,
+      "symbol": "test_explicit_bad_admission_stops_real_producer_before_any_dispatch"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_explicit_threshold_platform_and_no_optin_no_read": {
+      "end_line": 72,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "5f07c8e331cbd92fa4d36c2965af0a628f1904bd3397ae8ca589e41816d57fa9",
+      "start_line": 65,
+      "symbol": "test_original_explicit_threshold_platform_and_no_optin_no_read"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_guest_default_slim_full_unknown_and_fresh_return": {
+      "end_line": 24,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "ac21b16bca0cbf5eb2749090bc0356178c839c48055052d3ccfd856bf1b58824",
+      "start_line": 15,
+      "symbol": "test_original_guest_default_slim_full_unknown_and_fresh_return"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_linux_available_boundary": {
+      "end_line": 52,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "9c2d7421e7a4a3ae267b821f7c4e5ee55afbff8e84aa81c4fee0e8b5d554abd4",
+      "start_line": 47,
+      "symbol": "test_original_linux_available_boundary"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_malformed_and_oversized_linux_observations": {
+      "end_line": 63,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "4b596791e92bee2003bfd524be0d4cfe4bbdf387630f613c8e0d7366b74bb730",
+      "start_line": 54,
+      "symbol": "test_original_malformed_and_oversized_linux_observations"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_original_private_default_and_explicit_shared_cache": {
+      "end_line": 39,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "af694b7e3e8f0af0e55499af8e2eae2c68d5714d1ef9c43c236b556d38fb810e",
+      "start_line": 34,
+      "symbol": "test_original_private_default_and_explicit_shared_cache"
+    },
+    "tools/gomad/rust/workload_tools/test_qualification_controls.py#test_specs_bind_full_variant_without_changing_other_inputs": {
+      "end_line": 32,
+      "path": "tools/gomad/rust/workload_tools/test_qualification_controls.py",
+      "sha256": "10e0e3a6d57c516e96da4173cb02896281440b773bc65354f8e7bdacf4a3a81b",
+      "start_line": 26,
+      "symbol": "test_specs_bind_full_variant_without_changing_other_inputs"
+    },
     "tools/gomad/rust/workload_tools/test_workloads.py#test_replication_preserves_topology_faults_and_original_selection": {
       "end_line": 26,
       "path": "tools/gomad/rust/workload_tools/test_workloads.py",
@@ -13368,6 +13754,20 @@
       "sha256": "196e6ddc7dd66948aa5d0a906950463f1ae1d110bf7fd11ef814c23053ae92bb",
       "start_line": 38,
       "symbol": "test_support_rows_keep_exact_selection_argument_order_and_nil_network"
+    },
+    "tools/gomad/rust/workload_tools/workloads.py#guest_build_tags": {
+      "end_line": 152,
+      "path": "tools/gomad/rust/workload_tools/workloads.py",
+      "sha256": "09a05bcd22e317f324c4ec7a4d9ffd33939f35337e20c7485cdb97e1018a01ba",
+      "start_line": 149,
+      "symbol": "guest_build_tags"
+    },
+    "tools/gomad/rust/workload_tools/workloads.py#qualification_spec": {
+      "end_line": 179,
+      "path": "tools/gomad/rust/workload_tools/workloads.py",
+      "sha256": "96e69c5ad4602690d9e59ac7eca6262febb428437a5f5670da0bbe14d9bd5780",
+      "start_line": 155,
+      "symbol": "qualification_spec"
     },
     "tools/gomad/rust/workload_tools/workloads.py#sqlite_scenario": {
       "end_line": 67,
@@ -13384,17 +13784,17 @@
       "symbol": "stage_temporal"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_policy": {
-      "end_line": 263,
+      "end_line": 269,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
       "sha256": "c8669949f39eeebcd85976a8157c59d462a023da85be61feb12cfbe1a175b08a",
-      "start_line": 251,
+      "start_line": 257,
       "symbol": "support_policy"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_spec": {
-      "end_line": 281,
+      "end_line": 287,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
-      "sha256": "59c81c1b7407b27c386b6051056a414dc393470d9c17af31c798f4b82f1f9999",
-      "start_line": 266,
+      "sha256": "5c1b2d4d816dca5392eeb0ef7bad3da7902fb397ed7553239a6949b0081439ee",
+      "start_line": 272,
       "symbol": "support_spec"
     },
     "tools/gomad/rust/workload_tools/workloads.py#temporal_replication_scenario": {

@@ -146,3 +146,45 @@ This native checkpoint is a separate review unit. It does not replace the
 source gaps above or complete the original72 execution mapping. Follow-on
 preservation work remains open, and every actual final receiving binding in
 this handover remains unexecuted.
+
+## Follow-on decoder review and private controls
+
+Native review found two additional token/precedence cases. Commit `164443d3a0`
+consumes one primitive token before reporting trailing input and checks child
+depth immediately after an object key, before a missing colon. The retained
+causal run `fn232-receiving-native-review-red.log` exits101 (nine depth tests
+pass, both findings fail). The repaired focused suite exits0 with22 tests,
+including all prior19, both findings and malformed-number/container safeguards.
+Strict Clippy and fmt checks pass. Logs: `fn232-receiving-native-review-green.log`
+and `fn232-receiving-native-review-clippy-final.log`. The target lease was
+released again; disk ended at5.5GiB. Actual qualification remains unrun.
+
+The separate portable control unit implements original default/slim/full tags,
+clean private/default/explicit shared compiler-cache paths and the optional
+Linux MemAvailable guard. It preserves original8KiB/uint64/exact kB/unique
+field bounds, decimal thresholds and8193/8192/8191 decisions. Rejection occurs
+before producer dispatch. Absent opt-in performs no memory read. The producer
+retains the bounded raw reading before either success or refusal; command
+metadata includes the original private environment controls. An explicit cache
+override must match the already frozen `--cache` argument. CLI grammar,
+qualification budgets, public Results and publication receipts are unchanged.
+
+The independent receiving reader reopens raw memory bytes and recomputes those
+bounds, ties profile/cache/threshold/platform/path to frozen config and owner
+argv, binds actual installation cache and every install/qualify/report command
+environment, and rejects omitted controls, forged summaries and boolean
+measurements. Private selectors use the existing frozen `environment` map;
+they cannot be inferred from a producer PASS assertion. The ten producer/control
+and eight independent-reader tests use bounded portable fixtures only. The
+source map now has115 anchors and41 roots with explicit gaps, while all72
+original roots remain `UNEXECUTED`/empty execution evidence. Original actual
+current-host admission and variant qualification runs remain unrun.
+
+Portable validation:64 driver tests and16 workload/control tests pass. Logs:
+`fn232-qualification-controls-driver-green.log` and
+`fn232-qualification-controls-workloads-green.log`. Initial missing-control and
+missing-independent-reader failures are retained in
+`fn232-qualification-controls-red.log` and `fn232-receiving-controls-red.log`.
+Remaining support-list, aggregate corpus/catalogue resources/inventory,
+divergent failure preservation, private host-memory diagnostics and exact
+negative/callback variants stay open; this control unit does not close them.
