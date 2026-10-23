@@ -69,6 +69,8 @@ The owner's goal says to follow the conductor's own recommendations when in doub
 2. **`TestDeterminismExecutedDivergenceArtifacts/handoff`.** Its "every incarnation exits" assertion also fails on the original Go baseline. It is superseded by the fn-235 fail-fast behavior the owner has already authorized. The original failure is kept as history.
 3. **One-hour limit.** First time the critical-path stages on the Rust binary. Raise the limit with the owner only if those stages measurably don't fit. Until then the limit stays unchanged.
 4. **Cache-path identity.** Compiled files located in the Go cache are recorded by content, not by absolute path. A guest's identity must not depend on the caller's cache location.
+5. **Retirement before the freeze.** The .13 retirement change merges before the final freeze, so the frozen candidate and the published support list bind to the retired source. After the freeze, commits that touch only `.flow/**` and Markdown docs keep the frozen candidate. Any other change requires a new freeze.
+6. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
 
 ### Find bugs early (owner-approved, 2026-10-23)
 
