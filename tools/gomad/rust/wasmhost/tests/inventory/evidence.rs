@@ -97,6 +97,24 @@ pub(super) fn check_reference(module: &Path, reference: &str) -> Result<(), Stri
             }
             found
         }
+        // A receiving driver control is a unittest method in the reviewed
+        // driver suite; `make validate-wasm-determinism` runs that suite.
+        "driver" => {
+            let root = module
+                .join("rust/driver/tests")
+                .canonicalize()
+                .map_err(|_| missing())?;
+            let relative = path.strip_prefix("tests/").ok_or_else(missing)?;
+            let source = root.join(relative).canonicalize().map_err(|_| missing())?;
+            if !source.starts_with(&root) {
+                return Err(missing());
+            }
+            let text = fs::read_to_string(source).map_err(|_| missing())?;
+            text.lines().any(|line| {
+                line.strip_prefix("    def ")
+                    .is_some_and(|rest| rest.starts_with(&format!("{function}(self")))
+            })
+        }
         _ => false,
     };
     if !found {
@@ -116,6 +134,7 @@ fn inventory_native_and_retained_model_evidence_resolves() {
         .filter(|reference| {
             reference.starts_with("rust:")
                 || reference.starts_with("corpus:")
+                || reference.starts_with("driver:")
                 || reference.starts_with("go:internal/model/")
         })
         .collect();
@@ -131,6 +150,8 @@ fn inventory_native_and_retained_model_evidence_resolves() {
         "rust:tests/inventory.rs:removed_rust_test",
         "go:internal/model/choice:TestRemovedEvidence",
         "corpus:wasmhost/tests/testdata/removed.json",
+        "driver:tests/test_runtime_gate.py:test_removed_receiving_control",
+        "driver:tests/test_removed_gate.py:test_complete_32_by_25_aggregate",
     ] {
         assert!(
             check_reference(&module, removed)

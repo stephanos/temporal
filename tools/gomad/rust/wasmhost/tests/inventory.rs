@@ -180,6 +180,24 @@ fn reference_shape(reference: &str) -> bool {
             }
             path
         }
+        // Receiving Python driver controls: `driver:tests/test_<x>.py:test_<y>`.
+        "driver" => {
+            let Some((path, name)) = tail.split_once(':') else {
+                return false;
+            };
+            if !path.starts_with("tests/test_")
+                || std::path::Path::new(path)
+                    .extension()
+                    .is_none_or(|extension| extension != "py")
+                || !name.starts_with("test_")
+                || !name
+                    .chars()
+                    .all(|value| value.is_ascii_alphanumeric() || value == '_')
+            {
+                return false;
+            }
+            path
+        }
         "corpus" => tail,
         _ => return false,
     };
@@ -1855,6 +1873,9 @@ fn inventory_admits_only_retired_go_migration_reference_shapes() {
     assert!(reference_shape(
         "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"
     ));
+    assert!(reference_shape(
+        "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate"
+    ));
     for reference in [
         "migration:migration:go:internal/backends/wasm/wasi:TestMissing",
         "migration:rust:tests/inventory.rs:test",
@@ -1893,6 +1914,11 @@ fn inventory_rejects_invalid_stable_ids_and_reference_paths() {
         "go::TestMissing",
         "corpus:../escape.json",
         "corpus:/absolute.json",
+        "driver:runtime_gate.py:test_complete_32_by_25_aggregate",
+        "driver:tests/test_runtime_gate.py:aggregate",
+        "driver:tests/test_runtime_gate.py:",
+        "driver:tests/test_../escape.py:test_escape",
+        "driver:tests/test_runtime_gate.rs:test_complete_32_by_25_aggregate",
     ] {
         let mut document = base.clone();
         document["entries"][0]["evidence"] = serde_json::json!([reference]);

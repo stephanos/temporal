@@ -12,9 +12,9 @@
    "layer": "helper",
    "class": "thread-order",
    "site": "helper-source:linked_cluster.rs|thread::scope|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost linked_cluster.rs",
-   "rule": "Each typed cluster execution owns and joins its watchdog; controller and incarnation threads share one bounded execution-local diagnostic session.",
+   "rule": "The one-scope identity is retired. linked_cluster.rs now has two thread scopes: the typed execution watchdog and stop_live's bounded cleanup-grace watcher; helper.linked-cluster.scoped-executions reviews the active source count.",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
@@ -116,7 +116,8 @@
    "evidence": [
     "rust:src/event_order.rs:event_order_records_full_values_and_actual_coordinates_in_commit_order",
     "rust:src/event_order.rs:event_order_never_marks_a_dropped_or_disabled_stream_complete",
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
+    "rust:gomad/src/campaign/counterfactual.rs:produce_the_four_original_counterfactual_artifact_pairs",
+    "driver:tests/test_executed_divergence.py:test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair",
     "rust:gomad/src/stress/tests.rs:retained_cluster_zero_choice_owner_keeps_complete_diagnostic_admission"
    ]
   },
@@ -129,7 +130,8 @@
    "owner": "determinism-fixture helper and copied runtime overlay",
    "rule": "The feature helper privately selects changed guest output and arms a later clock shift only after actual output commit, proving exact earliest-event reporting within one retained inspection interval. The signal is removed before seeding and is absent from guest declared environment and release helpers.",
    "evidence": [
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
+    "rust:gomad/src/campaign/counterfactual.rs:produce_the_four_original_counterfactual_artifact_pairs",
+    "driver:tests/test_executed_divergence.py:test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair",
     "migration:go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
    ]
   },
@@ -143,7 +145,8 @@
    "rule": "Only the feature helper can signal the private fixture runtime to consume one additional actual seeded draw; release helpers omit the signal and the runtime hook exists only in the fixture overlay.",
    "evidence": [
     "rust:src/determinism_fixture.rs:fixture_draw_signal_preserves_declared_seed_bits",
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+    "rust:gomad/src/campaign/counterfactual.rs:produce_the_four_original_counterfactual_artifact_pairs",
+    "driver:tests/test_executed_divergence.py:test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair"
    ]
   },
   {
@@ -156,7 +159,8 @@
    "rule": "The feature helper can advance one clock read by one nanosecond after a retained execution prefix; the fault is compiled out of release helpers.",
    "evidence": [
     "rust:src/determinism_fixture.rs:fixture_clock_shift_occurs_once_after_a_retained_prefix",
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+    "rust:gomad/src/campaign/counterfactual.rs:produce_the_four_original_counterfactual_artifact_pairs",
+    "driver:tests/test_executed_divergence.py:test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair"
    ]
   },
   {
@@ -169,7 +173,8 @@
    "rule": "The feature helper can choose the second runnable member once after two completed handoffs; release helpers retain their normal scheduler.",
    "evidence": [
     "rust:src/determinism_fixture.rs:fixture_handoff_reorders_two_runnable_members_once",
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+    "rust:gomad/src/campaign/counterfactual.rs:produce_the_four_original_counterfactual_artifact_pairs",
+    "driver:tests/test_executed_divergence.py:test_final_map_cannot_apply_the_lineage_to_another_root_or_omit_a_pair"
    ]
   },
   {
@@ -378,8 +383,11 @@
    "rule": "Ends the guest with a transcribed terminal outcome; the exit code is evidence, not a host signal.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims",
-    "go:internal/backends/wasm/wasi:TestTerminalExitMeasurementControls"
+    "migration:go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims",
+    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_native_prompt_slow_preparation_and_delayed_return",
+    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_typed_missing_and_invalid_native_timing_are_refused",
+    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_supervisor_rejects_death_and_postreceipt_watchdog_and_reaps",
+    "driver:tests/test_terminal_controls.py:test_each_original_case_must_execute_and_pass"
    ]
   },
   {
@@ -753,7 +761,9 @@
    "rule": "Delivers the declared seed and diagnostic flag; both are part of the execution identity.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json"
    ]
@@ -768,7 +778,9 @@
    "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
     "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
@@ -785,7 +797,9 @@
    "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
     "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
@@ -802,7 +816,9 @@
    "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
     "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
@@ -819,7 +835,9 @@
    "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_operation",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
     "rust:gomad/src/replay/preflight.rs:cooperative_profile_preserves_the_original_complete_import_boundary",
     "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
     "rust:src/model/runtime_preservation.rs:runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mismatch",
@@ -882,7 +900,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -896,7 +917,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -910,7 +934,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -924,7 +951,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -938,7 +968,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -952,7 +985,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -966,7 +1002,10 @@
    "evidence": [
     "rust:tests/inventory.rs:inventory_covers_every_diagnostic_draw_stream",
     "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
-    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact",
+    "driver:tests/test_runtime_gate.py:test_complete_32_by_25_aggregate",
+    "driver:tests/test_runtime_gate.py:test_producer_requires_exactly_25_distinct_owned_stores",
+    "rust:gomad/src/stress/reach_tests.rs:five_native_perturbation_fixtures_report_the_first_semantic_field"
    ]
   },
   {
@@ -2288,7 +2327,8 @@
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
     "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order",
-    "go:internal/backends/wasm/command:TestInstalledOperatorClusterFailureEndsPromptly"
+    "corpus:wasmhost/tests/testdata/helper_transcript/manual_cluster_trap_ends_run_without_control_frame.json",
+    "driver:tests/test_installed_cluster_failure.py:test_exact_original_explore_arguments_include_preparation_in_wall"
    ]
   },
   {
@@ -3522,11 +3562,12 @@
    "layer": "helper",
    "class": "clock",
    "site": "helper-source:linked_cluster.rs|recv_timeout|3",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "typed linked execution",
-   "rule": "The three host-time receives bound watchdog completion, controller-output observation and cleanup acknowledgment within the declared wall budget; they do not advance modeled time.",
+   "rule": "Retired exact three-receive helper coordinate after stop_live added its bounded cleanup-grace receive. The replacement inventories four host-time receives in linked_cluster.rs; this is an exact multiplicity migration and none of them advances modeled time.",
    "evidence": [
-    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4695,11 +4736,12 @@
    "layer": "host-process",
    "class": "thread-order",
    "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|.spawn(|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/campaign/mod.rs run_observed",
-   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "rule": "Exact same-count relocation from run_observed to run_observed_using; .spawn( remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4707,11 +4749,12 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|Instant::now|3",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/campaign/mod.rs run_observed",
-   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "rule": "Exact same-count relocation from run_observed to run_observed_using; Instant::now remains three controlled host effects in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4719,11 +4762,12 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|recv_timeout|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/campaign/mod.rs run_observed",
-   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "rule": "Exact same-count relocation from run_observed to run_observed_using; recv_timeout remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4731,11 +4775,12 @@
    "layer": "host-process",
    "class": "thread-order",
    "site": "host-rust:gomad/src/campaign/mod.rs|run_observed|thread::scope|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/campaign/mod.rs run_observed",
-   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "rule": "Exact same-count relocation from run_observed to run_observed_using; thread::scope remains one controlled host effect in gomad/src/campaign/mod.rs. run_observed is now a wrapper that passes the production execution::run; only tests inject another executor. These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -6412,6 +6457,128 @@
     "rust:gomad/src/measurement/retention_tests.rs:failed_and_cancelled_runs_do_not_advance_latest",
     "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
     "rust:gomad/src/measurement/retention_process_tests.rs:reclaim_permission_failure_keeps_new_latest_and_next_publication_recovers"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed_using",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/mod.rs:shared_scheduler_retains_one_failure_and_artifact_then_stops_admission",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.instant.now.3",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|Instant::now|3",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed_using",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/mod.rs:shared_scheduler_retains_one_failure_and_artifact_then_stops_admission",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.recv_timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed_using",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/mod.rs:shared_scheduler_retains_one_failure_and_artifact_then_stops_admission",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.mod.rs.run_observed_using.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:gomad/src/campaign/mod.rs|run_observed_using|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/campaign/mod.rs run_observed_using",
+   "rule": "These campaign wall samples enforce the declared remaining overall/execution budget and report preparation or execution cost. Scoped workers commit through the journal in seed order; host completion order and elapsed values do not supply guest clocks or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/campaign/mod.rs:shared_scheduler_retains_one_failure_and_artifact_then_stops_admission",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs stop_live",
+   "rule": "stop_live bounds live-incarnation cleanup by the original five-second stop grace: one scoped watcher thread waits on a bounded receive and, only on expiry, increments the engine epoch and aborts the broker as infrastructure. Stop revocations and joins still run in sorted handle order; host timing can only end cleanup with an infrastructure failure, never reorder modeled commits or supply guest time or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:src/linked_cluster/lifecycle_predicate_tests.rs:live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.recv.timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs stop_live",
+   "rule": "stop_live bounds live-incarnation cleanup by the original five-second stop grace: one scoped watcher thread waits on a bounded receive and, only on expiry, increments the engine epoch and aborts the broker as infrastructure. Stop revocations and joins still run in sorted handle order; host timing can only end cleanup with an infrastructure failure, never reorder modeled commits or supply guest time or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:src/linked_cluster/lifecycle_predicate_tests.rs:live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.stop.live.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|stop_live|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs stop_live",
+   "rule": "stop_live bounds live-incarnation cleanup by the original five-second stop grace: one scoped watcher thread waits on a bounded receive and, only on expiry, increments the engine epoch and aborts the broker as infrastructure. Stop revocations and joins still run in sorted handle order; host timing can only end cleanup with an infrastructure failure, never reorder modeled commits or supply guest time or entropy.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:src/linked_cluster/lifecycle_predicate_tests.rs:live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace"
+   ]
+  },
+  {
+   "id": "helper.linked-cluster.scoped-executions",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:linked_cluster.rs|thread::scope|2",
+   "disposition": "controlled",
+   "owner": "wasmhost linked_cluster.rs",
+   "rule": "Each typed cluster execution owns and joins its watchdog scope, and stop_live owns and joins one cleanup-grace watcher scope; controller and incarnation threads share one bounded execution-local diagnostic session and modeled commits stay broker-ordered.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:src/linked_cluster/lifecycle_predicate_tests.rs:live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace"
+   ]
+  },
+  {
+   "id": "helper.linked-cluster.bounded-receives-4",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:linked_cluster.rs|recv_timeout|4",
+   "disposition": "controlled",
+   "owner": "typed linked execution",
+   "rule": "The four host-time receives bound watchdog completion, controller-output observation, cleanup acknowledgment and the stop_live cleanup grace within the declared wall budgets; they do not advance modeled time.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
+    "rust:src/linked_cluster/lifecycle_predicate_tests.rs:live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace"
    ]
   }
  ]

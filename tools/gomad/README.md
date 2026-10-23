@@ -370,14 +370,19 @@ classifies each reviewed influence and names its enforcement tests. Historical
 native escape findings have the following wasip1 disposition; the removed
 backend's qualification does not establish these rules.
 
-| Historical native finding | Cooperative wasip1 rule |
-| --- | --- |
-| GC `LastGC` and `PauseEnd` stamps | Read the transcribed virtual wall clock. |
-| FIPS `monoTime` | Reaches the virtual clock through `time_now`. |
-| Tracer clock snapshot | Reads the virtual clock. |
-| `Gettimeofday` | WASI libc reaches the modeled `clock_time_get`; host syscall access is unavailable. |
-| `cputicks` | Returns virtual `nanotime` on wasm. |
-| GC pacer `enlistWorker` | The single-P guard avoids its random P pick at startup; any later draw uses seeded `cheaprand`. |
+| Historical native finding | Applies under wasip1? | Cooperative wasip1 rule |
+| --- | --- | --- |
+| GC `LastGC` and `PauseEnd` stamps | No | Read the transcribed virtual wall clock. |
+| FIPS `monoTime` | No | Reaches the virtual clock through `time_now`. |
+| Tracer clock snapshot | No | Reads the virtual clock. |
+| `Gettimeofday` | No | WASI libc reaches the modeled `clock_time_get`; host syscall access is unavailable. |
+| `cputicks` | No | Returns virtual `nanotime` on wasm. |
+| GC pacer `enlistWorker` | No | The single-P guard avoids its random P pick at startup; any later draw uses seeded `cheaprand`. |
+
+"No" means the escape is controlled under wasip1 by the inventory rows and
+tests above. It does not mean every host influence is eliminated. The WASM
+inventory currently accepts no escapes; see
+[known determinism escapes](internal/backends/wasm/README.md#known-determinism-escapes).
 
 ### Deterministic I/O
 

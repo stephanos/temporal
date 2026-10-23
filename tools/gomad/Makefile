@@ -31,7 +31,7 @@ test-wasm-slim-refusals:
 		grep -q -- "^--- PASS: $$name " "$$log" || { echo "slim refusal test did not pass: $$name" >&2; exit 1; }; \
 	done
 
-test-wasm: test-wasm-slim-refusals validate-model-corpora test-rust-engine
+test-wasm: test-wasm-slim-refusals validate-model-corpora test-rust-engine validate-wasm-determinism
 	cargo +1.99.1 test --manifest-path rust/Cargo.toml --release --locked -p gomad
 
 # The standalone protocol transport is available only to retained oracle fixtures.
@@ -92,8 +92,12 @@ world-test:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -race -tags test_dep ./internal/model/world/...
 
 .PHONY: validate-wasm-determinism
+# Inventory pins, source-site completeness, named evidence resolution and the
+# boundary/role refusal tests, plus the receiving driver controls that
+# `driver:` inventory references name (fn-188.6).
 validate-wasm-determinism:
 	cargo +1.99.1 test --manifest-path rust/Cargo.toml --release --locked -p gomad-wasmhost --test inventory --test determinism_observed --test diagnostic_roles
+	cd ../.. && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests
 	go test -tags $(GOMAD_TEST_TAGS) -count=1 ./internal/archcheck
 
 test-harness:

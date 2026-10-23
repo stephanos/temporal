@@ -197,7 +197,20 @@ fn evidence_migrations_bind_complete_reviewed_original_assertions_without_origin
 fn pending_claims_and_missing_receivers_cannot_resolve_as_complete_migrations() {
     let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let mut migrations = parse_migrations(MIGRATIONS, &module).unwrap();
+    // The terminal-claim contract is now fully received; reopening its two
+    // telemetry assertions must make the whole reference unresolved again.
     let reference = "go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims";
+    require_received(&migrations, reference).unwrap();
+    let contract = migrations
+        .contracts
+        .iter_mut()
+        .find(|contract| contract.legacy_reference == reference)
+        .unwrap();
+    for assertion in &mut contract.assertions {
+        if matches!(assertion.id.as_str(), "invented-output" | "excess-fuel") {
+            assertion.disposition = "pending".into();
+        }
+    }
     let error = require_received(&migrations, reference).unwrap_err();
     assert!(
         error.contains("invented-output") && error.contains("excess-fuel"),

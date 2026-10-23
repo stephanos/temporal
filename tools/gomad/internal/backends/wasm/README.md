@@ -102,9 +102,61 @@ anchored; routine changes preserve that prefix. The append-only
 sites retain their original identities and explicit refusal disposition; their
 history grants no wildcard coverage to current source hits.
 
+Dispositions are a tested contract by class, not a claim that all host
+nondeterminism is eliminated:
+
+| Class | `controlled` | `recorded` | `rejected` |
+| --- | --- | --- | --- |
+| `clock` | Guest time is virtual; host monotonic samples only bound deadlines, cleanup and cost reports. | Host phase and metric timings kept outside canonical streams. | Retired host coordinates and the fixture-only clock shift. |
+| `entropy` | Seeded streams derived from the declared seed and counted at choice points. | — | Retired host coordinates and the fixture-only extra draw. |
+| `scheduling`, `thread-order` | The choice tape and broker order guest steps; host threads are joined under declared bounds. | Diagnostic event-order receipts on helper stderr. | Retired host coordinates and the fixture-only handoff reorder. |
+| `settings` | Pinned engine configuration. | Declared arguments, environment, config and compiler identity enter the execution identity. | Unknown imports, frame fields and off-pin engine configurations, refused before the guest runs; retired host coordinates. |
+| `fs-io`, `network-io` | The modeled namespace and network own every guest effect. | — | WASI operations outside the stock profile, refused as unsupported; retired host coordinates; the fixture-only output signal. |
+| `gc-finalizer` | GC `LastGC`/`PauseEnd` stamps read the virtual wall clock. | — | — |
+
+Rejected rows keep their historical identity. A retired coordinate is refused by
+the source and identity-history checks if its effect reappears without review.
+Fixture faults compile only into fixture roles; release and qualification
+roles refuse them.
+
+No row has disposition `escape`. A future escape row needs a justification and
+a `readme_anchor` heading here (see [Known determinism escapes](#known-determinism-escapes)).
+
+Every row names its evidence. A reference resolves only to a live receiver:
+`rust:` (a `#[test]` function), `go:` (a retained Go model test), `corpus:` (a
+checked-in fixture such as a helper transcript case), `driver:` (a unittest
+method in `tools/gomad/rust/driver/tests`) or `migration:` (a retired Go WASI
+test whose original assertions are each received or explicitly retired in
+`determinism/evidence-migrations.json`; a pending assertion keeps it
+unresolved). Deleting or renaming a named test fails
+`inventory_all_evidence_references_resolve`. Resource-gated `#[ignore]`
+receivers resolve here, but they earn behavioral credit only when the
+qualification cycle executes them.
+
+The retired Go end-to-end regressions are received as follows:
+
+| Retired Go test | Receiver |
+| --- | --- |
+| `TestDeterminismExecutedDivergenceArtifacts` | The four original fixture pairs (`draw`, `clock`, `handoff`, `output-clock`) in `campaign::counterfactual::produce_the_four_original_counterfactual_artifact_pairs`, run by the [executed-divergence driver stage](../../../rust/driver/executed-divergence.md). |
+| `TestCooperativeRuntimeQualification` | 32 seeds × 25 fresh stores plus one forced replay per seed, produced by `runtime_qualification` and checked by the [runtime gate](../../../rust/driver/runtime-gate.md). |
+| `TestInstalledOperatorClusterFailureEndsPromptly` | The installed native 10-second deadlock/capacity check (`installed_cluster_failure.py`) and, for the reference-helper control reader, `manual_cluster_trap_ends_run_without_control_frame.json`. |
+| `TestTerminalExitMeasurementControls` | `measurement::terminal_controls` native controls and the terminal-controls driver stage. |
+| `TestTransportRejectsInvalidTerminalClaims` | Its migration contract. Output and fuel claims are received by resealed public-intake refusals in `evidence::store::record_intake_tests`. |
+
+Retained same-seed stress evidence is produced by the
+[Rust stress matrix](../../../rust/STRESS.md). Its first-divergence reports name
+fn-188.6. A matrix result applies only to the exact candidate, host and
+workloads it binds.
+
+### Known determinism escapes
+
+None are accepted. Influences outside the model are `rejected` (refused or
+compiled out of release roles) or `recorded` (bound into execution identity or
+kept out of canonical streams). They are not escapes.
+
 `make -C tools/gomad validate-wasm-determinism` runs the Rust inventory,
-inspection-boundary and compiled-role refusal tests plus retained Go architecture
-checks. The operator source scan follows every production module reachable from
+inspection-boundary and compiled-role refusal tests, the receiving driver
+controls and retained Go architecture checks. `make test-wasm` includes it. The operator source scan follows every production module reachable from
 its library and CLI roots, including feature branches; test-only modules are
 excluded. Every detected effect requires an exact per-function row, including
 its source multiplicity.

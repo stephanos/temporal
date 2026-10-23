@@ -232,13 +232,15 @@ the pinned compiler, Wasmtime and Rust versions. Its
 bound the guarantee.
 
 Diagnostic traces retain seeded draw counters at choice points. Same-seed
-stress compares fresh recordings while changing host load, concurrency, helper
-process layout or handoff timing. Forced replay answers a different question:
+[stress](rust/STRESS.md) compares fresh recordings while changing host CPU
+load, concurrency, executable/working-directory/temporary-path layout or
+broker handoff timing in the linked engine. Forced replay answers a different question:
 it validates a retained tape, while same-seed recordings check whether the seed
 and declared inputs determine the observed execution. Stress reports must bind
 the actual host, workload and identities; native soak reports do not qualify
 WASM. First-divergence reports require diagnostic evidence and use retained
-execution coordinates to identify a replay prefix.
+execution coordinates to identify a replay prefix. Missing diagnostics or an
+unauthenticated prefix make a comparison `undiagnosable`, never a pass.
 
 ## Clusters and scenarios
 
