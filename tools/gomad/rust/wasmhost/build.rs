@@ -1,4 +1,5 @@
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 use std::{collections::BTreeMap, env, fs, path::Path};
 
 fn sources(root: &Path, directory: &Path, files: &mut BTreeMap<String, Vec<u8>>) {
@@ -39,6 +40,17 @@ fn main() {
             fs::read(root.join(name)).expect("read helper build identity input"),
         );
     }
+    let mut source_inputs = String::new();
+    for (name, bytes) in &files {
+        writeln!(&mut source_inputs, "{:x}\t{name}", Sha256::digest(bytes))
+            .expect("source input manifest string");
+    }
+    fs::write(
+        Path::new(&env::var_os("OUT_DIR").expect("build output directory"))
+            .join("measurement-source-inputs.tsv"),
+        source_inputs,
+    )
+    .expect("measurement source closure");
     let mut hash = Sha256::new();
     hash.update(b"gomad.linked-implementation/v1\0");
     for (name, value) in env::vars()

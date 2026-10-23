@@ -9,7 +9,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 const OBSERVATION: &str = "GOMAD_TEMPORAL_OBSERVATION ";
 
-pub(super) fn original_limits() -> Value {
+pub(crate) fn original_limits() -> Value {
     json!({"nodes":64,"directional_links":4096,"volumes":64,"scenario_actions":4096,
         "scenario_decisions":4096,"fault_actions":4096,"history_operations":65536,
         "observations":65536,"oracle_results":4096,"scenario_evidence_bytes":64 << 20,
@@ -239,7 +239,7 @@ pub(super) fn execute(
     Ok(execution::Completion::Finalized(result))
 }
 
-fn observation(stdout: &[u8]) -> Result<Value, String> {
+pub(crate) fn observation(stdout: &[u8]) -> Result<Value, String> {
     let text = std::str::from_utf8(stdout).map_err(|error| error.to_string())?;
     let rows = text
         .lines()

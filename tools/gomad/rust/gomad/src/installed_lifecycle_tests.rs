@@ -605,6 +605,11 @@ fn retained_projected_cluster(damage: &str) -> Retained {
                     incarnation: 1,
                 },
                 execution: linked::Execution {
+                    timing: None,
+                    #[cfg(feature = "helper-guest-profile")]
+                    guest_profile_error: None,
+                    #[cfg(feature = "helper-diagnostic-profile")]
+                    external_owner_attempts: 0,
                     authorization_to_terminal_nanos: None,
                     outcome: incarnation_outcome,
                     evidence,

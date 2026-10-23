@@ -20,6 +20,9 @@ pub(super) fn prepare(spec: &Spec) -> Result<Preparation, String> {
     let mut preparation_errors = BTreeMap::new();
     let mut prepared_options = BTreeMap::new();
     for workload in &spec.workloads {
+        if !spec.only.is_empty() && spec.only != workload.name {
+            continue;
+        }
         let root = spec.root.join(format!("prepared-{}", workload.name));
         directory(&root)?;
         let preparation = (|| {
@@ -76,6 +79,7 @@ fn perturbed(
                         .join(format!("{name}-{seed}-{axis}-{round}-{member}"));
                     directory(&root)?;
                     Ok(Request {
+                        requested_root: spec.requested_root.clone(),
                         workload: name.into(),
                         seed,
                         axis: axis.into(),
@@ -144,6 +148,14 @@ pub(super) fn run(binary: &Path, spec: &Spec, prepared: &Preparation) -> Result<
     let mut rejected = Vec::new();
     let mut invalidated = None;
     for (name, seed) in cases() {
+        if (!spec.only.is_empty() && spec.only != name)
+            || (!spec.seed.is_empty() && spec.seed != seed.to_string())
+        {
+            for axis in AXES {
+                cells.push(json!({"workload":name,"seed":seed,"axis":axis,"requested":spec.repetitions * if axis=="concurrent"{spec.parallel}else{1},"completed":0,"status":"skipped","reason":"excluded by --stress-only","runs":[],"comparisons":[]}));
+            }
+            continue;
+        }
         if let Err(error) = source(spec) {
             invalidated = Some(error);
         }
@@ -160,6 +172,7 @@ pub(super) fn run(binary: &Path, spec: &Spec, prepared: &Preparation) -> Result<
         let reference = match process::execute(
             binary,
             &Request {
+                requested_root: spec.requested_root.clone(),
                 workload: name.into(),
                 seed,
                 axis: "reference".into(),
@@ -186,6 +199,10 @@ pub(super) fn run(binary: &Path, spec: &Spec, prepared: &Preparation) -> Result<
         };
         references.push(reference.clone());
         for axis in AXES {
+            if !spec.axis.is_empty() && spec.axis != axis {
+                cells.push(json!({"workload":name,"seed":seed,"axis":axis,"requested":spec.repetitions * if axis=="concurrent"{spec.parallel}else{1},"completed":0,"status":"skipped","reason":"excluded by --stress-axis","runs":[],"comparisons":[]}));
+                continue;
+            }
             if invalidated.is_some() {
                 cells.push(json!({"workload":name,"seed":seed,"axis":axis,"requested":spec.repetitions * if axis == "concurrent" { spec.parallel } else { 1 },"completed":0,"status":"skipped","reason":invalidated,"runs":[],"comparisons":[]}));
                 continue;

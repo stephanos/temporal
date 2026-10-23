@@ -65,6 +65,11 @@ impl Cancellation {
 
     pub(crate) fn execution() -> Execution {
         Execution {
+            timing: None,
+            #[cfg(feature = "guest-profile")]
+            guest_profile_error: None,
+            #[cfg(feature = "diagnostic-profile")]
+            external_owner_attempts: 0,
             authorization_to_terminal_nanos: None,
             outcome: Outcome::new("cancelled", "seed execution was cancelled"),
             evidence: BTreeMap::new(),

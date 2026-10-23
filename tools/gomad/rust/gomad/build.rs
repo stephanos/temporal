@@ -1,4 +1,5 @@
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 use std::{collections::BTreeMap, env, fs, path::Path};
 
 fn sources(root: &Path, directory: &Path, files: &mut BTreeMap<String, Vec<u8>>) {
@@ -32,6 +33,10 @@ fn main() {
         "Cargo.toml",
         "../Cargo.toml",
         "../Cargo.lock",
+        "src/measurement/testdata/sqlite_conn.go.orig",
+        "src/measurement/testdata/LICENSE",
+        "src/measurement/testdata/guest-profile.json",
+        "../../internal/backends/wasm/command/testdata/scenario/network.json",
         "../rust-toolchain.toml",
     ] {
         files.insert(
@@ -73,6 +78,17 @@ fn main() {
         "cargo:rustc-env=GOMAD_RUNTIME_IMPLEMENTATION_SHA256={:x}",
         runtime.finalize()
     );
+    let mut source_inputs = String::new();
+    for (name, bytes) in &files {
+        writeln!(&mut source_inputs, "{:x}\t{name}", Sha256::digest(bytes))
+            .expect("source input manifest string");
+    }
+    fs::write(
+        Path::new(&env::var_os("OUT_DIR").expect("build output directory"))
+            .join("measurement-source-inputs.tsv"),
+        source_inputs,
+    )
+    .expect("measurement source closure");
     let mut hash = Sha256::new();
     hash.update(b"gomad.host-implementation/v1\0");
     for (name, value) in env::vars()

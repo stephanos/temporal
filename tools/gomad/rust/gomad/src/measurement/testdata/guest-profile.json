@@ -1,0 +1,16 @@
+{
+ "meta":{"interval":1},
+ "threads":[{
+  "samples":{"length":4,"stack":[1,0,2,null],"weight":[3,2,5,7],"weightType":"samples","timeDeltas":[0,100000,1,100000],"threadCPUDelta":[0,100000000,0,100000000]},
+  "stackTable":{"length":3,"frame":[2,0,1],"prefix":[null,0,0]},
+  "frameTable":{"length":3,"func":[1,2,0]},
+  "funcTable":{"length":3,"name":[2,0,1]},
+  "stringArray":["runtime.gcDrain","runtime.schedule","go.temporal.io/server/tests.Test"]
+ },{
+  "samples":{"length":1,"stack":[0],"weight":null,"weightType":"samples"},
+  "stackTable":{"length":1,"frame":[0],"prefix":[null]},
+  "frameTable":{"length":1,"func":[0]},
+  "funcTable":{"length":1,"name":[0]},
+  "stringArray":["encoding/json.Marshal"]
+ }]
+}

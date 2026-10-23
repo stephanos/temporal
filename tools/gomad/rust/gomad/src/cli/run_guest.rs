@@ -1,6 +1,6 @@
+pub(crate) mod build_launcher;
 mod input;
 
-#[cfg(feature = "determinism-fixture")]
 use std::io::Write as _;
 
 use crate::{
@@ -226,12 +226,29 @@ fn admit(
     if canonical::encode(&invocation)? != bytes {
         return Err("noncanonical intercepted invocation".into());
     }
-    origin::authenticate_driver(path, &invocation_digest, &invocation, &arguments.module)?;
+    origin::authenticate_driver(
+        path,
+        &invocation_digest,
+        &invocation,
+        &arguments.module,
+        &module,
+    )?;
     let recipe_path = path
         .parent()
         .ok_or("invocation owner missing")?
         .join(&invocation.recipe_file);
     let bytes = origin::read_private(&recipe_path, &invocation.recipe_sha256)?;
+    let header: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    if header["schema"] == "gomad.shim-driver/v1" {
+        return admit_shared(
+            arguments,
+            installation,
+            module,
+            deadline,
+            invocation,
+            &bytes,
+        );
+    }
     let mut recipes: driver::collection::Recipes =
         serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     if canonical::encode(&recipes)? != bytes {
@@ -252,6 +269,52 @@ fn admit(
     deadline.limit(options.overall_timeout)?;
     let mut prepared =
         recipes.admit_external(module, arguments.argv.clone(), &invocation, deadline.at)?;
+    origin::intercept(&mut prepared, invocation)?;
+    let prepared = retain_admission(&options, prepared)?;
+    Ok(Admitted {
+        prepared,
+        options,
+        installation: selected.path,
+    })
+}
+
+fn admit_shared(
+    arguments: &Arguments,
+    installation: Option<&Path>,
+    module: Vec<u8>,
+    deadline: &mut Deadline,
+    invocation: origin::Invocation,
+    bytes: &[u8],
+) -> Result<Admitted, String> {
+    let mut shared: driver::shared::Shared =
+        serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
+    if canonical::encode(&shared)? != bytes {
+        return Err("noncanonical shared Go driver recipe".into());
+    }
+    shared.validate()?;
+    let metadata = crate::evidence::symbolize::build_info::read(&module)?;
+    let selected_index = shared.select(&metadata.path)?;
+    let recipe = &mut shared.packages[selected_index];
+    let selected = crate::install::manifest::resolve(recipe.options.installation.as_deref())?;
+    if let Some(explicit) = installation {
+        let explicit = crate::install::manifest::resolve(Some(explicit))?;
+        if selected.sha256 != explicit.sha256
+            || canonical::encode(&selected.manifest)? != canonical::encode(&explicit.manifest)?
+        {
+            return Err("launcher installation differs from shared preparation".into());
+        }
+    }
+    apply_options(&mut recipe.options, arguments)?;
+    let options = recipe.options.clone();
+    deadline.limit(options.overall_timeout)?;
+    let mut prepared = shared.admit(
+        selected_index,
+        module,
+        arguments.argv.clone(),
+        &invocation,
+        &metadata,
+        deadline.at,
+    )?;
     origin::intercept(&mut prepared, invocation)?;
     let prepared = retain_admission(&options, prepared)?;
     Ok(Admitted {
@@ -331,9 +394,13 @@ fn admit_receipt(
     let origin = origin::from_preparation(&prepared)?
         .ok_or("run-guest requires intercepted preparation origin")?;
     let selected = crate::install::manifest::resolve(installation)?;
-    if origin.invocation.installation_sha256 != selected.sha256
-        || canonical::digest(module) != canonical::digest(&prepared.module)
-        || prepared.configuration.arguments.get(1..) != Some(arguments.argv.as_slice())
+    if canonical::digest(module) != canonical::digest(&prepared.module) {
+        return Err("standalone module differs from its prepared receipt".into());
+    }
+    let built = build_launcher::admit(&mut prepared, module, &arguments.argv, &selected.sha256)?;
+    if !built
+        && (origin.invocation.installation_sha256 != selected.sha256
+            || prepared.configuration.arguments.get(1..) != Some(arguments.argv.as_slice()))
     {
         return Err(
             "standalone module, arguments or installation differ from the prepared receipt".into(),
@@ -471,6 +538,7 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         os::unix::fs::DirBuilderExt as _,
         process::{Command, Stdio},
     };
+    let started = Instant::now();
     if arguments.len() != 4 || arguments[0] != "--invocation" || arguments[2] != "--sha256" {
         return Err("fixture-driver-run requires --invocation FILE --sha256 HASH".into());
     }
@@ -535,13 +603,14 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         invocation_sha256: arguments[3].clone(),
         compiler_sha256: invocation.compiler_sha256.clone(),
         driver_argv_sha256: canonical::digest(&canonical::encode(&invocation.driver_argv)?),
+        module_cache_root: recipe
+            .module_cache_root(&module_root, started + recipe.options.overall_timeout)?,
         module_root,
     };
     registered_exec(root, &registration, &mut command)
 }
 
-#[cfg(feature = "determinism-fixture")]
-fn registered_exec(
+pub(crate) fn registered_exec(
     root: &Path,
     registration: &origin::DriverRegistration,
     command: &mut std::process::Command,
@@ -645,6 +714,7 @@ mod synchronization_tests {
             compiler_sha256: "2".repeat(64),
             driver_argv_sha256: "3".repeat(64),
             module_root: root.into(),
+            module_cache_root: None,
         };
         let mut command = std::process::Command::new("/bin/cat");
         command.arg(root.join("driver-registration.json"));

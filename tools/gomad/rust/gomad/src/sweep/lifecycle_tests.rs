@@ -219,6 +219,7 @@ impl Fake {
             storage: config.storage,
             network: config.network,
             build_tags: config.build_tags,
+            excluded_build_tags: Vec::new(),
         };
         fs::write(
             Self::value(&command.args, "--output"),

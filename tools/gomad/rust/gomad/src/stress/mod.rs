@@ -40,6 +40,10 @@ struct Workload {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Spec {
+    #[serde(skip)]
+    requested_root: PathBuf,
+    #[serde(default)]
+    requested_output_root: Option<PathBuf>,
     schema: String,
     root: PathBuf,
     host_description: String,
@@ -49,6 +53,12 @@ struct Spec {
     parallel: usize,
     cpu_workers: usize,
     workloads: Vec<Workload>,
+    #[serde(default)]
+    only: String,
+    #[serde(default)]
+    seed: String,
+    #[serde(default)]
+    axis: String,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -63,6 +73,7 @@ struct Supervision {
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Request {
+    requested_root: PathBuf,
     workload: String,
     seed: u64,
     axis: String,
@@ -370,6 +381,7 @@ fn rerun(binary: &Path, command: &[String], root: &Path) -> Result<Vec<String>, 
 }
 
 fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, String> {
+    let _parent_lease = crate::measurement::retention::ChildLease::for_path(&request.root)?;
     let prepared = prepare::prepare(&request.options)?;
     inputs(&request.workload, &prepared)?;
     let mut result = if request.workload == "two-cluster" {
@@ -435,7 +447,7 @@ fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, S
         .payload("evidence/event-order", 32 << 20)
         .and_then(|raw| report::parse(&raw).map(|_| ()))
         .err();
-    let rerun = rerun(binary, command, &request.root)?;
+    let rerun = rerun(binary, command, &request.requested_root)?;
     let observation = json!({"fresh":true,"workload":request.workload,"seed":request.seed,"axis":request.axis,"identities":identities,
         "oracle_error":oracle_error,"event_order_error":event_order_error,"perturbation_error":perturbation_error,"process_id":std::process::id(),"artifact":published.path,"record_sha256":published.record_sha256,"binary":binary,"command":rerun,"executed_command":command,"supervision":request.supervision,
         "host_conditions":{"cwd":std::env::current_dir().map_err(|error| error.to_string())?,"executable":std::env::current_exe().map_err(|error| error.to_string())?,
@@ -450,6 +462,10 @@ fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, S
     Ok(observation)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Managed stress execution keeps source admission, parent retention and rerun lifecycle in one supervisor"
+)]
 pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, String> {
     if std::env::var("GOMAD_WASM_STRESS").as_deref() != Ok("1") {
         return Err("stress requires GOMAD_WASM_STRESS=1".into());
@@ -460,21 +476,51 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
     let binary = std::env::current_exe().map_err(|error| error.to_string())?;
     let command: Vec<String> = std::env::args().collect();
     if arguments.len() == 4 && arguments[0] == "--rerun" && arguments[2] == "--root" {
-        let request: Request = read(Path::new(&arguments[1]))?;
-        let report = process::supervise(&binary, &request, Path::new(&arguments[3]))?;
-        writeln!(output, "{report}").map_err(|error| error.to_string())?;
-        return Ok(i32::from(report["passed"] != true));
+        let mut request: Request = read(Path::new(&arguments[1]))?;
+        let requested_root = Path::new(&arguments[3]);
+        let inputs = std::collections::BTreeMap::from([("request".into(), arguments[1].clone())]);
+        let retained = crate::measurement::retention::RetainedRun::begin(
+            requested_root,
+            "stress-rerun",
+            &inputs,
+            false,
+            &|| false,
+        )?;
+        requested_root.clone_into(&mut request.requested_root);
+        let result = process::supervise(&binary, &request, &retained.path().join("cohort"))
+            .and_then(|report| {
+                writeln!(output, "{report}").map_err(|error| error.to_string())?;
+                Ok(i32::from(report["passed"] != true))
+            });
+        let finish = retained.finish(result.as_ref().is_ok_and(|status| *status == 0), &|| false);
+        let status = result.as_ref().copied().unwrap_or(1);
+        crate::measurement::combine(result.map(|_| ()), finish)?;
+        return Ok(status);
     }
     if (arguments.len() == 2 || arguments.len() == 4 && arguments[2] == "--root")
         && arguments[0] == "--cell"
     {
         let mut request: Request = read(Path::new(&arguments[1]))?;
         if arguments.len() == 4 {
-            request.root = PathBuf::from(&arguments[3]);
-            if !request.root.is_absolute() {
+            let requested_root = PathBuf::from(&arguments[3]);
+            if !requested_root.is_absolute() {
                 return Err("stress rerun root must be absolute".into());
             }
-            directory(&request.root)?;
+            let inputs =
+                std::collections::BTreeMap::from([("request".into(), arguments[1].clone())]);
+            let retained = crate::measurement::retention::RetainedRun::begin(
+                &requested_root,
+                "stress-cell",
+                &inputs,
+                false,
+                &|| false,
+            )?;
+            request.requested_root = requested_root;
+            request.root = retained.path().join("cell");
+            let result = directory(&request.root).and_then(|()| cell(&request, &binary, &command));
+            let finish = retained.finish(result.is_ok(), &|| false);
+            crate::measurement::combine(result.map(|_| ()), finish)?;
+            return Ok(0);
         }
         cell(&request, &binary, &command)?;
         return Ok(0);
@@ -482,7 +528,7 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
     if arguments.len() != 2 || arguments[0] != "--spec" {
         return Err("stress requires --spec FILE".into());
     }
-    let spec: Spec = read(Path::new(&arguments[1]))?;
+    let mut spec: Spec = read(Path::new(&arguments[1]))?;
     if spec.schema != "gomad.rust-stress-spec/v1"
         || !spec.root.is_absolute()
         || spec.host_description.trim().is_empty()
@@ -502,20 +548,88 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
     {
         return Err("stress requires the complete workload matrix, positive bounds and explicit quiet-host evidence".into());
     }
+    if (!spec.only.is_empty()
+        && !["runtime", "two-cluster", "workflow", "activity"].contains(&spec.only.as_str()))
+        || (!spec.seed.is_empty() && spec.seed.parse::<u64>().is_err())
+        || (!spec.axis.is_empty()
+            && !["reference", "cpu", "concurrent", "layout", "handoff"]
+                .contains(&spec.axis.as_str()))
+    {
+        return Err("stress selection controls are invalid".into());
+    }
     source(&spec)?;
-    directory(&spec.root)?;
-    write(&spec.root.join("spec.json"), &canonical::encode(&spec)?)?;
+    spec.requested_root = spec.root.clone();
+    if let Some(lease) = crate::measurement::retention::ChildLease::for_path(&spec.root)? {
+        let requested = spec
+            .requested_output_root
+            .as_ref()
+            .ok_or("managed stress child requires original requested root")?;
+        if !requested.is_absolute()
+            || fs::canonicalize(requested).map_err(|error| error.to_string())?
+                != lease.requested_root()
+        {
+            return Err(
+                "managed stress child requested root differs from authenticated parent".into(),
+            );
+        }
+        spec.requested_root = requested.clone();
+        directory(&spec.root)?;
+        write(&spec.root.join("spec.json"), &canonical::encode(&spec)?)?;
+        return run_spec(&binary, &spec, &command, output);
+    }
+    if spec.requested_output_root.is_some() {
+        return Err("requested output root requires an authenticated managed parent".into());
+    }
+    let mut inputs = std::collections::BTreeMap::from([(
+        "source".into(),
+        spec.source_manifest.to_string_lossy().into_owned(),
+    )]);
+    for workload in &spec.workloads {
+        inputs.insert(
+            format!("installation:{}", workload.name),
+            workload.installation.to_string_lossy().into_owned(),
+        );
+        if let Some(path) = &workload.scenario {
+            inputs.insert(
+                format!("scenario:{}", workload.name),
+                path.to_string_lossy().into_owned(),
+            );
+        }
+    }
+    let retained = crate::measurement::retention::RetainedRun::begin(
+        &spec.root,
+        "stress",
+        &inputs,
+        false,
+        &|| false,
+    )?;
+    let spec_write =
+        canonical::encode(&spec).and_then(|raw| write(&retained.path().join("spec.json"), &raw));
+    retained.path().clone_into(&mut spec.root);
+    let result = spec_write.and_then(|()| run_spec(&binary, &spec, &command, output));
+    let finish = retained.finish(result.as_ref().is_ok_and(|status| *status == 0), &|| false);
+    let status = result.as_ref().copied().unwrap_or(1);
+    crate::measurement::combine(result.map(|_| ()), finish)?;
+    Ok(status)
+}
+
+fn run_spec(
+    binary: &Path,
+    spec: &Spec,
+    command: &[String],
+    output: &mut dyn Write,
+) -> Result<i32, String> {
     let host_before = json!({"uname":process::host("uname", &["-a"]),"load":process::host("cat", &["/proc/loadavg"]),"memory":process::host("cat", &["/proc/meminfo"])});
     write(
         &spec.root.join("host-before.json"),
         &canonical::encode(&host_before)?,
     )?;
-    let prepared = matrix::prepare(&spec)?;
+    let prepared = matrix::prepare(spec)?;
     let matrix::Matrix {
         cells,
         references,
         rejected,
-    } = matrix::run(&binary, &spec, &prepared)?;
+    } = matrix::run(binary, spec, &prepared)?;
     let passed = rejected.is_empty()
         && cells.iter().all(|cell| {
             cell["status"] == "pass"
@@ -525,7 +639,7 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
         });
     let result = json!({"schema":"gomad.rust-stress/v1","host":{"description":spec.host_description,"os":std::env::consts::OS,"arch":std::env::consts::ARCH,
         "available_parallelism":std::thread::available_parallelism().map_or(1,usize::from),"uname":process::host("uname", &["-a"]),"load_before_report":process::host("cat", &["/proc/loadavg"]),
-        "quiet_admission":"operator assertion; CPU axis intentionally loads the host"},"source_sha256":spec.source_sha256,"binary_sha256":canonical::digest(&fs::read(&binary).map_err(|error| error.to_string())?),
+        "quiet_admission":"operator assertion; CPU axis intentionally loads the host"},"source_sha256":spec.source_sha256,"binary_sha256":canonical::digest(&fs::read(binary).map_err(|error| error.to_string())?),
         "host_before":host_before,"command":command,"references":references,"cells":cells,"rejected":rejected,"passed":passed,"finding_owner":"fn-188-gomad-wasm-determinism-boundary-audit.6"});
     let path = spec.root.join("report.json");
     write(&path, &canonical::encode(&result)?)?;
