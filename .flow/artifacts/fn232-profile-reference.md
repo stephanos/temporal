@@ -169,3 +169,14 @@ corrects source export custody without changing frozen original source or Go
 runtime algorithms. Existing v2 ownership observations do not establish exact
 full-tree source equality; a newly derived, independently authenticated tree is
 required for final original-source admission.
+
+The profile owner retained a fresh exact export at
+`/home/agent/evidence/fn232-original-terminal-derived-v3`, with source manifest
+SHA-256 `5ee95882d18f8637b182cd451cd3a2e6d454fd1524a5502f34522ab7bbc6ecdb`.
+Their `fn232-original-terminal-controls-v3/original-tree.stdout` authenticates all
+9690 original Git/archive members before and after the five actual original wire
+controls; `reader-result.json` independently records those five PASS/exit 0.
+These are the unchanged original shell-helper transport controls, including all
+seven timing subcases, and remain distinct from native lifecycle evidence and
+final candidate qualification. `derive-exact.json` retains the one literal-link
+repair from the old v2 export without mutating it.
