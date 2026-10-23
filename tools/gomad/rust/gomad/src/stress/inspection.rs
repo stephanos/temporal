@@ -132,7 +132,7 @@ fn boundary_difference(
         }
     }
     for cut in &boundary.cuts {
-        let Some(other_cut) = other_cuts.get(&cut.handle) else {
+        let Some(other_cut) = other_cuts.get(&cut.handle).copied() else {
             return Ok(Some(at(
                 &cut.handle,
                 None,

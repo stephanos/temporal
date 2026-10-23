@@ -602,3 +602,23 @@ fn retained_metadata_diagnostic_is_authenticated_and_never_replaces_strict_artif
     );
     std::fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn native_inspection_diagnostics_refuse_incomplete_or_excessive_comparison_work() {
+    use gomad_wasmhost::linked_inspection::Evidence;
+    let raw = multi_inspection("");
+    let expected = Evidence::decode(&raw).unwrap();
+    let mut incomplete = expected.clone();
+    incomplete.complete = false;
+    assert!(
+        inspection::diagnostic(&expected, &incomplete, &raw, &[], &[])
+            .unwrap_err()
+            .contains("incomplete")
+    );
+    let world = vec![0; 33 << 20];
+    assert!(
+        inspection::diagnostic(&expected, &expected, &raw, &world, &world)
+            .unwrap_err()
+            .contains("capacity")
+    );
+}
