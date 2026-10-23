@@ -139,7 +139,7 @@ declared finite domain in one run per property (owner request, toward full Quint
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.1 | ⬜ todo | Typed Apalache safety relation, checked arithmetic and postcondition history; TLC results unchanged (R1) |
+| fn-211.1 | 🔄 in progress | Typed Apalache safety relation, checked arithmetic and postcondition history; TLC results unchanged (R1) |
 | fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |

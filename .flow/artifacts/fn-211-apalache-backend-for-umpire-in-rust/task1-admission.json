@@ -1,0 +1,24 @@
+{
+  "task": "fn-211-apalache-backend-for-umpire-in-rust.1",
+  "spec_run_base": "2ca92c568387bbf8476c0e63eb7ccf044ec04ec9",
+  "predecessor_closure": "2e66d89b49",
+  "branch": "umpire",
+  "scheduling": "sequential single worker; dependency chain and local single-writer policy",
+  "selection_rule": "only ready task; fn227 closed and integrated locally",
+  "review": "codex:gpt-6.1-sol:high",
+  "implementer": "gpt-6.1-sol medium",
+  "same_family_review": true,
+  "judge": {
+    "success": true,
+    "available": false,
+    "preset": "tier",
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "spawn_model": null,
+    "implementer": "gpt-6.1-sol"
+  },
+  "plan": "existing approved parent backend contracts, refined concrete task description/Touches/Quick/acceptance; no scope reduction",
+  "baseline_handoff": false,
+  "disk_free_observation": "100 GiB",
+  "admitted_at": "2026-10-23T00:04:16.994612+00:00"
+}
