@@ -116,3 +116,6 @@ mod storage_preservation;
 pub mod profile_inventory;
 #[cfg(not(feature = "conformance"))]
 mod storage_evidence_bounds;
+
+#[cfg(test)]
+pub use volume::allocation_probe::metadata as allocation_metadata_probe;

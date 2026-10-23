@@ -9,11 +9,11 @@ fn main() {
         "fixed allocation harness takes no arguments"
     );
     allocation_measure::self_check();
-    volume::allocation_probe::metadata(|fs, file| {
+    allocation_metadata_probe(|read| {
         let (sizes, facts) = allocation_measure::capture(|| {
             let mut sizes = [0_u64; 100];
             for size in &mut sizes {
-                let (_, actual) = fs.handle_metadata(std::hint::black_box(file)).unwrap();
+                let (_, actual) = std::hint::black_box(read)();
                 *size = actual;
             }
             sizes

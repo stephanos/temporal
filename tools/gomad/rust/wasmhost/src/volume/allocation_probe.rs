@@ -1,6 +1,10 @@
-use super::state::{Fs, Handle, OpenFlags, VolumeConfig, VolumeLimits};
+use super::state::{Fs, OpenFlags, VolumeConfig, VolumeLimits};
 
-pub(crate) fn metadata<T>(measure: impl FnOnce(&Fs, &Handle) -> T) -> T {
+/// Runs the fixed metadata fixture through its actual handle operation.
+///
+/// # Panics
+/// Panics if the fixed file cannot be created, resized, or read.
+pub fn metadata<T>(measure: impl FnOnce(&dyn Fn() -> (i64, u64)) -> T) -> T {
     let mut fs = Fs::new(0);
     fs.configure_volumes(
         &[VolumeConfig {
@@ -29,5 +33,5 @@ pub(crate) fn metadata<T>(measure: impl FnOnce(&Fs, &Handle) -> T) -> T {
         )
         .unwrap();
     fs.handle_resize(&file, 1 << 19, 0).unwrap();
-    measure(&fs, &file)
+    measure(&|| fs.handle_metadata(&file).unwrap())
 }

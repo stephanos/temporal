@@ -1,6 +1,10 @@
 use super::*;
 
-pub(crate) fn run<T>(measure: impl FnOnce(&Opened, &Payload) -> T) -> T {
+/// Runs the fixed retained allocation fixture in the standalone test executable.
+///
+/// # Panics
+/// Panics if the fixed publication cannot be constructed or opened.
+pub fn run<T>(measure: impl FnOnce(&Opened, &Payload) -> T) -> T {
     let bytes = vec![0xa5; 8 << 20];
     let descriptor = Payload {
         file: "evidence/world".into(),
