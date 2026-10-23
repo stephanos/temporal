@@ -307,3 +307,12 @@ and supplies no runtime or stress qualification credit. Formatting/whitespace
 checks pass. The review scope is root `652103a3e4` through this candidate, including
 all earlier receiving changes and the trust-prefix proposal, not merely the last
 three rows. Global reference resolution and final frozen execution remain open.
+
+Lexical follow-up: test-attribute recognition now also uses masked token lines,
+so text that resembles `#[cfg(test)]` inside a block comment or raw string cannot
+hide a following production module. Both negative cases are in the existing
+named multiline regression. `lexical-extracted-test.log` is exit0 for a direct
+`rustc +1.99.1 --edition 2024 --test` build of the exact scanner functions and
+regression extracted from the source; the complete inventory rerun is recorded
+separately as `inventory-lexical-candidate.log`. This extraction is a focused
+parser check, not a replacement for the unfiltered reference gate.

@@ -924,8 +924,8 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
     let (mut kept, mut test_modules) = (Vec::new(), Vec::new());
     let mut index = 0;
     while index < lines.len() {
-        if lines[index].trim() != "#[cfg(test)]"
-            && !lines[index]
+        if masked_lines[index].trim() != "#[cfg(test)]"
+            && !masked_lines[index]
                 .split_whitespace()
                 .collect::<String>()
                 .starts_with("#[cfg(all(test,")
@@ -1228,6 +1228,10 @@ fn production<'a>(value: &'a str) { thread::scope(|_| {}); }
     assert_eq!(lines.len(), 1);
     assert!(lines[0].1.starts_with("fn production"));
     assert!(production_lines("#[cfg(test)]\nmod tests {\n").is_err());
+    let source = "/*\n#[cfg(test)]\n*/\nmod production;\nconst RAW: &str = r#\"\n#[cfg(test)]\n\"#;\nmod receiving;\n";
+    let (lines, _) = production_lines(source).unwrap();
+    assert!(lines.iter().any(|(_, line)| line == "mod production;"));
+    assert!(lines.iter().any(|(_, line)| line == "mod receiving;"));
 }
 
 const ENGINE: &str = include_str!("../src/engine.rs");
