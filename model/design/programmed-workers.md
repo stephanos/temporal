@@ -54,7 +54,7 @@ reduction are unchanged in kind.
 ## Consequences
 
 - R40 is rewritten: a worker in any language follows a Model-issued program and the Run records
-  what happened. The Shim (fn-228.5, partial start on `work/fn2285-shim-deferred`) is superseded.
+  what happened. The Shim (fn-228.5) is superseded; its partial start was deleted at the owner's request.
 - The Temporal Driver's worker gate (fn-228.4) becomes "deliver the program, then observe"; the
   `worker_tasks` instruction may become unnecessary.
 - Some Models may need answers that depend on observations a worker cannot see; those stay out of

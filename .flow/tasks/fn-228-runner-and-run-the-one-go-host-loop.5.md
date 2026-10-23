@@ -14,7 +14,7 @@ Route Shim callbacks through the same correlated event queue and serialized Host
 
 ### Deferred (2026-10-23)
 
-The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"). An unfinished, ungated start is preserved on local branch `work/fn2285-shim-deferred` (428981ec06): Shim proto, generated Go and a draft `runner/shim.go`. When resuming, first confirm that a non-Go Temporal SDK is available offline for a real forwarder.
+The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"). Superseded by fn-243 (programmed workers); at the owner's request the partial Shim start was deleted on 2026-10-23 and no Shim work remains.
 ## Acceptance
 - [ ] Shim endpoint and forwarder; four reply kinds proven
 - [ ] Unknown version refused; unreachable and timeout recorded as DriverFault
