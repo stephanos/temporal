@@ -238,7 +238,8 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
             if proc is not None:
                 cleanup_error = None
                 try:
-                    wait_process_group(proc.pid)
+                    if wait_command_processes(proc.pid) and observation == 'completed':
+                        raise Refusal('producer exited with remaining process-session members')
                 except (Refusal, OSError, ValueError) as error:
                     cleanup_error = error
                     observation = 'inconclusive'
@@ -257,7 +258,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
     return (root / (name + '.stdout')).read_bytes()
 
 
-def process_group_live(group):
+def process_states():
     require(sys.platform.startswith('linux') and Path('/proc').is_dir(),
             'process group quiescence requires Linux procfs')
     for process in Path('/proc').iterdir():
@@ -269,10 +270,21 @@ def process_group_live(group):
             continue
         except (OSError, IndexError) as error:
             raise Refusal('cannot observe process group quiescence') from error
-        require(len(fields) >= 3, 'invalid process group observation')
-        if int(fields[2]) == group and fields[0] not in ('Z', 'X'):
-            return True
-    return False
+        require(len(fields) >= 4, 'invalid process group observation')
+        yield fields[0], int(fields[2]), int(fields[3])
+
+
+def process_group_live(group):
+    return any(observed == group and state not in ('Z', 'X')
+               for state, observed, _ in process_states())
+
+
+def process_session_groups(sessions):
+    groups = {}
+    for state, group, session in process_states():
+        if session in sessions and state not in ('Z', 'X'):
+            groups.setdefault(session, set()).add(group)
+    return groups
 
 
 def wait_process_group(group):
@@ -280,6 +292,35 @@ def wait_process_group(group):
     while process_group_live(group):
         require(time.monotonic() < deadline, 'process group did not quiesce after SIGKILL')
         time.sleep(0.01)
+
+
+def wait_process_session(session):
+    deadline = time.monotonic()+5
+    observed = False
+    while groups := process_session_groups({session}).get(session, set()):
+        observed = True
+        for group in groups:
+            try:
+                os.killpg(group, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        require(time.monotonic() < deadline, 'process session did not quiesce after SIGKILL')
+        time.sleep(0.01)
+    return observed
+
+
+def wait_command_processes(pid):
+    errors, remaining_session = [], False
+    try:
+        wait_process_group(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    try:
+        remaining_session = wait_process_session(pid)
+    except (Refusal, OSError, ValueError) as error:
+        errors.append(str(error))
+    require(not errors, 'command process cleanup incomplete: '+'; '.join(errors))
+    return remaining_session
 
 
 class StageExecutor(scheduler.RealExecutor):
@@ -293,28 +334,50 @@ class StageExecutor(scheduler.RealExecutor):
         self.stage_pids[stage.label] = self.procs[stage.label][0].pid
 
     def cleanup_commands(self, stage_pids):
-        registrations, errors = [], []
-        for path in self.command_root.rglob('*.process.json'):
-            try:
-                record = read(path)
-                if record.get('stage_pid') not in stage_pids or not record.get('active'):
-                    continue
-                registrations.append((path, record))
+        attempted, errors, owners = set(), [], set(stage_pids)
+        for _ in range(32):
+            records = []
+            for path in self.command_root.rglob('*.process.json'):
                 try:
-                    os.killpg(record['pid'], signal.SIGKILL)
+                    records.append((path, read(path)))
+                except (Refusal, OSError, ValueError, KeyError) as error:
+                    errors.append(str(path)+': '+str(error))
+            while True:
+                children = {record['pid'] for _, record in records if record.get('stage_pid') in owners}
+                if children <= owners:
+                    break
+                owners.update(children)
+            registrations = [(path, record) for path, record in records
+                             if record.get('stage_pid') in owners and record.get('active')
+                             and (path, record['pid']) not in attempted]
+            if not registrations:
+                break
+            sessions = {record['pid'] for _, record in registrations}
+            groups = set(sessions)
+            try:
+                for owned_groups in process_session_groups(sessions).values():
+                    groups.update(owned_groups)
+            except (Refusal, OSError, ValueError) as error:
+                errors.append(str(error))
+            for group in groups:
+                try:
+                    os.killpg(group, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
-            except (Refusal, OSError, ValueError, KeyError) as error:
-                errors.append(str(path)+': '+str(error))
-        for path, record in registrations:
-            try:
-                wait_process_group(record['pid'])
-                record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
-                save_process(path, record)
-            except (Refusal, OSError, ValueError, KeyError) as error:
-                errors.append(str(path)+': '+str(error))
+                except (OSError, ValueError) as error:
+                    errors.append(str(group)+': '+str(error))
+            for path, record in registrations:
+                attempted.add((path, record['pid']))
+                try:
+                    wait_command_processes(record['pid'])
+                    record.update(active=False, observation='inconclusive', cleanup_signal=int(signal.SIGKILL))
+                    save_process(path, record)
+                except (Refusal, OSError, ValueError, KeyError) as error:
+                    errors.append(str(path)+': '+str(error))
+        else:
+            errors.append('command registrations did not quiesce during cleanup')
         require(not errors, 'command cleanup incomplete: '+'; '.join(errors))
-        return bool(registrations)
+        return bool(attempted)
 
     def wait_any(self):
         label, code, ended = super().wait_any()
