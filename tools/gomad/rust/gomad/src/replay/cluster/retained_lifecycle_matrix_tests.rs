@@ -148,7 +148,7 @@ fn increment(value: &mut Value) {
 )]
 fn mutate(publication: &mut Publication, case: &str) -> &'static str {
     let mut inputs: Value = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
-    let zeros = format!("sha256:{}", "0".repeat(64));
+    let zeros = "0".repeat(64);
     let mapping = match case {
         "missing-action" => {
             inputs["configuration"]["steps"]
@@ -259,7 +259,7 @@ fn mutate_record_envelope(fixture: &Fixture, case: &str) {
     if case == "changed-original-record" {
         record.push(b'\n');
     } else {
-        manifest["record"]["execution_identity"] = json!(format!("sha256:{}", "0".repeat(64)));
+        manifest["record"]["execution_identity"] = json!("0".repeat(64));
         record = canonical::encode(&manifest["record"]).unwrap();
         manifest["record_sha256"] = json!(canonical::digest(&record));
     }
