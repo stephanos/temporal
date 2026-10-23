@@ -1563,3 +1563,21 @@ fn registration_checks_requests_before_payload_and_refusal_keeps_world() {
         );
     }
 }
+
+/// Original `TestHelperPreservesInspectionFailuresWithoutFullTapeFinish`: an
+/// inspection failure the broker raises keeps its own termination, stops the
+/// run as an inspection stop and is not replaced by a later abort.
+#[test]
+fn inspection_failures_keep_their_termination_and_stop_inspection() {
+    for termination in [
+        "instrumentation_divergence",
+        "debug_error",
+        "probe_fuel_limit",
+    ] {
+        let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+        broker.abort(termination, "inspection".into());
+        broker.abort("trap", "later".into());
+        assert_eq!(broker.failure().map(|(kind, _)| kind), Some(termination));
+        assert!(broker.inspection_stopped(), "{termination}");
+    }
+}
