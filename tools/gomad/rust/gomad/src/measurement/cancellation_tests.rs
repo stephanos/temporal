@@ -125,7 +125,7 @@ fn public_cancelled_dispatch_refuses_before_inputs_roots_or_collection() {
             .unwrap()
             .contains("measurement cancelled")
     );
-    assert!(stdout.is_empty());
+    assert_eq!(stdout, Vec::<u8>::new());
     assert!(!requested.exists());
     let mut collected = false;
     let result = collect_with_token(&scratch.0, &token, &mut stdout, |_, _, _| {

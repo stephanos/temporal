@@ -97,8 +97,8 @@ fn four_original_published_reruns_execute_without_nesting_requested_roots() {
                     .unwrap()
                     .success()
             );
-            let recorded = fs::read_to_string(&arguments).unwrap();
-            let argv = recorded.lines().collect::<Vec<_>>();
+            let captured_arguments = fs::read_to_string(&arguments).unwrap();
+            let argv = captured_arguments.lines().collect::<Vec<_>>();
             let flag = format!("--{}", inputs::flag(variable));
             let index = argv.iter().position(|argument| *argument == flag).unwrap();
             current = argv[index + 1].into();

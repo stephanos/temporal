@@ -616,41 +616,7 @@ fn actual_closed_native_run_publishes_explicit_canonical_stream_sources() {
             assert!(!output.join("wasi").exists());
         }
         if modeled {
-            for mutation in 0..4 {
-                let mut malformed = read(&input);
-                match mutation {
-                    0 => malformed["guest"]["model"]["arguments"] = Value::Null,
-                    1 => {
-                        malformed["guest"]["model"]
-                            .as_object_mut()
-                            .unwrap()
-                            .remove("arguments");
-                    }
-                    2 => malformed["guest"]["model"]["arguments"] = json!([Value::Null]),
-                    _ => malformed["guest"]["model"]["unexpected"] = true.into(),
-                }
-                let request = scratch.write(
-                    &format!("malformed-{mutation}.json"),
-                    &serde_json::to_vec(&malformed).unwrap(),
-                );
-                let refused = scratch.0.join(format!("refused-{mutation}"));
-                let result = scratch.invoke(
-                    env!("CARGO_BIN_EXE_gomad-measure"),
-                    &[
-                        "--linked-run".as_ref(),
-                        request.as_os_str(),
-                        refused.as_os_str(),
-                    ],
-                );
-                assert!(
-                    !result.status.success(),
-                    "malformed argument shape {mutation}"
-                );
-                assert!(
-                    !refused.exists(),
-                    "malformed request reached native execution"
-                );
-            }
+            assert_native_argument_shapes_refused(&scratch, &input);
         }
         evidence::read_profile_run(&output, ReadLimits::default()).unwrap();
     }
@@ -693,6 +659,44 @@ fn actual_compiled_identity_producer_replaces_one_success_across_three_runs() {
                 .filter(|entry| entry.file_name().to_string_lossy().starts_with("run-"))
                 .count(),
             1
+        );
+    }
+}
+
+fn assert_native_argument_shapes_refused(scratch: &Scratch, input: &Path) {
+    for mutation in 0..4 {
+        let mut malformed = read(input);
+        match mutation {
+            0 => malformed["guest"]["model"]["arguments"] = Value::Null,
+            1 => {
+                malformed["guest"]["model"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("arguments");
+            }
+            2 => malformed["guest"]["model"]["arguments"] = json!([Value::Null]),
+            _ => malformed["guest"]["model"]["unexpected"] = true.into(),
+        }
+        let request = scratch.write(
+            &format!("malformed-{mutation}.json"),
+            &serde_json::to_vec(&malformed).unwrap(),
+        );
+        let refused = scratch.0.join(format!("refused-{mutation}"));
+        let result = scratch.invoke(
+            env!("CARGO_BIN_EXE_gomad-measure"),
+            &[
+                "--linked-run".as_ref(),
+                request.as_os_str(),
+                refused.as_os_str(),
+            ],
+        );
+        assert!(
+            !result.status.success(),
+            "malformed argument shape {mutation}"
+        );
+        assert!(
+            !refused.exists(),
+            "malformed request reached native execution"
         );
     }
 }

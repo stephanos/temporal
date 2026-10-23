@@ -91,7 +91,7 @@ mod tests {
                     barrier.wait();
                     assert!(cancelled());
                 })
-                .unwrap()
+                .unwrap();
             });
             within(&ordinary_token, || {
                 barrier.wait();

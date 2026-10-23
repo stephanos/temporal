@@ -108,8 +108,8 @@ fn interrupted_run_recovery_preserves_latest_after_three_abrupt_exits() {
         b"interrupted"
     );
     assert!(!abandoned.join(".complete").exists());
-    assert!(scratch.named_directories(".stage-").is_empty());
-    assert!(scratch.named_directories(".trash-").is_empty());
+    assert_eq!(scratch.named_directories(".stage-"), Vec::<PathBuf>::new());
+    assert_eq!(scratch.named_directories(".trash-"), Vec::<PathBuf>::new());
 }
 
 #[test]
@@ -198,6 +198,6 @@ fn reclaim_permission_failure_keeps_new_latest_and_next_publication_recovers() {
         std::fs::read(recovered.join("result")).unwrap(),
         b"complete"
     );
-    assert!(scratch.named_directories(".trash-").is_empty());
+    assert_eq!(scratch.named_directories(".trash-"), Vec::<PathBuf>::new());
     assert_eq!(scratch.named_directories("run-"), vec![recovered]);
 }

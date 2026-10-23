@@ -174,7 +174,7 @@ fn actual_supervised_child_failures_still_publish_terminal_aggregate() {
             )
             .unwrap();
             assert_eq!(observed.termination, "exit_failure");
-            assert!(observed.cleanup_errors.is_empty());
+            assert_eq!(observed.cleanup_errors, Vec::<String>::new());
             Ok(())
         },
         |records, failure| {

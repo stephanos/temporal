@@ -27,8 +27,8 @@ impl Baseline {
                 fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
                 let request = json!({"kind":"standalone","guest":{"module":baseline.0.join("missing-module.wasm"),"model":{"configuration":{"seed":seed}}}});
                 let raw = serde_json::to_vec(&request).unwrap();
-                baseline.save(&root.join("request.json"), &request);
-                baseline.save(&baseline.0.join(format!("{label}.input.json")), &request);
+                Self::save(&root.join("request.json"), &request);
+                Self::save(&baseline.0.join(format!("{label}.input.json")), &request);
                 let command = vec![
                     baseline
                         .0
@@ -43,11 +43,14 @@ impl Baseline {
                         .into_owned(),
                     root.to_string_lossy().into_owned(),
                 ];
-                baseline.save(&root.join("report.json"), &json!({
-                    "schema":"gomad.linked-profile-run/v1","request_sha256":canonical::digest(&raw),
-                    "invocation":command,"fresh_store_id":42,"host_sha256":"a".repeat(64),
-                    "execution":{"Ok":{"termination":"exit"}}
-                }));
+                Self::save(
+                    &root.join("report.json"),
+                    &json!({
+                        "schema":"gomad.linked-profile-run/v1","request_sha256":canonical::digest(&raw),
+                        "invocation":command,"fresh_store_id":42,"host_sha256":"a".repeat(64),
+                        "execution":{"Ok":{"termination":"exit"}}
+                    }),
+                );
                 let capture = |suffix: &str| {
                     json!({
                         "path":baseline.0.join(format!("{label}-driver.{suffix}")),
@@ -55,7 +58,7 @@ impl Baseline {
                         "truncated":false,"error":null
                     })
                 };
-                baseline.save(
+                Self::save(
                     &baseline.0.join(format!("{label}-driver.json")),
                     &json!({
                         "schema":"gomad.native-process-observation/v1","command":command,
@@ -71,7 +74,7 @@ impl Baseline {
             }
             guests.insert(name, json!({"provenance":baseline.0.join("missing-provenance.json"),"provenance_sha256":"b".repeat(64),"runs":runs}));
         }
-        baseline.save(
+        Self::save(
             &baseline.0.join("native-migration-baseline.json"),
             &json!({
                 "schema":"gomad.native-migration-baseline/v1","guests":guests
@@ -79,14 +82,14 @@ impl Baseline {
         );
         baseline
     }
-    fn save(&self, path: &Path, value: &Value) {
+    fn save(path: &Path, value: &Value) {
         fs::write(path, serde_json::to_vec(value).unwrap()).unwrap();
         fs::set_permissions(path, fs::Permissions::from_mode(0o600)).unwrap();
     }
-    fn change(&self, path: &Path, mutate: impl FnOnce(&mut Value)) {
+    fn change(path: &Path, mutate: impl FnOnce(&mut Value)) {
         let mut value = crate::qualify::spec::strict(&fs::read(path).unwrap()).unwrap();
         mutate(&mut value);
-        self.save(path, &value);
+        Self::save(path, &value);
     }
     fn invoke(&self) -> Result<PathBuf, String> {
         let call = Invocation {
@@ -130,7 +133,7 @@ fn migration_costs_precede_module_and_role_access_for_every_selected_baseline() 
                 ("overflow", Some(json!(u64::MAX))),
             ] {
                 let baseline = Baseline::new();
-                baseline.change(
+                Baseline::change(
                     &baseline.0.join(format!("{name}-seed{seed}-driver.json")),
                     |command| {
                         if let Some(cost) = cost {
@@ -176,7 +179,7 @@ fn migration_costs_precede_module_and_role_access_for_every_selected_baseline() 
 fn migration_cost_preflight_requires_exact_six_selected_roots() {
     for mutation in 0..7 {
         let baseline = Baseline::new();
-        baseline.change(
+        Baseline::change(
             &baseline.0.join("native-migration-baseline.json"),
             |value| {
                 let guests = value["guests"].as_object_mut().unwrap();
@@ -227,7 +230,7 @@ fn migration_cost_preflight_authenticates_actual_command_and_report_pair() {
         let baseline = Baseline::new();
         let root = baseline.0.join("choices-seed0");
         if mutation < 6 {
-            baseline.change(
+            Baseline::change(
                 &baseline.0.join("choices-seed0-driver.json"),
                 |command| match mutation {
                     0 => command["pid"] = json!(43),
@@ -239,7 +242,7 @@ fn migration_cost_preflight_authenticates_actual_command_and_report_pair() {
                 },
             );
         } else {
-            baseline.change(&root.join("report.json"), |report| match mutation {
+            Baseline::change(&root.join("report.json"), |report| match mutation {
                 6 => report["request_sha256"] = json!("c".repeat(64)),
                 7 => report["invocation"][0] = json!("/unrelated/helper"),
                 _ => report["execution"] = json!({"Err":"transport failed"}),
