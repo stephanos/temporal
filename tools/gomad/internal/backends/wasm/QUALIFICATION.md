@@ -136,6 +136,66 @@ row's own module or test, and both Results of each row are validated individuall
 
 ### Per-test support list
 
+The Rust receiving format is `gomad.rust-wasm-support-list/v1`, implemented by
+`rust/gomad/src/qualify/support.rs`. It preserves the fixed per-test statement
+and closed registry below, and refuses Go-lineage Results. A Rust publication
+requires **both** registered rows, each with all four ordered gates. Empty and
+smoke-only inputs remain pending reports. No current candidate has earned a
+Rust support list through this source change.
+
+Build the bounded repository harness with `cargo +1.99.1 build --release --locked
+--manifest-path tools/gomad/rust/Cargo.toml -p gomad --example fn222-support`.
+It links the ordinary release library and adds no public Gomad verb. Its closed
+commands are `temporal-policy ROOT PACKAGE qualification|inspection OUTPUT`,
+`prepare-check RECEIPT SHA256`, `check-result RESULT`, `publish REQUEST BASE`,
+`validate LIST`, and `validate-inspection RECEIPT SHA256 RESULT EXECUTABLE SHA256`.
+The gate driver retains the exact subprocess argv, real numeric exits, PIDs,
+wall-clock boundaries, elapsed observations, environment intent and log bindings.
+Every measured receipt requires bounded raw qualification-spec bytes and their
+hash, captured unchanged before and after execution. The reader checks the full
+original campaign envelope, including the 32 MiB world-transition cap, exact
+selection, source identity, command path and isolated output roots.
+The expected canary keeps its raw CLI exit 1; its validated wrapper gate exits 0.
+
+The Rust list retains each full raw manifest and Result/receipt/process reference.
+Its candidate binds the source-inventory preimage, release executable, host,
+helper, compiler, raw compiler/runtime inventory, runtime-overlay implementation,
+engine and platform. `model_implementation_owner_sha256` names the linked helper's
+actual model source closure. Configured model hashes remain row-specific; the
+registry's different working directories legitimately produce different hashes.
+
+The typed row policy keeps the complete authenticated Configuration and removes
+only its separately checked registered argv and build-key-derived choice runtime
+identity. The build-input view removes those same separately retained arguments
+and Configuration. Every other field must match within the success/canary pair.
+Raw model, configuration, toolchain and artifact hashes are never rewritten.
+The source manifest independently binds the captured SQLite schema and unchanged
+inspection templates. Every success artifact must retain complete record-bound
+stdout with exactly one named verbose PASS and no selected-test skip.
+
+Inspection retains its preparation plan/artifact/provenance and complete raw
+overlay descriptor bytes. Its unchanged raw scenario witness is captured before
+and after recording, limited to the owner's 256 KiB bound, and authenticated
+against both the exact original boot/address/start-wait/fault envelope and typed
+prepared provenance. Exact install/explore argv retain the original campaign
+bounds, including the 1 MiB world-transition cap. Private compiler aliases use
+a fresh inspection preparation cache; the requested original cache remains bound
+to the candidate inventory. Its explicit compiler/runtime/cache alias roots define
+a typed inventory view: stock files and runtime inputs compare by their declared
+root-relative names, generated replacements by the descriptor's exact membership,
+and shared generator sources by their unchanged absolute names. Every member and
+replacement must match. The two raw descriptors and inventories keep their
+original paths, preimages and hashes. The retained validator reconstructs an
+original descriptor only through that exact mapping and verifies its original
+raw hash; it does not reopen removed compiler or source files. Heap admission
+uses the linked helper's bounded gzip decoder and checks the complete payload.
+
+JSON and its Markdown projection publish exclusively in private storage. The
+independent list reader reopens Results, single publication receipts, process
+logs, preparation receipts, modules, stdout and inspection payloads, then rebuilds
+the complete sorted document. Editing document fields alone cannot establish
+support. The historical Go producer contract follows for lineage reference.
+
 The support claim is a per-test list bound to one candidate
 (`gomad.wasm-support-list/v1`), not a functional-suite, package or cross-host claim.
 `BuildSupportList` in `qualification/support_list.go` produces it. It accepts only:

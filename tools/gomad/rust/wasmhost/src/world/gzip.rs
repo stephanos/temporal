@@ -28,7 +28,7 @@ pub(super) fn encode(raw: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     Ok(gzip)
 }
 
-pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
+pub(crate) fn decode(bytes: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
     if limit > MAX_EXPANDED {
         return Err("World expanded byte bound".into());
     }
