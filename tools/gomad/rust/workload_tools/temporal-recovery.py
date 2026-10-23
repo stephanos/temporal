@@ -19,10 +19,14 @@ def main():
     parser.add_argument("--binary",required=True,type=Path)
     parser.add_argument("--primary",required=True,type=Path,help="fresh recovery producer root")
     parser.add_argument("--root",required=True,type=Path)
+    parser.add_argument("--repo",required=True,type=Path)
+    parser.add_argument("--private-observation-config",required=True,type=Path)
     args=parser.parse_args()
     root=args.root.resolve()
+    private=producer.private_configuration(args.private_observation_config,args.binary.resolve(),args.repo.resolve(),root)
     root.mkdir(mode=0o700,parents=True,exist_ok=False)
     producer.owned_root(root)
+    producer.private_admission(private,root)
     primary=args.primary.resolve()
     producer_receipt=json.loads((primary/"producer.json").read_bytes())
     if producer_receipt["workload"]!="recovery" or producer_receipt["mode"]!="success":
@@ -51,7 +55,7 @@ def main():
         spec["RuntimeWorkload"]=dict(kind="temporal-committed-workflow-crash-reopen",primary=dict(artifact_path=str(artifact),
             record_sha256=digest(workloads.canonical(manifest["record"])),prefix_sha256=digest(prefix),storage_state_sha256=digest(state),state=selected,context=context))
         producer.write(cell/"spec.json",spec)
-        response=producer.run(cell,"qualify",[str(args.binary.resolve()),"--installation",str(primary/"installation.json"),"qualify","--spec",str(cell/"spec.json")],0)
+        response=producer.run(cell,"qualify",[str(args.binary.resolve()),"--installation",str(primary/"installation.json"),"qualify","--spec",str(cell/"spec.json")],0,private_observations=private)
         path=Path(response["result_path"])
         producer.run(cell,"report",[str(args.binary.resolve()),"report","--result",str(path)],0)
         actual=json.loads(path.read_bytes())

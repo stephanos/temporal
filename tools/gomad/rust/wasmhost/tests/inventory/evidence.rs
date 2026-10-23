@@ -1,6 +1,34 @@
 use super::*;
 use std::{fs, path::Path};
 
+fn test_attribute(lines: &[&str]) -> bool {
+    let mut depth = 0_i64;
+    for line in lines.iter().rev() {
+        let blank = strip_literals(line);
+        let blank = blank.trim();
+        if depth == 0 && blank == "#[test]" {
+            return true;
+        }
+        if blank.is_empty() {
+            continue;
+        }
+        for token in blank.chars().rev() {
+            match token {
+                ']' => depth += 1,
+                '[' => depth -= 1,
+                _ => {}
+            }
+            if depth < 0 {
+                return false;
+            }
+        }
+        if depth == 0 && !blank.starts_with("#[") {
+            return false;
+        }
+    }
+    false
+}
+
 pub(super) fn check_reference(module: &Path, reference: &str) -> Result<(), String> {
     let missing = || {
         format!(
@@ -40,21 +68,11 @@ pub(super) fn check_reference(module: &Path, reference: &str) -> Result<(), Stri
                 return Err(missing());
             }
             let text = fs::read_to_string(source).map_err(|_| missing())?;
-            let lines: Vec<&str> = text.lines().collect();
+            let masked = mask_multiline_literals(&text);
+            let lines: Vec<&str> = masked.lines().collect();
             lines.iter().enumerate().any(|(index, line)| {
-                line.contains(&format!("fn {function}("))
-                    && lines[..index]
-                        .iter()
-                        .rev()
-                        .take_while(|line| {
-                            let line = line.trim();
-                            line.is_empty()
-                                || line.starts_with("#[")
-                                || line.starts_with("//")
-                                || line.starts_with("reason =")
-                                || line.starts_with(")]")
-                        })
-                        .any(|line| line.trim() == "#[test]")
+                strip_literals(line).contains(&format!("fn {function}("))
+                    && test_attribute(&lines[..index])
             })
         }
         "go" => {
@@ -137,4 +155,23 @@ fn inventory_all_evidence_references_resolve() {
         "unresolved inventory evidence:\n{}",
         unresolved.join("\n")
     );
+}
+
+#[test]
+fn evidence_requires_an_adjacent_test_attribute_across_closed_multiline_attributes() {
+    for source in [
+        "#[test]\n#[expect(\nclippy::too_many_lines,\nreason = \"bounded test\"\n)]\n#[ignore = \"explicit resource slot\"]\n",
+        "#[test]\n// rationale\n#[cfg(all(test, feature = \"fixture\"))]\n",
+    ] {
+        assert!(test_attribute(&source.lines().collect::<Vec<_>>()));
+    }
+    for source in [
+        "#[test]\nfn previous() {}\n",
+        "#[test]\nconst VALUE: &[u8] = &[1, 2];\n",
+        "#[test]\n#[expect(\n",
+        "#[test]\n)]\n",
+        "#[test]\nlet text = \"#[test]\";\n",
+    ] {
+        assert!(!test_attribute(&source.lines().collect::<Vec<_>>()));
+    }
 }

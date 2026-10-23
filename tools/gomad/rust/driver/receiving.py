@@ -1076,6 +1076,15 @@ class Retained:
 
     def endpoint(self, label):
         entry = self.config.get('stages',{}).get(label,{})
+        if entry.get('adapter') == 'primary':
+            import primary_stages
+            outer, item, root = primary_stages.endpoint(self.config, label)
+            self.command(self.config, outer, item['name'], item['argv'], timeout=3600)
+            owner = self.owner(root, item['argv'])
+            observed = read(outer / (item['name'] + '.command.json'))
+            require(owner['pid'] == observed['pid'] and observed['start_ns'] <= owner['start_ns'] <= observed['end_ns'],
+                    'primary producer PID/time/root mismatch')
+            return root
         if entry.get('adapter') != 'checked-command' or not entry.get('argv'):
             raise Unexecuted(label+': actual receiving producer argv/root is not bound')
         argv = entry['argv']
@@ -1089,26 +1098,14 @@ class Retained:
                 'outer producer PID/time/root mismatch')
         return root
 
-    def sources(self, root, workload, staged_source):
-        repo = Path(self.config['repo'])
-        base = repo/workloads.WASM/'testdata'
-        names = {'replication':['temporal_storage/recovery_test.go','temporal_broker/replication_test.go'],
-                 'recovery':['temporal_storage/recovery_test.go'],
-                 'retry':['network_streams/'+path.name for path in sorted((base/'network_streams').glob('*.go'))]}[workload]
-        expected = {str(base/name):sha(regular(base/name)) for name in names}
-        require(expected and read(regular(root/'unchanged-source-inputs.json')) == expected
-                and all(self.config['files'].get(path) == value for path,value in expected.items()),
-                'Temporal original source inventory differs from frozen source')
-        source_bytes = b''.join(regular(base/name).read_bytes() for name in names)
-        # The retry producer uses its fixed entry fixture for the staging-directory key.
-        if workload == 'retry':
-            source_bytes = regular(base/'network_streams/temporal_retry_test.go').read_bytes()
-        stage = repo/'.tmp'/('fn232-temporal-'+workload+'-'+digest(source_bytes)[:16])
-        require(staged_source == './'+str(stage.relative_to(repo)),'Temporal changed original staged source selection')
-        require({path.name for path in stage.iterdir()} == {Path(name).name for name in names}, 'Temporal staged source inventory changed')
-        for name in names:
-            require(regular(stage/Path(name).name).read_bytes() == regular(base/name).read_bytes(), 'Temporal staged source changed original bytes')
-            self.source_pins[str(stage/Path(name).name)] = self.config['files'][str(base/name)]
+    def sources(self, root, workload, staged_source, working_dir):
+        directory = Path(__file__).resolve().parents[1]/'workload_tools'
+        if str(directory) not in sys.path:
+            sys.path.insert(0, str(directory))
+        custody = load_module('receiving_source_custody', directory/'source_custody.py')
+        pins = custody.verify(root, Path(self.config['repo']), self.config['files'], workload, staged_source, working_dir,
+                              frozen_source_manifest=self.config['source_manifest'])
+        self.source_pins.update(pins)
 
     def private_controls(self, root, owner):
         flags = ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',
@@ -1162,7 +1159,8 @@ class Retained:
         source_manifest = self.config['source_manifest']
         expected = (workloads.support_spec if workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(
             Path(self.config['repo']),root/'cell',workload,mode=='canary',target['Source'],Path(source_manifest),
-            guest_profile=controls['guest_profile'] if controls else '')
+            guest_profile=controls['guest_profile'] if controls else '',
+            **(dict(source_working_dir=target['WorkingDir']) if workload in ('replication','recovery','retry') else {}))
         require(spec == expected, 'actual producer changed original request, target, seed, repetition or bounds')
         policy = read(regular(root/'policy.json'))
         capture = policy.get('CapturedInputs')
@@ -1176,7 +1174,7 @@ class Retained:
             captured_value = read(captured_path)
             require(captured_value.get('Config',captured_value).get('CapturedInputs') == capture,'actual captured schema differs from frozen input')
         if workload in ('replication','recovery','retry'):
-            self.sources(root,workload,target['Source'])
+            self.sources(root,workload,target['Source'],target['WorkingDir'])
         installation = read(regular(root/'installation.json'))
         require(installation['fuel'] == (4_000_000_000 if workload=='sqlite' else 1<<50)
                 and installation['memory_bytes'] == (256<<20 if workload=='sqlite' else 4<<30)
@@ -1249,9 +1247,9 @@ class Retained:
             results.append(result['observations']['operator_process_id'])
         require(len(set(results)) == 2,'replication cells borrowed producer PID')
 
-    def temporal(self, label):
+    def temporal(self, label, standalone_inspection=False):
         root = self.endpoint(label)
-        if label == 'network-streams':
+        if label == 'network':
             result = self.producer(root,'retry')
             for execution in result['report']['executions']:
                 artifact = Path(execution['artifact_path'])
@@ -1259,7 +1257,11 @@ class Retained:
         elif label == 'storage':
             self.recovery(root)
         elif label == 'temporal-inspection':
-            outer_argv = self.config['stages'][label]['argv']
+            if self.config['stages'][label]['adapter'] == 'primary':
+                import primary_stages
+                outer_argv = primary_stages.endpoint(self.config, label)[1]['argv']
+            else:
+                outer_argv = self.config['stages'][label]['argv']
             require(argument(outer_argv,'--owner') == 'all','inspection aggregate requires exact three original owners')
             script = str(Path(__file__).resolve().parents[1]/'workload_tools/temporal-inspection.py')
             require(len(outer_argv) > 1 and outer_argv[1] == script and script in self.config['files'], 'inspection aggregate uses foreign producer script')
@@ -1275,7 +1277,7 @@ class Retained:
                 self.nested(root,owner,child_argv)
                 child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
-                self.inspection(root/owner,owner)
+                self.inspection(root/owner,owner,standalone=standalone_inspection)
         else:
             raise Unexecuted('unsupported receiving endpoint: '+label)
 
@@ -1412,8 +1414,10 @@ class Retained:
                         if read(path)['profile'] == 'gomad.wasi-cooperative/v1'}
         require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
 
-    def inspection(self, root, owner):
+    def inspection(self, root, owner, standalone=False):
         if owner == 'onebox':
+            if standalone:
+                return onebox_receiving.inspection(self, root, standalone=True)
             return onebox_receiving.inspection(self, root)
         observed_owner = self.owner(root)
         argv = observed_owner['argv']
@@ -1578,7 +1582,7 @@ def read_receiving(config):
               *(lambda index=index: reader.selected(index) for index in range(4)), reader.catalogue,
               reader.smoke,
               reader.replication, lambda: reader.temporal('storage'),
-              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection'),
+              lambda: reader.temporal('network'), lambda: reader.temporal('temporal-inspection'),
               lambda: onebox_receiving.support(reader)]
     rows = []
     for name, check in zip(OWNED,checks):
