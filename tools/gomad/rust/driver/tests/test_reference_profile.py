@@ -56,6 +56,31 @@ class RequestMapping(unittest.TestCase):
             self.assertEqual(os.readlink(source / 'value'), './versioned/value')
             self.assertEqual((source / 'value').read_bytes(), b'x')
 
+    def test_archive_directory_modes_survive_restrictive_umask(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-umask-') as temporary:
+            root = Path(temporary)
+            archive = root / 'original.tar'
+            with tarfile.open(archive, 'w') as bundle:
+                directory = tarfile.TarInfo('versioned')
+                directory.type, directory.mode = tarfile.DIRTYPE, 0o775
+                bundle.addfile(directory)
+                for name, mode in [('value', 0o664), ('executable', 0o775)]:
+                    item = tarfile.TarInfo('versioned/' + name)
+                    item.size, item.mode = 1, mode
+                    bundle.addfile(item, io.BytesIO(b'x'))
+            source = root / 'source'
+            source.mkdir(mode=0o700)
+            previous = os.umask(0o077)
+            try:
+                with tarfile.open(archive) as bundle:
+                    reference.extract_original(bundle, source)
+            finally:
+                os.umask(previous)
+            self.assertEqual(source.stat().st_mode & 0o777, 0o700)
+            self.assertEqual((source / 'versioned').stat().st_mode & 0o777, 0o755)
+            self.assertEqual((source / 'versioned/value').stat().st_mode & 0o777, 0o644)
+            self.assertEqual((source / 'versioned/executable').stat().st_mode & 0o777, 0o755)
+
     def test_build_cli_dispatches_to_builder_without_starting_go(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-reference-cli-') as temporary:
             files = Path(temporary) / 'files.json'

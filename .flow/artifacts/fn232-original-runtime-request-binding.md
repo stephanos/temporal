@@ -63,3 +63,15 @@ Git blobs and actual source bytes/modes, including both literal symlinks. The on
 `derived-v3-git-archive-source-custody.json` under the owned checkout runtime-v2
 preparation root. A fresh Go harness build and ownership-pair rerun are still
 required before exact-original runtime acceptance.
+
+Fresh review identified a valid restrictive-umask case: the tar data filter leaves
+directory modes to mkdir, so umask `077` produced `0700` directories while the
+new verifier expected the safe archive mode. Extraction now explicitly applies
+`member.mode & 0755` only to validated real directories contained in the private
+source root, after the data filter. The source root remains private. File modes,
+executable bits and symlink literals retain their existing checks. This is an
+explicit safe tar-directory policy; Git does not store directory permission bits.
+The actual restrictive-umask fixture failed before the fix. All 12 reference tests,
+the full original-archive custody fixture under umask `077`, and all 319 driver
+tests passed, exit 0. Logs under `/home/agent` are
+`measurement-reference-archive-{umask-green,restrictive-actual,umask-driver}.log`.

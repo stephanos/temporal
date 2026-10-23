@@ -59,7 +59,15 @@ def extract_original(bundle, source):
     # The data filter validates destinations but normalizes relative link spelling.
     bundle.extractall(source, filter='data')
     for member in bundle.getmembers():
-        if member.issym():
+        if member.isdir():
+            relative = Path(member.name)
+            path = source / relative
+            custody.require(not relative.is_absolute() and '..' not in relative.parts
+                            and path.is_dir() and not path.is_symlink()
+                            and path.resolve().is_relative_to(source.resolve()),
+                            'original archive directory escapes source')
+            path.chmod(member.mode & 0o755)
+        elif member.issym():
             path = source / member.name
             custody.require(path.is_symlink()
                             and (path.parent / member.linkname).resolve().is_relative_to(source.resolve()),
