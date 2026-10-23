@@ -2,6 +2,7 @@ package act
 
 import (
 	"context"
+	"maps"
 	"net"
 	"sync"
 	"testing"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
+	deploymentpb "go.temporal.io/api/deployment/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/temporal"
@@ -261,125 +263,6 @@ func TestRespondRefusesWhatNoEventAwaits(t *testing.T) {
 	require.ErrorContains(t, x.Respond(t.Context(), event.ID, explained(false)), "closed")
 }
 
-// poll plays the SDK worker's poll through the gate, returning the task with token when the
-// gate admits it.
-func poll(ctx context.Context, d *Driver, token string) error {
-	invoke := func(_ context.Context, _ string, _, reply any, _ *grpc.ClientConn, _ ...grpc.CallOption) error {
-		if token != "" {
-			task := reply.(*workflowservice.PollActivityTaskQueueResponse)
-			task.TaskToken, task.ActivityId, task.Attempt = []byte(token), "activity", 1
-		}
-		return nil
-	}
-	return d.gate.intercept(ctx, workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName,
-		new(workflowservice.PollActivityTaskQueueRequest), new(workflowservice.PollActivityTaskQueueResponse), nil, invoke)
-}
-
-func completedReply(t *testing.T, payloads ...*commonpb.Payload) *anypb.Any {
-	return packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
-		Result: &commonpb.Payloads{Payloads: payloads},
-	})})
-}
-
-func TestAWorkerTaskIsTakenOnlyBetweenReadsAndPausesThem(t *testing.T) {
-	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	d := testDriver(t, server.address, Options{})
-	polled := make(chan error, 1)
-	go func() { polled <- poll(t.Context(), d, "token") }()
-	x := start(t, d, 2, describeInstruction(t, 30*time.Second, 1))
-	first := next(t, x)
-	require.Equal(t, runner.EventObservation, first.Kind)
-	select {
-	case err := <-polled:
-		t.Fatalf("the gate admitted a poll before the Model asked to continue: %v", err)
-	default:
-	}
-	require.NoError(t, x.Respond(t.Context(), first.ID, explained(true)))
-	require.NoError(t, <-polled)
-	type result struct {
-		payload *commonpb.Payload
-		err     error
-	}
-	delivered := make(chan result, 1)
-	go func() {
-		value, err := d.deliver(t.Context(), []byte("token"))
-		delivered <- result{value.Payload(), err}
-	}()
-	callback := next(t, x)
-	require.Equal(t, runner.EventCallback, callback.Kind)
-	require.Equal(t, uint64(1), callback.Call)
-	envelope := new(realizationv1.Callback)
-	require.NoError(t, callback.Payload.UnmarshalTo(envelope))
-	task := new(workflowservice.PollActivityTaskQueueResponse)
-	require.NoError(t, envelope.GetTask().UnmarshalTo(task))
-	require.Equal(t, []byte("token"), task.GetTaskToken(), "the callback carries the captured task")
-	require.Len(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName), 1, "reads pause while a task is unanswered")
-	payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}
-	require.NoError(t, x.Respond(t.Context(), callback.ID, runner.Decision{Reply: completedReply(t, payload)}))
-	got := <-delivered
-	require.NoError(t, got.err)
-	require.True(t, proto.Equal(payload, got.payload))
-	second := next(t, x)
-	require.Equal(t, runner.EventObservation, second.Kind)
-	require.NoError(t, x.Respond(t.Context(), second.ID, explained(true)))
-	third := next(t, x)
-	require.Equal(t, runner.EventObservation, third.Kind, "one task per worker poll instruction")
-	require.NoError(t, x.Respond(t.Context(), third.ID, explained(false)))
-	require.Equal(t, runner.EventDone, next(t, x).Kind)
-}
-
-func TestAReadWithoutWorkerTasksNeverAdmitsAPoll(t *testing.T) {
-	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	d := testDriver(t, server.address, Options{})
-	ctx, cancel := context.WithCancel(t.Context())
-	polled := make(chan error, 1)
-	go func() { polled <- poll(ctx, d, "token") }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 0))
-	for i := 0; i < 3; i++ {
-		event := next(t, x)
-		require.NoError(t, x.Respond(t.Context(), event.ID, explained(i < 2)))
-	}
-	require.Equal(t, runner.EventDone, next(t, x).Kind)
-	cancel()
-	require.ErrorIs(t, <-polled, context.Canceled)
-}
-
-func TestAnUncapturedTaskIsRefusedBeforeAnswer(t *testing.T) {
-	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	d := testDriver(t, server.address, Options{})
-	polled := make(chan error, 1)
-	go func() { polled <- poll(t.Context(), d, "token") }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
-	require.NoError(t, <-polled)
-	go func() { _, _ = d.deliver(t.Context(), []byte("another token")) }()
-	event := next(t, x)
-	require.Equal(t, runner.EventFault, event.Kind)
-	require.Contains(t, event.Fault, "malformed evidence")
-}
-
-func TestARefusedCallbackFailsTheActivity(t *testing.T) {
-	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	d := testDriver(t, server.address, Options{})
-	polled := make(chan error, 1)
-	go func() { polled <- poll(t.Context(), d, "token") }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
-	require.NoError(t, <-polled)
-	delivered := make(chan error, 1)
-	go func() {
-		_, err := d.deliver(t.Context(), []byte("token"))
-		delivered <- err
-	}()
-	callback := next(t, x)
-	require.NoError(t, x.Respond(t.Context(), callback.ID, runner.Decision{Refusal: &modelv1.Refusal{Code: modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED, Message: "unsupported callback policy"}}))
-	var failure *temporal.ApplicationError
-	require.ErrorAs(t, <-delivered, &failure)
-	require.True(t, failure.NonRetryable())
-	_, open := <-x.Events()
-	require.False(t, open, "a refusal ends the exchange")
-}
-
 func TestRepliesTheSDKCanDeliver(t *testing.T) {
 	payload := &commonpb.Payload{Data: []byte("Complete")}
 	got, err := deliverable(completedReply(t, payload))
@@ -400,6 +283,18 @@ func TestRepliesTheSDKCanDeliver(t *testing.T) {
 	require.True(t, failure.NonRetryable())
 	_, err = deliverable(packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCanceledRequest{})}))
 	require.ErrorContains(t, err, "cannot send")
+	owned := packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
+		TaskToken: []byte("token"), Namespace: "namespace", Identity: "worker",
+		Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}},
+	})})
+	_, err = deliverable(owned)
+	require.NoError(t, err, "the SDK supplies task_token, namespace and identity itself")
+	versioned := packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
+		Result:            &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}},
+		DeploymentOptions: &deploymentpb.WorkerDeploymentOptions{BuildId: "build"},
+	})})
+	_, err = deliverable(versioned)
+	require.ErrorContains(t, err, "the SDK cannot send the reply's deployment_options")
 }
 
 func TestRedactionRemovesNamedFieldsThroughPackedEvidence(t *testing.T) {
@@ -420,23 +315,58 @@ func TestRedactionRemovesNamedFieldsThroughPackedEvidence(t *testing.T) {
 }
 
 func TestConfigureReadsTheEnvironment(t *testing.T) {
+	token := "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse.task_token"
+	queue := "temporal.api.workflowservice.v1.StartActivityExecutionRequest.task_queue.name"
 	env := map[string]string{
 		EnvAddress: "localhost:7233", EnvNamespace: "namespace", EnvTaskQueue: "queue", EnvCreate: "true",
-		EnvRPCTimeout: "3s", EnvWorkerPollTimeout: "4s", EnvRedact: "a.B.c, d.E.f",
+		EnvRPCTimeout: "3s", EnvWorkerPollTimeout: "4s", EnvRedact: token + ", " + queue,
 	}
 	opts, err := Configure(func(name string) string { return env[name] })
 	require.NoError(t, err)
 	require.Equal(t, Options{
 		Address: "localhost:7233", Namespace: "namespace", TaskQueue: "queue", Create: true,
-		RPCTimeout: 3 * time.Second, WorkerPollTimeout: 4 * time.Second, Redact: []string{"a.B.c", "d.E.f"},
+		RPCTimeout: 3 * time.Second, WorkerPollTimeout: 4 * time.Second, Redact: []string{token, queue},
 	}, opts)
-	for name, value := range map[string]string{EnvAddress: "", EnvTaskQueue: "", EnvCreate: "maybe", EnvRPCTimeout: "soon", EnvRedact: "field"} {
-		changed := map[string]string{}
-		for k, v := range env {
-			changed[k] = v
-		}
-		changed[name] = value
+	for _, bad := range []struct{ name, value, want string }{
+		{EnvAddress, "", "required"},
+		{EnvTaskQueue, "", "required"},
+		{EnvCreate, "maybe", EnvCreate},
+		{EnvRPCTimeout, "soon", EnvRPCTimeout},
+		{EnvWorkerPollTimeout, "1s", "at least 2s"},
+		{EnvRedact, "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse.tasktoken", `has no field "tasktoken"`},
+		{EnvRedact, "temporal.api.workflowservice.v1.NoSuchResponse.task_token", "names no known message"},
+		{EnvRedact, queue + ".kind", "is not a message"},
+	} {
+		changed := maps.Clone(env)
+		changed[bad.name] = bad.value
 		_, err := Configure(func(name string) string { return changed[name] })
-		require.Error(t, err, name)
+		require.ErrorContains(t, err, bad.want, "%s=%s", bad.name, bad.value)
 	}
+}
+
+func TestAnOutOfRangeStatusIsMalformed(t *testing.T) {
+	server := newFakeServer(t, func(string) ([]byte, error) { return nil, status.Error(codes.Code(20), "no such code") })
+	x := start(t, testDriver(t, server.address, Options{}), 1, packed(t, cancelRequest))
+	event := next(t, x)
+	require.Equal(t, runner.EventFault, event.Kind)
+	require.Contains(t, event.Fault, "malformed evidence: status code 20")
+}
+
+func TestStartRefusesAReadWithoutItsMechanics(t *testing.T) {
+	d := testDriver(t, unreachable(t), Options{})
+	for _, instruction := range []*temporalv1.ObserveActivity{
+		{PollIntervalMs: 0, BackoffMs: 1, ReadTimeoutMs: 1},
+		{PollIntervalMs: 1, BackoffMs: 0, ReadTimeoutMs: 1},
+		{PollIntervalMs: 1, BackoffMs: 1, ReadTimeoutMs: 0},
+	} {
+		instruction.Request = packed(t, &workflowservice.DescribeActivityExecutionRequest{})
+		_, err := d.Start(t.Context(), 1, packed(t, instruction))
+		require.ErrorContains(t, err, "needs a poll interval, a backoff and a read timeout")
+	}
+}
+
+func completedReply(t *testing.T, payloads ...*commonpb.Payload) *anypb.Any {
+	return packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
+		Result: &commonpb.Payloads{Payloads: payloads},
+	})})
 }

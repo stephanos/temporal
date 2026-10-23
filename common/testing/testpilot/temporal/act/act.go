@@ -35,6 +35,8 @@ const (
 	DefaultRPCTimeout        = 10 * time.Second
 	DefaultWorkerPollTimeout = 5 * time.Second
 	DefaultCloseTimeout      = 10 * time.Second
+	// MinWorkerPollTimeout is the frontend's shortest long poll; it refuses shorter ones at once.
+	MinWorkerPollTimeout = 2 * time.Second
 )
 
 // Options configure the Driver. Namespace and TaskQueue must be the ones the Model's World names;
@@ -108,10 +110,12 @@ func (o Options) validate() error {
 		return fmt.Errorf("%s is required", EnvTaskQueue)
 	case o.RPCTimeout < 0 || o.WorkerPollTimeout < 0 || o.MaxReadTimeout < 0 || o.CloseTimeout < 0:
 		return errors.New("timeouts cannot be negative")
+	case o.WorkerPollTimeout != 0 && o.WorkerPollTimeout < MinWorkerPollTimeout:
+		return fmt.Errorf("%s must be at least %s", EnvWorkerPollTimeout, MinWorkerPollTimeout)
 	}
 	for _, path := range o.Redact {
-		if !strings.Contains(path, ".") {
-			return fmt.Errorf("redaction path %q names no field", path)
+		if err := resolvable(path); err != nil {
+			return fmt.Errorf("%s: %w", EnvRedact, err)
 		}
 	}
 	return nil
@@ -206,9 +210,15 @@ type Driver struct {
 	worker       worker.Worker
 	workerErr    error
 
+	// released is closed once Close has terminated what the Driver started; activities the Model
+	// did not answer are held until then.
+	released    chan struct{}
+	releaseOnce sync.Once
+
 	mu         sync.Mutex
 	exchanges  map[*exchange]bool
 	activities []*workflowservice.TerminateActivityExecutionRequest
+	teardowns  []error
 }
 
 func newDriver(opts Options) (*Driver, error) {
@@ -216,7 +226,7 @@ func newDriver(opts Options) (*Driver, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := &Driver{opts: opts, conn: conn, gate: newGate(opts.WorkerPollTimeout), exchanges: map[*exchange]bool{}}
+	d := &Driver{opts: opts, conn: conn, gate: newGate(opts.WorkerPollTimeout), exchanges: map[*exchange]bool{}, released: make(chan struct{})}
 	d.ensureWorker = d.startWorker
 	return d, nil
 }
@@ -240,58 +250,65 @@ func (d *Driver) forget(x *exchange) {
 	delete(d.exchanges, x)
 }
 
-// started remembers an activity this Driver started, so Close can end it if it is still open:
-// a later Run's Start of the same World reuses its activity ID.
-func (d *Driver) started(observation *realizationv1.Observation) {
-	if observation.GetMethod() != workflowservice.WorkflowService_StartActivityExecution_FullMethodName || observation.GetResponse() == nil {
+// started remembers an activity this Driver may have started, so Close can end it if it is still
+// open: a later Run's Start of the same World reuses its activity ID. observation is nil when the
+// server did not answer the Start, which may still have started it; Close then ends it by ID.
+func (d *Driver) started(request *anypb.Any, observation *realizationv1.Observation) {
+	start := new(workflowservice.StartActivityExecutionRequest)
+	if !request.MessageIs(start) || request.UnmarshalTo(start) != nil {
 		return
 	}
-	request := new(workflowservice.StartActivityExecutionRequest)
-	response := new(workflowservice.StartActivityExecutionResponse)
-	if observation.GetRequest().UnmarshalTo(request) != nil || observation.GetResponse().UnmarshalTo(response) != nil {
-		return
+	var runID string
+	if observation != nil {
+		response := new(workflowservice.StartActivityExecutionResponse)
+		if observation.GetResponse() == nil || observation.GetResponse().UnmarshalTo(response) != nil {
+			return
+		}
+		runID = response.GetRunId()
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.activities = append(d.activities, &workflowservice.TerminateActivityExecutionRequest{
-		Namespace: request.GetNamespace(), ActivityId: request.GetActivityId(), RunId: response.GetRunId(),
+		Namespace: start.GetNamespace(), ActivityId: start.GetActivityId(), RunId: runID,
 		Identity: "umpire", Reason: "the Run ended",
 	})
 }
 
-// Close stops the worker, ends the activities it started that are still open and closes the
-// connection, within CloseTimeout.
-func (d *Driver) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), d.opts.CloseTimeout)
-	defer cancel()
-	done := make(chan error, 1)
-	go func() { done <- d.close(ctx) }()
+func (d *Driver) teardown(err error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.teardowns = append(d.teardowns, err)
+}
+
+func (d *Driver) isReleased() bool {
 	select {
-	case err := <-done:
-		return err
-	case <-ctx.Done():
-		return errors.New("the Driver did not close within its close timeout")
+	case <-d.released:
+		return true
+	default:
+		return false
 	}
 }
 
-func (d *Driver) close(ctx context.Context) error {
+// Close cancels and joins the Driver's work. It refuses every held worker poll and cancels the
+// admitted one, closes the exchanges, terminates the activities it started that are still open,
+// and only then releases activities the Model did not answer, so the SDK's late response meets a
+// terminated activity. A response the SDK still completes is a teardown fault.
+func (d *Driver) Close() error {
+	ctx, cancel := context.WithTimeout(context.Background(), d.opts.CloseTimeout)
+	defer cancel()
+	d.gate.stop()
 	d.mu.Lock()
 	exchanges := make([]*exchange, 0, len(d.exchanges))
 	for x := range d.exchanges {
 		exchanges = append(exchanges, x)
 	}
 	activities := d.activities
+	d.activities = nil
 	d.mu.Unlock()
 	var errs []error
 	for _, x := range exchanges {
 		errs = append(errs, x.Close())
 	}
-	d.workerMu.Lock()
-	if d.worker != nil {
-		d.worker.Stop()
-		d.sdk.Close()
-	}
-	d.workerMu.Unlock()
 	service := workflowservice.NewWorkflowServiceClient(d.conn)
 	for _, activity := range activities {
 		_, err := service.TerminateActivityExecution(ctx, activity)
@@ -299,6 +316,18 @@ func (d *Driver) close(ctx context.Context) error {
 			errs = append(errs, fmt.Errorf("terminate activity %s: %w", activity.GetActivityId(), err))
 		}
 	}
+	d.releaseOnce.Do(func() { close(d.released) })
+	d.workerMu.Lock()
+	if d.worker != nil {
+		d.worker.Stop()
+		d.sdk.Close()
+		d.worker, d.sdk = nil, nil
+	}
+	d.workerMu.Unlock()
+	d.mu.Lock()
+	errs = append(errs, d.teardowns...)
+	d.teardowns = nil
+	d.mu.Unlock()
 	return errors.Join(append(errs, d.conn.Close())...)
 }
 

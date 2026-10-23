@@ -75,57 +75,68 @@ func (rawCodec) Unmarshal(data mem.BufferSlice, v any) error {
 
 func (rawCodec) Name() string { return "proto" }
 
-// completion records whether the server ended a call with its own status. A call it never
-// ended (unreachable, a local deadline, a cancellation) is a transport failure, not evidence.
+// completion records whether a call's request left for the server, and whether the server ended
+// the call with its own status. A call it never ended (unreachable, a local deadline, a
+// cancellation) is a transport failure, not evidence.
 type completion struct{}
 
-type answeredKey struct{}
+type progressKey struct{}
+
+// progress is how far one call got.
+type progress struct{ sent, answered atomic.Bool }
 
 func (completion) TagRPC(ctx context.Context, _ *stats.RPCTagInfo) context.Context { return ctx }
 func (completion) HandleRPC(ctx context.Context, s stats.RPCStats) {
-	if _, ok := s.(*stats.InTrailer); ok {
-		if answered, ok := ctx.Value(answeredKey{}).(*atomic.Bool); ok {
-			answered.Store(true)
-		}
+	p, ok := ctx.Value(progressKey{}).(*progress)
+	if !ok {
+		return
+	}
+	switch s.(type) {
+	case *stats.OutHeader:
+		p.sent.Store(true)
+	case *stats.InTrailer:
+		p.answered.Store(true)
+	default:
 	}
 }
 func (completion) TagConn(ctx context.Context, _ *stats.ConnTagInfo) context.Context { return ctx }
 func (completion) HandleConn(context.Context, stats.ConnStats)                       {}
 
-// call sends one proposed request unchanged and returns the invocation's Observation. A call
-// the server did not answer returns answered false; evidence that is not well formed returns an
-// error wrapping errMalformed.
-func call(ctx context.Context, conn *grpc.ClientConn, request *anypb.Any) (_ *realizationv1.Observation, answered bool, _ error) {
+// call sends one proposed request unchanged and returns the invocation's Observation and how far
+// the call got. A call the server did not answer has no Observation; evidence that is not well
+// formed returns an error wrapping errMalformed.
+func call(ctx context.Context, conn *grpc.ClientConn, request *anypb.Any) (_ *realizationv1.Observation, _ *progress, _ error) {
+	reached := new(progress)
 	m, err := method(request)
 	if err != nil {
-		return nil, false, err
+		return nil, reached, err
 	}
 	output, err := protoregistry.GlobalTypes.FindMessageByName(m.Output().FullName())
 	if err != nil {
-		return nil, false, err
+		return nil, reached, err
 	}
-	flag := new(atomic.Bool)
 	response := new(raw)
-	err = conn.Invoke(context.WithValue(ctx, answeredKey{}, flag), fullMethod(m), &raw{data: request.GetValue()}, response, grpc.ForceCodecV2(rawCodec{}))
+	err = conn.Invoke(context.WithValue(ctx, progressKey{}, reached), fullMethod(m), &raw{data: request.GetValue()}, response, grpc.ForceCodecV2(rawCodec{}))
 	observation := &realizationv1.Observation{Method: fullMethod(m), Request: request}
 	if err != nil {
-		if !flag.Load() {
-			return nil, false, err
+		if !reached.answered.Load() {
+			return nil, reached, err
 		}
 		code := status.Code(err)
 		if code == codes.OK || code > codes.Unauthenticated {
-			return nil, true, fmt.Errorf("%w: status code %d", errMalformed, code)
+			return nil, reached, fmt.Errorf("%w: status code %d", errMalformed, code)
 		}
 		observation.Result = &realizationv1.Observation_Error{Error: &realizationv1.Error{Code: int32(code), Message: status.Convert(err).Message()}}
-		return observation, true, nil
+		return observation, reached, nil
 	}
+	reached.answered.Store(true)
 	if err := (proto.UnmarshalOptions{}).Unmarshal(response.data, output.New().Interface()); err != nil {
-		return nil, true, fmt.Errorf("%w: the %s response does not decode: %v", errMalformed, m.Name(), err)
+		return nil, reached, fmt.Errorf("%w: the %s response does not decode: %v", errMalformed, m.Name(), err)
 	}
 	observation.Result = &realizationv1.Observation_Response{Response: &anypb.Any{
 		TypeUrl: "type.googleapis.com/" + string(m.Output().FullName()), Value: response.data,
 	}}
-	return observation, true, nil
+	return observation, reached, nil
 }
 
 // pack wraps evidence in an Any with deterministic bytes, so a Run records the same bytes for the

@@ -1,10 +1,12 @@
 package act
 
 import (
+	"fmt"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -68,4 +70,30 @@ func clearPath(m protoreflect.Message, path []string) bool {
 		return false
 	}
 	return clearPath(m.Mutable(fd).Message(), path[1:])
+}
+
+// resolvable checks that a redaction path names a registered message and a field path in it.
+func resolvable(path string) error {
+	parts := strings.Split(path, ".")
+	for i := len(parts) - 1; i > 0; i-- {
+		message, err := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(strings.Join(parts[:i], ".")))
+		if err != nil {
+			continue
+		}
+		descriptor := message.Descriptor()
+		for j, name := range parts[i:] {
+			fd := descriptor.Fields().ByName(protoreflect.Name(name))
+			switch {
+			case fd == nil:
+				return fmt.Errorf("redaction path %q: %s has no field %q", path, descriptor.FullName(), name)
+			case j < len(parts[i:])-1 && (fd.Message() == nil || fd.IsList() || fd.IsMap()):
+				return fmt.Errorf("redaction path %q: %s.%s is not a message", path, descriptor.FullName(), name)
+			case j < len(parts[i:])-1:
+				descriptor = fd.Message()
+			default:
+			}
+		}
+		return nil
+	}
+	return fmt.Errorf("redaction path %q names no known message", path)
 }

@@ -162,6 +162,36 @@ func explainedSteps(run *runner.Run) []string {
 	return steps
 }
 
+// proposedAction is the action of a Run's proposal for one request.
+func proposedAction(run *runner.Run, request uint64) string {
+	for _, event := range run.GetEvents() {
+		if event.GetRequest() == request && event.GetProposal() != nil {
+			return event.GetProposal().GetResponse().GetAction()
+		}
+	}
+	return ""
+}
+
+// requestSteps are the steps and outcomes explained while one request was pending.
+func requestSteps(run *runner.Run, request uint64) []string {
+	var steps []string
+	for _, event := range run.GetEvents() {
+		explanation := event.GetJudgment().GetResponse().GetExplained()
+		if event.GetRequest() != request {
+			continue
+		}
+		for i, step := range explanation.GetSteps() {
+			steps = append(steps, step+" "+explanation.GetOutcomes()[i])
+		}
+	}
+	return steps
+}
+
+func lastLine(text string) string {
+	lines := strings.Split(strings.TrimSpace(text), "\n")
+	return lines[len(lines)-1]
+}
+
 func answers(run *runner.Run) []*runv1.Event {
 	var found []*runv1.Event
 	for _, event := range run.GetEvents() {
@@ -256,11 +286,18 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 	})
 
 	t.Run("Cancellation", func(t *testing.T) {
-		var canceled bool
+		var first, afterCompletion bool
 		for _, run := range complete.runs {
-			canceled = canceled || slices.Contains(explainedSteps(run), "Client::Cancel Accepted")
+			if proposedAction(run, 2) == "Client::Cancel" {
+				first = first || slices.Contains(requestSteps(run, 2), "Client::Cancel Accepted")
+			}
+			steps := explainedSteps(run)
+			if completedAt := slices.Index(steps, "Worker::RespondCompleted Accepted"); completedAt >= 0 {
+				afterCompletion = afterCompletion || slices.Contains(steps[completedAt:], "Client::Cancel Rejected(NotFound)")
+			}
 		}
-		require.True(t, canceled, "a Run canceled the activity and the cancellation was explained")
+		require.True(t, first, "a Run's first action was Cancel, accepted and explained")
+		require.True(t, afterCompletion, "a Cancel after completion was rejected NotFound and explained")
 	})
 
 	t.Run("RetryThenComplete", func(t *testing.T) {
@@ -290,7 +327,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 		require.True(t, failed, "the failure was explained")
 	})
 
-	var refusedRun string
+	var refusedRun, refusedLine string
 	t.Run("HostRefusal", func(t *testing.T) {
 		s.t = t
 		queue := "umpire-slice-" + uuid.NewString()
@@ -308,6 +345,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			refusedRun = path
 		}
 		require.NotEmpty(t, refusedRun)
+		refusedLine = lastLine(invocation.stdout)
 		start := new(workflowservice.StartActivityExecutionRequest)
 		data, err := os.ReadFile(world)
 		require.NoError(t, err)
@@ -318,7 +356,8 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			Namespace: namespace, ActivityId: start.GetActivityId(),
 		})
 		require.NoError(t, err)
-		require.NotEqual(t, enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING, described.GetInfo().GetStatus(), "the Driver leaves no activity running")
+		require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_TERMINATED, described.GetInfo().GetStatus(),
+			"Close terminated the activity; the Driver never answered the refused task itself")
 	})
 
 	t.Run("UnreachableEndpoint", func(t *testing.T) {
@@ -353,5 +392,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 		require.NotEmpty(t, refusedRun)
 		invocation := s.run(nil, "replay", "--run", refusedRun)
 		require.Equal(t, runner.ExitRefused, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
+		require.Contains(t, refusedLine, "model refused METHOD_ANSWER: REFUSAL_CODE_UNSUPPORTED")
+		require.Equal(t, refusedLine, lastLine(invocation.stdout), "replay reproduces the refusal at the same event")
 	})
 }

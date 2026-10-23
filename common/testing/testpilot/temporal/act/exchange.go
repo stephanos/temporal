@@ -25,8 +25,6 @@ type exchange struct {
 	done    chan struct{}
 	// calls receives the worker's callback for a task this exchange let the worker take.
 	calls chan *workerCall
-	// polls receives what happened to a worker poll this exchange admitted.
-	polls chan pollOutcome
 
 	mu      sync.Mutex
 	next    uint64
@@ -50,7 +48,7 @@ func newExchange(d *Driver, request uint64) *exchange {
 	return &exchange{
 		driver: d, request: request, ctx: ctx, cancel: cancel,
 		events: make(chan runner.Event), done: make(chan struct{}),
-		calls: make(chan *workerCall, 1), polls: make(chan pollOutcome, 2),
+		calls:   make(chan *workerCall, 1),
 		waiting: map[uint64]*waiter{},
 	}
 }
@@ -165,7 +163,16 @@ func (x *exchange) observe(ctx context.Context, observation *realizationv1.Obser
 func (x *exchange) unary(request *anypb.Any) {
 	ctx, cancel := context.WithTimeout(x.ctx, x.driver.opts.RPCTimeout)
 	defer cancel()
-	observation, answered, err := call(ctx, x.driver.conn, request)
+	observation, reached, err := call(ctx, x.driver.conn, request)
+	answered := reached.answered.Load()
+	switch {
+	case observation != nil:
+		x.driver.started(request, observation)
+	case reached.sent.Load():
+		// The server may have acted on a call it never answered or answered unreadably.
+		x.driver.started(request, nil)
+	default:
+	}
 	switch {
 	case x.ctx.Err() != nil:
 		return
@@ -176,7 +183,6 @@ func (x *exchange) unary(request *anypb.Any) {
 		x.fault("the server did not answer %s: %v", request.GetTypeUrl(), err)
 		return
 	}
-	x.driver.started(observation)
 	judgment, ok := x.observe(x.ctx, observation)
 	switch {
 	case !ok:
@@ -207,7 +213,8 @@ func (x *exchange) read(instruction *temporalv1.ObserveActivity) {
 	interval := time.Duration(instruction.GetPollIntervalMs()) * time.Millisecond
 	backoff := time.Duration(instruction.GetBackoffMs()) * time.Millisecond
 	for {
-		observation, answered, err := call(ctx, x.driver.conn, instruction.GetRequest())
+		observation, reached, err := call(ctx, x.driver.conn, instruction.GetRequest())
+		answered := reached.answered.Load()
 		switch {
 		case x.ctx.Err() != nil:
 			return
@@ -287,6 +294,10 @@ func validStart(request *anypb.Any) error {
 		}
 		if instruction.GetRequest() == nil {
 			return errors.New("the read instruction names no read")
+		}
+		// The poll interval is also how long a worker window waits for a poll.
+		if instruction.GetPollIntervalMs() == 0 || instruction.GetBackoffMs() == 0 || instruction.GetReadTimeoutMs() == 0 {
+			return errors.New("the read instruction needs a poll interval, a backoff and a read timeout")
 		}
 		request = instruction.GetRequest()
 	}

@@ -106,6 +106,18 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			want:     "common/testing/testpilot/driver.go: imports the Model host outside the Runner's Driver umpire.local/model/umpire/runner",
 		},
 		{
+			name:     "Runner's Driver imports the Host",
+			relative: "common/testing/testpilot/temporal/act/act.go",
+			source:   "package act\nimport _ \"umpire.local/model\"\n",
+			want:     "common/testing/testpilot/temporal/act/act.go: imports the Model host outside the Runner's Driver umpire.local/model",
+		},
+		{
+			name:     "Runner's Driver imports the guest outside its tests",
+			relative: "common/testing/testpilot/temporal/act/act.go",
+			source:   "package act\nimport _ \"umpire.local/temporal\"\n",
+			want:     "common/testing/testpilot/temporal/act/act.go: imports the Model host outside the Runner's Driver umpire.local/temporal",
+		},
+		{
 			name:     "Case Driver imports the Temporal Model",
 			relative: "common/testing/testpilot/temporal/driver.go",
 			source:   "package temporal\nimport _ \"umpire.local/temporal\"\n",
@@ -172,6 +184,7 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 				"common/testing/testpilot/temporal/server",
 				"common/testing/testpilot/temporal/worker",
 				"common/testing/testpilot/temporal/internal/delivery",
+				"common/testing/testpilot/temporal/act",
 			} {
 				require.NoError(t, os.MkdirAll(filepath.Join(repositoryRoot, filepath.FromSlash(relative)), 0o755))
 			}
@@ -271,8 +284,9 @@ func checkTestpilotDependencyBoundary(repositoryRoot string, dependencies []test
 				if relativeRoot == genericRoot && forbiddenTestpilotDependency(importPath) {
 					violations = append(violations, relative+": imports forbidden dependency "+importPath)
 				}
-				// Only the Runner's Temporal Driver acts for the Model's host loop.
-				if hasImportPrefix(importPath, "umpire.local") && !strings.HasPrefix(relative, runnerDriverRoot+"/") {
+				// Only the Runner's Temporal Driver acts for the Model's host loop, and only through the
+				// protocol: never the Host, the guest or the Realization, except the guest in its tests.
+				if hasImportPrefix(importPath, "umpire.local") && !permittedRunnerDriverImport(relative, importPath, runnerDriverRoot) {
 					violations = append(violations, relative+": imports the Model host outside the Runner's Driver "+importPath)
 				}
 				if relativeRoot == driverRoot {
@@ -325,6 +339,25 @@ func permittedHelperDriverImport(relative, importPath string) bool {
 	return false
 }
 
+// runnerDriverImports are the umpire.local packages the Runner's Driver uses: the Runner and its
+// Run, the Model protocol, the realization evidence envelopes (Observation, Callback, Reply), and
+// the Temporal read instruction.
+var runnerDriverImports = map[string]bool{
+	"umpire.local/model/umpire/runner":         true,
+	"umpire.local/model/umpire/run/v1":         true,
+	"umpire.local/model/umpire/model/v1":       true,
+	"umpire.local/model/umpire/realization/v1": true,
+	"umpire.local/temporal/umpire/temporal/v1": true,
+}
+
+func permittedRunnerDriverImport(relative, importPath, root string) bool {
+	if !strings.HasPrefix(relative, root+"/") {
+		return false
+	}
+	// Its tests run the real guest through the Runner.
+	return runnerDriverImports[importPath] || strings.HasSuffix(relative, "_test.go") && importPath == "umpire.local/temporal"
+}
+
 func forbiddenTestpilotDependency(importPath string) bool {
 	for _, prefix := range []string{
 		"go.temporal.io/server/tests",
@@ -348,6 +381,8 @@ func TestTheRunnersDriverMayImportTheModelHost(t *testing.T) {
 	relative := "common/testing/testpilot/temporal/act/act.go"
 	require.NoError(t, os.MkdirAll(filepath.Join(repositoryRoot, "common/testing/testpilot/temporal/act"), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(repositoryRoot, relative), []byte("package act\nimport _ \"umpire.local/model/umpire/runner\"\n"), 0o600))
+	test := "common/testing/testpilot/temporal/act/act_test.go"
+	require.NoError(t, os.WriteFile(filepath.Join(repositoryRoot, test), []byte("package act\nimport _ \"umpire.local/temporal\"\n"), 0o600))
 	violations, err := checkTestpilotDependencyBoundary(repositoryRoot, nil)
 	require.NoError(t, err)
 	require.Empty(t, violations)

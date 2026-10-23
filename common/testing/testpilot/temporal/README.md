@@ -114,10 +114,20 @@ reaches Judge. An `umpire.temporal.v1.ObserveActivity` is a read: the Driver rep
 Model accepts a final observation, spacing continued reads by its poll interval, retrying an
 unanswered read after its backoff, and faulting when its read timeout passes first.
 
-One in-process SDK worker per Run polls the configured task queue through a gate. The gate admits
-a poll only after a read the Model asked to continue, and only as many times as the instruction's
-`worker_tasks`; reads pause while that poll or its task is outstanding. The callback carries the
-actual task the poll returned, and the Model's reply goes back through the SDK: a completion's one
-payload, or a failure. Close stops the worker and terminates any activity the Driver started that
-is still open, because a later Run's Start reuses the World's activity ID. The Driver never reads
-a Temporal message for its meaning; it reads a Start's identity only to clean up after it.
+One in-process SDK worker per Run polls the configured task queue through a gate. After a read
+the Model asked to continue, the read opens a window for one poll, waiting at most the poll
+interval for a poller; the window counts only the outcome of the poll it admitted. A read takes
+at most `worker_tasks` tasks, and reads pause while an admitted poll or its task is outstanding.
+The callback carries the actual task the poll returned, and the Model's reply goes back through
+the SDK: a completion's one payload, or a failure; a reply setting any other field the SDK does
+not own is a fault. The Driver never answers a task the Model did not: a refused, unclaimed or
+abandoned task is held until Close.
+
+Close refuses every held poll and cancels the admitted one, closes the exchanges, terminates any
+activity the Driver started that is still open (by run ID, or by activity ID when the Start was
+sent but not answered), and only then releases held tasks; a response the SDK still completes is
+a teardown fault. A later Run's Start reuses the World's activity ID, hence the termination. The
+Driver never reads a Temporal message for its meaning; it reads a Start's identity only to clean
+up after it. Read instructions need a nonzero poll interval, backoff and read timeout; redaction
+paths must name registered messages and fields, and the worker poll timeout must be at least the
+frontend's 2 s.

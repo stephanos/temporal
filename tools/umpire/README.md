@@ -54,8 +54,8 @@ environment; question and replay need none of it:
 | `UMPIRE_TEMPORAL_TASK_QUEUE` | The task queue the worker polls; the World's Start request must name it (required) |
 | `UMPIRE_TEMPORAL_CREATE` | `true` registers the namespace before the first Run and deletes it after the last |
 | `UMPIRE_TEMPORAL_RPC_TIMEOUT` | Bound of each call that is not a read (default 10s) |
-| `UMPIRE_TEMPORAL_WORKER_POLL_TIMEOUT` | Bound of each worker poll the Driver admits (default 5s, at least the frontend's 2s) |
-| `UMPIRE_TEMPORAL_REDACT` | Comma-separated fields removed from the Run once judged, each a message's full name and a field path |
+| `UMPIRE_TEMPORAL_WORKER_POLL_TIMEOUT` | Bound of each worker poll the Driver admits (default 5s); shorter than the frontend's 2s is refused |
+| `UMPIRE_TEMPORAL_REDACT` | Comma-separated fields removed from the Run once judged, each a registered message's full name and a field path in it; an unknown one is refused |
 
 An invalid configuration exits 3 before any Run. `make umpire-check-model-slice` runs the live
 activity slice through the command.
