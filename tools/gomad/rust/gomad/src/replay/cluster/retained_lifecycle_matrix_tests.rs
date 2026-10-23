@@ -537,3 +537,185 @@ fn original_retained_nonembedding_bound_uses_actual_large_external_module() {
         "bound_mapping":"sum of external retained payload bytes excluding module and canonical record <= original canonical record bytes * 4 / 3 + 64 KiB"})
     );
 }
+
+fn guest_raw_artifact(fixture: &Fixture) -> Value {
+    let manifest_raw = std::fs::read(fixture.path.join("manifest.json")).unwrap();
+    let manifest: Value = serde_json::from_slice(&manifest_raw).unwrap();
+    let mut payloads = BTreeMap::new();
+    let mut modules = BTreeMap::new();
+    for (name, descriptor) in manifest["files"].as_object().unwrap() {
+        let raw = std::fs::read(fixture.path.join(name)).unwrap();
+        if name == "target/module.wasm" {
+            assert_eq!(descriptor["sha256"], canonical::digest(&raw));
+            modules.insert(name.clone(), json!({"bytes":raw.len(),"sha256":canonical::digest(&raw),"source":"original-artifact"}));
+        } else {
+            payloads.insert(name.clone(), crate::campaign::exploration::base64(&raw));
+        }
+    }
+    json!({"manifest_base64":crate::campaign::exploration::base64(&manifest_raw),
+        "record_base64":payloads["record.json"],"payloads_base64":payloads,"module_preimages":modules})
+}
+
+fn guest_boundaries(fixture: &Fixture, admitted: bool) -> Value {
+    let mut results = BTreeMap::new();
+    for name in [
+        "verify",
+        "storage-projection",
+        "prepare-reopen",
+        "public-cli-replay",
+    ] {
+        let entries_before = files(&fixture.root);
+        let result = boundary(fixture, name);
+        let entries_after = files(&fixture.root);
+        assert_eq!(entries_before, entries_after);
+        assert_eq!(result.is_ok(), admitted, "{name}: {result:?}");
+        results.insert(
+            name,
+            json!({"error":result.as_ref().err(),"value":result.as_ref().ok(),
+            "entries_before":entries_before,"entries_after":entries_after,
+            "entry_count_before":entries_before.len(),"entry_count_after":entries_after.len()}),
+        );
+    }
+    json!(results)
+}
+
+fn guest_mutation(publication: &mut Publication, case: &str) {
+    if matches!(case, "changed-imports" | "changed-runtime-binding") {
+        let mut inputs: Value = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+        let item = &mut inputs["configuration"]["incarnations"][0];
+        let field = if case == "changed-imports" {
+            &mut item["imports"][0]["name"]
+        } else {
+            &mut item["choice_identity"]["ToolchainBuildKey"]
+        };
+        *field = json!(format!("{}-changed", field.as_str().unwrap()));
+        publication
+            .payloads
+            .insert(FILE.into(), canonical::encode(&inputs).unwrap());
+    } else if case == "foreign-linked-helper" {
+        let mut inputs: Value = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+        inputs["helper_sha256"] = json!("f".repeat(64));
+        publication
+            .payloads
+            .insert(FILE.into(), canonical::encode(&inputs).unwrap());
+    } else {
+        mutate(publication, case);
+    }
+}
+
+fn guest_primary_envelope(fixture: &Fixture, empty: bool) {
+    let manifest_path = fixture.path.join("manifest.json");
+    let mut manifest: Value =
+        serde_json::from_slice(&std::fs::read(&manifest_path).unwrap()).unwrap();
+    manifest["record"]["identity"]["target"] =
+        json!(if empty { String::new() } else { "0".repeat(64) });
+    manifest["record"]["execution_identity"] = json!(canonical::digest(
+        &canonical::encode(&manifest["record"]["identity"]).unwrap()
+    ));
+    let record = canonical::encode(&manifest["record"]).unwrap();
+    manifest["record_sha256"] = json!(canonical::digest(&record));
+    manifest["files"]["record.json"]["bytes"] = json!(record.len());
+    manifest["files"]["record.json"]["sha256"] = json!(canonical::digest(&record));
+    std::fs::write(fixture.path.join("record.json"), record).unwrap();
+    std::fs::write(manifest_path, canonical::encode(&manifest).unwrap()).unwrap();
+}
+
+pub(super) fn actual_guest_retention(
+    path: &Path,
+    original_root: &str,
+    case: &str,
+    producer_root: &Path,
+) {
+    let opened = Opened::open(path).unwrap();
+    opened.authenticate_all().unwrap();
+    let baseline = Publication {
+        record: opened.manifest().record.clone(),
+        payloads: opened
+            .manifest()
+            .files
+            .keys()
+            .map(|name| (name.clone(), opened.payload(name, 128 << 20).unwrap()))
+            .collect(),
+    };
+    let original_record = baseline.record.bytes().unwrap();
+    let original_inputs = baseline.payloads[FILE].clone();
+    let original_module = &baseline.payloads["target/module.wasm"];
+    assert!(!producer_root.join("prepared-module.wasm").exists());
+    assert!(!producer_root.join("installation.json").exists());
+    let original_snapshot = files(path);
+    let fixture = Fixture::new(copy(&baseline));
+    let before = guest_raw_artifact(&fixture);
+    let emit = |variant: &str, value: Value| {
+        println!(
+            "GOMAD_GUEST_RETENTION {}",
+            json!({"schema":"gomad.guest-retention-matrix/v1",
+            "original_root":original_root,"case":case,"variant":variant,"original_artifact":path,
+            "record_sha256":canonical::digest(&original_record),"module_sha256":canonical::digest(original_module),
+            "observed":value})
+        );
+    };
+    emit(
+        "valid",
+        json!({"artifact":before,"boundaries":guest_boundaries(&fixture,true)}),
+    );
+    for variant in
+        CASES
+            .into_iter()
+            .chain(["foreign-linked-helper", "primary-empty", "primary-foreign"])
+    {
+        let mut changed = copy(&baseline);
+        if !variant.starts_with("primary-") {
+            guest_mutation(&mut changed, variant);
+        }
+        let changed = Fixture::new(changed);
+        if variant.starts_with("primary-") {
+            guest_primary_envelope(&changed, variant == "primary-empty");
+        } else {
+            mutate_record_envelope(&changed, variant);
+        }
+        emit(
+            variant,
+            json!({"artifact":guest_raw_artifact(&changed),"boundaries":guest_boundaries(&changed,false)}),
+        );
+    }
+    let mut unavailable = copy(&baseline);
+    unavailable.payloads.remove("target/module.wasm");
+    let unavailable = Fixture::new(unavailable);
+    let without = Opened::open(&unavailable.path).unwrap();
+    let without_inputs = super::inputs(&without).unwrap();
+    assert_eq!(canonical::encode(&without_inputs).unwrap(), original_inputs);
+    let metadata_bound = original_record.len() * 4 / 3 + (64 << 10);
+    assert!(original_inputs.len() <= metadata_bound);
+    emit(
+        "module-independent",
+        json!({"artifact":guest_raw_artifact(&unavailable),
+        "read_inputs_base64":crate::campaign::exploration::base64(&canonical::encode(&without_inputs).unwrap()),
+        "bound_bytes":metadata_bound,"original_module_absent":!producer_root.join("prepared-module.wasm").exists(),
+        "original_installation_absent":!producer_root.join("installation.json").exists()}),
+    );
+    let prepared = super::prepare(opened.try_clone().unwrap(), None).unwrap();
+    let projection = prepared.execution.projection();
+    let replayed = super::execute(prepared.execution).unwrap();
+    assert_eq!(replayed.incarnations.len(), 4);
+    let summaries: Vec<_> = replayed
+        .incarnations
+        .iter()
+        .map(|item| {
+            json!({"handle":item.handle,
+        "interrupted":item.interrupted,"outcome":item.execution.outcome,
+        "evidence":item.execution.evidence})
+        })
+        .collect();
+    let replay_steps = canonical::encode(&replayed.executed_steps).unwrap();
+    let projected = projection.project(replayed).unwrap();
+    let divergence = crate::replay::divergence::first(&baseline.record, &projected);
+    assert_eq!(divergence, None);
+    assert_eq!(files(path), original_snapshot);
+    emit(
+        "source-less-replay",
+        json!({"original_record_base64":crate::campaign::exploration::base64(&original_record),
+        "summaries":summaries,"executed_steps_base64":crate::campaign::exploration::base64(&replay_steps),
+        "outcome":projected.outcome,"projected_evidence":projected.evidence,"divergence":divergence,
+        "entries_before":original_snapshot,"entries_after":files(path)}),
+    );
+}

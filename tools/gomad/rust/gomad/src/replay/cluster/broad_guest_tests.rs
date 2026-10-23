@@ -624,6 +624,16 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
         }
         let case = format!("lifecycle/compressed={compressed}");
         let (report, replay) = publish_replay(&producer, &case, &configuration, true);
+        super::retained_lifecycle_matrix_tests::actual_guest_retention(
+            Path::new(replay["artifact"].as_str().unwrap()),
+            if compressed {
+                "TestProviderCompressedIndependentGuestsLifecycleReplay"
+            } else {
+                "TestProviderIndependentGuestsLifecycleReplay"
+            },
+            &case,
+            &producer.root,
+        );
         assert_eq!(report["outcome"], "completed");
         assert_eq!(
             replay["retained_inputs"]["configuration"]["world_profile"],
