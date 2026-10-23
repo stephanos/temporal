@@ -521,6 +521,109 @@ fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
 }
 
 #[test]
+#[ignore = "requires authenticated original storage-crash service input and Go World/network"]
+fn joined_storage_crash_preserves_successful_session_world_and_network() {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+
+    let input_path = std::env::var_os("GOMAD_LIVE_CLUSTER_STORAGE_WAIT_INPUT")
+        .expect("original root34 storage-crash input path");
+    let reference_path = std::env::var_os("GOMAD_LIVE_CLUSTER_STORAGE_WAIT_REFERENCE")
+        .expect("original root34 storage-crash Go observation path");
+    let input: Value = serde_json::from_slice(&fs::read(input_path).unwrap()).unwrap();
+    let reference: Value = serde_json::from_slice(&fs::read(reference_path).unwrap()).unwrap();
+    assert_eq!(
+        reference["test"],
+        "TestClusterBrokerDurableRestartParity/storage-crash/seed-7"
+    );
+    assert_eq!(reference["ordinal"], 91);
+    assert_eq!(input["forcing"], json!({}));
+    let request = original_request(&input);
+    assert_eq!(request.nodes, ["a", "b"]);
+    assert_eq!(request.incarnations.len(), 3);
+    assert!(
+        request
+            .incarnations
+            .iter()
+            .all(|item| item.request.module_sha256
+                == "58af6ef04c8ea078ea338cc5db1caf0ea4b727c5e6fabbe4cc47265f2f81b426")
+    );
+    assert_eq!(
+        request
+            .steps
+            .iter()
+            .map(|step| (
+                step.action,
+                step.handle.node.as_str(),
+                step.handle.incarnation
+            ))
+            .collect::<Vec<_>>(),
+        vec![
+            (Action::Start, "a", 1),
+            (Action::Start, "b", 1),
+            (Action::Wait, "a", 1),
+            (Action::Wait, "b", 1),
+            (Action::Restart, "a", 2),
+            (Action::Wait, "a", 2)
+        ]
+    );
+    let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+    assert_eq!(observed.incarnations.len(), 3);
+    assert_original_incarnations_match(&observed, &reference);
+    for item in &observed.incarnations {
+        let original = reference["states"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|state| {
+                state["handle"]["ID"] == item.handle.node
+                    && state["handle"]["Incarnation"] == item.handle.incarnation
+            })
+            .unwrap();
+        let storage = item
+            .execution
+            .evidence
+            .get("storage")
+            .map_or(&[][..], Vec::as_slice);
+        assert_eq!(
+            storage,
+            STANDARD
+                .decode(
+                    original["result"]["StorageTranscript"]
+                        .as_str()
+                        .unwrap_or("")
+                )
+                .unwrap()
+        );
+        if item.handle.node == "a" && item.handle.incarnation == 1 {
+            assert_eq!(item.execution.outcome.termination, "storage_crash");
+            assert!(item.interrupted);
+        } else {
+            assert_eq!(item.execution.outcome.termination, "exit");
+            assert_eq!(item.execution.outcome.exit_code, Some(0));
+            assert!(!item.interrupted);
+        }
+    }
+    assert_eq!(
+        observed.outcome.termination, "exit",
+        "joined modeled storage crash is an incarnation result, not a failed session"
+    );
+    assert_eq!(observed.outcome.exit_code, Some(0));
+    let original_world = STANDARD
+        .decode(reference["result"]["World"].as_str().unwrap())
+        .unwrap();
+    assert_eq!(
+        observed.world,
+        crate::world::retained::expand(&original_world).unwrap()
+    );
+    assert_eq!(
+        observed.network,
+        STANDARD
+            .decode(reference["network_wire"].as_str().unwrap())
+            .unwrap()
+    );
+}
+
+#[test]
 #[ignore = "requires original root35 compiled service input; mandatory live corpus invokes explicitly"]
 fn shutdown_reinsertion_preserves_actual_live_guest_world() {
     let input_path = std::env::var_os("GOMAD_LIVE_CLUSTER_SHUTDOWN_INPUT")

@@ -362,3 +362,24 @@ Root reports9 offline checks passing and an independent fresh source review in
 progress; no review outcome or qualification pass is inferred. The root's
 immutable build14971 remains root-owned. Subsequent reviewed source, integrated
 runtime/lint/parity gates and final endpoint/identity freeze remain required.
+
+## World/storage-wait synchronization through 399b646520
+
+Merged root399b646520f1ecc4d6daefa8a9eebf5c01116408, including accepted World
+fixb05ceb6def and narrow Wait storage_crash handling399b646520. No conflicts or
+additional relocation fixes. Both changed helper Rust files match exact main
+bytes after relocation. Direct pinned rustfmt2files, complete incoming helper
+path mapping, Rust include/path-attribute resolution, original127 exact lock
+entries/dependencies/checksums and diff checks exit0. No Cargo, Go, guests,
+new pins or root build-cache activity occurred here.
+
+Root reports fresh storage-wait source reviewSHIP with genuineRED101→GREEN0,
+original World/network assertions, four affected storage roots/eight cases and
+strict lint0. Earlier Go proof chain passed on the old951/frozen8dad source,
+including single hidden replay, two-package parallel execution with15 overlap
+samples/max2, and both hidden replays; its external summary is
+/home/agent/evidence/fn233/interception-early-v3-20261022/early-proof-summary.json.
+Those observations do not qualify this newer World/storage candidate. Root's
+new fixture build63477 owns the live-corpus target/jobs2. Subsequent provisional
+fn233 corpus/shim/wrapper/Make source still requires synchronization and all
+integrated/frozen runtime/parity/qualification obligations remain pending.
