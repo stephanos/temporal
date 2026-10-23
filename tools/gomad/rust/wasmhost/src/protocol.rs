@@ -542,6 +542,44 @@ impl Outcome {
             metrics: None,
         }
     }
+    /// Stable execution evidence retains every outcome field except host resource observations.
+    /// The transport outcome and its raw metrics remain available independently.
+    #[must_use]
+    pub fn backend_evidence(&self) -> impl Serialize + '_ {
+        #[derive(Serialize)]
+        struct Evidence<'a> {
+            schema: &'static str,
+            #[serde(rename = "type")]
+            kind: &'static str,
+            termination: &'static str,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            exit_code: Option<u32>,
+            message: &'a str,
+            #[serde(flatten, skip_serializing_if = "Option::is_none")]
+            replay_refusal: Option<&'a ReplayRefusal>,
+            fuel_remaining: u64,
+            peak_memory_bytes: usize,
+            output_bytes: u64,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            local_model: Option<&'a Value>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            divergence: Option<&'a crate::model::Divergence>,
+        }
+        Evidence {
+            schema: "gomad.backend-outcome/v1",
+            kind: self.kind,
+            termination: self.termination,
+            exit_code: self.exit_code,
+            message: &self.message,
+            replay_refusal: self.replay_refusal.as_deref(),
+            fuel_remaining: self.fuel_remaining,
+            peak_memory_bytes: self.peak_memory_bytes,
+            output_bytes: self.output_bytes,
+            local_model: self.local_model.as_deref(),
+            divergence: self.divergence.as_deref(),
+        }
+    }
+
     #[must_use]
     pub fn refusal(error: &Error) -> Self {
         let mut outcome = Self::new(classification(error), error.to_string());
@@ -608,4 +646,53 @@ pub(crate) struct Chunk {
     #[serde(rename = "type")]
     pub(crate) _kind: String,
     pub(crate) data_base64: String,
+}
+
+#[cfg(test)]
+mod backend_evidence_tests {
+    use super::*;
+
+    #[test]
+    fn stable_backend_view_retains_all_protocol_fields_except_volatile_metrics() {
+        let mut outcome = Outcome::new("exit", "original deterministic failure");
+        outcome.exit_code = Some(1);
+        outcome.fuel_remaining = 91;
+        outcome.peak_memory_bytes = 65536;
+        outcome.output_bytes = 19;
+        outcome.local_model = Some(Box::new(serde_json::json!({"now":17,"calls":3})));
+        outcome.divergence = Some(Box::new(crate::model::Divergence {
+            ordinal: 7,
+            reason: 2,
+            expected: None,
+            observed: None,
+            tape_records: 8,
+        }));
+        outcome.replay_refusal = Some(Box::new(ReplayRefusal {
+            error: "replay_preflight",
+            check: "identity",
+        }));
+        outcome.metrics = Some(Box::new(crate::metrics::Metrics {
+            execute_nanos: 123,
+            ..Default::default()
+        }));
+        let native = serde_json::to_value(&outcome).unwrap();
+        let mut expected = native.clone();
+        expected.as_object_mut().unwrap().remove("metrics");
+        expected["schema"] = serde_json::json!("gomad.backend-outcome/v1");
+        assert_eq!(
+            serde_json::to_value(outcome.backend_evidence()).unwrap(),
+            expected
+        );
+        outcome.metrics.as_mut().unwrap().execute_nanos = 456;
+        assert_ne!(serde_json::to_value(&outcome).unwrap(), native);
+        assert_eq!(
+            serde_json::to_value(outcome.backend_evidence()).unwrap(),
+            expected
+        );
+        outcome.fuel_remaining -= 1;
+        assert_ne!(
+            serde_json::to_value(outcome.backend_evidence()).unwrap(),
+            expected
+        );
+    }
 }

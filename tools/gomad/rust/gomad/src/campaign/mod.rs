@@ -721,6 +721,13 @@ fn run_observed(
                                 .into_owned(),
                         );
                         execution.stored_bytes = published.stored_bytes;
+                        execution::retain_backend_metrics(
+                            journal.path(),
+                            &execution,
+                            metrics
+                                .get(&job.ordinal)
+                                .ok_or("missing execution metrics")?,
+                        )?;
                     }
                     journal.append(Event::Receipt {
                         execution: execution.clone(),

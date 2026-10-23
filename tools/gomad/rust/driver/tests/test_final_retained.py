@@ -36,26 +36,45 @@ class FinalRetained(unittest.TestCase):
     def exercise_observed(self, mutation=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            artifact = root / 'artifact'
+            artifact = root / 'campaign/evidence/artifact'
             (artifact / 'output').mkdir(parents=True)
             (artifact / 'evidence').mkdir()
-            (artifact / 'evidence/backend-outcome.json').write_bytes(b'{"type":"result","termination":"exit","exit_code":1}')
+            (artifact / 'evidence/backend-outcome.json').write_bytes(b'{"schema":"gomad.backend-outcome/v1","type":"result","termination":"exit","exit_code":1}')
+            driver.write(artifact / 'manifest.json', {'record_sha256': 'original-record'})
+            metric_names = ('prepare_nanos', 'compile_nanos', 'cache_load_nanos', 'cache_write_nanos', 'instantiate_nanos',
+                            'execute_nanos', 'process_user_nanos', 'process_system_nanos', 'peak_rss_bytes')
+            metrics = dict.fromkeys(metric_names, 1)
+            metrics.update(cache_hit=False, resource_usage_available=True)
+            receipt = dict(schema='gomad.backend-metrics-observation/v1', ordinal=0, record_sha256='original-record',
+                           operator_process_id=1000, metrics=metrics)
+            raw = gate.CANONICAL(receipt)
+            observation = artifact.parents[1] / 'execution-observations'
+            observation.mkdir()
+            (observation / ('0-' + gate.receiving.digest(raw) + '.json')).write_bytes(raw)
             (artifact / 'output/stdout').write_bytes(b'deterministic failure after reading "pending"')
             (artifact / 'output/stderr').write_bytes(b'')
             record = dict(profile=gate.PROFILES['stock'], streams={'output/stdout': {}}, outcome={'class': 'target_failure'})
             expected = {'stdout': (artifact / 'output/stdout').read_bytes(), 'stderr': b'',
                         'backend-evidence.bin': (artifact / 'evidence/backend-outcome.json').read_bytes()}
+            if mutation == 'original-metrics':
+                next(observation.iterdir()).unlink()
+            if mutation == 'stable-schema':
+                (artifact / 'evidence/backend-outcome.json').write_bytes(b'{"schema":"gomad.backend-outcome/v1","type":"result","metrics":{}}')
             calls = []
             class Run:
                 def call(self, name, argv, status=0, installation=None, timeout=180):
                     calls.append((name, argv, status))
-                    if name == 'explore': return b''
+                    if name == 'explore':
+                        driver.write(root / 'explore.command.json', dict(pid=1000))
+                        return b''
                     observed = Path(argv[argv.index('--observed') + 1])
                     observed.mkdir(parents=True)
                     number = int(name.split('-')[1])
                     for filename, raw in expected.items():
                         if mutation == 'missing' and number == 20 and filename == 'stderr': continue
                         (observed / filename).write_bytes(raw + (b'changed' if mutation == 'raw' and number == 20 else b''))
+                    if not (mutation == 'metrics' and number == 20):
+                        driver.write(observed / 'backend-metrics.json', dict(metrics, execute_nanos=number))
                     driver.write(root / (name + '.command.json'), dict(pid=1 if mutation == 'pid' else number))
                     if mutation == 'immutable' and number == 20:
                         (artifact / 'output/stdout').write_bytes(b'changed')
@@ -73,7 +92,7 @@ class FinalRetained(unittest.TestCase):
         self.exercise_observed()
 
     def test_last_replay_changed_raw_missing_payload_reused_pid_or_mutation_refuses(self):
-        for mutation in ('raw', 'missing', 'pid', 'immutable'):
+        for mutation in ('raw', 'missing', 'pid', 'immutable', 'metrics', 'original-metrics', 'stable-schema'):
             with self.subTest(mutation=mutation), self.assertRaises((driver.Refusal, OSError)):
                 self.exercise_observed(mutation)
 
