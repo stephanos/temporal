@@ -309,6 +309,7 @@ fn configuration(
             .chain(options.target_args.iter().cloned())
             .collect(),
         wall_nanos: Some(wall_nanos),
+        world_transition_bytes: Some(options.world_transition_limit),
         environment,
         derive_seed_environment: true,
         runtime_sha256: None,
