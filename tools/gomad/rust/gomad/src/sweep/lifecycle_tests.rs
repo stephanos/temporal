@@ -108,6 +108,9 @@ enum Response {
     Error(&'static str),
     Invalid,
     Cancel,
+    SoftAssertion { report_only: bool },
+    InconclusiveSoftAssertion,
+    SoftAssertionWithoutProgress,
 }
 #[derive(Clone)]
 struct Call {
@@ -223,11 +226,19 @@ impl Fake {
         )
         .unwrap();
     }
+    fn native(&self, command: &Command, failed: bool) -> Completed {
+        self.native_with_soft_assertions(command, failed, None)
+    }
     #[expect(
         clippy::too_many_lines,
         reason = "The fixture publishes one complete authenticated native campaign transaction"
     )]
-    fn native(&self, command: &Command, failed: bool) -> Completed {
+    fn native_with_soft_assertions(
+        &self,
+        command: &Command,
+        failed: bool,
+        report_only: Option<bool>,
+    ) -> Completed {
         let campaign_path = PathBuf::from(Self::value(&command.args, "--artifacts"));
         let arguments =
             command.args[command.args.iter().position(|arg| arg == "--").unwrap() + 1..].to_vec();
@@ -236,7 +247,9 @@ impl Fake {
             .find_map(|arg| arg.strip_prefix("-test.run="))
             .unwrap();
         let name = selected.replace(['^', '$'], "");
-        let stdout = if failed {
+        let stdout = if report_only.is_some() {
+            format!("failed assertion: fixture assertion\n--- PASS: {name} (0s)\nPASS\n")
+        } else if failed {
             format!("panic: deterministic fixture failure\n--- FAIL: {name} (0s)\n")
         } else {
             format!("--- PASS: {name} (0s)\nPASS\n")
@@ -258,7 +271,10 @@ impl Fake {
             implementation: crate::replay::preflight::implementation().unwrap(),
             configuration: canonical::digest(&canonical::encode(&configuration).unwrap()),
         };
-        let record = Record {
+        let soft_assertions = report_only.and_then(|report_only| {
+            crate::campaign::soft_assertions::observe(&stdout, &[], true, report_only)
+        });
+        let mut record = Record {
             schema: "gomad.execution-record/v2".into(),
             execution_identity: identity.digest().unwrap(),
             identity,
@@ -271,8 +287,19 @@ impl Fake {
             outcome: ExecutionOutcome {
                 class: if failed { "target_failure" } else { "success" }.into(),
                 termination: "exit".into(),
-                exit_code: Some(u32::from(failed)),
-                reason: if failed { "panic_or_runtime_fatal" } else { "" }.into(),
+                exit_code: Some(if report_only.is_some() {
+                    0
+                } else {
+                    u32::from(failed)
+                }),
+                reason: if report_only == Some(false) {
+                    "soft_assertion"
+                } else if failed {
+                    "panic_or_runtime_fatal"
+                } else {
+                    ""
+                }
+                .into(),
             },
             streams: BTreeMap::from([(
                 "output/stdout".into(),
@@ -283,7 +310,23 @@ impl Fake {
                 },
             )]),
         };
-        let plan = json!({"schema":"gomad.seed-campaign-plan/v2","selection":self.options.seed.to_string(),"selection_count":1,"parallel":1,"on_failure":"all","failure_budget":0,"journal_bytes":1 << 20,"module_sha256":record.identity.target,"toolchain":record.identity.toolchain,"configuration":configuration});
+        let mut payloads = BTreeMap::from([
+            ("target/module.wasm".into(), module),
+            ("output/stdout".into(), stdout),
+        ]);
+        if let Some(report) = &soft_assertions {
+            let bytes = canonical::encode(report).unwrap();
+            record.streams.insert(
+                "evidence/soft-assertions.json".into(),
+                Stream {
+                    bytes: bytes.len() as u64,
+                    sha256: canonical::digest(&bytes),
+                    records: 1,
+                },
+            );
+            payloads.insert("evidence/soft-assertions.json".into(), bytes);
+        }
+        let plan = json!({"soft_assertion_report_only":report_only.unwrap_or(false),"schema":"gomad.seed-campaign-plan/v2","selection":self.options.seed.to_string(),"selection_count":1,"parallel":1,"on_failure":"all","failure_budget":0,"journal_bytes":1 << 20,"module_sha256":record.identity.target,"toolchain":record.identity.toolchain,"configuration":configuration});
         let mut journal = Campaign::create(&campaign_path, &plan, 1 << 20).unwrap();
         let publication = Store {
             root: campaign_path.join("evidence"),
@@ -294,10 +337,7 @@ impl Fake {
         }
         .publish(Publication {
             record: record.clone(),
-            payloads: BTreeMap::from([
-                ("target/module.wasm".into(), module),
-                ("output/stdout".into(), stdout),
-            ]),
+            payloads,
         })
         .unwrap();
         let execution = Execution {
@@ -316,7 +356,9 @@ impl Fake {
             semantic_probes: vec![],
             choice_features: vec![],
             divergence: None,
-            soft_assertions: None,
+            soft_assertions: soft_assertions
+                .as_ref()
+                .map(|report| serde_json::to_value(report).unwrap()),
             scenario_steps: None,
         };
         journal
@@ -346,8 +388,14 @@ impl Fake {
             .unwrap();
         drop(journal);
         let result = json!({"type":"result","classification":if failed {"target_failure"} else {"success"},"campaign_path":campaign_path,"selection_count":1,"attempted":1,"succeeded":u64::from(!failed),"failures":u64::from(failed),"watchdogs":0,"cancelled":0,"distinct_failures":u64::from(failed),"stop_reason":"seeds_exhausted","success_artifacts":if failed {vec![]} else {vec![json!({"seed":self.options.seed,"path":publication.path,"record_hash":record.hash().unwrap()})]},"retained_evidence":1,"retained_bytes":publication.stored_bytes});
+        let mut stdout = Vec::new();
+        if let Some(report) = soft_assertions {
+            stdout.extend(serde_json::to_vec(&json!({"schema":"gomad.explore-event/v3","type":"soft_assertion","campaign_path":campaign_path,"seed":self.options.seed,"soft_assertions":report})).unwrap());
+            stdout.push(b'\n');
+        }
+        stdout.extend(serde_json::to_vec(&result).unwrap());
         Completed {
-            stdout: serde_json::to_vec(&result).unwrap(),
+            stdout,
             exit: i32::from(failed),
             ..Completed::default()
         }
@@ -428,6 +476,16 @@ impl Executor for Fake {
         match self.responses.pop_front().expect("unexpected test execution") {
             Response::Pass => self.native(command,false), Response::Failure => self.native(command,true),
             Response::Error(classification) => Completed { stdout:serde_json::to_vec(&json!({"schema":"gomad.explore-event/v3","type":"error","classification":classification,"message":"fixture error"})).unwrap(),exit:3,..Completed::default() },
+            Response::SoftAssertion { report_only } => self.native_with_soft_assertions(command, !report_only, Some(report_only)),
+            Response::SoftAssertionWithoutProgress => {
+                let mut output = self.native_with_soft_assertions(command, true, Some(false));
+                let first_line = output.stdout.iter().position(|byte| *byte == b'\n').unwrap();
+                output.stdout.drain(..=first_line);
+                output
+            }
+            Response::InconclusiveSoftAssertion => Completed {
+                stdout: serde_json::to_vec(&json!({"schema":"gomad.explore-event/v3","type":"error","classification":"capacity","message":"soft assertion observation inconclusive","soft_assertions":{"messages":[],"report_only":false,"inconclusive":true}})).unwrap(), exit: 3, ..Completed::default()
+            },
             Response::Cancel => {
                 context.cancelled.store(true, Ordering::Release);
                 Completed::default()
@@ -730,6 +788,8 @@ fn authentic_native_artifact_tampering_is_rejected_before_classification() {
         top_level_tests: vec!["TestA".into()],
         units: BTreeMap::from([("TestA".into(), vec!["TestA".into()])]),
         guest_excluded: BTreeMap::new(),
+        methods: vec![],
+        registrations: vec![],
         list_count: 1,
         parsed_count: 1,
     };
@@ -873,6 +933,8 @@ fn nested_module_execution_uses_its_module_directory_and_local_target() {
         top_level_tests: vec!["TestA".into()],
         units: BTreeMap::from([("TestA".into(), vec!["TestA".into()])]),
         guest_excluded: BTreeMap::new(),
+        methods: vec![],
+        registrations: vec![],
         list_count: 1,
         parsed_count: 1,
     };
@@ -1126,4 +1188,119 @@ fn throwaway_installation_uses_valid_cooperative_config_and_explicit_public_flag
         ),
         (Class::Pass, "throwaway")
     );
+}
+
+#[test]
+fn native_soft_assertion_progress_and_inconclusive_capacity_do_not_retry() {
+    for (response, class) in [
+        (
+            Response::SoftAssertion { report_only: false },
+            Class::GuestFailure,
+        ),
+        (Response::SoftAssertion { report_only: true }, Class::Pass),
+        (Response::InconclusiveSoftAssertion, Class::CapacityExceeded),
+        (Response::SoftAssertionWithoutProgress, Class::GuestFailure),
+    ] {
+        let mut fixture = Fixture::new();
+        fixture.options.max_tests = 1;
+        let mut fake = Fake::new(&fixture, [response]);
+        run_with(
+            &mut fake,
+            &fixture.context(300),
+            &fixture.options,
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        )
+        .unwrap();
+        let rows = fixture.rows();
+        assert_eq!(rows.len(), 2);
+        assert_eq!((rows[0].class, rows[0].attempts), (class, 1));
+        assert_eq!((rows[1].class, rows[1].attempts), (Class::NotRun, 0));
+        assert_eq!(fake.tests().len(), 1);
+        if class == Class::GuestFailure {
+            assert!(rows[0].reason.contains("soft_assertion"));
+        }
+    }
+}
+
+#[test]
+fn soft_assertion_progress_must_match_its_authenticated_campaign_execution() {
+    let fixture = Fixture::new();
+    let fake = Fake::new(&fixture, []);
+    let root = fixture.root.join("soft-attempt");
+    directory(&root).unwrap();
+    let package = Package {
+        import_path: "example/tests/example".into(),
+        pattern: "./tests/example".into(),
+        module_directory: fixture.options.checkout.display().to_string(),
+        target: "./tests/example".into(),
+        tests: vec!["TestA".into()],
+        top_level_tests: vec!["TestA".into()],
+        units: BTreeMap::from([("TestA".into(), vec!["TestA".into()])]),
+        guest_excluded: BTreeMap::new(),
+        methods: vec![],
+        registrations: vec![],
+        list_count: 1,
+        parsed_count: 1,
+    };
+    let dirs = Dirs::new(&fixture.options.work, &package.pattern);
+    let command = Command {
+        path: fixture.options.gomad.clone(),
+        args: explore_args(
+            &fixture.options,
+            &package,
+            &dirs,
+            &root.join("artifacts"),
+            "^TestA$",
+            fixture.options.per_test_timeout,
+        ),
+        dir: root.clone(),
+        env: BTreeMap::new(),
+        timeout: Duration::from_secs(30),
+    };
+    let output = fake
+        .native_with_soft_assertions(&command, false, Some(true))
+        .stdout;
+    let (progress, result) =
+        output.split_at(output.iter().position(|byte| *byte == b'\n').unwrap());
+    let progress: Value = serde_json::from_slice(progress).unwrap();
+    let (observation, events) = authenticated_observation(
+        "TestA",
+        fixture.options.seed,
+        &root,
+        Completed {
+            stdout: output.clone(),
+            ..Completed::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        classify::classify_native(&observation, &events).class,
+        Class::Pass
+    );
+    for (key, value) in [
+        ("seed", json!(8)),
+        ("campaign_path", json!("/unrelated/campaign")),
+        (
+            "soft_assertions",
+            json!({"messages":["different assertion"],"report_only":true,"inconclusive":false}),
+        ),
+    ] {
+        let mut changed = progress.clone();
+        changed[key] = value;
+        let mut stdout = serde_json::to_vec(&changed).unwrap();
+        stdout.extend_from_slice(result);
+        assert!(
+            authenticated_observation(
+                "TestA",
+                fixture.options.seed,
+                &root,
+                Completed {
+                    stdout,
+                    ..Completed::default()
+                }
+            )
+            .is_err(),
+            "{key}"
+        );
+    }
 }

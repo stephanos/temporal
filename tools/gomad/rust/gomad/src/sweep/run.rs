@@ -35,6 +35,8 @@ mod tests {
             module_directory: "/checkout/tests/nested".into(),
             target: "./.".into(),
             tests: vec!["TestA".into(), "TestB".into()],
+            methods: vec![],
+            registrations: vec![],
             units: BTreeMap::from([
                 ("TestA".into(), vec!["TestA".into()]),
                 ("TestB".into(), vec!["TestB".into()]),
@@ -586,6 +588,10 @@ fn authenticated_observation(
         artifacts: BTreeMap::new(),
     };
     let mut events = classify::parse_events(&observation.stdout)?;
+    let progress = events
+        .iter()
+        .find(|event| event.r#type == "soft_assertion")
+        .cloned();
     if !observation.exec_error.is_empty() || events.iter().any(|event| event.r#type == "error") {
         return Ok((observation, events));
     }
@@ -632,6 +638,7 @@ fn authenticated_observation(
     {
         return Err("native execution seed or selected test identity mismatch".into());
     }
+    validate_soft_progress(progress.as_ref(), execution, path)?;
     let success = execution.record.outcome.class == "success";
     let watchdog = execution.record.outcome.class == "watchdog";
     if event.succeeded != u64::from(success)
@@ -678,6 +685,30 @@ fn authenticated_observation(
     events.push(artifact_event);
     Ok((observation, events))
 }
+fn validate_soft_progress(
+    progress: Option<&Event>,
+    execution: &crate::campaign::ledger::Execution,
+    campaign: &Path,
+) -> Result<(), String> {
+    let Some(progress) = progress else {
+        return Ok(());
+    };
+    let retained = execution
+        .soft_assertions
+        .as_ref()
+        .ok_or("soft assertion progress has no authenticated report")?;
+    let retained: crate::campaign::soft_assertions::Report =
+        serde_json::from_value(retained.clone())
+            .map_err(|error| format!("invalid authenticated soft assertion report: {error}"))?;
+    if Path::new(&progress.campaign_path) != campaign
+        || progress.seed != Some(execution.seed)
+        || progress.soft_assertions.as_ref() != Some(&retained)
+    {
+        return Err("soft assertion progress differs from authenticated campaign report".into());
+    }
+    Ok(())
+}
+
 fn validate_report(
     report: &classify::NativeResult,
     execution: &crate::campaign::ledger::Execution,

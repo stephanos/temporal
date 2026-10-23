@@ -62,6 +62,40 @@ mod tests {
         }
     }
 
+    #[test]
+    fn native_soft_assertion_reports_are_strict_and_preserved() {
+        let report = serde_json::json!({"messages":["fixture assertion"],"report_only":false,"inconclusive":false});
+        let progress = serde_json::json!({"schema":"gomad.explore-event/v3","type":"soft_assertion","campaign_path":"/run/campaign","seed":7,"soft_assertions":report});
+        let events = parse_events(&serde_json::to_vec(&progress).unwrap()).unwrap();
+        assert_eq!(events[0].seed, Some(7));
+        assert_eq!(
+            events[0].soft_assertions.as_ref().unwrap().messages,
+            ["fixture assertion"]
+        );
+        for (key, value) in [
+            ("extra", serde_json::json!(1)),
+            ("seed", serde_json::json!("7")),
+            (
+                "soft_assertions",
+                serde_json::json!({"messages":[],"report_only":false,"inconclusive":false}),
+            ),
+            (
+                "soft_assertions",
+                serde_json::json!({"messages":["x"],"report_only":false,"inconclusive":false,"extra":1}),
+            ),
+        ] {
+            let mut malformed = progress.clone();
+            malformed[key] = value;
+            assert!(parse_events(&serde_json::to_vec(&malformed).unwrap()).is_err());
+        }
+        let capacity = serde_json::json!({"schema":"gomad.explore-event/v3","type":"error","classification":"capacity","message":"soft assertion analysis incomplete","soft_assertions":{"messages":[],"report_only":false,"inconclusive":true}});
+        let events = parse_events(&serde_json::to_vec(&capacity).unwrap()).unwrap();
+        assert_eq!(
+            classify_native(&Observation::default(), &events).class,
+            Class::CapacityExceeded
+        );
+    }
+
     fn classify_trusted(observation: &Observation) -> Outcome {
         let events: Vec<Event> = observation
             .stdout
@@ -461,6 +495,8 @@ pub struct Event {
     pub failures: u64,
     pub watchdogs: u64,
     pub replay_divergences: u64,
+    pub seed: Option<u64>,
+    pub soft_assertions: Option<crate::campaign::soft_assertions::Report>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -565,11 +601,70 @@ struct NativeError {
     r#type: String,
     classification: String,
     message: String,
+    soft_assertions: Option<crate::campaign::soft_assertions::Report>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct NativeSoftAssertion {
+    schema: String,
+    r#type: String,
+    campaign_path: String,
+    seed: u64,
+    soft_assertions: crate::campaign::soft_assertions::Report,
+}
+
+fn valid_soft_assertions(report: &crate::campaign::soft_assertions::Report) -> bool {
+    (report.report_only || report.inconclusive || !report.messages.is_empty())
+        && report
+            .messages
+            .iter()
+            .all(|message| !message.is_empty() && message.len() <= 4096)
+        && report
+            .messages
+            .windows(2)
+            .all(|messages| messages[0] < messages[1])
+}
+
+fn parse_native_error(line: &str) -> Result<Event, String> {
+    let error = || {
+        format!(
+            "explore stdout line is not a native explore report: {}",
+            line.chars().take(200).collect::<String>()
+        )
+    };
+    let failure: NativeError = serde_json::from_str(line).map_err(|_| error())?;
+    if failure.soft_assertions.as_ref().is_some_and(|report| {
+        failure.classification != "capacity" || !valid_soft_assertions(report)
+    }) || failure.schema != "gomad.explore-event/v3"
+        || failure.r#type != "error"
+        || !matches!(
+            failure.classification.as_str(),
+            "runner_failure"
+                | "capacity"
+                | "unsupported_target"
+                | "cancelled"
+                | "overall_timeout"
+                | "semantic_coverage_failure"
+                | "invalid_input"
+        )
+    {
+        return Err(error());
+    }
+    Ok(Event {
+        schema: failure.schema,
+        r#type: failure.r#type,
+        classification: failure.classification,
+        message: failure.message,
+        soft_assertions: failure.soft_assertions,
+        ..Event::default()
+    })
 }
 
 pub fn parse_events(stdout: &[u8]) -> Result<Vec<Event>, String> {
     let mut events = Vec::new();
     let mut have_result = false;
+    let mut have_soft_assertion = false;
     for line in stdout.split(|byte| *byte == b'\n') {
         if line.len() >= 16 << 20 {
             return Err("explore stdout line exceeds maximum size".into());
@@ -611,31 +706,29 @@ pub fn parse_events(stdout: &[u8]) -> Result<Vec<Event>, String> {
                     ..Event::default()
                 });
             }
-            Some("error") => {
-                let failure: NativeError = serde_json::from_str(line).map_err(|_| error())?;
-                if failure.schema != "gomad.explore-event/v3"
-                    || failure.r#type != "error"
-                    || !matches!(
-                        failure.classification.as_str(),
-                        "runner_failure"
-                            | "capacity"
-                            | "unsupported_target"
-                            | "cancelled"
-                            | "overall_timeout"
-                            | "semantic_coverage_failure"
-                            | "invalid_input"
-                    )
+            Some("soft_assertion") => {
+                let progress: NativeSoftAssertion =
+                    serde_json::from_str(line).map_err(|_| error())?;
+                if have_result
+                    || have_soft_assertion
+                    || progress.schema != "gomad.explore-event/v3"
+                    || progress.r#type != "soft_assertion"
+                    || progress.campaign_path.is_empty()
+                    || !valid_soft_assertions(&progress.soft_assertions)
                 {
                     return Err(error());
                 }
+                have_soft_assertion = true;
                 events.push(Event {
-                    schema: failure.schema,
-                    r#type: failure.r#type,
-                    classification: failure.classification,
-                    message: failure.message,
+                    schema: progress.schema,
+                    r#type: progress.r#type,
+                    campaign_path: progress.campaign_path,
+                    seed: Some(progress.seed),
+                    soft_assertions: Some(progress.soft_assertions),
                     ..Event::default()
                 });
             }
+            Some("error") => events.push(parse_native_error(line)?),
             _ => return Err(error()),
         }
     }

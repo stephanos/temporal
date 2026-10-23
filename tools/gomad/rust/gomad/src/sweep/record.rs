@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use super::super::enumerate::{SuiteMethod, SuiteRegistration};
     use super::*;
     use serde_json::json;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -59,6 +60,8 @@ mod tests {
                 module_directory: ".".into(),
                 target: "./tests".into(),
                 guest_excluded: BTreeMap::new(),
+                methods: Vec::new(),
+                registrations: Vec::new(),
                 units: BTreeMap::from([
                     ("TestA".into(), vec!["TestA".into()]),
                     ("TestB".into(), vec!["TestB".into()]),
@@ -85,6 +88,21 @@ mod tests {
                 vec!["TestSuite/TestOne".into(), "TestSuite/TestTwo".into()],
             ),
         ]);
+        package.methods = ["TestOne", "TestTwo"]
+            .map(|name| SuiteMethod {
+                suite: "S".into(),
+                name: name.into(),
+                file: "suite_test.go".into(),
+                units: vec![format!("TestSuite/{name}")],
+            })
+            .to_vec();
+        package.registrations = vec![SuiteRegistration {
+            wrapper: "TestSuite".into(),
+            suite: "S".into(),
+            path: "TestSuite".into(),
+            file: "suite_test.go".into(),
+            methods: vec!["TestOne".into(), "TestTwo".into()],
+        }];
         header
     }
 
@@ -170,6 +188,154 @@ mod tests {
             drop(journal);
             fs::remove_file(path).unwrap();
         }
+    }
+
+    #[test]
+    fn declarations_reject_consistently_mutated_output_inventory() {
+        for case in [
+            "bulk-wrapper",
+            "missing-declared-method",
+            "empty-declared-coverage",
+            "unknown-declared-unit",
+            "unknown-registration",
+            "undeclared-selected-unit",
+        ] {
+            let path = path();
+            let journal = Journal::open(&path, &suite_header()).unwrap();
+            let mut sidecar = build_sidecar(journal.rows()).unwrap();
+            let package = &mut sidecar.packages[0];
+            let expected = match case {
+                "bulk-wrapper" => {
+                    package.tests = vec!["TestPlain".into(), "TestSuite".into()];
+                    package
+                        .units
+                        .insert("TestSuite".into(), vec!["TestSuite".into()]);
+                    "suite wrapper is a runnable unit"
+                }
+                "missing-declared-method" => {
+                    package.tests.pop();
+                    package.units.get_mut("TestSuite").unwrap().pop();
+                    "method unit not enumerated"
+                }
+                "empty-declared-coverage" => {
+                    package.tests.pop();
+                    package.units.get_mut("TestSuite").unwrap().pop();
+                    package.methods[1].units.clear();
+                    "declared method has no units"
+                }
+                "unknown-declared-unit" => {
+                    package.methods[1].units = vec!["TestSuite/TestLost".into()];
+                    "method unit not enumerated"
+                }
+                "unknown-registration" => {
+                    package.registrations[0].wrapper = "TestLost".into();
+                    "registration wrapper not enumerated"
+                }
+                _ => {
+                    package.tests.push("TestSuite/TestUnknown".into());
+                    package
+                        .units
+                        .get_mut("TestSuite")
+                        .unwrap()
+                        .push("TestSuite/TestUnknown".into());
+                    "unit has no source declaration"
+                }
+            };
+            let structural = inventory(&sidecar.packages).unwrap_err();
+            assert!(structural.contains(expected), "{case}: {structural}");
+            rekey(&mut sidecar);
+            let findings = verify(&sidecar);
+            assert!(
+                findings.iter().any(|finding| finding.contains(expected)),
+                "{case}: {findings:?}"
+            );
+            drop(journal);
+            fs::remove_file(path).unwrap();
+        }
+    }
+
+    #[test]
+    fn nested_suite_declarations_cover_each_parent_and_leaf() {
+        let mut header = suite_header();
+        let package = &mut header.packages[0];
+        let leaf = "TestSuite/TestNested/sub/TestLeaf".to_owned();
+        package.tests = vec!["TestPlain".into(), leaf.clone()];
+        package.units.insert("TestSuite".into(), vec![leaf.clone()]);
+        package.methods = vec![
+            SuiteMethod {
+                suite: "Outer".into(),
+                name: "TestNested".into(),
+                file: "outer_test.go".into(),
+                units: vec![leaf.clone()],
+            },
+            SuiteMethod {
+                suite: "Inner".into(),
+                name: "TestLeaf".into(),
+                file: "inner_test.go".into(),
+                units: vec![leaf],
+            },
+        ];
+        package.registrations = vec![
+            SuiteRegistration {
+                wrapper: "TestSuite".into(),
+                suite: "Outer".into(),
+                path: "TestSuite".into(),
+                file: "outer_test.go".into(),
+                methods: vec!["TestNested".into()],
+            },
+            SuiteRegistration {
+                wrapper: "TestSuite".into(),
+                suite: "Inner".into(),
+                path: "TestSuite/TestNested/sub".into(),
+                file: "inner_test.go".into(),
+                methods: vec!["TestLeaf".into()],
+            },
+        ];
+        let path = path();
+        let journal = Journal::open(&path, &header).unwrap();
+        let sidecar = build_sidecar(journal.rows()).unwrap();
+        assert_eq!(verify(&sidecar), Vec::<String>::new());
+        for method in 0..2 {
+            let mut changed = sidecar.clone();
+            changed.packages[0].methods[method].units.clear();
+            rekey(&mut changed);
+            assert!(
+                verify(&changed)
+                    .iter()
+                    .any(|finding| finding.contains("declared method has no units"))
+            );
+        }
+        let mut changed = sidecar;
+        changed.packages[0].tests.pop();
+        changed.packages[0]
+            .units
+            .get_mut("TestSuite")
+            .unwrap()
+            .clear();
+        rekey(&mut changed);
+        assert!(!verify(&changed).is_empty());
+        drop(journal);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn registration_effective_methods_have_independent_selected_coverage() {
+        let path = path();
+        let journal = Journal::open(&path, &suite_header()).unwrap();
+        let mut sidecar = build_sidecar(journal.rows()).unwrap();
+        let package = &mut sidecar.packages[0];
+        package.tests.pop();
+        package.units.get_mut("TestSuite").unwrap().pop();
+        package.methods.pop();
+        rekey(&mut sidecar);
+        assert!(
+            verify(&sidecar)
+                .iter()
+                .any(|finding| finding
+                    .contains("registration effective method has no selected unit"))
+        );
+        drop(journal);
+        fs::remove_file(path).unwrap();
     }
 
     fn test_entry(name: &str, class: Class, reason: &str) -> TestEntry {
@@ -308,6 +474,28 @@ mod tests {
     }
 
     #[test]
+    fn provisional_native_v1_is_refused_before_append() {
+        let path = path();
+        let journal = Journal::open(&path, &header()).unwrap();
+        let mut sidecar = build_sidecar(journal.rows()).unwrap();
+        let mut encoded = serde_json::to_value(&journal.rows()[0]).unwrap();
+        drop(journal);
+        encoded["schema"] = json!("gomad.rust-wasm-sweep/v1");
+        let mut bytes = serde_json::to_vec(&encoded).unwrap();
+        bytes.push(b'\n');
+        fs::write(&path, &bytes).unwrap();
+        assert!(Journal::open(&path, &header()).is_err());
+        assert_eq!(fs::read(&path).unwrap(), bytes);
+        sidecar.schema = "gomad.rust-wasm-sweep/v1".into();
+        assert!(
+            verify(&sidecar)
+                .iter()
+                .any(|finding| finding == "incompatible sidecar schema")
+        );
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
     fn verifier_rejects_bad_rows_inventory_counts_and_unknown_fields() {
         let path = path();
         let journal = Journal::open(&path, &header()).unwrap();
@@ -388,7 +576,7 @@ use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::path::Path;
 
-pub const SCHEMA: &str = "gomad.rust-wasm-sweep/v1";
+pub const SCHEMA: &str = "gomad.rust-wasm-sweep/v2";
 pub const OBSERVATION_STATEMENT: &str = "Observation on one candidate only. A pass is an observed outcome of one seed under a bounded budget, not support or qualification.";
 pub type Candidate = BTreeMap<String, Value>;
 
@@ -773,6 +961,7 @@ fn inventory(packages: &[Package]) -> Result<BTreeSet<(String, String)>, String>
                 package.pattern
             ));
         }
+        declared_coverage(package, &top)?;
         for name in &package.tests {
             if name.is_empty() || !names.insert((package.pattern.clone(), name.clone())) {
                 return Err(format!(
@@ -790,6 +979,140 @@ fn inventory(packages: &[Package]) -> Result<BTreeSet<(String, String)>, String>
         }
     }
     Ok(names)
+}
+
+fn declared_coverage(package: &Package, top: &BTreeSet<&str>) -> Result<(), String> {
+    let mut wrappers = BTreeSet::new();
+    let mut registrations = BTreeSet::new();
+    for registration in &package.registrations {
+        if !top.contains(registration.wrapper.as_str()) {
+            return Err(format!(
+                "{} {}: registration wrapper not enumerated",
+                package.pattern, registration.wrapper
+            ));
+        }
+        if registration.suite.is_empty()
+            || registration.file.is_empty()
+            || (registration.path != registration.wrapper
+                && !registration
+                    .path
+                    .starts_with(&format!("{}/", registration.wrapper)))
+            || !registrations.insert((registration.wrapper.as_str(), registration.path.as_str()))
+        {
+            return Err(format!("{}: invalid suite registration", package.pattern));
+        }
+        wrappers.insert(registration.wrapper.as_str());
+        if package.tests.contains(&registration.wrapper) {
+            return Err(format!(
+                "{} {}: suite wrapper is a runnable unit",
+                package.pattern, registration.wrapper
+            ));
+        }
+    }
+    let mut covered = BTreeSet::new();
+    let mut declarations = BTreeSet::new();
+    for method in &package.methods {
+        if method.suite.is_empty()
+            || !method.name.starts_with("Test")
+            || method.name.contains('/')
+            || method.file.is_empty()
+            || !declarations.insert((method.suite.as_str(), method.name.as_str()))
+        {
+            return Err(format!(
+                "{}: invalid or duplicate method declaration",
+                package.pattern
+            ));
+        }
+        if method.units.is_empty() {
+            return Err(format!(
+                "{} {}.{}: declared method has no units",
+                package.pattern, method.suite, method.name
+            ));
+        }
+        if method.units.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(format!(
+                "{}: declared method units are not sorted and unique",
+                package.pattern
+            ));
+        }
+        for unit in &method.units {
+            if !package.tests.contains(unit) {
+                return Err(format!(
+                    "{} {unit}: method unit not enumerated",
+                    package.pattern
+                ));
+            }
+            if !package
+                .registrations
+                .iter()
+                .any(|registration| unit.starts_with(&format!("{}/", registration.path)))
+                || !unit.split('/').any(|segment| segment == method.name)
+            {
+                return Err(format!(
+                    "{} {unit}: method unit has no registration or declared method selector",
+                    package.pattern
+                ));
+            }
+            covered.insert(unit.as_str());
+        }
+    }
+    registration_coverage(package)?;
+    for name in &package.top_level_tests {
+        if !wrappers.contains(name.as_str()) {
+            covered.insert(name.as_str());
+        }
+    }
+    for unit in &package.tests {
+        if !covered.contains(unit.as_str()) {
+            return Err(format!(
+                "{} {unit}: unit has no source declaration",
+                package.pattern
+            ));
+        }
+    }
+    for name in &package.top_level_tests {
+        if !wrappers.contains(name.as_str())
+            && package.units[name].as_slice() != std::slice::from_ref(name)
+        {
+            return Err(format!(
+                "{} {name}: standalone test has no unit",
+                package.pattern
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn registration_coverage(package: &Package) -> Result<(), String> {
+    for registration in &package.registrations {
+        if registration.methods.is_empty()
+            || registration
+                .methods
+                .windows(2)
+                .any(|pair| pair[0] >= pair[1])
+        {
+            return Err(format!(
+                "{}: registration has empty or unordered effective methods",
+                package.pattern
+            ));
+        }
+        for method in &registration.methods {
+            let selector = format!("{}/{method}", registration.path);
+            if !method.starts_with("Test")
+                || method.contains('/')
+                || !package
+                    .tests
+                    .iter()
+                    .any(|unit| unit == &selector || unit.starts_with(&format!("{selector}/")))
+            {
+                return Err(format!(
+                    "{} {selector}: registration effective method has no selected unit",
+                    package.pattern
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn valid_digest(value: &str) -> bool {

@@ -8,9 +8,27 @@ fn discover_methods(source: &str) -> Result<BTreeMap<String, Vec<String>>, Strin
     inventory(&[("source_test.go".into(), source.into())])
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct SuiteMethod {
+    pub suite: String,
+    pub name: String,
+    pub file: String,
+    pub units: Vec<String>,
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct SuiteRegistration {
+    pub wrapper: String,
+    pub suite: String,
+    pub path: String,
+    pub file: String,
+    pub methods: Vec<String>,
+}
+
 pub struct SourceInventory {
     pub tests: BTreeMap<String, Vec<String>>,
     pub unit_files: BTreeMap<String, Vec<PathBuf>>,
+    pub methods: Vec<SuiteMethod>,
+    pub registrations: Vec<SuiteRegistration>,
 }
 
 pub fn source_inventory_with_loader(
@@ -773,6 +791,14 @@ impl Walker<'_> {
     }
 }
 
+#[derive(Default)]
+struct Coverage {
+    functions: BTreeSet<usize>,
+    method_units: BTreeMap<usize, Vec<String>>,
+    registrations: Vec<SuiteRegistration>,
+    wrapper: String,
+}
+
 #[expect(
     clippy::too_many_arguments,
     reason = "Recursive expansion carries branch ancestry separately from shared coverage, cycle detection, source loading and provenance"
@@ -781,7 +807,7 @@ fn expand(
     source: &mut Source,
     id: usize,
     path: &str,
-    covered: &mut BTreeSet<usize>,
+    coverage: &mut Coverage,
     active: &mut BTreeSet<usize>,
     parents: &[PathBuf],
     unit_files: &mut BTreeMap<String, Vec<PathBuf>>,
@@ -790,7 +816,7 @@ fn expand(
     if !active.insert(id) {
         return Err(format!("cyclic suite registration {path}"));
     }
-    covered.insert(id);
+    coverage.functions.insert(id);
     let f = source.functions[id].clone();
     let mut files = parents.to_vec();
     files.push(f.file.clone());
@@ -826,12 +852,19 @@ fn expand(
         if tests.is_empty() {
             return Err(format!("registered suite {suite} has no test methods"));
         }
+        coverage.registrations.push(SuiteRegistration {
+            wrapper: coverage.wrapper.clone(),
+            suite: suite.clone(),
+            path: format!("{path}{}", call.path),
+            file: f.file.display().to_string(),
+            methods: tests.iter().map(|(name, _)| (*name).clone()).collect(),
+        });
         for (name, (method, _, _)) in tests {
             units.extend(expand(
                 source,
                 *method,
                 &format!("{path}{}/{name}", call.path),
-                covered,
+                coverage,
                 active,
                 &files,
                 unit_files,
@@ -842,6 +875,13 @@ fn expand(
     active.remove(&id);
     units.sort();
     units.dedup();
+    if f.owner.is_some() && f.name.starts_with("Test") {
+        coverage
+            .method_units
+            .entry(id)
+            .or_default()
+            .extend(units.clone());
+    }
     Ok(units)
 }
 
@@ -868,7 +908,7 @@ fn inventory_with_loader(
             .map_err(|error| format!("parse {name}: {error}"))?;
     }
     let mut result = BTreeMap::new();
-    let mut covered = BTreeSet::new();
+    let mut coverage = Coverage::default();
     let mut unit_files = BTreeMap::new();
     let wrappers: Vec<_> = source
         .functions
@@ -878,11 +918,12 @@ fn inventory_with_loader(
         .map(|(id, f)| (id, f.name.clone()))
         .collect();
     for (id, name) in wrappers {
+        coverage.wrapper.clone_from(&name);
         let units = expand(
             &mut source,
             id,
             &name,
-            &mut covered,
+            &mut coverage,
             &mut BTreeSet::new(),
             &[],
             &mut unit_files,
@@ -893,7 +934,10 @@ fn inventory_with_loader(
         }
     }
     for (id, f) in source.functions.iter().enumerate() {
-        if f.test_file && f.owner.is_some() && f.name.starts_with("Test") && !covered.contains(&id)
+        if f.test_file
+            && f.owner.is_some()
+            && f.name.starts_with("Test")
+            && !coverage.functions.contains(&id)
         {
             return Err(format!(
                 "unregistered test method {}.{}",
@@ -902,9 +946,27 @@ fn inventory_with_loader(
             ));
         }
     }
+    let mut methods = Vec::new();
+    for (id, mut units) in coverage.method_units {
+        let function = &source.functions[id];
+        units.sort();
+        units.dedup();
+        methods.push(SuiteMethod {
+            suite: function.owner.clone().ok_or("method receiver missing")?,
+            name: function.name.clone(),
+            file: function.file.display().to_string(),
+            units,
+        });
+    }
+    methods.sort_by(|a, b| (&a.suite, &a.name).cmp(&(&b.suite, &b.name)));
+    coverage
+        .registrations
+        .sort_by(|a, b| (&a.path, &a.suite).cmp(&(&b.path, &b.suite)));
     Ok(SourceInventory {
         tests: result,
         unit_files,
+        methods,
+        registrations: coverage.registrations,
     })
 }
 
@@ -915,6 +977,63 @@ mod tests {
         discover_methods(&format!(
             "package example\nimport \"testing\"\nimport ts \"github.com/stretchr/testify/suite\"\nimport ps \"go.temporal.io/server/common/testing/parallelsuite\"\n{body}"
         ))
+    }
+
+    #[test]
+    fn declaration_and_registration_metadata_retains_independent_suite_coverage() {
+        let source = r#"package example
+            import ts "github.com/stretchr/testify/suite"
+            type Base struct{}
+            func (*Base) TestInherited() {}
+            type Outer struct{ Base }
+            type Inner struct{}
+            func (*Inner) TestLeaf() {}
+            func (*Outer) TestNested() { ts.Run(nil, &Inner{}) }
+            func TestWrapper(t *testing.T) { ts.Run(t, &Outer{}) }
+        "#;
+        let result = inventory_with_files(&[("suite_test.go".into(), source.into())]).unwrap();
+        assert_eq!(
+            result.methods,
+            vec![
+                SuiteMethod {
+                    suite: "example.Base".into(),
+                    name: "TestInherited".into(),
+                    file: "suite_test.go".into(),
+                    units: vec!["TestWrapper/TestInherited".into()]
+                },
+                SuiteMethod {
+                    suite: "example.Inner".into(),
+                    name: "TestLeaf".into(),
+                    file: "suite_test.go".into(),
+                    units: vec!["TestWrapper/TestNested/TestLeaf".into()]
+                },
+                SuiteMethod {
+                    suite: "example.Outer".into(),
+                    name: "TestNested".into(),
+                    file: "suite_test.go".into(),
+                    units: vec!["TestWrapper/TestNested/TestLeaf".into()]
+                },
+            ]
+        );
+        assert_eq!(
+            result.registrations,
+            vec![
+                SuiteRegistration {
+                    wrapper: "TestWrapper".into(),
+                    suite: "example.Outer".into(),
+                    path: "TestWrapper".into(),
+                    file: "suite_test.go".into(),
+                    methods: vec!["TestInherited".into(), "TestNested".into()]
+                },
+                SuiteRegistration {
+                    wrapper: "TestWrapper".into(),
+                    suite: "example.Inner".into(),
+                    path: "TestWrapper/TestNested".into(),
+                    file: "suite_test.go".into(),
+                    methods: vec!["TestLeaf".into()]
+                },
+            ]
+        );
     }
 
     // Original roots: TestSuiteInventoryRegistrations/Arguments/VariableScopes.

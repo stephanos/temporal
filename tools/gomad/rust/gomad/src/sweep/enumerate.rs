@@ -54,6 +54,44 @@ use std::{
 };
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct SuiteMethod {
+    pub suite: String,
+    pub name: String,
+    pub file: String,
+    pub units: Vec<String>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct SuiteRegistration {
+    pub wrapper: String,
+    pub suite: String,
+    pub path: String,
+    pub file: String,
+    pub methods: Vec<String>,
+}
+impl From<inventory::SuiteMethod> for SuiteMethod {
+    fn from(method: inventory::SuiteMethod) -> Self {
+        Self {
+            suite: method.suite,
+            name: method.name,
+            file: method.file,
+            units: method.units,
+        }
+    }
+}
+impl From<inventory::SuiteRegistration> for SuiteRegistration {
+    fn from(registration: inventory::SuiteRegistration) -> Self {
+        Self {
+            wrapper: registration.wrapper,
+            suite: registration.suite,
+            path: registration.path,
+            file: registration.file,
+            methods: registration.methods,
+        }
+    }
+}
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct Package {
     pub import_path: String,
     pub pattern: String,
@@ -61,6 +99,8 @@ pub struct Package {
     pub target: String,
     pub tests: Vec<String>,
     pub units: BTreeMap<String, Vec<String>>,
+    pub methods: Vec<SuiteMethod>,
+    pub registrations: Vec<SuiteRegistration>,
     pub top_level_tests: Vec<String>,
     pub guest_excluded: BTreeMap<String, String>,
     pub list_count: usize,
@@ -430,6 +470,12 @@ pub fn enumerate(
                 target,
                 tests: units,
                 units: source.tests.clone(),
+                methods: source.methods.into_iter().map(SuiteMethod::from).collect(),
+                registrations: source
+                    .registrations
+                    .into_iter()
+                    .map(SuiteRegistration::from)
+                    .collect(),
                 list_count: listed.len(),
                 parsed_count: top_level_tests.len(),
                 top_level_tests,

@@ -222,6 +222,8 @@ fn native_enumeration_excludes_comment_and_raw_literal_phantom_tests() {
             ]),
             top_level_tests: vec!["TestAlpha".into(), "TestExternal".into()],
             guest_excluded: BTreeMap::new(),
+            methods: Vec::new(),
+            registrations: Vec::new(),
             list_count: 2,
             parsed_count: 2,
         }]
@@ -312,6 +314,26 @@ fn native_enumeration_checks_wrapper_method_and_non_test_go_file_guest_membershi
         let packages = enumerate(&mut executor, &Fixture::context(), &f.options).unwrap();
         assert_eq!(packages[0].top_level_tests, ["TestWrapper"]);
         assert_eq!(packages[0].tests, ["TestWrapper/TestMethod"]);
+        assert_eq!(
+            packages[0].methods,
+            vec![SuiteMethod {
+                suite: "alpha.S".into(),
+                name: "TestMethod".into(),
+                file: dir.join(method_file).display().to_string(),
+                units: vec!["TestWrapper/TestMethod".into()],
+            }]
+        );
+        assert_eq!(
+            packages[0].registrations,
+            vec![SuiteRegistration {
+                wrapper: "TestWrapper".into(),
+                suite: "alpha.S".into(),
+                path: "TestWrapper".into(),
+                file: dir.join("wrapper_test.go").display().to_string(),
+                methods: vec!["TestMethod".into()],
+            }]
+        );
+
         assert_eq!(
             packages[0].guest_excluded,
             BTreeMap::from([("TestWrapper/TestMethod".into(), excluded.into())])
