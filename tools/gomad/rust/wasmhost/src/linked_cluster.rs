@@ -518,6 +518,16 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
     if let Some(network) = &request.network {
         Shared::new(network, &ids).map_err(|failure| Error::msg(failure.message()))?;
     }
+    if let Some(shared) = &request.network {
+        for incarnation in &request.incarnations {
+            if let Some(local) = &incarnation.network
+                && (local.limits.connection_bytes != shared.model.limits.connection_bytes
+                    || local.limits.stall_nanos != shared.model.limits.stall_nanos)
+            {
+                return Err(Error::msg("cluster boot network limits"));
+            }
+        }
+    }
     let mut incarnations = BTreeMap::new();
     for incarnation in std::mem::take(&mut request.incarnations) {
         let model = incarnation
