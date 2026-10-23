@@ -1,0 +1,8 @@
+{
+  "schema": "gomad.interception-make-corpus/v1",
+  "package": "./tests/gomadfunctional",
+  "selector": "^TestFrontendSystemInfo$",
+  "positive_executions": 3,
+  "support_cells": 1,
+  "stages": ["expansion", "default-race", "race-on", "direct-race", "host-passthrough", "positive"]
+}
