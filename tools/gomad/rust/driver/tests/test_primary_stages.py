@@ -40,6 +40,17 @@ class PrimaryRecipes(unittest.TestCase):
                     row = primary.recipes(config, label, root / 'stages' / label)
                     self.assertEqual(row[0]['argv'][-2:], ['--roots', roots])
 
+    def test_artifact_and_operator_use_global_retained_owner_once(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = self.config(root, root / 'unused')
+            with patch.object(primary.live, 'sealed_input'):
+                for label, section in [('artifact', 'retained'), ('operator', 'operator')]:
+                    rows = primary.recipes(config, label, root / 'stages' / label)
+                    self.assertEqual(len(rows), 1)
+                    self.assertEqual(rows[0]['argv'][-4:], ['--section', section, '--root', str(root)])
+                    self.assertNotIn('--read-only', rows[0]['argv'])
+
     def test_foreign_stage_root_refused(self):
         with self.assertRaisesRegex(Refusal, 'foreign primary'):
             primary.recipes(dict(root='/attempt'), 'storage', Path('/other'))

@@ -1258,7 +1258,7 @@ class Retained:
             results.append(result['observations']['operator_process_id'])
         require(len(set(results)) == 2,'replication cells borrowed producer PID')
 
-    def temporal(self, label):
+    def temporal(self, label, standalone_inspection=False):
         root = self.endpoint(label)
         if label == 'network':
             result = self.producer(root,'retry')
@@ -1288,7 +1288,7 @@ class Retained:
                 self.nested(root,owner,child_argv)
                 child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
-                self.inspection(root/owner,owner)
+                self.inspection(root/owner,owner,standalone=standalone_inspection)
         else:
             raise Unexecuted('unsupported receiving endpoint: '+label)
 
@@ -1425,8 +1425,10 @@ class Retained:
                         if read(path)['profile'] == 'gomad.wasi-cooperative/v1'}
         require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
 
-    def inspection(self, root, owner):
+    def inspection(self, root, owner, standalone=False):
         if owner == 'onebox':
+            if standalone:
+                return onebox_receiving.inspection(self, root, standalone=True)
             return onebox_receiving.inspection(self, root)
         observed_owner = self.owner(root)
         argv = observed_owner['argv']

@@ -33,8 +33,9 @@ def final_sections(python, config_path):
         if endpoint == 'stress-parity-lane.py':
             argv = [python, str(live.PARITY / endpoint), '--final-section', '--produce', '--config', str(config_path)]
         elif endpoint in ('retained', 'operator', 'inspection'):
-            argv = [python, str(HERE / 'final_retained.py'), '--config', str(config_path),
-                    '--section', endpoint, '--read-only']
+            argv = [python, str(HERE / 'final_retained.py'), '--config', str(config_path), '--section', endpoint]
+            if endpoint != 'inspection':
+                argv.append('--read-only')
         else:
             argv = [python, str(HERE / endpoint), '--config', str(config_path)]
         result[name] = dict(required=required, argv=argv)

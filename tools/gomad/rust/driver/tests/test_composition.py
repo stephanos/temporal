@@ -50,6 +50,7 @@ class CompositionTests(unittest.TestCase):
         self.assertEqual(len([item for row in sections.values() for item in row['required']]), 8)
         self.assertLess(sorted(sections).index('10-stress'), sorted(sections).index('90-public-verbs'))
         self.assertIn('--read-only', sections['40-retained']['argv'])
+        self.assertNotIn('--read-only', sections['60-inspection']['argv'])
 
 
 if __name__ == '__main__':

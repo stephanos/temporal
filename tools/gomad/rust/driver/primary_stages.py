@@ -11,10 +11,11 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
-         'storage', 'network', 'temporal-inspection'}
+         'storage', 'network', 'temporal-inspection', 'artifact', 'operator'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
-            'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600}
+            'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
+            'artifact': 900, 'operator': 1800}
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
     'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
@@ -38,6 +39,9 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label in ('artifact', 'operator'):
+        return [recipe('primary-final', HERE / 'final_retained.py', ['--config', config['_config_path'],
+                       '--section', 'retained' if label == 'artifact' else 'operator', '--root', config['root']])]
     if label in ('retained-durable-restart', 'busy-grouped'):
         entry = config['live_corpus']['families']['cluster']
         binary = live.role(config, entry['role'])['binary']
@@ -81,7 +85,8 @@ def recipes(config, label, root):
         first['name'] = 'primary-final'
         return [first]
     return [first, recipe('primary-final', WORKLOAD_TOOLS / 'temporal-recovery.py',
-                         ['--binary', config['binary'], '--primary', str(primary), '--root', str(work / 'recovery-selected')])]
+                         ['--binary', config['binary'], '--repo', config['repo'], '--private-observation-config', config['_config_path'],
+                          '--primary', str(primary), '--root', str(work / 'recovery-selected')])]
 
 
 def endpoint(config, label):
@@ -240,12 +245,20 @@ def broker(config, label, root):
 def read_stage(config, label, root):
     guard(config)
     reader = actual_commands(config, label, root)
-    if label in ('retained-durable-restart', 'busy-grouped'):
+    if label in ('artifact', 'operator'):
+        import final_retained
+        section = 'retained' if label == 'artifact' else 'operator'
+        report = final_retained.collect(config, Path(config['root']), section, read_only=True)
+        require(report['schema'] == 'gomad.rust-driver-final-section/v1'
+                and report['source_sha256'] == config['source_sha256'] and report['identity'] == config['identity'],
+                'foreign retained/operator primary proof')
+        coverage([final_retained.IDS[section]], report['subgates'])
+    elif label in ('retained-durable-restart', 'busy-grouped'):
         cluster(config, label, root)
     elif label in ('busy-boundaries', 'network-streams'):
         broker(config, label, root)
     else:
-        reader.temporal(label)
+        reader.temporal(label, standalone_inspection=label == 'temporal-inspection')
         reader.verify_pending_preparations()
     rows = [dict(id=name, status='PASS', executed=True, exit=0) for name in subgates(label)]
     coverage(subgates(label), rows)
