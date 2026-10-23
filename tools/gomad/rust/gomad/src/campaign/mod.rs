@@ -4,6 +4,15 @@ mod counterfactual;
 pub(crate) mod execution;
 pub(crate) mod exploration;
 mod failure_policy;
+#[cfg(all(
+    test,
+    feature = "helper-determinism-fixture",
+    not(any(
+        feature = "helper-diagnostic-profile",
+        feature = "helper-stress-jitter"
+    ))
+))]
+mod fixture_input_preservation_tests;
 pub(crate) mod inspect;
 pub(crate) mod launcher;
 pub(crate) mod ledger;
