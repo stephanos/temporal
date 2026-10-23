@@ -1,0 +1,133 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling prettyplease v0.3.0
+   Compiling smallvec v1.16.3
+   Compiling libc v0.2.191
+   Compiling equivalent v1.0.3
+   Compiling bytemuck v1.25.2
+   Compiling rand_core v0.9.5
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/dsl/macros)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/dsl)
+   Compiling archery v1.2.3
+   Compiling rustix v1.1.5
+   Compiling safe_arch v0.7.4
+   Compiling rand_xoshiro v0.7.0
+   Compiling wide v0.7.33
+   Compiling hashbrown v0.17.1
+   Compiling foldhash v0.1.5
+   Compiling getrandom v0.4.3
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/checker)
+   Compiling hashbrown v0.15.5
+   Compiling bitflags v2.13.2
+   Compiling indexmap v2.14.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling cfg-if v1.0.5
+   Compiling fixedbitset v0.5.7
+   Compiling imbl v7.0.2
+   Compiling rustc-hash v2.1.3
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling syn v3.0.9
+   Compiling proc-macro-utils v0.10.0
+   Compiling syn v2.0.119
+   Compiling petgraph v0.8.3
+   Compiling console v0.16.6
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/suite)
+   Compiling manyhow-macros v0.14.1
+   Compiling similar v2.7.0
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/fixtures)
+   Compiling tempfile v3.27.0
+   Compiling insta v1.49.0
+   Compiling enum-iterator-derive v1.5.0
+   Compiling manyhow v0.14.1
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/ir-derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/front)
+   Compiling umpire-lift v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/lift)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 54.37s
+     Running interpreted.rs (target/fn2385/debug/deps/interpreted-555a7e1d3e75090b)
+
+running 1 test
+TLA+:
+---- MODULE Lengths ----
+EXTENDS Integers, TLC, Sequences
+\* @type: (Int, Int) => Int;
+__umpire_Div(__umpire_a, __umpire_b) ==
+    IF Assert(__umpire_b # 0, "Rust integer division by zero") /\ Assert(~(__umpire_a = (-2147483647 - 1) /\ __umpire_b = -1), "Rust integer division overflow")
+    THEN IF __umpire_b = (-2147483647 - 1)
+         THEN IF __umpire_a = (-2147483647 - 1) THEN 1 ELSE 0
+         ELSE IF __umpire_a < 0
+              THEN LET (* @type: Int; *) __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
+                       (* @type: Int; *) __umpire_n == -(__umpire_a + 1)
+                       (* @type: Int; *) __umpire_q == __umpire_n \div __umpire_d
+                       (* @type: Int; *) __umpire_r == __umpire_n - __umpire_q * __umpire_d
+                       (* @type: Int; *) __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
+                   IN IF __umpire_b < 0 THEN -__umpire_negative ELSE __umpire_negative
+              ELSE IF __umpire_b < 0 THEN -(__umpire_a \div (-__umpire_b)) ELSE __umpire_a \div __umpire_b
+    ELSE 0
+
+VARIABLE \* @type: Seq(Int);
+values
+VARIABLE \* @type: Bool;
+__umpire_edge_tick
+VARIABLE \* @type: Int;
+__umpire_pending
+VARIABLE \* @type: Int;
+__umpire_steps
+VARIABLE \* @type: Str;
+__umpire_action
+VARIABLE \* @type: Int;
+__umpire_choice
+VARIABLE \* @type: Seq(Int);
+__umpire_outcome
+VARIABLE \* @type: Seq(Seq(Int));
+__umpire_facts
+\* @type: <<Seq(Int), Bool, Int, Int, Str, Int, Seq(Int), Seq(Seq(Int))>>;
+vars == <<values, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
+\* @type: <<Seq(Int)>>;
+ModelVars == <<values>>
+
+\* @type: Bool;
+Init == (values = <<>>) /\ (__umpire_edge_tick = FALSE) /\ (__umpire_pending = 0) /\ (__umpire_steps = 0) /\ (__umpire_action = "") /\ (__umpire_choice = 0) /\ (__umpire_outcome = <<>>) /\ (__umpire_facts = <<>>)
+
+\* @type: Bool;
+User_Push == (LET (* @type: Seq(Int); *) __umpire_l1 == Append(values, 1) IN (((Len(values)) < (3))) /\ ((1) = (1)) /\ ((__umpire_l1 # values)) /\ (values' = __umpire_l1) /\ (__umpire_action' = "User::Push") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>)) \/ ((((~(((Len(values)) < (3)))) /\ (TRUE))) /\ ((values # values)) /\ (values' = values) /\ (__umpire_action' = "User::Push") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>))
+\* @type: Bool;
+ModelNext == (User_Push)
+\* @type: Bool;
+ModelEdge == __umpire_edge_tick' # __umpire_edge_tick
+\* @type: Bool;
+Edge == ModelNext /\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\ UNCHANGED <<__umpire_pending, __umpire_steps>>
+\* @type: Bool;
+Complete == ~ENABLED ModelNext /\ UNCHANGED vars
+\* @type: Bool;
+Next == Edge \/ Complete
+\* @type: Bool;
+Spec == Init /\ [][Next]_vars
+
+\* @type: Bool;
+Invariant_wide == (<<(((IF Assert(((Len(values)) * (1000000000)) \in (0..2147483647), "checked Rust integer overflow") THEN ((Len(values)) * (1000000000)) ELSE ((Len(values)) * (1000000000)))) # (7))>> = <<TRUE>>)
+====
+
+cfg:
+SPECIFICATION Spec
+INVARIANT Invariant_wide
+
+Error: Refusal("TLC refusal: mismatched TLC message terminator\n@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2401:3 @!@!@\nPlease run the Java VM which executes TLC with a throughput optimized garbage collector by passing the \"-XX:+UseParallelGC\" property.\n@!@!@ENDMSG 2401 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 6 and seed 7355690642803551308 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 3939283] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/Lengths.tla\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/Integers.tla\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/TLC.tla\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/Sequences.tla\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/Naturals.tla\nParsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/build/tlc/run-3938978-1/FiniteSets.tla\nSemantic processing of module Naturals\nSemantic processing of module Integers\nSemantic processing of module Sequences\nSemantic processing of module FiniteSets\nSemantic processing of module TLC\nSemantic processing of module Lengths\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-10-23 14:01:21)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2189:0 @!@!@\nComputing initial states...\n@!@!@ENDMSG 2189 @!@!@\n@!@!@STARTMSG 2190:0 @!@!@\nFinished computing initial states: 1 distinct state generated at 2026-10-23 14:01:21.\n@!@!@ENDMSG 2190 @!@!@\n@!@!@STARTMSG 2111:1 @!@!@\nEvaluating invariant Invariant_wide failed.\n@!@!@STARTMSG 2178:0 @!@!@\nOverflow when computing 3*1000000000\n@!@!@ENDMSG 2178 @!@!@\n@!@!@ENDMSG 2111 @!@!@\n@!@!@STARTMSG 2121:1 @!@!@\nThe behavior up to this point is:\n@!@!@ENDMSG 2121 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n1: <Initial predicate>\n/\\ __umpire_outcome = <<>>\n/\\ __umpire_facts = <<>>\n/\\ __umpire_edge_tick = FALSE\n/\\ __umpire_choice = 0\n/\\ __umpire_steps = 0\n/\\ __umpire_pending = 0\n/\\ values = <<>>\n/\\ __umpire_action = \"\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n2: <Edge line 49, col 9 to line 49, col 114 of module Lengths>\n/\\ __umpire_outcome = <<>>\n/\\ __umpire_facts = <<>>\n/\\ __umpire_edge_tick = TRUE\n/\\ __umpire_choice = 0\n/\\ __umpire_steps = 0\n/\\ __umpire_pending = 0\n/\\ values = <<1>>\n/\\ __umpire_action = \"User::Push\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n3: <Edge line 49, col 9 to line 49, col 114 of module Lengths>\n/\\ __umpire_outcome = <<>>\n/\\ __umpire_facts = <<>>\n/\\ __umpire_edge_tick = FALSE\n/\\ __umpire_choice = 0\n/\\ __umpire_steps = 0\n/\\ __umpire_pending = 0\n/\\ values = <<1, 1>>\n/\\ __umpire_action = \"User::Push\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n4: <Edge line 49, col 9 to line 49, col 114 of module Lengths>\n/\\ __umpire_outcome = <<>>\n/\\ __umpire_facts = <<>>\n/\\ __umpire_edge_tick = TRUE\n/\\ __umpire_choice = 0\n/\\ __umpire_steps = 0\n/\\ __umpire_pending = 0\n/\\ values = <<1, 1, 1>>\n/\\ __umpire_action = \"User::Push\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(4) at 2026-10-23 14:01:21: 4 states generated (754 s/min), 4 distinct states found (754 ds/min), 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2199:0 @!@!@\n4 states generated, 4 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2199 @!@!@\n@!@!@STARTMSG 2194:0 @!@!@\nThe depth of the complete state graph search is 4.\n@!@!@ENDMSG 2194 @!@!@\n@!@!@STARTMSG 2268:0 @!@!@\nThe average outdegree of the complete state graph is 1 (minimum is 1, the maximum 1 and the 95th percentile is 1).\n@!@!@ENDMSG 2268 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 322ms at (2026-10-23 14:01:21)\n@!@!@ENDMSG 2186 @!@!@\n")
+test scratch_lengths_tlc ... FAILED
+
+failures:
+
+failures:
+    scratch_lengths_tlc
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 2.10s
+
+error: test failed, to rerun pass `-p umpire-fixtures --test interpreted`

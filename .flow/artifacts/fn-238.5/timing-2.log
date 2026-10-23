@@ -1,0 +1,18 @@
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/checker)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/testing)
+   Compiling umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2385-interpreted/model/umpire/fixtures)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 07s
+     Running interpreted.rs (target/release/deps/interpreted-361c529e603d040a)
+
+running 1 test
+kettle: 2000 runs, median compiled 87.917µs, interpreted 227.834µs, ratio 2.59
+wide: 200 runs, median compiled 1.478417ms, interpreted 3.844959ms, ratio 2.60
+test timing ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 2.93s
+
+
+real	1m10.854s
+user	1m16.782s
+sys	0m2.147s

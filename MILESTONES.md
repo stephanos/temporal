@@ -115,7 +115,7 @@ fn-228.4, which edits the same realization files, and before fn-228.5.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-241.1 | ⬜ todo | After fn-228.4: one service table plus per-feature claims; duplicate-claim and unclassified-RPC controls (R1, R2) |
+| fn-241.1 | 🔄 in progress | Parallel lane (worktree `work/fn2411-classify`): one service table plus per-feature claims; duplicate-claim and unclassified-RPC controls (R1, R2) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 
@@ -144,13 +144,30 @@ The approved IR token-printer cleanup (.9) is complete locally before fn-227.16 
 constructs. All 782 golden/snapshot/refusal files and the 26-Model IR/token comparisons
 are exact; slice, gaps and required-TLC gates passed, and all three review draws returned
 SHIP. Production Rust shrank 60 lines against the roughly 190-line estimate. Required gate
-532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. Only .5 and .6 remain open, queued after fn-228.
+532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. .5 is complete locally, run as a parallel lane: `Interpreted<M>` evaluates the embedded tree
+and the differential check requires identical states, rows, outcomes, claim verdicts and paths for
+every admitted Model the gate reaches, with six seeded mutants caught and all 800 protected files
+byte-identical. Interpreted runs 2.6x slower than compiled (Kettle and the wide shape), above .6's
+2x limit as built. Its required gate passed at 2448.226s from a cold cache at load average 30-44,
+not representative; inner loop 30.502s. .6 is next in the parallel lane.
 [Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-238.5 | ⬜ todo | After fn-228: interpreted checker as a differential check (R2, R3) |
-| fn-238.6 | ⬜ todo | After .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
+| fn-238.6 | 🔄 in progress | After .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
+
+### fn-242: Length arithmetic parity across compiled, interpreted and TLC (model)
+
+Filed on 2026-10-23 from the fn-238.5 review. Arithmetic on `len()` is computed in `usize` by
+compiled Rust but asserted in a 32-bit range by the lifter, and TLC overflows first; the TLC runner
+also misparses TLC's evaluation errors. Makes all back ends agree on `len()` or refuses the form at
+its source span, and parses TLC evaluation errors into typed located errors. Runs in the parallel
+lane after fn-238.6, before fn-237.1.
+[Spec](.flow/specs/fn-242-length-arithmetic-parity-across.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-242.1 | ⬜ todo | After fn-238.5: `len()` parity or located refusal; TLC evaluation-error parsing (R1, R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
@@ -184,7 +201,8 @@ slice/gap proof. The required full gate passed in 562.098s against its 60s soft 
 inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking, native-derived
 Kettle bound 63, installer admission and shared process ownership passed review, both audits and
 all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
-Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds are deferred at the owner’s request on 2026-10-22. The unfinished .4 consumer is preserved on local branch `work/fn2114-deferred` at `fee5fc56ae`, including its tracked handoff; no completion review or final gate is claimed. Execution moves to fn-228.
+Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds are deferred at the owner’s request on 2026-10-22. The unfinished .4 consumer is preserved on local branch `work/fn2114-deferred` at `fee5fc56ae`, including its tracked handoff; no completion review or final gate is claimed. Execution moves to fn-228. On 2026-10-23 the owner took Apalache out of the required gate
+(`UMPIRE_APALACHE=require` runs its real-tool controls); resuming fn-211 restores it.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
