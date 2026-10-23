@@ -83,8 +83,8 @@ fn soft_execution(
 
 fn execution_input(execution: &helper::Execution, configuration: &Configuration) -> Value {
     let item = &execution.incarnations[0];
-    json!({"handle":item.handle,"stdout_base64":crate::campaign::exploration::base64(&item.execution.evidence["stdout"]),
-        "stderr_base64":crate::campaign::exploration::base64(&item.execution.evidence["stderr"]),
+    json!({"handle":item.handle,"stdout_base64":crate::campaign::exploration::base64(item.execution.evidence.get("stdout").map_or(&[], Vec::as_slice)),
+        "stderr_base64":crate::campaign::exploration::base64(item.execution.evidence.get("stderr").map_or(&[], Vec::as_slice)),
         "termination":item.execution.outcome.termination,"message":item.execution.outcome.message,
         "offered_bytes":item.execution.outcome.output_bytes,"oracle_plan":configuration.oracle_plan})
 }

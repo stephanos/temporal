@@ -25,6 +25,7 @@ fn configuration(report_only: bool, maximum: u64) -> Configuration {
     item.model = crate::fixture_execute::model_configuration(configuration.broker.seed, 4096, 0);
     item.model.as_object_mut().unwrap().remove("seed");
     item.namespace = crate::fixture_execute::namespace();
+    item.environment = BTreeMap::from([("PWD".into(), "/".into())]);
     item.namespace.limits.output_bytes = 4;
     item.limits.output_bytes = 4;
     item.choice_identity.target_sha256 = sha2::Sha256::digest(MODULE).into();
