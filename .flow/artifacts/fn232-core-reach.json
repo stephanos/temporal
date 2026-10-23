@@ -1633,6 +1633,33 @@
     }
   },
   "execution": "UNEXECUTED",
+  "focused_algorithm_receipts": [
+    {
+      "core_branch_compiled": false,
+      "green": {
+        "exit": 0,
+        "failed": 0,
+        "passed": 6,
+        "process_sha256": "0e851050acd5d42063778a20a86e2b7c719b8c22f34b94d78955ff97894fbe0a",
+        "stdout_sha256": "8e6f208f2357c74838bacb6d75c13fe47535a38dc02704004bb4790a3e62dec7"
+      },
+      "qualification": false,
+      "red": {
+        "exit": 101,
+        "failed": 1,
+        "passed": 5,
+        "process_sha256": "21eedc53b13a523728be9e7d036767a440d8e42bd2a6d651be40833f8ceeec39",
+        "stdout_sha256": "f02d80e9d08b79623b8a23a1c2b801dff91c48f758238189b48428aefae361d0"
+      },
+      "scope": "six private bounded inspection-search tests only",
+      "summary": {
+        "path": "/home/agent/evidence/fn232-linked-cache-review-gates/final-summary.json",
+        "sha256": "b5a5a75211f751ae74e835a3d22b7d4c77c75dffe927102cfdc201e9a2ca70be"
+      },
+      "tested_source_commit": "80aeaa17dc",
+      "tested_worktree": "/home/agent/wt/fn232-linked-cache"
+    }
+  ],
   "original_master": {
     "path": "tools/gomad/testdata/parity/original-test-wasm-reach.json",
     "sha256": "d4143ae50117cad95d78a0c55e10b7d44238fe1be56610ce142c8e1530f4ad0e"
@@ -1640,8 +1667,8 @@
   "pending_behavior_fixes": [
     "Configured unfinished runtime exit refusal: actual RED pending.",
     "World missing/malformed refusal with actual broker limits: actual RED pending.",
-    "Unverified invariant search predicate refusal: extracted unchanged source present; correction held until RED.",
-    "Output capacity versus assertion/choice finalization: report-only typed Completion seam source implementation pending."
+    "Unverified invariant search predicate refusal: actual Cache-source RED101 then GREEN0 observed; Core source correction integrated, final Core compile pending.",
+    "Output capacity versus assertion/choice finalization: exact four-mode reproduction integrated; typed recordless Completion correction frozen in child35dd31e97d and held until actual RED."
   ],
   "priority_inventory": {
     "path": "/home/agent/evidence/fn232-test-wasm-reach/unresolved-inventory-evidence.json",
@@ -5966,14 +5993,14 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 235,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "assertion_evidence_is_ordered_by_handle_and_refuses_both_capacity_bounds"
           },
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 278,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "report_only_never_treats_a_missing_incarnation_as_complete"
@@ -7435,7 +7462,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 50,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "complete_soft_assertion_overrides_pass_only_without_report_only"
@@ -7579,7 +7606,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 32,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "incomplete_output_and_invalid_utf8_remain_inconclusive_under_both_policies"
@@ -8654,7 +8681,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 459,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "only_crash_before_storage_fault_declares_a_lifecycle_crash"
@@ -8759,7 +8786,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 423,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "operator_arguments_preserve_null_empty_and_override_through_normalization_and_binding"
@@ -8911,7 +8938,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 356,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "operator_strict_preflight_preserves_every_original_refusal"
@@ -11155,17 +11182,31 @@
       },
       "source_mapping": {
         "gaps": [
-          "Concrete source risk: publication calls assertions(...)? and strict incarnation_choice_features(...) before terminal classification; tiny oracle-byte limit or incomplete trace may mask authoritative capacity. Original modes default-budget/report-only-budget/capacity-first/capacity-later need native reproduction and preservation."
+          "Actual RED on reproduction checkpoint864357bd93 and selected GREEN on final integrated Completion candidate pending parent resource lease; then affected campaign/simulation/minimizer/stress/launcher consumer checks. No Rust execution claim."
         ],
         "helper_subvariant_sites": {},
-        "native_assertions": [],
+        "native_assertions": [
+          {
+            "execution": "UNEXECUTED",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
+            "line": 572,
+            "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
+            "symbol": "output_capacity_precedes_assertion_budget_and_choice_finalization_errors"
+          }
+        ],
         "native_production_or_lane_candidates": [
           "tools/gomad/rust/gomad/src/campaign/scenario.rs"
         ],
         "raw_proof_requirement": "Run exact native receiving assertion with numeric exit and nonzero selected count on integrated frozen candidate; retain raw output/identity/replay/prefix evidence for every original assertion and loop/table variant. No current Rust run has been authorized for this worker.",
-        "resolved_native_subvariants": [],
+        "resolved_native_subvariants": [
+          "default-budget",
+          "report-only-budget",
+          "capacity-first",
+          "capacity-later",
+          "each with forward and reversed actual completion order"
+        ],
         "semantic_contract": "incomplete outputs cannot pass, policy cannot weaken capacity, and retained reports must rederive from authenticated actual output",
-        "status": "SOURCE_ONLY_PARTIAL",
+        "status": "SOURCE_IMPLEMENTED_UNEXECUTED",
         "subvariant_sites": {
           "tools/gomad/internal/backends/wasm/cluster/soft_assertion_test.go#TestSoftAssertionCapacityPrecedesFinalizationErrors@18438": {
             "expansions": [],
@@ -11247,7 +11288,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 5,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "output_capacity_counters_do_not_prove_soft_assertion_completeness"
@@ -11370,7 +11411,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 32,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "incomplete_output_and_invalid_utf8_remain_inconclusive_under_both_policies"
@@ -11426,32 +11467,51 @@
       },
       "source_mapping": {
         "gaps": [
-          "New native source asserts the listed policy/completeness/codec behavior only; full retained admission and raw execution proof remain pending."
+          "Actual RED on reproduction checkpoint864357bd93 and selected GREEN on final integrated Completion candidate pending parent resource lease; then affected campaign/simulation/minimizer/stress/launcher consumer checks. No Rust execution claim."
         ],
         "helper_subvariant_sites": {},
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 86,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "literal_braces_survive_output_capacity_annotation"
           },
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 123,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "only_declared_model_capacity_interruptions_allow_complete_output"
+          },
+          {
+            "execution": "UNEXECUTED",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
+            "line": 649,
+            "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
+            "symbol": "output_capacity_reporting_does_not_reclassify_other_global_failures"
+          },
+          {
+            "execution": "UNEXECUTED",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
+            "line": 666,
+            "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
+            "symbol": "output_capacity_failure_retains_the_selected_actual_static_message"
           }
         ],
         "native_production_or_lane_candidates": [
           "tools/gomad/rust/gomad/src/campaign/scenario.rs"
         ],
         "raw_proof_requirement": "Run exact native receiving assertion with numeric exit and nonzero selected count on integrated frozen candidate; retain raw output/identity/replay/prefix evidence for every original assertion and loop/table variant. No current Rust run has been authorized for this worker.",
-        "resolved_native_subvariants": [],
+        "resolved_native_subvariants": [
+          "infrastructure/output capacity unchanged",
+          "capacity/transcript capacity unchanged",
+          "exit unchanged",
+          "selected b/1 actual literal-brace message retained with report-only/inconclusive"
+        ],
         "semantic_contract": "incomplete outputs cannot pass, policy cannot weaken capacity, and retained reports must rederive from authenticated actual output",
-        "status": "SOURCE_ONLY_PARTIAL",
+        "status": "SOURCE_IMPLEMENTED_UNEXECUTED",
         "subvariant_sites": {},
         "unmapped_predicate_inventory": [
           {
@@ -11595,7 +11655,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 86,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "literal_braces_survive_output_capacity_annotation"
@@ -12391,7 +12451,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 459,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "only_crash_before_storage_fault_declares_a_lifecycle_crash"
@@ -12932,7 +12992,7 @@
         "native_assertions": [
           {
             "execution": "UNEXECUTED",
-            "file_sha256": "558c4ed80c906bb40742ebb29fe9b30d50a3325970cc700dc815381f91299020",
+            "file_sha256": "1d3963a1a1195e8be2867661af396aaa3b3ad56d4b8706f36d967ecc3871a31b",
             "line": 303,
             "path": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
             "symbol": "retained_world_profile_authenticates_seed_capacities_and_binary_owner_bytes"
@@ -45246,7 +45306,7 @@
     "wasi": 129
   },
   "source_fragments": {
-    "host": "aa134d8b81a1755b92c90e650ef35c071cc23b59",
+    "host": "e2708ad8f1f5588c5651059dab28cea7e096d95b",
     "model": "eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1"
   }
 }
