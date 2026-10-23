@@ -610,6 +610,9 @@ def original_source(config, root, entry, label, execute=invoke):
             continue
         header, name = member.split(b'\t', 1)
         mode, kind, identity = header.decode().split(' ')
+        if kind == 'commit' and mode == '160000':
+            # Git archives retain an empty submodule directory, without its external tree.
+            continue
         require(kind == 'blob' and mode in ('100644', '100755', '120000'), 'unsupported immutable original tree entry')
         tree[name.decode()] = (mode, identity)
     archive_path = derived / 'original.tar'
