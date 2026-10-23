@@ -94,9 +94,25 @@ In addition to the full qualification/test-wasm transfer, accept the following e
 - `TestNamespaceOwnerFilesystemParity`
 - `TestBrokerCrashRetainsInterruptedRuntimePrefix`
 
-### Darwin-only stale identity baseline (recorded 2026-10-21, worker D)
+### Darwin-only stale identity baseline (resolved 2026-10-23)
 
-`tools/gomad/internal/runner/testdata/diagnostic-identity-choices-{native,portable}.json` (and the shared `diagnostic-identity-choices.json`) still name `gomad-choice-trace/v3`. The fn-230 R12 v4 repair did not refresh them. Their identity assertion is `TestDiagnosticsOffPreservesExistingIdentities`, which skips everywhere except darwin/arm64, so no Linux host can regenerate or verify them. `TestExternalBackendTransportPreservesPortableNativeRecordSemantics` reads the shared file and passes because it does not compare the profile name. The baseline is recorded here as a darwin/arm64-only stale baseline, not regenerated or faked. Before retirement, regenerate it on darwin/arm64 if the Go runner tests survive. Otherwise remove it together with the Go host packages.
+The darwin/arm64-only `gomad-choice-trace/v3` baselines (`tools/gomad/internal/runner/testdata/diagnostic-identity-choices{,-native,-portable}.json`) were removed with the Go runner and `TestDiagnosticsOffPreservesExistingIdentities` in b64f3dcb89; they were never regenerated or faked. Branch `fn232-retirement-v2` removes the orphaned sibling `diagnostic-identity-plain{,-native,-portable}.json` baselines of the same retired test. No Go runner test survives, so no darwin regeneration is owed.
+
+### Closeout ledger: Go versus Rust code size (pre-freeze row, 2026-10-23)
+
+Counter `gomad-source-size/v1` (sha256 e9e4a58c…), baseline 1d7b37f00a (frozen Go baseline), candidate tree 2185b5d140 (`fn232-retirement-v2`). Full table, commands and path-group rules: `.flow/artifacts/fn232-retirement/source-size-2026-10-23.md`. Code = physical lexical code lines.
+
+| Group | Baseline files / bytes / code | Candidate files / bytes / code |
+| --- | --- | --- |
+| Go host retired by fn-232 (prod 51,329 + tests 53,341 code) | 432 / 4,755,828 / 104,670 | 6 / 8,243 / 336 (cmd/gomad testdata fixtures) |
+| Rust host outside the engine (`rust/gomad`, `rust/driver`, workload tools): Rust prod 84,230 + tests 22,701, Python 19,715 + 11,588, other | 0 | 415 / 6,372,871 / 138,368 |
+| Linked Rust engine (preexisting helper relocated and extended) | 83 / 1,710,919 / 43,336 | 152 / 2,647,488 / 67,221 |
+| Go WASI reference (moved to internal/model/wasi) | 85 / 1,286,015 / 30,346 | 74 / 858,916 / 21,209 |
+| Retained Go models/oracles/toolchain/support | 328 / 2,754,813 / 68,628 | 305 / 2,246,307 / 56,963 |
+| Go native backend (removed by fn-223, not this port) | 558 / 4,289,404 / 101,564 | 0 |
+| Whole repository (all tracked blobs) | 9,938 files / 238,487,870 bytes | 9,827 files / 271,660,908 bytes |
+
+Headline: the retired Go host (104,670 code lines) is replaced by 106,931 Rust lines (mostly the `gomad` crate) plus 31,303 Python driver/tool lines; the linked engine grew by 23,885 lines over the preexisting helper. Final row: rerun on the frozen candidate.
 
 ## Acceptance
 The admitted/shipped release binary excludes fault and deterministic-fixture features and rejects their fixture-only controls; retain build-feature evidence. Every verb uses task .4's declared golden view with independent canonical record/hash and raw ledger-integrity checks, never normalization of behavior or evidence fields. Qualification reports retained for every cell on the Rust binary; default build contains no Go host packages (archcheck test); CI source wiring validated and mandatory local commands pass, with no CI run dispatched; docs updated; every public verb's local parity/golden lane passes before harness job removal, and goldens remain as regressions; runtime/workload/retained-replay exits and final identities recorded under the unchanged one-hour qualification limit.
@@ -157,3 +173,15 @@ Development evidence only; no frozen cycle.
   - Item d: compose bindings for live_corpus families, final_profiles, final_retained, stress, public_verbs, private_observations, terminal_controls_reference, primary and fn222.
   - Port the 29 gaps.
   - Run the dry run after the corpus fix lands.
+
+### Worker B notes (2026-10-23): helper corpus fix and parked retirement-gap branch
+
+- Corpus root cause, found by first-parent bisect of `helper_corpus` (b64f3dcb89 good, gomad bad): cae886df69 moved two linked-only decisions into the shared helper. Those were the `sock_accept`/`sock_shutdown` namespace refusal and the conversion of an exit with an unfinished runtime trace to `invalid`. The reference transport forwards sockets to its remote host and leaves trace collection to it. Fix 807520bc96 adds `State::helper_owned`, set only by linked standalone and cluster execution. No corpus expectation changed.
+- The default-lane failures masked a second fault: 25 diagnostic, fuel-off and guest-profile sidecars still carried pre-6aca443134 `source_sha256` values for the eight storage_context cases. Commit 24f1403f80 rebinds the hash only and leaves every expected block unchanged.
+- `make validate` (also run inside test-wasm) was red on two retained Go tests whose fixture paths b64f3dcb89 had relocated. Commit e4d3e68f42 fixes the paths only.
+- Gate on branch `fn232-corpus-fix` (e4d3e68f42, rebased on 10763834f0, stock Go 1.27.1 first on PATH): `make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism` exited 0 on 24f1403f80. On e4d3e68f42, `make validate` and `make test-wasm` both exited 0.
+- Parked branch `fn232-retirement-v2`, rebased on the corpus fix. It adds the archcheck `retired-host-import` finding and its test, rewrites the ARCHITECTURE.md module map, makes small CLI.md/README edits, removes the orphaned `diagnostic-identity-plain*` baselines, resolves the darwin note and records the pre-freeze size row above.
+  - Resolved (worker C): the pin in `GO_SCOPE_SOURCES` is `internal/archcheck/defaultset_test.go`, the source of the skipped `TestNoDefaultSourceNamesNestedTree`. The new `retired-host-import` test moved to `internal/archcheck/retired_test.go`, so the pinned file is byte-identical to gomad and the pin stays unchanged.
+  - Verified: Go build/vet exits 0 and `make build` exits 0.
+  - Already on gomad before this branch: CI/Make on cargo and the single workspace.
+- Worktrees kept: `/home/agent/wt/fn232-corpus-fix` (merge source) and `/home/agent/wt/fn232-retirement-v2` (parked). Cargo target kept: `/home/agent/.cache/codex-build/fn232-corpus-target` (seeded from a copy of fn188-gates-target). Size evidence kept: `/home/agent/wt/evidence/fn232/source-size-2026-10-23/`.
