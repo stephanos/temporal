@@ -76,3 +76,28 @@ bounded fixtures:
 ```sh
 python3 tools/gomad/testdata/parity/onebox-gates-test.py
 ```
+
+
+Inspection retains the configured shared cache request as `cache_request_origin`
+and in the original environment control. Its copied compiler uses a fresh
+`inspection-root/preparation-cache`; `cache_origin` records that actual cache.
+Smoke and frontend continue sharing their original cache. A content-identical
+compiler alias has the same runtime-overlay identity but different absolute
+`Replace` keys in `overlay.json`, so reusing the original compiler's populated
+cache must fail immutable descriptor authentication. The separate inspection
+cache preserves both raw descriptors rather than changing their bytes.
+
+The recording's exact scenario bytes are retained as `recording_scenario`
+(`path`, `sha256`, `bytes_base64`) in both the explore command and final inspection
+receipt. The 256 KiB limit matches the original scenario parser. A missing or
+changed post-process scenario refuses the gate and preserves its original
+witness and raw process exit. The independent reader validates the original
+install/explore vectors, topology, limits and retained normalized scenario.
+
+The bounded real-overlay regression builds no guest:
+
+```sh
+GOMAXPROCS=2 GOMAD_STOCK_GO=/ABS/stock-go/bin/go /ABS/stock-go/bin/go test -tags test_dep -p 2 -count=1 -run '^TestOverlayCompilerAliasesRequireSeparatePreparationCaches$' ./internal/backends/wasm/toolchain
+```
+
+Run that command from `tools/gomad` with the pinned stock Go 1.27.1 compiler.

@@ -251,6 +251,80 @@ class InspectionTests(unittest.TestCase):
             lane = gate.Gate(self.root, Path('/release'), self.root)
         self.assertEqual({key: value for key, value in lane.environment.items() if key.startswith('GOMAD_')}, controls)
 
+    def test_alias_install_uses_private_cache_and_retains_frozen_request_control(self):
+        repo = self.root / 'repo'
+        repo.mkdir()
+        compiler = self.root / 'stock/bin/go'
+        compiler.parent.mkdir(parents=True)
+        compiler.write_bytes(b'stock compiler identity')
+        requested = self.root / 'shared-cache'
+        requested.mkdir()
+        descriptor = requested / 'original-overlay.json'
+        descriptor.write_bytes(b'original raw descriptor')
+        root = self.root / 'inspection-run'
+        arguments = []
+        for name, path in [('binary', Path(sys.executable)), ('repo', repo), ('root', root),
+                           ('compiler', compiler), ('runtime-root', repo), ('cache', requested),
+                           ('captured-config', compiler)]:
+            arguments += ['--' + name, str(path)]
+        observed = []
+        def install(lane, name, command, *args, **kwargs):
+            observed.append(list(map(str, command)))
+            self.assertEqual(name, 'install')
+            self.assertEqual(Path(command[command.index('--cache') + 1]), root / 'preparation-cache')
+            self.assertEqual(lane.environment['GOMAD_WASM_TEMPORAL_BUILD_CACHE'], str(requested))
+            raise ValueError('bounded fixture stops before guest')
+        with mock.patch.dict(gate.os.environ, {'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE': 'slim',
+                'GOMAD_WASM_TEMPORAL_BUILD_CACHE': str(requested), 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES': ''}), \
+             mock.patch.object(gate, 'copy_alias'), mock.patch.object(gate.workloads, 'stage_inspection', return_value={}), \
+             mock.patch.object(gate.producer, 'captured', return_value={'authenticated': 'schema'}), \
+             mock.patch.object(gate.Gate, 'run', install):
+            with self.assertRaisesRegex(ValueError, 'stops before guest'):
+                gate.main(arguments)
+        self.assertEqual(len(observed), 1)
+        controls = json.loads((root / 'qualification-controls.json').read_bytes())
+        self.assertEqual(controls['requested_build_cache'], str(requested))
+        self.assertEqual(controls['build_cache'], str(root / 'preparation-cache'))
+        self.assertEqual((root / 'preparation-cache').stat().st_mode & 0o777, 0o700)
+        self.assertEqual(descriptor.read_bytes(), b'original raw descriptor')
+        with self.assertRaises(FileExistsError):
+            gate.alias_preparation_cache(root, requested)
+
+    def test_recording_scenario_retains_raw_bytes_and_refuses_mutated_topology(self):
+        scenario = self.root / 'scenario.json'
+        raw = b'{ "spec": {"nodes": [{"id":"history"}]} }\n'
+        scenario.write_bytes(raw)
+        operator = self.root / 'operator'
+        operator.write_text('#!' + sys.executable + '\nprint("{}")\n')
+        operator.chmod(0o700)
+        lane = gate.Gate(self.root, operator, self.root)
+        command = [operator, 'explore', '--scenario', scenario]
+        lane.run('explore', command, 0, 10)
+        receipt = json.loads((self.root / 'explore.command.json').read_bytes())
+        self.assertEqual(receipt['recording_scenario'], dict(path=str(scenario),
+            sha256=gate.digest(scenario), bytes_base64=base64.b64encode(raw).decode()))
+        operator.write_text('#!' + sys.executable + '\nimport pathlib,sys; '
+            'pathlib.Path(sys.argv[3]).write_text("{\\"spec\\":{\\"nodes\\":[]}}"); sys.exit(1)\n')
+        with self.assertRaisesRegex(ValueError, 'scenario changed'):
+            lane.run('explore-mutated', command, 1, 10)
+        changed = json.loads((self.root / 'explore-mutated.command.json').read_bytes())
+        self.assertEqual(changed['exit'], 1)
+        self.assertEqual(base64.b64decode(changed['recording_scenario']['bytes_base64']), raw)
+
+    def test_recording_scenario_refuses_foreign_symlink_and_oversized_before_native(self):
+        scenario = self.root / 'scenario.json'
+        scenario.symlink_to(self.root / 'foreign')
+        (self.root / 'foreign').write_bytes(b'{}')
+        with self.assertRaises(OSError):
+            gate.scenario_witness(self.root, ['explore', '--scenario', str(scenario)])
+        scenario.unlink()
+        with scenario.open('wb') as source:
+            source.truncate((256 << 10) + 1)
+        with self.assertRaisesRegex(ValueError, '256KiB'):
+            gate.scenario_witness(self.root, ['explore', '--scenario', str(scenario)])
+        with self.assertRaisesRegex(ValueError, 'original retained root'):
+            gate.scenario_witness(self.root, ['explore', '--scenario', str(self.root / 'foreign')])
+
     def test_original_selection_scenario_policy_and_zero_caller_override(self):
         command = list(map(str, gate.explore_command(Path('/release'), Path('/installation'), self.root,
                        Path('/repo'), Path('/repo/service/history/private'), Path('/scenario'))))
