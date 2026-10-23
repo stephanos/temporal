@@ -518,3 +518,49 @@ fn original_measurement_trace_bound_does_not_raise_ordinary_campaign_cli_bound()
             .contains("1GiB")
     );
 }
+
+#[test]
+fn qualified_request_keeps_original_r4_selection_bounds_for_the_given_module() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
+    let temp = Temporary::new();
+    let module = temp.0.join("module.wasm");
+    fs::write(&module, b"\0asm\x01\0\0\0").unwrap();
+    assert!(qualified_request(repo, "terminal", &module).is_err());
+    for (selection, selector) in [
+        (
+            "workflow",
+            "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+        ),
+        ("activity", "-test.run=^TestActivityTestSuite$"),
+    ] {
+        let request = qualified_request(repo, selection, &module).unwrap();
+        let guest = &request["guest"];
+        assert_eq!(guest["module"], json!(module));
+        assert_eq!(
+            guest["module_sha256"],
+            canonical::digest(&fs::read(&module).unwrap())
+        );
+        assert_eq!(guest["limits"]["fuel"], 1_u64 << 50);
+        assert_eq!(guest["limits"]["memory_bytes"], 4_u64 << 30);
+        assert_eq!(guest["limits"]["wall_millis"], 1_800_000);
+        let model = &guest["model"];
+        assert_eq!(model["configuration"]["seed"], 0);
+        assert_eq!(model["configuration"]["limit"], 1_u64 << 30);
+        assert_eq!(model["configuration"]["digest_only"], true);
+        assert_eq!(
+            model["arguments"],
+            json!([
+                "temporal.test",
+                "-test.v",
+                "-test.count=1",
+                "-test.timeout=72h",
+                selector,
+                "-persistenceType=sql",
+                "-persistenceDriver=sqlite"
+            ])
+        );
+    }
+}

@@ -33,6 +33,26 @@ fn main() {
             )
             .and_then(|path| publish(&path)),
         )
+    } else if arguments.len() == 4 && arguments[0] == "--stress-inputs" {
+        finish(
+            measurement::stress_driver::stress_inputs(
+                Path::new(&arguments[1]),
+                Path::new(&arguments[2]),
+                &arguments[3],
+            )
+            .and_then(|path| publish(&path)),
+        )
+    } else if arguments.len() == 4 && arguments[0] == "--qualified-request" {
+        finish(
+            measurement::module::qualified_request(
+                Path::new(&arguments[1]),
+                &arguments[2],
+                Path::new(&arguments[3]),
+            )
+            .and_then(|request| {
+                writeln!(std::io::stdout(), "{request}").map_err(|error| error.to_string())
+            }),
+        )
     } else if arguments.len() == 2 && arguments[0] == "--capture-host-evidence" {
         finish(
             measurement::terminal_module::capture_host(Path::new(&arguments[1]))

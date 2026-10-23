@@ -136,6 +136,28 @@ fn produce(
         "warm-preparation-helper-build" => {
             build::build_role(proof, root, &build::Role::Warm, &call.environ)
         }
+        "diagnostic-helper-stage" => {
+            // The immutable diagnostic admission the terminal refusal controls and final profiles bind.
+            let receipt = call
+                .inputs
+                .get("GOMAD_WASM_DIAGNOSTIC_HELPER_BUILD_RECEIPT")
+                .ok_or("native diagnostic build receipt required")?;
+            let features = call
+                .inputs
+                .get("GOMAD_WASM_DIAGNOSTIC_HELPER_FEATURES")
+                .ok_or("diagnostic build features absent")?
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(str::to_owned)
+                .collect();
+            build::stage_role(
+                proof,
+                root,
+                std::path::Path::new(receipt),
+                &build::Role::Diagnostic(features),
+            )
+        }
         "terminal-exit-helper-stage" => {
             let receipt = call
                 .inputs

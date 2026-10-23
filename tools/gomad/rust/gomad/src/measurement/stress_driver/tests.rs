@@ -401,3 +401,36 @@ fn retained_workflow_and_activity_cannot_broaden_the_original_test_selection() {
         fs::remove_dir_all(root).unwrap();
     }
 }
+
+#[test]
+fn stress_inputs_keep_the_original_runtime_installation_and_exploration_bounds() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap();
+    let root = std::env::temp_dir().join(format!("gomad-stress-inputs-{}", std::process::id()));
+    assert!(stress_inputs(repo, &root, "terminal").is_err());
+    let preparation = stress_inputs(repo, &root, "runtime").unwrap();
+    let install: Value =
+        serde_json::from_slice(&fs::read(preparation.join("install-arguments.json")).unwrap())
+            .unwrap();
+    assert_eq!(install[5], json!(preparation.join("config.json")));
+    assert_eq!(
+        (install[7].clone(), install[9].clone()),
+        (json!("4000000000"), json!((256_u64 << 20).to_string()))
+    );
+    let explore: Value =
+        serde_json::from_slice(&fs::read(preparation.join("explore-arguments.json")).unwrap())
+            .unwrap();
+    assert_eq!(
+        explore,
+        json!(arguments(
+            repo,
+            &preparation,
+            "runtime",
+            "./internal/backends/wasm/testdata/runtime_probes"
+        ))
+    );
+    assert!(!preparation.join("scenario.json").exists());
+    fs::remove_dir_all(root).unwrap();
+}

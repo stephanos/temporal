@@ -1068,11 +1068,12 @@ def preflight(config):
     pairs = entry['qualified']
     require(set(pairs) == {'workflow', 'activity'}, 'missing original static qualified workload')
     for name, pair in pairs.items():
+        # The fn-185 R4 module is the same-cycle terminal module; only the request template is static.
+        require(set(pair) == {'recipe'}, 'qualified workload binds only its static request recipe')
         live.sealed_input(config, pair['recipe'])
         spec = read(pair['recipe'])
         require(spec['selection'] == (WORKFLOW if name == 'workflow' else ACTIVITY), 'static qualified selection differs')
-        for field in ('release_input', 'diagnostic_input'):
-            bound_native_request(config, Path(pair[field]), spec)
+        modeled_request(spec, spec['native_input'])
     reference = entry['runtime_reference']
     for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
         live.sealed_input(config, reference[field])
@@ -1148,6 +1149,8 @@ def collect(config, root):
     references = reference_runtime(config, root, work, Path(runs[0]['native_root']), runtime_spec)
     same_evidence(work, references[0], observed[0][1], qualified=False)
     reopen_primary_terminal(config, root, entry, diagnostic)
+    import primary_stages
+    module = Path(primary_stages.read_terminal_module(config, root)['descriptor']['module'])
     pairs = entry['qualified']
     require(set(pairs) == {'workflow', 'activity'}, 'missing original qualified workload')
     for name, pair in pairs.items():
@@ -1157,16 +1160,20 @@ def collect(config, root):
         require(recipe['selection'] == (WORKFLOW if name == 'workflow' else ACTIVITY),
                 'wrong qualified workload selection')
         actual = []
+        raw, _ = invoke(config, root, 'final-profile-' + name + '-request',
+                        [measure, '--qualified-request', config['repo'], name, str(module)])
+        request_path = work / (name + '-request.json')
+        request_path.write_bytes(raw)
+        request = bound_native_request(config, request_path, recipe, dynamic_root=work, module_root=module.parent)
+        require(request['guest']['module'] == str(module), 'qualified request borrowed another module')
         for role, binary in (('release', ordinary), ('diagnostic', diagnostic)):
-            live.sealed_input(config, pair[role + '_input'])
             output = work / (name + '-' + role)
             _, process = invoke(config, root, 'final-profile-' + name + '-' + role,
-                                [binary, '--linked-run', pair[role + '_input'], str(output)])
+                                [binary, '--linked-run', str(request_path), str(output)])
             report, run = native_run(output)
-            require(read(output / 'request.json') == bound_native_request(config, pair[role + '_input'], recipe),
-                    'retained native request differs from actual original input')
+            require(read(output / 'request.json') == request, 'retained native request differs from actual original input')
             require(report['fresh_store_id'] == process['pid']
-                    and report['request_sha256'] == sha(pair[role + '_input'])
+                    and report['request_sha256'] == sha(request_path)
                     and report['host_sha256'] == sha(binary)
                     and report['linked_implementation_sha256'] == config['_final_profile_role_identities'][binary]['linked_implementation_sha256']
                     and report['host_implementation_sha256'] == config['_final_profile_role_identities'][binary]['host_implementation_sha256']

@@ -447,8 +447,8 @@ def typed_stress_spec(spec):
 
 def read_cycle(config, root):
     require(config['schema'] == 'gomad.stress-cycle/v1' and not config.get('synthetic', False), 'foreign/synthetic final cycle')
-    require(set(config) == {'schema', 'repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress', 'files'},
-            'stress cycle plan has missing/unknown fields')
+    fields = {'schema', 'repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress', 'files'}
+    require(set(config) in (fields, fields | {'dry_run'}), 'stress cycle plan has missing/unknown fields')
     require(Path(config['repo']) == REPO and Path(config['root']) == root, 'wrong frozen candidate or cycle root')
     require(type(config['deadline_s']) in (int, float) and math.isfinite(config['deadline_s']) and 0 < config['deadline_s'] <= 3600, 'changed original final-cycle deadline')
     require(type(config['sent_epoch']) in (int, float) and math.isfinite(config['sent_epoch']) and 0 < config['sent_epoch'] <= time.time(), 'invalid frozen stress send epoch')
@@ -468,10 +468,15 @@ def read_cycle(config, root):
     require(set(binding) == {'spec', 'binary', 'build_receipt', 'producer_root', 'producer_name'}, 'invalid frozen stress binding')
     for name in ('spec', 'binary', 'build_receipt'):
         sealed(config, binding[name])
-    build = read(binding['build_receipt'])
-    require(build['source_sha256'] == config['source_sha256'] and build['profile'] == 'release' and type(build['exit']) is int and
-            build['exit'] == 0 and build['features'] == ['helper-stress-jitter'] and build['helper_features'] == ['stress-jitter'] and
-            build['role'] == 'stress' and build['binary_sha256'] == sha(binding['binary']), 'wrong stress candidate/build role')
+    sys.path.insert(0, str(REPO / 'tools/gomad/rust/driver'))
+    import dry_run
+    import main_cli_build
+    dry_run.enable(config)
+    # The stress matrix executor is the stress-release role: only helper-stress-jitter, no fixture controls.
+    build = main_cli_build.read_build(binding['build_receipt'], expected_role='stress-release')
+    require((dry_run.is_record(binding['build_receipt']) or build['source_sha256'] == config['source_sha256']) and build['profile'] == 'release'
+            and type(build['exit']) is int and build['exit'] == 0 and build['features'] == ['helper-stress-jitter']
+            and build['helper_features'] == ['stress-jitter'] and build['binary_sha256'] == sha(binding['binary']), 'wrong stress candidate/build role')
     spec = read(binding['spec'])
     require(spec['schema'] == 'gomad.rust-stress-spec/v1' and spec['source_manifest'] == config['source_manifest'] and
             spec['source_sha256'] == config['source_sha256'] and spec['host_description'].strip() and

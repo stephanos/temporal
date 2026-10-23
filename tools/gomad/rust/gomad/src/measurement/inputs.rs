@@ -1345,6 +1345,23 @@ const PRODUCERS: &[(&str, &[Input])] = &[
         ],
     ),
     (
+        "diagnostic-helper-stage",
+        &[
+            Input {
+                variable: "GOMAD_WASM_DIAGNOSTIC_HELPER_STAGE_ROOT",
+                required: true,
+            },
+            Input {
+                variable: "GOMAD_WASM_DIAGNOSTIC_HELPER_BUILD_RECEIPT",
+                required: true,
+            },
+            Input {
+                variable: "GOMAD_WASM_DIAGNOSTIC_HELPER_FEATURES",
+                required: true,
+            },
+        ],
+    ),
+    (
         "terminal-exit-helper-stage",
         &[
             Input {

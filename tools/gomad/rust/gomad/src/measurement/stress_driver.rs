@@ -493,6 +493,63 @@ fn prepare_workloads(
     Ok(workloads)
 }
 
+/// Original stress workload inputs for one frozen spec workload, without installing or executing.
+///
+/// Writes `config.json`, `install-arguments.json` (the original `install` flags after `--compiler`,
+/// `--cache` and `--output`), `explore-arguments.json` and, for `two-cluster`, `scenario.json` under
+/// `ROOT/NAME`. The two-cluster broker source is staged in the checkout exactly as the catalogue
+/// producer stages it.
+///
+/// # Errors
+/// Refuses an unknown workload or an unwritable root.
+pub fn stress_inputs(repo: &Path, root: &Path, name: &str) -> Result<PathBuf, String> {
+    if !NAMES.contains(&name) {
+        return Err("unknown original stress workload".into());
+    }
+    let preparation = root.join(name);
+    directory(&preparation)?;
+    write(
+        &preparation.join("config.json"),
+        &canonical::encode(&configuration(repo, name)?)?,
+    )?;
+    let runtime = name == "runtime";
+    let install = json!([
+        "--profile",
+        PROFILE,
+        "--runtime-root",
+        repo.join("tools/gomad/internal/model/runtimesource"),
+        "--config",
+        preparation.join("config.json"),
+        "--fuel",
+        if runtime {
+            4_000_000_000_u64
+        } else {
+            1_u64 << 50
+        }
+        .to_string(),
+        "--memory-bytes",
+        if runtime { 256_u64 << 20 } else { 4_u64 << 30 }.to_string()
+    ]);
+    write(
+        &preparation.join("install-arguments.json"),
+        &canonical::encode(&install)?,
+    )?;
+    let source = if runtime {
+        "./internal/backends/wasm/testdata/runtime_probes".into()
+    } else if name == "two-cluster" {
+        let path = preparation.join("scenario.json");
+        write(&path, &cluster_driver::scenario_bytes()?)?;
+        cluster_driver::stage_broker(repo)?
+    } else {
+        "./tests".into()
+    };
+    write(
+        &preparation.join("explore-arguments.json"),
+        &canonical::encode(&json!(arguments(repo, &preparation, name, &source)))?,
+    )?;
+    Ok(preparation)
+}
+
 fn producer_environment(call: &Invocation) -> BTreeMap<String, String> {
     let mut environment: BTreeMap<String, String> = call
         .environ

@@ -144,6 +144,18 @@ def runtime_harness_inputs(config):
     return {path} | set(receipt['inputs'])
 
 
+def resolve_stress_spec(config, output):
+    """Bind an assembled stress spec template to this freeze's actual source manifest."""
+    template = read(config['stress']['spec'])
+    require(template.get('schema') == 'gomad.rust-stress-spec/v1', 'foreign stress spec template')
+    if template['source_manifest'] == 'SOURCE_MANIFEST':
+        require(template['source_sha256'] == 'SOURCE_SHA256', 'partially resolved stress spec template')
+        spec = output.parent / 'stress-spec.json'
+        require(not spec.exists(), 'resolved stress spec must be fresh')
+        write(spec, dict(template, source_manifest=config['source_manifest'], source_sha256=config['source_sha256']))
+        config['stress']['spec'] = str(spec)
+
+
 def freeze_final_cycle(config, output):
     """Pin static inputs, then PLAN, then its all-verb binding; outputs have no hash cycle."""
     require(config.get('stress_cycle', 'GENERATE') == 'GENERATE', 'stress cycle must be generated for this freeze')
@@ -165,6 +177,8 @@ def freeze_final_cycle(config, output):
             binding[key] = str((template.parent / binding[key]).resolve())
     fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
     plan = {key: config[key] for key in fields}
+    if config.get('dry_run') is True:
+        plan['dry_run'] = True
     plan.update(schema='gomad.stress-cycle/v1', files=dict(config['files']))
     plan_path = output.parent / 'stress-cycle.json'
     binding_path = output.parent / 'public-verbs-bindings.json'
@@ -206,6 +220,8 @@ def freeze(bindings, output, source_manifest):
                   head=subprocess.check_output(['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip(),
                   source_manifest=str(source_manifest), source_sha256=sha(source_manifest),
                   symlinks={str(REPO / path): os.readlink(REPO / path) for path in paths if path and (REPO / path).is_symlink()})
+    if bound('stress'):
+        resolve_stress_spec(config, output)
     inputs = {str(STAT)} | set(config.pop('inputs')) | set(source_files) | {str(source_manifest)}
     inputs.update(str(path) for path in FROZEN.glob('*.py'))
     inputs.update(str(path) for path in FROZEN.glob('*.sh'))

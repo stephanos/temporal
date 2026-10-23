@@ -30,12 +30,15 @@
   both original model owners against the actual current native module/request;
   this receiver recomputes raw Result streams, metadata, nested command custody
   and the source archive/file inventory before comparing the native release.
-- `qualified.workflow` and `qualified.activity`: each has sealed `recipe`,
-  `release_input`, and `diagnostic_input` paths. Each recipe contains the exact
-  `native_input` object, seed, original bounds, module path/hash, selection,
-  original arguments and `preparation={provenance,installation,observations}`.
-  The preparation inventory authenticates actual compiler commands/source
-  closure; package and cwd labels alone cannot admit a module. The reader compares the actual retained request to it.
+- `qualified.workflow` and `qualified.activity`: each has only a sealed `recipe`.
+  The recipe contains the exact `native_input` template (any module), seed 0,
+  original bounds, selection and original arguments. The fn-185 R4 module is the
+  same-cycle `terminal-module` stage output (the identical `./tests` module with
+  the original three tags and no arguments), not a separately prepared module.
+  The receiver asks the frozen measurement executable for
+  `gomad-measure --qualified-request REPO SELECTION MODULE`, authenticates that
+  request against the template with only `module`/`module_sha256` replaced, and
+  authenticates the module's preparation custody beside it.
 
 The receiver constructs the named native `runtime-cost-profile` argv itself. It reopens the completed same-cycle primary `terminal-exit` producer through `primary_stages.read_terminal`, then independently verifies all six ordinary and two diagnostic attempts. It launches no duplicate terminal producer. Both qualified roles use `gomad-measure --linked-run INPUT OUTPUT`. The
 diagnostic binary is the admitted diagnostic-profile measurement role. It creates fresh output

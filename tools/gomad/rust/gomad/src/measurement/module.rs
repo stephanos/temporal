@@ -94,6 +94,54 @@ pub(crate) fn request_input(
     recipe: &super::module_recipes::RequestRecipe,
     seed: u64,
 ) -> Result<Value, String> {
+    request_for_module(
+        &prepared.module_path,
+        &canonical::digest(&prepared.guest.module),
+        recipe,
+        seed,
+    )
+}
+
+/// Original fn-185 R4 qualified Temporal workload request for an already prepared `./tests` module.
+///
+/// # Errors
+/// Refuses an unknown selection, unreadable module or invalid original Temporal policy.
+pub fn qualified_request(repo: &Path, selection: &str, module: &Path) -> Result<Value, String> {
+    let digest = canonical::digest(&read(module, 512 << 20)?);
+    if selection == "runtime" {
+        // Original runtime-cost request (seed 7) for a prepared runtime_cost module.
+        return request_for_module(
+            module,
+            &digest,
+            &super::module_recipes::runtime_request()?,
+            7,
+        );
+    }
+    let selector = match selection {
+        "workflow" => "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$",
+        "activity" => "-test.run=^TestActivityTestSuite$",
+        _ => return Err("qualified selection must be workflow, activity or runtime".into()),
+    };
+    let arguments = [
+        selector.to_owned(),
+        "-persistenceType=sql".into(),
+        "-persistenceDriver=sqlite".into(),
+    ];
+    let recipe = super::module_recipes::temporal_request(
+        repo,
+        "tests",
+        &arguments,
+        std::time::Duration::from_secs(1800),
+    )?;
+    request_for_module(module, &digest, &recipe, 0)
+}
+
+fn request_for_module(
+    module_path: &Path,
+    module_sha256: &str,
+    recipe: &super::module_recipes::RequestRecipe,
+    seed: u64,
+) -> Result<Value, String> {
     let mut converted = crate::install::config::convert(recipe.configuration.clone(), COOPERATIVE)?;
     converted.model["seed"] = json!(seed);
     converted.model["limit"] = json!(recipe.choice_bytes);
@@ -122,7 +170,7 @@ pub(crate) fn request_input(
         .and_then(|v| v.checked_add(128 << 20))
         .ok_or("evidence overflow")?;
     Ok(
-        json!({"kind":"standalone","guest":{"module":prepared.module_path,"module_sha256":canonical::digest(&prepared.guest.module),
+        json!({"kind":"standalone","guest":{"module":module_path,"module_sha256":module_sha256,
         "limits":{"fuel":recipe.fuel,"memory_bytes":recipe.memory_bytes,"wall_millis":u64::try_from(recipe.timeout.as_millis()).map_err(|e|e.to_string())?,"output_bytes":output,"evidence_bytes":evidence},
         "model":{"configuration":converted.model,"arguments":converted.arguments,"environment":environment,"replay_trace":null},
         "namespace":converted.namespace,"storage":converted.storage},"network":converted.network}),
