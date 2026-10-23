@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import struct
+import sys
 import time
 
 from driver import (HERE, REPO, Refusal, Unexecuted, bind_identity, check_files, command, coverage,
@@ -190,6 +191,18 @@ def private_capture(config, entry):
     return {'private_observations': config} if enabled else {}
 
 
+def prepare_cell_source(config, root, label, specification):
+    if CELLS[label]['workload'] != 'multi-instance':
+        return
+    directory = HERE.parent / 'workload_tools'
+    if str(directory) not in sys.path:
+        sys.path.insert(0, str(directory))
+    import source_custody
+    source, working, _ = source_custody.stage(root, REPO, config['files'], 'replication', config['source_manifest'])
+    target = specification['Campaign']['Target']
+    require(target['Source'] == source and target['WorkingDir'] == working, 'mandatory replication differs from closed source recipe')
+
+
 def qualify_cell(config, root, label, entry):
     wanted = CELLS[label]
     specification = read(entry['spec'])
@@ -200,6 +213,7 @@ def qualify_cell(config, root, label, entry):
     validate_budget(specification, read(installation), wanted)
     if wanted['workload'] in ('sqlite', 'multi-instance') and not entry.get('checker'):
         raise Unexecuted(label + ': actual durable/history/catalogue reader required')
+    prepare_cell_source(config, root, label, specification)
     response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', entry['spec']],
                                   accepted=(0,) if wanted['cell'] == 'success' else (1,), **private_capture(config, entry)))
     result_path = Path(response['result_path'])

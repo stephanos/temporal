@@ -52,6 +52,24 @@ class SQLiteReceiverContract(unittest.TestCase):
                     sqlite.native_input(root, wrong, native)
                 (root/'evidence/cluster-replay.json').write_bytes(bodies['evidence/cluster-replay.json'])
 
+    def test_selected_qualify_captures_actual_private_preparation(self):
+        import adapters
+        import sqlite
+        from unittest.mock import patch
+        class QualifyReached(Exception):
+            pass
+        config = dict(root='/attempt', binary='/sealed/gomad', installations={'sqlite': '/sealed/installation'},
+                      stages={'workload-sqlite-cooperative-success': dict(installation='sqlite', spec='/sealed/spec')})
+        primary = dict(path='/attempt/primary-result.json', sha256='a' * 64)
+        native = dict(enumeration=dict(States=[{}]), context={})
+        with patch.object(sqlite, 'read', side_effect=[primary, {}]), patch.object(sqlite, 'sha', return_value='a' * 64), \
+             patch.object(adapters, 'result_report', return_value={}), patch.object(sqlite, 'catalogue', return_value=native), \
+             patch.object(sqlite, 'selection_spec', return_value={}), patch.object(sqlite, 'write'), \
+             patch.object(sqlite, 'command', side_effect=QualifyReached) as invoke:
+            with self.assertRaises(QualifyReached):
+                sqlite.select(config, Path('/attempt/selected'), 'sqlite-selection-0', dict(installation='sqlite'))
+            self.assertIs(invoke.call_args.kwargs['private_observations'], config)
+
     def test_actual_catalogue_is_complete_exact_four_states_and_context_bound(self):
         import sqlite
         context = {'PendingSHA256': 'sha256:'+'a'*64, 'Operations': []}

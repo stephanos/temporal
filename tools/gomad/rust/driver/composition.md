@@ -24,17 +24,34 @@ source/custody and golden files. Retained and operator final readers use `--read
 producers must already have retained their raw proof. Ringpop inspection produces
 and independently reads its fresh evidence during final collection.
 
-Composition currently refuses pending original stage producers. Nonstatic checked
-commands require the canonical `primary_stages.py run|read --config CONFIG
---stage LABEL` endpoint; this module must implement actual original semantic
-assertions before these labels can be bound. A Python path in the repository or
-a caller-provided successful receipt cannot substitute for that implementation.
-Nine fixed primary routes cover durable restart, ten grouped busy repetitions,
+Composition refuses pending original stage producers and arbitrary caller command
+bindings. Eleven fixed primary routes cover the actual conformance helper build,
+original terminal wire controls, durable restart, ten grouped busy repetitions,
 busy boundary/crash cells, independent streams, committed storage recovery,
 named reset/retry, all three inspection owners, retained artifacts and detached
 operators. `primary` supplies exactly `compiler`, `runtime_root`, `cache` and
 `captured_config`; all executable/template roles come from the sealed live corpus.
-Broad provider, functional, retained-cluster and ordinary mappings remain refused
-until their complete original predicates have actual native readers.
-The current source frontier is therefore explicit, not an executable complete
-qualification plan.
+Broad provider, functional, retained-cluster, ordinary and the remaining build,
+publication and terminal recipes stay refused until their original predicates
+have actual closed native readers. The current source frontier therefore remains
+explicit; this is not an executable complete qualification plan yet.
+
+`runtime` supplies only `harness` and `harness_build_receipt`. The compiler emits
+exactly the 32 original `runtime-N` entries plus the separate original
+`runtime-aggregate` stage. All ten mandatory cells use generated original requests,
+including the existing owner's durable SQLite and independent replication
+scenarios. Actual `multi-instance-cooperative` installation admission is required.
+Replication source custody is copied into its private stage root when executing;
+final receiving only verifies the sealed derivation. No future module digest is
+placed in a frozen request. Four durable cell readers independently reopen raw
+oracles, histories, process journals, measured results and actual private
+preparation captures. `sqlite_oracle` is the reviewed independent actual native
+state/context oracle command; missing executable inputs refuse freezing.
+
+Freezing creates `stress-cycle.json` from the exact static input table, then a
+new `public-verbs-bindings.json` whose `stress-cycle` file entry pins that plan.
+The final configuration seals both documents. The plan excludes these generated
+documents and never contains a future output digest. Caller supplied cycle plans
+are refused; `stress_cycle` may be omitted or set to `GENERATE`. Public verbs
+requires this cycle's exact static footprint and independently calls the stress
+raw reader after authenticating the lane commands.

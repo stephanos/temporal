@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import sys
 
-from driver import HERE, Refusal, command, configured, coverage, guard, read, require, sha
+from driver import HERE, Refusal, command, configured, coverage, guard, load_module, read, require, sha
 import live
 
 OWNED = ['public-verbs/fresh-differential-and-raw-golden-integrity']
@@ -47,7 +47,23 @@ def binding(config):
     require(goldens, 'missing raw golden corpus')
     for item in goldens:
         live.sealed_input(config, item)
+    stress_cycle(config, files)
     return path, lane, goldens
+
+
+def stress_cycle(config, files):
+    path = Path(config['stress_cycle'])
+    require(files.get('stress-cycle') == path, 'public verbs borrowed another stress cycle plan')
+    live.sealed_input(config, str(path))
+    plan = read(path)
+    fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
+    require(set(plan) == {'schema', 'files', *fields} and plan['schema'] == 'gomad.stress-cycle/v1'
+            and all(plan[key] == config[key] for key in fields), 'old/foreign public stress cycle footprint')
+    expected_files = {name: digest for name, digest in config['files'].items()
+                      if name not in (str(path), config['public_verbs']['bindings'])}
+    require(bool(expected_files) and plan['files'] == expected_files,
+            'public stress plan inputs differ from frozen cycle')
+    return plan
 
 
 def authenticate_lanes(config, work, lane):
@@ -90,9 +106,12 @@ def authenticate_lanes(config, work, lane):
             'qualify-report': 'go-binary go-helper go-source go-compiler binary input work cells preparation-root',
             'installation': 'go-binary go-helper go-source go-compiler binary work preparation-root role-binary',
             'stress-roles': 'ordinary stress diagnostic',
-            'stress': 'go-binary go-helper go-source go-compiler binary input ordinary-binary work',
+            'stress': 'go-binary go-helper go-source go-compiler binary input ordinary-binary stress-cycle stress-cycle-sha256 work',
         }
         require(set(values) == {'--' + item for item in expected_flags[name].split()}, 'missing/unknown fixed parity flags')
+        if name == 'stress':
+            require(values['--stress-cycle'] == config['stress_cycle']
+                    and values['--stress-cycle-sha256'] == sha(config['stress_cycle']), 'foreign stress lane cycle pin')
         for flag, value in values.items():
             if flag in ('--source', '--go-source', '--cluster-source'):
                 tree_name = 'cluster-source' if flag == '--cluster-source' else 'source'
@@ -188,6 +207,10 @@ def authenticate(config, root, argv, goldens, lane):
         require(not item.is_symlink() and item.is_file() and sha(item) == digest, 'changed raw parity evidence: ' + name)
     lane.authenticate_commands(work)
     authenticate_lanes(config, work, lane)
+    files, _ = lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']))
+    plan = stress_cycle(config, files)
+    stress = load_module('public_same_cycle_stress', lane.CORPUS / 'stress-parity-lane.py')
+    stress.read_cycle(plan, root)
     for path, digest in goldens.items():
         require(Path(path).is_file() and sha(path) == digest, 'raw golden corpus changed')
     # Reopen all pinned original custody/source inputs after the fresh differential.

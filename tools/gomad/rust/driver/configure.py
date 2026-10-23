@@ -10,11 +10,30 @@ from driver import FROZEN, HERE, REPO, Unexecuted, deadline, mapping, read, requ
 from adapters import CELLS
 
 
-def cell_spec(label, evidence, manifest, source_digest):
+def cell_spec(label, evidence, manifest, source_digest, bindings=None):
     wanted = CELLS[label]
     onebox = wanted['workload'] == 'onebox'
     if wanted['workload'] not in ('fixture', 'onebox'):
-        raise Unexecuted(label + ': actual durable catalogue/history scenario must come from its Rust owner')
+        if bindings is None:
+            raise Unexecuted(label + ': actual durable catalogue/history scenario must come from its Rust owner')
+        from driver import load_module
+        workloads = load_module('configured_cell_workloads', HERE.parent / 'workload_tools/workloads.py')
+        workload = 'replication' if wanted['workload'] == 'multi-instance' else 'sqlite'
+        source, working_dir = None, None
+        if workload == 'replication':
+            originals = [REPO / workloads.WASM / 'testdata' / name for name in
+                         ('temporal_storage/recovery_test.go', 'temporal_broker/replication_test.go')]
+            import hashlib
+            key = hashlib.sha256(b''.join(path.read_bytes() for path in originals)).hexdigest()[:16]
+            source = './.tmp/fn232-temporal-replication-' + key
+            working_dir = str(Path(bindings['root']) / 'stages' / label / 'source-module')
+        specification = workloads.qualification_spec(REPO, Path(evidence), workload, wanted['cell'] == 'canary',
+            source, Path(manifest), guest_profile=bindings.get('environment', {}).get('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', ''),
+            source_working_dir=working_dir)
+        specification['Manifest']['Profile'] = wanted['profile']
+        require(specification['Manifest']['IntegratedSourceSHA256'] == 'sha256:' + source_digest.removeprefix('sha256:'),
+                'cell source manifest differs from frozen source')
+        return specification
     target = dict(Backend='wasm', Kind='go-test' if onebox else 'go-run',
                   Source='./tests' if onebox else '.',
                   WorkingDir=str(REPO if onebox else REPO / 'tools/gomad/internal/backends/wasm/qualification/testdata/fixture'),
@@ -36,6 +55,40 @@ def cell_spec(label, evidence, manifest, source_digest):
                              IntegratedSourceSHA256='sha256:' + source_digest.removeprefix('sha256:'), ID=wanted['id'], Workload=wanted['workload'],
                              Profile=wanted['profile'], Cell=wanted['cell'], Seed=7, Repeat=2),
                 Campaign=campaign, ArtifactRoot=evidence)
+
+
+def freeze_final_cycle(config, output):
+    """Pin static inputs, then PLAN, then its all-verb binding; outputs have no hash cycle."""
+    require(config.get('stress_cycle', 'GENERATE') == 'GENERATE', 'stress cycle must be generated for this freeze')
+    require(set(config['stress']) == {'spec', 'binary', 'build_receipt', 'producer_root', 'producer_name'},
+            'missing/unknown actual stress producer inputs')
+    for key in ('spec', 'binary', 'build_receipt'):
+        path = config['stress'][key]
+        require(config['files'].get(path) == sha(path), 'unsealed actual stress input: ' + key)
+    template = Path(config['public_verbs']['bindings'])
+    require(config['files'].get(str(template)) == sha(template), 'unsealed public verb binding template')
+    declared = read(template)
+    require(declared['schema'] == 'gomad.all-verb-bindings/v1' and set(declared) == {'schema', 'files', 'trees'},
+            'foreign public verb binding template')
+    # Relocating the binding document must preserve every static input's original resolution.
+    for binding in declared['files'].values():
+        binding['path'] = str((template.parent / binding['path']).resolve())
+    for binding in declared['trees'].values():
+        for key in ('path', 'inventory'):
+            binding[key] = str((template.parent / binding[key]).resolve())
+    fields = ('repo', 'root', 'source_manifest', 'source_sha256', 'sent_epoch', 'deadline_s', 'identity', 'binary_sha256', 'stress')
+    plan = {key: config[key] for key in fields}
+    plan.update(schema='gomad.stress-cycle/v1', files=dict(config['files']))
+    plan_path = output.parent / 'stress-cycle.json'
+    binding_path = output.parent / 'public-verbs-bindings.json'
+    require(not plan_path.exists() and not binding_path.exists(), 'final cycle outputs must be fresh')
+    write(plan_path, plan)
+    config['stress_cycle'] = str(plan_path)
+    config['files'][str(plan_path)] = sha(plan_path)
+    declared['files']['stress-cycle'] = dict(path=str(plan_path), sha256=sha(plan_path))
+    write(binding_path, declared)
+    config['public_verbs']['bindings'] = str(binding_path)
+    config['files'][str(binding_path)] = sha(binding_path)
 
 
 def freeze(bindings, output, source_manifest):
@@ -76,6 +129,10 @@ def freeze(bindings, output, source_manifest):
                     and sha(path) == expected, 'changed installation compiler input: ' + path)
             inputs.add(path)
     inputs.update((config['binary'], config['build_receipt']))
+    for token in config['stages']['sqlite-catalogue'].get('oracle') or []:
+        if Path(token).is_absolute():
+            require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
+            inputs.add(token)
     for index in range(32):
         entry = config['stages'][f'runtime-{index}']
         require(entry['adapter'] == 'runtime', 'runtime stage requires its exact release-library gate')
@@ -84,7 +141,7 @@ def freeze(bindings, output, source_manifest):
         entry = config['stages'][label]
         if entry.get('spec') == 'GENERATE':
             path = output.parent / (label + '.json')
-            specification = cell_spec(label, str(Path(config['root']) / 'cells' / label), str(source_manifest), config['source_sha256'])
+            specification = cell_spec(label, str(Path(config['root']) / 'cells' / label), str(source_manifest), config['source_sha256'], bindings=config)
             write(path, specification)
             entry['spec'] = str(path)
             inputs.add(str(path))
@@ -94,7 +151,12 @@ def freeze(bindings, output, source_manifest):
             str(source_manifest) if item == 'SOURCE_MANIFEST' else item for item in argv]
         require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
         inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
+    inputs.add(config['public_verbs']['bindings'])
+    inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
+    freeze_final_cycle(config, output)
+    import final_public_verbs
+    final_public_verbs.binding(config)
     import primary_stages
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():
