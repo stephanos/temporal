@@ -136,12 +136,12 @@ mod preflight;
 /// Strictly decodes bounded qualification JSON; duplicate keys, trailing data
 /// and excessive nesting are refused before typed decoding.
 pub(crate) fn strict<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Result<T, String> {
-    decode_first(bytes, |value, trailing| {
-        if trailing {
-            return Err("qualification JSON has trailing data".into());
-        }
-        serde_json::from_value(value).map_err(|error| format!("qualification JSON: {error}"))
-    })
+    let end = preflight::first(bytes, MAXIMUM_NESTING)?;
+    if has_trailing(&bytes[end..]) {
+        return Err("qualification JSON has trailing data".into());
+    }
+    serde_json::from_value(bounded_value(&bytes[..end])?)
+        .map_err(|error| format!("qualification JSON: {error}"))
 }
 
 /// Allows an owned typed decoder to preserve first-value errors before trailing
@@ -151,20 +151,24 @@ pub(crate) fn decode_first<T>(
     decode: impl FnOnce(Value, bool) -> Result<T, String>,
 ) -> Result<T, String> {
     let end = preflight::first(bytes, MAXIMUM_NESTING)?;
-    let mut deserializer = serde_json::Deserializer::from_slice(&bytes[..end]);
-    // The lexical preflight has already bounded every value to the original
-    // 128-depth contract, including its empty-container edge. Other decoders
+    decode(bounded_value(&bytes[..end])?, has_trailing(&bytes[end..]))
+}
+
+fn has_trailing(bytes: &[u8]) -> bool {
+    bytes
+        .iter()
+        .any(|byte| !matches!(byte, b' ' | b'\t' | b'\r' | b'\n'))
+}
+
+fn bounded_value(bytes: &[u8]) -> Result<Value, String> {
+    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
+    // Both callers first admit the entire slice with the lexical depth128
+    // guard, including the original empty-container edge. Other decoders
     // keep serde's default recursion limit.
     deserializer.disable_recursion_limit();
-    let value = Unique::deserialize(&mut deserializer)
-        .map_err(|error| format!("qualification JSON: {error}"))?
-        .0;
-    decode(
-        value,
-        bytes[end..]
-            .iter()
-            .any(|byte| !matches!(byte, b' ' | b'\t' | b'\r' | b'\n')),
-    )
+    Unique::deserialize(&mut deserializer)
+        .map(|value| value.0)
+        .map_err(|error| format!("qualification JSON: {error}"))
 }
 
 /// A JSON value whose objects must not repeat a member name.

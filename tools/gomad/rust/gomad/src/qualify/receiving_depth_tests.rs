@@ -109,3 +109,53 @@ fn scalar_first_value_keeps_adjacent_container_trailing_error() {
         );
     }
 }
+
+#[test]
+fn original_primitive_first_token_precedes_adjacent_trailing_bytes() {
+    for input in [
+        b"truefalse".as_slice(),
+        b"nullx",
+        b"0true",
+        b"01",
+        b"false0",
+        b"-01",
+        b"1e2false",
+        b"1e999false",
+    ] {
+        assert_eq!(
+            strict::<Value>(input).unwrap_err(),
+            "qualification JSON has trailing data",
+            "{input:?}"
+        );
+    }
+}
+
+#[test]
+fn original_deepest_key_depth_guard_precedes_missing_colon() {
+    let input = format!(
+        "{}{}{}",
+        "{\"k\":".repeat(128),
+        "{\"k\" 0}",
+        "}".repeat(128)
+    );
+    assert_eq!(
+        strict::<Value>(input.as_bytes()).unwrap_err(),
+        "qualification JSON nesting limit"
+    );
+}
+
+#[test]
+fn primitive_lexing_still_refuses_malformed_numbers_and_container_separators() {
+    for input in [
+        b"-".as_slice(),
+        b"1.",
+        b"1e",
+        b"1e+",
+        b"[truefalse]",
+        b"[01]",
+        b"{\"k\":nullx}",
+    ] {
+        let error = strict::<Value>(input).unwrap_err();
+        assert!(!error.contains("has trailing data"), "{input:?}: {error}");
+    }
+}

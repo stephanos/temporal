@@ -63,6 +63,49 @@ impl Parser<'_> {
         self.syntax()
     }
 
+    fn literal(&mut self, literal: &[u8]) -> Result<(), String> {
+        if self.bytes.get(self.offset..self.offset + literal.len()) != Some(literal) {
+            return self.syntax();
+        }
+        self.offset += literal.len();
+        Ok(())
+    }
+
+    fn digits(&mut self) -> Result<(), String> {
+        let start = self.offset;
+        while self.bytes.get(self.offset).is_some_and(u8::is_ascii_digit) {
+            self.offset += 1;
+        }
+        if self.offset == start {
+            self.syntax()
+        } else {
+            Ok(())
+        }
+    }
+
+    fn number(&mut self) -> Result<(), String> {
+        if self.bytes.get(self.offset) == Some(&b'-') {
+            self.offset += 1;
+        }
+        match self.bytes.get(self.offset) {
+            Some(b'0') => self.offset += 1,
+            Some(b'1'..=b'9') => self.digits()?,
+            _ => return self.syntax(),
+        }
+        if self.bytes.get(self.offset) == Some(&b'.') {
+            self.offset += 1;
+            self.digits()?;
+        }
+        if matches!(self.bytes.get(self.offset), Some(b'e' | b'E')) {
+            self.offset += 1;
+            if matches!(self.bytes.get(self.offset), Some(b'+' | b'-')) {
+                self.offset += 1;
+            }
+            self.digits()?;
+        }
+        Ok(())
+    }
+
     fn value(&mut self, depth: usize) -> Result<(), String> {
         if depth > self.maximum {
             return Err("qualification JSON nesting limit".into());
@@ -95,6 +138,9 @@ impl Parser<'_> {
                     if !names.insert(key) {
                         return Err("qualification JSON: duplicate object key".into());
                     }
+                    if depth == self.maximum {
+                        return Err("qualification JSON nesting limit".into());
+                    }
                     if !self.take(b':') {
                         return self.syntax();
                     }
@@ -108,18 +154,11 @@ impl Parser<'_> {
                 }
             }
             Some(b'"') => self.string().map(|_| ()),
-            Some(_) => {
-                let start = self.offset;
-                while self.bytes.get(self.offset).is_some_and(|byte| {
-                    !matches!(byte, b' ' | b'\t' | b'\r' | b'\n') && !b",]}{[\"".contains(byte)
-                }) {
-                    self.offset += 1;
-                }
-                serde_json::from_slice::<serde_json::Value>(&self.bytes[start..self.offset])
-                    .map(|_| ())
-                    .map_err(|error| format!("qualification JSON: {error}"))
-            }
-            None => self.syntax(),
+            Some(b't') => self.literal(b"true"),
+            Some(b'f') => self.literal(b"false"),
+            Some(b'n') => self.literal(b"null"),
+            Some(b'-' | b'0'..=b'9') => self.number(),
+            Some(_) | None => self.syntax(),
         }
     }
 }
