@@ -8,8 +8,17 @@ import re
 import subprocess
 import sys
 
+import reach
+
 from driver import (HERE, Refusal, Unexecuted, command, coverage, guard, read, require,
                     sha, subgates, write)
+
+SLIM_SOURCES = {
+    'common/archiver/provider/provider_cloud_gomad_test.go': 'TestCloudArchiversRefuseConfiguredSchemesWithoutFallback',
+    'temporal/membership_test.go': 'TestDefaultMembershipLinksRingpop',
+    'tests/testcore/flag_sql_wasm_slim_test.go': 'TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback',
+}
+SLIM_IDS = {'go/go.temporal.io/server/' + path.rsplit('/', 1)[0] + '/' + name for path, name in SLIM_SOURCES.items()}
 
 PARITY = HERE.parents[1] / 'testdata/parity'
 FAMILIES = {
@@ -345,6 +354,17 @@ def read_family(config, family, work, stdout):
     script = FAMILIES[family][0]
     if script.startswith('live-backend-'):
         backend(config, work, family)
+        if family == 'backend-runtime':
+            aliases = read(work / 'retired-preparation-aliases.json')
+            require(aliases['schema'] == 'gomad.retired-preparation-aliases/v1'
+                    and aliases['after'] == 'runtime-detached-exact-replay'
+                    and aliases['aliases'] and aliases['aliases'][0] == dict(path='compiler-link', target=str(work / 'go')),
+                    'root7 missing original post-replay alias retirement')
+            paths = [row['path'] for row in aliases['aliases']]
+            require(len(paths) == len(set(paths)) and all(path == 'compiler-link' or (path.startswith('go-unavailable/')
+                    and '..' not in Path(path).parts) for path in paths), 'unexpected retired preparation alias')
+            require(all(not (work / path).exists() and not (work / path).is_symlink() for path in paths),
+                    'preparation aliases were not retired after original assertions')
         report = read(work / 'roots.json')
         require(report['driver_sha256'] == sha(PARITY / script)
                 and report['shared_driver_sha256'] == sha(PARITY / 'live-backend-common.py'), 'backend assertion producer changed')
@@ -515,39 +535,31 @@ def original_callables(config, mapping):
     commit = mapping['reference_commit']
     require(commit == config['live_corpus']['original_reference_commit'] and re.fullmatch('[0-9a-f]{40}', commit),
             'wrong original test-wasm source commitment')
-    prefix = 'tools/gomad/internal/backends/wasm/'
-    raw = subprocess.check_output(['git', '-C', config['repo'], 'ls-tree', '-r', '-z', commit, '--', prefix])
-    expected = {}
-    for item in raw.split(b'\0'):
-        if not item: continue
-        header, path = item.decode().split('\t')
-        mode, kind, blob = header.split()
-        if path.endswith('_test.go'):
-            require(mode == '100644' and kind == 'blob', 'nonregular original test source')
-            expected[path] = blob
-    require(expected and set(mapping['sources']) == set(expected), 'incomplete original full test-wasm source inventory')
-    original, sites = set(), set()
-    for name, blob in expected.items():
-        source = subprocess.check_output(['git', '-C', config['repo'], 'cat-file', 'blob', blob])
-        require(mapping['sources'][name] == dict(blob=blob, sha256=digest(source)), 'changed original test-wasm source bytes')
-        source = source.decode()
-        functions = list(re.finditer(r'^func (\w+)\(', source, re.M))
-        for index, declaration in enumerate(functions):
-            test = declaration[1]
-            if not re.fullmatch(r'Test[A-Z0-9_]\w*', test) or test == 'TestMain': continue
-            key = name + '#' + test; original.add(key)
-            end = functions[index + 1].start() if index + 1 < len(functions) else len(source)
-            for subtest in re.finditer(r'\bt\.Run\(([^\n]+)', source[declaration.end():end]):
-                site = key + '@' + str(declaration.end() + subtest.start()); sites.add(site)
-                expansion = mapping['subtests'].get(site)
-                require(isinstance(expansion, list) and expansion and len(expansion) == len(set(expansion))
-                        and all(isinstance(case, str) and case for case in expansion),
-                        'unmapped original literal/dynamic test-wasm subtest site: ' + site)
-                literal = re.match(r'"([^"\\]+)"\s*,', subtest[1])
-                if literal: require(expansion == [literal[1]], 'original literal subtest was renamed')
-                original.update(key + '/' + case for case in expansion)
-    require(set(mapping['subtests']) == sites, 'unknown/obsolete original subtest mapping')
+    inventory = reach.inventory(config['repo'], commit)
+    require(mapping['sources'] == inventory['sources'] and mapping['makefiles'] == inventory['makefiles'],
+            'incomplete/changed original Make and test-wasm source universe')
+    original = set(inventory['callables'])
+    sites = inventory['subtest_sites']
+    require(set(mapping['subtests']) == set(sites), 'unknown/omitted original helper or root subtest site')
+    for site, detail in sites.items():
+        expansion = mapping['subtests'][site]
+        require(isinstance(expansion, list) and expansion and len(expansion) == len(set(expansion))
+                and all(isinstance(case, str) and case for case in expansion),
+                'unmapped original literal/dynamic test-wasm subtest site: ' + site)
+        if detail['expansions']:
+            require(expansion == detail['expansions'], 'original literal subtest was renamed')
+        original.update(site.split('@', 1)[0] + '/' + case for case in expansion)
+    require({path + '#' + test for path, test in SLIM_SOURCES.items()} <= original,
+            'original Make slim-refusal callable set omitted')
     return original
+
+
+def slim_command(argv):
+    require(len(argv) > 2 and argv[1] == 'test' and '-json' in argv, 'slim proof is not an actual Go test run')
+    tags = option(argv, '-tags')
+    require(tags is not None and tags.split(',') == ['gomad_wasm_slim', 'test_dep']
+            and ('-timeout=15m' in argv or option(argv, '-timeout') == '15m'),
+            'original slim tags/15minute bound changed')
 
 
 def receiving_report(config, endpoint):
@@ -577,6 +589,15 @@ def receiving_report(config, endpoint):
     executions = [dict(item, id=item['id'] + '@' + item['raw']) for item in report['testcases']]
     coverage([item['id'] for item in executions], executions)
     require(endpoint['required'] and set(endpoint['required']) <= set(native_ids), 'missing exact receiving testcase')
+    for item in report['testcases']:
+        if item['id'] in SLIM_IDS:
+            require(re.fullmatch(r'command-[0-9]{4}', item['raw']), 'slim testcase has no actual raw command reference')
+            base = Path(report['static_execution']['path']).parent
+            raw = base / (item['raw'] + '.stdout')
+            receipt = base / (item['raw'] + '.command.json')
+            bound = {row['path'] for row in report['raw_reports']}
+            require(str(raw) in bound and str(receipt) in bound, 'slim run is outside authenticated raw reports')
+            slim_command(read(receipt)['argv'])
     for raw in report['raw_reports']:
         require(sha(raw['path']) == raw['sha256'], 'actual receiving testcase raw report changed')
     return {item['id'] for item in report['testcases']}
@@ -591,6 +612,7 @@ def test_wasm_reach(config, actual):
     original = original_callables(config, mapping)
     reports = set(actual)
     for endpoint in entry.get('reports', []): reports.update(receiving_report(config, endpoint))
+    require(SLIM_IDS <= reports, 'three original slim-refusal executions are missing')
     reach_coverage(original, mapping['entries'], reports)
 
 

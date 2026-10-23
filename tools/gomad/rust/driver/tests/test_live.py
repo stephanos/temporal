@@ -111,19 +111,34 @@ class RawBindingGuards(unittest.TestCase):
 
     def test_whole_reach_inventory_uses_original_git_objects_and_literal_sites(self):
         import live
-        source=b'package p\nfunc TestOriginal(t *testing.T) {\n t.Run("literal", func(t *testing.T) {})\n t.Run(fmt.Sprintf("dynamic-%d",n), fn)\n}\n'
+        source=b'package p\nfunc TestOriginal(t *testing.T) {\n fixture := `\nfunc TestPhantom(t *testing.T) {}\n`\n t.Run("literal", func(t *testing.T) {})\n t.Run(fmt.Sprintf("dynamic-%d",n), fn)\n}\n'
         key='tools/gomad/internal/backends/wasm/wasi/original_test.go'
         blob='b'*40;commit='a'*40
         sites={key+'#TestOriginal@'+str(source.index(b't.Run')):['literal'],
                key+'#TestOriginal@'+str(source.index(b't.Run',source.index(b't.Run')+1)):['dynamic-7','dynamic-19']}
-        mapping=dict(reference_commit=commit,sources={key:dict(blob=blob,sha256=hashlib.sha256(source).hexdigest())},subtests=sites)
+        mapping=dict(reference_commit=commit,makefiles={},sources={key:dict(blob=blob,sha256=hashlib.sha256(source).hexdigest())},subtests=sites)
         config=dict(repo='/unit-fixture',live_corpus=dict(original_reference_commit=commit))
         tree=('100644 blob '+blob+'\t'+key+'\0').encode()
-        with patch.object(live.subprocess,'check_output',side_effect=[tree,source]):
+        external=[]
+        for path,name in live.SLIM_SOURCES.items():
+            raw=('package p\nfunc '+name+'(t *testing.T) {}\n').encode();external.append(raw)
+            tree+=('100644 blob '+blob+'\t'+path+'\0').encode()
+            mapping['sources'][path]=dict(blob=blob,sha256=hashlib.sha256(raw).hexdigest())
+        fixture=b'package fixture\nfunc TestExcluded(t *testing.T) { t.Run("excluded", f) }\n'
+        fixture_path='tools/gomad/internal/backends/wasm/testdata/fixture/main_test.go'
+        tree+=('100644 blob '+blob+'\t'+fixture_path+'\0').encode()
+        mapping['sources'][fixture_path]=dict(blob=blob,sha256=hashlib.sha256(fixture).hexdigest())
+        makes=[]
+        for path in live.reach.MAKEFILES:
+            raw=b'test-wasm: test-wasm-slim-refusals\n';makes.append(raw)
+            tree+=('100644 blob '+blob+'\t'+path+'\0').encode()
+            mapping['makefiles'][path]=dict(blob=blob,sha256=hashlib.sha256(raw).hexdigest())
+        with patch.object(live.reach, 'inventory', wraps=live.reach.inventory),patch.object(live.subprocess,'check_output',side_effect=[tree,source,*external,fixture,*makes]):
             actual=live.original_callables(config,mapping)
-        self.assertEqual(actual,{key+'#TestOriginal',*[key+'#TestOriginal/'+case for case in ('literal','dynamic-7','dynamic-19')]})
+        self.assertEqual(actual,{key+'#TestOriginal',*[key+'#TestOriginal/'+case for case in ('literal','dynamic-7','dynamic-19')],
+            *[path+'#'+name for path,name in live.SLIM_SOURCES.items()]})
         changed=json.loads(json.dumps(mapping));changed['subtests'][next(iter(sites))]=['renamed']
-        with patch.object(live.subprocess,'check_output',side_effect=[tree,source]),self.assertRaises(driver.Refusal):
+        with patch.object(live.subprocess,'check_output',side_effect=[tree,source,*external,fixture,*makes]),self.assertRaises(driver.Refusal):
             live.original_callables(config,changed)
 
     def test_actual_ignored_oracle_tests_cannot_be_replaced_with_declared_pass(self):
@@ -156,3 +171,40 @@ class RawBindingGuards(unittest.TestCase):
                 with self.assertRaises(driver.Refusal):live.read_proof(config,'private35')
                 payload.write_bytes(b'actual receiver fixture');stage['status']='SKIP';(base/'receipt.json').write_text(json.dumps(stage))
                 with self.assertRaises(driver.Refusal):live.read_proof(config,'private35')
+
+    def test_runtime_preparation_aliases_retire_only_after_binding_original_targets(self):
+        import live
+        runtime = live.load('live-backend-runtime')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);work=root/'work';work.mkdir();stock=root/'stock';stock.mkdir()
+            (stock/'real').write_bytes(b'compiler source')
+            (stock/'alias').symlink_to('real')
+            private=work/'go-unavailable';private.mkdir();(private/'real').write_bytes(b'compiler source')
+            (private/'alias').symlink_to('real');(work/'compiler-link').symlink_to(work/'go')
+            with self.assertRaises(driver.Refusal):live.inventory(work)
+            runtime.retire_preparation_aliases(work,stock)
+            proof=driver.read(work/'retired-preparation-aliases.json')
+            self.assertEqual([row['path'] for row in proof['aliases']],['compiler-link','go-unavailable/alias'])
+            self.assertFalse((work/'compiler-link').is_symlink());self.assertFalse((private/'alias').is_symlink())
+            live.inventory(work)
+            (private/'alias').symlink_to('unexpected');(work/'compiler-link').symlink_to(work/'go')
+            with self.assertRaises(ValueError):runtime.retire_preparation_aliases(work,stock)
+            self.assertTrue((work/'compiler-link').is_symlink())
+            self.assertTrue((private/'alias').is_symlink())
+
+    def test_whole_reach_refuses_omitted_original_external_slim_execution(self):
+        import live
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'map.json'
+            driver.write(path,dict(schema='gomad.original-test-wasm-reach/v1',entries={'original':dict(evidence=['actual'])}))
+            config=dict(live_corpus=dict(test_wasm_reach=dict(map=str(path))))
+            with patch.object(live,'sealed_input'),patch.object(live,'original_callables',return_value={'original'}):
+                with self.assertRaises(driver.Refusal):live.test_wasm_reach(config,{'actual'})
+
+    def test_original_slim_requires_real_tagged_run_not_same_named_ordinary_test(self):
+        import live
+        original=['/pinned/go','test','-json','-tags','gomad_wasm_slim,test_dep','-timeout=15m','./common/archiver/provider']
+        live.slim_command(original)
+        for index,value in ((4,'test_dep'),(5,'-timeout=16m'),(1,'list')):
+            argv=original[:];argv[index]=value
+            with self.subTest(index=index),self.assertRaises(driver.Refusal):live.slim_command(argv)
