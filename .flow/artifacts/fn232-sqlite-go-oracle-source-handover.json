@@ -1,0 +1,113 @@
+{
+  "schema": "gomad.sqlite-go-oracle-source-handover/v1",
+  "scope": "fn232.13 original SQLite catalogue independent-Go prerequisite; source readiness only",
+  "source_parent": "2c5b50f6be5f0fe307e15f7cf7eb6fa9749a0d08",
+  "source_files_sha256": {
+    "tools/gomad/rust/driver/compose.py": "6237c31289c14656bab404d210d5f64f8236e35404a87b173f3e44e4d2e37b54",
+    "tools/gomad/rust/driver/configure.py": "5d949ffb86ba8742b586bfcf4b4b625496c290b7dc39176d9f9b62a26393c2d2",
+    "tools/gomad/rust/driver/sqlite.py": "3658949ea6fdd7f027efb29c7d77879a1be661cd57be54bc729e2c5e32f45a43",
+    "tools/gomad/rust/driver/tests/test_composition.py": "a86a92d757465b28d09f322aebe37ee5cbde44599e3b9faa2ce4c1ccba4140db",
+    "tools/gomad/rust/driver/tests/test_sqlite.py": "8f6d190ff0b1f463df6173209fdf3afb31daddcf9be0e37b26aee3e52053d848",
+    "tools/gomad/rust/driver/sqlite-native-oracle.md": "f12c511efa6796ac69fc819c17ed0a84f18058682028dcbe3554dd3cab2be4af",
+    "tools/gomad/rust/driver/sqlite_oracle.py": "524249e8f93d9865a6b570d214f22db3375d8c28c4381099d4575ea4e442249c",
+    "tools/gomad/rust/driver/tests/test_sqlite_oracle.py": "5870ff7dcb030bbc6d8455c8ff0e5e18c9a2531e96f8b6253dd8f709d6058936"
+  },
+  "interface": {
+    "binding": {
+      "sqlite_oracle": {
+        "build_receipt": "absolute actual build.json"
+      }
+    },
+    "old_oracle_argv": "forbidden in config/stage",
+    "plan_fields": [
+      "schema=gomad.sqlite-go-oracle-plan/v1",
+      "repo",
+      "stock_go",
+      "go_cache",
+      "module_cache"
+    ],
+    "builder": "sqlite_oracle.py build --plan PLAN --root FRESH",
+    "freeze_inputs": "sqlite_oracle.freeze_inputs(config,entry) -> full input path set; structure/current source/compiler and inventories checked before pin collection",
+    "validate_build": "requires every collected file in frozen config.files, exact compiler/current source",
+    "runtime": "only authenticated stock-Go build-info check then [authenticated-Go-binary,--input,actual-authenticated-request]",
+    "runtime_reader": "read_run reopens exact source/SDK/build/executable and both command/input/output/PID/parent/CLOCK_MONOTONIC proofs"
+  },
+  "fixed_source": {
+    "package": "./internal/model/cmd/sqlite-native",
+    "entry": "tools/gomad/internal/model/cmd/sqlite-native/main.go",
+    "projector": "tools/gomad/internal/model/wasi/storage_projection.go::ProjectSQLiteCrashCatalogue",
+    "go_source_changes": false,
+    "limits": {
+      "states": 32,
+      "operations": 8,
+      "depth": 8,
+      "bytes": 4194304,
+      "work": 65536
+    },
+    "input_limits": {
+      "request": 65536,
+      "state": 8388608,
+      "log": 33554432,
+      "precrash_image": 9437184
+    }
+  },
+  "prerequisites": [
+    "Actual final candidate canonical checkout; root and tools/gomad go.mod/go.sum and complete current model/support-fs tree.",
+    "Authenticated stock-Go1.27.1 compiler and complete SDK tree; native compile target, CGO0, no inherited flags/workspace/toolchain switching.",
+    "Assigned existing external Go cache and module cache, original json experimental v0.0.0-20260820222146-c27c302e5fc3 and x/sys v0.48.0 trees plus exact zip,ziphash,mod,info.",
+    "Fresh external private build root. Verification-only modfile pins exactly both source modules/current go.sum lines; actual model compilation uses unchanged current tools/gomad module.",
+    "Actual six fixed version/environment/package-graph/module-verification/build/build-info subprocesses, numeric successful reaps and raw journals.",
+    "Authentic resulting Go binary/build receipt before config freezing; complete source/compiler/SDK/dependency/binary/raw receipt closure frozen.",
+    "Real produced SQLite primary state/log/precrash image/model descriptor, four actual selections and same-cycle independent Go projection at final execution."
+  ],
+  "checks": {
+    "causal_red": {
+      "exit": 1,
+      "behavior": "old aggregate reaches caller-supplied Rust comparator command"
+    },
+    "focused": {
+      "exit": 0,
+      "tests": 13,
+      "mutations": "wrong source/compiler/executable/SDK/module inventory, coherent command and clock repin, wrong Go main, unreaped process, changed actual input/output, actual Go identity refusal before comparator launch"
+    },
+    "composition": {
+      "exit": 0,
+      "typed_receipt": true
+    },
+    "full_python": {
+      "exit": 0,
+      "tests": 516
+    },
+    "source_anchor": {
+      "exit": 0
+    },
+    "diff_and_pycompile": {
+      "exit": 0
+    }
+  },
+  "logs": {
+    "fn232-sqlite-oracle-causal-red-v2.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-causal-red-v2.log",
+      "sha256": "0eb94857cc0fc62590b860c0579eec36b4ebc2e3d8b739cef9cb4d1096700c31"
+    },
+    "fn232-sqlite-oracle-focused-green-v11.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-focused-green-v11.log",
+      "sha256": "32ea14104f89ec8992168ca0cdea02c5daadc6409cdfa472d8338b0124557e41"
+    },
+    "fn232-sqlite-oracle-compose-green-v2.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-compose-green-v2.log",
+      "sha256": "6ebfdfd4b3c00fc8d529c9d9843a65a06a2c956847a10a8789c0a9c804012d92"
+    },
+    "fn232-sqlite-oracle-full-python-final-v2.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-full-python-final-v2.log",
+      "sha256": "3b2a3f4e89332d9aa9f6ace0a6a6d5031e6ca82b93370e85450b5cd3ad87a354"
+    },
+    "fn232-sqlite-oracle-anchors-final.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-anchors-final.log",
+      "sha256": "1c33b988a8b3d102ea731b198deb5d78db3c5a556f573fc1367d85ba03897b12"
+    }
+  },
+  "actual_go_build": "NOT_EXECUTED_LEASE_PENDING",
+  "actual_go_oracle_run": "NOT_EXECUTED_REQUIRED_FINAL",
+  "qualification": "NO_PASS; no source-only original root or final/fn185 acceptance"
+}

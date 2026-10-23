@@ -142,6 +142,22 @@ class SQLiteReceiverContract(unittest.TestCase):
         with self.assertRaises(driver.Refusal):
             sqlite.selection_spec(foreign, '/primary/result.json', 'b'*64, state, context, '/foreign')
 
+    def test_catalogue_refuses_caller_oracle_argv_before_launch(self):
+        import sqlite
+        from unittest.mock import patch
+        class CallerOracleReached(Exception):
+            pass
+        config = dict(root='/attempt', binary='/sealed/rust-host', files={'/sealed/rust-host': 'a'*64})
+        reference = dict(path='/attempt/primary.json',sha256='b'*64)
+        primary = dict(report=dict(executions=[dict(artifact_path='/attempt/artifact')]))
+        with patch.object(sqlite,'read',return_value=reference), patch.object(sqlite,'sha',return_value='b'*64), \
+             patch('adapters.result_report',return_value=primary), patch.object(sqlite,'catalogue',return_value={}), \
+             patch.object(sqlite,'native_input',return_value={}),patch.object(sqlite,'write'), \
+             patch.object(sqlite,'command',side_effect=[b'{}',CallerOracleReached('caller Rust binary was launched')]):
+            with self.assertRaises(driver.Refusal):
+                sqlite.aggregate(config,Path('/attempt/catalogue'),'sqlite-catalogue',dict(oracle=['/sealed/rust-host']))
+
+
 
 
 if __name__ == '__main__':

@@ -113,9 +113,12 @@ def bind_primitives(config, config_path):
     for index in range(4):
         config['stages'][f'sqlite-selection-{index}'] = dict(adapter='sqlite-selection', installation='sqlite-cooperative')
     oracle = config.get('sqlite_oracle')
-    require(isinstance(oracle, list) and oracle and all(isinstance(value, str) and value for value in oracle),
-            'actual reviewed independent SQLite oracle command required')
-    config['stages']['sqlite-catalogue'] = dict(adapter='sqlite-catalogue', oracle=oracle)
+    require(isinstance(oracle, dict) and set(oracle) == {'build_receipt'}
+            and isinstance(oracle['build_receipt'], str) and Path(oracle['build_receipt']).is_absolute(),
+            'authentic fixed Go SQLite oracle build receipt required; caller argv forbidden')
+    require('oracle' not in config['stages'].get('sqlite-catalogue', {}), 'legacy SQLite oracle stage argv forbidden')
+    config['stages']['sqlite-catalogue'] = dict(adapter='sqlite-catalogue')
+
 
 
 def assemble_static(inputs, base, plan_path, temporary):

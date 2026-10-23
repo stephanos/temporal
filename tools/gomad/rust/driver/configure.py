@@ -119,6 +119,12 @@ def live_role_inputs(config):
     return paths
 
 
+def sqlite_oracle_inputs(config):
+    import sqlite_oracle
+    require('oracle' not in config['stages']['sqlite-catalogue'], 'legacy SQLite oracle argv is forbidden')
+    return sqlite_oracle.freeze_inputs(config, config.get('sqlite_oracle'))
+
+
 def runtime_harness_inputs(config):
     import main_cli_build
     bindings = set()
@@ -215,10 +221,7 @@ def freeze(bindings, output, source_manifest):
     if config.get('identity_harness') is not None:
         import identity_harness
         inputs.update(identity_harness.static_inputs(config))
-    for token in config['stages']['sqlite-catalogue'].get('oracle') or []:
-        if Path(token).is_absolute():
-            require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
-            inputs.add(token)
+    inputs.update(sqlite_oracle_inputs(config))
     inputs.update(runtime_harness_inputs(config))
     for label, wanted in CELLS.items():
         entry = config['stages'][label]
@@ -249,6 +252,8 @@ def freeze(bindings, output, source_manifest):
         inputs.update(counterfactual_receiving.input_paths(divergence, Path(config['repo'])))
     inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
+    import sqlite_oracle
+    sqlite_oracle.validate_build(config)
     import terminal_inputs
     terminal_spec = output.parent / 'terminal-module-input.json'
     require(not terminal_spec.exists(), 'terminal preparation request must be fresh')

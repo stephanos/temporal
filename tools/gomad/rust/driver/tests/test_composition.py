@@ -64,7 +64,7 @@ class CompositionTests(unittest.TestCase):
         config = self.base()
         config.update(runtime=dict(harness='/sealed/runtime', harness_build_receipt='/sealed/runtime-build.json'),
                       installations={value['workload'] + '-' + value['profile']: '/sealed/installation'
-                                     for value in compose.CELLS.values()}, sqlite_oracle=['/sealed/sqlite-oracle'])
+                                     for value in compose.CELLS.values()}, sqlite_oracle=dict(build_receipt='/sealed/sqlite-oracle-build.json'))
         config['stages']['runtime-0'] = dict(adapter='pending', arguments=['/stale/checkout'])
         compose.bind_primitives(config, Path('/sealed/config.json'))
         self.assertEqual(set(config['stages']), set(mapping()))
@@ -76,7 +76,10 @@ class CompositionTests(unittest.TestCase):
         for name in compose.CELLS:
             self.assertEqual(config['stages'][name]['spec'], 'GENERATE')
             self.assertIs(config['stages'][name]['private_observations'], True)
-        self.assertEqual(config['stages']['sqlite-catalogue']['oracle'], ['/sealed/sqlite-oracle'])
+        self.assertEqual(config['stages']['sqlite-catalogue'], dict(adapter='sqlite-catalogue'))
+        config['sqlite_oracle'] = ['/sealed/rust-self-comparator']
+        with self.assertRaisesRegex(Refusal, 'Go SQLite oracle build receipt'):
+            compose.bind_primitives(config, Path('/sealed/config.json'))
 
     def test_unknown_runtime_role_and_missing_installation_refused(self):
         config = self.base()

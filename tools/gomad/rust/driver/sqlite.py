@@ -122,21 +122,19 @@ def native_input(artifact, inspected, native):
 
 
 def aggregate(config, root, label, entry):
+    import sqlite_oracle
+    require("oracle" not in entry, "caller SQLite oracle argv is forbidden; authentic fixed Go build receipt required")
+    sqlite_oracle.validate_build(config)
     from adapters import public, result_report, passed
     reference = read(Path(config['root']) / 'stages/workload-sqlite-cooperative-success/result.json')
     require(sha(reference['path']) == reference['sha256'], 'primary Result changed before catalogue')
     primary = result_report(config, root, 'primary-report', reference['path'])
     native = catalogue(primary)
-    # The Go oracle receives the actual authenticated GMSTORE state and original limits.
-    oracle = entry.get('oracle')
-    if not oracle:
-        raise Unexecuted('independent retained Go native enumeration/context oracle is not integrated')
     artifact = primary['report']['executions'][0]['artifact_path']
     inspected = json.loads(command(config, root, 'primary-inspect', public(config) + ['inspect', '--json', artifact]))
     request = root / 'oracle-input.json'
     write(request, native_input(artifact, inspected, native))
-    require(oracle[0] in config['files'], 'unsealed independent native oracle')
-    actual = json.loads(command(config, root, 'native-Go-oracle', oracle + ['--input', str(request)]))
+    actual = sqlite_oracle.invoke(config, root, request)
     require(actual['enumeration'] == native['enumeration'] and actual['context'] == native['context'],
             'actual native Go catalogue/context differs from Rust owner')
     seen, processes, cpu, terminal_cpu = set(), {reference['pid']}, 0, 0
