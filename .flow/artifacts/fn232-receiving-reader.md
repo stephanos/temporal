@@ -188,3 +188,11 @@ missing-independent-reader failures are retained in
 Remaining support-list, aggregate corpus/catalogue resources/inventory,
 divergent failure preservation, private host-memory diagnostics and exact
 negative/callback variants stay open; this control unit does not close them.
+
+The control metadata extension also applies to detached inspection command
+receipts. The reader retains its exact closed environment check, now including
+the three frozen private controls. A real bounded Python command fixture
+produces that metadata; missing fields, changed PATH and unknown fields refuse.
+This is producer/reader receipt conformance, not a guest inspection run. The
+updated portable driver suite passes65 tests; its RED/GREEN logs are
+`fn232-inspection-controls-red.log` and `fn232-inspection-controls-green.log`.
