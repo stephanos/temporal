@@ -4172,11 +4172,11 @@
    "layer": "host-process",
    "class": "thread-order",
    "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|.spawn(|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost/src/linked_cluster.rs execute_prepared",
-   "rule": "Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; .spawn( remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4184,11 +4184,11 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|recv_timeout|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost/src/linked_cluster.rs execute_prepared",
-   "rule": "Monotonic wall samples, polling delays and bounded receives enforce host deadlines or collect metrics; model clocks remain virtual and these measurements do not enter canonical streams.",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; recv_timeout remains one controlled host effect in wasmhost/src/linked_cluster.rs. Monotonic wall samples, polling delays and bounded receives enforce host deadlines or collect metrics; model clocks remain virtual and these measurements do not enter canonical streams.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -4196,11 +4196,11 @@
    "layer": "host-process",
    "class": "thread-order",
    "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared|thread::scope|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost/src/linked_cluster.rs execute_prepared",
-   "rule": "Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; thread::scope remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -5817,11 +5817,11 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/measurement/execution.rs|execute|.elapsed()|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/measurement/execution.rs execute",
-   "rule": "Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+   "rule": "Exact same-count relocation from execute to execute_inner; .elapsed() remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -5829,11 +5829,11 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/measurement/execution.rs|execute|Instant::now|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/measurement/execution.rs execute",
-   "rule": "Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+   "rule": "Exact same-count relocation from execute to execute_inner; Instant::now remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -5841,13 +5841,11 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/measurement/execution.rs|execute|linked::monotonic_nanos(|1",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/measurement/execution.rs execute",
-   "rule": "Kernel CLOCK_MONOTONIC samples bind actual terminal/refusal classification and parent reaping in one clock domain. They bound cleanup and preserve raw phase timing only; they never supply guest model time or enter canonical execution streams. Missing or invalid terminal observations fail measurement admission.",
+   "rule": "Exact same-count relocation from execute to execute_inner; linked::monotonic_nanos( remains one controlled host effect in gomad/src/measurement/execution.rs. Kernel CLOCK_MONOTONIC samples bind actual terminal/refusal classification and parent reaping in one clock domain. They bound cleanup and preserve raw phase timing only; they never supply guest model time or enter canonical execution streams. Missing or invalid terminal observations fail measurement admission.",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
-    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound",
-    "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup"
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites"
    ]
   },
   {
@@ -6268,6 +6266,106 @@
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
     "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound",
     "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.elapsed.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|.elapsed()|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/execution.rs execute_inner",
+   "rule": "Exact same-count relocation from execute to execute_inner; .elapsed() remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/execution.rs execute_inner",
+   "rule": "Exact same-count relocation from execute to execute_inner; Instant::now remains one controlled host effect in gomad/src/measurement/execution.rs. Owned measurement compiler processes are admitted, polled, killed and reaped under explicit preparation and cleanup bounds. Monotonic observations measure host phases only and remain private auxiliary evidence; they do not enter guest canonical streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.execution.rs.execute.inner.linked.monotonic.nanos.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/execution.rs|execute_inner|linked::monotonic_nanos(|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/execution.rs execute_inner",
+   "rule": "Exact same-count relocation from execute to execute_inner; linked::monotonic_nanos( remains one controlled host effect in gomad/src/measurement/execution.rs. Kernel CLOCK_MONOTONIC samples bind actual terminal/refusal classification and parent reaping in one clock domain. They bound cleanup and preserve raw phase timing only; they never supply guest model time or enter canonical execution streams. Missing or invalid terminal observations fail measurement admission.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound",
+    "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.spawn.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|.spawn(|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs execute_prepared_observed",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; .spawn( remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.recv.timeout.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs execute_prepared_observed",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; recv_timeout remains one controlled host effect in wasmhost/src/linked_cluster.rs. Monotonic wall samples, polling delays and bounded receives enforce host deadlines or collect metrics; model clocks remain virtual and these measurements do not enter canonical streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.wasmhost.src.linked.cluster.rs.execute.prepared.observed.thread.scope.1",
+   "layer": "host-process",
+   "class": "thread-order",
+   "site": "host-rust:wasmhost/src/linked_cluster.rs|execute_prepared_observed|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "wasmhost/src/linked_cluster.rs execute_prepared_observed",
+   "rule": "Exact same-count relocation from execute_prepared to execute_prepared_observed; thread::scope remains one controlled host effect in wasmhost/src/linked_cluster.rs. Owned host workers or compiler subprocesses are joined or reaped under a declared bound; the broker serializes modeled commits and diagnostic receipts independently of host scheduling.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.cluster.admission.rs.observe.systemtime.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/cluster_admission.rs|observe|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/cluster_admission.rs observe",
+   "rule": "Wall time labels private lifecycle before/after observation files alongside the actual PID and phase. These observations authenticate admission boundaries and never provide guest virtual time or canonical execution inputs.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/measurement/cluster_admission_tests.rs:original_four_phases_by_four_drifts_stop_dispatch_or_observation_at_boundary"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.fixture.cluster.lifecycle.tests.rs.public.replay.systemtime.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/fixture_cluster_lifecycle_tests.rs|public_replay|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "gomad/src/fixture_cluster_lifecycle_tests.rs public_replay",
+   "rule": "Wall time and PID name a private temporary public-replay Store root in this native fixture. The temporary path never enters canonical execution identity or supplies modeled guest time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/fixture_cluster_lifecycle_tests.rs:failed_wait_keeps_declared_ordered_join_recipe_without_inventing_actions"
    ]
   }
  ]
