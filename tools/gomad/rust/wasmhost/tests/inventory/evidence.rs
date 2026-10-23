@@ -36,6 +36,9 @@ pub(super) fn check_reference(module: &Path, reference: &str) -> Result<(), Stri
         )
     };
     let (kind, tail) = reference.split_once(':').ok_or_else(missing)?;
+    if kind == "migration" {
+        return super::evidence_migrations::check_reference(module, tail);
+    }
     if kind == "corpus" {
         let root = module.join("rust").canonicalize().map_err(|_| missing())?;
         let path = root.join(tail).canonicalize().map_err(|_| missing())?;

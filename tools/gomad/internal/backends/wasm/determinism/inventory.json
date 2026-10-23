@@ -130,7 +130,7 @@
    "rule": "The feature helper privately selects changed guest output and arms a later clock shift only after actual output commit, proving exact earliest-event reporting within one retained inspection interval. The signal is removed before seeding and is absent from guest declared environment and release helpers.",
    "evidence": [
     "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
-    "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
    ]
   },
   {
@@ -181,7 +181,7 @@
    "owner": "wasi SetDeterminismFixtureConditions",
    "rule": "The distinct fault helper configuration requires explicit private fixture admission and is refused for ordinary qualification; host fault selection never changes declared guest inputs.",
    "evidence": [
-    "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"
    ]
   },
   {
@@ -193,8 +193,7 @@
    "owner": "wasmhost protocol::decode_boundary and Execute::validate",
    "rule": "Unknown execute fields, nested fields and kinds are refused as unsupported before started.",
    "evidence": [
-    "rust:tests/engine.rs:determinism_refuses_unknown_execute_fields_and_kinds_before_started",
-    "go:internal/backends/wasm/wasi:TestDeterminismRefuseExecuteRequest"
+    "rust:tests/engine.rs:determinism_refuses_unknown_execute_fields_and_kinds_before_started"
    ]
   },
   {
@@ -206,9 +205,9 @@
    "owner": "wasi validatedFrame and frameSink",
    "rule": "Unknown helper frame kinds or callback fields, including split remote callbacks, are refused as unsupported before a modeled host effect.",
    "evidence": [
-    "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames",
-    "go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields",
-    "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal"
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames",
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields",
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal"
    ]
   },
   {
@@ -233,7 +232,7 @@
    "owner": "wasi validateEngineConfiguration",
    "rule": "An engine configuration outside the release pin or an explicitly admitted diagnostic revision is refused as unsupported before authorization, even if the caller repeats the off-pin identity.",
    "evidence": [
-    "go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"
+    "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"
    ]
   },
   {
@@ -2399,8 +2398,9 @@
    "rule": "Allowlisted: compiled only with the diagnostic-profile feature, whose helpers the Go side refuses for every qualification role; its timings and threads feed profile output, never evidence.",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity"
+    "migration:go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
+    "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+    "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
    ]
   },
   {
@@ -2413,8 +2413,9 @@
    "rule": "Allowlisted: compiled only with the guest-profile feature, whose helpers the Go side refuses for every qualification role; its timings and threads feed profile output, never evidence.",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity"
+    "migration:go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
+    "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+    "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
    ]
   },
   {
@@ -2439,7 +2440,7 @@
    "rule": "Fuel metering counts guest instructions deterministically; fuel-off exists only in diagnostic builds the Go side refuses for qualification.",
    "evidence": [
     "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
+    "migration:go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
    ]
   },
   {
@@ -2512,7 +2513,7 @@
    "rule": "The profile-only epoch builder call is retired by the shared linked/transport configuration; its replacement explicitly enables epochs for a linked watchdog or guest profiling.",
    "evidence": [
     "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
+    "migration:go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
    ]
   },
   {

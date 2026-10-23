@@ -1839,6 +1839,8 @@ fn appended_retired_identity_cannot_reuse_an_existing_site() {
 
 #[path = "inventory/evidence.rs"]
 mod evidence_inventory;
+#[path = "inventory/evidence_migrations.rs"]
+mod evidence_migrations;
 
 #[test]
 fn inventory_rejects_invalid_stable_ids_and_reference_paths() {

@@ -1,0 +1,924 @@
+{
+  "authority": "fn-232 Rust host retirement decision and MILESTONES.md; explicit receiving-contract migration, not original test execution",
+  "contracts": [
+    {
+      "assertions": [
+        {
+          "disposition": "native",
+          "id": "opt-in.guest-profile",
+          "original_assertion": "Diagnostic configuration guest-profile without private opt-in must refuse execution.",
+          "reason": "The installed native Prepared defaults to Ordinary; explicit Conditions opt-in must match the compiled role. The native fuel-off spelling is diagnostic-fuel-off.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "opt-in-message.guest-profile",
+          "original_assertion": "The refusal message contains requires test opt-in.",
+          "reason": "The Go transport-specific wording is retired; native refusal says identity mismatch before authorization.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "opt-in.fuel-off",
+          "original_assertion": "Diagnostic configuration fuel-off without private opt-in must refuse execution.",
+          "reason": "The installed native Prepared defaults to Ordinary; explicit Conditions opt-in must match the compiled role. The native fuel-off spelling is diagnostic-fuel-off.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "opt-in-message.fuel-off",
+          "original_assertion": "The refusal message contains requires test opt-in.",
+          "reason": "The Go transport-specific wording is retired; native refusal says identity mismatch before authorization.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "opt-in.guest-profile-fuel-off",
+          "original_assertion": "Diagnostic configuration guest-profile-fuel-off without private opt-in must refuse execution.",
+          "reason": "The installed native Prepared defaults to Ordinary; explicit Conditions opt-in must match the compiled role. The native fuel-off spelling is diagnostic-fuel-off.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "opt-in-message.guest-profile-fuel-off",
+          "original_assertion": "The refusal message contains requires test opt-in.",
+          "reason": "The Go transport-specific wording is retired; native refusal says identity mismatch before authorization.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "opt-in.stress-jitter",
+          "original_assertion": "Diagnostic configuration stress-jitter without private opt-in must refuse execution.",
+          "reason": "The installed native Prepared defaults to Ordinary; explicit Conditions opt-in must match the compiled role. The native fuel-off spelling is diagnostic-fuel-off.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "opt-in-message.stress-jitter",
+          "original_assertion": "The refusal message contains requires test opt-in.",
+          "reason": "The Go transport-specific wording is retired; native refusal says identity mismatch before authorization.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "invalid.ordinary-revision",
+          "original_assertion": "The ordinary-revision request returns an invalid BoundaryError.",
+          "reason": "The private diagnosticConfigurationRevision string and caller-supplied EngineIdentity object belonged to the retired Go peer transport. Native compiled Conditions is a closed enum, with actual matching-role admission tested for all seven variants.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "invalid.unknown-revision",
+          "original_assertion": "The unknown-revision request returns an invalid BoundaryError.",
+          "reason": "The private diagnosticConfigurationRevision string and caller-supplied EngineIdentity object belonged to the retired Go peer transport. Native compiled Conditions is a closed enum, with actual matching-role admission tested for all seven variants.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "invalid.empty-engine",
+          "original_assertion": "The empty-engine request returns an invalid BoundaryError.",
+          "reason": "The private diagnosticConfigurationRevision string and caller-supplied EngineIdentity object belonged to the retired Go peer transport. Native compiled Conditions is a closed enum, with actual matching-role admission tested for all seven variants.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "invalid.profile-without-role",
+          "original_assertion": "The profile-without-role request returns an invalid BoundaryError.",
+          "reason": "The private diagnosticConfigurationRevision string and caller-supplied EngineIdentity object belonged to the retired Go peer transport. Native compiled Conditions is a closed enum, with actual matching-role admission tested for all seven variants.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "invalid.profile-with-fuel-off-role",
+          "original_assertion": "The profile-with-fuel-off-role request returns an invalid BoundaryError.",
+          "reason": "The private diagnosticConfigurationRevision string and caller-supplied EngineIdentity object belonged to the retired Go peer transport. Native compiled Conditions is a closed enum, with actual matching-role admission tested for all seven variants.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "profile.relative-path",
+          "original_assertion": "The relative-path guest profile configuration returns invalid before sampling.",
+          "reason": "The real native Prepared.guest_profile setter rejects the same malformed path or sampling bound before execution.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:private_guest_profile_configuration_refuses_original_invalid_bounds_before_execution"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "profile.zero-interval",
+          "original_assertion": "The zero-interval guest profile configuration returns invalid before sampling.",
+          "reason": "The real native Prepared.guest_profile setter rejects the same malformed path or sampling bound before execution.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:private_guest_profile_configuration_refuses_original_invalid_bounds_before_execution"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "profile.samples-100001",
+          "original_assertion": "The samples-100001 guest profile configuration returns invalid before sampling.",
+          "reason": "The real native Prepared.guest_profile setter rejects the same malformed path or sampling bound before execution.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:private_guest_profile_configuration_refuses_original_invalid_bounds_before_execution"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "normal-request-privacy",
+          "original_assertion": "Marshaling the ordinary request succeeds and exposes no guest_profile input.",
+          "reason": "The complete native declared Configuration is canonically serialized before and after all private controls and contains no guest_profile key. Native Request is not a serialized peer executeFrame.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
+      "original_file": "internal/backends/wasm/wasi/process_test.go",
+      "original_pass": false,
+      "original_sha256": "348de047469451285747b3e990cf0bedaa03e32546549e44e33416a60746da05"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "native",
+          "id": "inputs.none",
+          "original_assertion": "The none fixture control succeeds and leaves the complete declared request serialization unchanged.",
+          "reason": "The actual private native control is applied through run_counterfactual; complete declared Configuration, module/provenance, published replay inputs, identity, arguments and environment are compared before and after.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity",
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "wire-environment.none",
+          "original_assertion": "The private transport environment has exactly the named GOMAD_WASM_DETERMINISM_FAULT value and GOMAD_WASM_EVENT_ORDER=1.",
+          "reason": "The installed host has no helper subprocess environment transport. Request-local typed Kind controls and event sessions replace those two private environment strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution",
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "inputs.draw",
+          "original_assertion": "The draw fixture control succeeds and leaves the complete declared request serialization unchanged.",
+          "reason": "The actual private native control is applied through run_counterfactual; complete declared Configuration, module/provenance, published replay inputs, identity, arguments and environment are compared before and after.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity",
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "wire-environment.draw",
+          "original_assertion": "The private transport environment has exactly the named GOMAD_WASM_DETERMINISM_FAULT value and GOMAD_WASM_EVENT_ORDER=1.",
+          "reason": "The installed host has no helper subprocess environment transport. Request-local typed Kind controls and event sessions replace those two private environment strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution",
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "inputs.clock",
+          "original_assertion": "The clock fixture control succeeds and leaves the complete declared request serialization unchanged.",
+          "reason": "The actual private native control is applied through run_counterfactual; complete declared Configuration, module/provenance, published replay inputs, identity, arguments and environment are compared before and after.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity",
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "wire-environment.clock",
+          "original_assertion": "The private transport environment has exactly the named GOMAD_WASM_DETERMINISM_FAULT value and GOMAD_WASM_EVENT_ORDER=1.",
+          "reason": "The installed host has no helper subprocess environment transport. Request-local typed Kind controls and event sessions replace those two private environment strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution",
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "inputs.handoff",
+          "original_assertion": "The handoff fixture control succeeds and leaves the complete declared request serialization unchanged.",
+          "reason": "The actual private native control is applied through run_counterfactual; complete declared Configuration, module/provenance, published replay inputs, identity, arguments and environment are compared before and after.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity",
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "wire-environment.handoff",
+          "original_assertion": "The private transport environment has exactly the named GOMAD_WASM_DETERMINISM_FAULT value and GOMAD_WASM_EVENT_ORDER=1.",
+          "reason": "The installed host has no helper subprocess environment transport. Request-local typed Kind controls and event sessions replace those two private environment strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution",
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "inputs.output-clock",
+          "original_assertion": "The output-clock fixture control succeeds and leaves the complete declared request serialization unchanged.",
+          "reason": "The actual private native control is applied through run_counterfactual; complete declared Configuration, module/provenance, published replay inputs, identity, arguments and environment are compared before and after.",
+          "receiving_tests": [
+            "rust:gomad/src/campaign/fixture_input_preservation_tests.rs:every_private_fixture_fault_keeps_complete_declared_input_serialization_and_identity",
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "wire-environment.output-clock",
+          "original_assertion": "The private transport environment has exactly the named GOMAD_WASM_DETERMINISM_FAULT value and GOMAD_WASM_EVENT_ORDER=1.",
+          "reason": "The installed host has no helper subprocess environment transport. Request-local typed Kind controls and event sessions replace those two private environment strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution",
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "unknown-fault-string",
+          "original_assertion": "SetDeterminismFixtureConditions rejects unknown fault strings.",
+          "reason": "The native private control accepts only the five Kind variants and has no string parser. The reference helper environment reader is a different non-installed oracle seam and is not claimed to reject unknown strings.",
+          "receiving_tests": [
+            "rust:src/determinism_fixture/control_tests.rs:every_private_fixture_control_requires_opt_in_and_is_cleared_before_plain_execution"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "mutated-declared-engine",
+          "original_assertion": "A caller-mutated declared engine suffix cannot be admitted even with private fixture opt-in.",
+          "reason": "The native request has no caller-supplied peer EngineIdentity/configuration suffix; the compiled Conditions role owns this identity. All known mismatched roles refuse before any store.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "qualification-opt-in",
+          "original_assertion": "A fixture execution without private opt-in is refused.",
+          "reason": "All five actual native controls are refused with the default Ordinary role and admitted only with explicit fixture role, for both single and cluster execution.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "qualification-message",
+          "original_assertion": "The no-opt-in refusal contains requires test opt-in.",
+          "reason": "The retired Go wording is replaced by the native compiled-role refusal; this is not an original-message PASS.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:every_fixture_fault_requires_explicit_native_role_before_single_or_cluster_start"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs",
+      "original_file": "internal/backends/wasm/wasi/stress_test.go",
+      "original_pass": false,
+      "original_sha256": "73a0a1c24bada8c2eee03beaf0c4b8872f7273ecfcdeeac90fcd5ea00c59fb8e"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "retired-peer-wire",
+          "id": "future-setting",
+          "original_assertion": "A Started frame carrying engine configuration plus -future-setting is unsupported.",
+          "reason": "There is no installed peer Started frame or caller-supplied engine configuration string. The reference-helper Started protocol remains a separate oracle endpoint.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "dimension",
+          "original_assertion": "The unsupported BoundaryError dimension includes the off-pin configuration string.",
+          "reason": "The arbitrary Go peer configuration and its error dimension have no native representation.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "no-authorization",
+          "original_assertion": "Refused engine identity cannot authorize guest execution.",
+          "reason": "Actual mismatched native roles return before authorization; single output capture stays empty and cluster store/start counters stay zero.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "no-started-frame",
+          "original_assertion": "The refused frame does not publish sink.started.",
+          "reason": "The installed native path has no peer Started slot. Actual store-start refusal is separately retained by no-authorization.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "cluster-started",
+          "original_assertion": "validateClusterStarted refuses the same off-pin Started frame as unsupported.",
+          "reason": "The retired Go cluster frame validator is absent; native cluster role mismatch refuses before its lifecycle observer or any store starts.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted",
+      "original_file": "internal/backends/wasm/wasi/determinism_boundary_test.go",
+      "original_pass": false,
+      "original_sha256": "db293c31d0b7a27851c7dd206358d47d6c17082bd279366639a1106181f6c9cd"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-reply.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-reply.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.future-reply.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.future-reply.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-reply.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-kind-and-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-kind-and-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.future-kind-and-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.future-kind-and-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.future-kind-and-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.call-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.call-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-input-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-input-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.call-input-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "remote.call-input-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "remote.call-input-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-reply.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-reply.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.future-reply.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.future-reply.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-reply.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-kind-and-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-kind-and-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.future-kind-and-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.future-kind-and-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.future-kind-and-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.call-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.call-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-input-field.kind",
+          "original_assertion": "Unknown helper frames refuse as unsupported.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-input-field.message",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.call-input-field.stdout",
+          "original_assertion": "Refusal publishes no stdout.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "split.call-input-field.transcript",
+          "original_assertion": "Refusal publishes no transcript.",
+          "reason": "Actual malformed native ABI input traps before a model call: stdout/stderr/transcript stay empty and model calls/transcript bytes remain zero. The original remote/split JSON forms are separately retired; this is a new native admission contract, not execution of those original frames.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:malformed_native_callback_memory_publishes_no_output_or_transcript"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "split.call-input-field.terminal",
+          "original_assertion": "Refusal publishes no valid peer terminal.",
+          "reason": "The Go frameSink, remote/split callback envelopes and valid-terminal publication slot are absent from installed native execution. The retained reference-helper remote reply parser has the reverse direction and is not substituted for this original.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames",
+      "original_file": "internal/backends/wasm/wasi/determinism_boundary_test.go",
+      "original_pass": false,
+      "original_sha256": "87e1fd1a514369dfcde2c22b14388e627cfd5afc6eed1b83436290444a40322e"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "retired-peer-wire",
+          "id": "call-local-state.unsupported",
+          "original_assertion": "The nested future field is refused as an unsupported BoundaryError.",
+          "reason": "The Go callback/Started envelopes and their field classifier are removed from the installed host. Native external record and model metadata keep strict typed unknown-field admission.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output",
+            "rust:tests/core_runtime_preservation.rs:native_model_admission_rejects_unknown_fields_at_each_typed_level"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "call-local-state.dimension",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "This Go peer error dimension is retired; the native record reader reports unknown field future before inspection output.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "started-engine.unsupported",
+          "original_assertion": "The nested future field is refused as an unsupported BoundaryError.",
+          "reason": "The Go callback/Started envelopes and their field classifier are removed from the installed host. Native external record and model metadata keep strict typed unknown-field admission.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output",
+            "rust:tests/core_runtime_preservation.rs:native_model_admission_rejects_unknown_fields_at_each_typed_level"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "started-engine.dimension",
+          "original_assertion": "The refusal dimension contains future.",
+          "reason": "This Go peer error dimension is retired; the native record reader reports unknown field future before inspection output.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_nested_record_fields_refuse_before_inspection_output"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields",
+      "original_file": "internal/backends/wasm/wasi/determinism_boundary_test.go",
+      "original_pass": false,
+      "original_sha256": "4d36b62d1dc9c64d58106b118a098e731ee78a445fbfb2b48427af9a3c6f84d9"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "retired-peer-wire",
+          "id": "run-error",
+          "original_assertion": "Run returns a terminal refusal rather than a host invocation error for an unknown peer reply.",
+          "reason": "There is no installed helper subprocess Run/peer terminal to convert. Native calls return typed Result and retained readers validate their actual external record vocabulary.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_record_termination_is_rejected_by_public_intake"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "unsupported-kind",
+          "original_assertion": "A future_reply frame is classified unsupported.",
+          "reason": "Original frame.type is not Record.termination. The retired frame classifier is not recreated, and retained future termination refusal is not claimed as an original-frame PASS.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_record_termination_is_rejected_by_public_intake"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "message",
+          "original_assertion": "The terminal refusal message includes future_reply.",
+          "reason": "The old peer refusal wording is retired along with its parser.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_unknown_record_termination_is_rejected_by_public_intake"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "no-start",
+          "original_assertion": "A refused execution has no guest start.",
+          "reason": "Actual native role mismatches refuse before authorization and cluster store/lifecycle start. There is no injectable unknown peer reply.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "cleanup",
+          "original_assertion": "The failed execution has completed native cleanup before return.",
+          "reason": "Actual single native workers are joined and release their output capability; actual cluster stores are joined with before/after lifecycle observations. No subprocess Reaped boolean is invented.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal",
+      "original_file": "internal/backends/wasm/wasi/determinism_boundary_test.go",
+      "original_pass": false,
+      "original_sha256": "fdaaf9246326247b76e58ed1dd736fc834454a67a128371fd0b7186f556b126a"
+    },
+    {
+      "assertions": [
+        {
+          "disposition": "pending",
+          "id": "invented-output",
+          "original_assertion": "A terminal output_bytes claim exceeding actual offered output is invalid.",
+          "reason": "Optional retained backend-outcome output_bytes is authenticated opaque telemetry; actual native output bounds do not prove adversarial claim validation. A separate receiving telemetry contract is required.",
+          "receiving_tests": []
+        },
+        {
+          "disposition": "pending",
+          "id": "excess-fuel",
+          "original_assertion": "A terminal fuel_remaining claim above the admitted fuel budget is invalid.",
+          "reason": "Optional retained backend-outcome fuel_remaining is authenticated opaque telemetry; actual engine accounting does not prove adversarial claim validation. A separate receiving telemetry contract is required.",
+          "receiving_tests": []
+        },
+        {
+          "disposition": "native",
+          "id": "missing-exit-code",
+          "original_assertion": "An exit terminal without exit_code is invalid.",
+          "reason": "A genuine native artifact is coherently resealed with no exit status and rejected by actual public artifact authentication and inspect, after all hashes are resealed.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_exit_record_without_exit_status_is_rejected_by_public_intake"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "trap-exit-code",
+          "original_assertion": "A trap terminal with exit_code is invalid.",
+          "reason": "A genuine native artifact is coherently resealed with a trap exit status and rejected by actual public authentication and inspect.",
+          "receiving_tests": [
+            "rust:gomad/src/evidence/store/record_intake_tests.rs:resealed_trap_record_with_exit_status_is_rejected_by_public_intake"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "missing-peer-terminal",
+          "original_assertion": "A helper that exits without a terminal produces infrastructure failure.",
+          "reason": "The installed native core has no optional peer terminal frame; typed native Result replaces the removed helper stdout session. This disposition does not close invented-output or excess-fuel claims.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "native",
+          "id": "cleanup",
+          "original_assertion": "All actual failures complete owned execution cleanup.",
+          "reason": "Native mismatch and failure executions join workers and release output capabilities; cluster start/join counters are checked.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        },
+        {
+          "disposition": "retired-peer-wire",
+          "id": "missing-terminal-not-watchdog",
+          "original_assertion": "Missing peer terminal refusal is not classified as watchdog timeout.",
+          "reason": "The absent-peer-terminal condition is removed from installed execution, so its peer-specific watchdog distinction is retired. Native deadline classification remains tested independently.",
+          "receiving_tests": [
+            "rust:tests/diagnostic_roles.rs:single_native_role_matrix_refuses_before_guest_output_and_joins_every_execution",
+            "rust:tests/diagnostic_roles.rs:cluster_native_role_matrix_refuses_before_any_store_and_joins_admitted_stores"
+          ]
+        }
+      ],
+      "legacy_reference": "go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims",
+      "original_file": "internal/backends/wasm/wasi/process_test.go",
+      "original_pass": false,
+      "original_sha256": "e6cfdee1a52ef87a1c6b566da3d5307d6c360d5def6419637c50b7fa05d26f3e"
+    }
+  ],
+  "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "original_pass": false,
+  "schema": "gomad.determinism-evidence-migrations/v1"
+}
