@@ -22,7 +22,7 @@ def fixture(base,role='release'):
     plan=base/'plan.json';plan.write_text(json.dumps(dict(schema='gomad.driver-static-plan/v1',repo=str(repo),driver_config=str(base/'future.json'),
         tools=dict(python=sys.executable,rustc=str(base/'tools/rustc'),cargo=str(base/'tools/cargo')))))
     config.update(python=sys.executable,sent_epoch=1,_config_path=str(base/'future.json'),main_role=role,source_sha256='s'*64,head='a'*40,
-        stages=dict(validate=dict(argv=[sys.executable,'static','--plan',str(plan)])),identity_harness=dict(toolchain_plan=str(base/'gnu-plan.json')))
+        symlinks={},stages=dict(validate=dict(argv=[sys.executable,'static','--plan',str(plan)])),identity_harness=dict(toolchain_plan=str(base/'gnu-plan.json')))
     config['files'][str(plan)]=sha(plan)
     version='rustc 1.99.1 (synthetic)\n';context=dict(compiler_utf8=version,bindings=dict(PROFILE='release',TARGET='aarch64-unknown-linux-gnu'))
     executable=work/'target/release/gomad';executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
@@ -67,6 +67,31 @@ def environment(config,root,target=None):
 class MainCliBuild(unittest.TestCase):
     def setUp(self):
         selected=patch.object(gate.harness,'environment',side_effect=environment);selected.start();self.addCleanup(selected.stop)
+
+    def test_tracked_symlink_literal_is_git_authenticated_separately_from_regular_digest(self):
+        import os
+        import shutil
+        import subprocess
+        git=shutil.which('git')
+        with tempfile.TemporaryDirectory() as directory:
+            repo=Path(directory);(repo/'regular').write_text('fixed source');(repo/'other').write_text('other source')
+            (repo/'tracked-link').symlink_to('regular')
+            for args in (['init','--quiet'],['add','regular','other','tracked-link'],
+                         ['-c','user.name=unit','-c','user.email=unit@example.invalid','commit','--quiet','-m','source fixture']):
+                subprocess.run([git,'-C',str(repo),*args],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            files,digest,head,links=gate.source_state(repo,git)
+            self.assertNotIn(str(repo/'tracked-link'),files)
+            self.assertEqual(links,{str(repo/'tracked-link'):'regular'})
+            (repo/'tracked-link').unlink();(repo/'tracked-link').symlink_to('other')
+            # A caller can rewrite its table and keep the regular-file digest unchanged;
+            # the unchanged Git blob still refuses the coherent literal substitution.
+            with self.assertRaisesRegex(Refusal,'actual Git HEAD blob'):gate.source_state(repo,git)
+            original=subprocess.check_output([git,'-C',str(repo),'rev-parse','HEAD:tracked-link'],text=True).strip()
+            replacement=subprocess.check_output([git,'-C',str(repo),'hash-object','-w','--stdin'],input=b'other').decode().strip()
+            subprocess.run([git,'-C',str(repo),'replace',original,replacement],check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            with self.assertRaisesRegex(Refusal,'actual Git HEAD blob'):gate.source_state(repo,git)
+            (repo/'tracked-link').unlink();(repo/'tracked-link').write_text('regular')
+            with self.assertRaisesRegex(Refusal,'changed type'):gate.source_state(repo,git)
 
     def test_full_raw_chain_and_closed_distinct_fixture_role(self):
         for role in gate.ROLES:

@@ -21,15 +21,33 @@ COMMANDS = ('rustc-version', 'rustc-verbose', 'cargo-version', 'cargo-build')
 
 
 def source_state(repo, git):
-    env = dict(PATH=str(Path(git).parent), GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_SYSTEM='/dev/null', GIT_OPTIONAL_LOCKS='0')
+    env = dict(PATH=str(Path(git).parent), GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL='/dev/null', GIT_CONFIG_SYSTEM='/dev/null', GIT_OPTIONAL_LOCKS='0', GIT_NO_REPLACE_OBJECTS='1')
     paths = subprocess.check_output([git, '-C', str(repo), 'ls-files', '-z'], env=env).decode().split('\0')
     require(all('\n' not in name for name in paths), 'unsupported main CLI source filename')
+    head = subprocess.check_output([git, '-C', str(repo), 'rev-parse', 'HEAD'], text=True, env=env).strip()
+    tree = subprocess.check_output([git, '-C', str(repo), 'ls-tree', '-r', '-z', head], env=env)
+    links = {}
+    for raw in tree.split(b'\0'):
+        if not raw:continue
+        metadata, name = raw.split(b'\t', 1)
+        mode, kind, object_id = metadata.split()
+        name = name.decode()
+        if mode == b'120000' and not name.startswith('.flow/'):
+            path = repo / name
+            require(kind == b'blob' and path.is_symlink(), 'main CLI tracked symlink changed type or disappeared')
+            literal = os.readlink(path)
+            original = subprocess.check_output([git, '-C', str(repo), 'cat-file', 'blob', object_id.decode()], env=env)
+            require(hashlib.sha1(b'blob ' + str(len(original)).encode() + b'\0' + original).hexdigest() == object_id.decode(),
+                    'main CLI Git symlink blob does not match its object identity')
+            require(os.fsencode(literal) == original, 'main CLI tracked symlink literal differs from its actual Git HEAD blob')
+            links[str(path)] = literal
+    actual_links = {str(repo / name) for name in paths if name and not name.startswith('.flow/') and (repo / name).is_symlink()}
+    require(actual_links == set(links), 'main CLI source has an uncommitted or missing tracked symlink')
     files = {str(repo / name): sha(repo / name) for name in sorted(paths) if name and not name.startswith('.flow/')
              and (repo / name).is_file() and not (repo / name).is_symlink()}
-    require(files, 'main CLI build has no actual tracked source inputs')
+    require(files, 'main CLI build has no actual regular tracked source inputs')
     text = ''.join(digest + '  ' + name + '\n' for name, digest in sorted(files.items()))
-    head = subprocess.check_output([git, '-C', str(repo), 'rev-parse', 'HEAD'], text=True, env=env).strip()
-    return files, hashlib.sha256(text.encode()).hexdigest(), head
+    return files, hashlib.sha256(text.encode()).hexdigest(), head, links
 
 
 def provision_config(tools_path, gnu_path, sent_epoch):
@@ -42,9 +60,9 @@ def provision_config(tools_path, gnu_path, sent_epoch):
                   stages=dict(validate=dict(argv=[tools['tools']['python'], str(HERE / 'static_stages.py'), '--plan', str(tools_path)])),
                   identity_harness=dict(toolchain_plan=str(gnu_path)), _config_path=tools['driver_config'])
     _, envelope = native_gnu.inspect(config, tools_path)
-    sources, source_sha256, head = source_state(repo, envelope['git'])
+    sources, source_sha256, head, symlinks = source_state(repo, envelope['git'])
     paths = harness.static_inputs(config) | set(sources)
-    config.update(files={path: sha(path) for path in sorted(paths)}, source_sha256=source_sha256, head=head)
+    config.update(files={path: sha(path) for path in sorted(paths)}, source_sha256=source_sha256, head=head, symlinks=symlinks, git=envelope['git'])
     harness.preflight(config)
     return config
 
@@ -165,7 +183,8 @@ def evidence(config, root):
         inputs[str(path)] = sha(path)
     return dict(schema=SCHEMA, profile='release', exit=0, features=ROLES[config['main_role']], helper_features=[], role=config['main_role'],
                 binary=str(binary), binary_sha256=sha(binary), cargo_artifact=str(executable), host_sha256=identity['host'], helper_sha256=identity['helper'],
-                runtime_implementation_sha256=runtime, source_sha256=config['source_sha256'], head=config['head'],
+                runtime_implementation_sha256=runtime, source_sha256=config['source_sha256'], source_kind='regular-tracked-non-flow/v1',
+                symlinks=config['symlinks'], head=config['head'],
                 tools_plan=str(harness.plan(config)[0]), gnu_plan=config['identity_harness']['toolchain_plan'],
                 root=str(root), command=build_command(config), context=context, generated=generated, inputs=inputs)
 
@@ -186,6 +205,7 @@ def read_build(path, frozen=None, expected_role=None):
     require(receipt == expected, 'main CLI receipt differs from independently reopened source/compiler/Cargo/process evidence')
     check_files(receipt['inputs'])
     if frozen is not None:
+        require(frozen.get('head') == receipt['head'] and frozen.get('symlinks') == receipt['symlinks'], 'main CLI Git HEAD or symlink custody differs from the frozen candidate')
         require(frozen['source_sha256'] == receipt['source_sha256'] and frozen['identity']['helper'] == receipt['helper_sha256'],
                 'main CLI build differs from the frozen source or ordinary linked implementation')
         if receipt['role'] == 'release':
@@ -231,6 +251,8 @@ def build(tools_path, gnu_path, root, role='release'):
             import shutil
             shutil.copyfileobj(source, output)
     check_files(config['files'])
+    _, source_digest, head, symlinks = source_state(Path(config['repo']), config['git'])
+    require((source_digest, head, symlinks) == (config['source_sha256'], config['head'], config['symlinks']), 'main CLI source or symlink custody changed during its build')
     write(root / 'producer.json', dict(pid=os.getpid(), start_monotonic_nanos=started_monotonic_nanos,
         end_monotonic_nanos=time.clock_gettime_ns(time.CLOCK_MONOTONIC), started_epoch_ns=started_epoch_ns))
     path = root / 'main-build.json'

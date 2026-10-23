@@ -16,7 +16,7 @@ never invokes a nonexistent main-CLI identity command.
 The output `FRESH/main-build.json` has schema `gomad.driver-main-build/v1`.
 `binary` names the single-link published copy `FRESH/admitted/gomad`.
 `cargo_artifact` names the actual Cargo executable. The receipt retains the
-complete known source/toolchain/cache closure, raw Cargo and process journals,
+complete known regular tracked source/toolchain/cache closure, raw Cargo and process journals,
 actual source manifests from both build scripts, and derived host/helper/runtime
 implementation identities. The reader reconstructs the fixed artifact and
 library source, profile and feature predicates. Host Cargo package identity uses
@@ -29,6 +29,13 @@ compiler, Cargo, main CLI or guest. A frozen binding additionally
 checks the ordinary candidate or separately selected fixture role and the full
 input table. `input_paths(receipt)` supplies the actual completed build's files
 to the freezer. A caller-authored legacy wrapper receipt is refused.
+
+`source_sha256` has the explicit contract `regular-tracked-non-flow/v1`; it
+is not a digest of every Git tree object. Tracked symlinks are retained in a
+separate literal table, authenticated against the actual committed Git blobs and
+rechecked after compilation. Frozen admission binds both the HEAD and complete
+symlink table in addition to the regular-source digest. Coherently changing a
+working symlink and caller table cannot replace the unchanged Git blob.
 
 These are prefreeze source/build inputs. No later installation, preparation,
 guest, qualification or final-section output is predicted or hashed. Actual
