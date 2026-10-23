@@ -26,11 +26,11 @@ def fixture(base,role='release'):
         symlinks={},stages=dict(validate=dict(argv=[sys.executable,'static','--plan',str(plan)])),identity_harness=dict(toolchain_plan=str(base/'gnu-plan.json')))
     config['files'][str(plan)]=sha(plan)
     version='rustc 1.99.1 (synthetic)\n';context=dict(compiler_utf8=version,bindings=dict(PROFILE='release',TARGET='aarch64-unknown-linux-gnu'))
-    helper_only=role=='conformance-reference'
-    target=gate.EXAMPLES.get(role,'gomad-wasmhost' if helper_only else 'gomad')
+    helper_only=role in gate.HELPERS
+    target=gate.EXAMPLES.get(role,('gomad_wasmhost' if role in gate.LIBTESTS else 'gomad-wasmhost') if helper_only else 'gomad')
     example=role in gate.EXAMPLES
-    test=role=='counterfactual-harness'
-    executable=work/('target/release/deps/gomad-abcd' if test else 'target/release/examples/'+target if example else 'target/release/'+target);executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
+    test=role in gate.LIBTESTS
+    executable=work/('target/release/deps/'+target+'-abcd' if test else 'target/release/examples/'+target if example else 'target/release/'+target);executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
     identity,runtime,inventories=gate.identities(config,context);frames=[]
     for kind,name,package in (('host','gomad','gomad'),('helper','wasmhost','gomad-wasmhost')):
         if helper_only and kind=='host':continue
@@ -42,7 +42,7 @@ def fixture(base,role='release'):
             (generated/'identity-bindings.tsv').write_text(''.join(k+'\t'+v+'\n' for k,v in sorted(gate.native_roles.feature_bindings(gate.helper_features(role),context['bindings']['TARGET']).items())))
         env=[['GOMAD_RUNTIME_IMPLEMENTATION_SHA256',runtime],['GOMAD_HOST_IMPLEMENTATION_SHA256',identity['host']]] if kind=='host' else [['GOMAD_LINKED_IMPLEMENTATION_SHA256',identity['helper']]]
         frames.append(dict(reason='build-script-executed',package_id=pkg,out_dir=str(generated),env=env))
-        if not (kind=='host' and test):
+        if not (kind==('helper' if helper_only else 'host') and test):
             frames.append(dict(reason='compiler-artifact',package_id=pkg,target=dict(kind=['lib'],src_path=str(crate/'src/lib.rs')),features=gate.ROLES[role] if kind=='host' else gate.helper_features(role)))
         if kind==('helper' if helper_only else 'host'):frames.append(dict(reason='compiler-artifact',package_id=pkg,manifest_path=str(crate/'Cargo.toml'),
             target=dict(name=target,kind=['example'] if example else ['lib'] if test else ['bin'],crate_types=['lib'] if test else ['bin'],
@@ -75,6 +75,73 @@ def environment(config,root,target=None):
 class MainCliBuild(unittest.TestCase):
     def setUp(self):
         selected=patch.object(gate.harness,'environment',side_effect=environment);selected.start();self.addCleanup(selected.stop)
+
+    def test_reference_transport_is_helper_only_without_conformance(self):
+        self.assertEqual(gate.ROLES['reference-transport'], ['reference-helper'])
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'reference-transport')
+            receipt=json.loads(path.read_text())
+            frozen=dict(config,files=dict(config['files']),identity=dict(host='ordinary-host',helper='ordinary-helper'),
+                live_corpus=dict(roles={'reference-transport':dict(binary=receipt['binary'],build_receipt=str(path))}))
+            frozen['files'].update(receipt['inputs']);frozen['files'][str(path)]=sha(path)
+            with patch.object(gate,'provision_config',return_value=config):
+                result=gate.read_build(path,frozen,expected_role='reference-transport')
+            self.assertEqual(result['helper_features'],['reference-helper'])
+            self.assertIsNone(result['host_sha256']);self.assertIsNone(result['runtime_implementation_sha256'])
+            self.assertEqual(result['command'][result['command'].index('--features')+1],'reference-helper')
+            self.assertNotIn('conformance',result['features'])
+            frozen['live_corpus']['roles']['reference-transport']['binary']='/caller/helper'
+            with patch.object(gate,'provision_config',return_value=config),self.assertRaises(Refusal):
+                gate.read_build(path,frozen,expected_role='reference-transport')
+
+    def test_freezer_expands_every_closed_live_role_and_refuses_missing_roles(self):
+        import configure
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);plan=root/'plan.json';plan.write_text(json.dumps(dict(repo=str(root))))
+            names=('release','host-fixture','ordinary-helper-test','ordinary-host-test')
+            roles={};receipts={};expected=set()
+            for name in names:
+                binary=root/(name+'.binary');binary.write_bytes(b'synthetic binary')
+                raw=root/(name+'.process.json');raw.write_text('{}')
+                path=root/(name+'.receipt.json');path.write_text('{}')
+                roles[name]=dict(binary=str(binary),build_receipt=str(path))
+                receipts[str(path)]=dict(binary=str(binary),source_sha256='s',head='h',symlinks={},tools_plan=str(plan),
+                    inputs={str(binary):sha(binary),str(raw):sha(raw)})
+                expected.update((str(path),str(binary),str(raw)))
+            config=dict(repo=str(root),source_sha256='s',head='h',symlinks={},live_corpus=dict(roles=roles))
+            def typed(path,expected_role):
+                self.assertEqual(roles[expected_role]['build_receipt'],path)
+                return receipts[path]
+            with patch.object(gate,'read_build',side_effect=typed) as reader:
+                self.assertEqual(configure.live_role_inputs(config),expected)
+                self.assertEqual(reader.call_count,4)
+                saved=roles.pop('ordinary-host-test')
+                with self.assertRaisesRegex(Refusal,'complete closed'):configure.live_role_inputs(config)
+                roles['ordinary-host-test']=saved
+                receipts[saved['build_receipt']]['source_sha256']='foreign'
+                with self.assertRaisesRegex(Refusal,'selected candidate'):configure.live_role_inputs(config)
+
+    def test_ordinary_libtest_roles_are_featureless_and_not_the_fixture(self):
+        import live
+        for role in ('ordinary-helper-test', 'ordinary-host-test'):
+            with self.subTest(role=role), tempfile.TemporaryDirectory() as temporary:
+                self.assertEqual(gate.ROLES[role], [])
+                config,path=fixture(Path(temporary),role)
+                receipt=json.loads(path.read_text())
+                frozen=dict(config,files=dict(config['files']))
+                frozen.update(identity=dict(host=receipt['host_sha256'],helper=receipt['helper_sha256']),
+                    live_corpus=dict(roles={role:dict(binary=receipt['binary'],build_receipt=str(path))}))
+                frozen['files'].update(receipt['inputs']);frozen['files'][str(path)]=sha(path)
+                with patch.object(gate,'provision_config',return_value=config):
+                    self.assertEqual(live.role(frozen,role)['binary'],receipt['binary'])
+                self.assertIn('--lib',receipt['command']);self.assertIn('--no-run',receipt['command'])
+                self.assertNotIn('--features',receipt['command'])
+                self.assertEqual(receipt['helper_features'],[])
+                if role=='ordinary-helper-test':self.assertIsNone(receipt['host_sha256'])
+                else:self.assertIsNotNone(receipt['host_sha256'])
+                foreign=dict(receipt,features=['determinism-fixture']);path.write_text(json.dumps(foreign))
+                frozen['files'][str(path)]=sha(path)
+                with patch.object(gate,'provision_config',return_value=config),self.assertRaises(Refusal):live.role(frozen,role)
 
     def test_conformance_reference_has_only_actual_helper_compiled_identity(self):
         with tempfile.TemporaryDirectory() as temporary:

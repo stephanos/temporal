@@ -42,6 +42,18 @@ zero identities, zero send time and unavailable endpoints. Replace these with
 reviewed candidate bindings; it cannot supply a pass as shipped. All paths are
 absolute and use regular files, including the canonical Python interpreter.
 Installations must come from the actual .11 installer and discover admission.
+The four live binary roles are `release`, `host-fixture`, `ordinary-helper-test`
+and `ordinary-host-test`. Every entry names an actual `main_cli_build.py`
+receipt and its admitted binary. The two ordinary test roles use separate
+featureless release libtests of `gomad-wasmhost` and `gomad`, with `--lib
+--no-run --no-default-features`. A fixture libtest cannot stand in for either.
+Their compiler/Cargo/process/generated-identity closure is frozen and independently
+reread before live commands; a sealed success dictionary is insufficient. Optional
+counterfactual roles use their separately admitted fixed feature recipes.
+An optional `reference-transport` entry uses the helper-only `reference-helper`
+feature to provision an actual transport binary for the original Go provider
+oracle. It carries no host/runtime identity, never aliases the conformance
+helper, and requires a separate original Go ABI/observation run before acceptance.
 Pin the real release binary and raw build-feature receipt:
 
 ```json

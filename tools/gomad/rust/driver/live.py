@@ -125,14 +125,12 @@ def sealed_input(config, path):
 
 
 def role(config, name):
+    require(name in ('release', 'host-fixture', 'ordinary-helper-test', 'ordinary-host-test'), 'unsupported live role')
     entry = config['live_corpus']['roles'][name]
     for field in ('binary', 'build_receipt'):
         sealed_input(config, entry[field])
-    if name in ('release', 'host-fixture'):
-        import main_cli_build
-        built = main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
-    else:
-        built = read(entry['build_receipt'])
+    import main_cli_build
+    built = main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
     require(built['exit'] == 0 and built['profile'] == 'release' and built['source_sha256'] == config['source_sha256'],
             'live binary is not the frozen built candidate')
     require(built['binary_sha256'] == sha(entry['binary']) and built['helper_sha256'] == config['identity']['helper']
@@ -446,7 +444,7 @@ def read_family(config, family, work, stdout):
         require(report['schema'] == 'gomad.live-cluster-service-cells/v1' and [item['cell'] for item in report['cells']] == list(CELLS), 'missing/duplicate lifecycle/cleanup variant')
         check = load('live-cluster-check')
         entry = config['live_corpus']['families'][family]
-        reference = check.provider_reference(Path(option(entry['argv'], '--provider-reference')))
+        reference = check.provider_reference(Path(option(entry['argv'], '--provider-reference')), frozen=config)
         require(reference == report['provider_reference'], 'root19 reference declaration differs from actual original observation')
         require(reference['assertions']['private_reference_hard_isolation_admitted']
                 and reference['assertions']['single_helper_hard_isolation_refused'], 'root19 architecture split missing')

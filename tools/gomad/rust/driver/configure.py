@@ -101,6 +101,24 @@ def native_profile_inputs(config):
     return paths
 
 
+def live_role_inputs(config):
+    import main_cli_build
+    roles = config.get('live_corpus', {}).get('roles')
+    required = {'release', 'host-fixture', 'ordinary-helper-test', 'ordinary-host-test'}
+    optional = {'counterfactual-fixture', 'counterfactual-harness', 'reference-transport'}
+    require(isinstance(roles, dict) and required <= set(roles) <= required | optional,
+            'complete closed live binary roles are required')
+    paths = set()
+    for name, entry in roles.items():
+        require(isinstance(entry, dict) and set(entry) == {'binary', 'build_receipt'}, 'unknown live role binding fields')
+        receipt = main_cli_build.read_build(entry['build_receipt'], expected_role=name)
+        require(receipt['binary'] == entry['binary'] and receipt['source_sha256'] == config['source_sha256']
+                and receipt['head'] == config['head'] and receipt['symlinks'] == config['symlinks']
+                and read(receipt['tools_plan'])['repo'] == config['repo'], 'live build differs from selected candidate source/publication')
+        paths.update(receipt['inputs']); paths.add(entry['build_receipt'])
+    return paths
+
+
 def runtime_harness_inputs(config):
     import main_cli_build
     bindings = set()
@@ -189,9 +207,7 @@ def freeze(bindings, output, source_manifest):
     inputs.update((config['binary'], config['build_receipt']))
     import main_cli_build
     inputs.update(main_cli_build.input_paths(config['build_receipt']))
-    fixture_role = config.get('live_corpus', {}).get('roles', {}).get('host-fixture')
-    if fixture_role:
-        inputs.update(main_cli_build.input_paths(fixture_role['build_receipt']))
+    inputs.update(live_role_inputs(config))
     inputs.update(native_bootstrap_inputs(config))
     inputs.update(native_profile_inputs(config))
     if config.get('identity_harness') is not None:
@@ -247,8 +263,8 @@ def freeze(bindings, output, source_manifest):
         if entry.get('admission'):
             native_roles.validate_admission(config, entry['admission'], role)
     main_cli_build.read_build(config['build_receipt'], config, expected_role='release')
-    if fixture_role:
-        main_cli_build.read_build(fixture_role['build_receipt'], config, expected_role='host-fixture')
+    for name, entry in config['live_corpus']['roles'].items():
+        main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
     main_cli_build.read_build(config['stages']['runtime-0']['harness_build_receipt'], config, expected_role='runtime-harness')
     import final_profiles
     final_profiles.preflight(config)

@@ -100,6 +100,19 @@ class RawBindingGuards(unittest.TestCase):
                 self.assertEqual(live.role(config,'host-fixture')['binary'],str(binary))
                 reader.assert_called_once_with(str(receipt),config,expected_role='host-fixture')
 
+    def test_ordinary_libtests_reject_sealed_legacy_success_claims(self):
+        import live
+        for name in ('ordinary-helper-test', 'ordinary-host-test'):
+            with self.subTest(role=name), tempfile.TemporaryDirectory() as directory:
+                root=Path(directory);binary=root/'test-binary';binary.write_bytes(b'synthetic libtest')
+                receipt=root/'legacy-build.json'
+                receipt.write_text(json.dumps(dict(exit=0,profile='release',source_sha256='s'*64,
+                    binary_sha256=driver.sha(binary),helper_sha256='helper',helper_features=[],role=name,features=[])))
+                config=dict(source_sha256='s'*64,identity=dict(helper='helper'),
+                    files={str(p):driver.sha(p) for p in (binary,receipt)},
+                    live_corpus=dict(roles={name:dict(binary=str(binary),build_receipt=str(receipt))}))
+                with self.assertRaisesRegex(driver.Refusal,'build receipt'):live.role(config,name)
+
     def test_private35_original_bounds_cannot_be_relaxed(self):
         import live
         with tempfile.TemporaryDirectory() as directory:
