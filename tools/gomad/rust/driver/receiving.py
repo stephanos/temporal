@@ -370,7 +370,7 @@ def retry_witness(stdout, network):
 
 
 def inspection_environment(config, root, actual):
-    expected = dict(PATH='',GOMAD_WASM_INSTALLATION=str(root/'installation-unavailable.json'),
+    expected = dict(PATH='',GOMAD_WASM_QUALIFY_WORKLOADS=None,GOMAD_WASM_INSTALLATION=str(root/'installation-unavailable.json'),
                     GOMAD_STOCK_GO=str(root/'compiler-unavailable'),GOMAD_WASM_RUNTIME_ROOT=str(root/'runtime-unavailable'))
     for flag in ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',
                  'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES'):

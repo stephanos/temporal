@@ -250,3 +250,20 @@ and independent complete projection, without changing public CLI/Result/provenan
 or canonical execution identities. That repair is not implemented or tested by
 this checkpoint. Snapshot optimization remains a separate saved patch and is
 not included. Actual runtime/qualification remain UNRUN.
+
+### Exact inspection workload-intent observation
+
+The existing producer command witness now always observes the eighth field
+`GOMAD_WASM_QUALIFY_WORKLOADS`. Detached inspection requires that field to be
+null (absent in the actual child environment), alongside its seven existing
+controlled fields. The bounded actual Python command fixture proves the genuine
+current producer observation is accepted and omitted/enabled intent is refused.
+The producer's single observation-field hunk was explicitly coordinated with
+the retirement owner; other producer behavior is unchanged.
+
+RED: `fn232-inspection-intent-red.log`, exit 1. GREEN:
+`fn232-inspection-intent-green.log`, exit 0. The committed scope's 70 portable
+driver and 17 workload tests pass (`fn232-inspection-intent-suite.log` and
+`fn232-inspection-intent-workloads.log`, both exit 0). Separate support and native
+auxiliary/cache drafts are excluded. All actual guest/runtime/qualification
+lanes remain UNRUN, and the full inventory-membership review finding stays OPEN.

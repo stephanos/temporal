@@ -112,8 +112,10 @@ class ReceivingControls(unittest.TestCase):
                            GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES='8192')
         producer.run(self.root, 'inspection-fixture', [sys.executable, '-c', 'print("{}")'], 0, environment=environment)
         actual = driver.read(self.root/'inspection-fixture.command.json')['environment']
+        self.assertEqual(len(actual),8)
+        self.assertIsNone(actual['GOMAD_WASM_QUALIFY_WORKLOADS'])
         receiving.inspection_environment(self.config, self.root, actual)
-        for changed in [dict(actual, PATH='/borrowed'), dict(actual, unknown='forged'), {key:value for key,value in actual.items() if key not in FLAGS}]:
+        for changed in [dict(actual,GOMAD_WASM_QUALIFY_WORKLOADS='1'),{key:value for key,value in actual.items() if key!='GOMAD_WASM_QUALIFY_WORKLOADS'},dict(actual, PATH='/borrowed'), dict(actual, unknown='forged'), {key:value for key,value in actual.items() if key not in FLAGS}]:
             with self.assertRaises(driver.Refusal):
                 receiving.inspection_environment(self.config, self.root, changed)
 
