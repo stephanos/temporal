@@ -176,6 +176,38 @@ class FixturePreparation(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'receipt.payload_binding'):
                 preparation.retained_input(root)
 
+    def test_callback_checker_has_an_independent_process_reader(self):
+        callback = check.load('interception_callback_lifecycle_test', Path(__file__).with_name('interception-callback-check.py'))
+        self.assertTrue(hasattr(callback, 'Runner'), 'callback process lifecycle receiver is missing')
+
+    def test_interrupted_callback_reader_reaps_and_retains_inconclusive_process(self):
+        callback = check.load('interception_callback_interrupt_test', Path(__file__).with_name('interception-callback-check.py'))
+        from unittest.mock import Mock, patch
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(work=Path(temporary), timeout=2)
+            runner = callback.Runner(args)
+            process = Mock(pid=12345, returncode=0)
+            process.communicate.side_effect = [KeyboardInterrupt(), (b'partial', b'interrupted')]
+            process.poll.side_effect = [None, 0]
+            with patch.object(callback.subprocess, 'Popen', return_value=process), \
+                 patch.object(callback.os, 'killpg') as kill, self.assertRaises(KeyboardInterrupt):
+                runner.run('interrupted', ['reader'], 0)
+            kill.assert_called_once_with(12345, callback.signal.SIGTERM)
+            retained = check.document(args.work / 'interrupted.process.json')
+            self.assertEqual(retained['observation'], 'inconclusive')
+            self.assertTrue(retained['reaped'])
+            with self.assertRaises(ValueError):
+                callback.Runner(args, read_only=True).run('interrupted', ['reader'], 0)
+
+    def test_callback_launch_binds_both_actual_process_ids(self):
+        callback = check.load('interception_callback_parent_test', Path(__file__).with_name('interception-callback-check.py'))
+        process = dict(pid=7, parent_pid=9)
+        launch = dict(process_id=7, parent_process_id=9, preparation_receipt_sha256='a' * 64)
+        callback.bind_launch(launch, process, 'a' * 64)
+        for mutation in [dict(process_id=8), dict(parent_process_id=10), dict(preparation_receipt_sha256='b' * 64)]:
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                callback.bind_launch(dict(launch, **mutation), process, 'a' * 64)
+
     def test_closed_pipe_controller_reads_marker_and_retains_process_observation(self):
         callback = check.load('interception_callback_process_test', Path(__file__).with_name('interception-callback-check.py'))
         child = """import os
@@ -190,12 +222,38 @@ os._exit(0)
 """
         with tempfile.TemporaryDirectory() as temporary:
             args = SimpleNamespace(work=Path(temporary), timeout=2)
-            runner = check.Runner(args)
+            runner = callback.Runner(args)
             delivered, stderr = callback.refuse_stdout(runner, [sys.executable, '-c', child], {})
             self.assertEqual(delivered, callback.MARKER)
             self.assertEqual(stderr, b'closed consumer observed\n')
             self.assertEqual(runner.commands[0]['status'], 3)
             self.assertFalse(runner.commands[0]['overall_deadline_expired'])
+            import copy
+            import json
+            from unittest.mock import patch
+            command=[sys.executable,'-c',child]
+            runner.run('reader-verb',[sys.executable,'-c',"print('reader')"],0)
+            reader=callback.Runner(args,read_only=True)
+            with patch.object(callback.subprocess,'Popen',side_effect=AssertionError('read-only spawned')):
+                self.assertEqual(callback.refuse_stdout(reader,command,{}),(delivered,stderr))
+                self.assertEqual(reader.run('reader-verb',[sys.executable,'-c',"print('reader')"],0),(b'reader\n',b''))
+            path=args.work/'closed-stdout.process.json'
+            original=check.document(path)
+            mutations=[dict(pid=True),dict(parent_pid=original['parent_pid']+1),dict(status=False),
+                dict(clock='CLOCK_REALTIME'),dict(timed_out=True),dict(reaped=False),
+                dict(deadline_ns=original['deadline_ns']+1),dict(ended_ns=original['deadline_ns']+1),
+                dict(close=dict(original['close'],closed=False)),
+                dict(close=dict(original['close'],child_running=False)),
+                dict(close=dict(original['close'],marker_observed_ns=original['ended_ns']+1))]
+            for mutation in mutations:
+                path.write_text(json.dumps(dict(copy.deepcopy(original),**mutation)))
+                with self.subTest(mutation=mutation),self.assertRaises(ValueError):
+                    callback.refuse_stdout(callback.Runner(args,read_only=True),command,{})
+            path.write_text(json.dumps(original))
+            with patch.object(callback.time,'monotonic',return_value=runner.deadline+1), \
+                 patch.object(callback.subprocess,'Popen',side_effect=AssertionError('expired admission spawned')), \
+                 self.assertRaisesRegex(ValueError,'before spawn'):
+                runner.run('expired',command,3)
 
     def test_closed_consumer_proof_requires_real_partial_bytes_and_failed_delivery(self):
         callback = check.load('interception_callback_test', Path(__file__).with_name('interception-callback-check.py'))
