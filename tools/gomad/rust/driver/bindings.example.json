@@ -652,6 +652,7 @@
     }
   },
   "fn222": {
+    "support_build_receipt": "/absolute/frozen/fn222-support-build/main-build.json",
     "argv": [
       "/absolute/frozen/python3",
       "/absolute/repo/tools/gomad/rust/workload_tools/temporal-support.py",

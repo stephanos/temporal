@@ -19,10 +19,10 @@ SCHEMA = 'gomad.driver-main-build/v1'
 ROLES = {'release': [], 'host-fixture': ['determinism-fixture'],
          'ordinary-helper-test': [], 'ordinary-host-test': [],
          'stress': ['determinism-fixture', 'helper-stress-jitter'], 'stress-release': ['helper-stress-jitter'],
-         'conformance-reference': ['conformance', 'reference-helper'], 'reference-transport': ['reference-helper'], 'runtime-harness': [], 'interception-harness': [],
+         'conformance-reference': ['conformance', 'reference-helper'], 'reference-transport': ['reference-helper'], 'runtime-harness': [], 'interception-harness': [], 'fn222-support': [],
          'counterfactual-fixture': ['determinism-fixture', 'helper-determinism-fixture'],
          'counterfactual-harness': ['determinism-fixture', 'helper-determinism-fixture']}
-EXAMPLES = {'runtime-harness': 'runtime-qualification-replay', 'interception-harness': 'interception-streaming-replay'}
+EXAMPLES = {'runtime-harness': 'runtime-qualification-replay', 'interception-harness': 'interception-streaming-replay', 'fn222-support': 'fn222-support'}
 HELPERS = ('conformance-reference', 'ordinary-helper-test', 'reference-transport')
 LIBTESTS = {'counterfactual-harness': 'gomad-fixture-libtest', 'ordinary-host-test': 'gomad-ordinary-libtest',
             'ordinary-helper-test': 'gomad-wasmhost-libtest'}
@@ -258,6 +258,14 @@ def read_build(path, frozen=None, expected_role=None):
             require(all(frozen.get('stages', {}).get(f'runtime-{index}', {}).get('harness') == receipt['binary']
                     and frozen['stages'][f'runtime-{index}'].get('harness_build_receipt') == str(path) for index in range(32)),
                     'runtime harness is not bound to all 32 original shards')
+        elif receipt['role'] == 'fn222-support':
+            require(frozen['identity']['host'] == receipt['host_sha256'], 'fn222 support differs from the ordinary candidate')
+            import onebox_receiving
+            selected = frozen.get('fn222', {})
+            require(isinstance(selected, dict) and set(selected) == {'argv', 'support_build_receipt'}
+                    and selected['support_build_receipt'] == str(path), 'fn222 support has no separately bound build receipt')
+            require(onebox_receiving.support_operand(selected['argv']) == receipt['binary'],
+                    'fn222 support is not its separately bound ordinary example')
         elif receipt['role'] == 'interception-harness':
             require(frozen['identity']['host'] == receipt['host_sha256'], 'interception harness differs from the ordinary candidate')
             require(frozen.get('interception_streaming') == dict(binary=receipt['binary'], build_receipt=str(path)),

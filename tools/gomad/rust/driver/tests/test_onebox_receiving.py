@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 import copy
 import base64
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -14,6 +15,35 @@ import onebox_receiving as onebox
 
 
 class OneboxReceiving(unittest.TestCase):
+    def test_support_inputs_and_frozen_reader_require_actual_typed_example(self):
+        import main_cli_build
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);binary=root/'fn222-support';binary.write_bytes(b'synthetic')
+            path=root/'main-build.json';path.write_text('{}')
+            raw=root/'cargo.stdout';raw.write_text('raw')
+            plan=root/'plan.json';plan.write_text(json.dumps(dict(repo=str(root))))
+            receipt=dict(binary=str(binary),source_sha256='s',head='h',symlinks={},tools_plan=str(plan),inputs={str(raw):driver.sha(raw)})
+            config=dict(repo=str(root),source_sha256='s',head='h',symlinks={},fn222=dict(
+                argv=['python','producer','--support',str(binary)],support_build_receipt=str(path)))
+            with patch.object(main_cli_build,'read_build',return_value=receipt) as reader:
+                self.assertEqual(onebox.support_inputs(config),{str(path),str(raw)})
+                reader.assert_called_with(str(path),None,expected_role='fn222-support')
+                self.assertEqual(onebox.support_binding(config),receipt)
+                reader.assert_called_with(str(path),config,expected_role='fn222-support')
+                changed=copy.deepcopy(config);changed['fn222']['argv'][-1]='/foreign/support'
+                with self.assertRaises(driver.Refusal):onebox.support_inputs(changed)
+                changed=copy.deepcopy(config);changed['head']='foreign'
+                with self.assertRaises(driver.Refusal):onebox.support_inputs(changed)
+                for arguments in [config['fn222']['argv']+['--support=/foreign/support'],
+                                  config['fn222']['argv']+['--supp','/foreign/support'],
+                                  config['fn222']['argv']+['--support','/foreign/support'],
+                                  config['fn222']['argv']+['--cache'],
+                                  config['fn222']['argv']+['--cache','--support'], None]:
+                    changed=copy.deepcopy(config);changed['fn222']['argv']=arguments
+                    with self.subTest(arguments=arguments),self.assertRaises(driver.Refusal):onebox.support_inputs(changed)
+                changed=copy.deepcopy(config);del changed['fn222']['support_build_receipt']
+                with self.assertRaises(driver.Refusal):onebox.support_inputs(changed)
+
     def test_gate_matrix_refuses_missing_duplicate_foreign_and_failed(self):
         rows = [dict(cell=cell, name=gate, exit=0) for _, cell in onebox.CELLS for gate in onebox.GATES]
         onebox.gates(dict(gates=rows))

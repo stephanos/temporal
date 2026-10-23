@@ -76,6 +76,28 @@ class MainCliBuild(unittest.TestCase):
     def setUp(self):
         selected=patch.object(gate.harness,'environment',side_effect=environment);selected.start();self.addCleanup(selected.stop)
 
+    def test_fn222_support_is_its_fixed_ordinary_release_example(self):
+        self.assertEqual(gate.ROLES['fn222-support'], [])
+        with tempfile.TemporaryDirectory() as temporary:
+            config,path=fixture(Path(temporary),'fn222-support')
+            receipt=json.loads(path.read_text())
+            frozen=dict(config,files=dict(config['files']),identity=dict(host=receipt['host_sha256'],helper=receipt['helper_sha256']),
+                fn222=dict(argv=['python','producer','--support',receipt['binary']],support_build_receipt=str(path)))
+            frozen['files'].update(receipt['inputs']);frozen['files'][str(path)]=sha(path)
+            with patch.object(gate,'provision_config',return_value=config):
+                actual=gate.read_build(path,frozen,expected_role='fn222-support')
+                self.assertIn('--example',actual['command']);self.assertIn('fn222-support',actual['command'])
+                self.assertNotIn('--features',actual['command']);self.assertEqual(actual['helper_features'],[])
+                for change in ['binary','receipt','host','alias','abbreviation','malformed']:
+                    changed=copy.deepcopy(frozen)
+                    if change=='binary':changed['fn222']['argv'][-1]='/foreign/support'
+                    elif change=='receipt':changed['fn222']['support_build_receipt']='/foreign/receipt'
+                    elif change=='alias':changed['fn222']['argv'].append('--support=/foreign')
+                    elif change=='abbreviation':changed['fn222']['argv']+=['--supp','/foreign']
+                    elif change=='malformed':changed['fn222']['argv']=None
+                    else:changed['identity']['host']='foreign'
+                    with self.subTest(change=change),self.assertRaises(Refusal):gate.read_build(path,changed,expected_role='fn222-support')
+
     def test_reference_transport_is_helper_only_without_conformance(self):
         self.assertEqual(gate.ROLES['reference-transport'], ['reference-helper'])
         with tempfile.TemporaryDirectory() as temporary:
@@ -258,6 +280,11 @@ class MainCliBuild(unittest.TestCase):
                     elif role=='runtime-harness':
                         with self.assertRaises(Refusal):gate.read_build(path,frozen)
                         frozen['stages']={f'runtime-{index}':dict(harness=receipt['binary'],harness_build_receipt=str(path)) for index in range(32)}
+                        gate.read_build(path,frozen)
+                        with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
+                    elif role=='fn222-support':
+                        with self.assertRaises(Refusal):gate.read_build(path,frozen)
+                        frozen['fn222']=dict(argv=['python','producer','--support',receipt['binary']],support_build_receipt=str(path))
                         gate.read_build(path,frozen)
                         with self.assertRaises(Refusal):gate.read_build(path,frozen,expected_role='release')
                     elif role=='interception-harness':

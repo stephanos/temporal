@@ -245,6 +245,13 @@ the original site byte coordinate, preventing equal labels at different source
 sites from collapsing into one obligation.
 
 
+The fixed `main_cli_build.py build --role fn222-support` builds the ordinary
+release `fn222-support` example with no default or optional features. Bind its
+genuine receipt as `fn222.support_build_receipt` and its admitted executable as
+the single `--support` operand in `fn222.argv`. The freezer expands the full
+source/compiler/Cargo/process/publication closure, and the receiving reader
+authenticates it again against the frozen ordinary host/helper identities.
+
 The optional frozen `fn222.argv` binding uses the original
 `workload_tools/temporal-support.py` entry point with an explicit sealed
 `--support` release example, source manifest, captured policy and private driver

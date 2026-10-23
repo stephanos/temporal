@@ -234,6 +234,8 @@ def freeze(bindings, output, source_manifest):
             str(source_manifest) if item == 'SOURCE_MANIFEST' else item for item in argv]
         require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
         inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
+        import onebox_receiving
+        inputs.update(onebox_receiving.support_inputs(config))
     inputs.add(config['public_verbs']['bindings'])
     import public_roles
     public_binding = Path(config['public_verbs']['bindings'])
@@ -265,6 +267,9 @@ def freeze(bindings, output, source_manifest):
         if entry.get('admission'):
             native_roles.validate_admission(config, entry['admission'], role)
     main_cli_build.read_build(config['build_receipt'], config, expected_role='release')
+    if config.get('fn222'):
+        import onebox_receiving
+        onebox_receiving.support_binding(config)
     for name, entry in config['live_corpus']['roles'].items():
         main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
     main_cli_build.read_build(config['stages']['runtime-0']['harness_build_receipt'], config, expected_role='runtime-harness')

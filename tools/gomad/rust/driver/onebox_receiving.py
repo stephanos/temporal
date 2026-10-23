@@ -12,10 +12,42 @@ GATES = ['unchanged-source-preparation', 'measured-pass-replay-success',
          'measured-pass-replay-canary', 'storage-transport-inspection']
 
 
+def support_operand(argv):
+    allowed = {'--binary', '--repo', '--root', '--compiler', '--runtime-root', '--cache',
+               '--captured-config', '--source-manifest', '--private-observation-config', '--support'}
+    require(isinstance(argv, list) and len(argv) >= 4 and len(argv[2:]) % 2 == 0
+            and all(isinstance(item, str) and item for item in argv), 'fn222 support requires complete literal option pairs')
+    options, values = argv[2::2], argv[3::2]
+    require(len(options) == len(set(options)) and set(options) <= allowed and '--support' in options
+            and all(not item.startswith('--') for item in values), 'fn222 refuses duplicate, abbreviated or alternate option spellings')
+    return values[options.index('--support')]
+
+
+def support_binding(config, frozen=True):
+    import main_cli_build
+    value = config.get('fn222', {})
+    require(isinstance(value, dict) and set(value) == {'argv', 'support_build_receipt'},
+            'fn222 requires its genuine fixed support build receipt')
+    support = support_operand(value['argv'])
+    require(isinstance(value['support_build_receipt'], str) and Path(value['support_build_receipt']).is_absolute(),
+            'fn222 requires an absolute actual support build receipt')
+    receipt = main_cli_build.read_build(value['support_build_receipt'], config if frozen else None, expected_role='fn222-support')
+    require(receipt['binary'] == support, 'fn222 support differs from its admitted build')
+    require(all(config[key] == receipt[key] for key in ('source_sha256', 'head', 'symlinks'))
+            and read(receipt['tools_plan'])['repo'] == config['repo'], 'fn222 support differs from selected candidate source')
+    return receipt
+
+
+def support_inputs(config):
+    receipt = support_binding(config, frozen=False)
+    return {config['fn222']['support_build_receipt']} | set(receipt['inputs'])
+
+
 def binding(config):
     value = config.get('fn222')
     if value is None:
         raise Unexecuted('fn222 ordered support producer binding is missing')
+    support_binding(config)
     argv = value['argv']
     script = str(Path(config['repo']) / 'tools/gomad/rust/workload_tools/temporal-support.py')
     require(len(argv) > 2 and argv[1] == script and argv.count('--root') == 1
