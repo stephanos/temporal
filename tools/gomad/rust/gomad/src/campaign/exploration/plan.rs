@@ -66,7 +66,13 @@ pub(crate) fn restore(journal: &RoundJournal) -> Result<Prepared, String> {
             .as_str()
             .ok_or("exploration prepared artifact missing")?,
     )?;
-    crate::campaign::restore_from_plan(metadata, &opened)
+    let mut prepared = crate::campaign::restore_from_plan(metadata, &opened)?;
+    prepared.auxiliary = crate::campaign::prepare::open_observations(
+        journal.path(),
+        &prepared,
+        &opened.manifest().record_sha256,
+    )?;
+    Ok(prepared)
 }
 
 pub(crate) fn duration(journal: &RoundJournal) -> Result<Duration, String> {
