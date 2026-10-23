@@ -217,6 +217,16 @@ def freeze(bindings, output, source_manifest):
         require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
         inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
     inputs.add(config['public_verbs']['bindings'])
+    import public_roles
+    public_binding = Path(config['public_verbs']['bindings'])
+    build_binding = read(public_binding)['files']['build-receipts']['path']
+    build_inventory = (public_binding.parent / build_binding).resolve()
+    _, public_inputs = public_roles.read_builds(build_inventory)
+    inputs.update(public_inputs)
+    divergence = config.get('live_corpus', {}).get('test_wasm_reach', {}).get('executed_divergence')
+    if divergence is not None:
+        import counterfactual_receiving
+        inputs.update(counterfactual_receiving.input_paths(divergence, Path(config['repo'])))
     inputs.update(config['stress'][key] for key in ('spec', 'binary', 'build_receipt'))
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
     import terminal_inputs

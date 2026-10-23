@@ -57,6 +57,39 @@ class PublicVerbReaderTests(unittest.TestCase):
                 with self.assertRaisesRegex(Refusal, 'missing/duplicate/reordered'):
                     reader.authenticate_lanes({}, work, SimpleNamespace())
 
+    def test_pure_final_walk_checks_full_roles_at_both_frozen_boundaries(self):
+        from test_live_backend_roles import LiveBackendRoles
+        for mutation in (False, True):
+            with self.subTest(mutation=mutation):
+                owner = LiveBackendRoles('test_full_role_before_and_after_pure_campaign_walk')
+                owner.setUp()
+                try:
+                    config = owner.config
+                    root = Path(config['root']);work=root/'public-verbs';work.mkdir(parents=True)
+                    bindings = root/'bindings.json';bindings.write_text('{}')
+                    config['public_verbs']=dict(bindings=str(bindings))
+                    for name in ('commands.json','derived-source-inputs.json'):(work/name).write_text('{}')
+                    retained={p.name:sha(p) for p in work.iterdir()}
+                    (work/'all-verb-result.json').write_text(json.dumps(dict(schema='gomad.all-verb-parity/v1',
+                        status='passed',bindings_sha256=sha(bindings),coverage={'fixture':True},retained_files=retained)))
+                    for suffix in ('command','process'):(root/('public-verbs.'+suffix+'.json')).write_text('{}')
+                    files={'reference-helper':owner.binary}
+                    load = unittest.mock.Mock(return_value=(files,{}))
+                    lane=SimpleNamespace(PUBLIC_VERBS=('fixture',),load_bindings=load,authenticate_commands=lambda _:None,CORPUS=root)
+                    def pure_walk(*args):
+                        if mutation:owner.compiler.write_bytes(b'changed inside pure walk')
+                    with patch.object(reader.live,'completed_command'), patch.object(reader,'authenticate_lanes',side_effect=pure_walk), \
+                         patch.object(reader,'stress_cycle',return_value={}), patch.object(reader,'load_module',return_value=SimpleNamespace(read_cycle=lambda *_:None)), \
+                         patch.object(reader.public_roles,'static_reference'):
+                        if mutation:
+                            with self.assertRaisesRegex(Refusal,'frozen input changed'):reader.authenticate(config,root,[],{},lane)
+                            self.assertEqual(load.call_count,1)
+                        else:
+                            reader.authenticate(config,root,[],{},lane)
+                            self.assertEqual(load.call_count,2)
+                            self.assertTrue(all(call.args[-1] is config for call in load.call_args_list))
+                finally:owner.doCleanups()
+
     def test_old_stress_cycle_refused_even_when_its_file_is_sealed(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'cycle.json'

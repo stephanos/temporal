@@ -9,6 +9,7 @@ import sys
 
 from driver import HERE, Refusal, command, configured, coverage, guard, load_module, read, require, sha
 import live
+import public_roles
 
 OWNED = ['public-verbs/fresh-differential-and-raw-golden-integrity']
 SCRIPT = HERE.parents[1] / 'scripts/all-verb-parity'
@@ -29,7 +30,7 @@ def binding(config):
     live.sealed_input(config, str(path))
     live.sealed_input(config, str(SCRIPT))
     lane = orchestrator()
-    files, trees = lane.load_bindings(path, sha(path))
+    files, trees = lane.load_bindings(path, sha(path), config)
     require(str(files['release']) == config['binary'] and sha(files['release']) == config['binary_sha256'],
             'public verb release differs from frozen candidate')
     for item in files.values():
@@ -41,7 +42,7 @@ def binding(config):
         tree = lane.absolute(item['path'], path.parent)
         for line in inventory.read_text().splitlines():
             relative = line.split(maxsplit=1)[1].lstrip(' *')
-            live.sealed_input(config, str(tree / relative))
+            live.sealed_input(config, str((tree / relative).resolve()))
     goldens = {str(item): sha(item) for item in sorted(lane.CORPUS.rglob('*'))
                if item.is_file() and any(part.startswith('golden') for part in item.parts)}
     require(goldens, 'missing raw golden corpus')
@@ -66,7 +67,7 @@ def stress_cycle(config, files):
     return plan
 
 
-def authenticate_lanes(config, work, lane):
+def authenticate_lanes(config, work, lane, bindings=None):
     commands = read(work / 'commands.json')
     endpoints = [('foundation', 'foundation-check.py'), ('release-exclusion', 'foundation-release-check.py'),
                  ('inspect', 'inspect-lane.py'), ('replay', 'replay-lane.py'),
@@ -80,7 +81,8 @@ def authenticate_lanes(config, work, lane):
     require([row['name'] for row in commands] == names, 'missing/duplicate/reordered fixed parity commands')
     endpoints += [('stress-roles', 'stress-role-check.py'), ('stress', 'stress-parity-lane.py')]
     by_name = {row['name']: row for row in commands}
-    files, trees = lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']))
+    files, trees = bindings if bindings is not None else lane.load_bindings(
+        Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']), config)
     for name, endpoint in endpoints:
         row = by_name[name]
         argv = row['argv']
@@ -205,16 +207,20 @@ def authenticate(config, root, argv, goldens, lane):
         require(not relative.is_absolute() and '..' not in relative.parts, 'unsafe parity inventory')
         item = work / relative
         require(not item.is_symlink() and item.is_file() and sha(item) == digest, 'changed raw parity evidence: ' + name)
+    guard(config)
+    bindings = lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']), config)
+    files, _ = bindings
     lane.authenticate_commands(work)
-    authenticate_lanes(config, work, lane)
-    files, _ = lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']))
+    authenticate_lanes(config, work, lane, bindings)
     plan = stress_cycle(config, files)
     stress = load_module('public_same_cycle_stress', lane.CORPUS / 'stress-parity-lane.py')
     stress.read_cycle(plan, root)
     for path, digest in goldens.items():
         require(Path(path).is_file() and sha(path) == digest, 'raw golden corpus changed')
     # Reopen all pinned original custody/source inputs after the fresh differential.
-    lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']))
+    guard(config)
+    files, _ = lane.load_bindings(Path(config['public_verbs']['bindings']), sha(config['public_verbs']['bindings']), config)
+    public_roles.static_reference(config, dict(binary_sha256=sha(files['reference-helper'])))
     rows = [dict(id=OWNED[0], status='PASS', executed=True, exit=0)]
     coverage(OWNED, rows)
     return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],

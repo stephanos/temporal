@@ -13,6 +13,8 @@ import sys
 sys.dont_write_bytecode = True
 MODULE = Path(__file__).resolve().parents[1]
 CORPUS = MODULE / 'testdata/parity'
+sys.path.insert(0, str(MODULE / 'rust/driver'))
+import public_roles
 PUBLIC_VERBS = ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize',
                 'qualify', 'report', 'qualify-set', 'merge-set', 'compare-support', 'install',
                 'doctor', 'discover', 'plan', 'recover', 'analyze', 'stress')
@@ -126,7 +128,7 @@ def authenticate_commands(root, *, checked_in_lane=False):
     return digest(path.read_bytes())
 
 
-def load_bindings(path, expected):
+def load_bindings(path, expected, frozen=None):
     pinned_file(path, expected)
     value = decode(path.read_bytes())
     require_fields(value, {'schema', 'files', 'trees'}, 'bindings')
@@ -158,25 +160,15 @@ def load_bindings(path, expected):
     require(files['compiler'].is_relative_to(trees['compiler-root']), 'compiler outside pinned distribution')
     require(str(files['compiler'].relative_to(trees['compiler-root'])) in inventories['compiler-root'],
             'compiler absent from distribution inventory')
-    builds = decode(files['build-receipts'].read_bytes())
-    require_fields(builds, {'schema', 'source_inventory_sha256', 'roles'}, 'build receipts')
-    require(builds['schema'] == 'gomad.all-verb-builds/v1' and
-            builds['source_inventory_sha256'] == value['trees']['candidate-source']['sha256'],
-            'role builds do not bind candidate source')
-    expected_features = {'release': [], 'fixture': ['determinism-fixture'],
-                         'stress': ['determinism-fixture', 'helper-stress-jitter'],
-                         'stress-release': ['helper-stress-jitter'],
-                         'determinism': ['determinism-fixture', 'helper-determinism-fixture'],
-                         'divergence': ['determinism-fixture', 'helper-determinism-fixture'],
-                         'reference-helper': ['conformance']}
-    require_fields(builds['roles'], set(expected_features), 'build roles')
-    for role, features in expected_features.items():
-        row = builds['roles'][role]
-        require_fields(row, {'binary_sha256', 'features', 'profile', 'exit', 'compiler_sha256'}, 'role build')
-        require(row['binary_sha256'] == value['files'][role]['sha256'] and
-                row['features'] == features and row['profile'] == 'release' and
-                type(row['exit']) is int and row['exit'] == 0 and
-                row['compiler_sha256'] == value['files']['rust-compiler']['sha256'], 'unadmitted role build: ' + role)
+    builds, _ = public_roles.read_builds(files['build-receipts'],
+        absolute(value['trees']['candidate-source']['inventory'], path.parent), frozen=frozen)
+    for role, receipt in builds.items():
+        require(receipt['binary'] == str(files[role]) and receipt['binary_sha256'] == value['files'][role]['sha256']
+                and public_roles.FEATURES[role] == (['conformance'] if role == 'reference-helper' else receipt['features'])
+                and receipt['profile'] == 'release' and type(receipt['exit']) is int and receipt['exit'] == 0,
+                'unadmitted closed public role build: ' + role)
+        tools = public_roles.read(receipt['tools_plan'])
+        require(tools['tools']['rustc'] == str(files['rust-compiler']), 'public role compiled with another Rust compiler')
     for role in ('fixture', 'stress', 'stress-release', 'determinism'):
         require(value['files'][role]['sha256'] != value['files']['release']['sha256'],
                 'release binary substituted for compiled fixture role')

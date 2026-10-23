@@ -25,16 +25,31 @@ The bindings schema is `gomad.all-verb-bindings/v1`, with exactly `schema`,
 `reference-helper` is the current standalone conformance helper built explicitly
 with its `conformance` feature (which enables the guarded `reference-helper` binary), not the historical Go helper.
 
-`build-receipts` is an authenticated JSON object with schema
-`gomad.all-verb-builds/v1`, `source_inventory_sha256` matching the candidate-source
-inventory digest, and `roles` containing release, fixture, stress, stress-release, determinism,
-divergence and reference-helper. Each role has `binary_sha256`, sorted `features`,
-`profile: "release"`, numeric `exit: 0` and the actual Rust compiler digest in
-`compiler_sha256`. Release features are empty; fixture uses `determinism-fixture`;
-stress adds `helper-stress-jitter`; stress-release uses only
-`helper-stress-jitter` for the actual matrix; determinism and divergence add
-`helper-determinism-fixture`; the standalone conformance helper uses `conformance` (which enables `reference-helper`).
-Determinism and divergence may use the same actual compiled binary.
+`build-receipts` uses `gomad.all-verb-builds/v2`: `source_inventory`, its
+`source_inventory_sha256`, and seven `roles` entries containing only an absolute
+`build_receipt` and its `sha256`. `rust/driver/public_roles.py --receipts
+"$ROLE_RECEIPTS" --source-inventory "$SOURCE_INVENTORY" --output "$ROLE_BUILDS"`
+derives both outputs from genuine `main_cli_build.py` receipts. The input maps
+the seven public names to actual receipt paths; it supplies no feature or success
+claims. Legacy five-field build claims are refused.
+
+Build the fixed `release`, `host-fixture`, `stress`, `stress-release`,
+`counterfactual-fixture` and `conformance-reference` roles against the same
+immutable candidate and GNU plan. Determinism and divergence may use the same
+counterfactual-fixture receipt and binary. Stress uses
+`determinism-fixture,helper-stress-jitter`; stress-release uses only
+`helper-stress-jitter`. Conformance compiles the standalone helper with
+`conformance`, which enables `reference-helper`. Its typed receipt authenticates
+both actual Cargo features and the helper implementation identity; it claims no
+uncompiled host identity. Final verification also requires the original validate
+stage's actual conformance build and consumed helper receipt to match that
+admitted binary. All original static builds still execute.
+
+Each full role read reopens the actual source, compiler, GNU closure, Cargo
+artifact, generated identity inputs, process journals and admitted copy. The
+pure final evidence walk shares its local file bindings between full admission
+checks before and after the walk, with fresh frozen-input guards. Execution
+endpoints retain their own full checks. This is not a one-hour performance claim.
 
 `trees` contains exactly `baseline`, `source`, `cluster-baseline`,
 `cluster-source`, `candidate-source` and `compiler-root`. Each is

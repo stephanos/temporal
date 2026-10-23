@@ -106,10 +106,15 @@ def source_manifest(files):
     return ''.join(hashlib.sha256(raw).hexdigest() + '\t' + name + '\n' for name, raw in sorted(files.items()))
 
 
-def implementation(files, domain, role_features, compiler_version, target):
-    digest = hashlib.sha256(domain)
+def feature_bindings(role_features, target):
     environment = dict(PROFILE='release', TARGET=target)
     environment.update({'CARGO_FEATURE_' + feature.replace('-', '_').upper(): '1' for feature in role_features})
+    return environment
+
+
+def implementation(files, domain, role_features, compiler_version, target):
+    digest = hashlib.sha256(domain)
+    environment = feature_bindings(role_features, target)
     for name, value in sorted(environment.items()):
         digest.update(name.encode() + b'\0' + value.encode() + b'\0')
     digest.update(compiler_version.encode())

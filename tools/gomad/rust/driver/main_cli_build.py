@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provision and independently read the one fixed prefreeze ordinary release CLI build."""
+"""Provision and independently read the fixed prefreeze native release roles."""
 import argparse
 import hashlib
 import json
@@ -16,7 +16,9 @@ import native_gnu
 import native_roles
 
 SCHEMA = 'gomad.driver-main-build/v1'
-ROLES = {'release': [], 'host-fixture': ['determinism-fixture'], 'runtime-harness': [], 'interception-harness': [],
+ROLES = {'release': [], 'host-fixture': ['determinism-fixture'],
+         'stress': ['determinism-fixture', 'helper-stress-jitter'], 'stress-release': ['helper-stress-jitter'],
+         'conformance-reference': ['conformance', 'reference-helper'], 'runtime-harness': [], 'interception-harness': [],
          'counterfactual-fixture': ['determinism-fixture', 'helper-determinism-fixture'],
          'counterfactual-harness': ['determinism-fixture', 'helper-determinism-fixture']}
 EXAMPLES = {'runtime-harness': 'runtime-qualification-replay', 'interception-harness': 'interception-streaming-replay'}
@@ -25,10 +27,12 @@ COMMANDS = ('rustc-version', 'rustc-verbose', 'cargo-version', 'cargo-build')
 
 def helper_features(role):
     require(role in ROLES, 'unknown main CLI fixed build role')
-    return ['determinism-fixture'] if role in ('counterfactual-fixture', 'counterfactual-harness') else []
+    if role == 'conformance-reference': return ['conformance', 'reference-helper']
+    return [value.removeprefix('helper-') for value in ROLES[role] if value.startswith('helper-')]
 
 
 def binary_name(role):
+    if role == 'conformance-reference': return 'gomad-wasmhost'
     return EXAMPLES.get(role, 'gomad-fixture-libtest' if role == 'counterfactual-harness' else 'gomad')
 
 
@@ -82,21 +86,24 @@ def provision_config(tools_path, gnu_path, sent_epoch):
 def build_command(config):
     _, plan = harness.plan(config)
     test = config['main_role'] == 'counterfactual-harness'
-    target = ['--lib', '--no-run'] if test else ['--example', EXAMPLES[config['main_role']]] if config['main_role'] in EXAMPLES else ['--bin', 'gomad']
+    helper = config['main_role'] == 'conformance-reference'
+    target = ['--lib', '--no-run'] if test else ['--example', EXAMPLES[config['main_role']]] if config['main_role'] in EXAMPLES else ['--bin', 'gomad-wasmhost' if helper else 'gomad']
     result = [plan['tools']['cargo'], 'test' if test else 'build', '--release', '--locked', '--offline', '--no-default-features',
-            '-p', 'gomad', *target,
+            '-p', 'gomad-wasmhost' if helper else 'gomad', *target,
             '--message-format=json', '--manifest-path',
             str(Path(config['repo']) / 'tools/gomad/rust/Cargo.toml')]
-    values = ROLES[config['main_role']]
+    values = ['conformance'] if helper else ROLES[config['main_role']]
     return result + (['--features', ','.join(values)] if values else [])
 
 
 def identities(config, context):
-    inventories = {kind: native_roles.source_inventory(config, kind) for kind in ('host', 'helper')}
+    kinds = ('helper',) if config['main_role'] == 'conformance-reference' else ('host', 'helper')
+    inventories = {kind: native_roles.source_inventory(config, kind) for kind in kinds}
     target = context['bindings']['TARGET']
     result = {kind: native_roles.implementation(files, domain, ROLES[config['main_role']] if kind == 'host' else helper_features(config['main_role']), context['compiler_utf8'], target)
               for kind, domain, (_, files) in ((kind, domain, inventories[kind]) for kind, domain in
-                  (('host', b'gomad.host-implementation/v1\0'), ('helper', b'gomad.linked-implementation/v1\0')))}
+                  (('host', b'gomad.host-implementation/v1\0'), ('helper', b'gomad.linked-implementation/v1\0')) if kind in kinds)}
+    if kinds == ('helper',): return dict(host=None, **result), None, inventories
     runtime = hashlib.sha256(b'gomad-wasm-runtime-implementation/v1\0')
     for name in native_roles.RUNTIME:
         raw = inventories['host'][1]['../../internal/backends/wasm/toolchain/' + name]
@@ -113,20 +120,24 @@ def artifact(config, root, context):
     crates = {kind: repo / 'tools/gomad/rust' / name for kind, name in (('host', 'gomad'), ('helper', 'wasmhost'))}
     packages = {kind: 'path+' + path.as_uri() + ('#0.1.0' if kind == 'host' else '#' + name + '@0.1.0')
                 for kind, path, name in ((kind, crates[kind], name) for kind, name in (('host', 'gomad'), ('helper', 'gomad-wasmhost')))}
+    helper = config['main_role'] == 'conformance-reference'
+    if helper:
+        crates.pop('host'); packages.pop('host')
+    selected = 'helper' if helper else 'host'
     example = config['main_role'] in EXAMPLES
     test = config['main_role'] == 'counterfactual-harness'
-    name = EXAMPLES[config['main_role']] if example else 'gomad'
-    rows = [row for row in frames if row.get('reason') == 'compiler-artifact' and row.get('package_id') == packages['host']
+    name = EXAMPLES[config['main_role']] if example else 'gomad-wasmhost' if helper else 'gomad'
+    rows = [row for row in frames if row.get('reason') == 'compiler-artifact' and row.get('package_id') == packages[selected]
             and row.get('target', {}).get('kind') == (['example'] if example else ['lib'] if test else ['bin'])
             and row['target'].get('name') == name and row.get('executable') is not None]
     require(len(rows) == 1, 'main CLI Cargo artifact is missing or duplicated')
     row = rows[0]
-    executable = Path(row['executable']) if test else root / ('target/release/examples/' + name if example else 'target/release/gomad')
+    executable = Path(row['executable']) if test else root / ('target/release/examples/' + name if example else 'target/release/' + name)
     if test:
         require(executable.parent == root / 'target/release/deps' and re.fullmatch(r'gomad-[0-9a-f]+', executable.name),
                 'counterfactual harness escaped its actual Cargo test target')
-    require(row['manifest_path'] == str(crates['host'] / 'Cargo.toml') and row['target']['crate_types'] == (['lib'] if test else ['bin'])
-            and row['target']['src_path'] == str(crates['host'] / ('examples/' + name + '.rs' if example else 'src/lib.rs' if test else 'src/main.rs')) and row['features'] == ROLES[config['main_role']]
+    require(row['manifest_path'] == str(crates[selected] / 'Cargo.toml') and row['target']['crate_types'] == (['lib'] if test else ['bin'])
+            and row['target']['src_path'] == str(crates[selected] / ('examples/' + name + '.rs' if example else 'src/lib.rs' if test else 'src/main.rs')) and row['features'] == ROLES[config['main_role']]
             and row['profile']['opt_level'] == '3' and row['profile']['debug_assertions'] is False
             and row['profile']['test'] is test and row.get('fresh') is False and row['executable'] == str(executable),
             'main CLI artifact is not its actual ordinary release executable')
@@ -159,7 +170,7 @@ def artifact(config, root, context):
         texts = {'measurement-source-inputs.tsv': native_roles.source_manifest(inventories[kind][1])}
         if kind == 'helper':
             texts.update({'identity-compiler.txt': context['compiler_utf8'],
-                'identity-bindings.tsv': ''.join(key + '\t' + value + '\n' for key, value in sorted(context['bindings'].items()))})
+                'identity-bindings.tsv': ''.join(key + '\t' + value + '\n' for key, value in sorted(native_roles.feature_bindings(helper_features(config['main_role']), context['bindings']['TARGET']).items()))})
         for name, text in texts.items():
             path = native_roles.regular(directory / name)
             require(path.read_text() == text, 'main CLI generated source/compiler inventory changed')
@@ -230,7 +241,7 @@ def read_build(path, frozen=None, expected_role=None):
     if frozen is not None:
         require(frozen.get('head') == receipt['head'] and frozen.get('symlinks') == receipt['symlinks'], 'main CLI Git HEAD or symlink custody differs from the frozen candidate')
         require(frozen['source_sha256'] == receipt['source_sha256'], 'main CLI build differs from the frozen source')
-        if receipt['role'] not in ('counterfactual-fixture', 'counterfactual-harness'):
+        if not helper_features(receipt['role']):
             require(frozen['identity']['helper'] == receipt['helper_sha256'],
                     'main CLI build differs from the frozen ordinary linked implementation')
         if receipt['role'] == 'release':

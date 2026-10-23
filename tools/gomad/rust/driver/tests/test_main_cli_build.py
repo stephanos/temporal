@@ -26,23 +26,25 @@ def fixture(base,role='release'):
         symlinks={},stages=dict(validate=dict(argv=[sys.executable,'static','--plan',str(plan)])),identity_harness=dict(toolchain_plan=str(base/'gnu-plan.json')))
     config['files'][str(plan)]=sha(plan)
     version='rustc 1.99.1 (synthetic)\n';context=dict(compiler_utf8=version,bindings=dict(PROFILE='release',TARGET='aarch64-unknown-linux-gnu'))
-    target=gate.EXAMPLES.get(role,'gomad')
+    helper_only=role=='conformance-reference'
+    target=gate.EXAMPLES.get(role,'gomad-wasmhost' if helper_only else 'gomad')
     example=role in gate.EXAMPLES
     test=role=='counterfactual-harness'
-    executable=work/('target/release/deps/gomad-abcd' if test else 'target/release/examples/'+target if example else 'target/release/gomad');executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
+    executable=work/('target/release/deps/gomad-abcd' if test else 'target/release/examples/'+target if example else 'target/release/'+target);executable.parent.mkdir(parents=True);executable.write_bytes(b'synthetic compiled CLI');executable.chmod(0o755)
     identity,runtime,inventories=gate.identities(config,context);frames=[]
     for kind,name,package in (('host','gomad','gomad'),('helper','wasmhost','gomad-wasmhost')):
+        if helper_only and kind=='host':continue
         crate=repo/'tools/gomad/rust'/name;pkg='path+'+crate.as_uri()+('#0.1.0' if kind=='host' else '#'+package+'@0.1.0')
         generated=work/('target/release/build/'+package+'-abcd/out');generated.mkdir(parents=True)
         (generated/'measurement-source-inputs.tsv').write_text(gate.native_roles.source_manifest(inventories[kind][1]))
         if kind=='helper':
             (generated/'identity-compiler.txt').write_text(version)
-            (generated/'identity-bindings.tsv').write_text('PROFILE\trelease\nTARGET\taarch64-unknown-linux-gnu\n')
+            (generated/'identity-bindings.tsv').write_text(''.join(k+'\t'+v+'\n' for k,v in sorted(gate.native_roles.feature_bindings(gate.helper_features(role),context['bindings']['TARGET']).items())))
         env=[['GOMAD_RUNTIME_IMPLEMENTATION_SHA256',runtime],['GOMAD_HOST_IMPLEMENTATION_SHA256',identity['host']]] if kind=='host' else [['GOMAD_LINKED_IMPLEMENTATION_SHA256',identity['helper']]]
         frames.append(dict(reason='build-script-executed',package_id=pkg,out_dir=str(generated),env=env))
         if not (kind=='host' and test):
             frames.append(dict(reason='compiler-artifact',package_id=pkg,target=dict(kind=['lib'],src_path=str(crate/'src/lib.rs')),features=gate.ROLES[role] if kind=='host' else gate.helper_features(role)))
-        if kind=='host':frames.append(dict(reason='compiler-artifact',package_id=pkg,manifest_path=str(crate/'Cargo.toml'),
+        if kind==('helper' if helper_only else 'host'):frames.append(dict(reason='compiler-artifact',package_id=pkg,manifest_path=str(crate/'Cargo.toml'),
             target=dict(name=target,kind=['example'] if example else ['lib'] if test else ['bin'],crate_types=['lib'] if test else ['bin'],
                 src_path=str(crate/('examples/'+target+'.rs' if example else 'src/lib.rs' if test else 'src/main.rs'))),features=gate.ROLES[role],fresh=False,
             profile=dict(opt_level='3',debug_assertions=False,test=test),executable=str(executable)))
@@ -73,6 +75,36 @@ def environment(config,root,target=None):
 class MainCliBuild(unittest.TestCase):
     def setUp(self):
         selected=patch.object(gate.harness,'environment',side_effect=environment);selected.start();self.addCleanup(selected.stop)
+
+    def test_conformance_reference_has_only_actual_helper_compiled_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            config, path = fixture(Path(temporary), 'conformance-reference')
+            with patch.object(gate, 'provision_config', return_value=config):
+                result = gate.read_build(path, expected_role='conformance-reference')
+            self.assertEqual(result['features'], ['conformance', 'reference-helper'])
+            self.assertEqual(result['helper_features'], ['conformance', 'reference-helper'])
+            self.assertIsNone(result['host_sha256'])
+            self.assertIsNone(result['runtime_implementation_sha256'])
+            self.assertEqual(result['command'][result['command'].index('-p')+1], 'gomad-wasmhost')
+            self.assertEqual(result['command'][result['command'].index('--features')+1], 'conformance')
+            self.assertTrue(result['binary'].endswith('/admitted/gomad-wasmhost'))
+
+    def test_stress_roles_have_distinct_native_helper_preimages(self):
+        self.assertEqual(gate.ROLES['stress'], ['determinism-fixture', 'helper-stress-jitter'])
+        self.assertEqual(gate.ROLES['stress-release'], ['helper-stress-jitter'])
+        self.assertEqual(gate.helper_features('stress'), ['stress-jitter'])
+        self.assertEqual(gate.helper_features('stress-release'), ['stress-jitter'])
+        for role in ('stress', 'stress-release'):
+            with self.subTest(role=role), tempfile.TemporaryDirectory() as temporary:
+                config, path = fixture(Path(temporary), role)
+                with patch.object(gate, 'provision_config', return_value=config):
+                    result = gate.read_build(path, expected_role=role)
+                self.assertEqual(result['helper_features'], ['stress-jitter'])
+                capture = next(Path(name) for name in result['generated'] if name.endswith('identity-bindings.tsv'))
+                self.assertIn('CARGO_FEATURE_STRESS_JITTER\t1\n', capture.read_text())
+                capture.write_text(capture.read_text().replace('CARGO_FEATURE_STRESS_JITTER\t1\n', ''))
+                with patch.object(gate, 'provision_config', return_value=config), self.assertRaises(Refusal):
+                    gate.read_build(path, expected_role=role)
 
     def test_interception_harness_is_its_fixed_ordinary_example(self):
         self.assertIn('interception-harness',gate.ROLES)
