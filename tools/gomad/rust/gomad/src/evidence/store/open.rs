@@ -491,6 +491,7 @@ impl Opened {
         crate::evidence::search_context::read(&opened)?;
         crate::minimize::source::read(&opened)?;
         crate::campaign::origin::authenticate(&opened)?;
+        crate::evidence::backend_outcome::authenticate(&opened)?;
         Ok(opened)
     }
 
@@ -533,7 +534,7 @@ impl Opened {
         for (name, entry) in &self.manifest.files {
             self.authenticate_payload(name, entry, 0)?;
         }
-        Ok(())
+        crate::evidence::backend_outcome::authenticate(self)
     }
 
     pub(crate) fn payload_tail(

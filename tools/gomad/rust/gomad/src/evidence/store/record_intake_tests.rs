@@ -14,10 +14,18 @@ fn native_publication(
     body: &str,
     change: impl FnOnce(&mut linked::Execution),
 ) -> Result<super::Publication, String> {
+    native_publication_with_memory(body, 1, change)
+}
+
+fn native_publication_with_memory(
+    body: &str,
+    pages: u32,
+    change: impl FnOnce(&mut linked::Execution),
+) -> Result<super::Publication, String> {
     let module = format!(
         r#"(module
         (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
-        (memory (export "memory") 1)
+        (memory (export "memory") {pages})
         (func (export "_start") {body}))"#
     )
     .into_bytes();
@@ -433,6 +441,30 @@ fn native_publication_versions_and_binds_the_independent_output_snapshot() {
     assert_eq!(accounting["offered_output_bytes"], backend["output_bytes"]);
 }
 
+#[test]
+fn preinstantiation_capacity_keeps_zero_output_accounting_without_model_metadata() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let publication = native_publication_with_memory("", 2, |observed| {
+        assert_eq!(observed.outcome.termination, "capacity");
+        assert!(observed.outcome.message.contains("memory"));
+        assert!(observed.outcome.local_model.is_none());
+        assert_eq!(observed.outcome.output_bytes, 0);
+    })
+    .unwrap();
+    let published = Store {
+        root: root.0.join("preinstantiation-capacity"),
+        maximum_bytes: 1 << 24,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    }
+    .publish(publication)
+    .unwrap();
+    assert_genuine(&published.path);
+}
+
 fn legacy_publication(mut publication: super::Publication) -> super::Publication {
     let name = "evidence/native-output-accounting";
     publication.payloads.remove(name);
@@ -494,6 +526,37 @@ fn store_publication_rejects_contradictory_native_backend_counters() {
             .filter(|entry| super::artifact_name(&entry.file_name().to_string_lossy()))
             .count();
         assert_eq!(committed, 0);
+    }
+}
+
+#[test]
+fn backend_terminal_claims_must_match_the_valid_record() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    for (index, termination, exit_code) in [
+        (0, "trap", Some(0)),
+        (1, "exit", None),
+        (2, "exit", Some(7)),
+    ] {
+        let mut publication = native_publication("", |_| {}).unwrap();
+        let mut backend: serde_json::Value =
+            serde_json::from_slice(&publication.payloads["evidence/backend-outcome.json"]).unwrap();
+        backend["termination"] = termination.into();
+        backend["exit_code"] = serde_json::to_value(exit_code).unwrap();
+        replace_publication_backend(&mut publication, &backend);
+        publication.record.validate().unwrap();
+        let error = Store {
+            root: root.0.join(index.to_string()),
+            maximum_bytes: 1 << 24,
+            target_pool: None,
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        }
+        .publish(publication)
+        .err()
+        .expect("contradictory backend terminal was committed");
+        assert!(error.contains("backend outcome terminal"), "{error}");
     }
 }
 

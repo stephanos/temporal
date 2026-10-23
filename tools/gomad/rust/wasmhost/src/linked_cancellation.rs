@@ -59,7 +59,9 @@ impl Cancellation {
 
     pub(crate) fn apply(&self, outcome: &mut Outcome) {
         if self.cancelled() {
-            *outcome = Outcome::new("cancelled", "seed execution was cancelled");
+            outcome.termination = "cancelled";
+            outcome.exit_code = None;
+            outcome.message = "seed execution was cancelled".into();
         }
     }
 
