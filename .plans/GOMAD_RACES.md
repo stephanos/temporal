@@ -356,6 +356,11 @@ What it would take:
   measured capacities under virtual time and fuel and needs its own
   qualification cells.
 
+Scope and acceptance criteria for this profile live in
+[fn-241](../.flow/specs/fn-241-gomad-a-race-profile-for-wasip1-deferred.md),
+deferred with all tasks blocked (owner decision, 2026-10-23: one switchable
+profile is preferred over Investments A, B and the dynamic half of C).
+
 The deferral stands. Investments B and C deliver most of the value for this bug
 family at a fraction of the cost. Revival trigger: a bug in the §1 benchmark
 table that B and C both miss, with a workload that reaches it.
