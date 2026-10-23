@@ -64,6 +64,7 @@ impl Conditions {
         Ok(())
     }
 
+    #[cfg(any(test, not(feature = "determinism-fixture")))]
     pub(crate) fn enter(self) -> Result<Scope> {
         self.attach(&self.new_session(), true)
     }

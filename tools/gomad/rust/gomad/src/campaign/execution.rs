@@ -36,6 +36,15 @@ pub(crate) struct Failure {
     pub diagnostics: Vec<String>,
 }
 
+pub(crate) fn batch_failure(
+    completions: &[std::result::Result<Completion, String>],
+) -> Option<&Failure> {
+    completions.iter().find_map(|completion| match completion {
+        Ok(Completion::Failed(failure)) => Some(failure),
+        _ => None,
+    })
+}
+
 impl Completion {
     pub(crate) fn finalized(self) -> std::result::Result<Result, Failure> {
         match self {
@@ -722,5 +731,80 @@ mod runtime_terminal_tests {
                 "malformed runtime finish accepted: {model}"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod completion_batch_tests {
+    use super::*;
+
+    fn completed() -> Completion {
+        let publication = crate::evidence::search_context::tests::publication(0);
+        Completion::Finalized(Result {
+            execution: ledger::Execution {
+                ordinal: 0,
+                seed: 0,
+                record: publication.record.clone(),
+                artifact: None,
+                stored_bytes: 0,
+                semantic_probes: vec![],
+                choice_features: vec![],
+                divergence: None,
+                soft_assertions: None,
+                scenario_steps: None,
+            },
+            publication,
+            metrics: Metrics::default(),
+        })
+    }
+
+    #[test]
+    fn typed_capacity_report_survives_cancelled_and_finalized_slot_peers_in_both_orders() {
+        for reversed in [false, true] {
+            let observed = crate::slots::run(&[0, 1, 2], 3, |index| {
+                let index = if reversed { 2 - index } else { index };
+                Ok(match index {
+                    0 => Err("cancelled peer finalization".into()),
+                    1 => Ok(completed()),
+                    _ => Ok(Completion::Failed(Failure {
+                        termination: "capacity",
+                        reason: "output capacity".into(),
+                        soft_assertions: Some(json!({"messages":["invalid {state}"],"inconclusive":true,"report_only":true})),
+                        diagnostics: vec!["choice trace is not complete".into()],
+                    })),
+                })
+            }).unwrap();
+            let failure = batch_failure(&observed).unwrap();
+            let mut output = Vec::new();
+            assert_eq!(failure.report(true, &mut output).unwrap(), 3);
+            let event: serde_json::Value = serde_json::from_slice(&output).unwrap();
+            assert_eq!(event["classification"], "capacity");
+            assert_eq!(event["soft_assertions"]["messages"][0], "invalid {state}");
+            assert!(
+                event["message"]
+                    .as_str()
+                    .unwrap()
+                    .contains("choice trace is not complete")
+            );
+        }
+    }
+
+    #[test]
+    fn host_panic_still_discards_capacity_completions() {
+        let barrier = std::sync::Barrier::new(2);
+        let observed = crate::slots::run(&[0, 1], 2, |index| {
+            barrier.wait();
+            assert_ne!(index, 0, "host panic");
+            Ok(Ok::<_, String>(Completion::Failed(Failure {
+                termination: "capacity",
+                reason: "output capacity".into(),
+                soft_assertions: None,
+                diagnostics: vec![],
+            })))
+        });
+        assert_eq!(
+            observed.err().unwrap(),
+            "host panic in execution slot; campaign aborted"
+        );
     }
 }

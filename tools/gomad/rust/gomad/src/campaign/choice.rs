@@ -177,7 +177,7 @@ fn run(
             if state.logical_executions != 0 || round.candidates.len() != 1 {
                 return Err("scoped base execution differs from its root round".into());
             }
-            vec![execution::Completion::Finalized(completion)]
+            vec![Ok(execution::Completion::Finalized(completion))]
         } else {
             crate::slots::run(&indices, state.config.parallel, |index| {
                 let result = (|| {
@@ -207,14 +207,20 @@ fn run(
                 {
                     cancellation.cancel();
                 }
-                result
+                Ok(result)
             })?
         };
+        if let Some(failure) = execution::batch_failure(&completions) {
+            return failure.report(json_output, output);
+        }
+        let completions = completions.into_iter().collect::<Result<Vec<_>, _>>()?;
         let mut finalized = Vec::with_capacity(completions.len());
         for completion in completions {
             match completion {
                 execution::Completion::Finalized(result) => finalized.push(result),
-                execution::Completion::Failed(failure) => return failure.report(json, output),
+                execution::Completion::Failed(failure) => {
+                    return failure.report(json_output, output);
+                }
             }
         }
         let completions = finalized;

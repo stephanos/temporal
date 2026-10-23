@@ -64,6 +64,8 @@ fn binary_input(
                 }
                 Operation::Readlink { .. }
                 | Operation::Symlink { .. }
+                | Operation::SockAccept { .. }
+                | Operation::SockShutdown { .. }
                 | Operation::Unsupported(_) => binary_unsupported_input(op, fields, raw_bytes)?,
             };
             operation = Some(decoded);

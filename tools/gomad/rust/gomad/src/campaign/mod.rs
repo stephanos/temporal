@@ -671,6 +671,9 @@ fn run_observed(
                     cancel();
                 }
                 Ok(execution::Completion::Finalized(result)) => {
+                    if failure.is_some() {
+                        continue;
+                    }
                     metrics.insert(job.ordinal, result.metrics);
                     let mut execution = result.execution;
                     if execution.record.outcome.class == "runner_failure"

@@ -46,17 +46,26 @@ pub(crate) fn validate_profile_imports(
         }
         if !matches!(
             (import.module.as_str(), import.name.as_str()),
-            ("gomad_wasm_v1", "config" | "decision" | "observation" | "finish" | "idle")
-                | ("gomad_wasm_v2", "net_stream")
+            (
+                "gomad_wasm_v1",
+                "config" | "decision" | "observation" | "finish" | "idle"
+            ) | ("gomad_wasm_v2", "net_stream")
                 | ("gomad_debug_v1", "exchange")
-        ) || import.params != ["i32", "i32"] || import.results != ["i32"] {
+        ) || import.params != ["i32", "i32"]
+            || import.results != ["i32"]
+        {
             return Err("unsupported cooperative import name or signature".into());
         }
     }
     if cooperative
-        && ["config", "decision", "observation", "finish", "idle"].into_iter().any(|name| {
-            !metadata.imports.iter().any(|import| import.module == "gomad_wasm_v1" && import.name == name)
-        })
+        && ["config", "decision", "observation", "finish", "idle"]
+            .into_iter()
+            .any(|name| {
+                !metadata
+                    .imports
+                    .iter()
+                    .any(|import| import.module == "gomad_wasm_v1" && import.name == name)
+            })
     {
         return Err("missing cooperative v1 import".into());
     }
@@ -534,12 +543,23 @@ mod profile_import_tests {
 
     fn listed() -> linked::ModuleMetadata {
         linked::ModuleMetadata {
-            imports: [("gomad_wasm_v1", "config"), ("gomad_wasm_v1", "decision"),
-                ("gomad_wasm_v1", "observation"), ("gomad_wasm_v1", "finish"),
-                ("gomad_wasm_v1", "idle"), ("gomad_wasm_v2", "net_stream"),
-                ("gomad_debug_v1", "exchange")].into_iter().map(|(module, name)| linked::ModuleImport {
-                    module: module.into(), name: name.into(), params: vec!["i32".into(), "i32".into()], results: vec!["i32".into()],
-                }).collect(),
+            imports: [
+                ("gomad_wasm_v1", "config"),
+                ("gomad_wasm_v1", "decision"),
+                ("gomad_wasm_v1", "observation"),
+                ("gomad_wasm_v1", "finish"),
+                ("gomad_wasm_v1", "idle"),
+                ("gomad_wasm_v2", "net_stream"),
+                ("gomad_debug_v1", "exchange"),
+            ]
+            .into_iter()
+            .map(|(module, name)| linked::ModuleImport {
+                module: module.into(),
+                name: name.into(),
+                params: vec!["i32".into(), "i32".into()],
+                results: vec!["i32".into()],
+            })
+            .collect(),
             initial_memory_pages: 1,
         }
     }
@@ -548,18 +568,37 @@ mod profile_import_tests {
     fn cooperative_profile_preserves_the_original_complete_import_boundary() {
         const PROFILE: &str = "gomad.wasi-cooperative/v1";
         validate_profile_imports(PROFILE, &listed()).unwrap();
-        for (module, name) in [("gomad_wasm_v1", "clock"), ("gomad_wasm_v2", "datagram"), ("gomad_debug_v1", "peek")] {
+        for (module, name) in [
+            ("gomad_wasm_v1", "clock"),
+            ("gomad_wasm_v2", "datagram"),
+            ("gomad_debug_v1", "peek"),
+        ] {
             let mut metadata = listed();
-            metadata.imports.push(linked::ModuleImport { module: module.into(), name: name.into(), params: vec!["i32".into(),"i32".into()],results:vec!["i32".into()] });
-            assert!(validate_profile_imports(PROFILE, &metadata).unwrap_err().contains("import"));
+            metadata.imports.push(linked::ModuleImport {
+                module: module.into(),
+                name: name.into(),
+                params: vec!["i32".into(), "i32".into()],
+                results: vec!["i32".into()],
+            });
+            assert!(
+                validate_profile_imports(PROFILE, &metadata)
+                    .unwrap_err()
+                    .contains("import")
+            );
         }
         let mut metadata = listed();
         metadata.imports[1].params = vec!["i64".into()];
         assert!(validate_profile_imports(PROFILE, &metadata).is_err());
         let mut metadata = listed();
         metadata.imports.retain(|import| import.name != "idle");
-        assert_eq!(validate_profile_imports(PROFILE, &metadata).unwrap_err(), "missing cooperative v1 import");
-        assert_eq!(validate_profile_imports("gomad.wasi-stock-exploratory/v1", &listed()).unwrap_err(), "cooperative import in stock profile");
+        assert_eq!(
+            validate_profile_imports(PROFILE, &metadata).unwrap_err(),
+            "missing cooperative v1 import"
+        );
+        assert_eq!(
+            validate_profile_imports("gomad.wasi-stock-exploratory/v1", &listed()).unwrap_err(),
+            "cooperative import in stock profile"
+        );
         let mut stock = listed();
         stock.imports.clear();
         validate_profile_imports("gomad.wasi-stock-exploratory/v1", &stock).unwrap();

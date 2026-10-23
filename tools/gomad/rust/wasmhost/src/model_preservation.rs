@@ -546,3 +546,45 @@ fn namespace_sync_emits_original_versioned_binary_transcript() {
         b"GMWT\x01\0\0\0\x0d\0\0\0\x01\0\0\0\0\0\0\0\x04\0\0\0\x03\0\0\0"
     );
 }
+
+#[test]
+fn socket_refusal_preserves_original_binary_transcript_and_namespace_identity() {
+    for (operation, tag, fields, message) in [
+        (
+            N::SockAccept {
+                fd: 3,
+                flags: 0x1234,
+            },
+            30_u8,
+            vec![3, 0, 0, 0, 0x34, 0x12],
+            "operation outside stock WASI profile: sock_accept",
+        ),
+        (
+            N::SockShutdown { fd: 3, how: 2 },
+            31,
+            vec![3, 0, 0, 0, 2],
+            "operation outside stock WASI profile: sock_shutdown",
+        ),
+    ] {
+        let mut model = Model::new(config());
+        let mut namespace = Namespace::new(image()).unwrap();
+        let before = namespace.canonical_state();
+        let reply = model
+            .namespace_call(1, &mut namespace, namespace::call::Call::new(operation))
+            .unwrap();
+        assert_eq!(reply.unsupported.as_deref(), Some(message));
+        assert_eq!(namespace.canonical_state(), before);
+        let mut expected = b"GMWT\x01\0\0\0".to_vec();
+        expected.extend_from_slice(&[tag, 1, 0, 0]);
+        expected.extend_from_slice(&1_u64.to_le_bytes());
+        expected.extend_from_slice(
+            &u32::try_from(fields.len() + 4 + message.len())
+                .unwrap()
+                .to_le_bytes(),
+        );
+        expected.extend_from_slice(&fields);
+        expected.extend_from_slice(&u32::try_from(message.len()).unwrap().to_le_bytes());
+        expected.extend_from_slice(message.as_bytes());
+        assert_eq!(transcript(&mut model), expected);
+    }
+}

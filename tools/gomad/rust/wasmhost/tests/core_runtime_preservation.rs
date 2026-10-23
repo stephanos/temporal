@@ -85,6 +85,7 @@ fn native_outcomes_keep_real_exit_trap_fuel_and_output_claims_within_admitted_li
             (func (export "_start") {body}))"#).into_bytes();
         input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
         input.limits.output_bytes = 4;
+        input.namespace.as_mut().unwrap().limits.output_bytes = 4;
         let observed = linked::execute(input).unwrap();
         assert_eq!(observed.outcome.termination, expected, "{body}");
         assert_eq!(observed.outcome.exit_code, exit_code, "{body}");
@@ -97,7 +98,7 @@ fn native_outcomes_keep_real_exit_trap_fuel_and_output_claims_within_admitted_li
         assert!(retained <= 4);
         assert!(observed.authorization_to_terminal_nanos.is_some());
         if body.contains("$write") {
-            assert_eq!(observed.outcome.output_bytes, 5);
+            assert_eq!(observed.outcome.output_bytes, 0);
             assert_eq!(retained, 0);
         } else {
             assert_eq!(observed.outcome.output_bytes, 0);
@@ -209,7 +210,11 @@ fn rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site
             (func (export "_start") (drop (call $rejected {arguments}))))"#).into_bytes();
         input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
         let observed = linked::execute(input).unwrap();
-        assert_eq!(observed.outcome.termination, "unsupported", "{name}");
+        assert_eq!(
+            observed.outcome.termination, "unsupported",
+            "{name}: {}",
+            observed.outcome.message
+        );
         assert_eq!(observed.outcome.exit_code, None);
         assert!(
             observed

@@ -26,7 +26,9 @@ pub(super) fn run(
         return Err("counterfactual producer requires the compiled fixture role".into());
     }
     validate_preparation(prepared)?;
-    execution::run_counterfactual(prepared, job, Duration::from_secs(60), cancellation, fault)
+    execution::run_counterfactual(prepared, job, Duration::from_secs(60), cancellation, fault)?
+        .finalized()
+        .map_err(|failure| failure.message())
 }
 
 const SEMANTICS_SHA256: &str = "5ed9d769d7d97109f79896368e40a0469d219bd6819fde247914bad140ab4266";
@@ -290,7 +292,7 @@ fn produce_pair(
                 .contains_key("evidence/event-order")
         );
         let published = store.publish(result.publication).unwrap();
-        let opened = crate::evidence::store::open(&published.path).unwrap();
+        let opened = crate::evidence::store::Opened::open(&published.path).unwrap();
         opened.authenticate_all().unwrap();
         pair.push(json!({"artifact":published.path,"record_sha256":published.record_sha256,"bytes":published.stored_bytes}));
     }

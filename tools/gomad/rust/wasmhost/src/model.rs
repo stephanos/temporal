@@ -291,7 +291,7 @@ mod tests {
     use sha2::Digest;
     use std::hint::black_box;
     use std::io::Write;
-    fn model() -> Model {
+    pub(super) fn model() -> Model {
         let mut config: Config = serde_json::from_value(json!({"seed":7,"mode":1,"limit":4096,
             "diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,
             "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}))

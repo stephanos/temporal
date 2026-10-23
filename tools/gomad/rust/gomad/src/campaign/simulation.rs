@@ -155,8 +155,12 @@ fn run(
                     cancellation.cancel();
                 }
             }
-            result
+            Ok(result)
         })?;
+        if let Some(failure) = super::execution::batch_failure(&observed) {
+            return failure.report(json, output);
+        }
+        let observed = observed.into_iter().collect::<Result<Vec<_>, _>>()?;
         let mut executions = Vec::with_capacity(observed.len());
         let mut results = Vec::with_capacity(observed.len());
         let mut evidence = Vec::with_capacity(observed.len());

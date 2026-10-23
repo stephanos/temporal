@@ -702,9 +702,12 @@ pub fn project(
 pub fn project_encoded(
     mut observed: helper::Execution,
     encoding: &str,
-    _broker: &helper::BrokerConfig,
+    broker: &helper::BrokerConfig,
 ) -> Result<linked::Execution, String> {
-    if !observed.world.is_empty() {
+    if !observed.world.is_empty()
+        || matches!(observed.outcome.termination, "exit" | "trap" | "capacity")
+    {
+        helper::validate_world(&observed.world, broker)?;
         observed.world = helper::encode_world(&observed.world, encoding)?;
     }
     let mut rows = Vec::new();
@@ -911,6 +914,12 @@ mod projection_tests {
             summary["world_sha256"],
             canonical::digest(&projected.evidence["inspection"])
         );
+        let mut foreign = configuration.broker.clone();
+        foreign.seed += 1;
+        assert!(project_encoded(observe(&raw_world, false, false), "", &foreign).is_err());
+        let mut foreign = configuration.broker.clone();
+        foreign.limits.max_events += 1;
+        assert!(project_encoded(observe(&raw_world, false, false), "", &foreign).is_err());
         for terminal in ["cancelled", "infrastructure"] {
             let mut early = observe(&[], false, false);
             early.outcome.termination = terminal;
