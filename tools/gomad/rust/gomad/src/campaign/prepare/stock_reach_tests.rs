@@ -542,21 +542,17 @@ fn build_selection_changes_invalidate_compilation_cache() {
 fn cooperative_runtime_probes_repeat_per_seed_and_diverge_across_seeds() {
     let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
     // The cooperative profile refuses a compiler inside the module cache,
-    // where the gate's stock toolchain lives; link the unchanged GOROOT out.
+    // where the gate's stock toolchain lives; copy the unchanged GOROOT out.
+    // Never hardlink it: a new link changes the shared files' ctime while
+    // concurrent installations read them.
     let goroot = stock_go().parent().unwrap().parent().unwrap().to_path_buf();
     let linked = root.0.join("go");
-    let copied = ["-al", "-a"].into_iter().any(|mode| {
-        Command::new("cp")
-            .arg(mode)
-            .arg(&goroot)
-            .arg(&linked)
-            .status()
-            .is_ok_and(|status| status.success())
-            || {
-                let _ = fs::remove_dir_all(&linked);
-                false
-            }
-    });
+    let copied = Command::new("cp")
+        .arg("-a")
+        .arg(&goroot)
+        .arg(&linked)
+        .status()
+        .is_ok_and(|status| status.success());
     assert!(copied, "stock GOROOT copy failed");
     let compiler = linked.join("bin/go");
     let installation = root.0.join("installation.json");
