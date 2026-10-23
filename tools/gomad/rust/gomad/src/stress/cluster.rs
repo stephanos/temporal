@@ -122,10 +122,7 @@ pub(super) fn validate_original(bound: &scenario::Bound) -> Result<(), String> {
         .network
         .as_ref()
         .ok_or("stress two-cluster network missing")?;
-    let expected = json!({"model":{"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":4096,"bytes":128 << 20,"connection_bytes":4 << 20,"stall_nanos":10_000_000_000_u64,"transitions":1 << 20},"faults":[]},
-        "addresses":{"active":"10.0.0.1","standby":"10.0.0.2"},"strict_topology":true,
-        "links":[{"from":"active","to":"standby","enabled":true,"delay_nanos":0},{"from":"standby","to":"active","enabled":true,"delay_nanos":0}],
-        "faults":[{"name":"temporal-active-to-standby-partition","action":"partition","from":"active","to":"standby","at_nanos":1,"delay_nanos":0,"symmetric":false},{"name":"temporal-active-to-standby-heal","action":"heal","from":"active","to":"standby","at_nanos":30_000_000_000_u64,"delay_nanos":0,"symmetric":false}]});
+    let expected = original_network();
     if serde_json::to_value(network).map_err(|error| error.to_string())? != expected {
         return Err("stress two-cluster topology, fault schedule or network bounds changed".into());
     }
@@ -494,6 +491,107 @@ pub(super) fn outcome(
         };
         if !text.contains(witness) || text.contains("--- SKIP:") {
             return Err("unchanged stress selection did not execute fully".into());
+        }
+    }
+    Ok(())
+}
+
+fn original_network() -> Value {
+    json!({"model":{"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":4096,"bytes":128 << 20,"connection_bytes":4 << 20,"stall_nanos":10_000_000_000_u64,"transitions":1 << 20},"faults":[]},
+        "addresses":{"active":"10.0.0.1","standby":"10.0.0.2"},"strict_topology":true,
+        "links":[{"from":"active","to":"standby","enabled":true,"delay_nanos":0},{"from":"standby","to":"active","enabled":true,"delay_nanos":0}],
+        "faults":[{"name":"temporal-active-to-standby-partition","action":"partition","from":"active","to":"standby","at_nanos":1,"delay_nanos":0,"symmetric":false},{"name":"temporal-active-to-standby-heal","action":"heal","from":"active","to":"standby","at_nanos":30_000_000_000_u64,"delay_nanos":0,"symmetric":false}]})
+}
+
+pub(super) fn validate_retained(
+    configuration: &crate::replay::cluster::Configuration,
+) -> Result<(), String> {
+    let steps = [
+        (helper::Action::Start, 1),
+        (helper::Action::Crash, 1),
+        (helper::Action::Restart, 2),
+        (helper::Action::Wait, 2),
+    ]
+    .into_iter()
+    .flat_map(|(action, incarnation)| {
+        ["active", "standby"].map(move |node| helper::Step {
+            action,
+            handle: helper::Handle {
+                node: node.into(),
+                incarnation,
+            },
+        })
+    })
+    .collect::<Vec<_>>();
+    if configuration.nodes != ["active", "standby"]
+        || configuration.incarnations.len() != 4
+        || configuration.steps != steps
+        || serde_json::to_value(&configuration.network).map_err(|error| error.to_string())?
+            != original_network()
+        || !configuration.boundaries.is_empty()
+        || serde_json::to_value(&configuration.crash_groups).map_err(|error| error.to_string())?
+            != json!([{"nodes":["active","standby"],"marker":OBSERVATION.as_bytes()}])
+    {
+        return Err("retained stress original cluster topology/lifecycle changed".into());
+    }
+    let mut handles = std::collections::BTreeSet::new();
+    for owner in &configuration.incarnations {
+        let node = owner.handle.node.as_str();
+        let incarnation = owner.handle.incarnation;
+        if !["active", "standby"].contains(&node)
+            || ![1, 2].contains(&incarnation)
+            || !handles.insert((node, incarnation))
+            || owner.arguments.get(1..).is_none_or(|arguments| {
+                arguments
+                    != [
+                        "-test.v",
+                        "-test.count=1",
+                        "-test.timeout=1h",
+                        "-test.run=^TestIndependentClusterReplicationRecovery$",
+                        "-persistenceType=sql",
+                        "-persistenceDriver=sqlite",
+                    ]
+            })
+        {
+            return Err("retained stress original cluster owner/arguments changed".into());
+        }
+        let storage = serde_json::to_value(
+            owner
+                .storage
+                .as_ref()
+                .ok_or("retained stress durable volume absent")?,
+        )
+        .map_err(|error| error.to_string())?;
+        let model = &storage["descriptor"]["model"];
+        if model["volumes"] != json!([{"ID":node,"Path":"/volume","CapacityBytes":256<<20}])
+            || model["limits"] != json!({"PendingOperations":100000,"Transitions":10000000})
+            || model["sqlite_lock_databases"] != json!(["/volume/temporal.db"])
+            || model["faults"]
+                .as_array()
+                .is_some_and(|faults| !faults.is_empty())
+            || !storage["image"].is_null()
+            || !storage["context"].is_null()
+        {
+            return Err("retained stress original durable inputs changed".into());
+        }
+        let peer = if node == "active" {
+            "10.0.0.2"
+        } else {
+            "10.0.0.1"
+        };
+        for (key, value) in [
+            ("GOMAD_TEMPORAL_CLUSTER", node.to_owned()),
+            (
+                "GOMAD_TEMPORAL_PHASE",
+                if incarnation == 1 { "commit" } else { "reopen" }.into(),
+            ),
+            ("GOMAD_TEMPORAL_REMOTE_FRONTEND", format!("{peer}:7233")),
+            ("GOMAD_TEMPORAL_REMOTE_HTTP", format!("{peer}:7243")),
+            ("GOMAD_TEMPORAL_REMOTE_HISTORY", format!("{peer}:7234")),
+        ] {
+            if owner.environment.get(key) != Some(&value) {
+                return Err("retained stress cluster environment changed".into());
+            }
         }
     }
     Ok(())
