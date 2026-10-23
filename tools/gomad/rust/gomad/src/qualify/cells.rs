@@ -39,6 +39,8 @@ pub(crate) struct Frozen {
     pub artifact_root: PathBuf,
     pub command: Vec<String>,
     pub preparation_wall_nanos: u64,
+    /// Compiler arguments of the commands the initial preparation actually ran.
+    pub initial_compiler_commands: Vec<Vec<String>>,
     pub start: Option<Snapshot>,
     pub prepared_usage: Option<Snapshot>,
 }
@@ -307,7 +309,7 @@ pub(crate) fn freeze(
     let cooperative = prepare::installation_profile(&probe)? == "gomad.wasi-cooperative/v1";
     let options = explore_options(spec, installation, declared_manifest.seed, cooperative)?;
     let started = Instant::now();
-    let mut prepared = prepare::prepare(&options)?;
+    let (mut prepared, initial_compiler_commands) = prepare::prepare_observed(&options)?;
     if let Some(request) = &spec.runtime_workload {
         super::workloads::recovery::attach(&mut prepared, request)?;
     }
@@ -418,6 +420,7 @@ pub(crate) fn freeze(
         artifact_root: spec.artifact_root.clone(),
         command,
         preparation_wall_nanos,
+        initial_compiler_commands,
         start,
         prepared_usage,
     })
@@ -726,6 +729,8 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         prepared: frozen.prepared_usage,
         executed: usage::snapshot(),
         preparation_wall_nanos: frozen.preparation_wall_nanos,
+        initial_preparation_compiled: cost::preparation_compiled(&frozen.initial_compiler_commands),
+        initial_compiler_commands: frozen.initial_compiler_commands.clone(),
         samples,
         operator_peak_rss_bytes: usage::operator_peak(),
     };

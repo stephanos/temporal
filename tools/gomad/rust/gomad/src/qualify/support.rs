@@ -1189,14 +1189,10 @@ fn build(request: &Request) -> Result<SupportList, String> {
             .remove(&(selected.cell.into(), "canary".into()))
             .ok_or("support canary missing")?;
         let m = &success.result.manifest;
-        if success.policy != canary.policy
-            || row_inputs(&success.result)? != row_inputs(&canary.result)?
-            || m.module_sha256 != canary.result.manifest.module_sha256
-            || success.module_bytes != canary.module_bytes
-            || m.workload_source_sha256 != canary.result.manifest.workload_source_sha256
-        {
-            return Err("support success/canary policy, source or module differ".into());
-        }
+        paired(
+            (&success.result, &success.policy, success.module_bytes),
+            (&canary.result, &canary.policy, canary.module_bytes),
+        )?;
         let gates: Vec<_> = request
             .gates
             .iter()
@@ -1290,6 +1286,24 @@ fn build(request: &Request) -> Result<SupportList, String> {
         rows,
     })
 }
+/// A success row and its canary are matched cells of one policy, source and module.
+fn paired(
+    success: (&QualificationResult, &Value, u64),
+    canary: (&QualificationResult, &Value, u64),
+) -> Result<(), String> {
+    let (m, c) = (&success.0.manifest, &canary.0.manifest);
+    m.matched(c)?;
+    if success.1 != canary.1
+        || row_inputs(success.0)? != row_inputs(canary.0)?
+        || m.module_sha256 != c.module_sha256
+        || success.2 != canary.2
+        || m.workload_source_sha256 != c.workload_source_sha256
+    {
+        return Err("support success/canary policy, source or module differ".into());
+    }
+    Ok(())
+}
+
 fn validate(list: &SupportList) -> Result<(), String> {
     let request = Request {
         executable: list.candidate.executable.clone(),
