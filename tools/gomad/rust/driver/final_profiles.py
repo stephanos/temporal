@@ -815,6 +815,7 @@ def reference_helper_custody(config, entry):
             'reference bridge helper was not built from frozen candidate')
     package = Path(config['repo']) / 'tools/gomad/rust/wasmhost'
     expected = {str(path) for path in package.joinpath('src').rglob('*.rs')}
+    expected.update(str(path) for path in package.glob('*.rs'))
     expected.update(str(path) for path in (package / 'build.rs', package / 'Cargo.toml', package.parent / 'Cargo.toml',
                                          package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'))
     require(set(source['files']) == expected, 'reference helper source closure is incomplete')

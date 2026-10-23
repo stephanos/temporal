@@ -394,6 +394,48 @@ class FinalProfiles(unittest.TestCase):
             with self.subTest(phase=phase), self.assertRaises(Refusal):
                 gate.admission_attribution(changed)
 
+    def test_reference_helper_receives_the_producers_complete_crate_root_source_set(self):
+        package = self.root/'tools/gomad/rust/wasmhost'
+        source_files = {}
+        for name in ('src/lib.rs','src/main.rs','build.rs','build_identity.rs','Cargo.toml',
+                     '../Cargo.toml','../Cargo.lock','../rust-toolchain.toml'):
+            path = (package/name).resolve()
+            path.parent.mkdir(parents=True,exist_ok=True)
+            raw = name.encode()
+            path.write_bytes(raw)
+            source_files[str(path)] = dict(relative=str(path.relative_to(self.root)),bytes=len(raw),
+                sha256=hashlib.sha256(raw).hexdigest(),git_blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest())
+        def binding(path):
+            return dict(path=str(path),bytes=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+        helper,artifact = self.root/'helper',self.root/'artifact'
+        helper.write_bytes(b'compiled helper fixture');artifact.write_bytes(helper.read_bytes())
+        cargo,rustc = self.root/'cargo',self.root/'rustc'
+        cargo.write_bytes(b'cargo fixture');rustc.write_bytes(b'rustc fixture')
+        argv = [str(cargo),'build','--offline','--locked','--manifest-path',str(package.parent/'Cargo.toml'),
+            '-p','gomad-wasmhost','--features','reference-helper','--bin','gomad-wasmhost','--message-format=json-render-diagnostics']
+        command = dict(argv=argv,environment=dict(RUSTC=str(rustc)),cwd=str(self.root),pid=7,exit=0,
+            observation='completed',start_ns=1,end_ns=3)
+        command_path,process_path,stdout = self.root/'command.json',self.root/'process.json',self.root/'cargo.stdout'
+        command_path.write_text(json.dumps(command));process_path.write_text(json.dumps(dict(command,active=False)))
+        cargo_artifact = dict(reason='compiler-artifact',executable=str(artifact),features=['reference-helper'],
+            target=dict(name='gomad-wasmhost',**{'required-features':['reference-helper']}))
+        stdout.write_text(json.dumps(cargo_artifact)+'\n')
+        receipt = dict(schema='gomad.reference-helper-build/v1',binary=binding(helper),artifact_executable=binding(artifact),
+            copy=dict(method='copyfile',source=binding(artifact),destination=binding(helper)),cargo_artifact=cargo_artifact,
+            cargo_stdout=binding(stdout),command_file=binding(command_path),process_file=binding(process_path),command=command,
+            source=dict(source_root=str(self.root),source_commit='frozen',files=source_files),
+            toolchain={str(path):{key:value for key,value in binding(path).items() if key!='path'} for path in (cargo,rustc)})
+        path=self.root/'receipt.json';path.write_text(json.dumps(receipt))
+        files=[helper,artifact,cargo,rustc,command_path,process_path,stdout,path,*map(Path,source_files)]
+        config=dict(repo=str(self.root),head='frozen',files={str(item):hashlib.sha256(item.read_bytes()).hexdigest() for item in files})
+        entry=dict(helper_receipt=str(path),helper=str(helper))
+        gate.reference_helper_custody(config,entry)
+        identity=str(package/'build_identity.rs')
+        del receipt['source']['files'][identity]
+        path.write_text(json.dumps(receipt));config['files'][str(path)]=hashlib.sha256(path.read_bytes()).hexdigest()
+        with self.assertRaisesRegex(Refusal,'source closure'):
+            gate.reference_helper_custody(config,entry)
+
     def test_reference_helper_rejects_unrelated_cargo_artifact_with_coherent_copy_claim(self):
         helper, artifact = self.root / 'helper', self.root / 'cargo-artifact'
         helper.write_bytes(b'candidate')
