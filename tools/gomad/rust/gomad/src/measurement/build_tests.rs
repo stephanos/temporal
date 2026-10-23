@@ -769,10 +769,24 @@ fn bounded_process_observations_survive_exit_signal_timeout_capacity_and_spawn_f
             assert_eq!(retained.signal, Some(15));
         }
         if label == "capacity" {
+            // The fixture writes stdout before stderr and the observer kills the
+            // group as soon as either stream passes the bound, so stdout is
+            // always over capacity while stderr holds either nothing or all of
+            // its write, depending on whether the kill preceded it.
             assert!(retained.stdout.truncated);
-            assert!(retained.stderr.truncated);
+            assert_eq!(retained.stdout.bytes, Some(20));
             assert_eq!(retained.stdout.captured_bytes, Some(8));
-            assert_eq!(retained.stderr.captured_bytes, Some(8));
+            match retained.stderr.bytes {
+                Some(26) => {
+                    assert!(retained.stderr.truncated);
+                    assert_eq!(retained.stderr.captured_bytes, Some(8));
+                }
+                Some(0) => {
+                    assert!(!retained.stderr.truncated);
+                    assert_eq!(retained.stderr.captured_bytes, Some(0));
+                }
+                other => panic!("stderr was split by the kill: {other:?}"),
+            }
         }
         if label == "spawn" {
             assert!(retained.pid.is_none());

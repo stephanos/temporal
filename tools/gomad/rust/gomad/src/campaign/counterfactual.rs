@@ -680,10 +680,9 @@ fn verify_pair(input: &Inputs, case: &Case, root: &Path, pair: &[Value]) -> Valu
         &inspection,
     );
     authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
-    let output = std::process::Command::new(&command[0])
-        .args(&command[1..])
-        .output()
-        .unwrap();
+    let output =
+        crate::fork_order::output(std::process::Command::new(&command[0]).args(&command[1..]))
+            .unwrap();
     let directory = root.join(&case.name);
     std::fs::write(directory.join("public-replay.stdout"), &output.stdout).unwrap();
     std::fs::write(directory.join("public-replay.stderr"), &output.stderr).unwrap();

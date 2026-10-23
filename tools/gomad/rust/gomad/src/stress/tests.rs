@@ -424,7 +424,7 @@ while len(list(root.parent.glob('arrival-*'))) < request['supervision']['cohort_
     time.sleep(.005)
 (root / 'observation.json').write_text(json.dumps({'process_id':os.getpid(), 'oracle_error':None, 'perturbation_error':None, 'event_order_error':None}))
 ").unwrap();
-    std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o700)).unwrap();
+    crate::fork_order::make_executable(&binary, 0o700);
     let mut json = false;
     let options =
         crate::cli::explore::parse(&["go-run".into(), "./unused".into()], &mut json).unwrap();

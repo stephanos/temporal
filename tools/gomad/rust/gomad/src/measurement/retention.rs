@@ -9,20 +9,22 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use crate::fork_order::Locked;
+
 const LOCK_TIMEOUT: Duration = Duration::from_secs(60);
 static SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 pub struct RetainedRun {
     store: File,
     root: File,
-    lease: Option<File>,
+    lease: Option<Locked>,
     path: PathBuf,
     name: String,
 }
 
 pub struct ChildLease {
     requested_root: PathBuf,
-    _lease: File,
+    _lease: Locked,
 }
 impl ChildLease {
     #[must_use]
@@ -37,11 +39,11 @@ impl ChildLease {
         };
         let (canonical, root) = retention_base(parent, false)?;
         validate_pin(&root, &canonical)?;
-        let lease = match create(&root, ".children") {
+        let lease = Locked::new(match create(&root, ".children") {
             Ok(file) => file,
             Err(_) => open(&root, OsStr::new(".children"), false)?,
-        };
-        fs::flock(&lease, FlockOperation::NonBlockingLockShared)
+        });
+        fs::flock(&*lease, FlockOperation::NonBlockingLockShared)
             .map_err(|error| error.to_string())?;
         let current = directory(&canonical, false)?;
         if !same(&root, &current)? {
@@ -88,8 +90,8 @@ impl RetainedRun {
             .map_err(|error| error.to_string())?;
         let setup = (|| {
             let root = child_directory(&store, OsStr::new(&stage), false)?;
-            let lease = create(&root, ".lease")?;
-            fs::flock(&lease, FlockOperation::NonBlockingLockExclusive)
+            let lease = Locked::new(create(&root, ".lease")?);
+            fs::flock(&*lease, FlockOperation::NonBlockingLockExclusive)
                 .map_err(|error| error.to_string())?;
             let path = base_path.join(".gomad-measure").join(producer).join(&name);
             atomic_write(&root, ".pin", path.as_os_str().as_encoded_bytes())?;
@@ -159,8 +161,8 @@ impl RetainedRun {
             };
             let (canonical_path, root) = retention_base(path, false)?;
             let path = canonical_path.as_path();
-            let lease = open(&root, OsStr::new(".lease"), false)?;
-            fs::flock(&lease, FlockOperation::NonBlockingLockShared)
+            let lease = Locked::new(open(&root, OsStr::new(".lease"), false)?);
+            fs::flock(&*lease, FlockOperation::NonBlockingLockShared)
                 .map_err(|error| error.to_string())?;
             validate_pin(&root, path)?;
             let current = directory(path, false)?;
@@ -378,15 +380,15 @@ fn rename_exclusive(root: &File, from: &str, to: &str) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
-fn store_lock(root: &File, cancelled: &dyn Fn() -> bool) -> Result<File, String> {
-    let file = match create(root, ".lock") {
+fn store_lock(root: &File, cancelled: &dyn Fn() -> bool) -> Result<Locked, String> {
+    let file = Locked::new(match create(root, ".lock") {
         Ok(file) => file,
         Err(_) => open(root, OsStr::new(".lock"), false)?,
-    };
+    });
     let deadline = Instant::now() + LOCK_TIMEOUT;
     loop {
         check_cancelled(cancelled)?;
-        match fs::flock(&file, FlockOperation::NonBlockingLockExclusive) {
+        match fs::flock(&*file, FlockOperation::NonBlockingLockExclusive) {
             Ok(()) => {
                 let current = open(root, OsStr::new(".lock"), false)?;
                 if !same(&file, &current)? {
@@ -614,15 +616,15 @@ fn collect(store: &File, path: &Path) -> Result<(Vec<String>, Vec<PathBuf>), Str
         if validate_pin(&root, &path.join(name)).is_err() {
             continue;
         }
-        let lease = open(&root, OsStr::new(".lease"), false)?;
-        match fs::flock(&lease, FlockOperation::NonBlockingLockExclusive) {
+        let lease = Locked::new(open(&root, OsStr::new(".lease"), false)?);
+        match fs::flock(&*lease, FlockOperation::NonBlockingLockExclusive) {
             Ok(()) => {}
             Err(rustix::io::Errno::WOULDBLOCK) => continue,
             Err(error) => return Err(error.to_string()),
         }
         let children = if exists(&root, ".children")? {
-            let children = open(&root, OsStr::new(".children"), false)?;
-            match fs::flock(&children, FlockOperation::NonBlockingLockExclusive) {
+            let children = Locked::new(open(&root, OsStr::new(".children"), false)?);
+            match fs::flock(&*children, FlockOperation::NonBlockingLockExclusive) {
                 Ok(()) => Some(children),
                 Err(rustix::io::Errno::WOULDBLOCK) => continue,
                 Err(error) => return Err(error.to_string()),

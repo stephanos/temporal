@@ -14,7 +14,7 @@ use std::{
 };
 
 pub(super) fn host(command: &str, arguments: &[&str]) -> Value {
-    match Command::new(command).args(arguments).output() {
+    match crate::fork_order::spawning(|| Command::new(command).args(arguments).output()) {
         Ok(output) => {
             json!({"command":command,"arguments":arguments,"status":output.status.code(),"stdout":String::from_utf8_lossy(&output.stdout),"stderr":String::from_utf8_lossy(&output.stderr)})
         }
@@ -197,7 +197,8 @@ pub(super) fn execute(
         command.env("GOMAD_WASM_STRESS_JITTER", "1");
     }
     let started = Instant::now();
-    let mut child = command.spawn().map_err(|error| error.to_string())?;
+    let mut child =
+        crate::fork_order::spawning(|| command.spawn()).map_err(|error| error.to_string())?;
     let pid = child.id();
     let result = loop {
         match child.try_wait() {

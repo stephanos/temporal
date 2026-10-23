@@ -475,18 +475,21 @@ mod tests {
             io::Read as _,
             process::{Command, Stdio},
         };
-        let mut child = Command::new(std::env::current_exe().unwrap())
-            .args([
-                "--exact",
-                "campaign::launcher::tests::blocked_stderr_child",
-                "--nocapture",
-            ])
-            .env("GOMAD_TEST_BLOCKED_STDERR", "1")
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
-        let deadline = Instant::now() + Duration::from_secs(2);
+        let mut child = crate::fork_order::spawn(
+            Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "campaign::launcher::tests::blocked_stderr_child",
+                    "--nocapture",
+                ])
+                .env("GOMAD_TEST_BLOCKED_STDERR", "1")
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped()),
+        )
+        .unwrap();
+        // The child's callback deadline (1 s) plus the original 1.9 s allowance
+        // for process start and final reporting.
+        let deadline = Instant::now() + Duration::from_millis(2900);
         let status = loop {
             if let Some(status) = child.try_wait().unwrap() {
                 break status;
@@ -524,7 +527,9 @@ mod tests {
         if std::env::var_os("GOMAD_TEST_BLOCKED_STDERR").is_none() {
             return;
         }
-        let deadline = Instant::now() + Duration::from_millis(100);
+        // The deadline must outlast the scheduling delay before the forwarder's
+        // first write so the undrained pipe is filled before it expires.
+        let deadline = Instant::now() + Duration::from_secs(1);
         let forwarder = Forwarder::new(linked::Cancellation::default(), deadline).unwrap();
         let error = forwarder
             .write(linked::OutputStream::Stderr, &vec![b'X'; 2 << 20])

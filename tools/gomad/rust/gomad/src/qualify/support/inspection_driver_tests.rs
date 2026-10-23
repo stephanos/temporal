@@ -163,7 +163,7 @@ impl Fixture {
                 compile_cache_root: None,
             }),
         };
-        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o755)).unwrap();
+        crate::fork_order::make_executable(&compiler, 0o755);
         fs::set_permissions(&source, fs::Permissions::from_mode(0o644)).unwrap();
         let installation_path = root.join("installation.json");
         let installation_sha = write(

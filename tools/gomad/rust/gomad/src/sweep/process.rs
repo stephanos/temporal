@@ -150,17 +150,19 @@ impl Executor for Host {
                 return Err("subprocess timeout is required".into());
             }
             let deadline = context.deadline.min(start + command.timeout);
-            let child = HostCommand::new(&command.path)
-                .args(&command.args)
-                .current_dir(&command.dir)
-                .env_clear()
-                .envs(&command.env)
-                .stdin(Stdio::null())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .process_group(0)
-                .spawn()
-                .map_err(|e| e.to_string())?;
+            let child = crate::fork_order::spawning(|| {
+                HostCommand::new(&command.path)
+                    .args(&command.args)
+                    .current_dir(&command.dir)
+                    .env_clear()
+                    .envs(&command.env)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .process_group(0)
+                    .spawn()
+            })
+            .map_err(|e| e.to_string())?;
             let mut child = Child(child);
             let mut stdout = child.0.stdout.take().ok_or("subprocess stdout missing")?;
             let mut stderr = child.0.stderr.take().ok_or("subprocess stderr missing")?;

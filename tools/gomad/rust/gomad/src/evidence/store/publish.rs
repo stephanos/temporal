@@ -903,8 +903,12 @@ mod tests {
         let fixture = PoolFixture::new();
         let bytes = b"\0asm\x01\0\0\0";
         let digest = canonical::digest(bytes);
-        let reader = open::child(&fixture.first, "module.wasm", false, true).unwrap();
-        let cloned = reader.try_clone().unwrap();
+        // Releases go through the fork-ordered path so a concurrently forked
+        // test child cannot still share the guard when the contender probes.
+        let reader = crate::fork_order::Locked::new(
+            open::child(&fixture.first, "module.wasm", false, true).unwrap(),
+        );
+        let cloned = crate::fork_order::Locked::new(reader.try_clone().unwrap());
         let contender = File::from(
             fs::openat(
                 &fixture.shared,

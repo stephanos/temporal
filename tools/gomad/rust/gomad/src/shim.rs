@@ -692,7 +692,6 @@ fn driver_command(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::fs::PermissionsExt as _;
 
     #[test]
     fn global_directory_flag_keeps_the_real_driver_prefix_and_effective_source_directory() {
@@ -728,7 +727,7 @@ mod tests {
             ),
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let config =
             crate::install::config::build("gomad.wasi-stock-exploratory/v1", None, None).unwrap();
         let installed = manifest::Installation {
@@ -823,23 +822,6 @@ mod tests {
         );
     }
 
-    /// Makes a written fixture script executable on a fresh inode that only a
-    /// child `cp` ever opened for writing. Another test thread may fork while
-    /// this process still holds the original write descriptor; that child
-    /// keeps the inode open for writing until it execs, and executing it then
-    /// fails with ETXTBSY ("Text file busy", observed in parallel runs).
-    fn install_executable(path: &Path) {
-        let staged = path.with_extension("exec");
-        let status = std::process::Command::new("/bin/cp")
-            .arg(path)
-            .arg(&staged)
-            .status()
-            .unwrap();
-        assert!(status.success(), "copy fixture executable");
-        fs::set_permissions(&staged, fs::Permissions::from_mode(0o700)).unwrap();
-        fs::rename(&staged, path).unwrap();
-    }
-
     fn fixture_contract(root: &Path, compiler: PathBuf) -> Contract {
         Contract {
             binary: std::env::current_exe().unwrap(),
@@ -905,7 +887,7 @@ mod tests {
             format!("#!/bin/sh\nprintf x >> '{}'\nexit 1\n", calls.display()),
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let contract = fixture_contract(&root.0, compiler.clone());
         let package = Package {
             import_path: "example.test/fixture".into(),
@@ -978,7 +960,7 @@ mod tests {
             format!("#!/bin/sh\nprintf x >> '{}'\nexit 1\n", calls.display()),
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let contract = fixture_contract(&root.0, compiler.clone());
         let package = Package {
             import_path: "example.test/fixture".into(),
@@ -1046,7 +1028,7 @@ mod tests {
             "#!/bin/sh\nprintf 'reached-version-after-profile-admission' >&2\nexit 1\n",
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let contract = fixture_contract(&root.0, compiler.clone());
         let package = Package {
             import_path: "example.test/fixture".into(),
@@ -1101,7 +1083,7 @@ mod tests {
             ),
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let contract = fixture_contract(&root.0, compiler);
         let inherited = std::collections::BTreeMap::from([
             (OsString::from("GOFLAGS"), OsString::from("-race")),
@@ -1199,7 +1181,7 @@ esac
             ),
         )
         .unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let mut contract = fixture_contract(&root.0, compiler);
         let mut inherited = std::env::vars_os().collect::<std::collections::BTreeMap<_, _>>();
         for (name, value) in [
@@ -1383,7 +1365,7 @@ else
     esac
 fi
 "#, queries=queries.display(), mode_queries=root.0.join("mode-queries").display())).unwrap();
-        install_executable(&compiler);
+        crate::fork_order::make_executable(&compiler, 0o700);
         let mut contract = fixture_contract(&root.0, compiler);
         let installation = fixture_installation(
             &root.0,

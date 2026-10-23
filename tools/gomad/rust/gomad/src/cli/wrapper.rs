@@ -1,3 +1,4 @@
+use crate::fork_order::Locked;
 use crate::{
     campaign::{origin, seeds::SeedSelection},
     install::manifest,
@@ -180,7 +181,7 @@ struct Directory {
     root: PathBuf,
     path: PathBuf,
     identity: String,
-    guard: File,
+    guard: Locked,
 }
 
 impl Directory {
@@ -192,8 +193,8 @@ impl Directory {
             .create(&root)
             .map_err(filesystem)?;
         private_directory(&root)?;
-        let registry = lock(&root.join(".lock"))?;
-        rustix::fs::flock(&registry, FlockOperation::LockExclusive).map_err(filesystem)?;
+        let registry = Locked::new(lock(&root.join(".lock"))?);
+        rustix::fs::flock(&*registry, FlockOperation::LockExclusive).map_err(filesystem)?;
         for entry in fs::read_dir(&root).map_err(filesystem)? {
             let entry = entry.map_err(filesystem)?;
             let name = entry.file_name();
@@ -205,8 +206,8 @@ impl Directory {
             }
             let path = entry.path();
             private_directory(&path)?;
-            let guard = lock(&path.join(".lock"))?;
-            match rustix::fs::flock(&guard, FlockOperation::NonBlockingLockExclusive) {
+            let guard = Locked::new(lock(&path.join(".lock"))?);
+            match rustix::fs::flock(&*guard, FlockOperation::NonBlockingLockExclusive) {
                 Ok(()) => fs::remove_dir_all(path).map_err(filesystem)?,
                 Err(rustix::io::Errno::WOULDBLOCK) => (),
                 Err(error) => return Err(filesystem(error)),
@@ -219,8 +220,8 @@ impl Directory {
             .create(&path)
             .map_err(filesystem)?;
         let result = (|| {
-            let guard = lock(&path.join(".lock"))?;
-            rustix::fs::flock(&guard, FlockOperation::LockExclusive).map_err(filesystem)?;
+            let guard = Locked::new(lock(&path.join(".lock"))?);
+            rustix::fs::flock(&*guard, FlockOperation::LockExclusive).map_err(filesystem)?;
             std::os::unix::fs::symlink(binary, path.join("go")).map_err(filesystem)?;
             Ok(Self {
                 root,
@@ -237,8 +238,8 @@ impl Directory {
 
     fn clean(self) -> Result<(), super::Error> {
         private_directory(&self.root)?;
-        let registry = lock(&self.root.join(".lock"))?;
-        rustix::fs::flock(&registry, FlockOperation::LockExclusive).map_err(filesystem)?;
+        let registry = Locked::new(lock(&self.root.join(".lock"))?);
+        rustix::fs::flock(&*registry, FlockOperation::LockExclusive).map_err(filesystem)?;
         private_directory(&self.path)?;
         let held = self.guard.metadata().map_err(filesystem)?;
         let current = fs::symlink_metadata(self.path.join(".lock")).map_err(filesystem)?;
@@ -246,8 +247,8 @@ impl Directory {
             return Err(filesystem("wrapper directory lock substituted"));
         }
         drop(self.guard);
-        let probe = lock(&self.path.join(".lock"))?;
-        match rustix::fs::flock(&probe, FlockOperation::NonBlockingLockExclusive) {
+        let probe = Locked::new(lock(&self.path.join(".lock"))?);
+        match rustix::fs::flock(&*probe, FlockOperation::NonBlockingLockExclusive) {
             Ok(()) => fs::remove_dir_all(&self.path).map_err(filesystem),
             Err(rustix::io::Errno::WOULDBLOCK) => Ok(()),
             Err(error) => Err(filesystem(error)),
@@ -281,27 +282,29 @@ fn launch(
     let child = resolve(&arguments.child[0], &search)?;
     let artifacts = std::path::absolute(&arguments.artifacts).map_err(filesystem)?;
     // Descendants retain the lease if this wrapper is interrupted before they exit.
-    rustix::io::fcntl_setfd(&directory.guard, FdFlags::empty()).map_err(filesystem)?;
-    let status = Command::new(child)
-        .arg0(&arguments.child[0])
-        .args(&arguments.child[1..])
-        .env("PATH", search)
-        .env("GOMAD_SHIM_BINARY", binary)
-        .env("GOMAD_SHIM_GO", compiler)
-        .env("GOMAD_SHIM_INSTALLATION", installation)
-        .env("GOMAD_SHIM_ARTIFACTS", artifacts)
-        .env("GOMAD_SHIM_SEEDS", &arguments.seeds)
-        .env("GOMAD_SHIM_RUN", &directory.identity)
-        .env("GOMAD_SHIM_RUN_DIR", &directory.path)
-        .env_remove("GOMAD_SHIM_INVOCATION")
-        .env_remove("GOMAD_SHIM_INVOCATION_SHA256")
-        .env_remove("GOMAD_SHIM_BUILD_CHILD")
-        .env_remove("GOMAD_SHIM_BUILD_CHILD_SHA256")
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status()
-        .map_err(|error| super::Error::from(error.to_string()))?;
+    rustix::io::fcntl_setfd(&*directory.guard, FdFlags::empty()).map_err(filesystem)?;
+    let status = crate::fork_order::spawning(|| {
+        Command::new(child)
+            .arg0(&arguments.child[0])
+            .args(&arguments.child[1..])
+            .env("PATH", search)
+            .env("GOMAD_SHIM_BINARY", binary)
+            .env("GOMAD_SHIM_GO", compiler)
+            .env("GOMAD_SHIM_INSTALLATION", installation)
+            .env("GOMAD_SHIM_ARTIFACTS", artifacts)
+            .env("GOMAD_SHIM_SEEDS", &arguments.seeds)
+            .env("GOMAD_SHIM_RUN", &directory.identity)
+            .env("GOMAD_SHIM_RUN_DIR", &directory.path)
+            .env_remove("GOMAD_SHIM_INVOCATION")
+            .env_remove("GOMAD_SHIM_INVOCATION_SHA256")
+            .env_remove("GOMAD_SHIM_BUILD_CHILD")
+            .env_remove("GOMAD_SHIM_BUILD_CHILD_SHA256")
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .status()
+    })
+    .map_err(|error| super::Error::from(error.to_string()))?;
     Ok(status
         .code()
         .unwrap_or_else(|| 128 + status.signal().unwrap_or(1)))
@@ -408,7 +411,7 @@ mod tests {
             crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
         let path = root.0.join("child");
         fs::write(&path, b"#!/bin/sh\nexit 0\n").unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        crate::fork_order::make_executable(&path, 0o700);
         assert_eq!(
             resolve(OsStr::new("child"), root.0.as_os_str())
                 .unwrap_or_else(|e| panic!("{}", e.message)),
@@ -429,7 +432,7 @@ mod tests {
             0o700
         );
         assert_eq!(fs::read_link(stale.join("go")).unwrap(), binary);
-        let descendant = first.guard.try_clone().unwrap();
+        let descendant = crate::fork_order::Locked::new(first.guard.try_clone().unwrap());
         first.clean().unwrap_or_else(|e| panic!("{}", e.message));
         assert!(stale.is_dir());
         let second =
@@ -510,7 +513,7 @@ mod tests {
             );
             let copy = root.0.join("nested-binary");
             assert_eq!(fs::copy(&binary, &copy).unwrap(), before.len());
-            fs::set_permissions(&copy, fs::Permissions::from_mode(0o700)).unwrap();
+            crate::fork_order::make_executable(&copy, 0o700);
             let copied = fs::metadata(copy).unwrap();
             assert_ne!((before.dev(), before.ino()), (copied.dev(), copied.ino()));
         }
@@ -522,24 +525,25 @@ mod tests {
             b"#!/bin/sh\nprintf invoked > \"$GOMAD_TEST_WRAPPER_ROOT/compiler-ran\"\nexit 98\n",
         )
         .unwrap();
-        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
-        let mut child = Command::new(std::env::current_exe().unwrap())
-            .args([
-                "--exact",
-                "cli::wrapper::tests::wrapper_nested_process_probe",
-                "--nocapture",
-            ])
-            .current_dir(&root.0)
-            .env_clear()
-            .env("PATH", &compiler_dir)
-            .env("HOME", &root.0)
-            .env("XDG_CACHE_HOME", root.0.join("cache"))
-            .env("GOMAD_TEST_WRAPPER_ROOT", &root.0)
-            .process_group(0)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
+        crate::fork_order::make_executable(&compiler, 0o700);
+        let mut child = crate::fork_order::spawn(
+            Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "cli::wrapper::tests::wrapper_nested_process_probe",
+                    "--nocapture",
+                ])
+                .current_dir(&root.0)
+                .env_clear()
+                .env("PATH", &compiler_dir)
+                .env("HOME", &root.0)
+                .env("XDG_CACHE_HOME", root.0.join("cache"))
+                .env("GOMAD_TEST_WRAPPER_ROOT", &root.0)
+                .process_group(0)
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped()),
+        )
+        .unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         loop {
             if child.try_wait().unwrap().is_some() {

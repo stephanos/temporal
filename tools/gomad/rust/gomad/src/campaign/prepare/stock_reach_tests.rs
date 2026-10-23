@@ -9,11 +9,12 @@ fn stock_go() -> PathBuf {
         .map(|directory| directory.join("go"))
         .find(|candidate| candidate.is_file())
         .expect("stock Go 1.27.1 must be first on PATH");
-    let version = Command::new(&path)
-        .arg("version")
-        .env("GOTOOLCHAIN", "local")
-        .output()
-        .unwrap();
+    let version = crate::fork_order::output(
+        Command::new(&path)
+            .arg("version")
+            .env("GOTOOLCHAIN", "local"),
+    )
+    .unwrap();
     assert!(
         String::from_utf8_lossy(&version.stdout).contains("go version go1.27.1 "),
         "stock compiler identity: {:?}",

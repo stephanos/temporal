@@ -1,0 +1,1 @@
+CREATE TABLE changed(id INTEGER);

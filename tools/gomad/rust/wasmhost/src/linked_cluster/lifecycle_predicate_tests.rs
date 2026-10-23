@@ -673,15 +673,22 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
         );
         assert_eq!(execution.outcome.exit_code, None);
         assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+        // The 20 ms bound (or parent cancellation) can expire before the store
+        // is launched; that incarnation then joins as a never-created store
+        // aborted before launch. Either way no created store outlives return
+        // and the launch count equals the created stores.
+        let created =
+            |item: &IncarnationResult| item.execution.authorization_to_terminal_nanos.is_some();
+        assert!(execution.incarnations.iter().all(|item| created(item)
+            || item.execution.outcome.termination == "inspection_aborted"
+                && !item.execution.evidence.contains_key("stdout")));
         assert_eq!(
             activity.snapshot().launched_stores,
-            execution.incarnations.len() as u64
-        );
-        assert!(
             execution
                 .incarnations
                 .iter()
-                .all(|item| item.execution.authorization_to_terminal_nanos.is_some())
+                .filter(|item| created(item))
+                .count() as u64
         );
         raw(
             if variant == "internal deadline" {
@@ -697,7 +704,7 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
                 "parent_cancel_after_millis":if watchdog { None } else { Some(20) },
                 "joined_incarnations":execution.incarnations.len(),
                 "all_stores_dropped_before_return":execution.incarnations.iter().all(|item|
-                    item.execution.authorization_to_terminal_nanos.is_some()),
+                    created(item) || item.execution.outcome.termination == "inspection_aborted"),
                 "store_results":store_facts(&execution),"activity":activity.snapshot()
             }),
         );

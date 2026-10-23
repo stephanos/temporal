@@ -349,23 +349,15 @@ fn shared_input_lease_prevents_collection_until_released() {
     let path = input.path().to_path_buf();
     input.finish(true, &|| false).unwrap();
     let root = directory(&path, false).unwrap();
-    let lease = open(&root, OsStr::new(".lease"), false).unwrap();
-    fs::flock(&lease, FlockOperation::NonBlockingLockShared).unwrap();
+    let lease = crate::fork_order::Locked::new(open(&root, OsStr::new(".lease"), false).unwrap());
+    fs::flock(&*lease, FlockOperation::NonBlockingLockShared).unwrap();
     scratch
         .begin("prototype", false)
         .finish(true, &|| false)
         .unwrap();
     assert!(path.exists());
     drop(lease);
-    // A concurrent test's fork can hold the inherited lease until its exec closes it, so collection
-    // after release is eventual: reclaim skips a still-locked run and a later pass collects it.
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while path.exists() && Instant::now() < deadline {
-        reclaim(path.parent().unwrap()).unwrap();
-        if path.exists() {
-            std::thread::sleep(Duration::from_millis(20));
-        }
-    }
+    reclaim(path.parent().unwrap()).unwrap();
     assert!(!path.exists());
 }
 
