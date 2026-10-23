@@ -329,3 +329,168 @@ fn retained_world_profile_authenticates_seed_capacities_and_binary_owner_bytes()
     trailing.push(0);
     assert!(helper::validate_encoded_world(&trailing, "", &broker).is_err());
 }
+
+fn operator_fixture() -> Value {
+    let mut scenario: Value = serde_json::from_slice(include_bytes!(
+        "../../../../internal/backends/wasm/command/testdata/scenario/durable.json"
+    ))
+    .unwrap();
+    scenario["spec"]["nodes"] = json!([
+        {"id":"a","boot":"main","address":"10.0.0.1"},
+        {"id":"b","boot":"main","address":"10.0.0.2"}
+    ]);
+    scenario["spec"]["volumes"] = json!([]);
+    scenario["boots"] = json!([{"id":"main"}]);
+    scenario["incarnation_boots"] = json!([]);
+    scenario["output_crashes"] = json!([]);
+    scenario["actions"] = json!([
+        {"action":"start","handle":{"node":"a","incarnation":1}},
+        {"action":"start","handle":{"node":"b","incarnation":1}},
+        {"action":"wait","handle":{"node":"a","incarnation":1}},
+        {"action":"wait","handle":{"node":"b","incarnation":1}}
+    ]);
+    scenario
+}
+
+#[test]
+fn operator_strict_preflight_preserves_every_original_refusal() {
+    for name in [
+        "valid",
+        "version",
+        "duplicate-node",
+        "missing-boot",
+        "incarnation",
+        "ordering",
+        "unbound-crash",
+        "capacity",
+        "fault-capacity",
+        "callback",
+        "missing-reference",
+        "unknown-restart-boot",
+        "duplicate-boot",
+        "active-restart",
+        "incomplete",
+    ] {
+        let mut scenario = operator_fixture();
+        match name {
+            "valid" => {}
+            "version" => scenario["schema"] = "unknown".into(),
+            "duplicate-node" => scenario["spec"]["nodes"][1]["id"] = "a".into(),
+            "missing-boot" => scenario["boots"] = Value::Null,
+            "incarnation" => scenario["actions"][0]["handle"]["incarnation"] = 2.into(),
+            "ordering" => scenario["actions"][0]["action"] = "restart".into(),
+            "unbound-crash" => scenario["actions"][2]["action"] = "crash".into(),
+            "capacity" => scenario["spec"]["limits"]["nodes"] = 1.into(),
+            "fault-capacity" => {
+                scenario["spec"]["limits"]["fault_actions"] = 1.into();
+                scenario["network_faults"] = json!([{"Name":"one","Action":"","From":"","To":""},{"Name":"two","Action":"","From":"","To":""}]);
+            }
+            "callback" => scenario["actions"][0]["action"] = "callback".into(),
+            "missing-reference" => scenario["actions"][0]["handle"]["node"] = "missing".into(),
+            "unknown-restart-boot" => {
+                scenario["incarnation_boots"] = json!([
+                    {"handle":{"node":"a","incarnation":2},"boot":"missing"}
+                ])
+            }
+            "duplicate-boot" => scenario["boots"] = json!([{"id":"main"},{"id":"main"}]),
+            "active-restart" => {
+                scenario["actions"][2] = json!(
+                    {"action":"restart","handle":{"node":"a","incarnation":2}}
+                )
+            }
+            "incomplete" => {
+                scenario["actions"].as_array_mut().unwrap().truncate(2);
+            }
+            _ => unreachable!(),
+        }
+        let normalized = normalize(&canonical::encode(&scenario).unwrap());
+        assert_eq!(
+            normalized.is_ok(),
+            name == "valid",
+            "{name}: {normalized:?}"
+        );
+    }
+    let raw = canonical::encode(&operator_fixture()).unwrap();
+    for invalid in [
+        [raw.as_slice(), b" {}"].concat(),
+        [b"{\"unknown\":true,".as_slice(), &raw[1..]].concat(),
+    ] {
+        assert!(normalize(&invalid).is_err());
+    }
+}
+
+#[test]
+fn operator_arguments_preserve_null_empty_and_override_through_normalization_and_binding() {
+    let base: preflight::Configuration = serde_json::from_value(json!({
+        "engine":linked::CONFIGURATION,"profile":"gomad.wasi-cooperative/v1",
+        "limits":{"fuel":100_000,"memory_bytes":65_536,"wall_millis":1000,
+            "output_bytes":1024,"evidence_bytes":1<<20},
+        "arguments":["guest","inherited"],"environment":{"PWD":"/workspace"},
+        "runtime_sha256":"b".repeat(64),"namespace":null,
+        "model":{"entropy_key":vec![0u8;32],"working_directory_sha256":"c".repeat(64),
+            "arguments":{"bytes":0,"count":0,"chunks":0},
+            "environment":{"bytes":0,"count":0,"chunks":0},
+            "seed":7,"mode":1,"limit":1<<20,"diagnostics":false,
+            "epoch_nanos":946_684_800_000_000_000_u64,"read_step_nanos":0,"now":1,
+            "limits":{"calls":1<<20,"transcript_bytes":1<<20,"pending_events":1024}}
+    }))
+    .unwrap();
+    for (args, expected) in [
+        (Value::Null, vec!["guest", "inherited"]),
+        (json!([]), vec!["guest"]),
+        (json!(["override"]), vec!["guest", "override"]),
+    ] {
+        let mut value = operator_fixture();
+        value["boots"][0]["args"] = args.clone();
+        let canonical = normalize(&canonical::encode(&value).unwrap()).unwrap();
+        let again = normalize(&canonical).unwrap();
+        assert_eq!(canonical, again);
+        let sealed = parse(&again).unwrap();
+        assert_eq!(
+            serde_json::to_value(&sealed.boots[0]).unwrap()["args"],
+            args
+        );
+        let request = boot_request(&sealed.boots[0], &base, b"module", 7).unwrap();
+        assert_eq!(request.model.unwrap().arguments, expected);
+    }
+}
+
+#[test]
+fn only_crash_before_storage_fault_declares_a_lifecycle_crash() {
+    for action in [
+        Some("crash-before"),
+        Some("crash-after"),
+        Some("io-error"),
+        None,
+    ] {
+        let mut value = operator_fixture();
+        value["spec"]["nodes"] = json!([
+            {"id":"a","boot":"main","address":"10.0.0.1",
+                "volumes":[{"volume":"data","path":"/workspace"}]}
+        ]);
+        value["spec"]["volumes"] = json!([{"id":"data","capacity_bytes":1024}]);
+        value["actions"] = json!([
+            {"action":"start","handle":{"node":"a","incarnation":1}},
+            {"action":"crash","handle":{"node":"a","incarnation":1}}
+        ]);
+        value["boots"][0]["storage"] = json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1024}],
+            "limits":{"PendingOperations":100,"Transitions":1000},
+            "faults":action.map(|action| vec![json!({
+                "name":"crash","resource":"/workspace/data","operation":"sync",
+                "occurrence":1,"action":action
+            })]).unwrap_or_default()
+        });
+        let raw = canonical::encode(&value).unwrap();
+        let normalized = normalize(&raw);
+        assert_eq!(
+            normalized.is_ok(),
+            action == Some("crash-before"),
+            "{action:?}: {normalized:?}"
+        );
+        if let Ok(normalized) = normalized {
+            let sealed = parse(&normalized).unwrap();
+            storage_input(sealed.boots[0].storage.as_ref().unwrap()).unwrap();
+        }
+    }
+}
