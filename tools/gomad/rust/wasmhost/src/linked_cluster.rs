@@ -1487,9 +1487,9 @@ fn stop_live(
     if running.is_empty() {
         return Ok(());
     }
+    let expired = AtomicBool::new(false);
     thread::scope(|scope| {
         let (done, receive) = mpsc::sync_channel::<()>(0);
-        let expired = AtomicBool::new(false);
         let timed_out = &expired;
         let watcher = scope.spawn(move || {
             if receive.recv_timeout(CLUSTER_STOP_GRACE) == Err(mpsc::RecvTimeoutError::Timeout) {
