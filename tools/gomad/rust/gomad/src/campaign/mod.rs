@@ -660,9 +660,7 @@ fn run_observed(
                         if execution.record.outcome.termination == "capacity" {
                             failed_assertions.clone_from(&execution.soft_assertions);
                         }
-                        failure.get_or_insert_with(|| {
-                            format!("runner_failure: {}", execution.record.outcome.reason)
-                        });
+                        failure.get_or_insert_with(|| backend_failure(&execution.record.outcome));
                         cancel();
                         continue;
                     }
@@ -932,4 +930,36 @@ fn report(
         writeln!(output,"gomad explore: campaign={} selected={selection_count} attempted={} succeeded={succeeded} failures={failures} watchdogs={watchdogs} cancelled={cancelled} distinct={} stop={reason}",journal.path().display(),executions.len(),distinct.len()).map_err(|error|error.to_string())?;
     }
     Ok(i32::from(failures != 0))
+}
+
+fn backend_failure(outcome: &crate::evidence::record::Outcome) -> String {
+    let reason = outcome.reason.chars().take(4096).collect::<String>();
+    format!(
+        "runner_failure: backend {}: {}{}",
+        outcome.termination,
+        reason,
+        if outcome.reason.chars().count() > 4096 {
+            "…"
+        } else {
+            ""
+        }
+    )
+}
+#[cfg(test)]
+mod sweep_backend_failure_tests {
+    #[test]
+    fn native_failure_retains_typed_termination_without_reason_inference() {
+        for termination in ["unsupported", "capacity", "infrastructure"] {
+            let outcome = crate::evidence::record::Outcome {
+                class: "runner_failure".into(),
+                termination: termination.into(),
+                exit_code: None,
+                reason: "opaque diagnostic".into(),
+            };
+            assert_eq!(
+                super::backend_failure(&outcome),
+                format!("runner_failure: backend {termination}: opaque diagnostic")
+            );
+        }
+    }
 }
