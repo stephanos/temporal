@@ -1006,7 +1006,7 @@ fn storage_engine_request(descriptor: &Value, context: Option<&Value>) -> linked
     input
 }
 
-fn storage_engine_input_facts(input: &linked::Request) -> Value {
+fn native_request_input_facts(input: &linked::Request) -> Value {
     let model = input.model.as_ref().unwrap();
     let configuration = &model.configuration;
     assert!(configuration.tape.is_none());
@@ -1084,7 +1084,7 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
     for fresh_execution in 0..2 {
         let input = storage_engine_request(&baseline, None);
         let module_sha256 = input.module_sha256.clone();
-        let input_facts = storage_engine_input_facts(&input);
+        let input_facts = native_request_input_facts(&input);
         let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
         assert_eq!(result.outcome.termination, "exit");
         assert_eq!(result.outcome.exit_code, Some(0));
@@ -1126,7 +1126,7 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
             descriptor["crash_selection"] = json!({"data":state["SelectedOperations"]});
             let input = storage_engine_request(&descriptor, Some(context));
             let module_sha256 = input.module_sha256.clone();
-            let input_facts = storage_engine_input_facts(&input);
+            let input_facts = native_request_input_facts(&input);
             let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
             assert_eq!(result.outcome.termination, "exit");
             assert_eq!(result.outcome.exit_code, Some(0));
@@ -1181,7 +1181,7 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
             json!({"data":states.last().unwrap()["SelectedOperations"]});
         let input = storage_engine_request(&descriptor, Some(&context));
         let module_sha256 = input.module_sha256.clone();
-        let input_facts = storage_engine_input_facts(&input);
+        let input_facts = native_request_input_facts(&input);
         let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
         assert_eq!(result.outcome.termination, "invalid");
         assert_eq!(
@@ -1377,4 +1377,76 @@ fn observed_failure_drain_waits_for_held_native_peer_without_post_failure_contro
             "held_lifecycle_bytes":held_lifecycle,"after_lifecycle_bytes":after_lifecycle
         }),
     );
+}
+
+#[test]
+fn memory_capacity_keeps_owned_model_metadata_before_and_after_runtime_bootstrap() {
+    for (variant, body, configured) in [
+        (
+            "memory-capacity-before-bootstrap",
+            "i32.const 1 memory.grow drop",
+            false,
+        ),
+        (
+            "memory-capacity-after-bootstrap",
+            "i32.const 512 i32.const 16 call $config drop i32.const 1 memory.grow drop",
+            true,
+        ),
+    ] {
+        let input = request(&["a"], body);
+        let request_facts = native_request_input_facts(&input.incarnations[0].request);
+        let module = input.incarnations[0].request.module.clone();
+        let module_sha256 = input.incarnations[0].request.module_sha256.clone();
+        let offered_fuel = input.incarnations[0].request.limits.fuel;
+        let memory_bytes = input.incarnations[0].request.limits.memory_bytes;
+        let prepared = prepare(input).unwrap();
+        let activity = prepared.activity();
+        let execution = execute_prepared(prepared).unwrap();
+        assert_eq!(execution.executed_steps.len(), 2);
+        assert_eq!(execution.incarnations.len(), 1);
+        assert_eq!(execution.outcome.termination, "capacity");
+        assert_eq!(execution.outcome.exit_code, None);
+        let result = &execution.incarnations[0].execution;
+        assert_eq!(result.outcome.termination, "capacity");
+        assert_eq!(result.outcome.exit_code, None);
+        assert!(
+            result
+                .outcome
+                .message
+                .contains("guest linear memory capacity")
+        );
+        assert_eq!(result.outcome.peak_memory_bytes, 65536);
+        assert_eq!(result.outcome.output_bytes, 4);
+        let model = result.outcome.local_model.as_ref().unwrap();
+        assert_eq!(model["configured"], configured);
+        assert_eq!(model["finished"], false);
+        let choice = result.evidence.get("choice").cloned().unwrap_or_default();
+        let transcript = &result.evidence["transcript"];
+        assert_eq!(
+            model["trace_sha256"],
+            format!("{:x}", Sha256::digest(&choice))
+        );
+        assert_eq!(model["transcript_bytes"], transcript.len());
+        assert_eq!(
+            model["transcript_sha256"],
+            format!("{:x}", Sha256::digest(transcript))
+        );
+        assert!(result.authorization_to_terminal_nanos.is_some());
+        assert_eq!(activity.snapshot().launched_stores, 1);
+        assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+        raw(
+            "TestClusterRejectsResultWithoutModelEvidence",
+            variant,
+            json!({
+                "module_bytes":module,"module_sha256":module_sha256,"request":request_facts["request"],
+                "terminal":result.outcome.termination,"exit_code":result.outcome.exit_code,
+                "message":result.outcome.message,"fuel_remaining":result.outcome.fuel_remaining,
+                "offered_fuel":offered_fuel,"memory_bytes":memory_bytes,
+                "peak_memory_bytes":result.outcome.peak_memory_bytes,"output_bytes":result.outcome.output_bytes,
+                "local_model":model,"choice_bytes":choice,"transcript_bytes":transcript,
+                "executed_steps":execution.executed_steps,"store_results":store_facts(&execution),
+                "activity":activity.snapshot()
+            }),
+        );
+    }
 }
