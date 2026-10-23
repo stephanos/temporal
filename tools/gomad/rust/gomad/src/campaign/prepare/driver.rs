@@ -1,5 +1,6 @@
 use super::*;
 
+mod cache;
 pub(crate) mod collection;
 pub(crate) mod shared;
 
@@ -426,6 +427,24 @@ impl Recipe {
 }
 
 impl Recipe {
+    pub(crate) fn module_cache_root(
+        &self,
+        temporary: &Path,
+        deadline: Instant,
+    ) -> Result<Option<PathBuf>, String> {
+        if self.options.target_kind != "go-run" {
+            return Ok(None);
+        }
+        cache::resolve(
+            &self.installed.compiler_path,
+            &self.directory,
+            &self.environment,
+            temporary,
+            deadline,
+        )
+        .map(Some)
+    }
+
     pub(crate) fn driver_arguments(&self, launcher: &Path) -> Result<Vec<String>, String> {
         let compiler = self
             .installed

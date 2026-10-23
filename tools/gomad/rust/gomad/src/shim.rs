@@ -121,7 +121,7 @@ pub fn run(arguments: &[OsString]) -> Result<i32, String> {
     if command == "build" {
         return build::run(&contract, recipes, &argv, deadline);
     }
-    execute_registered(&contract, recipes, &argv)
+    execute_registered(&contract, recipes, &argv, deadline)
 }
 
 struct GuestRequest<'a> {
@@ -609,6 +609,7 @@ fn execute_registered(
     contract: &Contract,
     recipes: Vec<driver::Recipe>,
     argv: &[OsString],
+    deadline: Instant,
 ) -> Result<i32, String> {
     let invocation_id = origin::identity()?;
     let root = contract
@@ -661,6 +662,7 @@ fn execute_registered(
         invocation_sha256: canonical::digest(&bytes),
         compiler_sha256: invocation.compiler_sha256.clone(),
         driver_argv_sha256: canonical::digest(&canonical::encode(&invocation.driver_argv)?),
+        module_cache_root: shared.packages[0].module_cache_root(&module_root, deadline)?,
         module_root,
     };
     crate::cli::run_guest::registered_exec(&root, &registration, &mut command)?;

@@ -165,6 +165,7 @@ pub(super) fn exec_child(arguments: &[OsString]) -> Result<i32, String> {
         compiler_sha256: invocation.compiler_sha256.clone(),
         driver_argv_sha256: canonical::digest(&canonical::encode(&invocation.driver_argv)?),
         module_root: root.join("outputs"),
+        module_cache_root: None,
     };
     crate::cli::run_guest::registered_exec(root, &registration, &mut command)?;
     Err("registered build exec unexpectedly returned".into())

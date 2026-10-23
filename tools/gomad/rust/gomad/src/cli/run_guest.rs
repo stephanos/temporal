@@ -226,7 +226,13 @@ fn admit(
     if canonical::encode(&invocation)? != bytes {
         return Err("noncanonical intercepted invocation".into());
     }
-    origin::authenticate_driver(path, &invocation_digest, &invocation, &arguments.module)?;
+    origin::authenticate_driver(
+        path,
+        &invocation_digest,
+        &invocation,
+        &arguments.module,
+        &module,
+    )?;
     let recipe_path = path
         .parent()
         .ok_or("invocation owner missing")?
@@ -513,6 +519,7 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         os::unix::fs::DirBuilderExt as _,
         process::{Command, Stdio},
     };
+    let started = Instant::now();
     if arguments.len() != 4 || arguments[0] != "--invocation" || arguments[2] != "--sha256" {
         return Err("fixture-driver-run requires --invocation FILE --sha256 HASH".into());
     }
@@ -577,6 +584,8 @@ pub(crate) fn fixture_driver_run(arguments: &[String]) -> Result<(), String> {
         invocation_sha256: arguments[3].clone(),
         compiler_sha256: invocation.compiler_sha256.clone(),
         driver_argv_sha256: canonical::digest(&canonical::encode(&invocation.driver_argv)?),
+        module_cache_root: recipe
+            .module_cache_root(&module_root, started + recipe.options.overall_timeout)?,
         module_root,
     };
     registered_exec(root, &registration, &mut command)
@@ -686,6 +695,7 @@ mod synchronization_tests {
             compiler_sha256: "2".repeat(64),
             driver_argv_sha256: "3".repeat(64),
             module_root: root.into(),
+            module_cache_root: None,
         };
         let mut command = std::process::Command::new("/bin/cat");
         command.arg(root.join("driver-registration.json"));
