@@ -568,6 +568,21 @@ def state_sections(raw):
     return result
 
 
+def creation_entries(volume):
+    import copy
+    live=copy.deepcopy(volume)
+    for op in volume['history']:
+        effect=op['effect']
+        if op['kind']=='alloc':
+            apply_effect(live,effect)
+        else:
+            require(op['kind']=='namespace' and effect['kind']=='namespace','unexpected live creation operation')
+            for part in effect['namespace']:
+                require(part['path']!='/' and part['inode'] in live['objects'],'invalid live creation namespace')
+                live['paths'][part['path']]=part['inode']
+    return entries(live)
+
+
 def selected_baseline(row):
     import copy
     inputs,observed=row['inputs'],row['observed']
@@ -604,10 +619,8 @@ def selected_baseline(row):
     require(seen==set(possible),'selected enumeration omitted reachable state')
     sections=state_sections(raw_bytes(observed['state_bytes']))
     require(sections[6]==context,'baseline storage evidence context differs')
-    original=copy.deepcopy(volume)
-    for op in volume['history']:apply_effect(original,op['effect'])
     snapshot=recovered_snapshots(image)[0]
-    snapshot.update(Volatile=entries(original),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
+    snapshot.update(Volatile=creation_entries(volume),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
     snapshot['Identity']=snapshot_identity(snapshot)
     require(canonical(sections[1])==canonical([snapshot]) and canonical(sections[2])==canonical({'data':context['data']['Operations']}),
             'baseline raw snapshot/history differs from independently replayed mkdir effects')

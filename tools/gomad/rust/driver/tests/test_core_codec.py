@@ -245,9 +245,8 @@ def selected_fixture():
             if op['id'] in chosen:gate.apply_effect(changed,op['effect'])
         projected=gate.entries(changed,True)
         states.append(dict(Volume='data',PendingSHA256=context['data']['PendingSHA256'],SelectedOperations=chosen,Entries=projected,Identity=gate.crash_identity('data',projected)))
-    snapshot=gate.recovered_snapshots(image)[0];volatile=copy.deepcopy(volume)
-    for op in volume['history']:gate.apply_effect(volatile,op['effect'])
-    snapshot.update(Volatile=gate.entries(volatile),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
+    snapshot=gate.recovered_snapshots(image)[0]
+    snapshot.update(Volatile=gate.creation_entries(volume),PendingOperations=2,PendingSHA256=context['data']['PendingSHA256'])
     snapshot['Identity']=gate.snapshot_identity(snapshot)
     pages={'data':dict(States=states,ChoiceExploration=None,Complete=True,Capacity='')}
     log=b'actual retained log'
@@ -260,6 +259,16 @@ def selected_fixture():
 
 
 class SelectedPersistence(unittest.TestCase):
+    def test_live_creation_keeps_allocation_time_while_durable_namespace_replay_uses_effect_time(self):
+        row=selected_fixture();image=gate.recovery_image(bytes(row['observed']['image_bytes']));volume=image['volumes']['data']
+        volume['history'][0]['effect']['object']['mod_time']=1
+        volume['history'][1]['effect']['mod_time']=0
+        live=gate.creation_entries(volume)
+        self.assertEqual(next(entry['ModTime'] for entry in live if entry['Path']=='/db'),1)
+        durable=copy.deepcopy(volume)
+        for op in durable['history']:gate.apply_effect(durable,op['effect'])
+        self.assertEqual(next(entry['ModTime'] for entry in gate.entries(durable) if entry['Path']=='/db'),0)
+
     def test_selected_baseline_replays_distinct_states_and_snapshot_identities(self):
         row=selected_fixture();facts=gate.selected_baseline(row)
         self.assertEqual(len(facts['states']),2)
