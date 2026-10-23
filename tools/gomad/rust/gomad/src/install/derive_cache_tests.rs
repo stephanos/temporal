@@ -9,6 +9,15 @@ fn repository() -> (Temporary, Repo) {
         fs::create_dir_all(root.0.join(directory)).unwrap();
     }
     fs::write(root.0.join("runtime/runtime.go"), "package runtime\n").unwrap();
+    for name in [
+        "compiler/src/runtime.go",
+        "generator/overlay.go",
+        "choice/schema.json",
+    ] {
+        let path = root.0.join("toolchain").join(name);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, name).unwrap();
+    }
     fs::write(
         root.0.join("schema/sqlite/schema.sql"),
         "CREATE TABLE example(id INTEGER);\n",
@@ -29,16 +38,74 @@ fn publish_candidate(root: &Path, repo: &Repo) -> (PathBuf, PathBuf) {
     let compiler = std::env::current_exe().unwrap();
     let (directory, _handle) = directory(root).unwrap();
     let mut candidate = candidate(&compiler, repo, "pkg", &directory).unwrap();
-    candidate.admission.compiler_inputs.insert(
-        compiler.clone(),
-        candidate.installed.compiler_sha256.clone(),
-    );
+    candidate.admission.compiler_inputs = fixture_inventory(&candidate.installed);
     candidate.admission.inputs_sha256 =
         canonical::digest(&canonical::encode(&candidate.admission.compiler_inputs).unwrap());
     candidate.installed.admission = Some(candidate.admission);
     let path = directory.join(format!("{}.json", candidate.key));
     manifest::write(&path, &candidate.installed).unwrap();
     (compiler, path)
+}
+
+fn fixture_inventory(installed: &Installation) -> BTreeMap<PathBuf, String> {
+    let mut inputs = BTreeMap::from([(
+        installed.compiler_path.clone(),
+        installed.compiler_sha256.clone(),
+    )]);
+    let mut pending = vec![
+        installed.runtime_root.clone(),
+        installed.runtime_root.parent().unwrap().join("toolchain"),
+    ];
+    while let Some(path) = pending.pop() {
+        if path.is_dir() {
+            pending.extend(
+                fs::read_dir(path)
+                    .unwrap()
+                    .map(|entry| entry.unwrap().path()),
+            );
+        } else {
+            inputs.insert(
+                path.clone(),
+                canonical::digest(&manifest::read(&path, 512 << 20).unwrap()),
+            );
+        }
+    }
+    inputs
+}
+
+#[test]
+fn derive_cache_refuses_self_consistent_incomplete_inventory() {
+    let (root, repo) = repository();
+    let cache = root.0.join("cache");
+    let (compiler, path) = publish_candidate(&cache, &repo);
+    let mut installed = manifest::resolve(Some(&path)).unwrap().manifest;
+    let admission = installed.admission.as_mut().unwrap();
+    admission
+        .compiler_inputs
+        .retain(|input, _| input == &compiler);
+    admission.inputs_sha256 =
+        canonical::digest(&canonical::encode(&admission.compiler_inputs).unwrap());
+    fs::write(&path, canonical::encode(&installed).unwrap()).unwrap();
+    manifest::admit_build(&manifest::resolve(Some(&path)).unwrap().manifest).unwrap();
+    assert!(derive(&compiler, &repo, "pkg", &cache).is_err());
+}
+
+#[test]
+fn derive_cache_rekeys_new_toolchain_file_without_rewriting_existing_entry() {
+    let (root, repo) = repository();
+    let cache = root.0.join("cache");
+    let (compiler, path) = publish_candidate(&cache, &repo);
+    let original = manifest::read(&path, 16 << 20).unwrap();
+    let before = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    fs::write(
+        root.0.join("toolchain/generator/added.go"),
+        "package overlay\n",
+    )
+    .unwrap();
+    let after = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    assert_ne!(before.key, after.key);
+    assert!(admit(&path, &after).is_err());
+    assert_eq!(manifest::read(&path, 16 << 20).unwrap(), original);
 }
 
 #[test]
