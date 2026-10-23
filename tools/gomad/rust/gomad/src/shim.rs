@@ -210,11 +210,10 @@ fn classify_request_with_environment<'a>(
         let repo = repo.as_ref().ok_or("guest run/build requires gomad.toml")?;
         if packages.is_empty()
             || packages.iter().any(|package| {
-                (!package.name.is_empty() && package.name != "main")
-                    || !repo.guest.iter().any(|guest| {
-                        repo.module_root.join(guest).canonicalize().ok().as_ref()
-                            == Some(&package.directory)
-                    })
+                !repo.guest.iter().any(|guest| {
+                    repo.module_root.join(guest).canonicalize().ok().as_ref()
+                        == Some(&package.directory)
+                })
             })
         {
             return Ok(None);
@@ -257,11 +256,6 @@ fn guest_packages(
     deadline: Instant,
     packages: &[Package],
 ) -> Result<Option<Vec<Package>>, String> {
-    let identity_only = packages.iter().any(|package| package.name.is_empty());
-    if !identity_only {
-        parsed.admit()?;
-        guest_env::validate()?;
-    }
     let guest = self::packages(
         contract,
         cwd,
@@ -271,7 +265,7 @@ fn guest_packages(
         deadline,
         PackageQuery {
             environment: &packages_environment(&std::collections::BTreeMap::new(), true)?,
-            identity_only,
+            identity_only: true,
         },
     )?;
     let association = |packages: &[Package]| {
@@ -861,13 +855,18 @@ mod tests {
 race=0
 required_tag=0
 for arg do
-    case "$arg" in -race=true) race=$((race + 1));; needed) required_tag=1;; esac
+    case "$arg" in -race=true) race=$((race + 1));; esac
+    case ",$arg," in *,needed,*) required_tag=1;; esac
     last="$arg"
 done
-[ "$race" = 1 ] || {{ printf 'race must be expanded exactly once' >&2; exit 91; }}
 [ -z "$GOFLAGS" ] || {{ printf 'GOFLAGS would expand twice' >&2; exit 92; }}
-if [ "$GOOS" = wasip1 ]; then printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; fi
-[ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 93
+if [ "$GOOS" = wasip1 ]; then
+    [ "$race" = 0 ] || {{ printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; }}
+    [ "$GOARCH/$CGO_ENABLED" = wasm/0 ] || exit 93
+else
+    [ "$race" = 1 ] || {{ printf 'race must be expanded exactly once' >&2; exit 91; }}
+    [ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 93
+fi
 [ "$GOTOOLCHAIN/$GOPROXY/$GOSUMDB/$GOVCS" = 'local/off/off/*:off' ] || exit 94
 case "$last" in
     ./opted)
