@@ -321,7 +321,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     }
     let host = super::host::current(root, &call.environ)?;
     let source = super::host::source_snapshot(proof, root, &call.environ)?;
-    let baseline = admission::Baseline::admitted(&host, &source)?;
+    let admitted_baseline = admission::Baseline::admitted(&host, &source)?;
     let mut seeds = vec![7, 19, 42];
     let mut repetitions = 3;
     if call.name == "cluster-owner-profile" {
@@ -377,7 +377,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 &row,
                 reference,
                 &native_input(&prepared, seed)?,
-                (&prepared, &baseline),
+                (&prepared, &admitted_baseline),
             )?;
             Some(result)
         } else {
@@ -402,8 +402,15 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             let cache = root.join(format!("seed{seed}-compile-cache"));
             workloads::cache_directory(&cache)?;
             request["compile_cache"] = json!(cache);
-            let result =
-                execute_replayed(call, proof, root, &row, &candidate, &request, &prepared)?;
+            let result = execute_replayed(
+                call,
+                proof,
+                root,
+                &row,
+                &candidate,
+                &request,
+                (&prepared, &admitted_baseline),
+            )?;
             if let Some(reference) = &reference_run {
                 evidence::compare(
                     reference,
