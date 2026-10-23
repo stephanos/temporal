@@ -2057,7 +2057,6 @@ impl Model {
                 || !history::valid_endpoint(&connection.server, true)
                 || !(1..=65535).contains(&connection.client.port)
                 || !(1..=65535).contains(&connection.server.port)
-                || connection.reset && !connection.closed
                 || index != 0 && connections[index - 1].identity >= connection.identity
             {
                 return Err(

@@ -728,7 +728,22 @@ fn broker_replays_recorded_go_orders() {
             scenario["world_base64"].as_str().unwrap(),
             "{name}: World expanded wire"
         );
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"network.broker.replay","inputs":{"name":name},"observed":{"outputs":outputs,"world_base64":STANDARD.encode(&wire),"evidence":evidence.iter().map(|(node, bytes)| (node.clone(), STANDARD.encode(bytes))).collect::<BTreeMap<_, _>>()}})
+        );
         for (node, bytes) in evidence {
+            #[cfg(not(feature = "conformance"))]
+            {
+                let (_, profile) = network_config(&scenario).unwrap();
+                crate::linked_cluster::validate_network_evidence(
+                    &bytes,
+                    8 << 20,
+                    &profile,
+                    &profile,
+                )
+                .unwrap();
+            }
             let path = directory().join(format!("{name}.{node}.gmnetev1"));
             if regenerate {
                 std::fs::write(&path, &bytes).unwrap();

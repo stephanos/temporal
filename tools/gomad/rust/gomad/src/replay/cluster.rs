@@ -342,15 +342,15 @@ fn simulation_plan(opened: &Opened, inputs: &Inputs) -> Result<Option<simulation
 }
 
 /// # Errors
-/// Decodes bounded canonical cluster inputs from the pinned root.
+/// Decodes bounded, authenticated cluster inputs without changing their raw spelling.
 pub fn inputs(opened: &Opened) -> Result<Inputs, String> {
     if !opened.manifest().record.streams.contains_key(FILE) {
         return Err("retained cluster inputs are not record bound".into());
     }
     let raw = opened.payload(FILE, 16 << 20)?;
-    let value: Inputs = serde_json::from_slice(&raw).map_err(|error| error.to_string())?;
-    if canonical::encode(&value)? != raw || value.schema != "gomad.cluster-replay-inputs/v1" {
-        return Err("unsupported or noncanonical retained cluster replay inputs".into());
+    let value: Inputs = crate::qualify::spec::strict(&raw)?;
+    if value.schema != "gomad.cluster-replay-inputs/v1" {
+        return Err("unsupported retained cluster replay input schema".into());
     }
     Ok(value)
 }
@@ -608,9 +608,46 @@ fn authenticate_retained_incarnation(
 /// # Errors
 /// Authenticates every retained module and incarnation before preparing the helper lifecycle.
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
-    let inputs = inputs(&opened)?;
+    let execution = authenticated_admission(&opened, control)?;
+    Ok(Prepared {
+        opened,
+        execution,
+        exact: true,
+        available: true,
+    })
+}
+
+/// # Errors
+/// Authenticates retained inputs and seals the lifecycle without executing a guest.
+pub fn verify_retained(opened: &Opened) -> Result<String, String> {
+    authenticated_admission(opened, None)?;
+    Ok(opened.manifest().record.execution_identity.clone())
+}
+
+/// # Errors
+/// Projects crash selections only after authenticating the complete retained execution.
+pub fn storage_selections(
+    opened: &Opened,
+) -> Result<BTreeMap<helper::Handle, BTreeMap<String, Vec<u64>>>, String> {
+    authenticated_admission(opened, None)?;
+    Ok(inputs(opened)?
+        .configuration
+        .incarnations
+        .into_iter()
+        .filter_map(|item| {
+            item.storage_crash_selection
+                .map(|selection| (item.handle, selection))
+        })
+        .collect())
+}
+
+fn authenticated_admission(
+    opened: &Opened,
+    control: Option<&inspection::Request>,
+) -> Result<Execution, String> {
+    let inputs = inputs(opened)?;
     oracles::validate(&inputs.configuration)?;
-    bind(&opened, &inputs)?;
+    bind(opened, &inputs)?;
     let world = opened.payload("evidence/world", 384 << 20)?;
     if !world.is_empty() {
         helper::validate_encoded_world(
@@ -619,7 +656,7 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
             &inputs.configuration.broker,
         )?;
     }
-    let simulation = simulation_plan(&opened, &inputs)?;
+    let simulation = simulation_plan(opened, &inputs)?;
     if simulation.is_some() != inputs.configuration.simulation_original.is_some() {
         return Err("simulation replay requires its original authenticated recipe".into());
     }
@@ -635,15 +672,15 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
             .iter()
             .find(|value| value.handle == item.handle);
         if let Some(retained) = retained {
-            authenticate_retained_incarnation(&opened, item, retained, recipe.network.as_ref())?;
+            authenticate_retained_incarnation(opened, item, retained, recipe.network.as_ref())?;
         }
-        incarnations.push(incarnation(&opened, &inputs, item, retained, control)?);
+        incarnations.push(incarnation(opened, &inputs, item, retained, control)?);
     }
-    oracles::authenticate_retained(&opened, &inputs)?;
+    oracles::authenticate_retained(opened, &inputs)?;
     if let Some(control) = &control {
         let raw = opened.payload("evidence/inspection", inspection::MAX_METADATA as u64)?;
         let evidence = inspection::Evidence::decode(&raw).map_err(|error| error.to_string())?;
-        authenticate_inspection(&opened, &evidence)?;
+        authenticate_inspection(opened, &evidence)?;
         if !inputs
             .retained
             .iter()
@@ -676,16 +713,11 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
     })
     .map_err(|error| error.to_string())?;
     configure_recovery(&mut execution, configuration.workload.as_ref())?;
-    Ok(Prepared {
-        opened,
-        execution: Execution {
-            oracle_configuration,
-            prepared: execution,
-            world_encoding: inputs.configuration.encoded_world_format()?.into(),
-            simulation,
-        },
-        exact: true,
-        available: true,
+    Ok(Execution {
+        oracle_configuration,
+        prepared: execution,
+        world_encoding: inputs.configuration.encoded_world_format()?.into(),
+        simulation,
     })
 }
 
@@ -1054,3 +1086,16 @@ mod projection_tests {
 #[cfg(test)]
 #[path = "cluster/retained_tests.rs"]
 mod retained_tests;
+
+#[cfg(all(test, feature = "determinism-fixture"))]
+mod broad_guest_tests;
+#[cfg(test)]
+pub use retained_tests::allocation_probe::run as allocation_probe;
+
+#[cfg(test)]
+#[path = "cluster/retained_lifecycle_matrix_tests.rs"]
+mod retained_lifecycle_matrix_tests;
+
+#[cfg(all(test, feature = "determinism-fixture"))]
+#[path = "cluster/retained_presence_tests.rs"]
+mod retained_presence_tests;

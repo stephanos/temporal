@@ -13,6 +13,45 @@ fn observation(case: &str, inputs: Value, value: Value) {
     println!("GOMAD_RETAINED_OBSERVATION {}", Value::Object(row));
 }
 
+fn directory_snapshot(root: &std::path::Path) -> Value {
+    fn visit(
+        root: &std::path::Path,
+        path: &std::path::Path,
+        entries: &mut BTreeMap<String, Value>,
+    ) {
+        let metadata = std::fs::symlink_metadata(path).unwrap();
+        let relative = path
+            .strip_prefix(root)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+        if metadata.is_dir() {
+            if !relative.is_empty() {
+                entries.insert(relative, json!({"kind":"directory"}));
+            }
+            for entry in std::fs::read_dir(path).unwrap() {
+                visit(root, &entry.unwrap().path(), entries);
+            }
+        } else if metadata.file_type().is_symlink() {
+            entries.insert(
+                relative,
+                json!({"kind":"symlink","target":std::fs::read_link(path).unwrap()}),
+            );
+        } else {
+            assert!(metadata.is_file());
+            let bytes = std::fs::read(path).unwrap();
+            entries.insert(
+                relative,
+                json!({"kind":"file","bytes":bytes.len(),"sha256":canonical::digest(&bytes)}),
+            );
+        }
+    }
+    let mut entries = BTreeMap::new();
+    visit(root, root, &mut entries);
+    json!(entries)
+}
+
 fn soft_configuration(report_only: bool) -> Configuration {
     let (mut configuration, _) = super::projection_tests::configuration();
     configuration.workload = None;
@@ -434,6 +473,31 @@ fn native_decoder_mutation(case: &str, raw: &[u8]) -> Vec<u8> {
             value["configuration"]["incarnations"][0]["module"] = json!(1);
             canonical::encode(&value).unwrap()
         }
+        "duplicate-model-value" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            text.replacen(
+                "\"model\":{",
+                "\"model\":{\"native_value\":1,\"native_value\":2,",
+                1,
+            )
+            .into_bytes()
+        }
+        "duplicate-environment-map" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            text.replacen(
+                "\"environment\":{",
+                "\"environment\":{\"PWD\":\"/first\",\"PWD\":\"/second\",",
+                1,
+            )
+            .into_bytes()
+        }
+        "excessive-nesting" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            let nested = format!("{}0{}", "[".repeat(129), "]".repeat(129));
+            text.replacen("\"model\":{}", &format!("\"model\":{nested}"), 1)
+                .into_bytes()
+        }
+        "oversized" => vec![b' '; (16 << 20) + 1],
         "foreign-schema" => {
             value["schema"] = json!("gomad.other/v1");
             canonical::encode(&value).unwrap()
@@ -477,11 +541,14 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
     let original: Inputs = serde_json::from_slice(&raw).unwrap();
     assert_eq!(canonical::encode(&original).unwrap(), raw);
     for case in [
-        "ordinary-spelling",
         "duplicate-top",
         "duplicate-nested",
         "unknown-top",
         "unknown-nested",
+        "duplicate-model-value",
+        "duplicate-environment-map",
+        "excessive-nesting",
+        "oversized",
         "missing-module",
         "wrong-module-type",
         "foreign-schema",
@@ -504,17 +571,34 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         let opened = fixture.open();
         opened.authenticate_all().unwrap();
         let error = super::inputs(&opened).err().expect(case);
+        let prepare_error = super::prepare(opened.try_clone().unwrap(), None)
+            .err()
+            .expect(case);
+        assert_eq!(prepare_error, error);
+        let before_snapshot = directory_snapshot(&fixture.path);
+        let before = std::fs::read_dir(&fixture.path).unwrap().count();
+        let mut cli_output = Vec::new();
+        let cli_error =
+            crate::cli::replay::run(&[fixture.path.to_str().unwrap().into()], &mut cli_output)
+                .unwrap_err();
+        assert_eq!(cli_error.status, 2);
+        assert!(cli_error.message.contains(&error));
+        assert_eq!(std::fs::read_dir(&fixture.path).unwrap().count(), before);
         let expected = match case {
-            "ordinary-spelling" | "foreign-schema" | "legacy-schema" => {
-                "unsupported or noncanonical retained cluster replay inputs"
+            "foreign-schema" | "legacy-schema" => {
+                "unsupported retained cluster replay input schema"
             }
-            "duplicate-top" => "duplicate field `schema`",
-            "duplicate-nested" => "duplicate field `engine`",
+            "duplicate-top"
+            | "duplicate-nested"
+            | "duplicate-model-value"
+            | "duplicate-environment-map" => "duplicate object key",
+            "excessive-nesting" => "nesting",
+            "oversized" => "artifact payload exceeds caller bound",
             "unknown-top" | "unknown-nested" => "unknown field `unknown`",
             "missing-module" => "missing field `module`",
             "wrong-module-type" => "invalid type: integer",
-            "trailing-value" => "trailing characters",
-            "truncated" => "EOF while parsing",
+            "trailing-value" => "trailing data",
+            "truncated" => "invalid syntax",
             "invalid-utf8" => "unicode",
             "host-faults" => "unknown field `faults`",
             "host-scenarios" => "unknown field `scenarios`",
@@ -532,7 +616,7 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         observation(
             &format!("decode/{case}"),
             json!({"payload_base64":crate::campaign::exploration::base64(&changed)}),
-            json!({"error":error}),
+            json!({"error":error,"prepare_error":prepare_error,"public_status":cli_error.status,"public_error":cli_error.message,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count()}),
         );
     }
     observation(
@@ -593,6 +677,7 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
             .insert(FILE.into(), canonical::encode(&inputs).unwrap());
         let fixture = ReaderFixture::new(publication);
         let opened = fixture.open();
+        let before_snapshot = directory_snapshot(&fixture.path);
         let before = std::fs::read_dir(&fixture.path).unwrap().count();
         let error = super::bind(&opened, &inputs).unwrap_err();
         assert_eq!(
@@ -616,7 +701,7 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
         observation(
             &format!("binding/{case}"),
             json!({"retained_inputs":inputs,"record":opened.manifest().record}),
-            json!({"error":error,"prepare_error":prepare_error,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
+            json!({"error":error,"prepare_error":prepare_error,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
         );
     }
 }
@@ -651,6 +736,7 @@ fn actual_retained_admission_uses_private_bound_inputs_and_replays_without_sourc
     let opened = fixture.open();
     opened.authenticate_all().unwrap();
     let original = opened.payload(FILE, 16 << 20).unwrap();
+    let before_snapshot = directory_snapshot(&fixture.path);
     let before = std::fs::read_dir(&fixture.path).unwrap().count();
     let prepared = super::prepare(opened.try_clone().unwrap(), None).unwrap();
     assert!(prepared.exact && prepared.available);
@@ -662,8 +748,8 @@ fn actual_retained_admission_uses_private_bound_inputs_and_replays_without_sourc
     assert!(!fixture.path.join("compiled-cache").exists());
     observation(
         "admission/actual-replay",
-        json!({"retained_inputs_base64":crate::campaign::exploration::base64(&original),"record":opened.manifest().record}),
-        json!({"divergence":divergence,"termination":actual.outcome.termination,"exit_code":actual.outcome.exit_code,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"reopened_inputs_base64":crate::campaign::exploration::base64(&opened.payload(FILE,16<<20).unwrap()),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
+        json!({"retained_inputs_base64":crate::campaign::exploration::base64(&original),"record":opened.manifest().record,"actual_execution":{"outcome":actual.outcome,"evidence":actual.evidence}}),
+        json!({"divergence":divergence,"termination":actual.outcome.termination,"exit_code":actual.outcome.exit_code,"directory_before":before_snapshot,"directory_after":directory_snapshot(&fixture.path),"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"reopened_inputs_base64":crate::campaign::exploration::base64(&opened.payload(FILE,16<<20).unwrap()),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
     );
 }
 
@@ -691,11 +777,24 @@ fn retained_target_reader_refuses_missing_tampered_and_symbolic_sources() {
             }
             _ => unreachable!(),
         }
+        let source_metadata = std::fs::symlink_metadata(&module).ok();
+        let source_kind = source_metadata.as_ref().map(|metadata| {
+            if metadata.file_type().is_symlink() {
+                "symlink"
+            } else if metadata.is_file() {
+                "file"
+            } else {
+                "other"
+            }
+        });
+        let actual_bytes = (source_kind == Some("file")).then(|| std::fs::read(&module).unwrap());
+        let link_target =
+            (source_kind == Some("symlink")).then(|| std::fs::read_link(&module).unwrap());
         let error = opened.payload("target/module.wasm", 512 << 20).unwrap_err();
         assert!(!fixture.path.join("compiled-cache").exists());
         observation(
             &format!("module/{case}"),
-            json!({"original_base64":crate::campaign::exploration::base64(&original),"file":"target/module.wasm","descriptor":opened.manifest().files["target/module.wasm"]}),
+            json!({"original_base64":crate::campaign::exploration::base64(&original),"file":"target/module.wasm","descriptor":opened.manifest().files["target/module.wasm"],"source_kind":source_kind,"source_bytes_base64":actual_bytes.as_deref().map(crate::campaign::exploration::base64),"link_target":link_target}),
             json!({"error":error,"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
         );
     }
@@ -710,20 +809,18 @@ fn native_storage_selection_requires_declared_volumes_and_preserves_defaults() {
         ("empty".to_owned(), vec![]),
     ]);
     item.storage_crash_selection = Some(selection.clone());
-    assert!(
-        super::storage_input(item)
-            .err()
-            .unwrap()
-            .contains("declared storage volumes")
-    );
+    let requested = canonical::encode(item).unwrap();
+    let selection_error = super::storage_input(item).err().unwrap();
+    assert!(selection_error.contains("declared storage volumes"));
     item.storage_crash_selection = None;
-    assert!(super::storage_input(item).unwrap().is_none());
+    let durable_none = super::storage_input(item).unwrap().is_none();
+    assert!(durable_none);
     item.storage_crash_selection = Some(BTreeMap::new());
     assert!(super::storage_input(item).unwrap().is_none());
     observation(
         "storage-selection/native-ownership",
-        json!({"selection":selection}),
-        json!({"original":item.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
+        json!({"selection":selection,"requested_incarnation_base64":crate::campaign::exploration::base64(&requested)}),
+        json!({"selection_error":selection_error,"durable_none":durable_none,"original":item.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
     );
 }
 
@@ -812,13 +909,19 @@ fn native_storage_projection_detaches_selection_context_and_limits() {
         .remove("empty");
     detached["descriptor"]["crash_limits"]["States"] = json!(1);
     detached["context"][0] = json!(99);
+    let mut dependency_detached = projected.clone();
+    let context_bytes: Vec<u8> =
+        serde_json::from_value(dependency_detached["context"].clone()).unwrap();
+    let mut context: Value = serde_json::from_slice(&context_bytes).unwrap();
+    context["volume"]["Operations"][0]["Dependencies"][0] = json!(99);
+    dependency_detached["context"] = json!(canonical::encode(&context).unwrap());
     assert_eq!(canonical::encode(&item).unwrap(), before);
     let again = serde_json::to_value(super::storage_input(item).unwrap()).unwrap();
     assert_eq!(again, projected);
     observation(
         "storage-selection/native-deep-detachment",
         json!({"original_incarnation_base64":crate::campaign::exploration::base64(&before)}),
-        json!({"projected":projected,"detached":detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
+        json!({"projected":projected,"detached":detached,"dependency_detached":dependency_detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
     );
 }
 
@@ -1058,7 +1161,7 @@ fn retained_oracle_report_is_rederived_from_authenticated_actual_outputs() {
         }
         observation(
             &format!("retained-oracle/{case}"),
-            json!({"retained_inputs":inputs,"summary":summary,"report":report,"stdout_base64":crate::campaign::exploration::base64(b"PASS\n"),"stderr_base64":crate::campaign::exploration::base64(stderr)}),
+            json!({"retained_inputs":inputs,"summary":summary,"report":report,"stdout_base64":crate::campaign::exploration::base64(b"PASS\n"),"stderr_base64":crate::campaign::exploration::base64(stderr),"summary_base64":crate::campaign::exploration::base64(&opened.payload("evidence/cluster_summary",1<<20).unwrap()),"report_base64":crate::campaign::exploration::base64(&opened.payload("evidence/cluster_oracles",1<<20).unwrap())}),
             json!({"error":error}),
         );
     }
@@ -1410,3 +1513,97 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
         );
     }
 }
+
+#[test]
+fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
+    let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+    let baseline = crate::fixture_cluster::publication(&corpus, 7).unwrap();
+    let raw = &baseline.payloads[FILE];
+    let expected: Inputs = serde_json::from_slice(raw).unwrap();
+    let value: Value = serde_json::from_slice(raw).unwrap();
+    let reversed = format!(
+        "{{{}}}",
+        value
+            .as_object()
+            .unwrap()
+            .iter()
+            .rev()
+            .map(|(key, value)| format!(
+                "{}:{}",
+                serde_json::to_string(key).unwrap(),
+                serde_json::to_string(value).unwrap()
+            ))
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+    .into_bytes();
+    let mut explicit_null = value.clone();
+    explicit_null["configuration"]["oracle_plan"] = Value::Null;
+    for (case, bytes) in [
+        ("canonical", raw.clone()),
+        ("indented", serde_json::to_vec_pretty(&value).unwrap()),
+        ("member-order", reversed),
+        (
+            "escaped-member",
+            String::from_utf8(raw.clone())
+                .unwrap()
+                .replacen("\"schema\":", "\"\\u0073chema\":", 1)
+                .into_bytes(),
+        ),
+        (
+            "escaped-value",
+            String::from_utf8(raw.clone())
+                .unwrap()
+                .replacen(
+                    "gomad.cluster-replay-inputs",
+                    "\\u0067omad.cluster-replay-inputs",
+                    1,
+                )
+                .into_bytes(),
+        ),
+        ("trailing-space", [raw.as_slice(), b" \n\t\r"].concat()),
+        (
+            "explicit-optional-null",
+            serde_json::to_vec(&explicit_null).unwrap(),
+        ),
+    ] {
+        let mut publication = crate::fixture_cluster::publication(&corpus, 7).unwrap();
+        publication.payloads.insert(FILE.into(), bytes.clone());
+        let fixture = ReaderFixture::new(publication);
+        let opened = fixture.open();
+        opened.authenticate_all().unwrap();
+        let admitted = super::inputs(&opened).unwrap_or_else(|error| panic!("{case}: {error}"));
+        assert_eq!(
+            canonical::encode(&admitted).unwrap(),
+            canonical::encode(&expected).unwrap()
+        );
+        super::bind(&opened, &admitted).unwrap();
+        for item in &admitted.configuration.incarnations {
+            super::storage_input(item).unwrap();
+        }
+        let prepared = super::prepare(opened.try_clone().unwrap(), None).unwrap();
+        assert!(prepared.available && prepared.exact);
+        let replay = super::execute_projected(prepared.execution).unwrap();
+        assert_eq!(
+            crate::replay::divergence::first(&opened.manifest().record, &replay),
+            None
+        );
+        assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), bytes);
+        let mut public_output = Vec::new();
+        let public_status =
+            crate::cli::replay::run(&[fixture.path.to_str().unwrap().into()], &mut public_output)
+                .unwrap_or_else(|error| panic!("{}: {}", error.status, error.message));
+        assert_eq!(public_status, 0);
+        let mut appended = bytes.clone();
+        appended.push(b'\n');
+        std::fs::write(fixture.path.join(FILE), &appended).unwrap();
+        let error = opened.payload(FILE, 16 << 20).unwrap_err();
+        observation(
+            &format!("ordinary/{case}"),
+            json!({"payload_base64":crate::campaign::exploration::base64(&bytes),"appended_base64":crate::campaign::exploration::base64(&appended),"manifest":opened.manifest(),"canonical_inputs":expected}),
+            json!({"canonical_inputs":admitted,"raw_sha256":canonical::digest(&bytes),"appended_error":error,"public_status":public_status,"public_output_base64":crate::campaign::exploration::base64(&public_output)}),
+        );
+    }
+}
+#[path = "allocation_probe.rs"]
+pub(crate) mod allocation_probe;

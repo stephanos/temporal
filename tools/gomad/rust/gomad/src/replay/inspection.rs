@@ -489,6 +489,7 @@ fn evaluate(
     request: &InspectionRequest,
     timeout: Option<Duration>,
     compile_cache: Option<&str>,
+    cancellation: Option<&linked::Cancellation>,
 ) -> Result<helper::Diagnostics, EvaluationError> {
     let target = control.target.clone();
     let expected = control.expected.clone();
@@ -507,11 +508,12 @@ fn evaluate(
         .map_err(preflight_error)?;
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started()?;
-    let observed = inspection_execution(preflight::execute_inspection(
+    let observed = inspection_execution(preflight::execute_inspection_with_cancellation(
         prepared,
         &target,
         request.conditions,
         timeout,
+        cancellation,
     ))?;
     if observed.outcome.termination != "inspected_prefix" {
         let kind = observed.outcome.termination;
@@ -557,6 +559,17 @@ pub fn run(
     request: &InspectionRequest,
     output: &mut dyn Write,
 ) -> Result<i32, cli::Error> {
+    run_with_cancellation(prepared, request, output, None)
+}
+
+/// # Errors
+/// Inspects or searches retained evidence with caller-owned execution cancellation.
+pub fn run_with_cancellation(
+    prepared: &preflight::Prepared,
+    request: &InspectionRequest,
+    output: &mut dyn Write,
+    cancellation: Option<&linked::Cancellation>,
+) -> Result<i32, cli::Error> {
     if !prepared.exact || !prepared.available {
         return Err(preflight_error(
             "inspection requires cooperative exact replay",
@@ -595,31 +608,21 @@ pub fn run(
         request,
         request.search.as_ref().map(|search| search.first),
     )?;
-    let parent = request
-        .output_directory
-        .parent()
-        .ok_or_else(|| preflight_error("invalid inspection output directory"))?
-        .canonicalize()
-        .map_err(preflight_error)?;
-    let destination = parent.join(
-        request
-            .output_directory
-            .file_name()
-            .ok_or_else(|| preflight_error("invalid inspection output directory"))?,
-    );
-    let artifact = request.artifact.canonicalize().map_err(preflight_error)?;
-    if destination.starts_with(&artifact) {
-        return Err(preflight_error(
-            "inspection output must be outside artifact",
-        ));
-    }
+    let destination = output_destination(request)?;
     let at = &control.expected;
     let mut report = json!({"status":"", "artifact_id":prepared.opened.manifest().record_sha256,"requested":request,
         "resolved":{"instance":control.target.node,"incarnation":control.target.incarnation,"choice":at.decision,"trace":at.trace,"order":at.order,"time_nanos":at.time_nanos},
         "prefix_verified":false,"witness_match":false,"prefix_cuts":null,"output_path":"","truncated":false});
     let cache = prepared.compile_cache_directory();
     if let Some(search) = &request.search {
-        let result = search_run(&prepared.opened, &evidence, request, search, cache)?;
+        let result = search_run(
+            &prepared.opened,
+            &evidence,
+            request,
+            search,
+            cache,
+            cancellation,
+        )?;
         let status = i32::from(result["status"] != "no_failure");
         report["status"] = "invariant_search".into();
         report["search"] = result;
@@ -630,7 +633,15 @@ pub fn run(
     let cuts: Vec<_> = at.cuts.iter().map(|cut| json!({"instance":cut.handle.node,"incarnation":cut.handle.incarnation,
         "choice_records":cut.choice_records,"choice_bytes":cut.choice_bytes,"wasi_bytes":cut.wasi_bytes,
         "network_bytes":cut.network_bytes,"storage_bytes":cut.storage_bytes,"stdout_bytes":cut.stdout_bytes,"stderr_bytes":cut.stderr_bytes})).collect();
-    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None, cache)?;
+    let diagnostics = evaluate(
+        &prepared.opened,
+        &evidence,
+        control,
+        request,
+        None,
+        cache,
+        cancellation,
+    )?;
     let (debug, heap, truncated) = diagnostics
         .bound(request.maximum_bytes)
         .map_err(execution_error)?;
@@ -652,6 +663,28 @@ pub fn run(
     serde_json::to_writer(&mut *output, &report).map_err(execution_error)?;
     writeln!(output).map_err(execution_error)?;
     Ok(0)
+}
+
+fn output_destination(request: &InspectionRequest) -> Result<std::path::PathBuf, cli::Error> {
+    let parent = request
+        .output_directory
+        .parent()
+        .ok_or_else(|| preflight_error("invalid inspection output directory"))?
+        .canonicalize()
+        .map_err(preflight_error)?;
+    let destination = parent.join(
+        request
+            .output_directory
+            .file_name()
+            .ok_or_else(|| preflight_error("invalid inspection output directory"))?,
+    );
+    let artifact = request.artifact.canonicalize().map_err(preflight_error)?;
+    if destination.starts_with(&artifact) {
+        return Err(preflight_error(
+            "inspection output must be outside artifact",
+        ));
+    }
+    Ok(destination)
 }
 
 pub(crate) fn authenticate_streams(
@@ -747,10 +780,11 @@ fn search_run(
     request: &InspectionRequest,
     search: &Search,
     compile_cache: Option<&str>,
+    cancellation: Option<&linked::Cancellation>,
 ) -> Result<Value, cli::Error> {
     let started = Instant::now();
     search_admission(evidence, request, search)?;
-    search::run(
+    search::run_with_cancellation(
         search,
         || started.elapsed(),
         |choice, remaining| {
@@ -764,10 +798,12 @@ fn search_run(
                         request,
                         Some(remaining),
                         compile_cache,
+                        cancellation,
                     )
                 });
             predicate_evaluation(evaluation, &search.check)
         },
+        || cancellation.is_some_and(linked::Cancellation::cancelled),
     )
 }
 

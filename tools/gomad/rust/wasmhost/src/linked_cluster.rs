@@ -518,6 +518,16 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
     if let Some(network) = &request.network {
         Shared::new(network, &ids).map_err(|failure| Error::msg(failure.message()))?;
     }
+    if let Some(shared) = &request.network {
+        for incarnation in &request.incarnations {
+            if let Some(local) = &incarnation.network
+                && (local.limits.connection_bytes != shared.model.limits.connection_bytes
+                    || local.limits.stall_nanos != shared.model.limits.stall_nanos)
+            {
+                return Err(Error::msg("cluster boot network limits"));
+            }
+        }
+    }
     let mut incarnations = BTreeMap::new();
     for incarnation in std::mem::take(&mut request.incarnations) {
         let model = incarnation
@@ -813,6 +823,28 @@ fn joined(running: Running) -> Result<Completed> {
         .map_err(|_| Error::msg("cluster store panicked"))?
 }
 
+fn drain_running(
+    running: BTreeMap<Handle, Running>,
+    completed: &mut BTreeMap<Handle, IncarnationResult>,
+    broker: &Arc<Broker>,
+    driven_ok: bool,
+) -> Option<Error> {
+    let mut join_error = None;
+    for (handle, pending) in running {
+        match joined(pending) {
+            Ok(observed) => {
+                completed.insert(handle, observed.result);
+            }
+            Err(error) if driven_ok && !broker.inspection_stopped() => {
+                broker.abort("infrastructure", error.to_string());
+                join_error.get_or_insert(error);
+            }
+            Err(_) => {}
+        }
+    }
+    join_error
+}
+
 fn compile(
     engine: &Engine,
     prepared: &Prepared,
@@ -1026,38 +1058,15 @@ fn execute_inner(
                     .incarnations
                     .remove(&step.handle)
                     .ok_or_else(|| Error::msg("missing cluster incarnation"))?;
-                if step.action == Action::Restart
-                    && let Some(storage) = &sealed.execution.request.storage
-                {
-                    let image = restart_image(
+                let slot = if step.action == Action::Restart {
+                    sealed.restart(
+                        broker,
+                        index,
+                        &step.handle,
                         &images,
                         committed_image.as_ref(),
                         prepared.committed_temporal_reopens,
-                        &step.handle.node,
-                    )?;
-                    if prepared.committed_temporal_reopens {
-                        use sha2::Digest as _;
-                        sealed.recovery_source = Some((
-                            Handle {
-                                node: "temporal".into(),
-                                incarnation: 1,
-                            },
-                            format!("{:x}", sha2::Sha256::digest(image)),
-                            image.len() as u64,
-                        ));
-                    }
-                    let mut storage = storage.with_recovery_image(image.clone())?;
-                    let mut namespace = namespace::Namespace::new(sealed.initial_namespace.clone())
-                        .map_err(Error::new)?;
-                    storage.attach(&mut namespace, sealed.transcript_limit)?;
-                    sealed.execution.namespace = Some(namespace);
-                    sealed.execution.request.storage = Some(storage);
-                }
-                let slot = if step.action == Action::Restart {
-                    broker
-                        .restart(index, step.handle.incarnation)
-                        .map_err(|failure| Error::msg(failure.message()))?
-                        .1
+                    )?
                 } else {
                     broker
                         .activate(index)
@@ -1324,12 +1333,13 @@ fn execute_inner(
                         }
                     };
                     stop_live(
+                        engine,
                         &prepared.ids,
                         broker,
                         &mut running,
                         &mut completed,
                         &Error::msg(reason.clone().unwrap_or_else(|| "cluster shutdown".into())),
-                    );
+                    )?;
                     if action_capacity {
                         outcome = protocol::Outcome::new(
                             "capacity",
@@ -1369,27 +1379,30 @@ fn execute_inner(
     });
     if let Err(error) = &driven {
         if divergent && !timed_out.load(Ordering::Acquire) && broker.failure().is_none() {
-            stop_live(&prepared.ids, broker, &mut running, &mut completed, error);
+            stop_live(
+                engine,
+                &prepared.ids,
+                broker,
+                &mut running,
+                &mut completed,
+                error,
+            )?;
         } else {
             broker.abort("infrastructure", error.to_string());
+            let _ = stop_live(
+                engine,
+                &prepared.ids,
+                broker,
+                &mut running,
+                &mut completed,
+                error,
+            );
         }
     }
     if timed_out.load(Ordering::Acquire) {
         broker.abort("watchdog_timeout", "execution watchdog timeout".into());
     }
-    let mut join_error = None;
-    for (handle, pending) in running {
-        match joined(pending) {
-            Ok(observed) => {
-                completed.insert(handle, observed.result);
-            }
-            Err(error) if driven.is_ok() && !broker.inspection_stopped() => {
-                broker.abort("infrastructure", error.to_string());
-                join_error.get_or_insert(error);
-            }
-            Err(_) => {}
-        }
-    }
+    let join_error = drain_running(running, &mut completed, broker, driven.is_ok());
     if let Err(error) = driven
         && !divergent
     {
@@ -1481,51 +1494,87 @@ fn execute_inner(
 /// stop terminals and the retained World evidence never depend on start or
 /// thread order. An incarnation that already finished is only joined; any
 /// other refusal falls back to the abort.
+const CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5);
+
 fn stop_live(
+    engine: &Engine,
     ids: &[String],
     broker: &Arc<Broker>,
     running: &mut BTreeMap<Handle, Running>,
     completed: &mut BTreeMap<Handle, IncarnationResult>,
     error: &Error,
-) {
-    let index = |handle: &Handle| ids.iter().position(|id| id == &handle.node);
-    for handle in running.keys() {
-        let revoked = index(handle).is_some_and(|index| {
-            broker
-                .command(Command::Revoke {
-                    index,
-                    incarnation: handle.incarnation,
-                    kind: "stop",
-                })
-                .is_ok()
-                || broker.finished(index)
+) -> Result<()> {
+    if running.is_empty() {
+        return Ok(());
+    }
+    let expired = AtomicBool::new(false);
+    thread::scope(|scope| {
+        let (done, receive) = mpsc::sync_channel::<()>(0);
+        let timed_out = &expired;
+        let watcher = scope.spawn(move || {
+            if receive.recv_timeout(CLUSTER_STOP_GRACE) == Err(mpsc::RecvTimeoutError::Timeout) {
+                timed_out.store(true, Ordering::Release);
+                engine.increment_epoch();
+                broker.abort(
+                    "infrastructure",
+                    format!("{error}; cluster cleanup deadline exceeded"),
+                );
+            }
         });
-        if !revoked {
-            broker.abort("infrastructure", error.to_string());
-            return;
-        }
-    }
-    let handles: Vec<Handle> = running.keys().cloned().collect();
-    for handle in handles {
-        let driven =
-            index(&handle).is_some_and(|index| broker.run(index, handle.incarnation).is_ok());
-        if !driven {
-            broker.abort("infrastructure", error.to_string());
-            return;
-        }
-        let Some(pending) = running.remove(&handle) else {
-            continue;
-        };
-        match joined(pending) {
-            Ok(observed) => {
-                completed.insert(handle, observed.result);
-            }
-            Err(failure) => {
-                broker.abort("infrastructure", failure.to_string());
-                return;
+        let index = |handle: &Handle| ids.iter().position(|id| id == &handle.node);
+        let mut failure = None;
+        for handle in running.keys() {
+            let revoked = index(handle).is_some_and(|index| {
+                broker
+                    .command(Command::Revoke {
+                        index,
+                        incarnation: handle.incarnation,
+                        kind: "stop",
+                    })
+                    .is_ok()
+                    || broker.finished(index)
+            });
+            if !revoked {
+                broker.abort("infrastructure", error.to_string());
+                failure.get_or_insert_with(|| "cluster cleanup revocation refused".to_owned());
+                break;
             }
         }
-    }
+        let handles: Vec<Handle> = running.keys().cloned().collect();
+        for handle in handles {
+            let driven =
+                index(&handle).is_some_and(|index| broker.run(index, handle.incarnation).is_ok());
+            if !driven {
+                broker.abort("infrastructure", error.to_string());
+                failure.get_or_insert_with(|| "cluster cleanup drive refused".to_owned());
+            }
+            let Some(pending) = running.remove(&handle) else {
+                continue;
+            };
+            match joined(pending) {
+                Ok(observed) => {
+                    completed.insert(handle, observed.result);
+                }
+                Err(join_failure) => {
+                    broker.abort("infrastructure", join_failure.to_string());
+                    failure.get_or_insert_with(|| join_failure.to_string());
+                }
+            }
+        }
+        drop(done);
+        watcher
+            .join()
+            .map_err(|_| Error::msg(format!("{error}; cluster cleanup watchdog panicked")))?;
+        if expired.load(Ordering::Acquire) {
+            return Err(Error::msg(format!(
+                "{error}; cluster cleanup deadline exceeded"
+            )));
+        }
+        if let Some(failure) = failure {
+            return Err(Error::msg(format!("{error}; {failure}")));
+        }
+        Ok(())
+    })
 }
 
 /// # Errors
@@ -1716,6 +1765,51 @@ pub fn validate_encoded_world(
             validate_world(&crate::world::retained::expand(bytes)?, broker)
         }
         _ => Err("unknown retained World encoding".into()),
+    }
+}
+
+impl Sealed {
+    fn restart(
+        &mut self,
+        broker: &Broker,
+        index: usize,
+        handle: &Handle,
+        images: &BTreeMap<String, Vec<u8>>,
+        committed: Option<&Vec<u8>>,
+        original: bool,
+    ) -> Result<u64> {
+        let recovery = if let Some(storage) = &self.execution.request.storage {
+            let image = restart_image(images, committed, original, &handle.node)?;
+            let source = if original {
+                use sha2::Digest as _;
+                Some((
+                    Handle {
+                        node: "temporal".into(),
+                        incarnation: 1,
+                    },
+                    format!("{:x}", sha2::Sha256::digest(image)),
+                    image.len() as u64,
+                ))
+            } else {
+                None
+            };
+            let mut storage = storage.with_recovery_image(image.clone())?;
+            let mut namespace =
+                namespace::Namespace::new(self.initial_namespace.clone()).map_err(Error::new)?;
+            storage.attach(&mut namespace, self.transcript_limit)?;
+            Some((storage, namespace, source))
+        } else {
+            None
+        };
+        let (_, slot) = broker
+            .restart(index, handle.incarnation)
+            .map_err(|failure| Error::msg(failure.message()))?;
+        if let Some((storage, namespace, source)) = recovery {
+            self.execution.namespace = Some(namespace);
+            self.execution.request.storage = Some(storage);
+            self.recovery_source = source;
+        }
+        Ok(slot)
     }
 }
 

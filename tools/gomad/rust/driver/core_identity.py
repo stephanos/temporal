@@ -57,7 +57,7 @@ def observations(config, stdout, context):
     files = source_inputs(config)
     root = Path(config['repo']) / 'tools/gomad/rust/wasmhost'
     expected_files = [dict(name=name, path=str(root / name), bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()) for name, raw in sorted(files.items())]
-    rows = [native_roles.decode(line[line.index(MARKER) + len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
+    rows = [native_roles.decode(line[line.index(MARKER) + len(MARKER):]) for line in stdout.split('\n') if MARKER in line]
     required = {('identity.compiled-native', None), ('identity.empty-closure', None)}
     required.update((case, owner) for case, owners in OWNERS.items() for owner in owners)
     require(len(rows) == len(required) == 18, 'identity harness lacks its exact eighteen raw cases')

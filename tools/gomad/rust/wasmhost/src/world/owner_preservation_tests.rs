@@ -1,4 +1,5 @@
 use super::{Config, Limits, Model, Readiness, Request, ResourceId, retained, wire_generated};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use sha2::{Digest, Sha256};
 
 fn config(requests: u64) -> Config {
@@ -51,7 +52,7 @@ fn wire(model: &Model) -> Vec<u8> {
     bytes
 }
 
-fn measure(stage: &str, requests: u64) {
+fn measure(stage: &str, requests: u64, maximum_peak: Option<u64>) {
     let status = std::fs::read_to_string("/proc/self/status").unwrap();
     let value = |key: &str| {
         let line = status.lines().find(|line| line.starts_with(key)).unwrap();
@@ -65,10 +66,12 @@ fn measure(stage: &str, requests: u64) {
     let rss = value("VmRSS:");
     let peak = value("VmHWM:");
     eprintln!("stage={stage} requests={requests} process_rss={rss} process_peak_rss={peak}");
-    assert!(
-        peak <= 2 << 30,
-        "operator whole-process peak exceeds the 2GiB investigation budget"
-    );
+    if let Some(maximum) = maximum_peak {
+        assert!(
+            peak <= maximum,
+            "operator whole-process peak exceeds the investigation budget"
+        );
+    }
 }
 
 #[test]
@@ -101,24 +104,27 @@ fn binary_world_owner_rejects_foreign_seed_capacities_and_trailing_bytes() {
     retained::validate(&restored, model.config()).unwrap();
     println!(
         "GOMAD_CORE_OBSERVATION {}",
-        serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"binary_world_owner_profile_round_trip","inputs":{"seed":model.config().seed,"requests":3,"wire_sha256":format!("{:x}",Sha256::digest(&bytes))},"observed":{"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"trailing_error":retained::validate(&trailing,model.config()).unwrap_err(),"wrong_raw_profile_error":retained::validate(&envelope,model.config()).unwrap_err(),"wrong_compressed_profile_error":retained::expand(&bytes).unwrap_err()}})
+        serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"binary_world_owner_profile_round_trip","inputs":{"seed":model.config().seed,"requests":3,"wire_sha256":format!("{:x}",Sha256::digest(&bytes))},"observed":{"expanded_base64":STANDARD.encode(&bytes),"envelope_base64":STANDARD.encode(&envelope),"restored_base64":STANDARD.encode(&restored),"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"trailing_error":retained::validate(&trailing,model.config()).unwrap_err(),"wrong_raw_profile_error":retained::validate(&envelope,model.config()).unwrap_err(),"wrong_compressed_profile_error":retained::expand(&bytes).unwrap_err()}})
     );
 }
 
 #[test]
+#[ignore = "explicit operator probe; allocation_receiving runs the fixed measured workloads"]
 fn world_owner_codec_measured_cardinality() {
-    if std::env::var("GOMAD_WORLD_CODEC_PROBE").as_deref() != Ok("1") {
-        return;
-    }
+    assert_eq!(
+        std::env::var("GOMAD_WORLD_CODEC_PROBE").as_deref(),
+        Ok("1"),
+        "operator probe must be explicitly activated"
+    );
     let requests = 20_000;
     let model = populate(requests);
-    measure("model", requests);
+    measure("model", requests, None);
     let encoded = wire(&model);
-    measure("encode_restore_canonical", requests);
+    measure("encode_restore_canonical", requests, None);
     retained::validate(&encoded, model.config()).unwrap();
-    measure("decode_restore_canonical", requests);
+    measure("decode_restore_canonical", requests, None);
     assert_eq!(wire(&model), encoded);
-    measure("reencode_restore_canonical", requests);
+    measure("reencode_restore_canonical", requests, None);
     println!(
         "GOMAD_CORE_OBSERVATION {}",
         serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"world_owner_codec_measured_cardinality","inputs":{"requests":requests,"seed":7,"payload_bytes_per_request":32},"observed":{"expanded_sha256":format!("{:x}",Sha256::digest(&encoded)),"transcript_digest":super::digest::hex(&model.cardinality().transcript_digest),"expanded_bytes":encoded.len()}})
@@ -132,31 +138,34 @@ fn world_owner_codec_measured_cardinality() {
 }
 
 #[test]
+#[ignore = "explicit operator probe; allocation_receiving runs both fixed cardinalities"]
 fn compressed_world_owner_measured_cardinality() {
-    if std::env::var("GOMAD_COMPRESSED_WORLD_PROBE").as_deref() != Ok("1") {
-        return;
-    }
+    assert_eq!(
+        std::env::var("GOMAD_COMPRESSED_WORLD_PROBE").as_deref(),
+        Ok("1"),
+        "operator probe must be explicitly activated"
+    );
     let requests = match std::env::var("GOMAD_COMPRESSED_WORLD_PROBE_REQUESTS").as_deref() {
         Err(_) | Ok("" | "20000") => 20_000,
         Ok("200000") => 200_000,
         _ => panic!("probe cardinality must be explicitly 20000 or 200000"),
     };
     let model = populate(requests);
-    measure("model", requests);
+    measure("model", requests, Some(2 << 30));
     let cardinality = model.cardinality();
     let config = model.config().clone();
     let expanded = wire(&model);
     drop(model);
-    measure("terminal_transfer", requests);
+    measure("terminal_transfer", requests, Some(2 << 30));
     let envelope = retained::compress(&expanded).unwrap();
-    measure("compressed_encode", requests);
+    measure("compressed_encode", requests, Some(2 << 30));
     let restored = retained::expand(&envelope).unwrap();
     assert_eq!(restored, expanded);
     retained::validate(&restored, &config).unwrap();
     assert_eq!(cardinality.requests, requests);
     assert_eq!(cardinality.events, requests);
     assert_eq!(cardinality.transitions, requests * 3);
-    measure("compressed_semantic_decode", requests);
+    measure("compressed_semantic_decode", requests, Some(2 << 30));
     println!(
         "GOMAD_CORE_OBSERVATION {}",
         serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"compressed_world_owner_measured_cardinality","inputs":{"requests":requests,"seed":7,"payload_bytes_per_request":32},"observed":{"expanded_sha256":format!("{:x}",Sha256::digest(&expanded)),"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"transcript_digest":super::digest::hex(&cardinality.transcript_digest),"expanded_bytes":expanded.len(),"envelope_bytes":envelope.len()}})

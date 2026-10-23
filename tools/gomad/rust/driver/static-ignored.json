@@ -153,6 +153,306 @@
       "disposition": "separate-actual-proof-required",
       "final_id": "test-wasm/complete-behavioral-reach",
       "required_parent_test": "measurement::warm::terminal_controls::terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound"
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay",
+      "source": "gomad/src/replay/cluster/broad_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_output_capacity_guest_preserves_original_three_policies",
+      "source": "gomad/src/replay/cluster/broad_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay",
+      "source": "gomad/src/replay/cluster/broad_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_go_history_oracle_canary_preserves_detached_retained_replay",
+      "source": "gomad/src/replay/cluster/broad_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery",
+      "source": "gomad/src/replay/cluster/broad_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-broad-guest",
+          "selector": "replay::cluster::broad_guest_tests",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads",
+      "source": "gomad/src/replay/inspection_predicate_tests.rs",
+      "reason": "requires the retained complete helper scale artifact from GOMAD_INSPECTION_RAW_DIR",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-inspection-scale",
+          "selector": "replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "host-inspection-scale",
+          "selector": "replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-inspection-scale",
+          "selector": "replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "gomad",
+      "name": "allocation_receiving",
+      "source": "gomad/tests/allocation_receiving.rs",
+      "reason": "explicit allocation receiving operator harness",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "host-allocation",
+          "selector": "allocation_receiving",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "host-allocation",
+          "selector": "allocation_receiving",
+          "features": [
+            "determinism-fixture"
+          ]
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "host-allocation",
+          "selector": "allocation_receiving",
+          "features": [
+            "determinism-fixture"
+          ]
+        }
+      ]
+    },
+    {
+      "crate": "wasmhost",
+      "name": "world_owner_codec_measured_cardinality",
+      "source": "wasmhost/src/world/owner_preservation_tests.rs",
+      "reason": "explicit operator probe; allocation_receiving runs the fixed measured workloads",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "helper-world-probe",
+          "selector": "world::owner_preservation_tests::world_owner_codec_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "helper-world-probe",
+          "selector": "world::owner_preservation_tests::world_owner_codec_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "helper-world-probe",
+          "selector": "world::owner_preservation_tests::world_owner_codec_measured_cardinality",
+          "features": []
+        }
+      ]
+    },
+    {
+      "crate": "wasmhost",
+      "name": "compressed_world_owner_measured_cardinality",
+      "source": "wasmhost/src/world/owner_preservation_tests.rs",
+      "reason": "explicit operator probe; allocation_receiving runs both fixed cardinalities",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "helper-compressed-world-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "cluster-provider",
+          "invocation": "helper-compressed-world-large-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "helper-compressed-world-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "helper-compressed-world-large-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "helper-compressed-world-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "helper-compressed-world-large-probe",
+          "selector": "world::owner_preservation_tests::compressed_world_owner_measured_cardinality",
+          "features": []
+        }
+      ]
+    },
+    {
+      "crate": "wasmhost",
+      "name": "allocation_receiving",
+      "source": "wasmhost/tests/allocation_receiving.rs",
+      "reason": "explicit allocation receiving operator harness",
+      "disposition": "separate-actual-proof-required",
+      "final_id": "test-wasm/complete-behavioral-reach",
+      "broad_routes": [
+        {
+          "stage": "cluster-provider",
+          "invocation": "helper-allocation",
+          "selector": "allocation_receiving",
+          "features": []
+        },
+        {
+          "stage": "cluster-functional",
+          "invocation": "helper-allocation",
+          "selector": "allocation_receiving",
+          "features": []
+        },
+        {
+          "stage": "retained-cluster",
+          "invocation": "helper-allocation",
+          "selector": "allocation_receiving",
+          "features": []
+        }
+      ]
     }
   ]
 }

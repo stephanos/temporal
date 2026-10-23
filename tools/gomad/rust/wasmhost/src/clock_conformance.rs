@@ -252,7 +252,13 @@ fn clock_corpus_replays_exactly() {
     let mut replayed = 0;
     for (name, corpus) in corpora() {
         match replay(&name, &corpus) {
-            Ok(_) => replayed += 1,
+            Ok(actual) => {
+                println!(
+                    "GOMAD_CORE_OBSERVATION {}",
+                    json!({"schema":"gomad.core-predicate-observation/v1","case":"clock.corpus-replay","inputs":{"corpus":name,"document":corpus},"observed":{"steps":actual}})
+                );
+                replayed += 1;
+            }
             Err(failure) => failures.push(failure),
         }
     }

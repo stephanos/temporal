@@ -33,6 +33,63 @@ def regular(path):
     return path
 
 
+def rust_code(text):
+    """Keep token positions while excluding comments and string test fixtures."""
+    result, at = list(text), 0
+    character_pattern = re.compile(r"'(?:\\(?:x[0-9a-fA-F]{2}|u\{[0-9a-fA-F_]+\}|.)|[^'\\\n])'")
+    raw_pattern = re.compile(r'(?:br|r)(#{0,255})"')
+    def erase(start, end):
+        result[start:end] = ['\n' if char == '\n' else ' ' for char in text[start:end]]
+    while at < len(text):
+        if text.startswith('//', at):
+            end = text.find('\n', at)
+            end = len(text) if end < 0 else end
+            erase(at, end); at = end
+        elif text.startswith('/*', at):
+            end, depth = at + 2, 1
+            while end < len(text) and depth:
+                if text.startswith('/*', end): depth += 1; end += 2
+                elif text.startswith('*/', end): depth -= 1; end += 2
+                else: end += 1
+            require(depth == 0, 'unterminated Rust comment in ignored inventory')
+            erase(at, end); at = end
+        else:
+            character = character_pattern.match(text, at)
+            raw = raw_pattern.match(text, at)
+            if character:
+                end = at + len(character[0])
+                erase(at, end); at = end
+            elif raw:
+                closing = '"' + raw[1]
+                end = text.find(closing, at + len(raw[0]))
+                require(end >= 0, 'unterminated Rust raw string in ignored inventory')
+                end += len(closing)
+                erase(at, end); at = end
+            elif text[at] == '"':
+                end = at + 1
+                while end < len(text):
+                    if text[end] == '\\': end += 2
+                    elif text[end] == '"': end += 1; break
+                    else: end += 1
+                require(end <= len(text) and text[end - 1] == '"', 'unterminated Rust string in ignored inventory')
+                erase(at, end); at = end
+            else: at += 1
+    return ''.join(result)
+
+
+def ignored_attributes(text):
+    code = rust_code(text)
+    rows = []
+    for match in re.finditer(r'#\s*\[\s*ignore\b[^\]]*\]', code):
+        attribute = text[match.start():match.end()]
+        reason = re.fullmatch(r'#\s*\[\s*ignore\s*=\s*("(?:[^"\\]|\\.)*")\s*\]', attribute, re.S)
+        require(reason is not None, 'ignored test requires an explicit registered reason')
+        name = re.search(r'\bfn\s+(\w+)\s*\(', code[match.end():])
+        require(name is not None, 'ignored attribute has no function')
+        rows.append((name[1], json.loads(reason[1])))
+    return rows
+
+
 def ignored_inventory(repo):
     declared = read(HERE / 'static-ignored.json')['tests']
     require(read(HERE / 'static-ignored.json')['schema'] == 'gomad.driver-static-ignored/v1', 'unknown ignored schema')
@@ -40,11 +97,32 @@ def ignored_inventory(repo):
     observed = set()
     attributes = 0
     for crate in ('gomad', 'wasmhost'):
-        for path in (repo / 'tools/gomad/rust' / crate / 'src').rglob('*.rs'):
-            attributes += len(re.findall(r'#\[ignore(?:\s|=|\])', path.read_text()))
-            for match in re.finditer(r'#\[ignore = "([^"]+)"\](.*?)\bfn (\w+)\s*\(', path.read_text(), re.S):
-                observed.add((str(path.relative_to(repo / 'tools/gomad/rust')), match[3], match[1]))
+        for folder in ('src', 'tests'):
+            for path in (repo / 'tools/gomad/rust' / crate / folder).rglob('*.rs'):
+                rows = ignored_attributes(path.read_text())
+                attributes += len(rows)
+                for name, reason in rows:
+                    observed.add((str(path.relative_to(repo / 'tools/gomad/rust')), name, reason))
     require(attributes == len(declared) and expected == observed and len(expected) == len(declared), 'unknown/changed/missing ignored test disposition')
+    import broad_harness
+    for row in declared:
+        if 'broad_routes' not in row:
+            continue
+        routes = row['broad_routes']
+        require(isinstance(routes, list) and routes, 'ignored broad test lacks a closed actual route')
+        expected_routes = []
+        for stage in broad_harness.Stage:
+            for invocation in broad_harness.catalog(stage):
+                target = broad_harness.target(invocation.role)
+                if target.crate != row['crate'] or not invocation.ignored:
+                    continue
+                selected = (invocation.selector == row['name'] or invocation.selector.endswith('::' + row['name'])) if invocation.exact else (
+                    row['source'].endswith('/' + invocation.selector.replace('::', '/') + '.rs'))
+                if selected:
+                    expected_routes.append(dict(stage=stage.value, invocation=invocation.name,
+                                                selector=invocation.selector, features=list(target.features)))
+        require(routes == expected_routes and expected_routes, 'ignored broad test changed its fixed executable, features or final selectors')
+
     final_ids = set(read(HERE / 'required-final.json')['subgates'])
     for row in declared:
         require(row['final_id'] is None or row['final_id'] in final_ids, 'unknown receiving obligation')
@@ -306,6 +384,24 @@ def action_environment(plan, config, action):
     return extra
 
 
+def rust_test_owner(artifact):
+    manifest = Path(artifact['manifest_path'])
+    root = REPO / 'tools/gomad/rust'
+    require(manifest in (root / 'gomad/Cargo.toml', root / 'wasmhost/Cargo.toml'), 'Rust test Cargo artifact has a foreign crate')
+    source = Path(artifact['target']['src_path'])
+    require(source.is_absolute() and source.resolve() == source and source.is_relative_to(manifest.parent) and source.suffix == '.rs',
+            'Rust test Cargo artifact has a foreign source target')
+    return dict(crate=manifest.parent.name, source=str(source.relative_to(root)))
+
+
+def ignored_test_owner(known, name, owner):
+    matches = [row for row in known if row['crate'] == owner['crate']
+               and (row['source'].startswith(owner['crate'] + '/src/') or row['source'] == owner['source'])
+               and (name.endswith('::' + row['name']) or name == row['name'])]
+    require(len(matches) == 1, 'unknown/ambiguous ignored Rust test within Cargo owner: ' + name)
+    return matches[0]
+
+
 class Execution:
     def __init__(self, plan, config, label):
         self.plan, self.config, self.label = plan, config, label
@@ -345,7 +441,7 @@ class Execution:
             if row.get('reason') == 'compiler-artifact' and row.get('executable') and row['profile']['test']:
                 binary = regular(row['executable'])
                 require(binary.is_relative_to(Path(self.plan['caches']['cargo_target'])), 'test executable outside assigned target')
-                binaries[str(binary)] = dict(binary_sha256=sha(binary), target=row['target']['name'], cwd=str(Path(row['manifest_path']).parent))
+                binaries[str(binary)] = dict(binary_sha256=sha(binary), target=row['target']['name'], cwd=str(Path(row['manifest_path']).parent), **rust_test_owner(row))
         require(binaries, 'no actual Rust test executable')
         total, reports = 0, []
         known = ignored_inventory(REPO)
@@ -358,9 +454,7 @@ class Execution:
             expected, ignored = test_names(listed), test_names(ignored_raw)
             require(ignored <= expected, 'ignored names absent from test inventory')
             for name in sorted(ignored):
-                matches = [row for row in known if name.endswith('::' + row['name']) or name == row['name']]
-                require(len(matches) == 1, 'unknown/ambiguous ignored Rust test: ' + name)
-                row = matches[0]
+                row = ignored_test_owner(known, name, binding)
                 self.deferred.append(dict(row, id=name, obligation=row['final_id'], test=name, status='UNEXECUTED', binary_sha256=binding['binary_sha256'],
                     source_sha256=sha(REPO / 'tools/gomad/rust' / row['source'])))
             for repeat in range(action.get('repeats', 1)):
@@ -562,8 +656,9 @@ def authenticate_result(plan_path, label):
             elif kind == 'cargo-tests':
                 require(row['kind'] == kind and row['executables'], 'empty Rust proof')
                 artifacts = [json.loads(line) for line in raw(owned[0], owned).decode().splitlines()]
-                expected_binaries = {artifact['executable'] for artifact in artifacts if artifact.get('reason') == 'compiler-artifact'
-                                     and artifact.get('executable') and artifact['profile']['test']}
+                actual_artifacts = {artifact['executable']: artifact for artifact in artifacts if artifact.get('reason') == 'compiler-artifact'
+                                    and artifact.get('executable') and artifact['profile']['test']}
+                expected_binaries = set(actual_artifacts)
                 require({entry['binary'] for entry in row['executables']} == expected_binaries, 'missing Rust executable')
                 require([(entry['binary'], entry['repeat']) for entry in row['executables']]
                         == [(binary, repeat) for binary in sorted(expected_binaries) for repeat in range(recipe_row.get('repeats', 1))],
@@ -573,6 +668,12 @@ def authenticate_result(plan_path, label):
                 for executable in row['executables']:
                     require(sha(executable['binary']) == executable['binary_sha256'], 'test binary changed before reader')
                     binary = executable['binary']
+                    artifact = actual_artifacts[binary]
+                    owner = rust_test_owner(artifact)
+                    require(all(executable.get(key) == value for key, value in owner.items())
+                            and executable['target'] == artifact['target']['name']
+                            and executable['cwd'] == str(Path(artifact['manifest_path']).parent),
+                            'Rust test executable changed its actual Cargo crate/source target')
                     suffix = [recipe_row['test_filter']] if recipe_row.get('test_filter') else []
                     references = (executable['listing'], executable['ignored_listing'])
                     if executable['repeat'] == 0:
@@ -595,9 +696,7 @@ def authenticate_result(plan_path, label):
                                               raw=executable['run']))
                     if executable['repeat'] == 0:
                         for name in sorted(ignored):
-                            matches = [entry for entry in known if name.endswith('::' + entry['name']) or name == entry['name']]
-                            require(len(matches) == 1, 'unknown/ambiguous ignored Rust test')
-                            entry = matches[0]
+                            entry = ignored_test_owner(known, name, owner)
                             deferred.append(dict(entry, id=name, obligation=entry['final_id'], test=name, status='UNEXECUTED',
                                 binary_sha256=executable['binary_sha256'], source_sha256=sha(REPO / 'tools/gomad/rust' / entry['source'])))
                 require(total == row['passed'] and total > 0, 'empty/changed Rust passed count')

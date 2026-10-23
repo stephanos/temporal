@@ -70,6 +70,10 @@ fn go_network_cluster_corpus() {
             }
             Err(error) => {
                 assert_eq!(corpus["creation_error"], error.message(), "{path:?}");
+                println!(
+                    "GOMAD_CORE_OBSERVATION {}",
+                    json!({"schema":"gomad.core-predicate-observation/v1","case":"network.corpus.creation","inputs":{"name":corpus["name"]},"observed":{"error":error.message()}})
+                );
                 continue;
             }
         };
@@ -95,6 +99,10 @@ fn go_network_cluster_corpus() {
         for endpoint in endpoints.values_mut() {
             endpoint.attach_at(1).unwrap();
         }
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"network.corpus.initial","inputs":{"name":corpus["name"]},"observed":observe(&shared, String::new(), None, None)})
+        );
         assert_eq!(
             observe(&shared, String::new(), None, None),
             corpus["initial"],
@@ -265,6 +273,10 @@ fn go_network_cluster_corpus() {
                 actual["entry_json"] = String::from_utf8(json).unwrap().into();
                 actual["entry_tag"] = binary[0].into();
             }
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({"schema":"gomad.core-predicate-observation/v1","case":"network.corpus.step","inputs":{"name":corpus["name"],"index":index},"observed":actual})
+            );
             assert_eq!(actual, step["expected"], "{path:?} step {index}");
         }
         if corpus["name"] == "cross-node-ready-poll-and-stale-cancel-binary-fixture" {
@@ -294,7 +306,7 @@ fn go_network_cluster_corpus() {
                     assert_eq!(decoded.world, world_wire);
                     println!(
                         "GOMAD_CORE_OBSERVATION {}",
-                        json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_typed_owner_round_trip","inputs":{"corpus":corpus["name"],"node":id,"evidence_sha256":format!("{:x}",Sha256::digest(&evidence))},"observed":{"record":decoded.record,"log_sha256":format!("{:x}",Sha256::digest(&decoded.log)),"world_sha256":format!("{:x}",Sha256::digest(&decoded.world))}})
+                        json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_typed_owner_round_trip","inputs":{"corpus":corpus["name"],"node":id,"evidence_base64":base64::prelude::BASE64_STANDARD.encode(&evidence),"evidence_sha256":format!("{:x}",Sha256::digest(&evidence))},"observed":{"record":decoded.record,"log_sha256":format!("{:x}",Sha256::digest(&decoded.log)),"world_sha256":format!("{:x}",Sha256::digest(&decoded.world))}})
                     );
                 }
                 if regenerate {

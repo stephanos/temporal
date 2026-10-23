@@ -63,3 +63,8 @@ required-features = ["reference-helper"]
 [[test]]
 name = "replay_preflight"
 required-features = ["reference-helper"]
+
+[[test]]
+name = "allocation_receiving"
+path = "tests/allocation_receiving.rs"
+harness = true

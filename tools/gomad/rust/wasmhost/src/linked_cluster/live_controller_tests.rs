@@ -915,3 +915,6 @@ fn measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_sch
         }
     }
 }
+
+#[path = "network_binding_preservation_tests.rs"]
+mod network_binding_preservation_tests;

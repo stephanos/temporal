@@ -145,14 +145,29 @@ pub fn execute(execution: Execution) -> Result<linked::Execution, String> {
 /// # Errors
 /// Executes a fresh inspection attempt with a shortened remaining budget.
 pub fn execute_inspection(
-    mut prepared: Prepared,
+    prepared: Prepared,
     target: &gomad_wasmhost::linked_inspection::Handle,
     conditions: linked::Conditions,
     timeout: Option<Duration>,
 ) -> Result<linked::Execution, String> {
+    execute_inspection_with_cancellation(prepared, target, conditions, timeout, None)
+}
+
+/// # Errors
+/// Executes an inspection attempt with the caller's cancellation joined before return.
+pub fn execute_inspection_with_cancellation(
+    mut prepared: Prepared,
+    target: &gomad_wasmhost::linked_inspection::Handle,
+    conditions: linked::Conditions,
+    timeout: Option<Duration>,
+    cancellation: Option<&linked::Cancellation>,
+) -> Result<linked::Execution, String> {
     match &mut prepared.execution {
         Execution::Standalone(execution) => {
             execution.conditions(conditions);
+            if let Some(cancellation) = cancellation {
+                execution.cancellation(cancellation.clone());
+            }
             if let Some(timeout) = timeout {
                 execution
                     .bound_wall_timeout(timeout)
@@ -161,6 +176,9 @@ pub fn execute_inspection(
         }
         Execution::Cluster(execution) => {
             execution.prepared.conditions(conditions);
+            if let Some(cancellation) = cancellation {
+                execution.prepared.cancellation(cancellation.clone());
+            }
             if let Some(timeout) = timeout {
                 execution
                     .prepared
