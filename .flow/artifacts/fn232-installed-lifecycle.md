@@ -231,13 +231,62 @@ unknown names or either one-sided presence are refused. Only jointly absent
 descriptor and payload produce empty output. Added tests publish real native
 artifacts for silent, stdout-only and stderr-only incarnations, plus missing
 payload, undeclared payload, unsupported name and mismatched digest negatives.
-These new native tests are **source pending**, not covered by the earlier
-seven-test GREEN receipt. The checker independently applies the same presence
+These new native tests are covered by the separate frozen-source development
+unit gate below; they are not inferred from the earlier seven-test receipt. The checker independently applies the same presence
 invariant; its portable causal RED and 25-test GREEN are retained. Cache owner
 received the native-only cherry pointer; no cache code was changed here.
 
-After the next explicit compile grant and >=2 GiB free-space check, first run
-these new tests against the preceding inspector implementation for causal RED,
-restore the repair, then run the affected `installed_lifecycle` host tests and
-strict host library/test Clippy. Preserve all raw logs and the earlier GREEN
-receipts. No Go, guest, installed CLI, signal or qualification launch is implied.
+The root subsequently granted only the exact frozen source `874f6fc62d` on a
+separate host-filesystem development target, with native unit fixtures admitted
+at >=256 MiB free. Both new tests passed individually, and strict affected host
+library/test Clippy passed. No pre-fix native RED was executed under this exact
+source freeze; portable causal RED is retained separately. No Go, guest,
+installed CLI, signal or qualification launch is implied.
+
+
+### Final sparse-stream development unit gate
+
+Exact code source was `874f6fc62df0af89516e1c39e3f9ef0566c8a4ca`, clean. The root
+approved the development-only target
+`/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks`,
+with compiler/linker `TMPDIR` in that target's `tmp` child. Every Cargo command
+used `CARGO_INCREMENTAL=0`, pinned `+1.99.1`, `--offline --locked -j1`, default
+DEBUG and no added features. The old native install target was untouched.
+
+```sh
+CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks \
+TMPDIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks/tmp \
+CARGO_INCREMENTAL=0 cargo +1.99.1 test --manifest-path tools/gomad/rust/Cargo.toml \
+  --offline --locked -j1 -p gomad --lib --no-run --message-format=json
+
+CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks \
+TMPDIR=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks/tmp \
+CARGO_INCREMENTAL=0 cargo +1.99.1 clippy --manifest-path tools/gomad/rust/Cargo.toml \
+  --offline --locked -j1 -p gomad --lib --tests -- -D warnings
+```
+
+The first command compiled without running tests (98 s). Its Cargo JSON selected
+exactly one Gomad library test executable; the independent development input
+receipt binds that executable's SHA-256, source commit, test names and both
+filesystems. Only these two native functions were then executed, each using the
+existing `driver.command` process/PID/argv/raw exit/stdout/stderr capture:
+
+* `installed_lifecycle_tests::installed_lifecycle_inspect_accepts_silent_and_single_stream_cluster_instances`
+* `installed_lifecycle_tests::installed_lifecycle_inspect_refuses_inconsistent_or_unrecognized_cluster_streams`
+
+Both passed individually. Their actual native Store-published fixtures used
+`TMPDIR=/home/agent/evidence/fn232-installed-lifecycle-tests-tmp`; available native
+space was checked >=256 MiB before each test, and no fixture directories remained
+afterward. Raw command/process captures and the executable/source receipt are in
+`/home/agent/evidence/fn232-installed-lifecycle-hostfs-unitgate`. Compiler JSON,
+compiler stderr and strict Clippy logs are respectively `hostfs-no-run.jsonl`,
+`hostfs-no-run.log`, and `hostfs-clippy.log` under the installed-lifecycle evidence
+prefix. Strict Clippy exited 0 (47 s).
+
+The initial conservative target estimate was 4–8 GiB; actual final target usage
+was 1.6 GiB, with 90 GiB available on the host filesystem and 723 MiB available
+on the native fixture filesystem. Every process/session is terminal and the
+exclusive development compile window was explicitly released to root. These are
+development unit checks only: the host filesystem is not being admitted for
+qualification evidence, final binary gates, actual guest execution or their
+native-storage requirements.
