@@ -183,8 +183,14 @@ def cluster(config, label, root):
                 and len(report['cells']) == 1 and report['cells'][0]['cell'] == cell, 'missing/foreign primary cluster cell')
         expected = check.configuration(template, cell)
         module = template['configuration']['incarnations'][0]['module']
+        import receiving
+        module_path = template['modules'][module['file']]
+        raw_module = Path(module_path).read_bytes()
+        require(len(raw_module) == module['bytes'] and sha(module_path) == module['sha256'], 'changed sealed cluster service module')
+        imports = receiving.module_metadata(raw_module)['imports']
         for incarnation in expected['incarnations']:
             incarnation['module'] = dict(file='target/module.wasm', bytes=module['bytes'], sha256=module['sha256'], limit=512 << 20)
+            incarnation['imports'] = imports
         artifact = Path(report['cells'][0]['artifact'])
         require(artifact.is_relative_to(work), 'foreign primary cluster artifact')
         common.seed['authenticate_artifact'](artifact)
