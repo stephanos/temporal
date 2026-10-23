@@ -1,0 +1,45 @@
+{
+  "first_full_gate": {
+    "original_session": 68531,
+    "exit_code": 2,
+    "head": "c16acbf713ad58d3a7eac23e821de6ede45c72b7",
+    "cause": "UNKNOWN: workspace tests returned101; original timing wrapper discarded child diagnostics",
+    "authoritative_command": "required-model-time-first-failure-command.json"
+  },
+  "diagnostics": [
+    {
+      "session": 3314,
+      "command": "UMPIRE_BACKENDS=require mise exec -- cargo test --workspace --no-run",
+      "exit_code": 0
+    },
+    {
+      "session": 63573,
+      "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-apalache --lib -- --nocapture",
+      "exit_code": 0
+    },
+    {
+      "session": 41206,
+      "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-annotations -- --nocapture",
+      "exit_code": 0
+    },
+    {
+      "session": 79575,
+      "command": "UMPIRE_BACKENDS=require UMPIRE_TIME_STEPS=1 mise exec -- cargo test --workspace --quiet",
+      "exit_code": 0,
+      "scope": "Whole workspace test stage including all14actual Apalache controls; not a whole-gate pass"
+    }
+  ],
+  "observability_correction": {
+    "paths": [
+      "model/scripts/time-gate.sh",
+      "model/scripts/test-time-gate.sh"
+    ],
+    "red": "expected exit1: failed timing step lost child diagnostics",
+    "green": "exit0; original exit codes, quiet success, stdout/stderr on failure and temporary-file cleanup checked",
+    "original_test_failure_attribution": "Not established; no transient or source-bug attribution"
+  },
+  "runtime_live_closure_entries": 2184,
+  "runtime_live_closure_exact": true,
+  "scripts_absent_from_runtime_live_closure": true,
+  "fresh_guest_live_proof_reuse": "Exact runtime/live closure remains unchanged; conductor expressly authorized reuse only for these script changes."
+}

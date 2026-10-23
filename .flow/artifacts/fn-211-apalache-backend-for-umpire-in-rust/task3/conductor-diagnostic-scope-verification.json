@@ -1,0 +1,10 @@
+{
+  "closure_paths_verified": 2184,
+  "mismatches": [],
+  "diagnostic_scripts_excluded": [
+    "model/scripts/time-gate.sh",
+    "model/scripts/test-time-gate.sh"
+  ],
+  "guest_sha256": "d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217",
+  "scope": "Exact retained fresh guest/slice/gaps closure remains unchanged before diagnostic-script correction; final full gate remains red and task incomplete."
+}

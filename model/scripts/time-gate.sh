@@ -9,11 +9,19 @@ GATE_BUDGET=${UMPIRE_GATE_BUDGET:-60}    # seconds: the whole local gate, warm
 
 TIMEFORMAT=%R
 step() {
-  local name=$1; shift
-  local secs
-  secs=$({ time "$@" >/dev/null 2>&1; } 2>&1 | tail -n1) || return $?
-  printf '%-32s %6ss\n' "$name" "$secs"
-  echo "$secs"
+  (
+    local name=$1; shift
+    local secs output status=0
+    output=$(mktemp)
+    trap 'rm -f "$output"' EXIT
+    secs=$({ time "$@" >"$output" 2>&1; } 2>&1 | tail -n1) || status=$?
+    if [ "$status" -ne 0 ]; then
+      cat "$output" >&2
+      exit "$status"
+    fi
+    printf '%-32s %6ss\n' "$name" "$secs"
+    echo "$secs"
+  )
 }
 
 if [ "${1:-}" = --step ]; then

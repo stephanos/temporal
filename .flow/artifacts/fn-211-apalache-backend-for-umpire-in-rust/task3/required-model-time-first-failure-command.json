@@ -1,0 +1,10 @@
+{
+  "command": "timeout 3600 env UMPIRE_BACKENDS=require make model-time",
+  "exit_code": 2,
+  "start": "2026-10-23T04:39:56.622823+00:00",
+  "end": "2026-10-23T04:42:21.256525+00:00",
+  "elapsed_seconds": 144.63410427699273,
+  "source_head": "c16acbf713ad58d3a7eac23e821de6ede45c72b7",
+  "reviewed_production_source": "3d0acb886866abfd04a2d2c34e8e87368cef2d5c",
+  "log": "final-model-time.log"
+}
