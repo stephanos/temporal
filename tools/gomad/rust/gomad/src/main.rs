@@ -5,6 +5,9 @@ fn main() {
         std::process::exit(2);
     }
     let mut arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
+    if let Some(status) = convenience(&arguments) {
+        std::process::exit(status);
+    }
     let installation = take_installation(&mut arguments);
     if arguments
         .first()
@@ -90,8 +93,55 @@ fn main() {
         }
         return;
     }
-    eprintln!("gomad: unsupported command");
+    eprintln!("gomad: unsupported command; use gomad -- COMMAND [ARG ...] to run a child");
     std::process::exit(2);
+}
+
+fn convenience(arguments: &[std::ffi::OsString]) -> Option<i32> {
+    if std::env::args_os().next().is_some_and(|value| {
+        std::path::Path::new(&value).file_name() == Some(std::ffi::OsStr::new("go"))
+    }) {
+        let status = match gomad::shim::run(arguments) {
+            Ok(status) => status,
+            Err(message) => {
+                eprintln!(
+                    "gomad: {}",
+                    message
+                        .strip_prefix("gomad: ")
+                        .unwrap_or(&message)
+                        .replace(['\n', '\r'], " ")
+                );
+                2
+            }
+        };
+        return Some(status);
+    }
+    if wrapper_form(arguments) {
+        let status = match gomad::cli::wrapper::run(arguments, None) {
+            Ok(status) => status,
+            Err(error) => {
+                eprintln!("gomad: {}", error.message);
+                error.status
+            }
+        };
+        return Some(status);
+    }
+    None
+}
+
+fn wrapper_form(arguments: &[std::ffi::OsString]) -> bool {
+    let mut index = 0;
+    while let Some(value) = arguments.get(index).and_then(|value| value.to_str()) {
+        if value == "--" {
+            return true;
+        }
+        let name = value.split_once('=').map_or(value, |(name, _)| name);
+        if !matches!(name, "--installation" | "--seeds" | "--artifacts") {
+            return false;
+        }
+        index += if value.contains('=') { 1 } else { 2 };
+    }
+    false
 }
 
 fn operator_command(arguments: &[String]) -> Option<&str> {

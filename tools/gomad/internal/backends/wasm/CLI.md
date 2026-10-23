@@ -217,6 +217,133 @@ The setup path grants no additional guest capability or support for other tests.
 One-box qualification and per-test support evidence are owned separately by
 [fn-222](../../../../../.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md).
 
+## Wrap existing Go commands
+
+The Rust command grammar is:
+
+```text
+gomad [--installation FILE] [--seeds LIST] [--artifacts DIR] -- COMMAND [ARGS...]
+gomad [--installation FILE] run-guest MODULE [GUEST-ARGS...]
+```
+
+Everything after the wrapper's first `--` belongs to the child, including names
+such as `replay`. No verb forwards to a child; `gomad go` and `gomad make` are not
+aliases. An empty child is a usage error, a missing executable is an input error,
+and shim-directory creation failure is an infrastructure error. A normal child
+exit is propagated unchanged. Go and Make can each translate a launcher's status;
+read each layer's actual result.
+
+The wrapper resolves stock Go 1.27.1 on the original `PATH`, then prepends a
+private mode-0700 directory containing the Gomad `go` shim. The shim invokes that
+pinned compiler. Go invoked by absolute path, relative to `GOROOT`, or through a
+replaced/shadowed `PATH` is outside interception. Temporal Make prepends `.bin`;
+an executable `.bin/go` would shadow the shim and must be absent. Completed private
+shim state is removed; stale cleanup cannot remove another live wrapper's state.
+No compiler is downloaded and guest builds disable toolchain switching.
+
+| Invocation | Behavior |
+| --- | --- |
+| `go test` without caller `-exec` | Compile with the admitted cooperative overlay, full installation tags, `GOOS=wasip1`, `GOARCH=wasm`, `CGO_ENABLED=0`, `GOTOOLCHAIN=local`, and `-exec 'gomad run-guest'`. Add `-count=1` only if the caller did not set it. |
+| `go test` with caller `-exec` | Apply the same guest build settings and preserve the caller's launcher. `-exec=true -count=0` compiles without running a guest. A nontrivial external launcher is invoked by Go and supplies no Gomad execution-evidence claim. |
+| `go run` or `go build` matching `guest` | Execute the registered main package as a guest; `build -o PATH` writes `PATH.wasm` and a launcher script at `PATH`. |
+| Other subcommands; unmatched `run`/`build` | Pass original arguments and the shim's inherited host environment to the pinned compiler. `go env GOOS` reports the host; repository generators and linters stay host tools. |
+
+Injected driver flags precede `-args`/`--args`; everything after that boundary
+remains a guest argument. Effective driver flags include `GOFLAGS`. Caller
+`-run`, `-v`, `-json`, package patterns, `-p` and explicit `-count` remain owned by
+Go. The shim never enables standalone Gomad `--json` on Go's stdout.
+
+Guest invocations refuse these effective options before compilation with an
+unsupported-option diagnostic on one stderr line: `-race`, `-fuzz`, `-cover`,
+`-coverprofile`, `-coverpkg`, `-msan`, `-asan`, inherited `CGO_ENABLED=1`, tags
+excluded by the installation, and `GOOS`/`GOARCH` other than unset or
+`wasip1`/`wasm`. They are not silently dropped. Unsupported models, inputs and
+capacity/fuel/watchdog failures retain their existing classifications.
+
+### Repository configuration and installation selection
+
+The module-root `gomad.toml` accepts exactly these keys:
+
+```toml
+runtime_root = "tools/gomad/internal/model/runtimesource"
+derive = "temporal"
+# guest = ["./cmd/example"]
+```
+
+The Temporal repository leaves `guest` absent. Listing a main package changes
+`go run`/`go build` routing; it does not establish support. `runtime_root` must be
+module-relative and canonically contained. Guest entries must be module-relative
+without absolute paths or parent escapes. Unknown/duplicate keys, incorrect types,
+unsupported `derive` values and escaping paths are input errors. `derive` accepts
+`temporal` or `default`; the latter uses the stock cooperative namespace.
+
+Explicit global `--installation FILE` wins over `GOMAD_WASM_INSTALLATION`; an
+invalid selected installation fails without fallback or rewriting. Without either,
+Gomad derives per-package installations using the same install derivation, current
+compiler/runtime and linked host/helper identities, complete configuration and
+captured schema bytes. It validates required inputs before cache lookup, including
+schema files even when a previous entry exists. Unchanged entries can be reused;
+changed inputs require matching new identities. Preparation and engine caches
+share immutable code, never guest state. Auto-derivation adds no installed tool
+or guest capability.
+
+The wrapper supplies `GOMAD_SHIM_BINARY`, `GOMAD_SHIM_GO`,
+`GOMAD_SHIM_INSTALLATION`, `GOMAD_SHIM_ARTIFACTS`, `GOMAD_SHIM_SEEDS` and
+`GOMAD_SHIM_RUN`. Per-driver immutable invocation metadata is passed only to that
+compiler process and its launchers with `GOMAD_SHIM_INVOCATION` and
+`GOMAD_SHIM_INVOCATION_SHA256`. These are wrapper protocol values, not operator
+configuration. Unrelated inherited `GOMAD_*` controls are not accepted.
+
+### Launcher evidence and limits
+
+`run-guest` authenticates the actual Go-produced module against its prepared
+compiler, source, overlay, installation and invocation bindings before retaining
+it. An arbitrary or unprepared WASM file is refused. Each package launcher gets
+a distinct campaign under the wrapper's artifact root; Go's own package
+parallelism controls overlapping launchers. Each seed runs sequentially in fresh
+guest state. The first non-success stops the launcher; later selected seeds
+remain unexecuted. Zero means every requested seed succeeded.
+
+Guest stdout and stderr stream unchanged to their respective inherited channels;
+Gomad diagnostics go to stderr. Standalone `run-guest --json` instead reserves
+stdout for structured reporting and retains guest output in artifacts. Success
+returns 0, target failure uses its supported guest status, and capacity/fuel/helper
+failure uses infrastructure status 3. On a failure with a retained replayable
+artifact the final stderr line is the exact explicit replay command. Otherwise
+the diagnostic says no replayable artifact was retained and prints no fabricated
+command. Go usually maps a nonzero launcher status to its own failure status.
+
+Retained plans, preparation and executions bind `origin: intercepted-go`, original
+argument bytes and wrapper/driver/launch identities. Replay and inspection
+authenticate these bytes without the original temporary module or invocation
+file. Compatible retained failures may be minimized; the origin remains
+intercepted. Qualification admits only `origin: operator` and refuses intercepted
+evidence. Successful interception, replay or a Go PASS is not qualification.
+All capacity, output/choice limits and modeled boundaries still apply.
+
+### Temporal Make smoke
+
+Use the exact constrained command in the
+[README](../../../README.md#run-existing-commands-through-gomad). It sets all three
+functional package variables to `./tests/gomadfunctional` and selects only
+`TestFrontendSystemInfo`: three sequential executions of one registered test,
+not three independently supported packages or an NDC/XDC support claim.
+The broad default-root command is routing evidence only until its individual
+workloads have passed their support gates.
+
+`functional-test` calls `go clean -testcache` and three `go test` commands; it
+runs no generator or linter. The separate generator/linter passthrough probes
+must therefore be retained independently. Keep the Makefile unchanged and retain
+`make -n` expansion, exact variables/selector, raw outputs, authenticated campaigns
+and actual statuses. Default race mode and explicit `TEST_RACE_FLAG=on` must both
+refuse before any guest build. A direct shim refusal probe records the Go-level
+status separately. Each Make recipe pipes through `tee -a test.log`; the final
+verifier requires some `^ok` and no `^--- FAIL`. A stale passing log can mask a
+refusal, so the acceptance harness requires a fresh log and does not add pipefail
+or change the shell to improve the result. The wrapper returns Make's actual
+status. See the [execution plan](../../../testdata/parity/interception-make-plan.md)
+for stage commands and evidence boundaries.
+
 ## Discovery
 
 ```sh

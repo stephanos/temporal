@@ -260,6 +260,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::E
         storage: config.storage,
         network: config.network,
         build_tags: config.build_tags,
+        excluded_build_tags: Vec::new(),
     };
     manifest::validate(&installed).map_err(|message| error(2, message))?;
     let compiler_inputs = toolchain::pin(&installed).map_err(|message| error(2, message))?;
