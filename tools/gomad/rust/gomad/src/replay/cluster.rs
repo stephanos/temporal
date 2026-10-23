@@ -603,6 +603,31 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
             }
             descriptor.read(&opened, 1 << 30)?;
         }
+        if let Some(retained) = retained {
+            if let Some(state) = retained.evidence.get("storage_state") {
+                let storage = storage_input(item)?
+                    .ok_or("retained cluster storage evidence requires declared storage")?;
+                let log = retained
+                    .evidence
+                    .get("storage")
+                    .ok_or("retained cluster storage state requires its actual history")?;
+                gomad_wasmhost::linked_storage_inspection::validate_state(
+                    &storage,
+                    &state.read(&opened, item.limits.evidence_bytes)?,
+                    &log.read(&opened, item.limits.evidence_bytes)?,
+                    item.limits.evidence_bytes,
+                )?;
+            }
+            if let (Some(network), Some(model)) =
+                (retained.evidence.get("network"), item.network.as_ref())
+            {
+                helper::validate_network_evidence(
+                    &network.read(&opened, item.limits.evidence_bytes)?,
+                    item.limits.evidence_bytes,
+                    model,
+                )?;
+            }
+        }
         incarnations.push(incarnation(&opened, &inputs, item, retained, control)?);
     }
     if let Some(control) = &control {

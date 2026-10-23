@@ -542,12 +542,16 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
         let opened = fixture.open();
         let before = std::fs::read_dir(&fixture.path).unwrap().count();
         let error = super::bind(&opened, &inputs).unwrap_err();
+        let prepare_error = super::prepare(opened.try_clone().unwrap(), None)
+            .err()
+            .unwrap();
+        assert_eq!(prepare_error, error);
         assert_eq!(std::fs::read_dir(&fixture.path).unwrap().count(), before);
         assert!(!fixture.path.join("compiled-cache").exists());
         observation(
             &format!("binding/{case}"),
             json!({"retained_inputs":inputs,"record":opened.manifest().record}),
-            json!({"error":error,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
+            json!({"error":error,"prepare_error":prepare_error,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count(),"compiled_cache_exists":fixture.path.join("compiled-cache").exists()}),
         );
     }
 }
@@ -664,5 +668,100 @@ fn native_storage_selection_projection_is_detached() {
         "storage-selection/native-ownership",
         json!({"selection":selection}),
         json!({"original":item.storage_crash_selection,"detached":detached.storage_crash_selection,"durable_default":super::storage_input(item).unwrap().is_none()}),
+    );
+}
+
+#[test]
+fn sqlite_oracle_intent_is_sealed_by_the_native_workload_owner() {
+    use crate::qualify::workloads::Workload;
+    let original = json!({"kind":"sqlite-durable-recovery","selection":null});
+    let workload: Workload = serde_json::from_value(original.clone()).unwrap();
+    workload.validate().unwrap();
+    for (case, field, value) in [
+        ("unknown-schema", "schema", json!("unknown")),
+        ("arbitrary-prefix", "prefix", json!("arbitrary ")),
+        ("mixed-history", "histories", json!([{"name":"mixed"}])),
+        (
+            "missing-ack-node",
+            "acknowledged",
+            json!({"node":"missing","incarnation":2}),
+        ),
+        (
+            "same-handles",
+            "recovered",
+            json!({"node":"sqlite","incarnation":2}),
+        ),
+        ("empty-events", "expected_events", json!([])),
+        ("noncanonical-event", "expected_events", json!(["01"])),
+        (
+            "ambiguous-value",
+            "expected_value",
+            json!("comma,ambiguous"),
+        ),
+        (
+            "unchecked-integrity",
+            "expected_integrity",
+            json!("unchecked"),
+        ),
+    ] {
+        let mut changed = original.clone();
+        changed[field] = value;
+        let error = serde_json::from_value::<Workload>(changed.clone())
+            .err()
+            .unwrap()
+            .to_string();
+        observation(
+            &format!("sqlite-intent/{case}"),
+            changed,
+            json!({"error":error}),
+        );
+    }
+    observation(
+        "sqlite-intent/native-valid",
+        original,
+        json!({"workload":workload}),
+    );
+}
+
+#[test]
+fn native_storage_projection_detaches_selection_context_and_limits() {
+    let (mut configuration, _) = super::projection_tests::configuration();
+    let item = &mut configuration.incarnations[0];
+    let context=canonical::encode(&json!({"volume":{"PendingSHA256":"a".repeat(64),"Operations":[{"ID":2,"Dependencies":[1]}]}})).unwrap();
+    item.storage=Some(serde_json::from_value(json!({"descriptor":{
+        "model":{"volumes":[{"ID":"volume","Path":"/volume","CapacityBytes":4096}],"limits":{"PendingOperations":10,"Transitions":100}},
+        "model_identity":"a".repeat(64),"return_image":false,
+        "crash_limits":{"States":32,"Operations":8,"Depth":8,"Bytes":4096,"Work":65536},
+        "crash_context":{"chunks":1,"bytes":context.len(),"sha256":canonical::digest(&context)}},"context":context})).unwrap());
+    item.storage_crash_selection = Some(BTreeMap::from([
+        ("volume".into(), vec![1, 2]),
+        ("empty".into(), vec![]),
+    ]));
+    let before = canonical::encode(&item).unwrap();
+    let projected = super::storage_input(item).unwrap().unwrap();
+    let projected = serde_json::to_value(projected).unwrap();
+    assert_eq!(
+        projected["descriptor"]["crash_selection"]["volume"],
+        json!([1, 2])
+    );
+    assert_eq!(
+        projected["descriptor"]["crash_selection"]["empty"],
+        json!([])
+    );
+    let mut detached = projected.clone();
+    detached["descriptor"]["crash_selection"]["volume"][0] = json!(99);
+    detached["descriptor"]["crash_selection"]
+        .as_object_mut()
+        .unwrap()
+        .remove("empty");
+    detached["descriptor"]["crash_limits"]["States"] = json!(1);
+    detached["context"][0] = json!(99);
+    assert_eq!(canonical::encode(&item).unwrap(), before);
+    let again = serde_json::to_value(super::storage_input(item).unwrap()).unwrap();
+    assert_eq!(again, projected);
+    observation(
+        "storage-selection/native-deep-detachment",
+        json!({"original_incarnation_base64":crate::campaign::exploration::base64(&before)}),
+        json!({"projected":projected,"detached":detached,"reprojected":again,"original_after_base64":crate::campaign::exploration::base64(&canonical::encode(&item).unwrap())}),
     );
 }

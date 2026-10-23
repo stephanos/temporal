@@ -1,0 +1,479 @@
+{
+  "schema": "gomad.retained-root-source-mapping/v1",
+  "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "observation_schema": "gomad.retained-reader-observation/v1",
+  "observation_marker": "GOMAD_RETAINED_OBSERVATION ",
+  "fixed_selector": "replay::cluster::retained_tests",
+  "validation": "source-only; no cargo/test execution by worker",
+  "roots": [
+    {
+      "original_root": "TestBoundRetainedReplayRejectsBeforeWritingInputs",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "binding/*"
+      ],
+      "native_assertions": [
+        "identity/configuration rejection before helper preparation; directory cardinality/cache absence"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestClusterRetentionRefusesGoServedCalls",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "native_cases": [
+        "decode/go-served-calls",
+        "decode/guest-callbacks"
+      ],
+      "native_assertions": [
+        "retired Go service/callback request fields rejected by closed native configuration"
+      ],
+      "remaining_or_retired_semantics": [
+        "Original Go filesystem counter maps and callback relay no longer exist; no execution claim for those retired branches."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestHistoryObservationRejectsAmbiguousInputs",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "history/missing",
+        "history/duplicate-lines",
+        "history/duplicate-key",
+        "history/unknown-key",
+        "history/incomplete",
+        "history/trailing-value",
+        "history/invalid-utf8",
+        "history/valid"
+      ],
+      "native_assertions": [
+        "all seven original malformed observations plus valid control"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedAdmissionConsumesPrivateInputsOnlyOnce",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "admission/actual-replay"
+      ],
+      "native_assertions": [
+        "native Prepared/Execution consumed by value; private retained payload stability; no helper/module materialization or compiled-cache"
+      ],
+      "remaining_or_retired_semantics": [
+        "Failed/successful second Go admission invocation is retired: Rust ownership prevents reusing the moved Prepared/Execution; no equivalent runtime failure branch."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [],
+      "native_assertions": [
+        "native metadata references separate authenticated payloads rather than encoding an 8MiB record into retained JSON"
+      ],
+      "remaining_or_retired_semantics": [
+        "Original 8MiB/56MiB allocation regression has no executed native allocation measurement in this batch."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "decode/*"
+      ],
+      "native_assertions": [
+        "native canonical valid control and closed malformed/duplicate/unknown/UTF8/trailing rejection"
+      ],
+      "remaining_or_retired_semantics": [
+        "Go ordinary JSON spellings are retired by the explicitly new Rust canonical storage lineage; native ordinary-spelling refusal is intentional, not byte equivalence."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedDecoderAcceptsSharedCampaignPayloadPath",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "authentication/path"
+      ],
+      "native_assertions": [
+        "manifest-contained descriptor paths require exact authenticated file binding"
+      ],
+      "remaining_or_retired_semantics": [
+        "Go backend/simulation.json and backend/evidence.bin routing retired; native campaign shared-payload admission path needs independent campaign consumer proof."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedLifecycleRejectsHostCallbacksBeforeReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "decode/host-faults",
+        "decode/host-scenarios",
+        "decode/host-history",
+        "decode/host-observations",
+        "decode/host-oracles"
+      ],
+      "native_assertions": [
+        "all five original host callback/oracle domains are absent from and rejected by closed native configuration"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "authentication/digest",
+        "authentication/bytes",
+        "authentication/path",
+        "authentication/raw-bytes",
+        "decode/native-valid",
+        "storage-selection/native-deep-detachment"
+      ],
+      "native_assertions": [
+        "raw byte/digest/length/path authentication; native canonical shape survives decode/reencode; optional selection/context serialized explicitly"
+      ],
+      "remaining_or_retired_semantics": [
+        "Go nil/empty Record/Boots/OutputStops and Oracle pointer encoding is retired with Go retained codec; native optional semantics are not byte equivalence."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedPrimaryBindingRejectsMissingAndForeignModules",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "binding/primary-path",
+        "binding/primary-digest",
+        "binding/missing-incarnations",
+        "binding/missing-retained",
+        "binding/foreign-retained"
+      ],
+      "native_assertions": [
+        "resealed configuration passes configuration hash then rejects foreign/missing primary or incarnation binding"
+      ],
+      "remaining_or_retired_semantics": [
+        "Original sha256:-prefixed primary spelling belongs to retired Go envelope; native identities are unprefixed fixed digests."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedReplayRejectsTamperedOrMismatchedTargetModule",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "module/tampered-bytes",
+        "module/truncated",
+        "module/missing-source",
+        "module/symbolic-link-source",
+        "binding/primary-digest",
+        "admission/actual-replay"
+      ],
+      "native_assertions": [
+        "raw target reader refuses tampered/truncated/missing/symlink source; foreign identity refusal; genuine retained replay control"
+      ],
+      "remaining_or_retired_semantics": [
+        "Original caller-supplied Copy function and symbolic-link-copy callbacks are retired: native reads pinned target capability and never invokes a module copy callback."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedReplayRequiresTheInstalledHelper",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "binding/helper",
+        "binding/engine",
+        "binding/host",
+        "binding/runtime"
+      ],
+      "native_assertions": [
+        "compile-linked helper/engine/host/runtime identity authentication before helper preparation"
+      ],
+      "remaining_or_retired_semantics": [
+        "External installed-helper bytes/path/no-installation subprocess branches retired; native links helper into the executing Gomad binary and never loads retained helper executable bytes."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedSchemaV1IsRefusedWithVersionedError",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "decode/legacy-schema",
+        "decode/foreign-schema"
+      ],
+      "native_assertions": [
+        "foreign/legacy typed retained schema refused"
+      ],
+      "remaining_or_retired_semantics": [
+        "Full legacy Go-envelope storage admission versioned re-record diagnostic requires outer lineage reader proof; this batch does not claim all three old Verify/Replay/Selection routes."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetainedStorageSelectionProjectionIsDetached",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "storage-selection/native-ownership",
+        "storage-selection/native-deep-detachment"
+      ],
+      "native_assertions": [
+        "durable default, empty selection and declared-volume refusal; real StorageInput projection detaches selection map, context byte buffer and limits"
+      ],
+      "remaining_or_retired_semantics": [
+        "Go per-selection nil map entries are retired: native selection type Vec cannot represent nil distinct from empty."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestRetentionCapacityPreflightUsesEncodedLowerBound",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [],
+      "native_assertions": [
+        "Go base64 retained bundle growth retired: native raw payload accounting replaces encoded lower-bound estimator"
+      ],
+      "remaining_or_retired_semantics": [
+        "Native Store capacity-before-publication and u64 overflow predicates owned by writer/conductor; not asserted in this source batch."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSQLiteOraclePlanRequiresSealedIntent",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "sqlite-intent/*"
+      ],
+      "native_assertions": [
+        "native SQLite registered workload forbids all nine arbitrary schema/prefix/handle/events/value/integrity intent mutations"
+      ],
+      "remaining_or_retired_semantics": [
+        "Native sealed boot phase/bounds checks execute in workload owner; this batch proves closed caller intent, not fresh SQLite execution."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionActualClusterGuestAndRetainedReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "soft/literal-json/report-only=*",
+        "admission/actual-replay"
+      ],
+      "native_assertions": [
+        "real native cluster retained replay control; static assertion assessment policy controls"
+      ],
+      "remaining_or_retired_semantics": [
+        "Actual unchanged Go softassert guest across seeds7/19, two handles, report-only and retained replay is not executed by these WAT/native assessment controls."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "capacity/*"
+      ],
+      "native_assertions": [
+        "native capacity annotation and oracle budget controls"
+      ],
+      "remaining_or_retired_semantics": [
+        "Actual Go output-capacity guest/accepted PASS4/missing choice/retention refusal needs actual producer execution; this batch does not alias assessment tests to it."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionCapacityPrecedesFinalizationErrors",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "capacity/capacity/output capacity/report-only=*/maximum=*"
+      ],
+      "native_assertions": [
+        "output-capacity annotation retains oracle budget error and authoritative class"
+      ],
+      "remaining_or_retired_semantics": [
+        "Original first/later handle choice finalization errors and default scenario budget need producer finalization gate; this batch covers assessment annotation only."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionClusterCapacityCountersNeverProveCompleteness",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "soft/capacity-equal-counters/report-only=*"
+      ],
+      "native_assertions": [
+        "matching offered/captured PASS4 remains inconclusive under both policies"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "policy/*"
+      ],
+      "native_assertions": [
+        "empty/go-run/unknown workload rejected; go-test control accepted; foreign/duplicate policy denied"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionIncompleteClusterEvidenceIsInconclusive",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "soft/invalid-utf8/report-only=*",
+        "soft/offered-mismatch/report-only=*",
+        "soft/missing-execution/report-only=*"
+      ],
+      "native_assertions": [
+        "invalidUTF8 and offered/captured mismatch never pass either policy; missing execution causal fix"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_cases": [
+        "capacity/*"
+      ],
+      "native_assertions": [
+        "infrastructure/output-capacity,capacity/transcript-capacity,exit excluded; exact capacity/output-capacity annotated with full literal message"
+      ],
+      "remaining_or_retired_semantics": [],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionRetainedEvidenceRequiresActualOutput",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "soft/*",
+        "decode/host-oracles"
+      ],
+      "native_assertions": [
+        "assessment derives messages/instance/status from actual execution output; closed native configuration refuses caller generic oracles"
+      ],
+      "remaining_or_retired_semantics": [
+        "Explicit forged retained cluster_oracles stream reseal matrix (message/instance/output/digest/generic/mixed/truncated) remains to be added; existing oracle replay divergence test alone is not credited."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "soft/literal-json/report-only=*",
+        "soft/literal-tagged/report-only=*"
+      ],
+      "native_assertions": [
+        "complete literal braces and tagged log messages rederived under both policies, evidence preimages/raw hashes available"
+      ],
+      "remaining_or_retired_semantics": [
+        "Explicit retained forged shortened-message rejection belongs to remaining forged-report matrix."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestSoftAssertionRetainedTruncatedOutputIsInconclusive",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "soft/offered-mismatch/report-only=*",
+        "soft/capacity-equal-counters/report-only=*"
+      ],
+      "native_assertions": [
+        "truncated/offered mismatch and capacity observations produce inconclusive failed oracle under both policies"
+      ],
+      "remaining_or_retired_semantics": [
+        "Retained forged passing oracle admission is part of remaining forged-report matrix."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    },
+    {
+      "original_root": "TestStressRetainedReopenPreservesBoundInputsAndRestoresHostOptIn",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_cases": [
+        "admission/actual-replay",
+        "binding/*"
+      ],
+      "native_assertions": [
+        "native retained configuration immutable binding and private retained replay inputs"
+      ],
+      "remaining_or_retired_semantics": [
+        "Actual stress-jitter Conditions host opt-in/restoration and declared fuel mutation matrix requires helper-stress-jitter feature gate; no stress execution claim in this batch."
+      ],
+      "claim": "source-backed native predicates; no root PASS certification"
+    }
+  ]
+}
