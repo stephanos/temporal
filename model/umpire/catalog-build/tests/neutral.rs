@@ -181,6 +181,41 @@ fn added_method_and_action_break_exhaustive_generated_matches()
 }
 
 #[test]
+fn an_annotated_rpc_must_be_claimed() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_catalog_syntax::{descriptor::MessageCoverage, services::classifications};
+    let config = service_config();
+    let coverage = Coverage {
+        messages: vec![MessageCoverage {
+            name: "example.v1.Input".into(),
+            fields: vec![],
+            opaque_fields: vec![],
+        }],
+        ..Coverage::default()
+    };
+    let bytes = fixture().encode_to_vec();
+    let classify = |role: &str| {
+        classifications(
+            &format!(
+                "fn classify(method: DeviceMethod) -> RpcRole {{ match method {{ DeviceMethod::Set => {role} }}}}"
+            ),
+            config.service,
+            config.method_enum,
+        )
+    };
+    services::generate(&bytes, &coverage, &classify("RpcRole::Observed(\"set\")")?, &config)?;
+    let out_of_scope = classify("RpcRole::OutOfScope(\"device settings\")")?;
+    assert_eq!(
+        services::generate(&bytes, &coverage, &out_of_scope, &config).err().as_deref(),
+        Some(
+            "annotated RPC is out of scope: example.v1.Device.Set has mirrored messages but no \
+             Action or Observed classification"
+        )
+    );
+    services::generate(&bytes, &Coverage::default(), &out_of_scope, &config)?;
+    Ok(())
+}
+
+#[test]
 fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
 -> Result<(), Box<dyn std::error::Error>> {
     use std::fs;

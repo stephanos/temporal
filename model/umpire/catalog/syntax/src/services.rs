@@ -236,7 +236,8 @@ fn table(function: &ItemFn, method_enum: &str) -> syn::Result<ServiceTable> {
     Ok(ServiceTable { families })
 }
 
-/// Whether `body` is `RpcRole::OutOfScope(family(method))`, deferring to the service table.
+/// Whether `body` is `RpcRole::OutOfScope(family(method))` or `service::family(method)`,
+/// deferring to the `family` table that `service.rs` declares.
 fn defers_to_table(body: &Expr, parameter: &PatIdent) -> bool {
     let Ok(Expr::Call(role)) = classification_expression(body) else {
         return false;
@@ -247,9 +248,16 @@ fn defers_to_table(body: &Expr, parameter: &PatIdent) -> bool {
     let Expr::Call(family) = &role.args[0] else {
         return false;
     };
+    let Expr::Path(table) = family.func.as_ref() else {
+        return false;
+    };
+    let table: Vec<_> =
+        table.path.segments.iter().map(|segment| segment.ident.to_string()).collect();
     kind == "OutOfScope"
-        && matches!(family.func.as_ref(), Expr::Path(path)
-            if path.path.segments.last().is_some_and(|segment| segment.ident == "family"))
+        && matches!(
+            table.iter().map(String::as_str).collect::<Vec<_>>().as_slice(),
+            ["family"] | ["service", "family"]
+        )
         && matches!(family.args.iter().collect::<Vec<_>>().as_slice(),
             [Expr::Path(argument)] if argument.path.is_ident(&parameter.ident))
 }
@@ -262,6 +270,7 @@ fn classification(
 ) -> syn::Result<(Classification, bool)> {
     let (parameter, expression) = method_match(function)?;
     let mut claims = false;
+    let mut unclaimed = None;
     let mut result = Classification {
         coverage: ServiceCoverage { name: service.into(), methods: Vec::new() },
         actions: Vec::new(),
@@ -270,9 +279,13 @@ fn classification(
     for (index, arm) in expression.arms.iter().enumerate() {
         if matches!(arm.pat, Pat::Wild(_)) && index + 1 == expression.arms.len() {
             if !defers_to_table(&arm.body, parameter) {
+                let parameter = &parameter.ident;
                 return Err(syn::Error::new(
                     arm.span(),
-                    "a claim's wildcard arm must be `_ => RpcRole::OutOfScope(family(method))`",
+                    format!(
+                        "a claim's wildcard arm must be \
+                         `_ => RpcRole::OutOfScope(service::family({parameter}))`"
+                    ),
                 ));
             }
             claims = true;
@@ -311,7 +324,12 @@ fn classification(
                 reason(value)?;
                 Disposition::Observed
             }
-            "OutOfScope" => Disposition::OutOfScope(reason(value)?),
+            "OutOfScope" => {
+                if unclaimed.is_none() {
+                    unclaimed = Some((arm.span(), methods[0].clone()));
+                }
+                Disposition::OutOfScope(reason(value)?)
+            }
             _ => return Err(syn::Error::new(role.span(), "unknown RpcRole classification")),
         };
         for name in methods {
@@ -326,6 +344,12 @@ fn classification(
             ));
             result.coverage.methods.push(MethodCoverage { name, disposition: disposition.clone() });
         }
+    }
+    if claims && let Some((span, method)) = unclaimed {
+        return Err(syn::Error::new(
+            span,
+            format!("a feature claim must be Action or Observed: {service}.{method}"),
+        ));
     }
     Ok((result, claims))
 }
@@ -533,10 +557,27 @@ mod tests {
         assert!(unclassified.resolve("example.v1.ExampleService").is_err_and(|error| {
             error.starts_with("unclassified RPC: example.v1.ExampleService.Added")
         }));
-        assert!(declarations(&claim("Poll"))?.resolve("example.v1.ExampleService").is_err());
+        assert_eq!(
+            declarations(&claim("Poll"))?.resolve("example.v1.ExampleService").err().as_deref(),
+            Some("feature claims without a service table: example.v1.ExampleService")
+        );
         let mut tables = declarations(TABLE)?;
         tables.extend(declarations(TABLE)?);
-        assert!(tables.resolve("example.v1.ExampleService").is_err());
+        assert_eq!(
+            tables.resolve("example.v1.ExampleService").err().as_deref(),
+            Some("duplicate service table: example.v1.ExampleService")
+        );
+        let mut complete = declarations(TABLE)?;
+        complete.extend(declarations(
+            r#"fn classify(method: ExampleServiceMethod) -> RpcRole { match method {
+                ExampleServiceMethod::Poll => RpcRole::Observed("observation"),
+                ExampleServiceMethod::Describe | ExampleServiceMethod::Other => RpcRole::OutOfScope("example"),
+            } }"#,
+        )?);
+        assert_eq!(
+            complete.resolve("example.v1.ExampleService").err().as_deref(),
+            Some("complete classification duplicates the service table: example.v1.ExampleService")
+        );
         Ok(())
     }
 
@@ -549,10 +590,43 @@ mod tests {
             "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(\"all\") } }",
             "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::Observed(family(method)) } }",
             "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(family(other)) } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(helpers::family(method)) } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(a::service::family(method)) } }",
             "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(family(method)), ExampleServiceMethod::Poll => RpcRole::Observed(\"x\") } }",
         ] {
             assert!(declarations(source).is_err(), "accepted {source}");
         }
+    }
+
+    #[test]
+    fn claims_bind_or_observe_and_name_their_wildcard_parameter() -> syn::Result<()> {
+        let unclaimed = declarations(
+            r#"fn classify(method: ExampleServiceMethod) -> RpcRole { match method {
+                ExampleServiceMethod::Poll => RpcRole::Observed("observation"),
+                ExampleServiceMethod::Other => RpcRole::OutOfScope("not in this Model"),
+                _ => RpcRole::OutOfScope(service::family(method)),
+            } }"#,
+        )
+        .err()
+        .map(|error| error.to_string());
+        assert_eq!(
+            unclaimed.as_deref(),
+            Some("a feature claim must be Action or Observed: example.v1.ExampleService.Other")
+        );
+        let wildcard = declarations(
+            "fn classify(rpc: ExampleServiceMethod) -> RpcRole { match rpc { _ => RpcRole::Observed(\"x\") } }",
+        )
+        .err()
+        .map(|error| error.to_string());
+        assert_eq!(
+            wildcard.as_deref(),
+            Some("a claim's wildcard arm must be `_ => RpcRole::OutOfScope(service::family(rpc))`")
+        );
+        let renamed = declarations(&format!(
+            "{TABLE}fn classify(rpc: ExampleServiceMethod) -> RpcRole {{ match rpc {{ _ => RpcRole::OutOfScope(family(rpc)) }} }}"
+        ))?;
+        assert_eq!(renamed.claims.len(), 1);
+        Ok(())
     }
 
     #[test]

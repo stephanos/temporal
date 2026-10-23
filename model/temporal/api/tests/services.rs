@@ -241,6 +241,54 @@ fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight(
     Ok(())
 }
 
+/// Message coverage of every catalog the API build reads.
+fn mirrored() -> Result<Coverage, Box<dyn std::error::Error>> {
+    let mut coverage = Coverage::default();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    for path in umpire_catalog_build::coverage::inputs(&root)?.files {
+        for catalog in umpire_temporal_annotate_syntax::catalogs(&fs::read_to_string(path)?)? {
+            coverage.messages.extend(catalog.coverage().messages);
+        }
+    }
+    Ok(coverage)
+}
+
+#[test]
+fn a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
+    let mut coverage = mirrored()?;
+    services::generate(bytes, &coverage, &resolve(reviewed()?)?)?;
+    let mut dropped = reviewed()?;
+    let claim = &mut dropped.claims[0];
+    let index = claim
+        .coverage
+        .methods
+        .iter()
+        .position(|method| method.name == "DescribeActivityExecution")
+        .ok_or("missing Observed claim")?;
+    claim.coverage.methods.remove(index);
+    claim.bindings.remove(index);
+    assert_eq!(
+        services::generate(bytes, &coverage, &resolve(dropped)?).err().as_deref(),
+        Some(
+            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.DescribeActivityExecution has mirrored messages but no Action or Observed classification"
+        )
+    );
+    coverage.messages.push(descriptor::MessageCoverage {
+        name: "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest".into(),
+        fields: vec![],
+        opaque_fields: vec![],
+    });
+    assert_eq!(
+        services::generate(bytes, &coverage, &resolve(reviewed()?)?).err().as_deref(),
+        Some(
+            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat has mirrored messages but no Action or Observed classification"
+        )
+    );
+    Ok(())
+}
+
 #[test]
 fn duplicate_claims_and_unclassified_rpcs_are_named() -> Result<(), Box<dyn std::error::Error>> {
     let mut duplicate = reviewed()?;

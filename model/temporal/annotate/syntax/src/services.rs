@@ -1,8 +1,6 @@
 //! System service classification parameters.
 
-pub use umpire_catalog_syntax::services::{
-    ActionBinding, Classification, Declarations, ServiceTable,
-};
+pub use umpire_catalog_syntax::services::{ActionBinding, Classification, Declarations};
 
 const SERVICE: &str = "temporal.api.workflowservice.v1.WorkflowService";
 const METHOD_ENUM: &str = "WorkflowServiceMethod";

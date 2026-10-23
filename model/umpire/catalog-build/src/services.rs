@@ -4,7 +4,10 @@ use std::{collections::BTreeSet, fmt::Write};
 
 use prost::Message;
 use quote::ToTokens;
-use umpire_catalog_syntax::{descriptor::Coverage, services::Classification};
+use umpire_catalog_syntax::{
+    descriptor::{Coverage, Disposition},
+    services::Classification,
+};
 use umpire_runtime::google::protobuf::FileDescriptorSet;
 
 /// Generated service identities and Rust surface names.
@@ -45,6 +48,29 @@ pub fn generate(
         .find(|service| service.name.as_deref() == Some(name))
         .ok_or_else(|| format!("missing service descriptor: {}", config.service))?;
     let service_name = config.service;
+    let annotated: BTreeSet<_> =
+        coverage.messages.iter().map(|message| message.name.trim_start_matches('.')).collect();
+    let out_of_scope: BTreeSet<_> = classifications
+        .iter()
+        .flat_map(|classification| &classification.coverage.methods)
+        .filter(|method| matches!(method.disposition, Disposition::OutOfScope(_)))
+        .map(|method| method.name.as_str())
+        .collect();
+    // A mirrored message means some feature validates this RPC, so it must claim it.
+    for method in &service.method {
+        let name = method.name.as_deref().ok_or("unnamed service method")?;
+        if out_of_scope.contains(name)
+            && [&method.input_type, &method.output_type]
+                .into_iter()
+                .flatten()
+                .any(|message| annotated.contains(message.trim_start_matches('.')))
+        {
+            return Err(format!(
+                "annotated RPC is out of scope: {service_name}.{name} has mirrored messages but \
+                 no Action or Observed classification"
+            ));
+        }
+    }
     let method_enum = config.method_enum;
     let method_info = config.method_info;
     let mut output = template(
@@ -95,8 +121,6 @@ pub fn generate(
     output.push_str("];");
     emit_bindings(&mut output, classifications, config)?;
     output.push_str(&template(config,"\n/// Dispatch only declared annotation message types.\n#[macro_export]\nmacro_rules! dispatch_catalog_annotations {\n($method:expr, $response:expr, $ty:ident, $body:block, $fallback:expr) => { match ($method, $response) {\n"));
-    let annotated: BTreeSet<_> =
-        coverage.messages.iter().map(|message| message.name.trim_start_matches('.')).collect();
     for method in &service.method {
         let name = method.name.as_deref().ok_or("unnamed service method")?;
         for (response, ty) in [(false, &method.input_type), (true, &method.output_type)] {
