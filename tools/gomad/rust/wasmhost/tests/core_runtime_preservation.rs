@@ -16,10 +16,10 @@ use input::request;
 
 const CONFIGURE_AND_DECIDE: &str = r#"
     (drop (call $config (i32.const 0) (i32.const 16)))
-    (i32.store (i32.const 32) (i32.const 1))
-    (i32.store (i32.const 36) (i32.const 1))
-    (i64.store (i32.const 40) (i64.const 10))
-    (i32.store (i32.const 52) (i32.const 2))
+    (i32.store (i32.const 32) (i32.const 16777216))
+    (i32.store (i32.const 36) (i32.const 16777216))
+    (i64.store (i32.const 40) (i64.const 720575940379279360))
+    (i32.store (i32.const 52) (i32.const 33554432))
     (i32.store8 (i32.const 64) (i32.const 1))
     (i32.store8 (i32.const 96) (i32.const 2))
     (drop (call $decision (i32.const 32) (i32.const 96)))
@@ -30,7 +30,7 @@ fn ordinary_linked_exit_requires_the_configured_runtime_finish() {
     for (suffix, expected, code) in [
         ("", "invalid", None),
         (
-            "(i32.store (i32.const 160) (i32.const 1)) (drop (call $finish (i32.const 160) (i32.const 16)))",
+            "(i32.store (i32.const 160) (i32.const 16777216)) (drop (call $finish (i32.const 160) (i32.const 16)))",
             "exit",
             Some(0),
         ),

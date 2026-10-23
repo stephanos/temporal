@@ -18,7 +18,7 @@ fn the_same_actual_guest_observes_only_the_explicit_execution_fault_bootstrap() 
         (i32.store (i32.const 64) (i32.const 8))
         (i32.store (i32.const 68) (i32.const 8))
         (drop (call $write (i32.const 1) (i32.const 64) (i32.const 1) (i32.const 80)))
-        (i32.store (i32.const 128) (i32.const 1))
+        (i32.store (i32.const 128) (i32.const 16777216))
         (drop (call $finish (i32.const 128) (i32.const 16)))
     "#;
     let original_module = input::request(guest).module;
@@ -40,7 +40,7 @@ fn the_same_actual_guest_observes_only_the_explicit_execution_fault_bootstrap() 
         let observed = linked::execute_prepared(prepared).unwrap();
         assert_eq!(observed.outcome.termination, "exit");
         assert_eq!(observed.outcome.exit_code, Some(0));
-        assert_eq!(observed.evidence["stdout"], expected.to_le_bytes());
+        assert_eq!(observed.evidence["stdout"], expected.to_be_bytes());
         assert_eq!(observed.outcome.output_bytes, 8);
         let model = observed.outcome.local_model.as_ref().unwrap();
         assert_eq!(model["configured"], true);
