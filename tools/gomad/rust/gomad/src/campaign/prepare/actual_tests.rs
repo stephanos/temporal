@@ -51,9 +51,13 @@ fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
             ("GOWASM".into(), String::new()),
         ]),
     };
-    let first = prepare_with_compiler_controls(&options, &controls).unwrap();
+    let first = prepare_with_compiler_controls(&options, &controls)
+        .unwrap()
+        .0;
     options.target_args = vec!["fresh argument".into()];
-    let second = prepare_with_compiler_controls(&options, &controls).unwrap();
+    let second = prepare_with_compiler_controls(&options, &controls)
+        .unwrap()
+        .0;
     assert_eq!(first.module, second.module);
     assert_ne!(first.toolchain, second.toolchain);
     for (name, raw) in first
@@ -80,14 +84,18 @@ fn actual_scoped_compiler_and_cached_output_preserve_raw_proofs() {
     controls
         .environment
         .insert("GOWASM".into(), "satconv,signext".into());
-    let features = prepare_with_compiler_controls(&options, &controls).unwrap();
+    let features = prepare_with_compiler_controls(&options, &controls)
+        .unwrap()
+        .0;
     assert_ne!(features.toolchain, second.toolchain);
     fs::write(
         source.join("main.go"),
         "package main\nfunc main() { println(\"changed\") }\n",
     )
     .unwrap();
-    let changed = prepare_with_compiler_controls(&options, &controls).unwrap();
+    let changed = prepare_with_compiler_controls(&options, &controls)
+        .unwrap()
+        .0;
     assert_ne!(features.module, changed.module);
     assert_ne!(features.toolchain, changed.toolchain);
     fs::write(

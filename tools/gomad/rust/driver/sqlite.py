@@ -122,6 +122,8 @@ def native_input(artifact, inspected, native):
 
 
 def aggregate(config, root, label, entry):
+    from adapters import reader_usage
+    before = reader_usage()
     import sqlite_oracle
     require("oracle" not in entry, "caller SQLite oracle argv is forbidden; authentic fixed Go build receipt required")
     sqlite_oracle.validate_build(config)
@@ -154,7 +156,11 @@ def aggregate(config, root, label, entry):
         cpu += result['cost']['cpu_nanos']
         terminal_cpu += result['_driver_publication']['cpu_nanos']
     require(len(seen) == 4, 'all four actual selected states required')
+    from adapters import reader_cost
+    reader_cpu, reader_peak = reader_cost(before, 'SQLite catalogue reader self metric unavailable/nonmonotone/over2GiB')
     write(root / 'catalogue.json', dict(primary=reference['sha256'], selected=sorted(seen), producer_pids=sorted(processes),
           selected_execution_cpu_nanos=cpu, selected_terminal_cpu_nanos=terminal_cpu,
-          selected_total_cpu_nanos=cpu+terminal_cpu, primary_cpu_counted=False))
+          selected_total_cpu_nanos=cpu+terminal_cpu, primary_cpu_counted=False,
+          reader_cpu_nanos=reader_cpu, reader_peak_rss_bytes=reader_peak,
+          supplementary_total_cpu_nanos=cpu+terminal_cpu+reader_cpu))
     return passed(label)
