@@ -735,3 +735,40 @@ and scoped inner-reader self observations are separately owned work; support
 WIP, other pending source batches, exact slim/test-wasm reach proofs, final static/
 runtime/strictlint/parity/resource gates, immutable identity/custody freeze,
 code-size comparison and main retirement acceptance remain root-owned pending.
+
+### Reviewed native Sweep receiver source integration
+
+Cherry-picked exact approved coherent chain2a261424cd2565a5f2a9653fef9f2963e42ffad7,
+e3e7487ae722ed68946664e66050c7018846ce68,
+27811042002a27f8d73c04f2f60890d8c6d9f88a into64304d4da8. No conflicts;
+all14changed Rust source/test/entrypoint files byte-exact reviewed278. No literal
+old-helper path required translation in incoming code. Automatic manifest merge
+adds only default-run=gomad while preserving ../wasmhost consolidated dependency
+and previously reviewed serde_json unbounded_depth feature. Cargo's automatic
+src/bin/gomad-wasm-sweep.rs entry is retained alongside existing main.rs, with
+ordinary cargo run default remaining gomad. No explicit bin/dependency/version/
+lock/lint-policy waiver introduced. Source retains v2 with explicit v1 refusal,
+reviewed actual producer/AST inventory repairs and original1d695 reference binding.
+
+Incoming changes preserve typed backend failure diagnostics (bounded4096chars),
+standalone native Sweep enumeration/classification/inventory/process/record/run
+contracts and tests. Parent reports all79Sweep tests and strictlib/bins checks0
+and independent same-family reviewSHIP278; these remain their own-source proof,
+not this relocated integrated candidate's runtime acceptance.
+
+Source checks exit0: byte equality14files vs exact278; direct pinned1.99.1
+rustfmt14files; literal Rust include/path resolution; Cargo default-run/autobin/
+relocated helper/current serde_json feature assertions; exact127original helper
+lock packages+gomad; unchanged helper/rootworkspace/lock/Python inventory; current
+PythonAST and exact14ignored/originalGo scope witnesses. Driver portable113tests
+exit0; diffchecks0. No Cargo/Go/nativeSweep/guest/fullqualification or lease/cache
+access. No new worktree/bulkcopies/evidence removal. Compiled binaries and evidence
+preserved. Cachefa1bformalNEEDS4 and latest lifecycle874unchecked source remain
+excluded, as do parent untracked/source WIP and all unapproved batches.
+
+Same remaining8final endpoint obligations,137source-wired-but-unexecuted checks,
+independent aggregate/scoped self measurements, all original test-wasm/slim
+raw receiving proofs, pending source batches, coherent immutable final freeze,
+integrated actual static/runtime/strictlint/parity/final qualification and final
+code-size/main retirement acceptance remain root-owned pending. No Flow closeout
+or proof identity migration occurred at this source-only checkpoint.
