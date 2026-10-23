@@ -1758,5 +1758,245 @@
  {
   "id": "host.rust.gomad.src.campaign.prepare.rs.prepare_runtime_qualification.instant.now.1",
   "site": "host-rust:gomad/src/campaign/prepare.rs|prepare_runtime_qualification|Instant::now|1"
+ },
+ {
+  "id": "helper.source.determinism.fixture.control.tests.rs.thread.scope.1",
+  "site": "helper-source:determinism_fixture/control_tests.rs|thread::scope|1"
+ },
+ {
+  "id": "helper.source.linked.rs.instant.now.7",
+  "site": "helper-source:linked.rs|Instant::now|7"
+ },
+ {
+  "id": "helper.source.linked.rs.clock.gettime.1",
+  "site": "helper-source:linked.rs|clock_gettime(|1"
+ },
+ {
+  "id": "helper.source.linked.rs.recv.timeout.2",
+  "site": "helper-source:linked.rs|recv_timeout|2"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.rs.prepare.with.compiler.controls.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare.rs|prepare_with_compiler_controls|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.spawn.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.command.new.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.instant.now.3",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|Instant::now|3"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.execute.command.thread.sleep.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|execute_command|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.process.rs.observed.time.systemtime.1",
+  "site": "host-rust:gomad/src/campaign/prepare/process.rs|observed_time|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.controlled.elapsed.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute_controlled|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.scenario.rs.execute.controlled.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/scenario.rs|execute_controlled|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.run.guest.rs.fixture.driver.run.instant.now.1",
+  "site": "host-rust:gomad/src/cli/run_guest.rs|fixture_driver_run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.cli.wrapper.rs.launch.command.new.1",
+  "site": "host-rust:gomad/src/cli/wrapper.rs|launch|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.fixture.cluster.rs.retained.cluster.world.byte.bound.survives.actual.public.replay.systemtime.1",
+  "site": "host-rust:gomad/src/fixture_cluster.rs|retained_cluster_world_byte_bound_survives_actual_public_replay|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.install.derive.cache.rs.before.deadline.instant.now.1",
+  "site": "host-rust:gomad/src/install/derive_cache.rs|before_deadline|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.install.derive.cache.rs.lock.instant.now.1",
+  "site": "host-rust:gomad/src/install/derive_cache.rs|lock|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.install.derive.cache.rs.lock.thread.sleep.1",
+  "site": "host-rust:gomad/src/install/derive_cache.rs|lock|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.install.toolchain.rs.pin.before.instant.now.2",
+  "site": "host-rust:gomad/src/install/toolchain.rs|pin_before|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.elapsed.1",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.spawn.1",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.command.new.1",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.instant.now.5",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|Instant::now|5"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.linked.monotonic.nanos.2",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|2"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.build.rs.observe.command.thread.sleep.2",
+  "site": "host-rust:gomad/src/measurement/build.rs|observe_command|thread::sleep|2"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.elapsed.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.instant.now.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.execution.rs.execute.linked.monotonic.nanos.1",
+  "site": "host-rust:gomad/src/measurement/execution.rs|execute|linked::monotonic_nanos(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.inputs.rs.names.sort.unstable.1",
+  "site": "host-rust:gomad/src/measurement/inputs.rs|names|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.mod.rs.features.sort.unstable.1",
+  "site": "host-rust:gomad/src/measurement/mod.rs|features|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.package.systemtime.1",
+  "site": "host-rust:gomad/src/measurement/retention.rs|package|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.reclaim.instant.now.2",
+  "site": "host-rust:gomad/src/measurement/retention.rs|reclaim|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.store.lock.instant.now.2",
+  "site": "host-rust:gomad/src/measurement/retention.rs|store_lock|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.store.lock.thread.sleep.1",
+  "site": "host-rust:gomad/src/measurement/retention.rs|store_lock|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.retention.rs.unique.systemtime.1",
+  "site": "host-rust:gomad/src/measurement/retention.rs|unique|SystemTime|1"
+ },
+ {
+  "id": "host.rust.gomad.src.measurement.statistics.rs.timing.sort.unstable.1",
+  "site": "host-rust:gomad/src/measurement/statistics.rs|timing|.sort_unstable|1"
+ },
+ {
+  "id": "host.rust.gomad.src.replay.inspection.rs.search.run.elapsed.1",
+  "site": "host-rust:gomad/src/replay/inspection.rs|search_run|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.rs.classify.request.with.environment.instant.now.1",
+  "site": "host-rust:gomad/src/shim.rs|classify_request_with_environment|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.drop.instant.now.2",
+  "site": "host-rust:gomad/src/shim/build.rs|drop|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.drop.thread.sleep.1",
+  "site": "host-rust:gomad/src/shim/build.rs|drop|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.run.spawn.1",
+  "site": "host-rust:gomad/src/shim/build.rs|run|.spawn(|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.run.command.new.1",
+  "site": "host-rust:gomad/src/shim/build.rs|run|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.run.instant.now.1",
+  "site": "host-rust:gomad/src/shim/build.rs|run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.build.rs.run.thread.sleep.1",
+  "site": "host-rust:gomad/src/shim/build.rs|run|thread::sleep|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.classify.rs.inspect.unchecked.sort.unstable.2",
+  "site": "host-rust:gomad/src/shim/classify.rs|inspect_unchecked|.sort_unstable|2"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.guest.env.rs.command.command.new.1",
+  "site": "host-rust:gomad/src/shim/guest_env.rs|command|Command::new|1"
+ },
+ {
+  "id": "host.rust.gomad.src.shim.passthrough.rs.run.command.new.1",
+  "site": "host-rust:gomad/src/shim/passthrough.rs|run|Command::new|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.determinism.fixture.control.tests.rs.explicit.fault.controls.are.scoped.owned.and.never.admit.an.ordinary.role.spawn.1",
+  "site": "host-rust:wasmhost/src/determinism_fixture/control_tests.rs|explicit_fault_controls_are_scoped_owned_and_never_admit_an_ordinary_role|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.determinism.fixture.control.tests.rs.explicit.fault.controls.are.scoped.owned.and.never.admit.an.ordinary.role.thread.scope.1",
+  "site": "host-rust:wasmhost/src/determinism_fixture/control_tests.rs|explicit_fault_controls_are_scoped_owned_and_never_admit_an_ordinary_role|thread::scope|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.8.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[8]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.drop.9.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|drop[9]|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.finish.elapsed.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|finish|.elapsed()|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.diagnostic.rs.start.instant.now.1",
+  "site": "host-rust:wasmhost/src/diagnostic.rs|start|Instant::now|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.spawn.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|.spawn(|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.instant.now.3",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|Instant::now|3"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.guest.profile.rs.start.interruptible.thread.builder.1",
+  "site": "host-rust:wasmhost/src/guest_profile.rs|start_interruptible|thread::Builder|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.execute.prepared.instant.now.5",
+  "site": "host-rust:wasmhost/src/linked.rs|execute_prepared|Instant::now|5"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.fixture.timing.delay.recv.timeout.1",
+  "site": "host-rust:wasmhost/src/linked.rs|fixture_timing_delay|recv_timeout|1"
+ },
+ {
+  "id": "host.rust.wasmhost.src.linked.rs.monotonic.nanos.clock.gettime.1",
+  "site": "host-rust:wasmhost/src/linked.rs|monotonic_nanos|clock_gettime(|1"
  }
 ]
