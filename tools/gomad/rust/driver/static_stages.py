@@ -384,6 +384,24 @@ def action_environment(plan, config, action):
     return extra
 
 
+def rust_test_owner(artifact):
+    manifest = Path(artifact['manifest_path'])
+    root = REPO / 'tools/gomad/rust'
+    require(manifest in (root / 'gomad/Cargo.toml', root / 'wasmhost/Cargo.toml'), 'Rust test Cargo artifact has a foreign crate')
+    source = Path(artifact['target']['src_path'])
+    require(source.is_absolute() and source.resolve() == source and source.is_relative_to(manifest.parent) and source.suffix == '.rs',
+            'Rust test Cargo artifact has a foreign source target')
+    return dict(crate=manifest.parent.name, source=str(source.relative_to(root)))
+
+
+def ignored_test_owner(known, name, owner):
+    matches = [row for row in known if row['crate'] == owner['crate']
+               and (row['source'].startswith(owner['crate'] + '/src/') or row['source'] == owner['source'])
+               and (name.endswith('::' + row['name']) or name == row['name'])]
+    require(len(matches) == 1, 'unknown/ambiguous ignored Rust test within Cargo owner: ' + name)
+    return matches[0]
+
+
 class Execution:
     def __init__(self, plan, config, label):
         self.plan, self.config, self.label = plan, config, label
@@ -423,7 +441,7 @@ class Execution:
             if row.get('reason') == 'compiler-artifact' and row.get('executable') and row['profile']['test']:
                 binary = regular(row['executable'])
                 require(binary.is_relative_to(Path(self.plan['caches']['cargo_target'])), 'test executable outside assigned target')
-                binaries[str(binary)] = dict(binary_sha256=sha(binary), target=row['target']['name'], cwd=str(Path(row['manifest_path']).parent))
+                binaries[str(binary)] = dict(binary_sha256=sha(binary), target=row['target']['name'], cwd=str(Path(row['manifest_path']).parent), **rust_test_owner(row))
         require(binaries, 'no actual Rust test executable')
         total, reports = 0, []
         known = ignored_inventory(REPO)
@@ -436,9 +454,7 @@ class Execution:
             expected, ignored = test_names(listed), test_names(ignored_raw)
             require(ignored <= expected, 'ignored names absent from test inventory')
             for name in sorted(ignored):
-                matches = [row for row in known if name.endswith('::' + row['name']) or name == row['name']]
-                require(len(matches) == 1, 'unknown/ambiguous ignored Rust test: ' + name)
-                row = matches[0]
+                row = ignored_test_owner(known, name, binding)
                 self.deferred.append(dict(row, id=name, obligation=row['final_id'], test=name, status='UNEXECUTED', binary_sha256=binding['binary_sha256'],
                     source_sha256=sha(REPO / 'tools/gomad/rust' / row['source'])))
             for repeat in range(action.get('repeats', 1)):
@@ -640,8 +656,9 @@ def authenticate_result(plan_path, label):
             elif kind == 'cargo-tests':
                 require(row['kind'] == kind and row['executables'], 'empty Rust proof')
                 artifacts = [json.loads(line) for line in raw(owned[0], owned).decode().splitlines()]
-                expected_binaries = {artifact['executable'] for artifact in artifacts if artifact.get('reason') == 'compiler-artifact'
-                                     and artifact.get('executable') and artifact['profile']['test']}
+                actual_artifacts = {artifact['executable']: artifact for artifact in artifacts if artifact.get('reason') == 'compiler-artifact'
+                                    and artifact.get('executable') and artifact['profile']['test']}
+                expected_binaries = set(actual_artifacts)
                 require({entry['binary'] for entry in row['executables']} == expected_binaries, 'missing Rust executable')
                 require([(entry['binary'], entry['repeat']) for entry in row['executables']]
                         == [(binary, repeat) for binary in sorted(expected_binaries) for repeat in range(recipe_row.get('repeats', 1))],
@@ -651,6 +668,12 @@ def authenticate_result(plan_path, label):
                 for executable in row['executables']:
                     require(sha(executable['binary']) == executable['binary_sha256'], 'test binary changed before reader')
                     binary = executable['binary']
+                    artifact = actual_artifacts[binary]
+                    owner = rust_test_owner(artifact)
+                    require(all(executable.get(key) == value for key, value in owner.items())
+                            and executable['target'] == artifact['target']['name']
+                            and executable['cwd'] == str(Path(artifact['manifest_path']).parent),
+                            'Rust test executable changed its actual Cargo crate/source target')
                     suffix = [recipe_row['test_filter']] if recipe_row.get('test_filter') else []
                     references = (executable['listing'], executable['ignored_listing'])
                     if executable['repeat'] == 0:
@@ -673,9 +696,7 @@ def authenticate_result(plan_path, label):
                                               raw=executable['run']))
                     if executable['repeat'] == 0:
                         for name in sorted(ignored):
-                            matches = [entry for entry in known if name.endswith('::' + entry['name']) or name == entry['name']]
-                            require(len(matches) == 1, 'unknown/ambiguous ignored Rust test')
-                            entry = matches[0]
+                            entry = ignored_test_owner(known, name, owner)
                             deferred.append(dict(entry, id=name, obligation=entry['final_id'], test=name, status='UNEXECUTED',
                                 binary_sha256=executable['binary_sha256'], source_sha256=sha(REPO / 'tools/gomad/rust' / entry['source'])))
                 require(total == row['passed'] and total > 0, 'empty/changed Rust passed count')

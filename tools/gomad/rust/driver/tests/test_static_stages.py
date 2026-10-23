@@ -135,14 +135,17 @@ class StaticStageContract(unittest.TestCase):
         root, evidence, command, report, check = self.reader_fixture('validate', action)
         binary = root/'native-test'
         binary.write_bytes(b'synthetic unit fixture, never executed')
-        artifact = dict(reason='compiler-artifact', executable=str(binary), profile=dict(test=True), target=dict(name='test-target'))
+        crate = driver.REPO / 'tools/gomad/rust/wasmhost'
+        artifact = dict(reason='compiler-artifact', executable=str(binary), profile=dict(test=True),
+                        manifest_path=str(crate / 'Cargo.toml'),
+                        target=dict(name='test-target', src_path=str(crate / 'src/lib.rs')))
         command(action['argv']+['--no-run','--message-format=json'], events([artifact]))
-        listed = command([str(binary),'--list'], b'a: test\n')
-        ignored = command([str(binary),'--ignored','--list'], b'0 tests\n')
+        listed = command([str(binary),'--list'], b'a: test\n', cwd=str(crate))
+        ignored = command([str(binary),'--ignored','--list'], b'0 tests\n', cwd=str(crate))
         executions = []
         for repeat in range(2):
-            run = command([str(binary),'--test-threads=1'], b'test a ... ok\ntest result: ok. 1 passed; 0 failed; 0 ignored;\n')
-            executions.append(dict(binary=str(binary), binary_sha256=driver.sha(binary), target='test-target', cwd='/source',
+            run = command([str(binary),'--test-threads=1'], b'test a ... ok\ntest result: ok. 1 passed; 0 failed; 0 ignored;\n', cwd=str(crate))
+            executions.append(dict(binary=str(binary), binary_sha256=driver.sha(binary), target='test-target', cwd=str(crate), crate='wasmhost', source='wasmhost/src/lib.rs',
                                    listing=listed, ignored_listing=ignored, run=run, tests=['a'], ignored=[], repeat=repeat))
         doc = command(['/pinned/cargo','test','-p','gomad-wasmhost','--doc'], b'test result: ok. 0 passed; 0 failed; 0 ignored;\n')
         result = dict(kind='cargo-tests', executables=executions, passed=2, doctest=doc)
@@ -226,6 +229,21 @@ class StaticStageContract(unittest.TestCase):
             (repo / 'tools/gomad/rust/gomad/src').mkdir(parents=True)
             with self.assertRaises(driver.Refusal):
                 static.ignored_inventory(repo)
+
+    def test_ignored_duplicate_bare_names_resolve_only_within_actual_cargo_owner(self):
+        known = [dict(crate=crate, source=crate + '/tests/allocation_receiving.rs', name='allocation_receiving')
+                 for crate in ('gomad', 'wasmhost')]
+        for crate in ('gomad', 'wasmhost'):
+            artifact = dict(manifest_path=str(driver.REPO / 'tools/gomad/rust' / crate / 'Cargo.toml'),
+                            target=dict(src_path=str(driver.REPO / 'tools/gomad/rust' / crate / 'tests/allocation_receiving.rs')))
+            owner = static.rust_test_owner(artifact)
+            self.assertEqual(static.ignored_test_owner(known, 'allocation_receiving', owner)['crate'], crate)
+            with self.assertRaisesRegex(driver.Refusal, 'within Cargo owner'):
+                static.ignored_test_owner(known + [copy.deepcopy(known[0 if crate == 'gomad' else 1])], 'allocation_receiving', owner)
+            with self.assertRaisesRegex(driver.Refusal, 'within Cargo owner'):
+                static.ignored_test_owner(known, 'allocation_receiving', dict(crate=crate, source=crate + '/tests/foreign.rs'))
+        with self.assertRaisesRegex(driver.Refusal, 'foreign crate'):
+            static.rust_test_owner(dict(manifest_path='/foreign/Cargo.toml', target=dict(src_path='/foreign/src/lib.rs')))
 
     def test_ignored_inventory_excludes_rust_literal_fixtures_and_comments(self):
         text = '\n'.join([
