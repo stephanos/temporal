@@ -157,3 +157,13 @@ Development evidence only; no frozen cycle.
   - Item d: compose bindings for live_corpus families, final_profiles, final_retained, stress, public_verbs, private_observations, terminal_controls_reference, primary and fn222.
   - Port the 29 gaps.
   - Run the dry run after the corpus fix lands.
+
+### Worker B notes (2026-10-23): item d, dry-run composition (branch fn232-composition)
+
+- **Dry run (rule 2/3).** `rust/driver/dry_run.py` builds role executables from the working tree with a shared incremental target and records SHA plus compiled host/helper identities (`gomad.dry-run-build/v1`). Readers accept a record only under `dry_run: true` (or `GOMAD_DRIVER_DRY_RUN=1` for preparation scripts); a normal freeze refuses it, so the formal 13-role receipts remain mandatory at the freeze. compose/configure leave unbound groups in `dry_run_unexecuted`; their final readers still refuse.
+- **Collapses.** fn-185 R4 `qualified.{workflow,activity}` bind only a request recipe; the module is the same-cycle `terminal-module` output (identical `./tests` module, three tags, no arguments) and `gomad-measure --qualified-request` regenerates the request in-cycle. `private_observations` is the per-stage switch (`true`); its receipts are cycle outputs.
+- **New minimal producers.** `gomad-measure --stress-inputs` (stress spec inputs; the assembler installs with `stress-release`, configure binds `SOURCE_MANIFEST` at freeze), `diagnostic-helper-stage` (the diagnostic admission terminal-exit requires; only release builds could be staged), `--qualified-request REPO runtime` (runtime recipe template).
+- **installed_cluster_failure.py** runs in the `operator` stage: evidence IDs `stage/operator/TestInstalledOperatorClusterFailureEndsPromptly` and `stage/operator/TestInstalledOperatorAsymmetricGuestFailureEndsPromptly`.
+- **Bugs found and fixed:** stale `seed` in `live-inspection-fixture.py`; freeze-time stage preflights guarded a not-yet-written config (`guard` skips the digest only while freezing); stress reader expected role `stress` with `stress-release` features; live runtime/inspection `--runtime-identity` is the runtime implementation SHA, not the overlay identity.
+- **Still unexecuted:** `live_corpus/prepared-metadata` (no producer for the retained unaccepted module plus its private preparation recipe).
+- Provisioning scripts: `/home/agent/evidence/fn232-composition-v1/{assemble.py,groups.py,groups_r4.py,rebuild.sh}`; run `rebuild.sh TAG` then `GOMAD_DRIVER_DRY_RUN=1 assemble.py --candidate CHECKOUT --tag TAG --r4 --out FRESH`.
