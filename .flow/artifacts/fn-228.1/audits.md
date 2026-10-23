@@ -46,3 +46,5 @@ Correctness: 1 finding, worst Should Fix. Standards: 0 findings.
 ## Conductor decision
 
 Accept correctness finding: finish the three Realization descriptions. Worker must verify the affected documentation/build inputs, refresh guest if compiler identity changes, then run implementation review and final live/required gates. No task completion or final gate claim is made by these audits.
+
+A design report, `model/design/native-symbolic-backend.md`, appeared externally between audit dispatch and the worker checkpoint and was included by required `git add -A`. Neither root nor worker authored it. Preserve it unchanged; it is separate design evidence, outside fn-228.1 implementation or audit coverage, and does not change the active milestone scope. No history rewrite or new backend implementation is authorized by its recommendation.
