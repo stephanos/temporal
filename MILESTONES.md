@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-22.
+As of 2026-10-23.
 
 ## Keeping this page current
 
@@ -59,8 +59,8 @@ inner loop 6.112s met 10s. Timeout and cooperative-cancellation work is schedule
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
-`testing` (the dev-only fixture runner), `tests` (the shared end-to-end fixtures), `wasm`
-(the generated-protobuf guest), and `lift` plus `backends/tlc` (the independent source backend);
+`testing` (the dev-only fixture runner), `fixtures` (the shared end-to-end fixtures), `runtime`
+(the generated-protobuf Model runtime), and `lift` plus `backends/tlc` (the independent source backend);
 the `samples` crate has been removed. The original Rust verdict was scoped to what
 `model/archived/framework/samples/Kettle.scala` uses. The verdict is one rule (R24): if the checker
 runs as wasm in a Go host through wazero (pure Go, no cgo) on the stock toolchain, with Kettle's report matching
