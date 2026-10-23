@@ -647,9 +647,12 @@ pub(crate) fn authenticate_retained(
             "retained cluster oracle assessment requires record-bound actual summary".into(),
         );
     }
-    let summary: serde_json::Value =
-        serde_json::from_slice(&opened.payload(SUMMARY, configuration.limits.evidence_bytes)?)
-            .map_err(|error| format!("retained cluster oracle summary: {error}"))?;
+    let raw_summary = opened.payload(SUMMARY, configuration.limits.evidence_bytes)?;
+    let summary: serde_json::Value = serde_json::from_slice(&raw_summary)
+        .map_err(|error| format!("retained cluster oracle summary: {error}"))?;
+    if canonical::encode(&summary)? != raw_summary {
+        return Err("retained cluster oracle summary is not canonical".into());
+    }
     if summary["schema"] != "gomad.cluster-observation/v1" {
         return Err("unsupported retained cluster oracle summary".into());
     }
@@ -677,9 +680,12 @@ pub(crate) fn authenticate_retained(
         if row["interrupted"].as_bool() != Some(retained.interrupted) {
             return Err("retained cluster oracle interruption mismatch".into());
         }
+        let streams = row["streams"]
+            .as_object()
+            .ok_or("invalid retained cluster oracle stream summary")?;
         let mut evidence = BTreeMap::new();
         for name in ["stdout", "stderr"] {
-            match (retained.evidence.get(name), row["streams"].get(name)) {
+            match (retained.evidence.get(name), streams.get(name)) {
                 (None, None) => (),
                 (Some(descriptor), Some(observed))
                     if observed["bytes"].as_u64() == Some(descriptor.bytes)
