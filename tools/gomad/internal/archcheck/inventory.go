@@ -226,6 +226,15 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 			}
 		}
 	}
+	if legacy {
+		for _, pkg := range inventory.Packages {
+			for _, imported := range pkg.Imports {
+				if relative, ok := strings.CutPrefix(imported, module+"/"); ok && RetiredHostPackage(relative) {
+					add("retired-host-import", pkg.ImportPath, "default Go sources must not import retired host package "+imported)
+				}
+			}
+		}
+	}
 	slices.Sort(inventory.RetainedGo)
 	slices.Sort(inventory.RetiringGo)
 	slices.Sort(inventory.Sources)
@@ -238,6 +247,34 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 }
 
 func Within(path, root string) bool { return within(path, root) }
+
+// retiredHostRoots are the Go host packages the Rust host replaced (fn-232.13)
+// and the native backend fn-223 removed. Their retained Go neighbors, such as
+// internal/backends/wasm/toolchain, stay importable.
+var retiredHostRoots = []string{
+	"cmd/gomad",
+	"internal/runner",
+	"internal/evidence/artifact", "internal/evidence/record",
+	"internal/host",
+	"internal/backends/native", "internal/backends/target", "internal/backends/testfixture",
+	"internal/backends/wasm/backend", "internal/backends/wasm/cmd", "internal/backends/wasm/command",
+	"internal/backends/wasm/installation", "internal/backends/wasm/qualification", "internal/backends/wasm/wasi",
+	"internal/backends/wasm/internal/measure", "internal/backends/wasm/internal/measurement",
+	"internal/backends/wasm/internal/moduleinfo", "internal/backends/wasm/internal/sweep",
+	"internal/backends/wasm/internal/temporalinput",
+}
+
+// RetiredHostPackage reports whether a module-relative import path names a
+// retired Go host package. The former package roots internal/backends,
+// internal/backends/wasm and internal/evidence/qualification match exactly;
+// only the qualification corpus module remains below the latter.
+func RetiredHostPackage(relative string) bool {
+	switch relative {
+	case "internal/backends", "internal/backends/wasm", "internal/evidence/qualification":
+		return true
+	}
+	return slices.ContainsFunc(retiredHostRoots, func(root string) bool { return Within(relative, root) })
+}
 
 var sourceExclusions = []string{
 	"rust/wasmhost/src/world/deflate/testdata",

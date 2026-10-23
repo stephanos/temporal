@@ -1,7 +1,11 @@
 # Gomad CLI and maintainer guide
 
-Gomad's execution backend is WASM. The native backend and its maintainer
-commands were removed by fn-223; Git history retains their documentation.
+Gomad is the single Rust `gomad` binary built from the `tools/gomad/rust`
+workspace (`make -C tools/gomad build`), with the WASM engine linked in. Its
+execution backend is WASM. The Go CLI, Runner and host producers were retired
+by fn-232.13, and the native backend and its maintainer commands by fn-223;
+Git history retains their documentation. Comparisons below against the frozen
+Go reference are retained parity evidence, not a supported Go command.
 
 Start with the [installation and first-failure guide](README.md). The
 [WASM operator guide](internal/backends/wasm/CLI.md) documents installed
@@ -877,7 +881,7 @@ linked helper and runtime implementation identities. Go-lineage manifests are
 refused. Configuration JSON uses the existing WASI configuration grammar;
 Temporal setup derives the complete TemporalInstallation policy and guest tags.
 Source preparation replaces configuration argv with the requested target argv,
-as the Go Runner does, and preserves its configured environment.
+as the retired Go Runner did, and preserves its configured environment.
 
 The linked implementation is the default, so `--helper` is optional. An explicit
 path must name the running Rust host executable or a byte-identical copy of it.
