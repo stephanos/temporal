@@ -11,6 +11,19 @@ fn incompatible(message: &str) -> super::Error {
     }
 }
 
+fn artifact_error(message: &str) -> super::Error {
+    if message.starts_with("unsupported artifact storage format")
+        || message == "unsupported artifact store layout"
+    {
+        incompatible(message)
+    } else {
+        super::Error {
+            status: 3,
+            message: format!("runner_failure: artifact integrity: {message}"),
+        }
+    }
+}
+
 /// # Errors
 /// Refuses malformed commands or incompatible artifacts; execution errors retain status 3.
 pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, super::Error> {
@@ -35,7 +48,13 @@ pub fn run_with_installation(
     if arguments.stress_jitter && inspection.is_none() {
         return Err("--stress-jitter requires replay inspection with --stop".into());
     }
-    let mut prepared = preflight::open(arguments.path).map_err(|error| incompatible(&error))?;
+    let opened = crate::evidence::store::Opened::open(arguments.path)
+        .map_err(|message| artifact_error(&message))?;
+    opened
+        .authenticate_all()
+        .map_err(|message| artifact_error(&message))?;
+    let mut prepared =
+        preflight::prepare_authenticated(opened).map_err(|error| incompatible(&error))?;
     if matches!(&prepared.execution, preflight::Execution::Cluster(_))
         && (arguments.verify || arguments.observed_directory.is_some())
     {

@@ -139,9 +139,37 @@ def capacity_inspection(report, summary, streams):
         projected = sum(entry['bytes'] for file, entry in artifact['files'].items()
                         if file.startswith('evidence/cluster/') and file.endswith('/' + name))
         require(projected == expected, 'inspection output accounting mismatch')
-        if 'output/' + name in artifact['files']:
-            require(artifact[name]['total_bytes'] == expected, 'combined inspection output accounting mismatch')
-    # Inspect authenticates every listed payload. Its record binds the exact capacity and raw summary facts.
+        require(artifact['cluster'][name + '_bytes'] == expected,
+                'combined inspection output accounting mismatch')
+    projected = artifact['cluster']
+    require(projected['virtual_elapsed_nanos'] == summary['virtual_elapsed_nanos']
+            and projected['exhausted'] == 'payload-bytes limit=4096 used=4096 delta=64',
+            'cluster inspection elapsed time/exhausted bound mismatch')
+    instances = {(row['node'], row['incarnation']): row for row in projected['instances']}
+    owners = {(row['handle']['node'], row['handle']['incarnation']): row for row in summary['incarnations']}
+    require(len(instances) == len(projected['instances']) and instances.keys() == owners.keys(),
+            'cluster inspection instance ownership mismatch')
+    for handle, row in owners.items():
+        instance = instances[handle]
+        require(row['interrupted'] is True and instance['interrupted'] is True
+                and instance['offered_output_bytes'] == row['offered_output_bytes'],
+                'cluster inspection interruption/offered output mismatch')
+        for name in ('stdout', 'stderr'):
+            raw = streams.get((*handle, name), b'')
+            require(instance[name + '_bytes'] == len(raw), 'cluster inspection instance output mismatch')
+        require(instance['stdout_tail'] == streams.get((*handle, 'stdout'), b'')[-4096:].decode(errors='replace'),
+                'cluster inspection authenticated stdout tail mismatch')
+        retained = instance['stdout_bytes'] + instance['stderr_bytes']
+        require(instance['offered_output_bytes'] >= retained
+                and instance['discarded_output_bytes'] == instance['offered_output_bytes'] - retained
+                and instance['truncated'] is (instance['discarded_output_bytes'] != 0),
+                'cluster inspection instance truncation mismatch')
+    retained = projected['stdout_bytes'] + projected['stderr_bytes']
+    require(projected['offered_output_bytes'] == sum(row['offered_output_bytes'] for row in owners.values())
+            and projected['offered_output_bytes'] >= retained
+            and projected['discarded_output_bytes'] == projected['offered_output_bytes'] - retained
+            and projected['truncated'] is (projected['discarded_output_bytes'] != 0),
+            'cluster inspection retained/offered output accounting mismatch')
     message = artifact['record']['outcome']['reason']
     require('payload-bytes limit=4096 used=4096 delta=64' in message, 'inspection omitted exact exhausted bound')
 
@@ -418,7 +446,7 @@ class Run:
             files = [name for name in manifest['files'] if name == 'target/module.wasm'
                      or name.startswith('evidence/')]
             require('target/module.wasm' in files and 'evidence/cluster-replay.json' in files, 'missing retained references')
-            self.damage(artifact, files, 2)
+            self.damage(artifact, files, 3)
             self.command('missing-installation', ['--installation', '/missing/incompatible-installation', 'replay', artifact],
                          3, installation=False)
 

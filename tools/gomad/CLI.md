@@ -56,13 +56,21 @@ The JSON schema changes from Go's `gomad.inspect/v8` to `gomad.inspect/v9`:
 | `artifact.record_sha256` | Bare lowercase hex record digest; replaces `record_hash`. |
 | `artifact.failure_signature` | Bare lowercase hex seed-excluded signature, formerly nested in `outcome`. |
 | `artifact.files`, `artifact.stored_bytes` | Authenticated relative payload map (`bytes`, `sha256`, `module`) and total retained artifact bytes, including manifest and storage envelope. |
-| `artifact.stdout`, `artifact.stderr` | Preserve `full_sha256`, `total_bytes`, `retained_bytes`, `discarded_bytes`, `truncated`; hashes use bare hex. Absent output is the empty stream. |
+| `artifact.stdout`, `artifact.stderr` | Metadata for the global `output/stdout` and `output/stderr` files: `full_sha256`, `total_bytes`, `retained_bytes`, `discarded_bytes`, `truncated`; hashes use bare hex. Absent global files are empty streams. Cluster aggregate and per-incarnation facts are in `artifact.cluster`. |
+| `artifact.cluster` | Present for authenticated cluster observations. `stdout_bytes` and `stderr_bytes` are checked sums of retained per-incarnation bytes. `offered_output_bytes` counts all offered output separately; `discarded_output_bytes` is offered minus retained, and `truncated` means that difference is nonzero. `instances` binds node/incarnation, interruption state, per-stream retained counts, offered/discarded counts, truncation and an authenticated stdout suffix of at most 4096 bytes. `virtual_elapsed_nanos` and `exhausted` preserve the original elapsed time and exact capacity-bound facts. No combined output hash or cross-incarnation byte order is invented. |
 | `artifact.record.streams` | Payload-keyed `bytes`, `sha256`, `records`; replaces the separate transcript projection and includes captured/diagnostic streams when retained. |
 | `artifact.choices` | Null without `--choices`. Otherwise retains choice-inspection v3 summary, limits, profile, implementation/trace/tape digests, terminal state, sites and replay decisions. Integers are native JSON integers; `site_missing` is explicit; decision arrays and tape digest are empty when exact replay is unavailable. |
 | `artifact.world` | Null or authenticated profile/implementation, seed, time, transition count, terminal kind/detail and bounded history payload descriptor. This exposes the World facts carried by the new lineage. |
 | `artifact.simulation` | Null or profile, controller/execution/candidate/outcome/failure digests and bounded plan/record payload descriptors. Descriptors add the contained `file` and `limit`; absent failure digest is null. |
 | `artifact.minimization` | Null or typed parent/candidate identities, attempt/forcing bounds, ordered accepted reductions and full predicate. The Rust detail schema is `gomad.minimization-evidence/v1`; all digest strings are bare hex. |
 | Optional sections | `choices`, `world`, `simulation`, `minimization` are explicit nulls when absent. Unknown fields in retained typed details are refused. |
+
+The cluster projection is an additive Rust v9 extension. Its instance catalogue,
+stream descriptors and byte budgets authenticate before either JSON or text is
+rendered. Configured and retained handles bind interruption ownership when typed
+cluster replay inputs are present; duplicate instances and orphan payloads refuse.
+This projection changes cluster JSON output; final two-run raw/golden receiving
+lanes must review the changed candidate after its identities settle.
 
 Optional facts live in canonical `evidence/inspection.json` under
 `gomad.inspection-evidence/v1`; the execution record must bind that payload as a
@@ -127,8 +135,11 @@ compiler or runtime files. Verify-only also validates the helper-owned semantic
 choice tape before returning status 0, without creating an engine or guest.
 Exact cooperative replay and observed stock replay keep the existing text
 reports: matching success returns 0, matching target failure or divergence
-returns 1, incompatible artifacts return 2 and execution infrastructure errors
-return 3. `--toolchain-root` retains its native-only refusal.
+returns 1. Authenticated inputs with an incompatible implementation, identity or
+grammar return 2; unsupported storage lineage also returns 2. Corrupt manifests,
+missing or unauthenticated payloads and execution infrastructure failures return
+3. Integrity failures identify `runner_failure: artifact integrity` before any
+guest is created. `--toolchain-root` retains its native-only refusal.
 
 Replay inspection retains `--stop`, `--instance`, `--incarnation`, `--dump`,
 `--probe`, `--check`, `--choice-range`, `--search-mode`, `--debug-output` and

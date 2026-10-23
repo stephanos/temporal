@@ -360,3 +360,74 @@ including missing payload/descriptor/hash/size and aggregate-bound negatives.
 Logs are `producer-catalogue-red.log` and updated `portable-final.log` under the
 same native evidence prefix. This does not replace actual lifecycle campaigns,
 SIGSTOP/SIGKILL, guest replay or qualification receipt proof.
+
+
+## Current-root cache/lifecycle composition and explicit native status mapping
+
+The cache worktree merged current root `652103a3e4`, then the independently
+reviewed source batches from the installed-lifecycle branch, and later root
+`292b8f8848`. Root `0fd7ae7b6e` adds Python/runtime receiver source only and is the
+next integration base. No production guest configuration, original deadline,
+fuel, memory, output, evidence or qualification bound changed.
+
+Independent same-family review found two concrete receiving issues: public
+cluster corruption expected status 3 while the new native CLI returned 2, and
+actual projected cluster JSON lacked aggregate retained output facts. Native
+causal RED is `review-repairs-red.log` under
+`/home/agent/evidence/fn232-cache-lifecycle-integration`: 12 pass, exactly those
+two tests fail (status 2 versus 3; null total versus 16402). The earlier
+`corrupt-red.log` was a fixture setup error and supplies no causal proof.
+
+The original status discrepancy is explicit. At original revision
+`1d695061b6382009d0659238c652a5a765b1d5f5`, command/command_test.go lines
+265–277 flips retained cluster payload bytes and invokes the public binary with
+`--installation installed replay corrupt`, requiring 3. The same public
+`invokeOperator` helper is used by command/scenario_test.go lines 364–390,
+which flips the same class of retained payload, invokes
+`--installation f.manifest replay corrupt`, and requires 2. Both clone a valid
+artifact and alter bytes without resealing; the typed test is not a library
+entrypoint. No context-based distinction that survives this native lineage was
+established. Exact original source files, hashes, entrypoints and line ranges
+are retained in `original-status-discrepancy.json` beside those logs.
+
+Root explicitly approved this native mapping: unsupported lineage, command
+grammar and authenticated incompatible implementation/identity return 2;
+artifact integrity and execution infrastructure failures return 3, before guest
+creation. The typed detached corruption root therefore maps its old numeric 2
+to native 3. This is **not** unchanged numeric-exit or byte equivalence. Its
+strong integrity refusal and zero-execution requirement are retained; the
+external corruption root's original 3 is retained. The existing native
+observed-replay raw-corruption predicates also adopt 3; their resealed identity
+mutations remain 2. No new public flag or weakened acceptance alternative was
+introduced. Native tests independently cover raw corruption 3, authenticated
+foreign implementation 2 and unsupported storage lineage 2.
+
+The additive Rust v9 `artifact.cluster` projection now carries checked aggregate
+retained stdout/stderr counts and separate offered/discarded/truncated output
+facts, elapsed time, exact exhausted bound, per-instance interruption/counts and
+a bounded authenticated stdout tail. It reuses the full stream catalogue and
+budget validator for JSON and text, rejects duplicates/missing observations and
+orphan payload prefixes, and binds summary handles/interruption to configured
+and retained typed inputs when those inputs are present. The actual producer
+now retains its original `IncarnationResult.interrupted` flag in the summary.
+Global `artifact.stdout`/`stderr` still describe global output files; no combined
+cross-incarnation hash/order is fabricated. CLI.md declares this schema mapping.
+The portable receiver asserts native cluster aggregate and instance facts
+unconditionally, including offered versus retained truncation. Final fresh
+two-run raw/golden lanes remain pending after candidate identities settle; no
+old golden was regenerated or relabeled here.
+
+Native lifecycle GREEN after the two causal repairs is
+`review-repairs-green2.log` (14 pass, exit 0). Additional ownership/lineage
+negatives and final strict/unit checks are recorded in the next final append.
+One expanded negative initially reached a test fixture's unreachable arm; that
+setup branch is fixed. One broad run overlapped a replacement Cargo build,
+invalidating `current_exe` reads; that run is retained as invalid development
+evidence. A subsequent broad run passed 290 with one newly added fixture setup
+failure; the expanded storage fixture now supplies the same authenticated
+cluster observation required from actual producers. None is a guest, cache,
+qualification or original-bound exception. Worktree `/home/agent/wt/fn232-linked-cache`
+and source donor `/home/agent/wt/fn232-installed-lifecycle` remain open-owned for
+root integration. The dedicated assigned target is
+`/home/agent/.cache/codex-build/fn232-cache-lifecycle-new`; no other target or
+source worktree was cleaned or modified.

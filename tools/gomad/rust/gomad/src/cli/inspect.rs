@@ -1,3 +1,4 @@
+mod cluster;
 mod storage;
 
 use crate::evidence::inspection::{Choices, Details, Output, Simulation, World};
@@ -35,6 +36,8 @@ struct Artifact<'a> {
     minimization: Option<crate::minimize::report::Report<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     storage: Option<storage::Storage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cluster: Option<cluster::Cluster>,
 }
 
 fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
@@ -163,6 +166,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
                 .and_then(|details| details.simulation.as_ref()),
             minimization,
             storage: storage::read(&opened)?,
+            cluster: cluster::read(&opened)?,
         },
     };
     let bytes = if json {
@@ -174,7 +178,9 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             manifest.record.seed, manifest.record.outcome.class, manifest.record.outcome.termination,
             report.artifact.failure_signature, String::from_utf8(canonical::encode(&report.artifact)?).map_err(|error| error.to_string())?
         ).into_bytes();
-        append_cluster_text(&opened, &mut rendered)?;
+        if let Some(cluster) = &report.artifact.cluster {
+            cluster.append_text(&mut rendered)?;
+        }
         rendered
     };
     output
@@ -184,119 +190,4 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
             status: 3,
             message: format!("write inspection report: {error}"),
         })
-}
-
-fn append_cluster_text(opened: &Opened, output: &mut Vec<u8>) -> Result<(), super::Error> {
-    if !opened
-        .manifest()
-        .files
-        .contains_key("evidence/cluster_summary")
-    {
-        return Ok(());
-    }
-    let raw = opened.payload("evidence/cluster_summary", 128 << 20)?;
-    let summary: serde_json::Value = crate::qualify::spec::strict(&raw)?;
-    if summary["schema"] != "gomad.cluster-observation/v1" {
-        return Err("unsupported cluster observation".into());
-    }
-    let elapsed = summary["virtual_elapsed_nanos"]
-        .as_u64()
-        .ok_or("missing cluster elapsed time")?;
-    writeln!(output, "cluster: virtual-elapsed-nanos={elapsed}")
-        .map_err(|error| error.to_string())?;
-    let record = &opened.manifest().record;
-    if record.outcome.termination == "capacity"
-        && let Some(bound) = record.outcome.reason.strip_prefix("WASI capacity: ")
-    {
-        writeln!(output, "exhausted={}", bound.escape_default())
-            .map_err(|error| error.to_string())?;
-    }
-    for row in summary["incarnations"]
-        .as_array()
-        .ok_or("missing cluster instances")?
-    {
-        let node = row["handle"]["node"]
-            .as_str()
-            .ok_or("missing cluster node")?;
-        let incarnation = row["handle"]["incarnation"]
-            .as_u64()
-            .ok_or("missing cluster incarnation")?;
-        let (counts, tail) = cluster_output(opened, node, incarnation, &row["streams"])?;
-        let tail = serde_json::to_string(&String::from_utf8_lossy(&tail))
-            .map_err(|error| error.to_string())?;
-        writeln!(output, "cluster-instance: node={} incarnation={incarnation} stdout-bytes={} stderr-bytes={} stdout-tail={tail}",
-            node.escape_default(), counts[0], counts[1]).map_err(|error| error.to_string())?;
-    }
-    Ok(())
-}
-
-fn cluster_output(
-    opened: &Opened,
-    node: &str,
-    incarnation: u64,
-    streams: &serde_json::Value,
-) -> Result<([u64; 2], Vec<u8>), String> {
-    let streams = streams
-        .as_object()
-        .ok_or("missing cluster instance streams")?;
-    let prefix = format!("evidence/cluster/{node}/{incarnation}/");
-    let limits = &opened.manifest().record.limits;
-    let mut evidence_bytes = 0_u64;
-    let mut output_bytes = 0_u64;
-    let mut counts = [0; 2];
-    // run() already authenticated every manifest payload with the shared streaming verifier.
-    for (name, descriptor) in streams {
-        crate::evidence::store::open::components(name)?;
-        let bytes = descriptor["bytes"]
-            .as_u64()
-            .ok_or("missing cluster stream byte count")?;
-        evidence_bytes = evidence_bytes
-            .checked_add(bytes)
-            .ok_or("cluster evidence bytes overflow")?;
-        if evidence_bytes > limits.evidence_bytes {
-            return Err("cluster evidence exceeds retained evidence budget".into());
-        }
-        let output = match name.as_str() {
-            "stdout" => Some(0),
-            "stderr" => Some(1),
-            _ => None,
-        };
-        let limit = if let Some(index) = output {
-            output_bytes = output_bytes
-                .checked_add(bytes)
-                .ok_or("cluster output bytes overflow")?;
-            if output_bytes > limits.output_bytes {
-                return Err("cluster output exceeds retained output budget".into());
-            }
-            counts[index] = bytes;
-            limits.output_bytes
-        } else {
-            limits.evidence_bytes
-        };
-        crate::replay::cluster::Payload {
-            file: format!("{prefix}{name}"),
-            bytes,
-            sha256: descriptor["sha256"]
-                .as_str()
-                .ok_or("missing cluster stream digest")?
-                .to_owned(),
-            limit,
-        }
-        .bind(opened, limit)?;
-    }
-    if opened
-        .manifest()
-        .files
-        .keys()
-        .filter_map(|name| name.strip_prefix(&prefix))
-        .any(|name| !streams.contains_key(name))
-    {
-        return Err("cluster instance output descriptor/payload mismatch".into());
-    }
-    let tail = if streams.contains_key("stdout") {
-        opened.payload_tail(&format!("{prefix}stdout"), limits.output_bytes, 4096)?
-    } else {
-        Vec::new()
-    };
-    Ok((counts, tail))
 }

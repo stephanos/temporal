@@ -163,6 +163,15 @@ mod tests {
             }
         }
         payloads.insert("evidence/cluster-replay.json".into(), raw);
+        payloads.insert(
+            "evidence/cluster_summary".into(),
+            canonical::encode(&json!({
+                "schema":"gomad.cluster-observation/v1", "virtual_elapsed_nanos":42,
+                "incarnations":[{"handle":{"node":"a","incarnation":2},
+                    "interrupted":false,"offered_output_bytes":0,
+                    "streams":{"storage_image":{"bytes":image.len(),"sha256":canonical::digest(&image)}}}]
+            })).unwrap(),
+        );
         payloads.insert(file.into(), image);
         let mut record = fixture.record.clone();
         record.identity.configuration =

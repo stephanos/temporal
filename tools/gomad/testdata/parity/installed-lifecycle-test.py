@@ -83,6 +83,31 @@ class LifecycleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'cluster inspection'):
             self.check.capacity_inspection({'artifact': {'stdout': {}, 'stderr': {}}}, {}, {})
 
+    def test_capacity_inspection_requires_native_aggregate_and_instance_facts(self):
+        streams = {('a', 1, 'stdout'): b'kept-a', ('b', 1, 'stderr'): b'kept-b'}
+        owners = [dict(handle=dict(node=node, incarnation=1), interrupted=True,
+                       offered_output_bytes=8) for node in ('a', 'b')]
+        summary = dict(virtual_elapsed_nanos=42, incarnations=owners)
+        instances = [dict(node=node, incarnation=1, interrupted=True, offered_output_bytes=8,
+                          stdout_bytes=6 if node == 'a' else 0, stderr_bytes=6 if node == 'b' else 0,
+                          stdout_tail='kept-a' if node == 'a' else '', discarded_output_bytes=2, truncated=True) for node in ('a', 'b')]
+        cluster = dict(virtual_elapsed_nanos=42, stdout_bytes=6, stderr_bytes=6, offered_output_bytes=16, discarded_output_bytes=4, truncated=True,
+                       exhausted='payload-bytes limit=4096 used=4096 delta=64', instances=instances)
+        report = dict(artifact=dict(files={'evidence/cluster_summary': {},
+            'evidence/cluster/a/1/stdout': dict(bytes=6), 'evidence/cluster/b/1/stderr': dict(bytes=6)},
+            cluster=cluster, record=dict(outcome=dict(reason='WASI capacity: payload-bytes limit=4096 used=4096 delta=64'))))
+        self.check.capacity_inspection(report, summary, streams)
+        for field in ('stdout_bytes', 'stderr_bytes', 'offered_output_bytes', 'virtual_elapsed_nanos'):
+            changed = copy.deepcopy(report)
+            changed['artifact']['cluster'][field] = 0
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.check.capacity_inspection(changed, summary, streams)
+        for field, value in [('interrupted', False), ('stdout_bytes', 0), ('stdout_tail', 'wrong'), ('offered_output_bytes', 0)]:
+            changed = copy.deepcopy(report)
+            changed['artifact']['cluster']['instances'][0][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.check.capacity_inspection(changed, summary, streams)
+
     def test_semantics_keeps_seed_outcome_and_identity(self):
         left = {'executions': [{'ordinal': 0, 'seed': 7, 'artifact': 'one', 'stored_bytes': 1,
             'record': {'seed': 7, 'outcome': {'class': 'success'}, 'identity': {'target': 'abc'}}}]}

@@ -734,7 +734,7 @@ pub fn project_encoded(
             );
         rows.push(json!({"handle":item.handle,"termination":item.execution.outcome.termination,
             "exit_code":item.execution.outcome.exit_code,"reason":item.execution.outcome.message,"streams":streams,
-            "offered_output_bytes":item.execution.outcome.output_bytes,"local_model":local_model}));
+            "offered_output_bytes":item.execution.outcome.output_bytes,"interrupted":item.interrupted,"local_model":local_model}));
     }
     let summary = json!({"schema":"gomad.cluster-observation/v1","incarnations":rows,
         "world_sha256":canonical::digest(&observed.world),"network_sha256":canonical::digest(&observed.network),

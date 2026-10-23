@@ -139,6 +139,7 @@ fn payloads(
                 "schema":"gomad.cluster-observation/v1","virtual_elapsed_nanos":42,
                 "incarnations":[{"handle":{"node":"a","incarnation":1},
                     "termination":"capacity","exit_code":null,"reason":"payload-bytes",
+                    "interrupted":true,"offered_output_bytes":stdout.len()+stderr.len(),
                     "streams":{"stdout":descriptor(&stdout),"stderr":descriptor(&stderr)}}]
             }))
             .unwrap(),
@@ -206,6 +207,69 @@ fn installed_lifecycle_replay_explicit_missing_installation_fails_before_executi
     .err()
     .unwrap();
     assert_eq!(error.status, 2);
+}
+
+#[test]
+fn installed_lifecycle_corrupt_retained_cluster_is_status_three_before_execution() {
+    let fixture = retained(true);
+    let path = fixture.published.path.join("evidence/cluster_summary");
+    let mut bytes = std::fs::read(&path).unwrap();
+    *bytes.last_mut().unwrap() ^= 1;
+    std::fs::write(path, bytes).unwrap();
+    let error = crate::cli::replay::run(
+        &[fixture.published.path.to_str().unwrap().into()],
+        &mut Vec::new(),
+    )
+    .expect_err("corrupt retained cluster was admitted");
+    assert_eq!(error.status, 3, "{}", error.message);
+}
+
+#[test]
+fn installed_lifecycle_foreign_storage_lineage_remains_status_two() {
+    let fixture = retained(false);
+    std::fs::write(
+        fixture.published.path.join("storage.json"),
+        br#"{"format":"foreign/v1"}"#,
+    )
+    .unwrap();
+    let error = crate::cli::replay::run(
+        &[fixture.published.path.to_str().unwrap().into()],
+        &mut Vec::new(),
+    )
+    .expect_err("foreign storage lineage was admitted");
+    assert_eq!(error.status, 2, "{}", error.message);
+    assert!(
+        error
+            .message
+            .contains("unsupported artifact storage format")
+    );
+}
+
+#[test]
+fn installed_lifecycle_authenticated_foreign_replay_context_is_status_two() {
+    let fixture = retained(false);
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let mut payloads = BTreeMap::new();
+    for (name, entry) in &opened.manifest().files {
+        if name != "record.json" {
+            payloads.insert(name.clone(), opened.payload(name, entry.bytes).unwrap());
+        }
+    }
+    let mut inputs: crate::replay::preflight::Inputs =
+        serde_json::from_slice(&payloads[crate::replay::preflight::FILE]).unwrap();
+    inputs.host_sha256 = "0".repeat(64);
+    payloads.insert(
+        crate::replay::preflight::FILE.into(),
+        canonical::encode(&inputs).unwrap(),
+    );
+    let fixture = publish_cluster_payloads(fixture, payloads);
+    let error = crate::cli::replay::run(
+        &[fixture.published.path.to_str().unwrap().into()],
+        &mut Vec::new(),
+    )
+    .expect_err("foreign implementation context was admitted");
+    assert_eq!(error.status, 2, "{}", error.message);
+    assert!(error.message.contains("incompatible replay artifact"));
 }
 
 #[test]
@@ -482,7 +546,7 @@ fn retained_projected_cluster(damage: &str) -> Retained {
     let mut fixture = retained(true);
     let output_limit = usize::try_from(fixture.record.limits.output_bytes).unwrap();
     let evidence_limit = usize::try_from(fixture.record.limits.evidence_bytes).unwrap();
-    let mut evidence = BTreeMap::from([
+    let mut evidence: BTreeMap<String, Vec<u8>> = BTreeMap::from([
         (
             "stdout".into(),
             [vec![b'x'; 16_384], b"actual output tail".to_vec()].concat(),
@@ -505,6 +569,13 @@ fn retained_projected_cluster(damage: &str) -> Retained {
     }
     let mut outcome = linked::Outcome::new("exit", "");
     outcome.exit_code = Some(0);
+    let offered_output_bytes = evidence
+        .iter()
+        .filter(|(name, _)| matches!(name.as_str(), "stdout" | "stderr"))
+        .map(|(_, raw)| raw.len() as u64)
+        .sum();
+    let mut incarnation_outcome = linked::Outcome::new("exit", "");
+    incarnation_outcome.output_bytes = offered_output_bytes;
     let projected = crate::replay::cluster::project_encoded(
         helper::Execution {
             outcome,
@@ -516,7 +587,7 @@ fn retained_projected_cluster(damage: &str) -> Retained {
                 },
                 execution: linked::Execution {
                     authorization_to_terminal_nanos: None,
-                    outcome: linked::Outcome::new("exit", ""),
+                    outcome: incarnation_outcome,
                     evidence,
                     event_order: None,
                 },
@@ -552,7 +623,16 @@ fn retained_projected_cluster(damage: &str) -> Retained {
 }
 
 fn damage_projected_payloads(payloads: &mut BTreeMap<String, Vec<u8>>, damage: &str) {
-    if matches!(damage, "hash" | "size" | "descriptor" | "malformed") {
+    if matches!(
+        damage,
+        "hash"
+            | "size"
+            | "descriptor"
+            | "malformed"
+            | "duplicate-instance"
+            | "missing-instance"
+            | "offered-underflow"
+    ) {
         let mut summary: serde_json::Value =
             serde_json::from_slice(&payloads["evidence/cluster_summary"]).unwrap();
         let streams = summary["incarnations"][0]["streams"]
@@ -567,11 +647,30 @@ fn damage_projected_payloads(payloads: &mut BTreeMap<String, Vec<u8>>, damage: &
             "malformed" => {
                 streams.insert("../escape".into(), streams["choice"].clone());
             }
+            "duplicate-instance" | "missing-instance" | "offered-underflow" => {}
             _ => unreachable!(),
+        }
+        if damage == "duplicate-instance" {
+            let duplicate = summary["incarnations"][0].clone();
+            summary["incarnations"]
+                .as_array_mut()
+                .unwrap()
+                .push(duplicate);
+        } else if damage == "missing-instance" {
+            summary["incarnations"] = json!([]);
+        } else if damage == "offered-underflow" {
+            summary["incarnations"][0]["offered_output_bytes"] = json!(0);
         }
         payloads.insert(
             "evidence/cluster_summary".into(),
             canonical::encode(&summary).unwrap(),
+        );
+    } else if damage == "missing-summary" {
+        payloads.remove("evidence/cluster_summary");
+    } else if damage == "orphan-instance" {
+        payloads.insert(
+            "evidence/cluster/foreign/1/stdout".into(),
+            b"orphan".to_vec(),
         );
     } else if damage == "payload" {
         payloads.remove("evidence/cluster/a/1/storage");
@@ -601,6 +700,26 @@ fn installed_lifecycle_inspect_accepts_actual_project_encoded_nonoutput_streams(
     assert!(text.contains("stdout-bytes=16402 stderr-bytes=0"), "{text}");
     assert!(text.contains("actual output tail"));
     assert!(text.len() < 16_384);
+    let mut output = Vec::new();
+    crate::cli::inspect::run(
+        &[
+            "--json".into(),
+            fixture.published.path.to_str().unwrap().into(),
+        ],
+        &mut output,
+    )
+    .unwrap_or_else(|error| panic!("{}", error.message));
+    let report: serde_json::Value = serde_json::from_slice(&output).unwrap();
+    assert_eq!(report["artifact"]["cluster"]["stdout_bytes"], 16402);
+    assert_eq!(report["artifact"]["cluster"]["stderr_bytes"], 0);
+    assert_eq!(report["artifact"]["cluster"]["offered_output_bytes"], 16402);
+    assert_eq!(report["artifact"]["cluster"]["discarded_output_bytes"], 0);
+    assert_eq!(report["artifact"]["cluster"]["truncated"], false);
+
+    assert_eq!(
+        report["artifact"]["cluster"]["instances"][0]["stdout_tail"],
+        String::from_utf8_lossy(&tail).as_ref()
+    );
 }
 
 #[test]
@@ -613,15 +732,23 @@ fn installed_lifecycle_inspect_authenticates_actual_project_encoded_catalogue_an
         "malformed",
         "evidence-budget",
         "output-budget",
+        "duplicate-instance",
+        "missing-instance",
+        "orphan-instance",
+        "missing-summary",
+        "offered-underflow",
     ] {
         let fixture = retained_projected_cluster(damage);
-        let error = crate::cli::inspect::run(
-            &[fixture.published.path.to_str().unwrap().to_owned()],
-            &mut Vec::new(),
-        )
-        .expect_err("inconsistent producer evidence was accepted");
-        if damage.ends_with("budget") {
-            assert!(error.message.contains("budget"), "{}", error.message);
+        for json in [false, true] {
+            let mut arguments = vec![fixture.published.path.to_str().unwrap().to_owned()];
+            if json {
+                arguments.insert(0, "--json".into());
+            }
+            let error = crate::cli::inspect::run(&arguments, &mut Vec::new())
+                .expect_err("inconsistent producer evidence was accepted");
+            if damage.ends_with("budget") {
+                assert!(error.message.contains("budget"), "{}", error.message);
+            }
         }
     }
 }
