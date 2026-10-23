@@ -434,6 +434,31 @@ fn native_decoder_mutation(case: &str, raw: &[u8]) -> Vec<u8> {
             value["configuration"]["incarnations"][0]["module"] = json!(1);
             canonical::encode(&value).unwrap()
         }
+        "duplicate-model-value" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            text.replacen(
+                "\"model\":{",
+                "\"model\":{\"native_value\":1,\"native_value\":2,",
+                1,
+            )
+            .into_bytes()
+        }
+        "duplicate-environment-map" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            text.replacen(
+                "\"environment\":{",
+                "\"environment\":{\"PWD\":\"/first\",\"PWD\":\"/second\",",
+                1,
+            )
+            .into_bytes()
+        }
+        "excessive-nesting" => {
+            let text = String::from_utf8(raw.to_vec()).unwrap();
+            let nested = format!("{}0{}", "[".repeat(129), "]".repeat(129));
+            text.replacen("\"model\":{}", &format!("\"model\":{nested}"), 1)
+                .into_bytes()
+        }
+        "oversized" => vec![b' '; (16 << 20) + 1],
         "foreign-schema" => {
             value["schema"] = json!("gomad.other/v1");
             canonical::encode(&value).unwrap()
@@ -477,11 +502,14 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
     let original: Inputs = serde_json::from_slice(&raw).unwrap();
     assert_eq!(canonical::encode(&original).unwrap(), raw);
     for case in [
-        "ordinary-spelling",
         "duplicate-top",
         "duplicate-nested",
         "unknown-top",
         "unknown-nested",
+        "duplicate-model-value",
+        "duplicate-environment-map",
+        "excessive-nesting",
+        "oversized",
         "missing-module",
         "wrong-module-type",
         "foreign-schema",
@@ -504,17 +532,33 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         let opened = fixture.open();
         opened.authenticate_all().unwrap();
         let error = super::inputs(&opened).err().expect(case);
+        let prepare_error = super::prepare(opened.try_clone().unwrap(), None)
+            .err()
+            .expect(case);
+        assert_eq!(prepare_error, error);
+        let before = std::fs::read_dir(&fixture.path).unwrap().count();
+        let mut cli_output = Vec::new();
+        let cli_error =
+            crate::cli::replay::run(&[fixture.path.to_str().unwrap().into()], &mut cli_output)
+                .unwrap_err();
+        assert_eq!(cli_error.status, 2);
+        assert!(cli_error.message.contains(&error));
+        assert_eq!(std::fs::read_dir(&fixture.path).unwrap().count(), before);
         let expected = match case {
-            "ordinary-spelling" | "foreign-schema" | "legacy-schema" => {
-                "unsupported or noncanonical retained cluster replay inputs"
+            "foreign-schema" | "legacy-schema" => {
+                "unsupported retained cluster replay input schema"
             }
-            "duplicate-top" => "duplicate field `schema`",
-            "duplicate-nested" => "duplicate field `engine`",
+            "duplicate-top" => "duplicate object key",
+            "duplicate-nested" | "duplicate-model-value" | "duplicate-environment-map" => {
+                "duplicate object key"
+            }
+            "excessive-nesting" => "nesting",
+            "oversized" => "artifact payload exceeds caller bound",
             "unknown-top" | "unknown-nested" => "unknown field `unknown`",
             "missing-module" => "missing field `module`",
             "wrong-module-type" => "invalid type: integer",
-            "trailing-value" => "trailing characters",
-            "truncated" => "EOF while parsing",
+            "trailing-value" => "trailing data",
+            "truncated" => "invalid syntax",
             "invalid-utf8" => "unicode",
             "host-faults" => "unknown field `faults`",
             "host-scenarios" => "unknown field `scenarios`",
@@ -532,7 +576,7 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         observation(
             &format!("decode/{case}"),
             json!({"payload_base64":crate::campaign::exploration::base64(&changed)}),
-            json!({"error":error}),
+            json!({"error":error,"prepare_error":prepare_error,"public_status":cli_error.status,"public_error":cli_error.message,"entries_before":before,"entries_after":std::fs::read_dir(&fixture.path).unwrap().count()}),
         );
     }
     observation(
@@ -1407,6 +1451,98 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
             source.toolchain_sha256,
             &modules,
             report_only,
+        );
+    }
+}
+
+#[test]
+fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
+    let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+    let baseline = crate::fixture_cluster::publication(&corpus, 7).unwrap();
+    let raw = &baseline.payloads[FILE];
+    let expected: Inputs = serde_json::from_slice(raw).unwrap();
+    let value: Value = serde_json::from_slice(raw).unwrap();
+    let reversed = format!(
+        "{{{}}}",
+        value
+            .as_object()
+            .unwrap()
+            .iter()
+            .rev()
+            .map(|(key, value)| format!(
+                "{}:{}",
+                serde_json::to_string(key).unwrap(),
+                serde_json::to_string(value).unwrap()
+            ))
+            .collect::<Vec<_>>()
+            .join(",")
+    )
+    .into_bytes();
+    let mut explicit_null = value.clone();
+    explicit_null["configuration"]["oracle_plan"] = Value::Null;
+    for (case, bytes) in [
+        ("canonical", raw.clone()),
+        ("indented", serde_json::to_vec_pretty(&value).unwrap()),
+        ("member-order", reversed),
+        (
+            "escaped-member",
+            String::from_utf8(raw.clone())
+                .unwrap()
+                .replacen("\"schema\":", "\"\\u0073chema\":", 1)
+                .into_bytes(),
+        ),
+        (
+            "escaped-value",
+            String::from_utf8(raw.clone())
+                .unwrap()
+                .replacen(
+                    "gomad.cluster-replay-inputs",
+                    "\\u0067omad.cluster-replay-inputs",
+                    1,
+                )
+                .into_bytes(),
+        ),
+        ("trailing-space", [raw.as_slice(), b" \n\t\r"].concat()),
+        (
+            "explicit-optional-null",
+            serde_json::to_vec(&explicit_null).unwrap(),
+        ),
+    ] {
+        let mut publication = crate::fixture_cluster::publication(&corpus, 7).unwrap();
+        publication.payloads.insert(FILE.into(), bytes.clone());
+        let fixture = ReaderFixture::new(publication);
+        let opened = fixture.open();
+        opened.authenticate_all().unwrap();
+        let admitted = super::inputs(&opened).unwrap_or_else(|error| panic!("{case}: {error}"));
+        assert_eq!(
+            canonical::encode(&admitted).unwrap(),
+            canonical::encode(&expected).unwrap()
+        );
+        super::bind(&opened, &admitted).unwrap();
+        for item in &admitted.configuration.incarnations {
+            super::storage_input(item).unwrap();
+        }
+        let prepared = super::prepare(opened.try_clone().unwrap(), None).unwrap();
+        assert!(prepared.available && prepared.exact);
+        let replay = super::execute_projected(prepared.execution).unwrap();
+        assert_eq!(
+            crate::replay::divergence::first(&opened.manifest().record, &replay),
+            None
+        );
+        assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), bytes);
+        let mut public_output = Vec::new();
+        let public_status =
+            crate::cli::replay::run(&[fixture.path.to_str().unwrap().into()], &mut public_output)
+                .unwrap_or_else(|error| panic!("{}: {}", error.status, error.message));
+        assert_eq!(public_status, 0);
+        let mut appended = bytes.clone();
+        appended.push(b'\n');
+        std::fs::write(fixture.path.join(FILE), &appended).unwrap();
+        let error = opened.payload(FILE, 16 << 20).unwrap_err();
+        observation(
+            &format!("ordinary/{case}"),
+            json!({"payload_base64":crate::campaign::exploration::base64(&bytes),"appended_base64":crate::campaign::exploration::base64(&appended),"manifest":opened.manifest(),"canonical_inputs":expected}),
+            json!({"canonical_inputs":admitted,"raw_sha256":canonical::digest(&bytes),"appended_error":error}),
         );
     }
 }

@@ -342,15 +342,15 @@ fn simulation_plan(opened: &Opened, inputs: &Inputs) -> Result<Option<simulation
 }
 
 /// # Errors
-/// Decodes bounded canonical cluster inputs from the pinned root.
+/// Decodes bounded, authenticated cluster inputs without changing their raw spelling.
 pub fn inputs(opened: &Opened) -> Result<Inputs, String> {
     if !opened.manifest().record.streams.contains_key(FILE) {
         return Err("retained cluster inputs are not record bound".into());
     }
     let raw = opened.payload(FILE, 16 << 20)?;
-    let value: Inputs = serde_json::from_slice(&raw).map_err(|error| error.to_string())?;
-    if canonical::encode(&value)? != raw || value.schema != "gomad.cluster-replay-inputs/v1" {
-        return Err("unsupported or noncanonical retained cluster replay inputs".into());
+    let value: Inputs = crate::qualify::spec::strict(&raw)?;
+    if value.schema != "gomad.cluster-replay-inputs/v1" {
+        return Err("unsupported retained cluster replay input schema".into());
     }
     Ok(value)
 }
