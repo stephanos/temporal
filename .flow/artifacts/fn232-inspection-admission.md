@@ -48,8 +48,10 @@ members. The public command reaches an existing inspection semantic refusal
 without creating/opening a Result. These binding fixtures are not actual Temporal
 guests or a successful complete inspection qualification. Initial compile/mode
 failures are retained in earlier logs. Strict gomad library/test Clippy exits 0
-in `fn232-inspection-admission-clippy-final.log`. Installation regression results
-are retained separately in `fn232-inspection-admission-install.log`.
+in `fn232-inspection-admission-clippy-final.log`. Installation regressions also pass: 21 tests, zero failures, exit 0 in
+`fn232-inspection-admission-install.log` (1127.70s in debug mode, dominated by
+repeated hashing of the 352 MiB test executable). Exact source/log hashes and
+exit codes are retained in `fn232-inspection-admission-summary.json`.
 
 Fresh independent gpt-6.1-sol/high review found no blocking findings, including
 full-input authentication versus exact selected closure and preservation of
