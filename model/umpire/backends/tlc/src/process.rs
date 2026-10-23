@@ -128,3 +128,22 @@ pub(crate) fn bounded_text(path: &Path, limit: u64) -> Result<String, Refusal> {
     }
     Ok(text)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timeout_cleans_descendants_before_return() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new(&root)?;
+        let heartbeat = scratch.0.join("heartbeat");
+        let mut command = Command::new("python3");
+        command.args(["-c", "import subprocess,sys,time; subprocess.Popen([sys.executable,'-c', 'import time,sys; time.sleep(.2); open(sys.argv[1],\"w\").write(\"leaked\")',sys.argv[1]]); time.sleep(10)"]).arg(&heartbeat);
+        let limits = Limits { timeout: Duration::from_millis(100), ..Limits::default() };
+        assert!(run_process(&mut command, &scratch.0, "tree", limits, None).is_err());
+        thread::sleep(Duration::from_millis(300));
+        assert!(!heartbeat.exists(), "descendant survived timeout");
+        scratch.finish(Ok(()))
+    }
+}

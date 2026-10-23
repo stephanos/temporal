@@ -171,3 +171,46 @@ fn collect_itf(path: &Path, out: &mut Vec<String>, limit: u64) -> Result<(), Ref
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    fn fake(script: &str) -> Result<(Scratch, Apalache), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
+        let java = scratch.0.join("java");
+        fs::write(&java, format!("#!/bin/sh\n{script}\n"))?;
+        fs::set_permissions(&java, fs::Permissions::from_mode(0o700))?;
+        let tool = Apalache {
+            root: scratch.0.clone(), jar: scratch.0.join("fake.jar"), java,
+            limits: Limits::default(),
+        };
+        Ok((scratch, tool))
+    }
+
+    #[test]
+    fn successful_substring_is_not_a_bounded_proof() -> Result<(), Refusal> {
+        let (scratch, tool) = fake("echo 'The outcome is: NoError'")?;
+        let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
+            "control.rs", include_str!("../../../tests/fixtures/sample_kettle/model.rs"),
+        ).map_err(|e| Refusal(e.to_string()))?).map_err(|e| Refusal(e.to_string()))?;
+        let result = tool.check(&module, "ArithmeticSafe", 1);
+        assert!(result.is_err(), "incomplete tool output was admitted");
+        scratch.finish(Ok(()))
+    }
+
+    #[test]
+    fn traces_have_one_aggregate_budget_and_deterministic_order() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new_in(&root, "model/build/apalache")?;
+        fs::write(scratch.0.join("z.itf.json"), "zz")?;
+        fs::write(scratch.0.join("a.itf.json"), "aa")?;
+        assert!(collect_itf(&scratch.0, &mut Vec::new(), 3).is_err());
+        let mut traces = Vec::new();
+        collect_itf(&scratch.0, &mut traces, 4)?;
+        assert_eq!(traces, ["aa", "zz"]);
+        scratch.finish(Ok(()))
+    }
+}
