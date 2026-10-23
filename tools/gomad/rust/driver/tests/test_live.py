@@ -94,7 +94,11 @@ class RawBindingGuards(unittest.TestCase):
                 config['files'] = {str(binary):driver.sha(binary),str(receipt):driver.sha(receipt)}
                 with self.subTest(field=field), self.assertRaises(driver.Refusal): live.role(config,'host-fixture')
             receipt.write_text(json.dumps(original)); config['files'][str(receipt)] = driver.sha(receipt)
-            self.assertEqual(live.role(config,'host-fixture')['binary'],str(binary))
+            with self.assertRaises(driver.Refusal):live.role(config,'host-fixture')
+            from unittest.mock import patch
+            with patch('main_cli_build.read_build',return_value=original) as reader:
+                self.assertEqual(live.role(config,'host-fixture')['binary'],str(binary))
+                reader.assert_called_once_with(str(receipt),config,expected_role='host-fixture')
 
     def test_private35_original_bounds_cannot_be_relaxed(self):
         import live

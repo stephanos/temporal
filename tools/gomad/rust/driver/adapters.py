@@ -7,7 +7,7 @@ import re
 import struct
 import sys
 import time
-
+import main_cli_build
 from driver import (HERE, REPO, Refusal, Unexecuted, bind_identity, check_files, command, coverage,
                     mapping, read, require, sha, subgates, write, busy_host)
 
@@ -40,7 +40,7 @@ def admission(config, root):
     require(sha(config['binary']) == config['binary_sha256'], 'release executable changed')
     require(config.get('features') == [], 'release feature set must be empty')
     require(config['build_receipt'] in config['files'], 'missing frozen release feature build receipt')
-    build = read(config['build_receipt'])
+    build = main_cli_build.read_build(config['build_receipt'], config, expected_role='release')
     require(build['binary_sha256'] == config['binary_sha256'] and build['features'] == []
             and type(build['exit']) is int and build['exit'] == 0 and build['profile'] == 'release', 'unadmitted release build')
     # Build receipt is reviewed input, not a substitute for release CLI admission in qualify.

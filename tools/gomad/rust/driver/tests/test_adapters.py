@@ -30,7 +30,7 @@ class AdapterContract(unittest.TestCase):
             calls=[]
             def command(config,root,name,argv,accepted=(0,)):
                 calls.append((argv,accepted));(root/(name+'.stderr')).write_bytes(expected);return b''
-            with patch.object(self.adapters,'read',return_value=build),patch.object(self.adapters,'command',side_effect=command):
+            with patch('main_cli_build.read_build',return_value=build),patch.object(self.adapters,'command',side_effect=command):
                 self.adapters.admission(config,root)
             self.assertEqual([row[0][-1] for row in calls],['fixture-execution-bundle','fixture-replay-input','fixture-qualify-accounting'])
             self.assertTrue(all(accepted==(2,) for _,accepted in calls))
@@ -44,7 +44,7 @@ class AdapterContract(unittest.TestCase):
                     def bad_command(config,root,name,argv,accepted=(0,)):
                         (root/(name+'.stderr')).write_bytes(b'gomad: unsupported command\n' if mutation=='old-message' else expected)
                         return b'caller output' if mutation=='stdout' else b''
-                    with patch.object(self.adapters,'read',return_value=changed),patch.object(self.adapters,'command',side_effect=bad_command):
+                    with patch('main_cli_build.read_build',return_value=changed),patch.object(self.adapters,'command',side_effect=bad_command):
                         with self.assertRaises(driver.Refusal):self.adapters.admission(config,root)
 
     def test_actual_workload_set_is_exact(self):

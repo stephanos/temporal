@@ -128,7 +128,11 @@ def role(config, name):
     entry = config['live_corpus']['roles'][name]
     for field in ('binary', 'build_receipt'):
         sealed_input(config, entry[field])
-    built = read(entry['build_receipt'])
+    if name in ('release', 'host-fixture'):
+        import main_cli_build
+        built = main_cli_build.read_build(entry['build_receipt'], config, expected_role=name)
+    else:
+        built = read(entry['build_receipt'])
     require(built['exit'] == 0 and built['profile'] == 'release' and built['source_sha256'] == config['source_sha256'],
             'live binary is not the frozen built candidate')
     require(built['binary_sha256'] == sha(entry['binary']) and built['helper_sha256'] == config['identity']['helper']
