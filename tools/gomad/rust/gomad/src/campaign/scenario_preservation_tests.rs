@@ -481,6 +481,11 @@ fn only_crash_before_storage_fault_declares_a_lifecycle_crash() {
                 "occurrence":1,"action":action
             })]).unwrap_or_default()
         });
+        if action.is_none() {
+            value["boots"][0]["storage"] = Value::Null;
+            value["spec"]["volumes"] = json!([]);
+            value["spec"]["nodes"][0]["volumes"] = json!([]);
+        }
         let raw = canonical::encode(&value).unwrap();
         let normalized = normalize(&raw);
         assert_eq!(
