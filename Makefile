@@ -437,7 +437,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/source.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-lint umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-lint umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -456,100 +456,11 @@ umpire-check-testpilot-protocol: $(API_BINPB) $(TESTPILOT_PROTOCOL_PROTOS)
 			mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot \
 			-run '^TestProtocolMessagesCarryLeadingComments$$'
 
-umpire-run:
-	@printf $(COLOR) "Build the Umpire Case runner..."
-	@mise exec -- go build -o ./.build/umpire-run ./tools/umpire/cmd/umpire-run
-	@printf 'Built ./.build/umpire-run\n'
-
-umpire-fuzz:
-	@printf $(COLOR) "Build the Umpire exploration campaign runner..."
-	@mise exec -- go build -o ./.build/umpire-fuzz ./tools/umpire/cmd/umpire-fuzz
-	@printf 'Built ./.build/umpire-fuzz\n'
-
-# One exploration campaign against a deployment named by environment: SET names the exploratory
-# set, UMPIRE_FUZZ_GRPC/UMPIRE_FUZZ_HTTP the frontend, UMPIRE_FUZZ_NAMESPACE/UMPIRE_FUZZ_TASK_QUEUE/
-# UMPIRE_FUZZ_NEXUS_ENDPOINT the resources it binds to (created and removed when UMPIRE_FUZZ_CREATE
-# is set), UMPIRE_FUZZ_FLAGS any further flags such as caps. The bridge is built first.
-umpire-fuzz-run:
-	@test -n "$(SET)" || { printf 'SET=<exploratory set> is required\n'; exit 3; }
-	@for required in UMPIRE_FUZZ_GRPC UMPIRE_FUZZ_HTTP UMPIRE_FUZZ_NAMESPACE UMPIRE_FUZZ_TASK_QUEUE; do \
-		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
-	done
-	@$(MAKE) --no-print-directory umpire-fuzz
-	@$(MAKE) --no-print-directory umpire-ir-bridge
-	@./.build/umpire-fuzz run --set "$(SET)" \
-		--grpc "$$UMPIRE_FUZZ_GRPC" --http "$$UMPIRE_FUZZ_HTTP" \
-		--namespace "$$UMPIRE_FUZZ_NAMESPACE" --task-queue "$$UMPIRE_FUZZ_TASK_QUEUE" \
-		$${UMPIRE_FUZZ_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_FUZZ_NEXUS_ENDPOINT"} \
-		$${UMPIRE_FUZZ_CREATE:+--create} \
-		$(UMPIRE_FUZZ_FLAGS)
-
-umpire-repeat:
-	@printf $(COLOR) "Build the Umpire repeat harness..."
-	@mise exec -- go build -o ./.build/umpire-repeat ./tools/umpire/cmd/umpire-repeat
-	@printf 'Built ./.build/umpire-repeat\n'
-
-# One reproduction loop over the live Testpilot tests: SELECT names the -test.run selection, COUNT
-# the iterations, MODE process (one process each) or in-process (one process with -test.count),
-# RECORD the record file (a new one under ./.build/umpire-repeat when empty), UMPIRE_REPEAT_FLAGS
-# any further flags such as --timeout. It builds the IR bridge the gate uses and runs under the
-# physical temporary directory the gate uses; it is an explicit operator action. SELECT is
-# read unexpanded, so a trailing `$` anchor survives.
-umpire-repeat-run:
-	@test -n '$(value SELECT)' || { printf 'SELECT=<test regex> is required\n'; exit 3; }
-	@test -n "$(COUNT)" || { printf 'COUNT=<iterations> is required\n'; exit 3; }
-	@test -n "$(MODE)" || { printf 'MODE=process|in-process is required\n'; exit 3; }
-	@$(MAKE) --no-print-directory umpire-repeat
-	@$(MAKE) --no-print-directory umpire-ir-bridge
-	@set -eu; \
-		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		record='$(RECORD)'; \
-		if [ -z "$$record" ]; then mkdir -p ./.build/umpire-repeat; record=./.build/umpire-repeat/record-$$(date +%Y%m%dT%H%M%S).jsonl; fi; \
-		TMPDIR="$$physical_tmpdir" mise exec -- ./.build/umpire-repeat run --select '$(value SELECT)' \
-			--count "$(COUNT)" --mode "$(MODE)" --record "$$record" $(UMPIRE_REPEAT_FLAGS)
-
-umpire-replay:
-	@printf $(COLOR) "Build the Umpire replay runner..."
-	@mise exec -- go build -o ./.build/umpire-replay ./tools/umpire/cmd/umpire-replay
-	@printf 'Built ./.build/umpire-replay\n'
-
-# One replay of a recorded violated Run: CASE and RUN name the subject's files, SET and QUERY (or
-# TARGET) the Query the bridge recovers it by, UMPIRE_REPLAY_GRPC/UMPIRE_REPLAY_HTTP the frontend,
-# UMPIRE_REPLAY_NAMESPACE/UMPIRE_REPLAY_TASK_QUEUE/UMPIRE_REPLAY_NEXUS_ENDPOINT the resources the
-# Run was recorded against, UMPIRE_REPLAY_FLAGS any further flags such as --promotion-root. The
-# replay bridge is built first.
-umpire-replay-run:
-	@test -n "$(CASE)" || { printf 'CASE=<case.json> is required\n'; exit 3; }
-	@test -n "$(RUN)" || { printf 'RUN=<recorded run.json> is required\n'; exit 3; }
-	@test -n "$(SET)" || { printf 'SET=<set> is required\n'; exit 3; }
-	@test -n "$(QUERY)$(TARGET)" || { printf 'QUERY=<query> or TARGET=<target key> is required\n'; exit 3; }
-	@for required in UMPIRE_REPLAY_GRPC UMPIRE_REPLAY_HTTP UMPIRE_REPLAY_NAMESPACE UMPIRE_REPLAY_TASK_QUEUE; do \
-		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
-	done
-	@$(MAKE) --no-print-directory umpire-replay
-	@$(MAKE) --no-print-directory umpire-ir-bridge
-	@./.build/umpire-replay run --case "$(CASE)" --run "$(RUN)" --set "$(SET)" \
-		$(if $(QUERY),--query "$(QUERY)") $(if $(TARGET),--target "$(TARGET)") \
-		--grpc "$$UMPIRE_REPLAY_GRPC" --http "$$UMPIRE_REPLAY_HTTP" \
-		--namespace "$$UMPIRE_REPLAY_NAMESPACE" --task-queue "$$UMPIRE_REPLAY_TASK_QUEUE" \
-		$${UMPIRE_REPLAY_NEXUS_ENDPOINT:+--nexus-endpoint "$$UMPIRE_REPLAY_NEXUS_ENDPOINT"} \
-		$(UMPIRE_REPLAY_FLAGS)
-
-umpire-assess:
-	@printf $(COLOR) "Build the Umpire assessment command..."
-	@mise exec -- go build -o ./.build/umpire-assess ./tools/umpire/cmd/umpire-assess
-	@printf 'Built ./.build/umpire-assess\n'
-
-# One offline assessment of a recorded Run: CASE and RUN name the subject's files, PROFILE an
-# Evaluation Profile by its exact name, RECEIPT_ROOT an existing directory outside the model. It
-# creates and replays no Run.
-umpire-assess-run:
-	@test -n "$(CASE)" || { printf 'CASE=<case.json> is required\n'; exit 3; }
-	@test -n "$(RUN)" || { printf 'RUN=<recorded run.json> is required\n'; exit 3; }
-	@test -n "$(PROFILE)" || { printf 'PROFILE=<name> is required\n'; exit 3; }
-	@test -n "$(RECEIPT_ROOT)" || { printf 'RECEIPT_ROOT=<dir> is required\n'; exit 3; }
-	@$(MAKE) --no-print-directory umpire-assess
-	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
+# The one host loop: umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> ...
+umpire:
+	@printf $(COLOR) "Build the Umpire Runner command..."
+	@mise exec -- go build -o ./.build/umpire ./tools/umpire/cmd/umpire
+	@printf 'Built ./.build/umpire\n'
 
 .PHONY: umpire-guest umpire-check-model-slice umpire-check-model-gaps
 umpire-guest: $(API_BINPB)
@@ -615,57 +526,6 @@ umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
 			exit 1; \
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
-
-# The recorded Runs the offline tests pin, each as live-test:variable:record:package:probe -- the
-# live test that records it into the file the variable names, and the offline test that admits
-# it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
-# either leaves the record stale or crossed until it is recorded again live. The current control
-# probe reads its Case from model/cases; the legacy replay pair, receipt goldens and the canary's
-# kind-extraction record remain history.
-UMPIRE_PINNED_RUNS := \
-	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json:./tools/umpire/cmd/umpire-assess:TestAssessWithAModelReproducesTheLiveAssessment
-
-# Re-records every current pinned Run its probe rejects as stale or crossed and leaves a current
-# one alone. A probe failing for any other reason stops the target: re-recording would hide it.
-umpire-rerecord-pinned-runs:
-	@printf $(COLOR) "Re-record stale pinned Testpilot Runs..."
-	@set -eu; \
-		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		log=$$(TMPDIR="$$physical_tmpdir" mktemp); \
-		temporary=; \
-		trap 'rm -f "$$log"; [ -z "$$temporary" ] || rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		for pinned in $(UMPIRE_PINNED_RUNS); do \
-			set -- $$(printf '%s' "$$pinned" | tr ':' ' '); \
-			live=$$1; variable=$$2; record=$$3; package=$$4; probe=$$5; \
-			status=0; \
-			TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -tags test_dep "$$package" \
-				-run "^$$probe"'$$' > "$$log" 2>&1 || status=$$?; \
-			if [ "$$status" -eq 0 ]; then \
-				grep -q "^--- PASS: $$probe " "$$log" || { printf '%s matched no test in %s.\n' "$$probe" "$$package"; exit 1; }; \
-				printf '%s is current.\n' "$$record"; \
-				continue; \
-			fi; \
-			if ! grep -Eq '(stale|crossed): ' "$$log"; then \
-				cat "$$log"; \
-				printf '%s fails %s for another reason than a stale or crossed record.\n' "$$record" "$$probe"; \
-				exit 1; \
-			fi; \
-			printf 'Re-recording %s through %s...\n' "$$record" "$$live"; \
-			temporary=$$(mktemp -d "$$(dirname "$$record")/.rerecord.XXXXXX"); \
-			if ! env "$$variable=$$PWD/$$temporary/run.json" TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -timeout 30m \
-				-tags 'test_dep integration' ./tests -run "^$$live"'$$' > "$$log" 2>&1; then \
-				cat "$$log"; \
-				printf '%s failed; %s is unchanged.\n' "$$live" "$$record"; \
-				exit 1; \
-			fi; \
-			test -s "$$temporary/run.json" || { printf '%s wrote no record.\n' "$$live"; exit 1; }; \
-			mv -f "$$temporary/run.json" "$$record"; \
-			rm -rf "$$temporary"; \
-			temporary=; \
-		done
-	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
-			./common/testing/testpilot/replay ./common/testing/testpilot/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
 
 umpire-ir-bridge:
 	@printf $(COLOR) "Build the Umpire IR bridge..."

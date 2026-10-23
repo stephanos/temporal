@@ -39,12 +39,8 @@ Each command is `tools/umpire/cmd/<name>`. The Make targets build into `.build/`
 | --- | --- | --- |
 | `umpire-gen-cases` | Lowers every Query of `model/ir` and checks or rewrites a managed Case tree: `--kind model` (`model/cases`), `functional` (`tests/testcore/testpilot/testdata/generated`) or `canary` (`tools/canary/casebinding/testdata`) | `umpire-check-cases`, `umpire-gen-cases`, `umpire-check-fixtures`, `umpire-gen-fixtures`, `canary-check-case`, `canary-gen-case` |
 | `umpire-lint` | Lints every IR file of `model/ir`, or the files named, and prints each file's findings and coverage summary; `--tables` adds the per-operation modality tables, `--must-not-pinned` the H5 kind. It fails on a finding no acceptance matches and on a stale acceptance, never on a count. The model gate runs it | `umpire-check-lint` |
-| `umpire-run` | Runs one Case against a Temporal deployment and reports its Verdict; with `--model`, also its Model's assessment of the Run | `umpire-run` |
-| `umpire-assess` | Assesses one recorded Run of one Case under an Evaluation Profile and publishes a receipt; with `--model`, also its Model's assessment of the recorded Run | `umpire-assess`, `umpire-assess-run` |
-| `umpire-ir-bridge` | Serves exploration candidates and replay reductions from `model/ir` to the two commands below | `umpire-ir-bridge` |
-| `umpire-fuzz` | Runs one bounded exploration campaign against a deployment | `umpire-fuzz`, `umpire-fuzz-run` |
-| `umpire-replay` | Replays one violated Run and reduces its Query | `umpire-replay`, `umpire-replay-run` |
-| `umpire-repeat` | Runs a selection of the live tests many times and counts failures by signature | `umpire-repeat`, `umpire-repeat-run` |
+| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see `model/umpire/hosts/go/README.md`) | `umpire` |
+| `umpire-ir-bridge` | Serves exploration candidates and replay reductions from `model/ir` | `umpire-ir-bridge` |
 
 ## Checks
 
