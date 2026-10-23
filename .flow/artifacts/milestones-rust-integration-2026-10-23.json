@@ -1729,18 +1729,271 @@
         "Reference helper source receipt root-module closure followup discovered: current helper build_identity.rs mustbe includedwhenpresent, absent historicalmodulemustnotinventclosure. Ownercausalrepair/reviewactive before newhelperbuild.",
         "ActualGo modulepreparation liveunderownerlease; no guest or threeleg runtime yet. Remaining14legacyrefs, actualmainCLIReleaseadmission, fullfrozen96stagequalification andMILESTONES completion remainpending."
       ]
+    },
+    {
+      "observed_at": "2026-10-23T11:26:44.065642+00:00",
+      "integration_head": "0923e4d58d990ad900040cce6470258831aae039",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-reference-helper-root-custody-tests.log",
+          "bytes": 110,
+          "sha256": "97ef1eb21f3ae85b5cd6ffa39293e70f0f114bd594b7bada9bcc9d72d7e90d52",
+          "exit": 0,
+          "scope": "11reference controller tests pass after de1/root9b9 rootmoduleclosure repair"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-evidence-migration-contract-tests.log",
+          "bytes": 776,
+          "sha256": "045ea01eddbba661db94693d488d3617ca89ae8c676cd962cc393465cfeaff8f",
+          "exit": 0,
+          "scope": "Three assertioncustody/migration tests pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-native-callback-memory-tests.log",
+          "bytes": 515,
+          "sha256": "21dfa690fb51976914b58c0410b5cb38d152e1eb906c9b5da82fcf667f086964",
+          "exit": 0,
+          "scope": "Actual malformed native WASI callback publishes no output/transcript;one pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-execute-request-refusal-tests.log",
+          "bytes": 496,
+          "sha256": "cbba6f9b8c0a7a680499bfc988f05945b68e7d0eb76be6d371dd5e773d6412b5",
+          "exit": 0,
+          "scope": "Actual retained referencehelper rejects both unknown execute fields and kinds beforestarted;one pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-nested-record-refusal-tests.log",
+          "bytes": 531,
+          "sha256": "b726f38aa41c63639a21d0689928a8f79a0f654ef2e90e5caeb98c7e93f79bb2",
+          "exit": 0,
+          "scope": "Actualpublicartifactintake rejects coherent resealed unknown nested fields;one pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-assertion-contract-resolver-tests.log",
+          "bytes": 954,
+          "sha256": "0e3ab702b3f8aee615863a6be68762d00a690c19225c4c01d5758fcbf66281bb",
+          "exit": 101,
+          "scope": "Causal integrationRED: inventory schema rejected migration kind before contractresolution"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-evidence-migration-clippy.log",
+          "bytes": 659,
+          "sha256": "e16c86943a65eb8c1c1500f4202b2e7d7a0db85e5d96b5a6c6a1e732dace516e",
+          "exit": 101,
+          "scope": "StrictClippyRED: original_assertion field ends with structname"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-migration-schema-receiving-tests.log",
+          "bytes": 495,
+          "sha256": "bfc2b1411b6c317ed63e09be6d5b8dac1211dcfe889c7b5e2cff5cd19e62228a",
+          "exit": 0,
+          "scope": "New bounded migrationgrammar regression passes actualinventoryparse plusfive negatives"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-evidence-migration-clippy-fixed.log",
+          "bytes": 176,
+          "sha256": "4adf00075666f6324b7b44e21ff1212f1c22800e5d500adbaba00a1f2a108d28",
+          "exit": 0,
+          "scope": "Strict release referencehelper inventory/diagnostic/engine Clippy passes"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-post-contract-source-inventory.log",
+          "bytes": 3332,
+          "sha256": "0f24cb865a58bcb1dadc8c9fac76b4e6b7aad2135a579e55f3e6d30a8c1af825",
+          "exit": 0,
+          "scope": "39source/runtime inventory tests pass;only known fullreference resolver filtered;freshv5stockGo runtimecollector executed"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-post-contract-full-reference-resolver.log",
+          "bytes": 1598,
+          "sha256": "c440cb3b5821b90e35d7ad364e0e2f65f1961a4a63c3aadcbb41b38760947ee1",
+          "exit": 101,
+          "scope": "Five legacy references remain unresolved;0pass1fail39filtered"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-post-contract-workspace-clippy.log",
+          "bytes": 279,
+          "sha256": "85008832e2947dce042e317b7d33619e2b59fe22bc6c9dec0daef10068803902",
+          "exit": 0,
+          "scope": "Strict release workspace bothlibraries/tests Clippy passes"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-interception-receiving-tests.log",
+          "bytes": 115,
+          "sha256": "e99e9dcfb2cc454775d532dee5cf99ea85295938e649de72c869726bdde1dbef",
+          "exit": 0,
+          "scope": "16new interception offline reader controls pass;noGo executioncredit"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-installed-cluster-reader-tests.log",
+          "bytes": 104,
+          "sha256": "62cfbeb2911bb226088bfb0918eb4b05008ea70b20bce854ee2ca8a564bd37a5",
+          "exit": 0,
+          "scope": "Six installedoperator rawreader controls pass;actualproducerunrun"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-main-cli-build-reader-tests.log",
+          "bytes": 101,
+          "sha256": "1a237372ca7654a1c7c71167dbc4f78b157842d3fee3d4fd4a19e55edc3366fd",
+          "exit": 0,
+          "scope": "Three closedmainCLIbuild reader control groups pass;actualmainbuildunrun"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-main-cli-admission-reader-tests.log",
+          "bytes": 109,
+          "sha256": "32b2d9a54721f0bfc22bcd5f9c6d4dc0cfb519a608747e55e4ab4f093ca15384",
+          "exit": 0,
+          "scope": "10mainCLIadmission reader controls pass"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-main-interception-installed-driver-tests.log",
+          "bytes": 519,
+          "sha256": "0a6cbe9f6b0b7c343d6bf7d02eab0c3ef772bfefc5a46e4c1599be9e67939267",
+          "exit": 0,
+          "scope": "Joined328Python driver tests pass13.673s"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-environment-reference-tests.jsonl",
+          "bytes": 6666,
+          "sha256": "09d5523bb6106a8c1de6a8b11a79f8aca7e5ef82df899a32f624195899e7c76e",
+          "exit": 0,
+          "scope": "ActualretainedGo model test:five configsubcases andsix malformedJSON loop cases pass withoutskip"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-environment-reference-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exit": 0,
+          "scope": "ActualretainedGo model test:five configsubcases andsix malformedJSON loop cases pass withoutskip"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/home/agent/evidence/fn232-root-runtime-inventory-v5/exit.json",
+          "bytes": 2229,
+          "sha256": "e318fc5260588f18ffe1a14bf22eae4fe24d511be6c4330d126f98c307160ef8"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-root-runtime-inventory-v5/sites.json",
+          "bytes": 404654,
+          "sha256": "0763be773cadbea190800ffb2920cac29e2e6a21ce003fa982be328db9c59ee1"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-measurement-original-runtime-v2/terminal-module-v1/terminal-module.json",
+          "bytes": 2268,
+          "sha256": "752761b357cdebc7d4e77b00bd38291d1b862e3d4930cf67b1b8dfa4531bf751"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/native-producer-command.json",
+          "bytes": 1608,
+          "sha256": "036474cd99533f1ac1da0d1fbb7f3c890066830fdcf421272f226c5687dfa295"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/native-uncached-v3-command.json",
+          "bytes": 1545,
+          "sha256": "377b0c42b1362e1b29be26b26250655b4edc935a5a406e1619c11998e573bd9a"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/original-reference-pair-v3/manifest.json",
+          "bytes": 3202,
+          "sha256": "38bdb1b1b800b58b8c093345b21f7cf70012b33daff2afcfe64a88f1c8738deb"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-measurement-original-runtime-v2/three-leg-read.json",
+          "bytes": 3587,
+          "sha256": "e954eca9a8228c5459f297bd3f0116574c0f75d1f5bfbb1f00ca5dc19c860315"
+        }
+      ],
+      "completed_scope": [
+        "9b9c044b79 seals actualtracked rootRust identity modules in referencehelpercustody, historical moduleabsence and immutableGit bytechecks retained.",
+        "1aa7f924d1 receives exactnative mappings plus six explicit eliminatedGo-peer-wire migrationcontracts; original_pass=false pinned throughout, everyoriginalassertion id/description hash/file/source/count bound; invented-output andexcess-fuel remainPENDING. Rootactualthree migrationtests and three newnative refusals pass.",
+        "Actualreceiving exposed inventoryschema missing newmigrationkind andstrictClippyfieldnaming failure;2a94c6b283 repairs boundedshapeadmission andinternalserdealias, with independentreview/new positive+five grammarnegatives. WireJSON/assertionhashes unchanged.",
+        "7a35a770a8 moves four EnvironmentRejectsAmbiguousInputsAndMalformedCalls evidence refs to identicalretainedGo modeltest. ActualstockGo fiveconfigvariants andall sixmalformedJSON inputs pass. All510ID/site andotherinventoryfields preserved. This isGomodelsourceproof, notRustalias orruntimequalification.",
+        "Actualsource/runtime inventory39PASS withoneknownresolverexcluded; fullresolverstillfails onexactfive refs. StrictreleaseworkspaceClippy and328joinedPython tests pass.",
+        "d418bf83ea adds four freshfn233ordinaryauto/manual/P2/hiddenreplay receivingfiles;16offlinecontrols pass, original81cases/21real/96labels unchanged. ActualGo/fixture/hiddenruns stillunrun.",
+        "34961908c2 adds completeoriginalinstalleddeadlock/capacityproducer+independentrawreader; sixpurecontrols pass. Originaltop-levelinspectiontotals assertions remain andpredict possibleproductionbug. Actualcausalnativeinstalledgateawaitsmainbuild; productionprojection NOTchanged.",
+        "0923e4d58d adds closedordinary/hostfixturemainCLIproducerandindependentcompiledsource/Cargoartifact/processreceiptreader, freezer/admissionhooks rejectlegacywrappers; actualmainbuildunrun. FreshGNUv2metadata underway because live.py changed."
+      ],
+      "runtime_comparison": {
+        "status": "RAW_BEHAVIOR_MATCH_ORIGINAL_SOURCE_CUSTODY_INVALID",
+        "final_qualification": false,
+        "request_sha256": "9335663302d356eb66b7cc928ed6a37c1a8e387fd0c13475cd4cab02f5b59ac6",
+        "module_sha256": "fe8765b6c1711ea8b092688d060416e071c34fa457366ae47f02d37d45be0d6e",
+        "raw_stream_bytes": {
+          "stdout": 20,
+          "stderr": 0,
+          "wasi": 778,
+          "choice": 19200000,
+          "network": 0,
+          "terminal": 16
+        },
+        "calls_each": 200037,
+        "raw_poll_frames": 100000,
+        "raw_result_frames": 100000,
+        "numeric_exits": [
+          0,
+          0,
+          0
+        ],
+        "processes_reaped": true,
+        "scope": "Independentread finds sixcanonicalrawstreams byteequal overuncachednative/Go/helper with exactrawargv/env/seed/limits; sourcecda Rust/controllerde1. NO exact-originalsourceacceptance orperformance/finalqualification claim.",
+        "source_custody_gap": {
+          "path": "schema/elasticsearch/visibility/index_template_v7.json",
+          "original_literal": "./versioned/v15/index_template_v7.json",
+          "derived_literal": "versioned/v15/index_template_v7.json",
+          "original_git_blob": "1715358156cfa74e84dbd0b53be889f90df29f3c",
+          "derived_git_blob": "3788ac0301269049c7a6c8ad72d7e1b68aec5222",
+          "cause": "tarfilter normalizedliteral; oldverify comparesderivedtreewithselfmanifest withoutbindingoriginalarchivemembers; coherentunapprovedmodificationaccepted",
+          "pending": "Freshliteral-preservingderive-v3+closed archive/treeverifiercausalrepair/review+Go rebuild/rerun; oldv2sourceandpairv3recordsremainimmutable"
+        }
+      },
+      "reviews": [
+        {
+          "agent": "/root/remaining_model_predicates/review_evidence_migration_contracts",
+          "scope": "bec82007d6 originalassertioncustody+six explicitmigrationcontracts",
+          "status": "No findingsafterassertiondescription/filehash hardening; no runtimeclaim",
+          "same_family": true
+        },
+        {
+          "agent": "/root/namespace_reference_migration_review",
+          "scope": "Rootschema/serdealias repair and exactretainedEnvironmentGo reference",
+          "status": "Sourceclear; exact11originalcases retained; newmigrationkind cannotbypassallowlist/pendingassertions",
+          "same_family": true
+        },
+        {
+          "agent": "/root/namespace_reference_migration_review",
+          "scope": "Actualthreeleg fullraw/process/sourcecustody audit",
+          "status": "RawbehaviorMATCH, BLOCKER originalsource120000literaldiscrepancy; allother9690archivepayloads/modesverified",
+          "same_family": true
+        },
+        {
+          "agent": "/root/qualification_composition/review_cells",
+          "scope": "652f mainCLIproducer/library+bin/features/compiledsource/pids/receipt hooks",
+          "status": "Sourceclear;actualmainbuild notexecuted",
+          "same_family": true
+        }
+      ],
+      "pending": [
+        "Five unresolved originalrefs: ExecutedDivergenceArtifacts, InstalledOperatorClusterFailureEndsPromptly, CooperativeRuntimeQualification, TerminalExitMeasurementControls, TransportRejectsInvalidTerminalClaims. No overallinventoryPASS.",
+        "Full MILESTONES/frozen96stages146obligations unachieved. Broad78/46/24 source/readers stilldeveloping, selectedbootnetwork12variants remains explicitpartial; no broadrootPASS alias.",
+        "Originalruntimeexactsourceclosure rerun pending. Original./tests342575376byte terminalmodule genuinelyprepared at original4GiB/2^50/threeorderedtags, actualterminalcontrol/workload execution andfinalstageadmission stillpending.",
+        "ActualmainCLIpreparatorybuild toexposeinstalledoperatorprojection gap pendingfreshGNUv2+sourceguardfollowup; finalfrozenmain/fixture builds remainlater.",
+        "Actualfn23321real/twogenerations/full81goldens/currentFrontend/hiddenreplays andcoherentfinalMake remainpending; no96manifest changes."
+      ]
     }
   ],
   "resource_snapshot": {
-    "observed_at": "2026-10-23T11:02:27.097473+00:00",
-    "worktrees": "worktree /Users/stephan/Workspace/skunkworks/gomad/temporal\nHEAD df6672afbf164142d075b46e143ec3f49ecfd322\nbranch refs/heads/gomad\n\nworktree /home/agent/wt/fn185-attribution-fix\nHEAD 0ee0ebd6ef7b55d4ae12e3e63b3db4075b277da9\nbranch refs/heads/fn185-attribution-fix\n\nworktree /home/agent/wt/fn185-rust-attribution\nHEAD cac5b294eb6de2985d0d529a793c73927feb171a\nbranch refs/heads/fn185-rust-attribution\n\nworktree /home/agent/wt/fn188-measurement-stress\nHEAD d14494a5da1c64439c3519fe9e3c07e3b5ebec20\nbranch refs/heads/fn188-measurement-stress\n\nworktree /home/agent/wt/fn188-rust-stress\nHEAD 175d69612f685c19881648011f18e230e6d99c73\nbranch refs/heads/fn188-rust-stress\n\nworktree /home/agent/wt/fn221\nHEAD fff7a9575e10bd391b1c44e506d1bf57a8986d34\nbranch refs/heads/fn221-sweep\n\nworktree /home/agent/wt/fn221-matrix\nHEAD d414f0fda7dd429ed5dd6afbe9842ade8bdb5c97\nbranch refs/heads/fn221-matrix\n\nworktree /home/agent/wt/fn221-rerun-src\nHEAD 1d7b37f00a74a85399993f1edcad6fe742e778e3\ndetached\n\nworktree /home/agent/wt/fn222-driver\nHEAD b573067ee32c6bdac9c9772acc6a0505be4c4e49\nbranch refs/heads/fn222-driver\n\nworktree /home/agent/wt/fn222-inspection\nHEAD c030316863ef3b18a96a28ea58cb988a66a589a0\nbranch refs/heads/fn222-inspection\n\nworktree /home/agent/wt/fn222-support\nHEAD 64f987af5b7b42d56f4ec9f3bb2ecd127531bf9f\nbranch refs/heads/fn222-support-v2\n\nworktree /home/agent/wt/fn230-sites\nHEAD aa0e2af51459e541e8dddaa6c53b762b239f879c\nbranch refs/heads/fn230-sites\n\nworktree /home/agent/wt/fn232-broad-allocation-receiving\nHEAD 74b9660aded452e30d4c1f797d3eb8003de6ee26\nbranch refs/heads/fn232-broad-allocation-receiving\n\nworktree /home/agent/wt/fn232-broad-codec-reader\nHEAD 44db0e164e40e8218c0dadb254df78019b73d7af\nbranch refs/heads/fn232-broad-codec-reader\n\nworktree /home/agent/wt/fn232-broad-fixed-harness\nHEAD 61f0f2e0eee30c41491c3b687d3ecd648978f7f1\nbranch refs/heads/fn232-broad-fixed-harness\n\nworktree /home/agent/wt/fn232-broad-guest-receiving\nHEAD 26c2fb83972dff662c5824e08a2d7ad5c6e7f2b4\nbranch refs/heads/fn232-broad-guest-receiving\n\nworktree /home/agent/wt/fn232-broad-inspection-reader\nHEAD cfaa3d2187fb6daed75d399059127c2d5c37fa98\nbranch refs/heads/fn232-broad-inspection-reader\n\nworktree /home/agent/wt/fn232-broad-lifecycle-receiving\nHEAD d451c84c4575f004b5be8eda90dac268e232e3c5\nbranch refs/heads/fn232-broad-lifecycle-receiving\n\nworktree /home/agent/wt/fn232-broad-network-reader\nHEAD abf734fdf20acc7364a0d85d758395e9355b5677\ndetached\n\nworktree /home/agent/wt/fn232-broad-retained-matrix\nHEAD 40008989a4200da6e8fef8e822b6780b82e6bec3\nbranch refs/heads/fn232-broad-retained-matrix\n\nworktree /home/agent/wt/fn232-broad-world-reader\nHEAD 69d4a40e87bc95c9ce9268d7d3d36f2d172842ab\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe\nHEAD 1d695061b6382009d0659238c652a5a765b1d5f5\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v3\nHEAD 412dc2488c4c63b8951f1abcf011fd7b96d2ee33\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v4\nHEAD a1e0bdf513e074c8b9b19062fef4dfd5356393a2\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v5\nHEAD 5fb6056cf351416bacd541ec59fdb04006d944c1\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v6\nHEAD d392dec327c5573da9076e9cd50054c3b15125e6\ndetached\n\nworktree /home/agent/wt/fn232-cluster-pairs\nHEAD 4aab58c6ba35b73f8d5176bd0a6a7ff2e4740553\nbranch refs/heads/fn232-cluster-pairs\n\nworktree /home/agent/wt/fn232-controls-reference\nHEAD 96b353793c77851065da3996e9555647e47e8e34\ndetached\n\nworktree /home/agent/wt/fn232-core-functional-predicates\nHEAD 1c944d4fbf993ab612abe7d276db4b6e8b9d7824\nbranch refs/heads/fn232-core-functional-predicates\n\nworktree /home/agent/wt/fn232-core-host-reach\nHEAD e2708ad8f1f5588c5651059dab28cea7e096d95b\nbranch refs/heads/fn232-core-host-reach\n\nworktree /home/agent/wt/fn232-core-inspection-predicates\nHEAD f04f9ae764bbead7cb224774b55f435ff57f2021\nbranch refs/heads/fn232-core-inspection-predicates\n\nworktree /home/agent/wt/fn232-core-lifecycle-predicates\nHEAD 7a11ead9b7fb8b3ad9fdf9d12cdb5b5938f67895\nbranch refs/heads/fn232-core-lifecycle-predicates\n\nworktree /home/agent/wt/fn232-core-model-reach\nHEAD eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1\nbranch refs/heads/fn232-core-model-reach\n\nworktree /home/agent/wt/fn232-core-reach\nHEAD cfaa3d2187fb6daed75d399059127c2d5c37fa98\nbranch refs/heads/fn232-core-reach\n\nworktree /home/agent/wt/fn232-core-retained-predicates\nHEAD fc986986abd9b66e082fdfc0c64c01f54fab792f\nbranch refs/heads/fn232-core-retained-predicates\n\nworktree /home/agent/wt/fn232-determinism-exact\nHEAD 27f89abb2cb2e18181d24ed6c455f4bfa5818cf6\nbranch refs/heads/fn232-determinism-exact\n\nworktree /home/agent/wt/fn232-determinism-reach\nHEAD f776ad0e015fa46683c3311fb0750fc73fccecf9\nbranch refs/heads/fn232-determinism-reach\n\nworktree /home/agent/wt/fn232-final-composition\nHEAD dd1670b4896c905186ad5982405f925128323a42\nbranch refs/heads/fn232-final-composition\n\nworktree /home/agent/wt/fn232-final-profiles\nHEAD f43b2abc7280781f4b9274ff813675196ac253f6\nbranch refs/heads/fn232-final-profiles\n\nworktree /home/agent/wt/fn232-final-retained\nHEAD cfa92a24ba62200b0fb38b9687cb6b29eb5302e9\nbranch refs/heads/fn232-final-retained\n\nworktree /home/agent/wt/fn232-final-role-validation\nHEAD e8d1c1a054f893b2064ea101f81bcd6f81b30837\nbranch refs/heads/fn232-final-role-validation\n\nworktree /home/agent/wt/fn232-foundation\nHEAD 8f47d368fcc3e6a5a82058f02d8ae8f650c1d740\nbranch refs/heads/fn-232-gomad-rewrite-the-host-side-in-rust\n\nworktree /home/agent/wt/fn232-inspection-admission\nHEAD bdafd0973c056b5a938ef7295ae1f9590e18b094\nbranch refs/heads/fn232-inspection-admission\n\nworktree /home/agent/wt/fn232-install\nHEAD fbb99949b82ccb5ea4d5dafa08732f829ef20467\nbranch refs/heads/fn232-install\n\nworktree /home/agent/wt/fn232-installed-lifecycle\nHEAD 63c5510aadf934012e1484782355889205dfae4a\nbranch refs/heads/fn232-installed-lifecycle\n\nworktree /home/agent/wt/fn232-linked-cache\nHEAD c07df2cc6872e1735f8b8d871df027017271ae3b\nbranch refs/heads/fn232-linked-cache\n\nworktree /home/agent/wt/fn232-live-corpus\nHEAD aafbcad9381bcb57c1e7d33852dc5c5709aa5e2a\nbranch refs/heads/fn232-live-corpus\n\nworktree /home/agent/wt/fn232-mandatory-workloads\nHEAD cc907477eb7b8fbfa29dcb0a0abf8835687018e4\nbranch refs/heads/fn232-mandatory-workloads\n\nworktree /home/agent/wt/fn232-measurement-artifacts\nHEAD 234e6d2234c83651eab2ecd91d0151bbf4b29c71\nbranch refs/heads/fn232-measurement-artifacts\n\nworktree /home/agent/wt/fn232-measurement-completion\nHEAD cda65407c6ab0d72d8c3061bca8b87b32def7b40\nbranch refs/heads/fn232-measurement-completion\n\nworktree /home/agent/wt/fn232-measurement-digest-only\nHEAD a9d99890100e5298479028e6adee8903608b7fff\nbranch refs/heads/fn232-measurement-digest-only\n\nworktree /home/agent/wt/fn232-measurement-lint\nHEAD ca8fce5aad35fbc7abe8c9681401f2b96c5b8ad6\nbranch refs/heads/fn232-measurement-lint\n\nworktree /home/agent/wt/fn232-measurement-memory\nHEAD 11634cea1b86b9e7182218edb662f0c44dfc559c\nbranch refs/heads/fn232-measurement-memory\n\nworktree /home/agent/wt/fn232-measurement-migration\nHEAD 99a05923af27ce4d38dbdc08354b128082f363b7\nbranch refs/heads/fn232-measurement-migration\n\nworktree /home/agent/wt/fn232-measurement-reach\nHEAD 51b566a2ba19d3d012af5e0b38489e5ee64840e7\nbranch refs/heads/fn232-measurement-reach\n\nworktree /home/agent/wt/fn232-measurement-terminal-collection\nHEAD 75e33dd5376ebc902f06f7675ca500d062d7fc85\nbranch refs/heads/fn232-measurement-terminal-collection\n\nworktree /home/agent/wt/fn232-minimize\nHEAD 92ef3e3403e3e66e9192b7d07bb950f1d56716c8\nbranch refs/heads/fn232-minimize\n\nworktree /home/agent/wt/fn232-native-import\nHEAD dc7fa146194e715fb5fc94a1b6218fc68453b6bc\nbranch refs/heads/fn232-native-import\n\nworktree /home/agent/wt/fn232-primary-terminal\nHEAD 6cfe43bf96b74b3b2febcc7ae0b2dfad1fc0bcee\nbranch refs/heads/fn232-primary-terminal\n\nworktree /home/agent/wt/fn232-profile-reference\nHEAD 619f03c6cac21b3f34414510ffdde2d90cbdfecb\nbranch refs/heads/fn232-profile-reference\n\nworktree /home/agent/wt/fn232-receiving-reader\nHEAD ba4958663f46d796611b382eec90d55116ffb9d1\nbranch refs/heads/fn232-receiving-reader\n\nworktree /home/agent/wt/fn232-remaining-model-predicates\nHEAD 87e85d25a86b694ed6d1de3020ca12deb43b663c\nbranch refs/heads/fn232-remaining-model-predicates\n\nworktree /home/agent/wt/fn232-retirement\nHEAD f0e8b834f49f27cb452c43c7bbaaca27c4a1fbcd\nbranch refs/heads/fn232-retirement\n\nworktree /home/agent/wt/fn232-runtime-qualification\nHEAD 50a22fb6d9e0339f266f0f2d6611ebf581ac0091\nbranch refs/heads/fn232-runtime-qualification\n\nworktree /home/agent/wt/fn232-rust-driver\nHEAD dd2c39b5b464d0a120c089ea59fb1d06b8671067\nbranch refs/heads/fn232-rust-driver\n\nworktree /home/agent/wt/fn232-simulation\nHEAD 1c9a79255bca2e6468c780da78b6cfe4f2b620ab\nbranch refs/heads/fn232-simulation\n\nworktree /home/agent/wt/fn232-sweep-receiver\nHEAD 27811042002a27f8d73c04f2f60890d8c6d9f88a\nbranch refs/heads/fn232-sweep-receiver\n\nworktree /home/agent/wt/fn232-world-codec\nHEAD 13dbbf69e4a53097ee18c8f76e804fff2d02ac94\nbranch refs/heads/fn232-world-codec\n\nworktree /home/agent/wt/fn233-interception\nHEAD 4939d87c16c93de978b694934943d11c7ed655df\nbranch refs/heads/fn233-interception\n\n",
+    "observed_at": "2026-10-23T11:26:44.065642+00:00",
+    "worktrees": "worktree /Users/stephan/Workspace/skunkworks/gomad/temporal\nHEAD 0923e4d58d990ad900040cce6470258831aae039\nbranch refs/heads/gomad\n\nworktree /home/agent/wt/fn185-attribution-fix\nHEAD 0ee0ebd6ef7b55d4ae12e3e63b3db4075b277da9\nbranch refs/heads/fn185-attribution-fix\n\nworktree /home/agent/wt/fn185-rust-attribution\nHEAD cac5b294eb6de2985d0d529a793c73927feb171a\nbranch refs/heads/fn185-rust-attribution\n\nworktree /home/agent/wt/fn188-measurement-stress\nHEAD d14494a5da1c64439c3519fe9e3c07e3b5ebec20\nbranch refs/heads/fn188-measurement-stress\n\nworktree /home/agent/wt/fn188-rust-stress\nHEAD 175d69612f685c19881648011f18e230e6d99c73\nbranch refs/heads/fn188-rust-stress\n\nworktree /home/agent/wt/fn221\nHEAD fff7a9575e10bd391b1c44e506d1bf57a8986d34\nbranch refs/heads/fn221-sweep\n\nworktree /home/agent/wt/fn221-matrix\nHEAD d414f0fda7dd429ed5dd6afbe9842ade8bdb5c97\nbranch refs/heads/fn221-matrix\n\nworktree /home/agent/wt/fn221-rerun-src\nHEAD 1d7b37f00a74a85399993f1edcad6fe742e778e3\ndetached\n\nworktree /home/agent/wt/fn222-driver\nHEAD b573067ee32c6bdac9c9772acc6a0505be4c4e49\nbranch refs/heads/fn222-driver\n\nworktree /home/agent/wt/fn222-inspection\nHEAD c030316863ef3b18a96a28ea58cb988a66a589a0\nbranch refs/heads/fn222-inspection\n\nworktree /home/agent/wt/fn222-support\nHEAD 64f987af5b7b42d56f4ec9f3bb2ecd127531bf9f\nbranch refs/heads/fn222-support-v2\n\nworktree /home/agent/wt/fn230-sites\nHEAD aa0e2af51459e541e8dddaa6c53b762b239f879c\nbranch refs/heads/fn230-sites\n\nworktree /home/agent/wt/fn232-broad-allocation-receiving\nHEAD 08c3a8b256a301417feee22404613c360ac534a9\nbranch refs/heads/fn232-broad-allocation-receiving\n\nworktree /home/agent/wt/fn232-broad-codec-reader\nHEAD 44db0e164e40e8218c0dadb254df78019b73d7af\nbranch refs/heads/fn232-broad-codec-reader\n\nworktree /home/agent/wt/fn232-broad-fixed-harness\nHEAD dd5a2de307c6f53bbd31a6a8135f09524d1badee\nbranch refs/heads/fn232-broad-fixed-harness\n\nworktree /home/agent/wt/fn232-broad-guest-receiving\nHEAD 26c2fb83972dff662c5824e08a2d7ad5c6e7f2b4\nbranch refs/heads/fn232-broad-guest-receiving\n\nworktree /home/agent/wt/fn232-broad-guests-reader\nHEAD 19f7457d25f034959db8ba7c5ea7da786365c44f\nbranch refs/heads/fn232-broad-guests-reader\n\nworktree /home/agent/wt/fn232-broad-inspection-reader\nHEAD e54c714d44e9518feb5cb0025d6131d0b5da9df7\nbranch refs/heads/fn232-broad-inspection-reader\n\nworktree /home/agent/wt/fn232-broad-lifecycle-receiving\nHEAD f044b6ba2aa0c2f3718e015b285ea2c6cba98c08\nbranch refs/heads/fn232-broad-lifecycle-receiving\n\nworktree /home/agent/wt/fn232-broad-network-reader\nHEAD abf734fdf20acc7364a0d85d758395e9355b5677\ndetached\n\nworktree /home/agent/wt/fn232-broad-retained-matrix\nHEAD 65d73593d7d5c1287496e488fbb685c4a294bac7\nbranch refs/heads/fn232-broad-retained-matrix\n\nworktree /home/agent/wt/fn232-broad-world-reader\nHEAD 69d4a40e87bc95c9ce9268d7d3d36f2d172842ab\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe\nHEAD 1d695061b6382009d0659238c652a5a765b1d5f5\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v3\nHEAD 412dc2488c4c63b8951f1abcf011fd7b96d2ee33\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v4\nHEAD a1e0bdf513e074c8b9b19062fef4dfd5356393a2\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v5\nHEAD 5fb6056cf351416bacd541ec59fdb04006d944c1\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v6\nHEAD d392dec327c5573da9076e9cd50054c3b15125e6\ndetached\n\nworktree /home/agent/wt/fn232-cluster-pairs\nHEAD 4aab58c6ba35b73f8d5176bd0a6a7ff2e4740553\nbranch refs/heads/fn232-cluster-pairs\n\nworktree /home/agent/wt/fn232-controls-reference\nHEAD 96b353793c77851065da3996e9555647e47e8e34\ndetached\n\nworktree /home/agent/wt/fn232-core-functional-predicates\nHEAD 1c944d4fbf993ab612abe7d276db4b6e8b9d7824\nbranch refs/heads/fn232-core-functional-predicates\n\nworktree /home/agent/wt/fn232-core-host-reach\nHEAD e2708ad8f1f5588c5651059dab28cea7e096d95b\nbranch refs/heads/fn232-core-host-reach\n\nworktree /home/agent/wt/fn232-core-inspection-predicates\nHEAD f04f9ae764bbead7cb224774b55f435ff57f2021\nbranch refs/heads/fn232-core-inspection-predicates\n\nworktree /home/agent/wt/fn232-core-lifecycle-predicates\nHEAD 7a11ead9b7fb8b3ad9fdf9d12cdb5b5938f67895\nbranch refs/heads/fn232-core-lifecycle-predicates\n\nworktree /home/agent/wt/fn232-core-model-reach\nHEAD eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1\nbranch refs/heads/fn232-core-model-reach\n\nworktree /home/agent/wt/fn232-core-reach\nHEAD 7f45d249b616e2e1da3b0ae01e35ed131b5d91c2\nbranch refs/heads/fn232-core-reach\n\nworktree /home/agent/wt/fn232-core-retained-predicates\nHEAD fc986986abd9b66e082fdfc0c64c01f54fab792f\nbranch refs/heads/fn232-core-retained-predicates\n\nworktree /home/agent/wt/fn232-determinism-exact\nHEAD 27f89abb2cb2e18181d24ed6c455f4bfa5818cf6\nbranch refs/heads/fn232-determinism-exact\n\nworktree /home/agent/wt/fn232-determinism-reach\nHEAD f776ad0e015fa46683c3311fb0750fc73fccecf9\nbranch refs/heads/fn232-determinism-reach\n\nworktree /home/agent/wt/fn232-final-composition\nHEAD dd1670b4896c905186ad5982405f925128323a42\nbranch refs/heads/fn232-final-composition\n\nworktree /home/agent/wt/fn232-final-profiles\nHEAD f43b2abc7280781f4b9274ff813675196ac253f6\nbranch refs/heads/fn232-final-profiles\n\nworktree /home/agent/wt/fn232-final-retained\nHEAD 6938d43f0aeff03a53d68091cfa72d9dc489221b\nbranch refs/heads/fn232-final-retained\n\nworktree /home/agent/wt/fn232-final-role-validation\nHEAD e8d1c1a054f893b2064ea101f81bcd6f81b30837\nbranch refs/heads/fn232-final-role-validation\n\nworktree /home/agent/wt/fn232-foundation\nHEAD 8f47d368fcc3e6a5a82058f02d8ae8f650c1d740\nbranch refs/heads/fn-232-gomad-rewrite-the-host-side-in-rust\n\nworktree /home/agent/wt/fn232-inspection-admission\nHEAD bdafd0973c056b5a938ef7295ae1f9590e18b094\nbranch refs/heads/fn232-inspection-admission\n\nworktree /home/agent/wt/fn232-install\nHEAD fbb99949b82ccb5ea4d5dafa08732f829ef20467\nbranch refs/heads/fn232-install\n\nworktree /home/agent/wt/fn232-installed-lifecycle\nHEAD 63c5510aadf934012e1484782355889205dfae4a\nbranch refs/heads/fn232-installed-lifecycle\n\nworktree /home/agent/wt/fn232-linked-cache\nHEAD c07df2cc6872e1735f8b8d871df027017271ae3b\nbranch refs/heads/fn232-linked-cache\n\nworktree /home/agent/wt/fn232-live-corpus\nHEAD aafbcad9381bcb57c1e7d33852dc5c5709aa5e2a\nbranch refs/heads/fn232-live-corpus\n\nworktree /home/agent/wt/fn232-mandatory-workloads\nHEAD cc907477eb7b8fbfa29dcb0a0abf8835687018e4\nbranch refs/heads/fn232-mandatory-workloads\n\nworktree /home/agent/wt/fn232-measurement-artifacts\nHEAD 234e6d2234c83651eab2ecd91d0151bbf4b29c71\nbranch refs/heads/fn232-measurement-artifacts\n\nworktree /home/agent/wt/fn232-measurement-completion\nHEAD cda65407c6ab0d72d8c3061bca8b87b32def7b40\nbranch refs/heads/fn232-measurement-completion\n\nworktree /home/agent/wt/fn232-measurement-digest-only\nHEAD a9d99890100e5298479028e6adee8903608b7fff\nbranch refs/heads/fn232-measurement-digest-only\n\nworktree /home/agent/wt/fn232-measurement-lint\nHEAD ca8fce5aad35fbc7abe8c9681401f2b96c5b8ad6\nbranch refs/heads/fn232-measurement-lint\n\nworktree /home/agent/wt/fn232-measurement-memory\nHEAD 11634cea1b86b9e7182218edb662f0c44dfc559c\nbranch refs/heads/fn232-measurement-memory\n\nworktree /home/agent/wt/fn232-measurement-migration\nHEAD 99a05923af27ce4d38dbdc08354b128082f363b7\nbranch refs/heads/fn232-measurement-migration\n\nworktree /home/agent/wt/fn232-measurement-reach\nHEAD 51b566a2ba19d3d012af5e0b38489e5ee64840e7\nbranch refs/heads/fn232-measurement-reach\n\nworktree /home/agent/wt/fn232-measurement-runtime-adapter\nHEAD de1c502060cdfd8187c109bbee0861e77f5dc5bc\nbranch refs/heads/fn232-measurement-runtime-adapter\n\nworktree /home/agent/wt/fn232-measurement-terminal-collection\nHEAD 75e33dd5376ebc902f06f7675ca500d062d7fc85\nbranch refs/heads/fn232-measurement-terminal-collection\n\nworktree /home/agent/wt/fn232-minimize\nHEAD 92ef3e3403e3e66e9192b7d07bb950f1d56716c8\nbranch refs/heads/fn232-minimize\n\nworktree /home/agent/wt/fn232-native-import\nHEAD dc7fa146194e715fb5fc94a1b6218fc68453b6bc\nbranch refs/heads/fn232-native-import\n\nworktree /home/agent/wt/fn232-primary-terminal\nHEAD 652f59300bdd8169ad0efc2f54c169c85c020e6c\nbranch refs/heads/fn232-primary-terminal\n\nworktree /home/agent/wt/fn232-profile-reference\nHEAD 619f03c6cac21b3f34414510ffdde2d90cbdfecb\nbranch refs/heads/fn232-profile-reference\n\nworktree /home/agent/wt/fn232-receiving-reader\nHEAD ba4958663f46d796611b382eec90d55116ffb9d1\nbranch refs/heads/fn232-receiving-reader\n\nworktree /home/agent/wt/fn232-remaining-model-predicates\nHEAD 39f1e62af392a2cf2e7115f7cc8b6b2b0bbf4782\nbranch refs/heads/fn232-remaining-model-predicates\n\nworktree /home/agent/wt/fn232-retained-inputs\nHEAD b6d505a16a88c7678782ca8df5155a27399638b6\nbranch refs/heads/fn232-retained-inputs\n\nworktree /home/agent/wt/fn232-retirement\nHEAD f0e8b834f49f27cb452c43c7bbaaca27c4a1fbcd\nbranch refs/heads/fn232-retirement\n\nworktree /home/agent/wt/fn232-runtime-qualification\nHEAD 50a22fb6d9e0339f266f0f2d6611ebf581ac0091\nbranch refs/heads/fn232-runtime-qualification\n\nworktree /home/agent/wt/fn232-rust-driver\nHEAD dd2c39b5b464d0a120c089ea59fb1d06b8671067\nbranch refs/heads/fn232-rust-driver\n\nworktree /home/agent/wt/fn232-simulation\nHEAD 1c9a79255bca2e6468c780da78b6cfe4f2b620ab\nbranch refs/heads/fn232-simulation\n\nworktree /home/agent/wt/fn232-sweep-receiver\nHEAD 27811042002a27f8d73c04f2f60890d8c6d9f88a\nbranch refs/heads/fn232-sweep-receiver\n\nworktree /home/agent/wt/fn232-world-codec\nHEAD 13dbbf69e4a53097ee18c8f76e804fff2d02ac94\nbranch refs/heads/fn232-world-codec\n\nworktree /home/agent/wt/fn233-interception\nHEAD 4939d87c16c93de978b694934943d11c7ed655df\nbranch refs/heads/fn233-interception\n\n",
     "filesystems": {
       ".": {
-        "available_bytes": 104255709184,
+        "available_bytes": 99978534912,
         "total_bytes": 994662584320
       },
       "/home/agent": {
-        "available_bytes": 29118472192,
+        "available_bytes": 27491868672,
         "total_bytes": 210241560576
       }
     }
@@ -2736,6 +2989,20 @@
         },
         "/home/agent": {
           "available_bytes": 10717577216,
+          "total_bytes": 210241560576
+        }
+      }
+    },
+    {
+      "observed_at": "2026-10-23T11:02:27.097473+00:00",
+      "worktrees": "worktree /Users/stephan/Workspace/skunkworks/gomad/temporal\nHEAD df6672afbf164142d075b46e143ec3f49ecfd322\nbranch refs/heads/gomad\n\nworktree /home/agent/wt/fn185-attribution-fix\nHEAD 0ee0ebd6ef7b55d4ae12e3e63b3db4075b277da9\nbranch refs/heads/fn185-attribution-fix\n\nworktree /home/agent/wt/fn185-rust-attribution\nHEAD cac5b294eb6de2985d0d529a793c73927feb171a\nbranch refs/heads/fn185-rust-attribution\n\nworktree /home/agent/wt/fn188-measurement-stress\nHEAD d14494a5da1c64439c3519fe9e3c07e3b5ebec20\nbranch refs/heads/fn188-measurement-stress\n\nworktree /home/agent/wt/fn188-rust-stress\nHEAD 175d69612f685c19881648011f18e230e6d99c73\nbranch refs/heads/fn188-rust-stress\n\nworktree /home/agent/wt/fn221\nHEAD fff7a9575e10bd391b1c44e506d1bf57a8986d34\nbranch refs/heads/fn221-sweep\n\nworktree /home/agent/wt/fn221-matrix\nHEAD d414f0fda7dd429ed5dd6afbe9842ade8bdb5c97\nbranch refs/heads/fn221-matrix\n\nworktree /home/agent/wt/fn221-rerun-src\nHEAD 1d7b37f00a74a85399993f1edcad6fe742e778e3\ndetached\n\nworktree /home/agent/wt/fn222-driver\nHEAD b573067ee32c6bdac9c9772acc6a0505be4c4e49\nbranch refs/heads/fn222-driver\n\nworktree /home/agent/wt/fn222-inspection\nHEAD c030316863ef3b18a96a28ea58cb988a66a589a0\nbranch refs/heads/fn222-inspection\n\nworktree /home/agent/wt/fn222-support\nHEAD 64f987af5b7b42d56f4ec9f3bb2ecd127531bf9f\nbranch refs/heads/fn222-support-v2\n\nworktree /home/agent/wt/fn230-sites\nHEAD aa0e2af51459e541e8dddaa6c53b762b239f879c\nbranch refs/heads/fn230-sites\n\nworktree /home/agent/wt/fn232-broad-allocation-receiving\nHEAD 74b9660aded452e30d4c1f797d3eb8003de6ee26\nbranch refs/heads/fn232-broad-allocation-receiving\n\nworktree /home/agent/wt/fn232-broad-codec-reader\nHEAD 44db0e164e40e8218c0dadb254df78019b73d7af\nbranch refs/heads/fn232-broad-codec-reader\n\nworktree /home/agent/wt/fn232-broad-fixed-harness\nHEAD 61f0f2e0eee30c41491c3b687d3ecd648978f7f1\nbranch refs/heads/fn232-broad-fixed-harness\n\nworktree /home/agent/wt/fn232-broad-guest-receiving\nHEAD 26c2fb83972dff662c5824e08a2d7ad5c6e7f2b4\nbranch refs/heads/fn232-broad-guest-receiving\n\nworktree /home/agent/wt/fn232-broad-inspection-reader\nHEAD cfaa3d2187fb6daed75d399059127c2d5c37fa98\nbranch refs/heads/fn232-broad-inspection-reader\n\nworktree /home/agent/wt/fn232-broad-lifecycle-receiving\nHEAD d451c84c4575f004b5be8eda90dac268e232e3c5\nbranch refs/heads/fn232-broad-lifecycle-receiving\n\nworktree /home/agent/wt/fn232-broad-network-reader\nHEAD abf734fdf20acc7364a0d85d758395e9355b5677\ndetached\n\nworktree /home/agent/wt/fn232-broad-retained-matrix\nHEAD 40008989a4200da6e8fef8e822b6780b82e6bec3\nbranch refs/heads/fn232-broad-retained-matrix\n\nworktree /home/agent/wt/fn232-broad-world-reader\nHEAD 69d4a40e87bc95c9ce9268d7d3d36f2d172842ab\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe\nHEAD 1d695061b6382009d0659238c652a5a765b1d5f5\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v3\nHEAD 412dc2488c4c63b8951f1abcf011fd7b96d2ee33\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v4\nHEAD a1e0bdf513e074c8b9b19062fef4dfd5356393a2\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v5\nHEAD 5fb6056cf351416bacd541ec59fdb04006d944c1\ndetached\n\nworktree /home/agent/wt/fn232-broker-observe-v6\nHEAD d392dec327c5573da9076e9cd50054c3b15125e6\ndetached\n\nworktree /home/agent/wt/fn232-cluster-pairs\nHEAD 4aab58c6ba35b73f8d5176bd0a6a7ff2e4740553\nbranch refs/heads/fn232-cluster-pairs\n\nworktree /home/agent/wt/fn232-controls-reference\nHEAD 96b353793c77851065da3996e9555647e47e8e34\ndetached\n\nworktree /home/agent/wt/fn232-core-functional-predicates\nHEAD 1c944d4fbf993ab612abe7d276db4b6e8b9d7824\nbranch refs/heads/fn232-core-functional-predicates\n\nworktree /home/agent/wt/fn232-core-host-reach\nHEAD e2708ad8f1f5588c5651059dab28cea7e096d95b\nbranch refs/heads/fn232-core-host-reach\n\nworktree /home/agent/wt/fn232-core-inspection-predicates\nHEAD f04f9ae764bbead7cb224774b55f435ff57f2021\nbranch refs/heads/fn232-core-inspection-predicates\n\nworktree /home/agent/wt/fn232-core-lifecycle-predicates\nHEAD 7a11ead9b7fb8b3ad9fdf9d12cdb5b5938f67895\nbranch refs/heads/fn232-core-lifecycle-predicates\n\nworktree /home/agent/wt/fn232-core-model-reach\nHEAD eb31d29eb8ca7aeaf482ea338b84e82ea6fde5c1\nbranch refs/heads/fn232-core-model-reach\n\nworktree /home/agent/wt/fn232-core-reach\nHEAD cfaa3d2187fb6daed75d399059127c2d5c37fa98\nbranch refs/heads/fn232-core-reach\n\nworktree /home/agent/wt/fn232-core-retained-predicates\nHEAD fc986986abd9b66e082fdfc0c64c01f54fab792f\nbranch refs/heads/fn232-core-retained-predicates\n\nworktree /home/agent/wt/fn232-determinism-exact\nHEAD 27f89abb2cb2e18181d24ed6c455f4bfa5818cf6\nbranch refs/heads/fn232-determinism-exact\n\nworktree /home/agent/wt/fn232-determinism-reach\nHEAD f776ad0e015fa46683c3311fb0750fc73fccecf9\nbranch refs/heads/fn232-determinism-reach\n\nworktree /home/agent/wt/fn232-final-composition\nHEAD dd1670b4896c905186ad5982405f925128323a42\nbranch refs/heads/fn232-final-composition\n\nworktree /home/agent/wt/fn232-final-profiles\nHEAD f43b2abc7280781f4b9274ff813675196ac253f6\nbranch refs/heads/fn232-final-profiles\n\nworktree /home/agent/wt/fn232-final-retained\nHEAD cfa92a24ba62200b0fb38b9687cb6b29eb5302e9\nbranch refs/heads/fn232-final-retained\n\nworktree /home/agent/wt/fn232-final-role-validation\nHEAD e8d1c1a054f893b2064ea101f81bcd6f81b30837\nbranch refs/heads/fn232-final-role-validation\n\nworktree /home/agent/wt/fn232-foundation\nHEAD 8f47d368fcc3e6a5a82058f02d8ae8f650c1d740\nbranch refs/heads/fn-232-gomad-rewrite-the-host-side-in-rust\n\nworktree /home/agent/wt/fn232-inspection-admission\nHEAD bdafd0973c056b5a938ef7295ae1f9590e18b094\nbranch refs/heads/fn232-inspection-admission\n\nworktree /home/agent/wt/fn232-install\nHEAD fbb99949b82ccb5ea4d5dafa08732f829ef20467\nbranch refs/heads/fn232-install\n\nworktree /home/agent/wt/fn232-installed-lifecycle\nHEAD 63c5510aadf934012e1484782355889205dfae4a\nbranch refs/heads/fn232-installed-lifecycle\n\nworktree /home/agent/wt/fn232-linked-cache\nHEAD c07df2cc6872e1735f8b8d871df027017271ae3b\nbranch refs/heads/fn232-linked-cache\n\nworktree /home/agent/wt/fn232-live-corpus\nHEAD aafbcad9381bcb57c1e7d33852dc5c5709aa5e2a\nbranch refs/heads/fn232-live-corpus\n\nworktree /home/agent/wt/fn232-mandatory-workloads\nHEAD cc907477eb7b8fbfa29dcb0a0abf8835687018e4\nbranch refs/heads/fn232-mandatory-workloads\n\nworktree /home/agent/wt/fn232-measurement-artifacts\nHEAD 234e6d2234c83651eab2ecd91d0151bbf4b29c71\nbranch refs/heads/fn232-measurement-artifacts\n\nworktree /home/agent/wt/fn232-measurement-completion\nHEAD cda65407c6ab0d72d8c3061bca8b87b32def7b40\nbranch refs/heads/fn232-measurement-completion\n\nworktree /home/agent/wt/fn232-measurement-digest-only\nHEAD a9d99890100e5298479028e6adee8903608b7fff\nbranch refs/heads/fn232-measurement-digest-only\n\nworktree /home/agent/wt/fn232-measurement-lint\nHEAD ca8fce5aad35fbc7abe8c9681401f2b96c5b8ad6\nbranch refs/heads/fn232-measurement-lint\n\nworktree /home/agent/wt/fn232-measurement-memory\nHEAD 11634cea1b86b9e7182218edb662f0c44dfc559c\nbranch refs/heads/fn232-measurement-memory\n\nworktree /home/agent/wt/fn232-measurement-migration\nHEAD 99a05923af27ce4d38dbdc08354b128082f363b7\nbranch refs/heads/fn232-measurement-migration\n\nworktree /home/agent/wt/fn232-measurement-reach\nHEAD 51b566a2ba19d3d012af5e0b38489e5ee64840e7\nbranch refs/heads/fn232-measurement-reach\n\nworktree /home/agent/wt/fn232-measurement-terminal-collection\nHEAD 75e33dd5376ebc902f06f7675ca500d062d7fc85\nbranch refs/heads/fn232-measurement-terminal-collection\n\nworktree /home/agent/wt/fn232-minimize\nHEAD 92ef3e3403e3e66e9192b7d07bb950f1d56716c8\nbranch refs/heads/fn232-minimize\n\nworktree /home/agent/wt/fn232-native-import\nHEAD dc7fa146194e715fb5fc94a1b6218fc68453b6bc\nbranch refs/heads/fn232-native-import\n\nworktree /home/agent/wt/fn232-primary-terminal\nHEAD 6cfe43bf96b74b3b2febcc7ae0b2dfad1fc0bcee\nbranch refs/heads/fn232-primary-terminal\n\nworktree /home/agent/wt/fn232-profile-reference\nHEAD 619f03c6cac21b3f34414510ffdde2d90cbdfecb\nbranch refs/heads/fn232-profile-reference\n\nworktree /home/agent/wt/fn232-receiving-reader\nHEAD ba4958663f46d796611b382eec90d55116ffb9d1\nbranch refs/heads/fn232-receiving-reader\n\nworktree /home/agent/wt/fn232-remaining-model-predicates\nHEAD 87e85d25a86b694ed6d1de3020ca12deb43b663c\nbranch refs/heads/fn232-remaining-model-predicates\n\nworktree /home/agent/wt/fn232-retirement\nHEAD f0e8b834f49f27cb452c43c7bbaaca27c4a1fbcd\nbranch refs/heads/fn232-retirement\n\nworktree /home/agent/wt/fn232-runtime-qualification\nHEAD 50a22fb6d9e0339f266f0f2d6611ebf581ac0091\nbranch refs/heads/fn232-runtime-qualification\n\nworktree /home/agent/wt/fn232-rust-driver\nHEAD dd2c39b5b464d0a120c089ea59fb1d06b8671067\nbranch refs/heads/fn232-rust-driver\n\nworktree /home/agent/wt/fn232-simulation\nHEAD 1c9a79255bca2e6468c780da78b6cfe4f2b620ab\nbranch refs/heads/fn232-simulation\n\nworktree /home/agent/wt/fn232-sweep-receiver\nHEAD 27811042002a27f8d73c04f2f60890d8c6d9f88a\nbranch refs/heads/fn232-sweep-receiver\n\nworktree /home/agent/wt/fn232-world-codec\nHEAD 13dbbf69e4a53097ee18c8f76e804fff2d02ac94\nbranch refs/heads/fn232-world-codec\n\nworktree /home/agent/wt/fn233-interception\nHEAD 4939d87c16c93de978b694934943d11c7ed655df\nbranch refs/heads/fn233-interception\n\n",
+      "filesystems": {
+        ".": {
+          "available_bytes": 104255709184,
+          "total_bytes": 994662584320
+        },
+        "/home/agent": {
+          "available_bytes": 29118472192,
           "total_bytes": 210241560576
         }
       }

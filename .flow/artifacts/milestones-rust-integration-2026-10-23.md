@@ -520,3 +520,33 @@ Module preparation continues under the measurement owner's Go lease. A newly
 found reference-helper source-receipt gap must include the actual build-identity
 root module before its next build. Full original runtime comparisons,14remaining
 legacy references and the complete milestone qualification remain open.
+
+## Assertion migration receiving and actual runtime source discrepancy
+
+At `0923e4d58d`,39source/runtime inventory tests pass with only the known
+reference resolver excluded. The full resolver still fails on five references.
+Six explicit removed-peer-wire contracts retain every original assertion and
+original_pass=false; unresolved output/fuel claims cannot resolve. Actual native
+callback, execute-request and nested retained-record refusal tests pass. A schema
+integration failure and Clippy failure were repaired with a reviewed bounded
+reference grammar, preserving both original RED logs. Four environment references
+now name the unchanged retained Go model test; all11original cases actually pass.
+
+Strict release workspace Clippy and all328 joined Python driver tests pass. New
+fn233 receiving routes pass16offlinecontrols; installedoperator receiving routes
+pass6purecontrols and preserve original inspection-total assertions. Their actual
+Go/installed/hidden executions remain pending. The closed mainCLI build producer
+and stronger freezer/admission reader are integrated; actual mainbuild awaits
+fresh GNUmetadata and source-custody followup.
+
+The uncached native and two original ownership runs all exit0 and are reaped.
+Independent reading proves exact six raw streams,200037calls and100000poll/result
+pairs with original rawargv/environment/seed/bounds. This raw behavior match does
+not establish exact-original source custody: extraction silently shortened one
+symlink literal, and the old verifier accepted its matching derived manifest.
+The old source and runs are retained as incomplete evidence. A fresh exact copy,
+archive-to-tree verifier repair, Go rebuild and rerun are required before source
+acceptance. No performance or final qualification claim is made.
+
+Broad native receiving, the five unresolved references, final96stage cycle and
+the full milestone objective remain open.
