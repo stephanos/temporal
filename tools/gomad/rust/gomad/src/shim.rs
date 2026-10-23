@@ -182,9 +182,7 @@ fn classify_request_with_environment<'a>(
             crate::install::tags::admit(&selected.manifest.excluded_build_tags, &parsed.tags)?;
         }
     }
-    let required_tags = if command != "test" {
-        Vec::new()
-    } else if let Some(installation) = &contract.installation {
+    let required_tags = if let Some(installation) = &contract.installation {
         manifest::resolve(Some(installation))?.manifest.build_tags
     } else if repo
         .as_ref()
@@ -808,20 +806,34 @@ esac
         }
         let opaque = OsString::from_vec(vec![b'x', 0xff]);
         inherited.insert("OPAQUE_HOST_VALUE".into(), opaque.clone());
+        assert_race_routes(&root.0, &contract, &inherited);
+        assert_required_tagged_main(&root.0, &mut contract, &mut inherited);
+        let environment = packages_environment(&inherited, false).unwrap();
+        assert_eq!(environment[OsStr::new("OPAQUE_HOST_VALUE")], opaque);
+        let guest = packages_environment(&inherited, true).unwrap();
+        assert_eq!(guest[OsStr::new("GOOS")], "wasip1");
+        assert_eq!(guest[OsStr::new("GOARCH")], "wasm");
+        assert_eq!(guest[OsStr::new("CGO_ENABLED")], "0");
+    }
+    fn assert_race_routes(
+        root: &Path,
+        contract: &Contract,
+        inherited: &std::collections::BTreeMap<OsString, OsString>,
+    ) {
         for command in ["run", "build"] {
             let arguments = vec![
                 "-C".into(),
-                root.0.as_os_str().to_owned(),
+                root.as_os_str().to_owned(),
                 command.into(),
                 "./host".into(),
             ];
             let original = arguments.clone();
             assert!(
                 classify_request_with_environment(
-                    &contract,
+                    contract,
                     &arguments,
                     OsStr::new("-race"),
-                    &inherited
+                    inherited
                 )
                 .unwrap()
                 .is_none()
@@ -830,52 +842,47 @@ esac
             assert_eq!(inherited[OsStr::new("GOFLAGS")], "-race");
             let opted = vec![
                 "-C".into(),
-                root.0.as_os_str().to_owned(),
+                root.as_os_str().to_owned(),
                 command.into(),
                 "./opted".into(),
             ];
-            let error = classify_request_with_environment(
-                &contract,
-                &opted,
-                OsStr::new("-race"),
-                &inherited,
-            )
-            .err()
-            .unwrap();
+            let error =
+                classify_request_with_environment(contract, &opted, OsStr::new("-race"), inherited)
+                    .err()
+                    .unwrap();
             assert_eq!(error, "gomad: unsupported guest option -race");
         }
-        let installation = fixture_installation(
-            &root.0,
-            &contract.compiler,
-            "gomad.wasi-stock-exploratory/v1",
-        );
+    }
+
+    fn assert_required_tagged_main(
+        root: &Path,
+        contract: &mut Contract,
+        inherited: &mut std::collections::BTreeMap<OsString, OsString>,
+    ) {
+        let installation =
+            fixture_installation(root, &contract.compiler, "gomad.wasi-stock-exploratory/v1");
         let mut installed = manifest::resolve(Some(&installation)).unwrap().manifest;
         installed.build_tags = vec!["needed".into()];
+        let installation = root.join("tagged-installation.json");
         manifest::write(&installation, &installed).unwrap();
         contract.installation = Some(installation);
         inherited.insert("GOMAD_TEST_REQUIRE_TAG".into(), "1".into());
         for command in ["run", "build"] {
             let arguments = vec![
                 "-C".into(),
-                root.0.as_os_str().to_owned(),
+                root.as_os_str().to_owned(),
                 command.into(),
                 "./opted".into(),
             ];
             let error = classify_request_with_environment(
-                &contract,
+                contract,
                 &arguments,
                 OsStr::new("-race"),
-                &inherited,
+                inherited,
             )
             .err()
             .expect("required-tagged declared guest must reach strict guest admission");
             assert_eq!(error, "gomad: unsupported guest option -race");
         }
-        let environment = packages_environment(&inherited, false).unwrap();
-        assert_eq!(environment[OsStr::new("OPAQUE_HOST_VALUE")], opaque);
-        let guest = packages_environment(&inherited, true).unwrap();
-        assert_eq!(guest[OsStr::new("GOOS")], "wasip1");
-        assert_eq!(guest[OsStr::new("GOARCH")], "wasm");
-        assert_eq!(guest[OsStr::new("CGO_ENABLED")], "0");
     }
 }
