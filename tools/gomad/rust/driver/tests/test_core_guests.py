@@ -379,4 +379,30 @@ class GroupedSnapshotReader(unittest.TestCase):
         with self.assertRaisesRegex(Refusal,'latest_storage'):gate.validate_case(row,{})
 
 
+class OptionalOracleReportReader(unittest.TestCase):
+    def test_storage_success_is_a_real_record_outcome_without_a_manufactured_report(self):
+        for root,case in ((gate.PLAIN,'lifecycle/compressed=false'),(gate.COMPRESSED,'lifecycle/compressed=true'),(gate.GROUPED,'grouped/replay')):
+            artifact=dict(payloads={},manifest=dict(files={}),record=dict(streams={},outcome=dict(**{'class':'success'},termination='exit',exit_code=0)))
+            self.assertIsNone(gate.retained_oracle_report(root,config(case),artifact,None,{}))
+            for edit in ('manufactured-report','payload','manifest','stream','plan','failure','exit','boolean-exit'):
+                bad=copy.deepcopy(artifact);configuration=config(case);observed=None
+                if edit=='manufactured-report':observed=gate.report([])
+                elif edit=='payload':bad['payloads']['evidence/cluster_oracles']=canonical(gate.report([]))
+                elif edit=='manifest':bad['manifest']['files']['evidence/cluster_oracles']={}
+                elif edit=='stream':bad['record']['streams']['evidence/cluster_oracles']={}
+                elif edit=='plan':configuration['oracle_plan']={}
+                elif edit=='failure':bad['record']['outcome']['class']='target_failure'
+                elif edit=='exit':bad['record']['outcome']['exit_code']=17
+                else:bad['record']['outcome']['exit_code']=False
+                with self.subTest(root=root,edit=edit),self.assertRaises(Refusal):
+                    gate.retained_oracle_report(root,configuration,bad,observed,{})
+
+    def test_actual_soft_reports_remain_mandatory_and_raw_output_derived(self):
+        row,artifact=soft();outputs=gate.artifact_outputs(artifact)
+        self.assertEqual(gate.retained_oracle_report(gate.SOFT,row['inputs']['configuration'],artifact,row['observed']['report'],outputs),row['observed']['report'])
+        with self.assertRaises(Refusal):gate.retained_oracle_report(gate.SOFT,row['inputs']['configuration'],artifact,None,outputs)
+        bad=copy.deepcopy(artifact);bad['payloads'].pop('evidence/cluster_oracles')
+        with self.assertRaises(Refusal):gate.retained_oracle_report(gate.SOFT,row['inputs']['configuration'],bad,row['observed']['report'],outputs)
+
+
 if __name__=='__main__':unittest.main()

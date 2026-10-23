@@ -349,12 +349,71 @@ fn observation(
     println!("GOMAD_RETAINED_OBSERVATION {row}");
 }
 
+fn publication_diagnostic(producer: &Producer, case: &str, stage: &str, value: &Value) {
+    use std::{io::Write as _, os::unix::fs::OpenOptionsExt as _};
+    let path = producer.root.join(format!(
+        "diagnostic-{}-{stage}.json",
+        case.replace('/', "-")
+    ));
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(path)
+        .unwrap();
+    file.write_all(&canonical::encode(value).unwrap()).unwrap();
+    file.sync_all().unwrap();
+}
+
+fn assert_no_oracle_success(configuration: &Configuration, report: &Value, replay: &Value) {
+    assert!(configuration.oracle_plan.is_none());
+    assert!(report.is_null());
+    assert_eq!(replay["manifest"]["record"]["outcome"]["class"], "success");
+    assert_eq!(
+        replay["manifest"]["record"]["outcome"]["termination"],
+        "exit"
+    );
+    assert_eq!(replay["manifest"]["record"]["outcome"]["exit_code"], 0);
+    for map in [
+        &replay["manifest"]["files"],
+        &replay["manifest"]["record"]["streams"],
+    ] {
+        assert!(map.get("evidence/cluster_oracles").is_none());
+    }
+}
+
+fn optional_oracle_report(opened: &Opened, inputs: &Inputs) -> Value {
+    oracles::authenticate_retained(opened, inputs).unwrap();
+    if opened
+        .manifest()
+        .record
+        .streams
+        .contains_key("evidence/cluster_oracles")
+    {
+        serde_json::from_slice(
+            &opened
+                .payload("evidence/cluster_oracles", 64 << 20)
+                .unwrap(),
+        )
+        .unwrap()
+    } else {
+        Value::Null
+    }
+}
+
 fn publish_replay(
     producer: &Producer,
     case: &str,
     configuration: &Configuration,
     replay_requested: bool,
 ) -> (Value, Value) {
+    publication_diagnostic(
+        producer,
+        case,
+        "inputs",
+        &json!({"configuration":configuration,
+        "toolchain_sha256":producer.prepared.toolchain,"module_sha256":canonical::digest(&producer.prepared.module)}),
+    );
     let publication = crate::fixture_cluster::execute_configuration(
         configuration.clone(),
         producer.prepared.toolchain.clone(),
@@ -368,26 +427,37 @@ fn publish_replay(
         fault: None,
     };
     let published = store.publish(publication).unwrap();
+    publication_diagnostic(
+        producer,
+        case,
+        "published",
+        &json!({"artifact":published.path,
+        "record_sha256":published.record_sha256,"stored_bytes":published.stored_bytes,
+        "manifest_base64":crate::campaign::exploration::base64(&fs::read(published.path.join("manifest.json")).unwrap()),
+        "record_base64":crate::campaign::exploration::base64(&fs::read(published.path.join("record.json")).unwrap())}),
+    );
     let opened = Opened::open(&published.path).unwrap();
     opened.authenticate_all().unwrap();
     let inputs = super::inputs(&opened).unwrap();
-    oracles::authenticate_retained(&opened, &inputs).unwrap();
-    let report = serde_json::from_slice(
-        &opened
-            .payload("evidence/cluster_oracles", 64 << 20)
-            .unwrap(),
-    )
-    .unwrap();
+    let report = optional_oracle_report(&opened, &inputs);
     let before = opened.manifest().record.bytes().unwrap();
     assert!(!producer.root.join("prepared-module.wasm").exists());
     assert!(!producer.root.join("installation.json").exists());
     let mut output = Vec::new();
     let status = replay_requested.then(|| {
-        let status = crate::cli::replay::run(
+        let result = crate::cli::replay::run(
             &[published.path.to_string_lossy().into_owned()],
             &mut output,
-        )
-        .unwrap_or_else(|error| panic!("{}", error.message));
+        );
+        publication_diagnostic(
+            producer,
+            case,
+            "replay",
+            &json!({"artifact":published.path,
+            "status":result.as_ref().ok(),"error":result.as_ref().err().map(|error| &error.message),
+            "output_base64":crate::campaign::exploration::base64(&output)}),
+        );
+        let status = result.unwrap_or_else(|error| panic!("{}", error.message));
         assert_eq!(
             status,
             i32::from(opened.manifest().record.outcome.class != "success")
@@ -415,7 +485,6 @@ fn publish_replay(
         json!({"artifact":published.path,"record_sha256":canonical::digest(&before),"public_replay_exit":status,"public_replay_output":output,"retained_inputs":inputs,"manifest":opened.manifest(),"original_module_absent":true,"installation_absent":true}),
     )
 }
-
 #[test]
 #[ignore = "actual pinned Go compilation and live guests require the parent execution lease"]
 fn actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay() {
@@ -641,7 +710,7 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
             &case,
             &producer.root,
         );
-        assert_eq!(report["outcome"], "completed");
+        assert_no_oracle_success(&configuration, &report, &replay);
         assert_eq!(
             replay["retained_inputs"]["configuration"]["world_profile"],
             configuration.world_profile.as_ref().unwrap().as_str()
@@ -774,7 +843,7 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
     }
     let latest_storage = grouped_latest_storage(&execution);
     let (report, replay) = publish_replay(&producer, "grouped/replay", &configuration, true);
-    assert_eq!(report["outcome"], "completed");
+    assert_no_oracle_success(&configuration, &report, &replay);
     observation(
         &producer,
         "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
@@ -825,4 +894,103 @@ fn original_go_guest_recipes_pass_typed_scenario_normalization_before_preparatio
         scenario::normalize(&canonical::encode(&undeclared).unwrap()).unwrap_err(),
         "undeclared WASM lifecycle boundary"
     );
+}
+
+fn wat_producer(
+    root: PathBuf,
+    publication: &crate::evidence::store::Publication,
+    inputs: &Inputs,
+) -> Producer {
+    let base = &inputs.configuration;
+    let item = &base.incarnations[0];
+    Producer {
+        root,
+        sources: Vec::new(),
+        prepared: prepare::Prepared {
+            auxiliary: BTreeMap::new(),
+            compile_cache_root: None,
+            module: publication.payloads["target/module.wasm"].clone(),
+            configuration: super::super::preflight::Configuration {
+                engine: base.engine.clone(),
+                profile: base.profile.clone(),
+                limits: base.limits.clone(),
+                world_transition_bytes: None,
+                wall_nanos: base.wall_nanos,
+                arguments: item.arguments.clone(),
+                environment: item.environment.clone(),
+                derive_seed_environment: false,
+                runtime_sha256: Some(item.runtime_sha256.clone()),
+                model: Some(item.model.clone()),
+                namespace: Some(item.namespace.clone()),
+                storage: None,
+                network: None,
+            },
+            toolchain: inputs.toolchain_sha256.clone(),
+            choice_identity: None,
+            scenario: None,
+            provenance: b"{}".to_vec(),
+            network: None,
+            soft_assertion_report_only: false,
+        },
+    }
+}
+
+#[test]
+fn native_wat_publication_replays_with_absent_and_present_oracle_reports() {
+    let corpus = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
+    let publication = crate::fixture_cluster::publication(&corpus, 7).unwrap();
+    let inputs: Inputs = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+    let root = std::env::temp_dir().join(format!(
+        "gomad-optional-oracle-{}",
+        crate::campaign::origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    let producer = wat_producer(root.clone(), &publication, &inputs);
+    for with_plan in [false, true] {
+        let mut configuration = inputs.configuration.clone();
+        if with_plan {
+            for item in &mut configuration.incarnations {
+                item.workload_kind = "go-test".into();
+            }
+            policy(&mut configuration, true, 4096);
+        }
+        let case = format!("wat-oracle-plan={with_plan}");
+        let (report, replay) = publish_replay(&producer, &case, &configuration, true);
+        if with_plan {
+            assert_eq!(report["outcome"], "completed");
+            assert_eq!(report["oracles"].as_array().unwrap().len(), 3);
+            assert!(
+                replay["manifest"]["files"]
+                    .get("evidence/cluster_oracles")
+                    .is_some()
+            );
+        } else {
+            assert_no_oracle_success(&configuration, &report, &replay);
+        }
+        assert!(
+            producer
+                .root
+                .join(format!("diagnostic-{case}-inputs.json"))
+                .is_file()
+        );
+        assert!(
+            producer
+                .root
+                .join(format!("diagnostic-{case}-published.json"))
+                .is_file()
+        );
+        assert!(
+            producer
+                .root
+                .join(format!("diagnostic-{case}-replay.json"))
+                .is_file()
+        );
+        let captured: Value = serde_json::from_slice(
+            &fs::read(producer.root.join(format!("diagnostic-{case}-replay.json"))).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(captured["status"], 0);
+        assert!(captured["error"].is_null());
+    }
+    fs::remove_dir_all(root).unwrap();
 }

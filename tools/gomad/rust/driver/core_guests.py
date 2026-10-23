@@ -414,6 +414,29 @@ def grouped_snapshots(value, artifact, configuration):
     return snapshots
 
 
+def retained_oracle_report(root, configuration, artifact, observed, outputs):
+    file = 'evidence/cluster_oracles'
+    if root in (PLAIN, COMPRESSED, GROUPED):
+        require(configuration.get('oracle_plan') is None and observed is None
+                and all(file not in mapping for mapping in (artifact['payloads'], artifact['manifest']['files'], artifact['record']['streams'])),
+                'storage guest manufactured an oracle report, plan or retained oracle payload')
+        outcome = artifact['record']['outcome']
+        require(outcome['class'] == 'success' and outcome['termination'] == 'exit' and type(outcome['exit_code']) is int and outcome['exit_code'] == 0,
+                'storage guest without oracle evidence did not actually succeed')
+        return None
+    if root == SOFT:
+        policy = next((item['report_only'] for item in (configuration.get('oracle_plan') or {}).get('soft_assertions', [])), False)
+        expected = report([soft_oracle(owner, outputs[owner]['stdout'], outputs[owner]['stderr'], policy) for owner in owners(configuration)])
+        require(len(expected['oracles']) == 2 and all(b64(item['evidence'][1]['value']) == b'["invalid fixture state"]' for item in expected['oracles']),
+                'actual original soft assertion message changed')
+    else:
+        require(root == CANARY, 'foreign actual guest oracle owner')
+        expected = history_report(outputs, configuration['incarnations'][1]['arguments'][-1] == 'canary')
+    require(same(observed, expected) and file in artifact['payloads']
+            and same(decode(artifact['payloads'][file]), expected), 'oracle report does not rederive from actual retained stdout/stderr')
+    return expected
+
+
 def validate_case(row, artifact=None):
     fields(row,('schema','original_root','case','inputs','observed'))
     require(row['schema']=='gomad.retained-reader-observation/v1' and row['case'] in CASES, 'foreign actual guest observation')
@@ -477,15 +500,10 @@ def validate_case(row, artifact=None):
             for key,descriptor in item['evidence'].items():
                 raw=artifact['payloads'][f'evidence/cluster/{owner}/{key}']
                 require(descriptor==dict(bytes=len(raw),sha256=digest(raw)), 'actual producer evidence differs from retained raw stream')
-    if root==SOFT:
-        expected=report([soft_oracle(owner,outputs[owner]['stdout'],outputs[owner]['stderr'],policy) for owner in owners(c)])
-        require(len(expected['oracles'])==2 and all(b64(item['evidence'][1]['value'])==b'["invalid fixture state"]' for item in expected['oracles']), 'actual original soft assertion message changed')
-    elif root==CANARY:expected=history_report(outputs,case.endswith('true'))
-    else:expected=report([])
-    require(same(o['report'],expected) and same(decode(artifact['payloads']['evidence/cluster_oracles']),expected), 'oracle report does not rederive from actual retained stdout/stderr')
-    wanted='success' if expected['outcome']=='completed' else 'target_failure'
+    expected = retained_oracle_report(root, c, artifact, o['report'], outputs)
+    wanted='success' if expected is None or expected['outcome']=='completed' else 'target_failure'
     require(record['outcome']['class']==wanted, 'stored outcome class differs from actual oracle truth')
-    facts = dict(original_root=root,case=case,record_sha256=digest(artifact['payloads']['record.json']),failure_identity=expected['failure_identity'],public_replay=requested)
+    facts = dict(original_root=root,case=case,record_sha256=digest(artifact['payloads']['record.json']),failure_identity=expected['failure_identity'] if expected is not None else None,public_replay=requested)
     if root == GROUPED:
         facts['latest_volume_snapshots'] = grouped_snapshots(o['latest_storage'], artifact, c)
         facts['volume_snapshot_count'] = len(facts['latest_volume_snapshots'])
