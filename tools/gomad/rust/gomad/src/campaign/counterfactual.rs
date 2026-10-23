@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::{
     collections::BTreeSet,
     io::Write as _,
-    os::unix::fs::{DirBuilderExt as _, OpenOptionsExt as _},
+    os::unix::fs::{DirBuilderExt as _, OpenOptionsExt as _, PermissionsExt as _},
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -95,6 +95,7 @@ fn validate_preparation(prepared: &Prepared) -> Result<(), String> {
         || model["limits"]["pending_events"] != 4096
         || model["epoch_nanos"] != 946_684_800_000_000_000_u64
         || model["read_step_nanos"] != 0
+        || namespace.limits.output_bytes != 1 << 20
         || namespace.limits.filesystem_bytes != 8 << 20
         || namespace.limits.files != 1000
         || namespace.limits.descriptors != 64
@@ -181,6 +182,8 @@ fn original_fixture_recipe_is_byte_identical_and_refuses_other_runtime_sources()
 #[serde(deny_unknown_fields)]
 struct Inputs {
     schema: String,
+    cli: PathBuf,
+    cli_sha256: String,
     cases: Vec<Case>,
 }
 #[derive(Deserialize)]
@@ -190,6 +193,45 @@ struct Case {
     receipt: PathBuf,
     receipt_sha256: String,
     original_requested_choice_bytes: u64,
+}
+
+fn authenticate_cli(path: &Path, expected: &str) -> Result<(), String> {
+    let metadata = std::fs::symlink_metadata(path).map_err(|error| error.to_string())?;
+    if !path.is_absolute()
+        || !metadata.file_type().is_file()
+        || metadata.permissions().mode() & 0o111 == 0
+    {
+        return Err(
+            "counterfactual replay requires an absolute executable regular CLI file".into(),
+        );
+    }
+    let bytes = std::fs::read(path).map_err(|error| error.to_string())?;
+    if canonical::digest(&bytes) != expected {
+        return Err("counterfactual CLI digest changed".into());
+    }
+    let producer = std::env::current_exe().map_err(|error| error.to_string())?;
+    let producer = std::fs::read(producer).map_err(|error| error.to_string())?;
+    if canonical::digest(&producer) == expected {
+        return Err("libtest producer cannot stand in for the public replay CLI".into());
+    }
+    Ok(())
+}
+
+#[test]
+fn replay_cli_binding_refuses_the_libtest_producer_and_wrong_digest() {
+    let producer = std::env::current_exe().unwrap();
+    let digest = canonical::digest(&std::fs::read(&producer).unwrap());
+    assert!(
+        authenticate_cli(&producer, &digest)
+            .unwrap_err()
+            .contains("libtest")
+    );
+    assert!(
+        authenticate_cli(&producer, &"0".repeat(64))
+            .unwrap_err()
+            .contains("digest")
+    );
+    assert!(authenticate_cli(Path::new("relative-cli"), &digest).is_err());
 }
 
 fn write(path: &Path, value: &Value) {
@@ -269,6 +311,7 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
     assert!(path.is_absolute() && root.is_absolute());
     let input: Inputs = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
     assert_eq!(input.schema, "gomad.core-counterfactual-producer/v1");
+    authenticate_cli(&input.cli, &input.cli_sha256).unwrap();
     let expected = BTreeSet::from(["draw", "clock", "handoff", "output-clock"]);
     assert_eq!(input.cases.len(), 4);
     assert_eq!(
@@ -319,6 +362,6 @@ fn produce_the_four_original_counterfactual_artifact_pairs() {
     }
     write(
         &root.join("artifact-pairs.json"),
-        &json!({"schema":"gomad.core-counterfactual-artifact-pairs/v1","qualification":false,"source_role":"determinism-fixture","helper":linked::IMPLEMENTATION_SHA256,"fixture_runtime_sha256":FIXTURE_SHA256,"pairs":rows}),
+        &json!({"schema":"gomad.core-counterfactual-artifact-pairs/v1","qualification":false,"source_role":"determinism-fixture","helper":linked::IMPLEMENTATION_SHA256,"cli":input.cli,"cli_sha256":input.cli_sha256,"producer":std::env::current_exe().unwrap(),"fixture_runtime_sha256":FIXTURE_SHA256,"pairs":rows}),
     );
 }
