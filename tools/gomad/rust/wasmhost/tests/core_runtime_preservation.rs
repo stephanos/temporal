@@ -240,3 +240,140 @@ fn malformed_guest_memory_is_a_trap_instead_of_capacity_or_host_io() {
     assert!(observed.evidence.get("stdout").is_none_or(Vec::is_empty));
     assert!(observed.evidence.get("stderr").is_none_or(Vec::is_empty));
 }
+
+#[test]
+fn runtime_replay_refuses_collection_without_finish_and_classifies_malformed_decisions_invalid() {
+    let finish = "(i32.store (i32.const 160) (i32.const 16777216)) (drop (call $finish (i32.const 160) (i32.const 16)))";
+    let recorded = linked::execute(request(&format!("{CONFIGURE_AND_DECIDE}{finish}"))).unwrap();
+    assert_eq!(recorded.outcome.termination, "exit");
+    let trace = &recorded.evidence["choice"];
+    let identity = linked::ChoiceIdentity {
+        target_sha256: [1; 32],
+        toolchain_build_key: "02".repeat(32),
+        goos: "wasip1".into(),
+        goarch: "wasm".into(),
+        implementation_sha256: [3; 32],
+    };
+    let plan = linked::project_choices(trace, &identity).unwrap();
+    for case in ["unfinished", "duplicate", "high-kind"] {
+        let body = match case {
+            "duplicate" => CONFIGURE_AND_DECIDE.replace(
+                "(i32.store8 (i32.const 96) (i32.const 2))",
+                "(i32.store8 (i32.const 96) (i32.const 1))",
+            ),
+            "high-kind" => CONFIGURE_AND_DECIDE.replace(
+                "(i32.store (i32.const 36) (i32.const 16777216))",
+                "(i32.store (i32.const 36) (i32.const 16842752))",
+            ),
+            _ => CONFIGURE_AND_DECIDE
+                .replace(
+                    "(i32.const 64) (i32.const 1)",
+                    "(i32.const 64) (i32.const 2)",
+                )
+                .replace(
+                    "(i32.const 96) (i32.const 2)",
+                    "(i32.const 96) (i32.const 1)",
+                ),
+        };
+        let mut input = request(&body);
+        let model = input.model.as_mut().unwrap();
+        model.configuration.mode = 2;
+        model.configuration.replay = Some(linked::ReplayRequest {
+            schema: "gomad.replay-trace/v1".into(),
+            execution_identity: identity.clone(),
+            trace_sha256: format!("{:x}", Sha256::digest(trace)),
+            tape_sha256: format!("{:x}", Sha256::digest(&plan.bytes)),
+            decisions: plan.decisions.len().try_into().unwrap(),
+            trace_bytes: trace.len().try_into().unwrap(),
+            trace_frames: 1,
+            prefix_control: None,
+        });
+        model.replay_trace = Some(trace.clone());
+        let observed = linked::execute(input).unwrap();
+        assert_eq!(
+            observed.outcome.termination, "invalid",
+            "{case}: {}",
+            observed.outcome.message
+        );
+        assert_eq!(observed.outcome.exit_code, None, "{case}");
+        let metadata = observed.outcome.local_model.as_ref().unwrap();
+        assert_eq!(metadata["finished"], false, "{case}");
+        if case == "unfinished" {
+            assert_eq!(observed.outcome.message, "runtime trace unfinished");
+            assert_eq!(metadata["records"], 1);
+            assert_eq!(metadata["cursor"], 1);
+            assert!(metadata["next_expected"].is_null());
+            assert_eq!(&observed.evidence["choice"], trace);
+        } else {
+            assert_eq!(metadata["records"], 0, "{case}");
+            assert_eq!(metadata["cursor"], 0, "{case}");
+            assert!(observed.outcome.divergence.is_none(), "{case}");
+            assert!(
+                observed.evidence.get("choice").is_none_or(Vec::is_empty),
+                "{case}"
+            );
+        }
+    }
+}
+
+#[test]
+fn guest_transport_classifications_return_after_native_execution_is_completed_and_joined() {
+    for (name, imports, body, expected) in [
+        ("fuel", "", "(loop $again (br $again))", "capacity"),
+        (
+            "range",
+            r#"(import "wasi_snapshot_preview1" "random_get" (func $random (param i32 i32) (result i32)))"#,
+            "(drop (call $random (i32.const -1) (i32.const 2)))",
+            "trap",
+        ),
+        (
+            "socket",
+            r#"(import "wasi_snapshot_preview1" "sock_accept" (func $accept (param i32 i32 i32) (result i32)))"#,
+            "(drop (call $accept (i32.const 3) (i32.const 0) (i32.const 0)))",
+            "unsupported",
+        ),
+        (
+            "output",
+            r#"(import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))"#,
+            "(i64.store (i32.const 0) (i64.const 478560413032)) (i32.store (i32.const 16) (i32.const 0)) (i32.store (i32.const 20) (i32.const 5)) (drop (call $write (i32.const 1) (i32.const 16) (i32.const 1) (i32.const 32)))",
+            "capacity",
+        ),
+    ] {
+        let mut input = request("");
+        input.module = format!(
+            r#"(module {imports} (memory (export "memory") 1) (func (export "_start") {body}))"#
+        )
+        .into_bytes();
+        input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
+        if name == "output" {
+            input.limits.output_bytes = 4;
+            input.namespace.as_mut().unwrap().limits.output_bytes = 4;
+        }
+        let observed = std::thread::scope(|scope| {
+            scope
+                .spawn(move || linked::execute(input))
+                .join()
+                .expect("native execution worker panicked")
+                .unwrap()
+        });
+        assert_eq!(
+            observed.outcome.termination, expected,
+            "{name}: {}",
+            observed.outcome.message
+        );
+        assert_eq!(observed.outcome.exit_code, None, "{name}");
+        let timing = observed
+            .timing
+            .as_ref()
+            .expect("guest reached native execution");
+        assert!(timing.returned >= timing.terminal_classified, "{name}");
+        assert!(
+            timing.terminal_classified >= timing.authorization_started,
+            "{name}"
+        );
+        assert_eq!(
+            observed.authorization_to_terminal_nanos,
+            Some(timing.authorization_to_terminal_nanos())
+        );
+    }
+}
