@@ -14,6 +14,7 @@ pub mod operations;
 pub mod retention;
 pub mod sqlitebusy;
 pub mod statistics;
+pub(crate) mod terminal_collection;
 pub mod warm;
 pub mod warm_driver;
 pub mod workloads;
