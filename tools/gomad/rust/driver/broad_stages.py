@@ -88,7 +88,8 @@ def closure(expected, readers, errors):
     for root in expected:
         candidates = claims.get(root, [])
         reasons = []
-        if root in REMOVED_WIRE:
+        if root in REMOVED_WIRE and not (len(candidates) == 1 and candidates[0][0] == 'cluster-wire'
+                and importlib.import_module('core_cluster_wire').applicable(root, candidates[0][1])):
             reasons.append(dict(disposition='unreceived-removed-wire-schema-or-literal',
                                 reason='The retired Go transport schema and literal stage guards have no explicit native receiving contract.'))
         if not candidates:
@@ -133,6 +134,8 @@ def typed_readers(config, stage, raw, build):
         config, raw_text(raw, 'host-presence'))))
     derive('lifecycle', lambda: module('core_lifecycle').observations(
         config, lifecycle, network_frame_cases=readers.get('network', {}).get('frame_cases')))
+    if stage is broad_harness.Stage.PROVIDER:
+        derive('cluster-wire', lambda: module('core_cluster_wire').observations(config, lifecycle))
     if 'boot-network' in readers and 'lifecycle' in readers:
         root = module('core_boot_network').ROOT
         modern = readers['boot-network']['partial_roots'][root]
@@ -245,6 +248,9 @@ def run(config, label, root):
         else:
             broad_harness.execute_build(config)
         broad_harness.execute(config, stage)
+        if stage is broad_harness.Stage.PROVIDER:
+            reference = importlib.import_module('cluster_wire_reference')
+            reference.collect(config, produce=not reference.owned(config).exists())
         if label == 'cluster-functional':
             import counterfactual_receiving
             counterfactual_receiving.run(config)

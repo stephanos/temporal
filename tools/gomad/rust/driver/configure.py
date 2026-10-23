@@ -210,6 +210,8 @@ def freeze(bindings, output, source_manifest):
     inputs.update(live_role_inputs(config))
     inputs.update(native_bootstrap_inputs(config))
     inputs.update(native_profile_inputs(config))
+    import cluster_wire_reference
+    inputs.update(cluster_wire_reference.input_paths(config['terminal_controls_reference']))
     if config.get('identity_harness') is not None:
         import identity_harness
         inputs.update(identity_harness.static_inputs(config))

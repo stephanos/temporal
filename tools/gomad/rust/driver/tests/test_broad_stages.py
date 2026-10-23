@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import broad_harness as harness
 import broad_stages as broad
+import cluster_wire_reference as wire
 from driver import Refusal
 
 
@@ -73,6 +74,7 @@ class BroadStages(unittest.TestCase):
             for name in ('core_world', 'core_network', 'core_lifecycle', 'core_retained', 'core_retained_inputs', 'core_guests'):
                 modules[name] = SimpleNamespace(observations=Mock(return_value={'roots': {}}))
             modules['core_network'].observations.return_value = {'roots': {}, 'frame_cases': {'native': 'synthetic'}}
+            modules['core_cluster_wire'] = SimpleNamespace(observations=Mock(return_value={'roots': {}}))
             modules['core_retained'].observations.return_value = {'roots': {}, 'spelling_cases': [
                 {'case': case, 'raw_sha256': 'synthetic'} for case in (
                     'canonical', 'indented', 'member-order', 'escaped-member', 'escaped-value',
@@ -103,6 +105,7 @@ class BroadStages(unittest.TestCase):
             modules['core_world'].observations.assert_called_once_with(config, 'helper-lib')
             modules['core_lifecycle'].observations.assert_called_once_with(
                 config, 'helper-lib\nhost-scenario', network_frame_cases={'native': 'synthetic'})
+            modules['core_cluster_wire'].observations.assert_called_once_with(config, 'helper-lib\nhost-scenario')
             modules['core_inspection'].observations.assert_called_once_with(
                 config, 'helper-lib\nhost-inspection\nhost-inspection-scale', artifact_roots=[str(root / 'helper-lib-raw')])
             modules['core_identity'].observations.assert_called_once_with(config, 'identity', build['context'])
@@ -146,7 +149,7 @@ class BroadStages(unittest.TestCase):
                         'reader_errors': {}, 'subgates': [{'id': 'unreceived', 'status': 'REFUSED'}]}
             with patch.object(broad, 'preflight'), patch.object(harness, 'execute_build', side_effect=build) as fresh, \
                     patch.object(harness, 'read_build'), patch.object(harness, 'execute') as execute, \
-                    patch.object(broad, 'collect', side_effect=facts):
+                    patch.object(broad, 'collect', side_effect=facts), patch.object(wire, 'collect') as reference:
                 for label in ('cluster-provider', 'retained-cluster'):
                     root = Path(scratch) / 'stages' / label
                     root.mkdir(parents=True)
@@ -156,7 +159,24 @@ class BroadStages(unittest.TestCase):
                     self.assertFalse(retained['complete'])
                     self.assertEqual(retained['subgates'][0]['status'], 'REFUSED')
                 fresh.assert_called_once_with(config)
+                reference.assert_called_once_with(config, produce=True)
                 self.assertEqual([call.args[1] for call in execute.call_args_list], [harness.Stage.PROVIDER, harness.Stage.RETAINED])
+
+    def test_original_cluster_wire_reference_failure_refuses_all_provider_roots(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            config = {'root': scratch, 'source_sha256': 'synthetic', '_config_sha256': 'synthetic', 'identity': {}}
+            label = 'cluster-provider'
+            root = Path(scratch) / 'stages' / label
+            root.mkdir(parents=True)
+            harness.owned_root(config).mkdir()
+            with patch.object(broad, 'preflight'), patch.object(harness, 'read_build'), \
+                    patch.object(harness, 'execute'), patch.object(wire, 'collect', side_effect=Refusal('original six did not execute')):
+                with self.assertRaises(Refusal):
+                    broad.run(config, label, root)
+            retained = json.loads((root / 'broad-diagnostics.json').read_text())
+            self.assertEqual(len(retained['subgates']), 78)
+            self.assertTrue(all(row['status'] == 'REFUSED' for row in retained['subgates']))
+            self.assertEqual(retained['reader_errors']['execution']['reason'], 'original six did not execute')
 
     def test_execution_failure_keeps_explicit_refused_roots(self):
         with tempfile.TemporaryDirectory() as scratch:
