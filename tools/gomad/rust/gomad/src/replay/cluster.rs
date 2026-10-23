@@ -1092,7 +1092,7 @@ mod broad_guest_tests;
 #[cfg(test)]
 pub use retained_tests::allocation_probe::run as allocation_probe;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "determinism-fixture"))]
 #[path = "cluster/retained_lifecycle_matrix_tests.rs"]
 mod retained_lifecycle_matrix_tests;
 

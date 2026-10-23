@@ -170,6 +170,13 @@ def typed_readers(config, stage, raw, build):
     derive('retained-matrix', lambda: dict(facts=module('core_retained_matrix').lifecycle_matrix(raw_text(raw, 'host-lifecycle-matrix'))))
     if stage in (broad_harness.Stage.PROVIDER, broad_harness.Stage.RETAINED):
         derive('guests', lambda: module('core_guests').observations(config, raw))
+        derive('guest-retention', lambda: module('core_guest_retention').observations(config, raw))
+        if 'guest-retention' in readers and 'guests' in readers:
+            retention = readers['guest-retention']
+            for root, facts in retention['source_closed_receiving'].items():
+                require(facts.get('native_receiving_complete') is True and root in retention['partial_roots'],
+                        'guest retention omitted its native completion or retired-form disposition')
+                readers['guests'].get('partial_roots', {}).pop(root, None)
     writer = raw_text(raw, 'host-writer')
     derive('writer', lambda: dict(roots={'TestRetainedCanonicalWriterChecksEveryWriteAndBase64Close':
         module('core_predicates').retained_writer(document(writer, 'gomad.native-retained-writer-observation/v1'))}))

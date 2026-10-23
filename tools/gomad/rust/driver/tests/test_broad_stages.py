@@ -83,6 +83,7 @@ class BroadStages(unittest.TestCase):
                 'supporting_obligations': {'TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput': {'strict_cases': strict}},
                 'facts': {case: {'case': case, 'verified': 'synthetic'} for case in strict}}
 
+            modules['core_guest_retention'] = SimpleNamespace(observations=Mock(return_value=dict(roots={},source_closed_receiving={},partial_roots={})))
             modules['core_boot_network'] = SimpleNamespace(ROOT='TestProviderBindsEverySelectedBootNetworkLimit',
                 observations=Mock(return_value=dict(received=['synthetic'], additional_controls=[], unreceived=['unused mismatch'], representation='synthetic')))
             modules['core_lifecycle'].observations.return_value['partial_roots'] = {}
@@ -115,6 +116,7 @@ class BroadStages(unittest.TestCase):
             self.assertNotIn('roots', readers['retained-matrix'])
             self.assertIn('TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput', readers['retained-decoder']['roots'])
             modules['core_guests'].observations.assert_called_once_with(config, raw)
+            modules['core_guest_retention'].observations.assert_called_once_with(config, raw)
             calls = modules['allocation_receiving'].derive.call_args_list
             self.assertEqual(calls[0].kwargs['artifact_root'], root / 'host-allocation')
             self.assertEqual(calls[1].kwargs['artifact_root'], root / 'helper-allocation')
