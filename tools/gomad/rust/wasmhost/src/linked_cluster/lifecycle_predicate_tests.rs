@@ -862,3 +862,75 @@ fn network_owner_admission_refuses_original_per_node_and_initial_incarnation_cas
         }),
     );
 }
+
+#[test]
+fn storage_volume_order_boot_admission_keeps_the_same_first_refusal() {
+    for kind in ["selection", "context"] {
+        for iteration in 0..64 {
+            let model: crate::volume::StorageModel = serde_json::from_value(json!({
+                "volumes":[{"ID":"a","Path":"/a","CapacityBytes":512},
+                    {"ID":"b","Path":"/b","CapacityBytes":512}],
+                "limits":{"PendingOperations":1000,"Transitions":1000}
+            }))
+            .unwrap();
+            let mut descriptor = json!({"model":model,"model_identity":model.identity(),
+                "return_image":true,"crash_limits":{"States":16,"Operations":8,"Depth":8,
+                    "Bytes":1 << 20,"Work":256}});
+            let ids = if iteration % 2 == 0 {
+                ["a", "b"]
+            } else {
+                ["b", "a"]
+            };
+            let mut context = serde_json::Map::new();
+            let mut selection = serde_json::Map::new();
+            for id in ids {
+                if kind == "selection" {
+                    selection.insert(
+                        id.into(),
+                        if id == "a" { json!([0]) } else { json!([1, 1]) },
+                    );
+                } else {
+                    context.insert(id.into(), json!({
+                        "PendingSHA256":if id == "a" { "invalid".into() } else { format!("sha256:{}", "a".repeat(64)) },
+                        "Operations":[{"ID":0,"Kind":"write","Dependencies":null,"Inode":0,
+                            "Offset":0,"Bytes":0,"PayloadSHA256":"","EffectSHA256":"","Path":"","Destination":""}]
+                    }));
+                }
+            }
+            let context_bytes = if kind == "selection" {
+                descriptor["crash_selection"] = Value::Object(selection);
+                None
+            } else {
+                let bytes = serde_json::to_vec(&context).unwrap();
+                descriptor["crash_context"] = json!({"bytes":bytes.len(),
+                    "chunks":(bytes.len() as u64).div_ceil(64*1024),
+                    "sha256":format!("{:x}",Sha256::digest(&bytes))});
+                Some(bytes)
+            };
+            let mut input = request(&["a"], FINISH);
+            input.incarnations[0].request.storage = Some(
+                serde_json::from_value(json!({
+                    "descriptor":descriptor,"context":context_bytes
+                }))
+                .unwrap(),
+            );
+            let error = prepare(input).err().unwrap();
+            assert_eq!(
+                error.to_string(),
+                if kind == "selection" {
+                    "WASI invalid: storage crash selection zero operation"
+                } else {
+                    "WASI invalid: storage crash context inventory"
+                }
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({
+                    "schema":"gomad.core-predicate-observation/v1","case":"storage-validation-volume-boot-order",
+                    "inputs":{"kind":kind,"iteration":iteration,"insertion_ids":ids,
+                        "descriptor":descriptor,"context":context},"observed":{"refusal":error.to_string()}
+                })
+            );
+        }
+    }
+}
