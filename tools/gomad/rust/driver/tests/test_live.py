@@ -208,3 +208,26 @@ class RawBindingGuards(unittest.TestCase):
         for index,value in ((4,'test_dep'),(5,'-timeout=16m'),(1,'list')):
             argv=original[:];argv[index]=value
             with self.subTest(index=index),self.assertRaises(driver.Refusal):live.slim_command(argv)
+
+    def test_original_double_selected_tests_need_distinct_actual_commands(self):
+        import live
+        root='original_test.go#TestVolumeConformanceCorpus'
+        original={root,root+'/original-make/conformance',root+'/original-make/recursive'}
+        event='go/package/TestVolumeConformanceCorpus@stage/validate@run/command-0001'
+        entries={key:dict(evidence=[event]) for key in original}
+        with self.assertRaises(driver.Refusal):live.reach_coverage(original,entries,{event})
+        second='go/package/TestVolumeConformanceCorpus@stage/portable@run/command-0002'
+        entries[root+'/original-make/recursive']['evidence']=[second]
+        live.reach_coverage(original,entries,{event,second})
+
+    def test_provider_reference_uses_exact_original_snapshot_after_retirement(self):
+        import live
+        checker=live.load('live-cluster-check')
+        expected=(live.PARITY/'reference/live-broker-provider.go.txt').read_bytes()
+        self.assertEqual(checker.provider_source(),expected)
+        with tempfile.TemporaryDirectory() as directory,patch.object(checker,'CORPUS',Path(directory)):
+            path=Path(directory)/'reference/live-broker-provider.go.txt';path.parent.mkdir()
+            path.write_bytes(expected+b'changed')
+            with self.assertRaises(AssertionError):checker.provider_source()
+            path.unlink()
+            with self.assertRaises(OSError):checker.provider_source()

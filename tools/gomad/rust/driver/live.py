@@ -525,10 +525,19 @@ def read_proof(config, family):
 
 def reach_coverage(original, entries, actual):
     require(original and set(entries) == set(original), 'missing/unexpected original test-wasm callable/subvariant mapping')
+    commands = {}
     for name, entry in entries.items():
         evidence = entry['evidence']
         require(evidence and len(evidence) == len(set(evidence)) and set(evidence) <= actual,
                 'unexecuted/duplicate test-wasm receiving obligation: ' + name)
+        if '/original-make/' in name:
+            root = name.split('/original-make/', 1)[0]
+            require(all('@stage/' in item and '@run/' in item for item in evidence),
+                    'original repeated Make selection needs actual stage/command testcase proof')
+            previous = commands.setdefault(root, set())
+            identities = {item.split('@stage/', 1)[1] for item in evidence}
+            require(not previous.intersection(identities), 'one execution substituted for repeated original Make selections')
+            previous.update(identities)
 
 
 def original_callables(config, mapping):
@@ -539,6 +548,9 @@ def original_callables(config, mapping):
     require(mapping['sources'] == inventory['sources'] and mapping['makefiles'] == inventory['makefiles'],
             'incomplete/changed original Make and test-wasm source universe')
     original = set(inventory['callables'])
+    for key, detail in inventory['callables'].items():
+        if len(detail['original_runs']) > 1:
+            original.update(key + '/original-make/' + run for run in detail['original_runs'])
     sites = inventory['subtest_sites']
     require(set(mapping['subtests']) == set(sites), 'unknown/omitted original helper or root subtest site')
     for site, detail in sites.items():
@@ -600,7 +612,8 @@ def receiving_report(config, endpoint):
             slim_command(read(receipt)['argv'])
     for raw in report['raw_reports']:
         require(sha(raw['path']) == raw['sha256'], 'actual receiving testcase raw report changed')
-    return {item['id'] for item in report['testcases']}
+    return {item['id'] for item in report['testcases']} | {
+        item['id'] + '@stage/' + stage + '@run/' + item['raw'] for item in report['testcases']}
 
 
 def test_wasm_reach(config, actual):

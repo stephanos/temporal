@@ -188,3 +188,20 @@ and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
 `gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
 and authenticated `subgates`; their disjoint union with the live section must
 match all 145 required IDs. Missing owners remain UNEXECUTED.
+
+The original source inventory is
+`testdata/parity/original-test-wasm-reach.json` (relative to `tools/gomad`).
+Its `gomad.original-test-wasm-source-inventory/v1` schema deliberately differs
+from an executable final reach map. It fixes assignment-base revision
+`1d695061b6382009d0659238c652a5a765b1d5f5`, both original Makefiles and every
+selected/excluded test source blob. `reach.inventory()` reproduces lexical
+callable/helper spans, original command selections, fixture exclusions and
+subtest sites from those Git objects. Source reviews and receiving candidates
+add explicit predicates and gaps; they never fill `evidence` or export PASS.
+The initial regex count was invalid because guest source strings contain test
+functions. Current discovery finds 752 actual callables and 756 original root
+command selections. The four double-selected roots require distinct actual
+`@stage/STAGE@run/command-NNNN` proof references in the final map; one process
+cannot substitute for two original Make invocations. Dynamic subtest domains
+remain required and unresolved until an exact source-reviewed expansion or
+actual bounded receiving derivation is bound.

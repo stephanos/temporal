@@ -192,7 +192,14 @@ def inventory(repo, commit, retained_repo=None):
                 if re.search(rb'\.(?:Fatalf?|Errorf?|FailNow|Fail)\s*\(', line):
                     assertion_lines.append(dict(line=absolute, source=original))
                 if re.search(rb'\.Skipf?\s*\(', line): skips.append(dict(line=absolute, source=original))
-            roots[key] = dict(source_span=span, status='UNEXECUTED', evidence=[],
+            runs = ['slim-refusals'] if path in SLIM else []
+            if path not in SLIM:
+                if name.startswith(('TestNamespaceConformance', 'TestVolumeConformance')) and path.startswith(PREFIX + 'wasi/'):
+                    runs.append('namespace-volume-conformance')
+                if name == 'TestWASMTestsDoNotImportNativeBuilder' and path.rsplit('/', 1)[0] == PREFIX.rstrip('/'):
+                    runs.append('architecture-builder-selection')
+                if not name.startswith('TestNamespaceConformance'): runs.append('recursive-test-wasm')
+            roots[key] = dict(source_span=span, status='UNEXECUTED', evidence=[], original_runs=runs,
                 retained_exact_source_candidates=[candidate for candidate in retained[name] if candidate['span_sha256'] == item['sha256']],
                 retained_changed_source_candidates=[candidate for candidate in retained[name] if candidate['span_sha256'] != item['sha256']],
                 assertion_lines=assertion_lines, skip_predicates=skips,
@@ -201,8 +208,14 @@ def inventory(repo, commit, retained_repo=None):
                 subtest_sites=direct_sites, helper_subtest_sites=helper_sites,
                 build_constraints=re.findall(r'^//go:build (.*)', raw.decode(), re.M))
     return dict(schema='gomad.original-test-wasm-source-inventory/v1', reference_commit=commit, qualification=False,
-        makefiles=makes, sources=sources, discovery_exclusions=excluded, callables=roots, subtest_sites=sites,
+        makefiles=makes, selections={
+            'slim-refusals': dict(tags=['gomad_wasm_slim', 'test_dep'], timeout_s=900, count=1, packages=['common/archiver/provider', 'temporal', 'tests/testcore'], native_roots=list(SLIM.values())),
+            'namespace-volume-conformance': dict(tags=['test_dep'], timeout_s=600, count=1, packages=['tools/gomad/internal/backends/wasm/wasi'], select='^(TestNamespaceConformance|TestVolumeConformance)', helper_role='conformance'),
+            'architecture-builder-selection': dict(tags=['test_dep'], timeout_s=900, count=1, packages=['tools/gomad/internal/backends/wasm'], select='^TestWASMTestsDoNotImportNativeBuilder$'),
+            'recursive-test-wasm': dict(tags=['test_dep'], timeout_s=900, count=1, packages=['tools/gomad/internal/backends/wasm/...'], skip='^TestNamespaceConformance')},
+        sources=sources, discovery_exclusions=excluded, callables=roots, subtest_sites=sites,
         counts=dict(callables=len(roots), source_files=len(sources), excluded_fixture_files=len(excluded),
                     subtest_sites=len(sites), unresolved_dynamic_sites=sum(not item['expansions'] for item in sites.values()),
+                    selected_root_commands=sum(len(item['original_runs']) for item in roots.values()),
                     retained_exact_source_candidates=sum(bool(item['retained_exact_source_candidates']) for item in roots.values()),
                     retained_changed_source_candidates=sum(bool(item['retained_changed_source_candidates']) for item in roots.values())))
