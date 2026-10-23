@@ -1,6 +1,7 @@
 pub mod build;
 mod cancellation;
 pub mod cluster_driver;
+pub(crate) mod collection;
 pub mod evidence;
 pub mod execution;
 pub mod guest;

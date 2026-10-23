@@ -1035,7 +1035,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     let mut results: BTreeMap<String, (NativeRun, String)> = BTreeMap::new();
     let mut samples = Vec::new();
     let mut pending = Vec::<RunSpec>::new();
-    let mut failures = Vec::new();
+    let mut failures = super::collection::FailureReasons::default();
     for row in &schedule {
         let prepared = &modules[&selection_key(&row.selection, &row.variant)];
         let executable = &roles[&row.role];
@@ -1160,7 +1160,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 attempt.as_ref().err()
             ));
         }
-        match attempt {
+        match failures.observe(attempt) {
             Ok(observed) => {
                 samples.push(json!({"sample":row,"status":"executed","actual_outcome":observed.root.outcome,"profile":observed.profile,"native_root":root.join("evidence").join(&row.name)}));
                 results.insert(row.name.clone(), (observed, row.role.clone()));
@@ -1190,8 +1190,10 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                             }
                             failures.push(format!("{}: {error}", comparison_row.name));
                             if call.name != "guest-variants" {
-                                retained_report(root, call, &samples, Some(&failures.join("; ")))?;
-                                return Err(failures.join("; "));
+                                failures.publish(|failure| {
+                                    retained_report(root, call, &samples, failure)
+                                })?;
+                                return Err(failures.message().unwrap_or(error));
                             }
                         }
                     } else {
@@ -1202,35 +1204,40 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             }
             Err(error) => {
                 samples.push(json!({"sample":row,"status":"failed","failure":error,"native_root":root.join("evidence").join(&row.name)}));
-                failures.push(error);
                 if call.name != "guest-variants" {
-                    retained_report(root, call, &samples, Some(&failures.join("; ")))?;
-                    return Err(failures.join("; "));
+                    failures.publish(|failure| retained_report(root, call, &samples, failure))?;
+                    return Err(failures.message().unwrap_or(error));
                 }
             }
         }
     }
     if !pending.is_empty() {
-        failures.push("required actual comparison reference unavailable".into());
+        failures.push("required actual comparison reference unavailable");
     }
-    if call.name == "guest-variants" {
-        variant_recommendations(root, &samples)?;
+    let finalized = failures.observe((|| -> Result<(), String> {
+        if call.name == "guest-variants" {
+            variant_recommendations(root, &samples)?;
+        }
+        if call.name == "legacy-workflow-profile" {
+            let retained = &results["seed0-retained"].0;
+            let transcript = retained
+                .root
+                .streams
+                .get("transcript")
+                .ok_or("retained canonical transcript absent")?;
+            let counts = super::count_operations(transcript, 64 << 20)?;
+            write(
+                &root.join("canonical-operation-counts.json"),
+                &json!({"calls":counts.calls,"local":counts.local,"remote":counts.remote,"operations":counts.operations}),
+            )?;
+        }
+        Ok(())
+    })());
+    let report = failures.publish(|failure| retained_report(root, call, &samples, failure))?;
+    if let Err(error) = finalized {
+        return Err(failures.message().unwrap_or(error));
     }
-    if call.name == "legacy-workflow-profile" {
-        let retained = &results["seed0-retained"].0;
-        let transcript = retained
-            .root
-            .streams
-            .get("transcript")
-            .ok_or("retained canonical transcript absent")?;
-        let counts = super::count_operations(transcript, 64 << 20)?;
-        write(
-            &root.join("canonical-operation-counts.json"),
-            &json!({"calls":counts.calls,"local":counts.local,"remote":counts.remote,"operations":counts.operations}),
-        )?;
-    }
-    let failure = (!failures.is_empty()).then(|| failures.join("; "));
-    let report = retained_report(root, call, &samples, failure.as_deref())?;
+    let failure = failures.message();
     if call.name == "guest-variants" {
         return Ok(report);
     }
