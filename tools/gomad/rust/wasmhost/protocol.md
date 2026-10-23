@@ -591,8 +591,11 @@ return the recovery image because the broker may restart any incarnation.
 ## Conformance driver
 
 The non-default Cargo feature `conformance` replaces the engine entry point with
-a test-only model driver. `make conformance-helper` builds it exclusively in
-`wasmhost/target-conformance`; it is never installed or used for qualification.
+a test-only model driver. From `tools/gomad`, `make validate-model-corpora`
+builds it through the single Rust workspace and copies it to
+`rust/target/release/gomad-model-conformance` (or the configured
+`CARGO_TARGET_DIR`) before restoring the ordinary reference transport. It is
+never installed or used as a qualification producer.
 Default executables omit the driver. Plain `cargo test`
 includes their unit tests and replays the checked-in namespace corpus.
 
