@@ -34,3 +34,7 @@ The owner said: "can we postpone the Stress testing? we won't have a calm system
 **Revival trigger:** the owner declares a quiet-host window. It then runs on the candidate current at that time, using worker B's stress producer and assembler: `gomad-measure --stress-inputs` and `groups_r4.py stress()` in /home/agent/evidence/fn232-composition-v1/.
 
 Nothing about this acceptance is waived.
+
+### Reinstated as a correctness check (2026-10-23)
+
+This supersedes the postponement above. The owner approved running the full matrix right after the freeze as a determinism check, even though the host is loaded. A divergence is a finding regardless of load. Wall time and timing results are recorded, and judged only in the quiet-host window.
