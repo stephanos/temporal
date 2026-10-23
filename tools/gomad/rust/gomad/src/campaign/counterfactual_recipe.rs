@@ -118,7 +118,7 @@ fn original_recipe_uses_parser_and_preserves_raw_options_beside_effective_overri
     assert_eq!(original["Limits"]["TranscriptBytes"], 8 << 20);
     assert_eq!(effective["Limits"]["TranscriptBytes"], 64 << 20);
     for name in ["draw", "clock", "handoff", "output-clock"] {
-        let options = options(&root.0, Path::new("/original-source"), name);
+        let options = options(&root.0, &root.0, name);
         assert_eq!(
             options.choice_bytes,
             if name == "handoff" { 0 } else { 4 << 20 }
