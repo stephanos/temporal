@@ -1903,7 +1903,9 @@ pub(crate) fn publication(
                 artifact: None,
                 stored_bytes: 0,
                 semantic_probes: Vec::new(),
-                choice_features: features,
+                // Only simulation exploration consumes cluster choice features;
+                // seed scenarios run without coverage, as Go recorded none for them.
+                choice_features: if simulation { features } else { Vec::new() },
                 divergence: None,
                 scenario_steps: Some(executed_steps),
                 soft_assertions: None,
