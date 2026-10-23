@@ -491,3 +491,89 @@ Kept worktrees: `/home/agent/wt/fn232-linked-cache` for root integration and
 both belong to open fn232. `worktrees-final.txt` captures the complete registry.
 No additional scratch checkout is retained. Assigned target and all evidence
 remain available; the exclusive cache/lifecycle build lease is released.
+
+## Original terminal-exit controls: native applicability batch (2026-10-23)
+
+This scoped batch starts at root `81a66b54b3`, then provisionally merges measurement
+`0523f4a475` as `a9452dc32a`. The dependency merge is source composition, not an
+acceptance verdict for measurement's separate batch. Its APIs and mechanical
+Execution/Prepared initializer additions are required by these controls.
+
+Immutable original `1d695061b6:tools/gomad/internal/backends/wasm/wasi/process_test.go`
+lines 757–799 has seven `TestTerminalExitMeasurementControls` cases. The original
+`process.go` lines 1207–1312 authenticates an external terminal frame, then
+requires successful exit, no cancellation/watchdog, process group disappearance,
+and terminal-to-reap at most one second. That helper transport was retired.
+The native mapping therefore makes these applicability distinctions explicit:
+
+* Prompt exit, 1.1-second slow preparation and 1.1-second delayed return run an
+  actual linked binary-WASM guest through production prepare/execute timing,
+  `warm::Run::observed` and its existing one-second candidate admission bound.
+  Request-local preparation/cleanup delays exist only under the compiled
+  determinism-fixture feature. Real `Instant` values establish the measured
+  interval; delayed preparation is excluded, delayed cleanup is refused.
+* Missing/invalid terminal metadata are causal typed-consumer refusal controls:
+  execute a real guest first, then remove/invert its native timing metadata.
+  These mutations are not claimed as actual missing external frames. An actual
+  trapping guest also fails the production warm observer.
+* Helper death, the 200-ms post-receipt watchdog and GroupGone use production
+  measurement `build::command_bounded` with real `/bin/sh` fixture children.
+  The retained receipt records signal 9 or timeout, retains the fixture stdout
+  marker, and has no cleanup errors; a separate real process-group ESRCH check
+  establishes disappearance. The watchdog fixture retains the original 30-second
+  sleep. Its marker is a fixture receipt, not a restored helper result grammar.
+
+These are native API/actual child preservation controls, not Go guest execution,
+installed operator acceptance, or final frozen qualification. Original bounds
+(one second, 1.1 seconds, 200 ms, thirty-second watchdog fixture) are preserved.
+The new production observer also binds the supplied teardown interval exactly
+back to actual Execution timing and the authorization-to-terminal measurement;
+it refuses absent, reversed or mismatched timestamps rather than trusting the
+caller's interval alone.
+
+Root owns the coherent final inventory append. This branch intentionally leaves
+inventory and identity-history unchanged, preserving the accepted 440-record
+prefix. Proposed additional controlled clock site:
+`host-rust:wasmhost/src/linked.rs|fixture_timing_delay|recv_timeout|1`, proposed id
+`host.rust.wasmhost.src.linked.rs.fixture_timing_delay.recv.timeout.1`.
+Role: bounded request-local fixture-only delay before authorization or after
+terminal classification; absent from ordinary and qualification builds, no
+model/guest/canonical-stream input. Evidence is the native terminal control plus
+`receiving_host_effect_sites_are_inventoried` after root's append.
+
+Focused evidence directory: `/home/agent/evidence/fn232-terminal-controls/`.
+`native-controls.log` first observed the actual native/child cases (3 tests,
+exit 0). `bound-red.log` removes only the production one-second candidate bound:
+real 1.1-second cleanup is admitted and the assertion fails (exit 101).
+`timing-red.log` removes only actual Execution timing authentication: absent
+metadata is admitted and the typed refusal assertion fails (exit 101). Each
+mutation was restored before subsequent checks. `final-warm-exact.log` and
+`final-warm-polished.log` pass all 14 warm-filtered tests (exit 0), including the
+real lifecycle controls. Original immutable full Go sources are retained beside
+the logs; these are source references, not newly executed Go evidence.
+
+Fresh same-family independent reviewer `terminal_controls_review` (gpt-6.1-sol,
+high reasoning, fresh context, read-only/no builds) initially blocked on the old
+0.1% interval tolerance: a real 1,000,500,000-ns interval could be reported as
+1,000,000,000 ns. The fix requires exact actual/recorded equality, stores the
+actual interval and checks equality again at admission. The regression separately
+covers construction and later record mutation; its crafted integer times are
+explicit typed-consumer proof, not an actual lifecycle delay. Reviewer then
+returned scoped SHIP, with dependency acceptance/final qualification excluded.
+
+Formatting and whitespace checks pass. Strict fixture-role Clippy was attempted
+and failed on the provisional dependency's build-script `format_collect` warning.
+A diagnostic run suppressing the known build/private-interface/helper warnings
+then exposed 149 dependency lint errors, including stress files owned by root;
+this is not a strict lint pass. The measurement owner requested neutral warm
+lint repairs (docs, semicolons, direct method/default use), included here; no
+stress or independently owned measurement source was changed. Root owns strict
+lint on the composed current source, final inventory/ledger append, source
+identity rotation, Go/installed acceptance, raw/golden regeneration and frozen
+qualification. No such combined acceptance is claimed by this focused batch.
+
+Ordinary-role focused warm tests also pass: `default-warm.log`, 11 tests,
+exit 0. Fixture-only controls are excluded from that build. This source checkpoint
+will next compose root `e944295e58` as an explicit dependency to receive the
+already reviewed global strict-lint/source fixes; the earlier failed lint logs
+remain historical evidence for the provisional source and are not erased.

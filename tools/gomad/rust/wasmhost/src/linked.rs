@@ -124,6 +124,8 @@ pub struct Prepared {
     pub(crate) namespace: Option<namespace::Namespace>,
     pub(crate) conditions: Conditions,
     cancellation: Cancellation,
+    #[cfg(feature = "determinism-fixture")]
+    fixture_timing_delays: [Duration; 2],
     output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
     #[cfg(feature = "guest-profile")]
@@ -131,6 +133,28 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    #[cfg(feature = "determinism-fixture")]
+    /// Admits bounded request-local delays for native terminal lifecycle controls.
+    ///
+    /// # Errors
+    /// Rejects delays longer than thirty seconds.
+    pub fn fixture_timing_delays(
+        &mut self,
+        preparation: Duration,
+        cleanup: Duration,
+    ) -> wasmtime::Result<()> {
+        if [preparation, cleanup]
+            .into_iter()
+            .any(|delay| delay > Duration::from_secs(30))
+        {
+            return Err(Error::msg(
+                "fixture timing delay exceeds original control bound",
+            ));
+        }
+        self.fixture_timing_delays = [preparation, cleanup];
+        Ok(())
+    }
+
     /// # Errors
     /// Admits request-local bounded guest sampling in a guest-profile role only.
     #[cfg(feature = "guest-profile")]
@@ -448,6 +472,8 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         namespace,
         conditions: Conditions::default(),
         cancellation: Cancellation::default(),
+        #[cfg(feature = "determinism-fixture")]
+        fixture_timing_delays: [Duration::ZERO; 2],
         output: None,
         network: None,
         #[cfg(feature = "guest-profile")]
@@ -475,6 +501,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         namespace,
         conditions,
         cancellation,
+        #[cfg(feature = "determinism-fixture")]
+        fixture_timing_delays,
         output,
         network,
         #[cfg(feature = "guest-profile")]
@@ -513,6 +541,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                     return Ok(outcome);
                 }
             };
+            #[cfg(feature = "determinism-fixture")]
+            fixture_timing_delay(fixture_timing_delays[0]);
             metrics.prepare_nanos = crate::metrics::elapsed(preparation);
             authorization_started = Some(std::time::Instant::now());
             let mut store = Store::new(
@@ -566,6 +596,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             };
             let mut outcome = finish_outcome(&mut store, executed, &request, &timed_out)?;
             terminal_classified = Some(std::time::Instant::now());
+            #[cfg(feature = "determinism-fixture")]
+            fixture_timing_delay(fixture_timing_delays[1]);
             #[cfg(test)]
             timing_tests::after_terminal();
             #[cfg(feature = "guest-profile")]
@@ -691,6 +723,14 @@ fn finish_outcome(
         outcome.message = error.to_string();
     }
     Ok(outcome)
+}
+
+#[cfg(feature = "determinism-fixture")]
+fn fixture_timing_delay(delay: Duration) {
+    if !delay.is_zero() {
+        let (_sender, receiver) = mpsc::channel::<()>();
+        let _ = receiver.recv_timeout(delay);
+    }
 }
 
 fn watch(

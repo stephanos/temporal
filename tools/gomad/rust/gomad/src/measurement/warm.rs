@@ -1,5 +1,5 @@
 use super::evidence::{self, ComparisonMask, NativeRun};
-use super::statistics::{TimingRange, reap_consistent, timing};
+use super::statistics::{TimingRange, timing};
 use crate::evidence::canonical;
 use gomad_wasmhost::linked::Execution;
 use serde::{Deserialize, Serialize};
@@ -115,7 +115,7 @@ fn validate_binding(binding: &Binding) -> Result<(), String> {
             &binding.engine_configuration,
         ]
         .into_iter()
-        .any(|value| value.is_empty())
+        .any(String::is_empty)
         || binding.engine_version != "47.0.3"
         || binding.artifact_bytes == 0
         || binding.artifact_bytes >= binding.envelope_bytes
@@ -254,6 +254,19 @@ fn validate_retained_binding(binding: &Binding, run: &Run) -> Result<(), String>
 impl Run {
     fn observed(observation: Observation) -> Result<Self, String> {
         let execution = observation.execution;
+        let timing = execution
+            .timing
+            .as_ref()
+            .ok_or("actual native terminal timing absent")?;
+        if timing.terminal_classified < timing.authorization_started
+            || timing.returned < timing.terminal_classified
+            || timing.terminal_classified != observation.teardown.terminal
+            || timing.returned != observation.teardown.returned
+            || execution.authorization_to_terminal_nanos
+                != Some(timing.authorization_to_terminal_nanos())
+        {
+            return Err("actual native terminal timing is inconsistent".into());
+        }
         #[cfg(feature = "helper-guest-profile")]
         if let Some(error) = &execution.guest_profile_error {
             return Err(format!("native guest profile finalization failed: {error}"));
@@ -288,7 +301,7 @@ impl Run {
             .ok_or("native teardown clocks are reversed")?;
         let observed_teardown_nanos =
             u64::try_from(elapsed.as_nanos()).map_err(|_| "native teardown interval overflow")?;
-        if !reap_consistent(observed_teardown_nanos, observation.teardown.recorded_nanos) {
+        if observed_teardown_nanos != observation.teardown.recorded_nanos {
             return Err("native terminal-to-teardown interval is inconsistent".into());
         }
         Ok(Self {
@@ -298,7 +311,7 @@ impl Run {
             event_order: execution.event_order,
             phases: observation.phases,
             wall_nanos: observation.wall_nanos,
-            teardown_nanos: observation.teardown.recorded_nanos,
+            teardown_nanos: observed_teardown_nanos,
             observed_teardown_nanos,
             fresh_store_id: observation.fresh_store_id,
             evidence_sha256,
@@ -324,7 +337,7 @@ impl Run {
                 && store == self.fresh_store_id
                 && teardown <= self.wall_nanos
         } else {
-            reap_consistent(self.observed_teardown_nanos, self.teardown_nanos)
+            self.observed_teardown_nanos == self.teardown_nanos
         };
         let metrics = &self.raw_outcome["metrics"];
         if self.raw_outcome["termination"] != "exit"
@@ -470,6 +483,8 @@ pub fn collect_retained(
 }
 
 impl Series {
+    /// # Errors
+    /// Refuses incomplete, inconsistent or out-of-bound native observations.
     pub fn validate(&self) -> Result<(), String> {
         validate_binding(&self.binding)?;
         if self.schema != "gomad.native-warm-preparation/v1" || self.runs.len() < 5 {
@@ -483,7 +498,7 @@ impl Series {
             validate_retained_binding(&self.binding, run)?;
             match (&self.warmup.native, &run.native) {
                 (Some(before), Some(after)) => {
-                    evidence::compare(before, after, ComparisonMask::Exact)?
+                    evidence::compare(before, after, ComparisonMask::Exact)?;
                 }
                 (None, None) => {}
                 _ => {
@@ -504,6 +519,7 @@ impl Series {
         Ok(())
     }
 
+    #[must_use]
     pub fn prepare_timing(&self) -> TimingRange {
         timing(
             &self
@@ -515,6 +531,8 @@ impl Series {
     }
 }
 
+/// # Errors
+/// Refuses mismatched bindings, roles or native warm series.
 pub fn compare(before: &Series, after: &Series) -> Result<(), String> {
     before.validate()?;
     after.validate()?;
@@ -547,3 +565,7 @@ pub fn compare(before: &Series, after: &Series) -> Result<(), String> {
 #[cfg(test)]
 #[path = "warm_tests.rs"]
 mod tests;
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+#[path = "terminal_controls.rs"]
+mod terminal_controls;

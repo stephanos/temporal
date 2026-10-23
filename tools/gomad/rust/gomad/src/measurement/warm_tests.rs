@@ -29,7 +29,7 @@ fn binding() -> Binding {
 fn observation(index: usize) -> Observation {
     let mut outcome = Outcome::new("exit", "");
     outcome.exit_code = Some(0);
-    outcome.metrics = Some(Default::default());
+    outcome.metrics = Some(Box::default());
     let metrics = outcome.metrics.as_mut().unwrap();
     metrics.prepare_nanos = 100;
     metrics.compile_nanos = if index == 0 { 50 } else { 0 };
@@ -37,7 +37,11 @@ fn observation(index: usize) -> Observation {
     let terminal = Instant::now();
     Observation {
         execution: Execution {
-            timing: None,
+            timing: Some(gomad_wasmhost::linked::ExecutionTiming {
+                authorization_started: terminal - Duration::from_nanos(10),
+                terminal_classified: terminal,
+                returned: terminal + Duration::from_nanos(100),
+            }),
             #[cfg(feature = "helper-guest-profile")]
             guest_profile_error: None,
             #[cfg(feature = "helper-diagnostic-profile")]
@@ -133,7 +137,7 @@ fn actual_native_outcome_metrics_and_teardown_are_required() {
                             .metrics
                             .as_mut()
                             .unwrap()
-                            .cache_hit = false
+                            .cache_hit = false;
                     }
                     4 => {
                         observed
@@ -142,7 +146,7 @@ fn actual_native_outcome_metrics_and_teardown_are_required() {
                             .metrics
                             .as_mut()
                             .unwrap()
-                            .compile_nanos = 1
+                            .compile_nanos = 1;
                     }
                     5 => {
                         observed
@@ -151,7 +155,7 @@ fn actual_native_outcome_metrics_and_teardown_are_required() {
                             .metrics
                             .as_mut()
                             .unwrap()
-                            .prepare_nanos = 0
+                            .prepare_nanos = 0;
                     }
                     6 => observed.teardown.returned = observed.teardown.terminal,
                     7 => observed.teardown.recorded_nanos = 0,
@@ -394,4 +398,19 @@ fn retained_collector_refuses_missing_timing_source_and_altered_cache_or_closure
         .unwrap();
         assert!(!error.is_empty(), "mutation {mutation}");
     }
+}
+
+#[test]
+fn direct_native_timing_cannot_understate_the_one_second_boundary() {
+    let mut observed = observation(1);
+    let terminal = observed.teardown.terminal;
+    let returned = terminal + Duration::from_nanos(1_000_500_000);
+    observed.execution.timing.as_mut().unwrap().returned = returned;
+    observed.teardown.returned = returned;
+    observed.teardown.recorded_nanos = 1_000_000_000;
+    assert!(Run::observed(observed).is_err());
+    let mut run = Run::observed(observation(1)).unwrap();
+    run.observed_teardown_nanos = 1_000_500_000;
+    run.teardown_nanos = 1_000_000_000;
+    assert!(run.validate(true, false).is_err());
 }
