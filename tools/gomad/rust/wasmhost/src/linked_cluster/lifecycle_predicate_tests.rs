@@ -775,3 +775,90 @@ fn live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace()
         }),
     );
 }
+
+#[test]
+fn network_owner_admission_refuses_original_per_node_and_initial_incarnation_cases() {
+    let corpus: Value = serde_json::from_str(include_str!(
+        "../../tests/testdata/network_cluster_cases/cross-node-ready-poll-and-stale-cancel-binary-fixture.json"
+    )).unwrap();
+    let network: NetworkConfig = serde_json::from_value(corpus["config"].clone()).unwrap();
+    let make_request = || {
+        let mut input = request(&["a", "b"], FINISH);
+        input.network = Some(network.clone());
+        for item in &mut input.incarnations {
+            item.network = Some(network.model.clone());
+        }
+        input
+    };
+    let admitted = prepare(make_request()).unwrap();
+    assert_eq!(admitted.activity().snapshot().launched_stores, 0);
+    raw(
+        "TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
+        "valid",
+        json!({
+            "admitted":true,"profile":network.model.profile,"activity":admitted.activity().snapshot()
+        }),
+    );
+    for variant in [
+        "node without profile",
+        "node local faults",
+        "stock node",
+        "no cluster network",
+        "restarted incarnation",
+    ] {
+        let mut input = make_request();
+        let expected = match variant {
+            "node without profile" => {
+                input.incarnations[1].network = None;
+                "cluster boot network profile"
+            }
+            "node local faults" => {
+                input.incarnations[1].network.as_mut().unwrap().faults.push(
+                    serde_json::from_value(json!({"name":"x","action":"heal","at_nanos":1}))
+                        .unwrap(),
+                );
+                "broker node local fault schedule"
+            }
+            "stock node" => {
+                input.incarnations[0].request.model = None;
+                "cluster requires helper-owned model"
+            }
+            "no cluster network" => {
+                input.network = None;
+                "cluster boot network profile"
+            }
+            "restarted incarnation" => {
+                input.incarnations[1].handle.incarnation = 2;
+                for step in &mut input.steps {
+                    if step.handle.node == "b" {
+                        step.handle.incarnation = 2;
+                    }
+                }
+                "invalid cluster incarnation lifecycle"
+            }
+            _ => unreachable!(),
+        };
+        let error = prepare(input).err().unwrap();
+        assert_eq!(error.to_string(), expected);
+        raw(
+            "TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
+            variant,
+            json!({
+                "admitted":false,"admission_error":error.to_string(),"launched_stores":0
+            }),
+        );
+    }
+    let error = serde_json::from_value::<NetworkConfig>(json!({
+        "faults":[{"name":"f","action":"partition","from":"a","to":"b","at_nanos":1}]
+    }))
+    .unwrap_err();
+    assert_eq!(error.to_string(), "missing field `model`");
+    raw(
+        "TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
+        "faults without network",
+        json!({
+            "admitted":false,"admission_error":error.to_string(),"launched_stores":0,
+            "owner":"network-config-decoder"
+        }),
+    );
+}
