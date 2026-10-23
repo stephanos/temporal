@@ -7,8 +7,8 @@ satisfies: [R1]
 Implement R1 and the parent Backend implementation contracts for emitter compatibility, checked arithmetic and postcondition history. The approved task is a source-derived Apalache safety projection with Snowcat types, not comments alone. Preserve the existing TLC relation and answers. No source transition may be inferred from a native explored graph.
 
 **Size:** L. **Dependencies:** fn-210, fn-212 and fn-227 must be closed and integrated on umpire before admission; no worktree is needed for the single writer.
-**Touches:** [model/umpire/lift/**, model/umpire/testing/**, model/umpire/backends/**, model/umpire/tests/**, model/temporal/feature/activity/expected/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, model/.gitignore, Makefile]
-These are the existing emitter/proof surfaces plus narrowly necessary pinned-tool admission and shared process support. Do not change authored production Models, Go runtime/protocol, guest policy or third-party dependencies. Source/front/IR extensions beyond existing admitted expressions are not expected here; report a concrete need before widening implementation scope. Task .2 finalizes reusable runner lifecycle, .3 owns general typed ITF replay, .4 owns the fixture consumer, and .5 owns symbolic Worlds.
+**Touches:** [model/umpire/lift/**, model/umpire/front/**, model/umpire/testing/**, model/umpire/backends/**, model/umpire/tests/**, model/temporal/feature/activity/expected/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, model/.gitignore, model/temporal/hosts/go/umpire_temporal_guest.wasm, Makefile]
+These are the existing emitter/proof surfaces plus narrowly necessary pinned-tool admission and shared process support. Do not change authored production Models, Go runtime/protocol, guest policy or third-party dependencies. A narrow shared-front correction preserving evaluated condition roots in existing branch checks is authorized after the checkpoint correctness audit. Preserve guards and evaluation order, including empty-field States and untaken conditions. No new source authoring admission or IR construct is authorized by that correction; other front/IR extensions require a concrete need before widening implementation scope. Task .2 finalizes reusable runner lifecycle, .3 owns general typed ITF replay, .4 owns the fixture consumer, and .5 owns symbolic Worlds.
 
 ### Approach
 
@@ -26,6 +26,10 @@ Quick from model/: `mise exec -- cargo test -p umpire-lift --tests`. After chang
 ### Required evidence
 
 Exact selected release/version/checksum and actual tool invocations, located unsupported-type refusal, fully typed emitted fixtures, discriminating arithmetic/history/filter controls, unchanged TLC results, native/guest inventory, reviewed final source checkpoint and terminal full-gate output. Missing or non-replayable evidence is incomplete rather than success. No new user input is needed for routine choices within these contracts.
+
+### Accepted checkpoint audit corrections
+
+At source checkpoint `141df3cc41`, the correctness audit walked two required arithmetic gaps. Add discriminating native/actual-tool red controls before fixing: an evaluated outer start-range fault before a later empty range, plus reversed field order to prove the unevaluated case; and a discarded if condition on an empty-field State, with an untaken-condition control. Preserve start-field evaluation order in the safety emitter and retain guarded evaluated-condition roots in the shared front using existing checks representation. Do not force every lazy definition, which would evaluate untaken branches. Recheck existing source/TLC behavior and conditional-return linearity. Any landed shared-front production correction requires refreshed guest and actual live slice/gaps evidence; the previous unchanged-front reuse proof no longer applies. The standards audit also requests one owner for observer/operator types at emission sites and compact or partitioned evidence inventories with every entry retained.
 ## Acceptance
 - [ ] Every emitted variable, constant and operator has Snowcat types derived from the admitted source; unsupported mapping refuses with its type and location.
 - [ ] Explicit Apalache safety Init/Next use independently lifted actions plus tagged preserving stutter, without ENABLED/TLC Assert/Complete; the TLC route and results remain unchanged.
