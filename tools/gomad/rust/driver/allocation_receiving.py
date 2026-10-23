@@ -64,7 +64,7 @@ def derive(rows, target, artifact_root=None):
             row = by_key[(case, None)]
             observed = row["observed"]
             require(row["inputs"] == inputs and observed["length"] == length, f"fixed workload changed: {case}")
-            require(observed["sha256"] == "sha256:"+hashlib.sha256(byte*length).hexdigest(), f"read changed retained bytes: {case}")
+            require(observed["sha256"] == hashlib.sha256(byte*length).hexdigest(), f"read changed retained bytes: {case}")
             require(row["allocator"]["allocated_bytes"] <= ceiling, f"original byte ceiling exceeded: {case}")
             if case == "retained-decode":
                 require(observed["schema"] == "gomad.cluster-replay-inputs/v1" and observed["descriptor_sha256"] == observed["sha256"], "retained descriptor binding changed")

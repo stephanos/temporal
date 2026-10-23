@@ -1,5 +1,4 @@
 import copy
-import hashlib
 import sys
 import unittest
 from pathlib import Path
@@ -19,11 +18,11 @@ def row(case, inputs, allocated, observed):
 
 
 def host_rows():
-    digest = "sha256:"+hashlib.sha256(b"\xa5"*(8 << 20)).hexdigest()
+    digest = "e474a45740e5efac02e9f7e0626b3f86111b293f8363e477786dfad64e98df3b"
     return [
         row("allocator-control", {"bytes": 8192}, 8192, {"length": 8192, "last": 165}),
         row("bounded-file-read", {"file_bytes": 1 << 20, "limit_bytes": 512 << 20}, 1 << 20,
-            {"length": 1 << 20, "sha256": "sha256:"+hashlib.sha256(b"x"*(1 << 20)).hexdigest()}),
+            {"length": 1 << 20, "sha256": "8f990ba0b577b51cf009ea049368c16bbda1b21e1b93be07a824758bb253c39b"}),
         row("opened-payload", {"payload_bytes": 8 << 20, "limit_bytes": 8 << 20}, 8 << 20,
             {"length": 8 << 20, "sha256": digest}),
         row("retained-decode", {"payload_bytes": 8 << 20}, 56 << 20,
@@ -37,6 +36,24 @@ class AllocationReceivingTests(unittest.TestCase):
         self.assertEqual(derive(rows, "gomad")["predicates"][-1]["actual"], 56 << 20)
         rows[-1]["allocator"]["allocated_bytes"] += 1
         with self.assertRaisesRegex(ValueError, "original byte ceiling"):
+            derive(rows, "gomad")
+
+    def test_native_plain_hex_hashes_accept_literal_owner_outputs(self):
+        rows = host_rows()
+        self.assertEqual(derive(rows, "gomad")["observation_rows"], 4)
+
+    def test_retired_go_digest_prefix_cannot_replace_native_payload_hash(self):
+        for index in (1, 2, 3):
+            with self.subTest(case=host_rows()[index]["case"]):
+                rows = host_rows()
+                rows[index]["observed"]["sha256"] = "sha256:"+rows[index]["observed"]["sha256"]
+                with self.assertRaisesRegex(ValueError, "read changed retained bytes"):
+                    derive(rows, "gomad")
+
+    def test_retired_go_digest_prefix_cannot_replace_native_descriptor_hash(self):
+        rows = host_rows()
+        rows[-1]["observed"]["descriptor_sha256"] = "sha256:"+rows[-1]["observed"]["descriptor_sha256"]
+        with self.assertRaisesRegex(ValueError, "retained descriptor binding changed"):
             derive(rows, "gomad")
 
     def test_allocation_call_count_cannot_substitute_for_byte_ceiling(self):
@@ -55,7 +72,7 @@ class AllocationReceivingTests(unittest.TestCase):
 
     def test_reported_low_allocation_does_not_replace_retained_bytes(self):
         rows = host_rows()
-        rows[-1]["observed"]["sha256"] = "sha256:"+"a"*64
+        rows[-1]["observed"]["sha256"] = "a"*64
         with self.assertRaisesRegex(ValueError, "read changed retained bytes"):
             derive(rows, "gomad")
 
