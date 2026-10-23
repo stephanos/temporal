@@ -94,7 +94,10 @@ mod simulation_tests {
         descriptor.reference_precrash = true;
         let mut namespace = fixture(&descriptor);
         let storage = namespace.storage().unwrap();
-        assert!(!storage.fs.pending_operations()["db"].is_empty());
+        assert_ne!(
+            storage.fs.pending_operations()["db"],
+            [] as [crate::volume::Operation; 0]
+        );
         let expected = storage
             .reference_image(StorageDescriptor::image_limit(namespace.filesystem_bytes()))
             .unwrap();

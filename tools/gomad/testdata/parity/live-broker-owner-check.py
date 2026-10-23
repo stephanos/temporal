@@ -94,23 +94,24 @@ def main():
     work = args.work.resolve()
     work.mkdir(mode=0o700, parents=True, exist_ok=False)
     observations = args.observation.resolve()
+    observe_path = Path(__file__).with_name('live-broker-observe.py')
+    spec = importlib.util.spec_from_file_location('broker_observe', observe_path)
+    observe = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(observe)
     derivation = json.loads((observations / 'derivation.json').read_bytes())
     index = json.loads((observations / 'observation-index.json').read_bytes())
-    assert index['schema'] == 'gomad.live-broker-observation-index/v1'
+    observe.validate_versions(index, derivation)
     assert index['derivation_sha256'] == sha((observations / 'derivation.json').read_bytes())
     assert index['go_test_sha256'] == sha((observations / 'go-test.jsonl').read_bytes())
     for name, descriptor in index['files'].items():
         assert Path(name).name == name and name not in ('.', '..')
         raw = (observations / 'observations' / name).read_bytes()
         assert len(raw) == descriptor['bytes'] and sha(raw) == descriptor['sha256']
-    assert derivation['schema'] == 'gomad.live-broker-observation-derivation/v1'
+        if name.endswith('.json'):
+            observe.validate_row(json.loads(raw), index)
     assert sha((observations / 'test-only-helper.go').read_bytes()) == derivation['helper_sha256']
     assert sha((observations / 'test-only.diff').read_bytes()) == derivation['diff_sha256']
     assert {37, 38}.issubset(derivation['roots']), 'both exact owner roots are required'
-    observe_path = Path(__file__).with_name('live-broker-observe.py')
-    spec = importlib.util.spec_from_file_location('broker_observe', observe_path)
-    observe = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(observe)
     observe.validate_events((observations / 'go-test.jsonl').read_bytes(), [37, 38])
     rows = [json.loads((observations / 'observations' / name).read_bytes()) for name in index['files'] if name.startswith('observation-')]
     all_rows = rows

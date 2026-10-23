@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-230-gomad-explore-site-scope-for-choice",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-22T23:22:32.327212Z",
   "created_at": "2026-10-20T20:28:45.286928Z",
   "default_impl": null,
   "default_review": null,
@@ -60,19 +60,65 @@
       "timestamp": "2026-10-21T18:01:14.447330Z",
       "tool_calls": 24,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9ea3953ec4a8e685cd28b3bee05364ab7089ea75f098765da6a45e58f4bfa642",
+      "backend": "codex",
+      "base_sha": "92c69594f21ec09d82b716b04a8eed8352a8fdd4",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-da559de5677878bdfd6ccc76673548fb",
+            "classification": "introduced",
+            "findingId": "finding-da559de5677878bdfd6ccc76673548fb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00a97c42ee371656e9b3655a3056b521bac8d4ce",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1634447,
+      "output_sha256": "58f4edf7b8395f6a4b90c8e28ce861a2beeed7fac8605b478c2eb91bd8e8b8c6",
+      "reservation_id": "f26fdfacfef4442caed85566c0369374",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-22T23:22:32.307172Z",
+      "tool_calls": 32,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-230-gomad-explore-site-scope-for-choice.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: explore site scope for choice exploration",
   "tracker": {
     "baseHashFlow": null,
@@ -85,5 +131,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T18:02:34.905925Z"
+  "updated_at": "2026-10-22T23:31:33.484199Z"
 }

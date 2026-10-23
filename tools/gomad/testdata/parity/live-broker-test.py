@@ -160,7 +160,72 @@ var brokerObservationOrdinal atomic.Uint64
 '''.replace('SYNC_IMPORT','"sync"' if capture else '') + capture + '\nfunc brokerObserveNew(' + helper + WORLD_PROBE.replace('ORIGINAL_ENCODING_CALL',call)
         self.run_probe(source, 'TestOriginalWorldEncodingIsNotRepeatedByCleanup')
 
+    def test_actual_go_observer_captures_preclear_owned_network(self):
+        capture = observe.HELPER.split('type brokerObservedNetwork struct', 1)[1].split('\nfunc brokerObserveWorld(', 1)[0]
+        source = r'''package wasi
+import ("bytes"; "fmt"; "sync"; "testing"; "time")
+var brokerObservationNetworks sync.Map
+type frameSink struct{}
+type clusterState struct {
+    sink *frameSink
+    network []byte
+    result struct { NetworkTranscript []byte; Termination string; Reaped bool }
+    err error
+    done chan struct{}
+    executionClassifiedAt time.Time
+}
+type brokerObservedNetwork struct''' + capture + r'''
+func collectedFixture() *clusterState {
+    state := &clusterState{network:[]byte{1,2,3}, done:make(chan struct{}), executionClassifiedAt:time.Unix(1,0)}
+    close(state.done)
+    state.result.Termination, state.result.Reaped = "exit", true
+    state.result.NetworkTranscript = []byte("validated document")
+    return state
+}
+func hostCleanupFixture() *clusterState {
+    state := &clusterState{sink:&frameSink{}, err:fmt.Errorf("missing incarnation result"),
+        done:make(chan struct{}), executionClassifiedAt:time.Unix(1,0)}
+    close(state.done)
+    state.result.Reaped = true
+    return state
+}
+func TestPreClearNetworkCaptureOwnsValidatedBytes(t *testing.T) {
+    state := collectedFixture()
+    if err := brokerObserveNetwork(state); err != nil { t.Fatal(err) }
+    state.network[0] = 9
+    state.network = nil
+    if err := brokerObserveNetwork(state); err == nil { t.Fatal("duplicate collection replaced authentic bytes") }
+    wire, status, err := brokerObservedNetworkFor(state, true)
+    if err != nil || !bytes.Equal(wire, []byte{1,2,3}) || status.Status != "collected" { t.Fatalf("owned pre-clear bytes lost: %x %+v %v", wire, status, err) }
+    if _, _, err := brokerObservedNetworkFor(state, true); err == nil { t.Fatal("missing collected capture admitted") }
+    changed := collectedFixture()
+    if err := brokerObserveNetwork(changed); err != nil { t.Fatal(err) }
+    changed.result.NetworkTranscript[0] = 'x'
+    if _, _, err := brokerObservedNetworkFor(changed, true); err == nil { t.Fatal("changed validated document admitted") }
+    _, status, err = brokerObservedNetworkFor(hostCleanupFixture(), true)
+    if err != nil || status.Status != "host_cleanup_without_result" { t.Fatalf("original host cleanup refused: %+v %v",status,err) }
+    for name, mutate := range map[string]func(*clusterState){
+        "sink":func(s *clusterState){s.sink=nil}, "error":func(s *clusterState){s.err=nil},
+        "done":func(s *clusterState){s.done=make(chan struct{})},
+        "classification":func(s *clusterState){s.executionClassifiedAt=time.Time{}},
+        "reaped":func(s *clusterState){s.result.Reaped=false},
+        "wire":func(s *clusterState){s.network=[]byte{1}},
+        "typed":func(s *clusterState){s.result.NetworkTranscript=[]byte{1}},
+        "termination":func(s *clusterState){s.result.Termination="exit"},
+    } {
+        t.Run(name,func(t *testing.T){
+            bad:=hostCleanupFixture(); mutate(bad)
+            if _,_,err:=brokerObservedNetworkFor(bad,true);err==nil{t.Fatal("ambiguous missing capture admitted")}
+        })
+    }
+    if _,_,err:=brokerObservedNetworkFor(hostCleanupFixture(),false);err==nil{t.Fatal("live group admitted")}
+    if _,_,err:=brokerObservedNetworkFor(collectedFixture(),true);err==nil{t.Fatal("nonempty missing collected capture admitted")}
+}
+'''
+        self.run_probe(source, 'TestPreClearNetworkCaptureOwnsValidatedBytes')
+
     def run_probe(self, source, name):
+        source += '\nfunc ImplementationSHA256() string { return \"probe-implementation\" }\n'
         compiler = os.environ.get('GOMAD_OBSERVATION_PROBE_GO') or shutil.which('go')
         self.assertIsNotNone(compiler, 'Go compiler required for actual observer probe')
         if os.environ.get('GOMAD_OBSERVATION_PROBE_ROOT'):
@@ -172,7 +237,7 @@ var brokerObservationOrdinal atomic.Uint64
         evidence.mkdir(parents=True, exist_ok=False)
         (evidence / 'go.mod').write_text('module gomad-observer-pointer-probe\n\ngo 1.18\n')
         (evidence / 'snapshot_test.go').write_text(source)
-        command = [compiler, 'test', '-count=1', '-v', '-run', '^' + name + '$', '.']
+        command = [compiler, 'test', '-tags', 'test_dep', '-count=1', '-v', '-run', '^' + name + '$', '.']
         started = datetime.now(timezone.utc).isoformat()
         with subprocess.Popen(command, cwd=evidence, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               env={**os.environ, 'GOWORK':'off', 'GOTOOLCHAIN':'local', 'GOENV':'off'}) as process:
@@ -188,6 +253,90 @@ var brokerObservationOrdinal atomic.Uint64
                 pid=process.pid, started_at=started, ended_at=datetime.now(timezone.utc).isoformat(),
                 source_sha256=observe.sha(source.encode()), helper_sha256=observe.sha(observe.HELPER.encode()))) + '\n')
             self.assertEqual(process.returncode, 0, stdout.decode() + stderr.decode())
+
+
+class NetworkCapturePlacement(unittest.TestCase):
+    def test_capture_occurs_only_after_successful_collect_before_clear(self):
+        self.assertTrue(hasattr(observe, 'instrument_cluster'), 'missing pre-clear capture instrumentation')
+        path = Path(__file__).resolve().parents[2] / 'internal/backends/wasm/wasi/cluster.go'
+        source = path.read_bytes()
+        observed = observe.instrument_cluster(source)
+        call = b'if err := brokerObserveNetwork(state); err != nil { return err }\n'
+        self.assertEqual(observed.count(call), 1)
+        self.assertEqual(observed.replace(b'\t\t' + call, b''), source)
+        collected = observed.index(b'if err := state.collect(frame, s.config.Broker, inspecting); err != nil {')
+        captured = observed.index(call)
+        cleared = observed.index(b'state.sink = nil', captured)
+        self.assertLess(collected, captured)
+        self.assertLess(captured, cleared)
+        with self.assertRaisesRegex(ValueError, 'collection boundary'):
+            observe.instrument_cluster(source.replace(b'state.network = nil', b'state.network = state.network'))
+
+    def test_index_records_actual_capture_identity_and_leaves_v1_unmodified(self):
+        for version in (1, 2):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'observations').mkdir()
+                identity = 'sha256:' + 'a' * 64
+                (root / 'observations/cluster-1.json').write_text(json.dumps(dict(go_owner_implementation_sha256=identity)))
+                (root / 'go-test.jsonl').write_bytes(b'actual event fixture')
+                derivation = dict(schema=f'gomad.live-broker-observation-derivation/v{version}')
+                if version == 2:
+                    derivation['cluster_source'] = dict(path='tools/gomad/internal/backends/wasm/wasi/cluster.go',
+                                                       original_sha256='b' * 64, observed_sha256='c' * 64)
+                path = root / 'derivation.json'
+                path.write_text(json.dumps(derivation))
+                original = path.read_bytes()
+                observe.index_observations(root)
+                index = json.loads((root / 'observation-index.json').read_bytes())
+                self.assertEqual(index['schema'], f'gomad.live-broker-observation-index/v{version}')
+                self.assertEqual(index['derivation_sha256'], observe.sha(path.read_bytes()))
+                if version == 1:
+                    self.assertEqual(path.read_bytes(), original)
+                    self.assertNotIn('network_capture', index)
+                else:
+                    self.assertEqual(index['network_capture']['derived_go_implementation_sha256'], identity)
+                    (root / 'observations/cluster-2.json').write_text(json.dumps(dict(go_owner_implementation_sha256='sha256:' + 'd' * 64)))
+                    with self.assertRaisesRegex(ValueError, 'inconsistent derived Go identity'):
+                        observe.index_observations(root)
+
+    def test_index_versions_and_capture_binding_fail_closed(self):
+        self.assertTrue(hasattr(observe, 'validate_versions'), 'missing observation version admission')
+        legacy = dict(schema='gomad.live-broker-observation-index/v1')
+        original = dict(schema='gomad.live-broker-observation-derivation/v1')
+        observe.validate_versions(legacy, original)
+        capture = dict(boundary=observe.NETWORK_CAPTURE, derived_go_implementation_sha256='sha256:' + 'a' * 64)
+        index = dict(schema='gomad.live-broker-observation-index/v2', network_capture=capture)
+        derivation = dict(schema='gomad.live-broker-observation-derivation/v2', network_capture=capture,
+                          cluster_source=dict(path='tools/gomad/internal/backends/wasm/wasi/cluster.go',
+                                              original_sha256='b' * 64, observed_sha256='c' * 64))
+        observe.validate_versions(index, derivation)
+        for bad_index, bad_derivation in [
+            (dict(index, schema='gomad.live-broker-observation-index/v3'), derivation),
+            (index, original), (legacy, derivation),
+            (dict(index, network_capture=None), derivation),
+            (dict(index, network_capture=dict(capture, boundary='after-clear')), derivation),
+            (dict(index, network_capture=dict(capture, derived_go_implementation_sha256='')), derivation),
+            (index, dict(derivation, cluster_source=dict(derivation['cluster_source'], observed_sha256='b' * 64))),
+        ]:
+            with self.subTest(index=bad_index):
+                with self.assertRaises(ValueError):
+                    observe.validate_versions(bad_index, bad_derivation)
+        observe.validate_row(dict(go_owner_implementation_sha256='sha256:' + 'a' * 64), index)
+        for row in ({}, dict(go_owner_implementation_sha256='sha256:' + 'd' * 64)):
+            with self.assertRaises(ValueError):
+                observe.validate_row(row, index)
+        collection = dict(status='collected', sink_retained=False, state_error='', done_closed=True,
+                          classified=True, reaped=True, group_gone=True, wire_bytes=1, document_bytes=1)
+        paired = dict(go_owner_implementation_sha256='sha256:' + 'a' * 64, result=dict(GroupGone=True),
+                      states=[dict(network_wire='AQ==', result=dict(NetworkTranscript='Ag==', Reaped=True,
+                                   Termination='exit'), collection=collection)])
+        observe.validate_row(paired, index)
+        for state in (dict(result=paired['states'][0]['result'], collection=collection),
+                      dict(network_wire=None, result=paired['states'][0]['result'],
+                           collection=dict(collection, wire_bytes=0))):
+            with self.assertRaisesRegex(ValueError, 'missing observed network wire|invalid collected network'):
+                observe.validate_row(dict(paired, states=[state]), index)
 
 
 class ExactSelection(unittest.TestCase):

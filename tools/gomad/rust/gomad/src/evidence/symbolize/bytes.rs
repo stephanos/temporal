@@ -89,8 +89,43 @@ impl Memory<'_> {
 
     pub fn uint<const N: usize>(&self, address: u64, budget: &mut Budget) -> Result<[u8; N]> {
         let mut bytes = [0; N];
-        for (index, byte) in bytes.iter_mut().enumerate() {
-            *byte = self.byte(add(address, index as u64)?, budget)?;
+        let mut copied = 0;
+        while copied < N {
+            let cursor = add(address, copied as u64)?;
+            self.range(cursor, 1, budget)?;
+            budget.steps(1)?;
+            let mut comparisons = 0;
+            let index = self.segments.partition_point(|segment| {
+                comparisons += 1;
+                segment.start <= cursor
+            });
+            budget.steps(comparisons)?;
+            let source =
+                if let Some(segment) = index.checked_sub(1).map(|index| &self.segments[index]) {
+                    segment
+                        .bytes
+                        .get(size(cursor - segment.start)?..)
+                        .filter(|source| !source.is_empty())
+                } else {
+                    None
+                };
+            let available = source.map_or_else(
+                || {
+                    self.segments
+                        .get(index)
+                        .map_or(self.end, |segment| segment.start)
+                        .min(self.end)
+                        - cursor
+                },
+                |source| source.len() as u64,
+            );
+            let count = size(((N - copied) as u64).min(available).min(self.end - cursor))?;
+            budget.bytes(count as u64 - 1)?;
+            budget.steps(count as u64 - 1)?;
+            if let Some(source) = source {
+                bytes[copied..copied + count].copy_from_slice(&source[..count]);
+            }
+            copied += count;
         }
         Ok(bytes)
     }

@@ -337,3 +337,149 @@ module before the scoped minimizer negative. No new CLI, schema, Go guest, golde
 build target or runtime control was introduced. Python AST and diff checks pass;
 these added actual cases await execution with the conductor's new integrated
 fixture. No compiler, Cargo or guest command ran for this source-only checkpoint.
+
+
+## First actual integrated scope attempt and module-root correction
+
+Immutable fixture `e9d7b6715480f7afc7059a9924ad7210dfefc97c5860883291e0bf9407aa3439`,
+source `00a97c42ee371656e9b3655a3056b521bac8d4ce`, ran scope01 under the
+conductor's explicit resource grant. Exec session 97675, launcher PID 3247012,
+driver PID 3247054, exited **1** after 26.78 seconds;
+source/binary/input bindings were unchanged. Raw stdout/stderr and terminal
+receipt remain in `/home/agent/wt/evidence/fn231-public-00a97c42/scope01`;
+per-command outputs remain in sibling `scope-01`. No retry, cleanup or semantic
+generation followed. The failed child command was `scope-failure`, status 3:
+`--working-dir .../tools/gomad go-run ./testdata/parity/live_backend/minimization`.
+That target is a nested module (`gomad.wasm.exploration.fixture`), so the outer
+module correctly refused to list it.
+
+The driver now uses the target's own working directory and `go-run .`. The
+stripped compiler helper takes both directory and package directly from the
+authenticated producing provenance, preserving the correct source coordinates
+for both the outer-module site-scope guest and the nested failing guest. The
+unchanged guest, budgets and runtime flags are retained.
+
+A source-only regression extracts and executes the actual command-assembly AST
+from the old and corrected drivers, checks the real nested `go.mod` boundary,
+and executes the actual stripped-build helper against a recording compiler stub
+to assert its cwd/package and original-provenance immutability. Old source
+exits 1 on the wrong module root; corrected source exits 0 on both paths.
+Evidence: `/home/agent/evidence/fn231-module-command-{red,green}.log` and
+`fn231-module-command-regression.py`. Both driver AST checks and diff check
+also pass. This causal source correction did not run Go, Cargo or a guest; a
+fresh authorized public attempt remains necessary. The first failed receipts
+remain immutable.
+
+
+## Scope resolution cache correction
+
+The fn230 completion review identified repeated symbol resolution of cached
+offsets in `Resolution::observe`. Observation now filters missing and cached
+offsets before calling the resolver, deduplicates new offsets, and skips the
+resolver altogether when none remain. The shared trace observer still records
+each trace's matching fingerprints; unavailable package observations remain
+cached as `None`. A private injectable resolver seam enables a meaningful call
+regression without global instrumentation or changes to persisted formats.
+
+Focused RED on the former behavior exited 101: the third batch incorrectly
+contained new 5384 plus cached 5383. GREEN exited 0, proving only unique new
+offsets reach the resolver, unavailable offsets are cached, cached/missing-only
+traces make zero resolver calls, and fingerprint updates still happen. The
+affected site_scope suite and workspace format/diff checks also exited 0. Logs
+are `/home/agent/evidence/fn230-site-cache-focused-{red,green}.log` and
+`fn230-site-cache-suite-green.log`. Commands used release/locked/jobs2 on the
+authorized warmed `fn232-retained-validation` target. No Go or guests ran.
+
+The first attempted focused invocation mistakenly named a new `retained-validation`
+target. It was stopped with exit 143 before tests (not counted as RED), and its
+190134716 bytes were removed after its cargo/compiler processes exited and exact
+private path/ownership were verified. The existing warmed target was preserved.
+Correct target RED session 56991 exited 101; GREEN session 11814 exited 0.
+The affected suite ran to immediate exit 0. No target process remains owned.
+
+
+## Actual scoped guest decoder budget correction
+
+The corrected nested-module scope attempt used immutable fixture `b22999a9...`,
+binary source ece8d8c089 and driver/checkpoint HEAD f694270661. Scope01 session
+70239 (launcher 3265681/driver 3265724) exited 1 after 29.16 seconds, bindings
+unchanged; no retries or semantic generation followed. The real scoped base
+completed successfully but stopped `site_scope_empty`: its site 5750 had cached
+package `None`. Read-only retained inspection identified
+`symbol_table_too_large`, rather than a wrong package pattern. Original receipts
+remain in `/home/agent/wt/evidence/fn231-public-modulefix`.
+
+The genuine retained failing-guest module is 2533702 bytes, SHA-256
+`88414b72a129853c6f475bc1325ca658a8a2de69ee3f3da8bddfc1ac6ca1f5a2`,
+with 27830 data segments and 1655 functions. A diagnostic checkout at exact
+f694270661 reproduced the decoder failure without Go or guest execution:
+`Module::read` passed with 1375531 steps; `Tables::read` exhausted the unchanged
+16777216-step cap at 16777219 steps, 11417515 bytes and 117907 entries. The
+preserved diagnostic stack identified `Memory::byte -> Memory::u32 ->
+Tables::read`: each fixed-width integer searched the sparse segment index again
+for every byte. No symbol-site resolution was reached.
+
+`Memory::uint` now looks up each contiguous segment or zero-filled gap once and
+copies that bounded run. It charges each material byte and the comparisons
+actually performed. All numeric byte/entry/step caps are unchanged. Original
+zero-length reads, zero-filled holes, adjacent segments, end/range/overflow
+errors and fixed 16-byte metadata framing remain covered. Portable regressions
+prove one lookup per contiguous read, exact charges and exhaustion, as well as
+the sparse-boundary cases. There is no unbounded segment walk, budget increase,
+pattern change, Go guest translation or acceptance-predicate change.
+
+Causal RED session 14457 exited 101 on the actual authenticated module/table
+cap. GREEN session 35013 exited 0 and resolved site 5750 to package `main`,
+function `choose`, file `gomad.wasm.exploration.fixture/main.go`, line 6, with
+inline caller `main.main`. Table parsing finished at 15436416 steps; complete
+site resolution at 15445910 steps, 12309786 bytes and 129537 entries, within all
+original caps. The first RED attempt (48128) had a test-only empty-array type
+ambiguity; after typing `[0_u8; 0]`, the intended causal RED was reached.
+
+Raw logs: `/home/agent/evidence/fn231-uint-retained-red-2.log`,
+`fn231-uint-retained-green.log`, `fn231-uint-symbolize-suite.log` and
+`fn231-uint-metadata-suite.log`. Entire symbolizer filter exited 0 with 50 tests,
+including all six build-info framing/uniqueness/overlap/budget cases and the
+forensic actual-module test. Metadata filter exited 0 with seven passed and one
+existing ignored test. Workspace format and diff checks exited 0. The absolute
+path diagnostic and all temporary budget tracing were removed from final source;
+the exact forensic test is retained externally as
+`/home/agent/evidence/fn231-uint-retained-diagnostic-test.rs`. Production source
+and portable regressions await independent review and integrated strict gates.
+No Go, guest or new fixture ran for this fix, and no global instrumentation was
+committed.
+
+
+## Standalone helper strict-lint cleanup
+
+The conductor authorized fixing the standalone helper's 17 baseline Clippy
+diagnostics in this isolated checkout after the reviewed uint fix. Single-store
+execution now names its existing start and terminal-finishing blocks; cluster
+execution names its existing initial state/sink construction and borrows its
+Activity owner. Validation, watchdog, storage/model finishing, evidence and
+metrics operations retain their original order. Streaming unit setup names the
+existing model/namespace fixture. The remaining changes add numeric separators,
+use equally strict nonempty assertions with useful failure values, remove a
+redundant clone, spell imports explicitly and move retained-world imports/test
+module mechanically. No minimizer or runtime controller changed.
+
+After those library issues cleared, all-target checking exposed four preexisting
+`similar_names` warnings in `tests/linked_streaming.rs`. The conductor separately
+authorized renaming only the four receiver bindings; their channel actions,
+assertions and order are unchanged. No lint allowances, dependencies, feature
+changes, policy changes, guest changes or assertion weakening were introduced.
+
+All commands used exclusive `fn232-retained-validation`, jobs2, +1.99.1, locked
+release and standalone helper `--no-default-features`. Full helper library tests
+exited 0: 185 passed, ten existing ignored. The seven existing linked-streaming
+integration tests exited 0. Strict Clippy `--all-targets -- -D warnings` exited 0,
+as did standalone format and diff checks. Logs are
+`/home/agent/evidence/fn232-helper-cleanup-lib.log`,
+`fn232-helper-cleanup-streaming.log` and `fn232-helper-cleanup-clippy-4.log`.
+Earlier Clippy logs preserve the original baseline and intermediate extraction
+diagnostics, including one private type path and one needless borrow corrected
+before the passing gate. Library session 50748 and streaming session 96697 both
+completed with numeric exit 0; no owned target process remains. No Go, public
+guest, runtime controller or new fixture ran. Independent source review and
+integrated checks remain with the conductor, including its separate pending
+broker aggregate fix.

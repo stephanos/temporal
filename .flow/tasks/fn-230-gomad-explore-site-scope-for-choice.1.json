@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-230-gomad-explore-site-scope-for-choice",
   "spec_path": ".flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Site scope flag, pattern validation and resolution against the base trace",
   "updated_at": "2026-10-20T21:10:06.693495Z"
 }

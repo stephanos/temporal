@@ -323,3 +323,30 @@ Cargo, Go, guest, qualification, fixture pin rotation or identity freeze occurre
 No newer interception/observer checkpoint was cherry-picked. Main's source freeze
 for fn231 actualscope97675 and unrelated user files were untouched. All prior
 pending runtime/lint/final-freeze/qualification gates remain required.
+
+## Prospective source synchronization through cfd72770db
+
+Merged root maincfd72770db into the isolated retirement branch without conflicts
+or extra relocation fixes. All twenty-two incoming Rust files match their exact
+reviewed-main bytes after mapping helper paths into rust/wasmhost. This preserves
+the current module fix, interception/cache/uint/network aggregate controls,
+linked-helper cleanup, private package catalogue/launcher collection, pool locks,
+store guards and existing runtime_workload/search-context/minimizer bindings.
+No production behavior, field context, dependency, fixture pin or source identity
+was changed by assumption. The V6 broker checker auto-merged with retained source
+snapshot admission; the complete pinned integration/provider snapshots still
+match current main's original Go test files byte-for-byte.
+
+Static-only checks exit0: direct pinned1.99.1 rustfmt --edition2024 --check for all
+22 incoming Rust files, exact incoming-byte comparisons, full incoming helper
+path coverage, all Rust include/path attributes, incoming Python AST parsing,
+unchanged127 original helper lock entries/dependencies/checksums and diff checks.
+No Cargo build, Go, guest, golden, actual parity or qualification ran; root's
+active build cache and main checkout were untouched.
+
+Synchronization still requires root's pending separate Python origin/stored_bytes
+checker fix and any subsequent reviewed source checkpoint, followed by the actual
+integrated source/runtime/lint/launcher/parity gates and final endpoint/identity
+freeze. Main Go retirement and qualification remain root-owned and unaccepted by
+this prospective source synchronization. No history rewrite, push or Flow
+lifecycle operation occurred.

@@ -3,7 +3,9 @@
 // Adapted from Go 1.27.1 compress/flate/huffman_bit_writer.go.
 
 use super::huffman::{self, Code};
-use super::tokens::*;
+use super::tokens::{
+    LENGTH_BASE, LENGTH_EXTRA, OFFSET_BASE, OFFSET_EXTRA, Token, Tokens, length_code, offset_code,
+};
 
 const ORDER: [usize; 19] = [
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,

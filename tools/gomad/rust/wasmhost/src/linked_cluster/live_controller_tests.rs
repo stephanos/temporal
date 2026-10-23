@@ -29,16 +29,16 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
                     "entropy_key":vec![0u8;32], "working_directory_sha256":format!("{:x}", Sha256::digest(b"/workspace")),
                     "arguments":{"bytes":0,"count":0,"chunks":0},
                     "environment":{"bytes":0,"count":0,"chunks":0},
-                    "seed":7,"mode":1,"limit":1048576,"diagnostics":false,
-                    "epoch_nanos":946684800000000000u64,"read_step_nanos":0,"now":1,
-                    "limits":{"calls":1048576,"transcript_bytes":1048576,"pending_events":1024}
+                    "seed":7,"mode":1,"limit":1_048_576,"diagnostics":false,
+                    "epoch_nanos":946_684_800_000_000_000_u64,"read_step_nanos":0,"now":1,
+                    "limits":{"calls":1_048_576,"transcript_bytes":1_048_576,"pending_events":1024}
                 })).unwrap(),
                 arguments: vec![], environment: vec!["PWD=/workspace".into()], replay_trace: None,
             }),
             namespace: Some(namespace::Image {
                 entries: vec![namespace::ImageEntry {path:b"/workspace".to_vec(), directory:true, readonly:false, data:vec![]}],
                 writable_directories: vec![b"/workspace".to_vec()], preopens: vec![b"/workspace".to_vec()],
-                working_directory: b"/workspace".to_vec(), stdin: vec![], epoch_nanos: 946684800000000000,
+                working_directory: b"/workspace".to_vec(), stdin: vec![], epoch_nanos: 946_684_800_000_000_000,
                 limits: namespace::Limits { files: 100, descriptors: 16, filesystem_bytes: 4096, output_bytes: 1024 },
             }),
             storage: None,
@@ -137,7 +137,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
         execution.outcome.message
     );
     assert_eq!(execution.outcome.exit_code, Some(0));
-    assert!(!execution.world.is_empty());
+    assert_ne!(execution.world, [0_u8; 0]);
     assert_eq!(execution.incarnations.len(), 2);
     assert!(
         execution
@@ -269,7 +269,7 @@ fn conditional_output_boundary_preserves_wait_lifecycle() {
             },
         ],
         boundaries: vec![Boundary {
-            handle: handle.clone(),
+            handle,
             action: Action::Crash,
             marker: b"committed durable-a".to_vec(),
         }],
@@ -313,7 +313,7 @@ fn number(value: &Value, field: &str) -> u64 {
         .unwrap_or_else(|| panic!("missing actual request {field}"))
 }
 
-fn prepared(input: &Value) -> Prepared {
+fn original_request(input: &Value) -> Request {
     let config = &input["configuration"];
     let broker: BrokerConfig = serde_json::from_value(config["broker"].clone()).unwrap();
     let incarnations = config["incarnations"]
@@ -365,7 +365,7 @@ fn prepared(input: &Value) -> Prepared {
             }
         })
         .collect();
-    let mut prepared = prepare(Request {
+    Request {
         nodes: serde_json::from_value(config["nodes"].clone()).unwrap(),
         broker,
         network: serde_json::from_value(config["network"].clone()).unwrap(),
@@ -375,8 +375,11 @@ fn prepared(input: &Value) -> Prepared {
         crash_groups: serde_json::from_value(config["crash_groups"].clone()).unwrap(),
         wall_timeout: Duration::from_millis(number(&config["limits"], "wall_millis")),
         evidence_bytes: number(&config["limits"], "evidence_bytes"),
-    })
-    .unwrap();
+    }
+}
+
+fn prepared(input: &Value) -> Prepared {
+    let mut prepared = prepare(original_request(input)).unwrap();
     assert_eq!(prepared.steps.len(), 2);
     assert_eq!(prepared.steps[0].handle.node, "a");
     assert_eq!(prepared.steps[1].handle.node, "b");
@@ -390,6 +393,131 @@ fn prepared(input: &Value) -> Prepared {
         .cleanup_after_starts(CleanupMode::Shutdown)
         .unwrap();
     prepared
+}
+
+fn assert_original_incarnations_match(observed: &Execution, reference: &Value) {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+
+    for item in &observed.incarnations {
+        let original = reference["states"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|state| {
+                state["handle"]["ID"] == item.handle.node
+                    && state["handle"]["Incarnation"] == item.handle.incarnation
+            })
+            .unwrap();
+        assert_eq!(
+            item.execution.outcome.termination,
+            original["result"]["Termination"].as_str().unwrap()
+        );
+        assert_eq!(
+            item.interrupted,
+            original["result"]["RuntimeInterrupted"].as_bool().unwrap()
+        );
+        assert_eq!(
+            item.execution.evidence["network"],
+            STANDARD
+                .decode(original["network_wire"].as_str().unwrap())
+                .unwrap()
+        );
+    }
+}
+
+#[test]
+#[ignore = "requires authenticated original open-streams service input and Go final network wire"]
+fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+
+    let input_path =
+        std::env::var_os("GOMAD_LIVE_CLUSTER_FINISH_INPUT").expect("original root34 input path");
+    let reference_path = std::env::var_os("GOMAD_LIVE_CLUSTER_FINISH_REFERENCE")
+        .expect("original root34 Go observation path");
+    let input: Value = serde_json::from_slice(&fs::read(input_path).unwrap()).unwrap();
+    let reference: Value = serde_json::from_slice(&fs::read(reference_path).unwrap()).unwrap();
+    assert_eq!(input["schema"], "gomad.live-cluster-observation/v1");
+    assert_eq!(
+        reference["test"],
+        "TestClusterBrokerDurableRestartParity/open-streams/seed-7"
+    );
+    assert_eq!(reference["ordinal"], 73);
+    assert_eq!(input["forcing"], json!({}));
+    let request = original_request(&input);
+    assert_eq!(request.nodes, ["a", "b"]);
+    assert_eq!(request.incarnations.len(), 3);
+    assert!(
+        request
+            .incarnations
+            .iter()
+            .all(|item| item.request.module_sha256
+                == "58af6ef04c8ea078ea338cc5db1caf0ea4b727c5e6fabbe4cc47265f2f81b426")
+    );
+    assert_eq!(
+        request
+            .steps
+            .iter()
+            .map(|step| (
+                step.action,
+                step.handle.node.as_str(),
+                step.handle.incarnation
+            ))
+            .collect::<Vec<_>>(),
+        vec![
+            (Action::Start, "a", 1),
+            (Action::Start, "b", 1),
+            (Action::Wait, "a", 1),
+            (Action::Wait, "b", 1),
+            (Action::Restart, "a", 2),
+            (Action::Wait, "a", 2)
+        ]
+    );
+    let expected = STANDARD
+        .decode(reference["network_wire"].as_str().unwrap())
+        .unwrap();
+    assert_ne!(expected, Vec::<u8>::new());
+    let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+    assert_eq!(observed.outcome.termination, "exit");
+    assert_eq!(observed.outcome.exit_code, Some(0));
+    assert_eq!(
+        observed.world,
+        crate::world::retained::expand(
+            &STANDARD
+                .decode(reference["result"]["World"].as_str().unwrap())
+                .unwrap()
+        )
+        .unwrap()
+    );
+    assert_eq!(observed.incarnations.len(), 3);
+    assert_original_incarnations_match(&observed, &reference);
+    let recovered = observed
+        .incarnations
+        .iter()
+        .find(|item| item.handle.node == "a" && item.handle.incarnation == 2)
+        .unwrap();
+    assert_eq!(
+        recovered.execution.outcome.local_model.as_ref().unwrap()["finished"],
+        true
+    );
+    assert_eq!(
+        STANDARD
+            .decode(
+                recovered.execution.outcome.local_model.as_ref().unwrap()["terminal_base64"]
+                    .as_str()
+                    .unwrap()
+            )
+            .unwrap()
+            .len(),
+        16
+    );
+    let cached = observed.incarnations.last().unwrap();
+    assert_eq!(cached.handle.node, "b");
+    assert_eq!(cached.handle.incarnation, 1);
+    assert_ne!(cached.execution.evidence["network"], expected);
+    assert_eq!(
+        observed.network, expected,
+        "final network must reflect the finished shared owner, without an incarnation's operations log"
+    );
 }
 
 #[test]
@@ -422,7 +550,7 @@ fn shutdown_reinsertion_preserves_actual_live_guest_world() {
         );
         assert_eq!(observed.outcome.termination, "exit");
         assert_eq!(observed.outcome.exit_code, Some(0));
-        assert!(!observed.world.is_empty());
+        assert_ne!(observed.world, [0_u8; 0]);
         let actual = (observed.world, observed.network);
         if let Some(expected) = &baseline {
             assert_eq!(&actual, expected, "iteration {iteration}");

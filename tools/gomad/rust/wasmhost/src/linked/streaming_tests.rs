@@ -11,21 +11,7 @@ impl OutputConsumer for Observe {
     }
 }
 
-#[test]
-fn short_markers_are_forwarded_before_guest_waits_for_controller_release() {
-    const WAIT: Duration = Duration::from_secs(10);
-    let module = br#"(module
-        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
-        (import "test_control" "wait" (func $wait (param i32)))
-        (memory (export "memory") 1)
-        (data (i32.const 128) "short-marker")
-        (func (export "_start")
-            (i32.store (i32.const 0) (i32.const 128))
-            (i32.store (i32.const 4) (i32.const 12))
-            (drop (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 16)))
-            (call $wait (i32.const 1))
-            (drop (call $write (i32.const 2) (i32.const 0) (i32.const 1) (i32.const 16)))
-            (call $wait (i32.const 2))))"#;
+fn model_and_namespace() -> (model::Model, namespace::Namespace) {
     let configuration = serde_json::from_value(json!({
         "entropy_key":vec![0_u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),
         "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
@@ -48,6 +34,25 @@ fn short_markers_are_forwarded_before_guest_waits_for_controller_release() {
         },
     })
     .unwrap();
+    (model, namespace)
+}
+
+#[test]
+fn short_markers_are_forwarded_before_guest_waits_for_controller_release() {
+    const WAIT: Duration = Duration::from_secs(10);
+    let module = br#"(module
+        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+        (import "test_control" "wait" (func $wait (param i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 128) "short-marker")
+        (func (export "_start")
+            (i32.store (i32.const 0) (i32.const 128))
+            (i32.store (i32.const 4) (i32.const 12))
+            (drop (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 16)))
+            (call $wait (i32.const 1))
+            (drop (call $write (i32.const 2) (i32.const 0) (i32.const 1) (i32.const 16)))
+            (call $wait (i32.const 2))))"#;
+    let (model, namespace) = model_and_namespace();
     let (observe, observed) = mpsc::sync_channel(2);
     let sink =
         Sink::new(1 << 20).with_output(Some(Arc::new(Observe(observe))), Cancellation::default());
