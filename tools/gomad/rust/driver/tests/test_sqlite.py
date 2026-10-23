@@ -157,7 +157,40 @@ class SQLiteReceiverContract(unittest.TestCase):
             with self.assertRaises(driver.Refusal):
                 sqlite.aggregate(config,Path('/attempt/catalogue'),'sqlite-catalogue',dict(oracle=['/sealed/rust-host']))
 
+    def catalogue(self, usage):
+        import sqlite
+        import sqlite_oracle
+        from unittest.mock import patch
+        native = dict(enumeration=dict(States=['s0', 's1', 's2', 's3']), context='c')
+        reference = dict(path='/primary.json', sha256='b'*64, pid=1)
+        selections = {f'/root/stages/sqlite-selection-{index}/selection.json': dict(
+            index=index, primary_sha256='b'*64, path=f'/selected-{index}', sha256=str(index)*64, pid=10 + index,
+            selection=dict(primary_result_sha256='b'*64, state=f's{index}', context='c')) for index in range(4)}
+        reports = {'/primary.json': dict(report=dict(executions=[dict(artifact_path='/artifact')]))}
+        for index in range(4):
+            reports[f'/selected-{index}'] = dict(native_crash_selection=selections[f'/root/stages/sqlite-selection-{index}/selection.json']['selection'],
+                observations=dict(operator_process_id=10 + index), cost=dict(cpu_nanos=100), _driver_publication=dict(cpu_nanos=1))
+        written = {}
+        readings = iter(usage)
+        with patch.object(sqlite_oracle, 'validate_build'), patch.object(sqlite_oracle, 'invoke', return_value=native), \
+             patch.object(sqlite, 'read', side_effect=lambda path: selections.get(str(path), reference)), \
+             patch.object(sqlite, 'sha', side_effect=lambda path: '0'*64 if path == '/selected-0' else str(path)[-1]*64 if str(path).startswith('/selected-') else 'b'*64), \
+             patch('adapters.result_report', side_effect=lambda config, root, name, path: reports[path]), \
+             patch.object(sqlite, 'catalogue', return_value=native), patch.object(sqlite, 'native_input', return_value={}), \
+             patch.object(sqlite, 'matched_inputs'), patch.object(sqlite, 'command', return_value=b'{}'), \
+             patch.object(sqlite, 'write', side_effect=lambda path, value: written.setdefault(Path(path).name, value)), \
+             patch('adapters.reader_usage', side_effect=lambda: next(readings)):
+            sqlite.aggregate(dict(root='/root', binary='/gomad'), Path('/root/stages/sqlite-catalogue'), 'sqlite-catalogue', {})
+        return written['catalogue.json']
 
+    def test_catalogue_reader_self_measurement_is_bounded_monotone_and_counted(self):
+        catalogue = self.catalogue([(1, 1, 1 << 20), (3, 4, 1 << 20)])
+        self.assertEqual((catalogue['selected_total_cpu_nanos'], catalogue['reader_cpu_nanos'],
+                          catalogue['supplementary_total_cpu_nanos'], catalogue['reader_peak_rss_bytes']), (404, 5, 409, 1 << 20))
+        message = '^SQLite catalogue reader self metric unavailable/nonmonotone/over2GiB$'
+        for after in ((3, 4, 0), (3, 4, (2 << 30) + 1), (0, 4, 1), (3, 0, 1)):
+            with self.subTest(after=after), self.assertRaisesRegex(driver.Refusal, message):
+                self.catalogue([(1, 1, 1 << 20), after])
 
 
 if __name__ == '__main__':

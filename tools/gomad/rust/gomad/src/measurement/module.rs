@@ -646,7 +646,7 @@ fn prepare_selection_controlled(
     if !gowasm.is_empty() {
         controls.environment.insert("GOWASM".into(), gowasm.into());
     }
-    let guest = preparation::prepare_with_compiler_controls(&options, &controls)?;
+    let (guest, _) = preparation::prepare_with_compiler_controls(&options, &controls)?;
     let module_path = root.join("module.wasm");
     let provenance_path = root.join("module-provenance.json");
     write(&module_path, &guest.module)?;

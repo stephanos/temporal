@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import re
+import resource
 import struct
 import sys
 import time
@@ -237,8 +238,24 @@ def qualify_cell(config, root, label, entry):
     return passed(label)
 
 
+def reader_usage():
+    """This reader process's own user/system CPU nanoseconds and lifetime peak RSS bytes."""
+    usage = resource.getrusage(resource.RUSAGE_SELF)
+    # getrusage reports microsecond timevals; Linux reports ru_maxrss in KiB.
+    return (round(usage.ru_utime * 1_000_000) * 1000, round(usage.ru_stime * 1_000_000) * 1000, usage.ru_maxrss * 1024)
+
+
+def reader_cost(before, message):
+    """Go corpus/catalogue checker self measurement: nonzero peak within 2 GiB, monotone CPU."""
+    after = reader_usage()
+    require(0 < after[2] <= 2 << 30 and after[0] >= before[0] and after[1] >= before[1], message)
+    return after[0] - before[0] + after[1] - before[1], after[2]
+
+
 def corpus(config, root, label):
+    before = reader_usage()
     pids, paths, observed = set(), set(), set()
+    cpu = terminal_cpu = 0
     for cell, wanted in CELLS.items():
         reference = read(Path(config['root']) / 'stages' / cell / 'result.json')
         path = reference['path']
@@ -248,6 +265,9 @@ def corpus(config, root, label):
         require(key == tuple(wanted[field] for field in ('workload', 'profile', 'id', 'cell')), 'wrong corpus cell')
         require(key not in observed and path not in paths and reference['pid'] not in pids, 'borrowed/duplicate corpus producer')
         observed.add(key); paths.add(path); pids.add(reference['pid'])
+        # Each fresh producer's cost and its post-publication tail are counted exactly once.
+        cpu += result['cost']['cpu_nanos']
+        terminal_cpu += result['_driver_publication']['cpu_nanos']
     require(len(observed) == len(paths) == len(pids) == 10, 'exact ten-cell corpus required')
     files = {}
     for path in paths:
@@ -259,7 +279,10 @@ def corpus(config, root, label):
     if label == 'workload-corpus-after-relocation':
         require(files == read(Path(config['root']) / 'stages/workload-corpus/corpus.json')['files'],
                 'primary ten Result/receipt pairs changed during selected-state publication')
-    write(root / 'corpus.json', dict(results=sorted(paths), producer_pids=sorted(pids), files=files))
+    reader_cpu, reader_peak = reader_cost(before, 'mandatory corpus checker self observations unavailable, nonmonotone, or over 2GiB')
+    write(root / 'corpus.json', dict(results=sorted(paths), producer_pids=sorted(pids), files=files,
+          producer_cpu_nanos=cpu, producer_terminal_cpu_nanos=terminal_cpu, reader_cpu_nanos=reader_cpu,
+          reader_peak_rss_bytes=reader_peak, total_cpu_nanos=cpu + terminal_cpu + reader_cpu))
     return passed(label)
 
 

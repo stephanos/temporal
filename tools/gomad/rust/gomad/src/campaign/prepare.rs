@@ -201,17 +201,25 @@ pub(crate) fn installation_profile(options: &ExploreOptions) -> Result<String, S
 /// # Errors
 /// Refuses incompatible installations, unsupported targets and changed build inputs.
 pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
+    prepare_observed(options).map(|(prepared, _)| prepared)
+}
+
+/// Prepares like [`prepare`] and also returns the compiler arguments of every
+/// command this preparation actually ran; a compile-cache hit runs no build.
+pub(crate) fn prepare_observed(
+    options: &ExploreOptions,
+) -> Result<(Prepared, Vec<Vec<String>>), String> {
     prepare_with_compiler_controls(options, &CompilerControls::default())
 }
 
 pub(crate) fn prepare_with_compiler_controls(
     options: &ExploreOptions,
     controls: &CompilerControls,
-) -> Result<Prepared, String> {
+) -> Result<(Prepared, Vec<Vec<String>>), String> {
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, controls, deadline, false);
+    let result = prepare_observed_before_deadline(options, controls, deadline, false);
     process::check_deadline(deadline)?;
     result
 }
@@ -231,8 +239,18 @@ fn prepare_before_deadline(
     deadline: Instant,
     runtime_qualification: bool,
 ) -> Result<Prepared, String> {
+    prepare_observed_before_deadline(options, controls, deadline, runtime_qualification)
+        .map(|(prepared, _)| prepared)
+}
+
+fn prepare_observed_before_deadline(
+    options: &ExploreOptions,
+    controls: &CompilerControls,
+    deadline: Instant,
+    runtime_qualification: bool,
+) -> Result<(Prepared, Vec<Vec<String>>), String> {
     if options.target_kind == "exec" {
-        return prepared_exec(options, &installation(options)?);
+        return Ok((prepared_exec(options, &installation(options)?)?, Vec::new()));
     }
     let mut recipe = if controls.environment.is_empty() && controls.parallelism.is_none() {
         driver::prepare(options, deadline)?
@@ -247,13 +265,14 @@ fn prepare_before_deadline(
     if let Some(cached) =
         compilation_cache::load(&recipe.installed.cache_root, &compile_key, &compile_inputs)?
     {
+        let commands = compiler_arguments(&recipe);
         let mut prepared = recipe.admit(cached.module, options.target_args.clone(), deadline)?;
         // Cached compilation observations stay original; current admission stays fresh.
         prepared
             .auxiliary
             .retain(|path, _| !path.starts_with("target/preparation-inputs/compile/"));
         prepared.auxiliary.extend(cached.auxiliary);
-        return Ok(prepared);
+        return Ok((prepared, commands));
     }
     let cache_directory =
         compilation_cache::build_directory(&recipe.installed.cache_root, &compile_key)?;
@@ -297,6 +316,7 @@ fn prepare_before_deadline(
     let module = read(&output, MAXIMUM)?;
     let module_mode = fs::metadata(&output).map_err(failure)?.permissions().mode() & 0o777;
     let cache_root = recipe.installed.cache_root.clone();
+    let commands = compiler_arguments(&recipe);
     let mut prepared = recipe.admit(module, options.target_args.clone(), deadline)?;
     let auxiliary = prepared
         .auxiliary
@@ -317,7 +337,15 @@ fn prepare_before_deadline(
         .auxiliary
         .retain(|path, _| !path.starts_with("target/preparation-inputs/compile/"));
     prepared.auxiliary.extend(cached.auxiliary);
-    Ok(prepared)
+    Ok((prepared, commands))
+}
+
+fn compiler_arguments(recipe: &driver::Recipe) -> Vec<Vec<String>> {
+    recipe
+        .observations
+        .as_ref()
+        .map(observations::Observations::compiler_arguments)
+        .unwrap_or_default()
 }
 
 pub(crate) fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sha256>, String> {

@@ -2469,9 +2469,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetClusterPeakCoversResidentsOnce": {
-   "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
+    "public-verbs/fresh-differential-and-raw-golden-integrity",
+    "rust/gomad/qualify::cost::warm_window_tests::cluster_warm_windows_must_cover_every_resident_node",
+    "rust/gomad/qualify::cost::warm_window_tests::every_resident_guest_requires_an_actual_warm_measurement"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetOperatorOverrunCannotPass": {
@@ -2654,9 +2655,8 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestComparisonRejectsUnmatchedLimits": {
-   "assertion_applicability": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only.",
    "evidence": [
-    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields"
+    "rust/gomad/qualify::support::tests::support_success_and_canary_must_be_matched_cells"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestCostRequiresRealExecutionMeasurementsAndSeparatesReplay": {
@@ -2679,7 +2679,8 @@
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime": {
    "basis": "manual mapping by worker A; confirm in review",
    "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
+    "public-verbs/fresh-differential-and-raw-golden-integrity",
+    "rust/gomad/qualify::cost::warm_window_tests::initial_preparation_flag_matches_its_actual_compiler_commands"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime@9371/canonical-owner-matched-evidence": {

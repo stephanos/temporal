@@ -1,23 +1,23 @@
 # Gomad architecture
 
-The host implementation now lives in the single [Rust workspace](rust/README.md).
-The Go CLI, runner and host qualification producers described in older sections
-are retired source; retained Go code owns models, protocol generation, conformance
-oracles and the guest runtime overlay. Current build and reference checks are
-`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
-the [Rust driver](rust/driver/README.md) with frozen authenticated inputs and the unchanged
-3,600-second limit. This prospective source consolidation supplies no R12/R13
-acceptance; the conductor retains the frozen Go baseline until those gates pass.
-
-
 Gomad explores Go tests under deterministic models. The WASM backend compiles a
-test to WebAssembly and executes it with a Rust helper. The cooperative profile
-adds a pinned runtime overlay for guest scheduling; the helper models supported
-clock, filesystem, entropy and network operations. Failures and selected
-successes are retained as immutable artifacts for inspection and replay, with
-capabilities bounded by the selected profile and qualification evidence.
-Running a cooperative test under many seeds explores different goroutine
-schedules, timer orders and modeled network and storage behaviors.
+test to WebAssembly with stock Go and executes it in the Rust engine linked into
+the `gomad` binary. The cooperative profile adds a pinned runtime overlay for
+guest scheduling; the engine models supported clock, filesystem, entropy and
+network operations. Failures and selected successes are retained as immutable
+artifacts for inspection and replay, with capabilities bounded by the selected
+profile and qualification evidence. Running a cooperative test under many seeds
+explores different goroutine schedules, timer orders and modeled network and
+storage behaviors.
+
+The host is the single [Rust workspace](rust/README.md): the `gomad` crate
+(CLI, campaigns, evidence, installation, qualification) and the linked
+`gomad-wasmhost` engine library. Retained Go code owns the reference models,
+protocol generation, conformance oracles and the guest runtime overlay; the Go
+CLI, Runner, backend adapters and host qualification producers were retired by
+fn-232.13. Build and check with `make -C tools/gomad build`, `validate` and
+`test-wasm`. Final qualification uses the [Rust driver](rust/driver/README.md)
+with frozen authenticated inputs and the unchanged 3,600-second limit.
 
 This document is the map. The [README](README.md) is the operator walkthrough,
 the [WASM operator guide](internal/backends/wasm/CLI.md) has every command, the
@@ -28,16 +28,15 @@ proven, and [SPEC.md](SPEC.md) defines the vocabulary used below.
 
 ```mermaid
 flowchart LR
-    Op[Operator] -->|gomad explore / replay / inspect| CLI
-    CLI --> Runner
-    Runner -->|Prepare once,<br/>Execute per seed| Backend[WASM backend]
-    Backend -->|go build GOOS=wasip1<br/>+ runtime overlay| Module[(guest.wasm)]
-    Backend -->|request| Helper[Rust helper<br/>gomad-wasmhost]
-    Helper -->|runs| Guest[Guest: the test]
-    Guest -->|host imports:<br/>scheduling, clock,<br/>files, network, entropy| Helper
-    Helper -->|result + evidence| Backend
-    Backend --> Runner
-    Runner -->|Record| Artifact[(Artifact store)]
+    Op[Operator] -->|gomad explore / replay / inspect| CLI[gomad CLI]
+    CLI --> Campaign[Campaigns]
+    Campaign -->|prepare once| Prepare[Preparation]
+    Prepare -->|stock go build GOOS=wasip1<br/>+ runtime overlay| Module[(guest.wasm)]
+    Campaign -->|execute per seed| Engine[Linked engine<br/>gomad-wasmhost]
+    Engine -->|runs| Guest[Guest: the test]
+    Guest -->|host imports:<br/>scheduling, clock,<br/>files, network, entropy| Engine
+    Engine -->|outcome + evidence| Campaign
+    Campaign -->|Record| Artifact[(Artifact store)]
     Artifact -->|inspect / replay / minimize| CLI
 ```
 
@@ -52,9 +51,9 @@ Four ideas carry the whole system:
   before execution, never emulated.
 - **Evidence first.** Every execution produces a Record; failures and selected
   successes are published as content-addressed Artifacts that bind the module,
-  helper, inputs and decisions by digest. Replay validates those identities
-  before re-executing.
-- **Model fidelity by differential testing.** The Rust helper owns the clock,
+  host, engine, inputs and decisions by digest. Replay validates those
+  identities before re-executing.
+- **Model fidelity by differential testing.** The Rust engine owns the clock,
   World, volume and network models at run time. Go keeps reference
   implementations of the same models, and checked-in conformance corpora hold
   the two equal.
@@ -63,97 +62,90 @@ Four ideas carry the whole system:
 
 ```mermaid
 flowchart TB
-    subgraph CLI["cmd/gomad"]
-        cli[internal/cli: verbs, flags, installation selection]
+    subgraph HOST["rust/gomad (the gomad binary)"]
+        cli[cli: verbs, flags, installation selection, exit statuses]
+        campaign[campaign: preparation, seeds, slots,<br/>failure policy, exploration, resume, shards]
+        replay[replay: preflight, standalone and cluster replay]
+        minimize[minimize]
+        evidence[evidence: records, identities, artifact store, inspection]
+        install[install: manifests, toolchain pins, Temporal derivation]
+        qualify[qualify, measurement, stress, sweep, profile]
+        shim[shim: go command interception]
     end
-    subgraph RUN["internal/runner"]
-        runner[campaigns, seeds, parallel slots,<br/>failure policy, resume, minimize, inspect]
+    subgraph ENGINE["rust/wasmhost (linked library)"]
+        linked[linked, linked_cluster: execution seam]
+        abi[abi, engine: imports, Wasmtime store, limits]
+        models[model, namespace, volume, network,<br/>clock, world, cluster broker]
     end
-    subgraph BE["internal/backends"]
-        contract[Provider contract<br/>Prepare / Execute / Replay]
-        subgraph WASM["wasm/"]
-            backend[backend: build, cache, provenance]
-            wasi[wasi: helper transport, limits, config]
-            cluster[cluster: multi-guest scenarios]
-            command[command: operator verbs]
-            installation[installation: pinned manifests]
-            toolchain[toolchain: runtime overlay]
-            qualification[qualification: cells and reports]
-            wasmhost[wasmhost: Rust helper]
-        end
+    subgraph GO["Retained Go (stock Go, no host role)"]
+        modelgo[internal/model: reference models,<br/>wire schemas, protocolgen, wasi oracle]
+        toolchain[internal/backends/wasm/toolchain: runtime overlay]
+        wasmref[internal/backends/wasm/cluster, internal/stockgo]
+        support[internal/support: fs, Temporal schema capture]
+        archcheck[internal/archcheck]
     end
-    subgraph MODEL["internal/model"]
-        choice[choice: traces, tapes, exploration]
-        clock[clock: virtual time]
-        world[world: external events]
-        volume[volume: durable filesystem]
-        network[network: links, streams, partitions]
-        clustermodel[cluster: nodes, incarnations, scenarios]
-        runtimesource[runtimesource: overlay sources]
-    end
-    subgraph EV["internal/evidence"]
-        record[record: Execution Record, identities]
-        artifact[artifact: content-addressed store]
-        qual[qualification: reports]
-    end
-    CLI --> RUN --> BE
-    WASM --> MODEL
-    RUN --> EV
-    WASM --> EV
+    cli --> campaign & replay & minimize & install & qualify
+    campaign & replay & minimize --> evidence
+    campaign & replay & minimize & qualify --> linked
+    linked --> abi --> models
+    install -->|invokes through the pinned compiler| toolchain
+    modelgo -. generated codecs and conformance corpora .-> models
 ```
 
-| Layer | Owns | Does not own |
+| Owner | Owns | Does not own |
 | --- | --- | --- |
-| `cmd/gomad` | Parsing, installation resolution, exit statuses, presentation | Any semantics |
-| `internal/runner` | Campaign control: which seeds run, how many in parallel, when to stop, how to resume, how to minimize | Executing a guest, building a module |
-| `internal/backends` | The neutral `Provider` contract; the WASM implementation of it | Campaign policy |
-| `internal/model` | The deterministic models and their reference implementations | Host I/O, goroutines, callbacks |
-| `internal/evidence` | Records, artifacts, identities, qualification reports | Model semantics |
-| `internal/host` | The only host filesystem and process primitives | Anything above |
+| `rust/gomad` `cli` | Parsing, installation resolution, exit statuses, presentation | Any semantics |
+| `rust/gomad` `campaign`, `replay`, `minimize` | Campaign control: preparation, which seeds run, how many in parallel, when to stop, how to resume, replay and minimize | Model semantics inside an execution |
+| `rust/gomad` `evidence` | Records, identities, artifact storage and authenticated opening | Executing a guest |
+| `rust/gomad` `install`, `qualify` and measurement binaries | Pinned manifests, qualification cells and reports, measurement | Campaign policy |
+| `rust/wasmhost` | The linked engine: imports, limits, models, cluster broker and their evidence | Campaign policy, artifact storage |
+| `internal/model` (Go) | Reference models, wire schemas and generated codecs, conformance oracles | Execution, host I/O |
+| `internal/backends/wasm/toolchain` (Go) | The cooperative runtime overlay and its inventory | Execution |
+| `internal/support` (Go) | Guarded filesystem helpers and Temporal schema capture for retained tools | Execution |
 
-The Runner imports no concrete backend. The backend imports models and
-evidence contracts. Models perform no host I/O and start no goroutines. The
-architecture checker in `internal/archcheck` enforces these edges.
+Retained Go code builds with stock Go and has no host execution role. The
+architecture checker in `internal/archcheck` refuses any default Go package
+outside the retained set (`retired-host-source`) and any default import of a
+retired Go host package (`retired-host-import`). Models perform no host I/O and
+start no goroutines.
 
 ## One execution, end to end
 
 ```mermaid
 sequenceDiagram
-    participant CLI
-    participant Runner
-    participant Backend as WASM backend
-    participant Helper as Rust helper
+    participant CLI as gomad CLI
+    participant Campaign
+    participant Prepare as Preparation
+    participant Engine as Linked engine
     participant Guest
-    CLI->>Runner: explore go-test ./pkg --seeds=1..N
-    Runner->>Backend: Prepare(target)
-    Backend->>Backend: go list + go build (wasip1, overlay, tags)
-    Backend-->>Runner: Prepared target: module digest, build key, provenance
+    CLI->>Campaign: explore go-test ./pkg --seeds=1..N
+    Campaign->>Prepare: prepare(target)
+    Prepare->>Prepare: stock go list + go build (wasip1, overlay, tags)
+    Prepare-->>Campaign: Prepared target: module digest, build key, provenance
     loop each seed
-        Runner->>Backend: Execute(prepared, seed, limits, choice mode)
-        Backend->>Helper: request: module, config, seed, retained trace + replay expectations?
-        Helper->>Helper: validate replay, project canonical tape before instantiation
-        Helper->>Guest: instantiate fresh store, start
+        Campaign->>Engine: linked request: module, config, seed, limits, retained trace?
+        Engine->>Engine: validate replay, project canonical tape before instantiation
+        Engine->>Guest: instantiate fresh store, start
         loop until guest exits
-            Guest->>Helper: host import (decision, clock, fd_read, net_stream, ...)
-            Helper-->>Guest: seeded answer, recorded
+            Guest->>Engine: host import (decision, clock, fd_read, net_stream, ...)
+            Engine-->>Guest: seeded answer, recorded
         end
-        Helper-->>Backend: termination, stdout/stderr, choice trace, transcripts, evidence
-        Backend-->>Runner: ExecutionResult
-        Runner->>Runner: Record, classify outcome, apply failure policy
-        Runner->>Runner: publish Artifact if failure or retained success
+        Engine-->>Campaign: termination, stdout/stderr, choice trace, transcripts, evidence
+        Campaign->>Campaign: Record, classify outcome, apply failure policy
+        Campaign->>Campaign: publish Artifact if failure or retained success
     end
-    Runner-->>CLI: campaign summary, exit status
+    Campaign-->>CLI: campaign summary, exit status
 ```
 
-**Prepare** happens once per target. The backend verifies the pinned compiler
-and helper by digest, applies the cooperative runtime overlay from
+**Prepare** happens once per target. The host verifies the pinned compiler
+and its own executable by digest, applies the cooperative runtime overlay from
 `internal/model/runtimesource`, builds the module with the declared build tags,
-and records provenance: every source file hash, the module digest, the compiler
-and helper identities, and the immutable guest configuration. The build key
+and records provenance: every source file hash, the module digest, the compiler,
+host and engine identities, and the immutable guest configuration. The build key
 derived from that provenance is part of every later identity, so a changed
 source or toolchain is a different target, never a divergence.
 
-**Execute** happens once per seed in a fresh helper store. The helper answers
+**Execute** happens once per seed in a fresh engine store. The engine answers
 every import the guest makes. A result carries a termination class, the
 captured output, the choice trace, the I/O, storage and network transcripts,
 and model evidence.
@@ -165,7 +157,7 @@ and model evidence.
 | `capacity` | A declared limit was hit: fuel, memory, calls, output, transcript bytes |
 | `divergence` | Replay observed a decision or input that does not match the retained artifact |
 | `trap` | The WebAssembly engine trapped |
-| `infrastructure` | The helper, cache or host failed; not an application outcome |
+| `infrastructure` | The engine, cache or host failed; not an application outcome |
 
 ## Where determinism comes from
 
@@ -199,7 +191,7 @@ asynchronous preemption, and at each choice point asks the helper which
 alternative to take. The helper draws from the seed and records the decision.
 The recorded sequence is the Choice Trace; its branching decisions form the
 Decision Tape projected by the Rust helper from retained raw trace bytes on
-forced replay. Go supplies expected trace/tape digests and decision count, not
+forced replay. The host supplies expected trace/tape digests and decision count, not
 decoded tape decisions. Readiness and
 single-alternative decisions are kept as evidence but never forced.
 
@@ -208,7 +200,7 @@ goroutine is runnable the clock does not move. When the runtime proves nothing
 is runnable, the guest reports idle and its earliest timer deadline, the helper
 advances the clock to that instant, and every timer due at that instant
 becomes eligible. A busy loop therefore never lets time pass, and a wall-clock
-watchdog in the Runner bounds it.
+watchdog in the host bounds it.
 
 **Outside world.** The helper implements a closed subset of WASI preview1 plus
 the `gomad_wasm_v1` and `v2` import modules. Unknown imports, wrong signatures
@@ -246,13 +238,13 @@ unauthenticated prefix make a comparison `undiagnosable`, never a pass.
 
 A single guest is one process. Temporal tests need several: nodes that crash
 and restart, links that partition and heal, volumes that survive a crash. A
-typed scenario declares that topology, and one helper process runs every
+typed scenario declares that topology, and one linked engine runs every
 incarnation of every node in its own fresh store.
 
 ```mermaid
 flowchart LR
     scenario[Scenario file:<br/>nodes, links, volumes,<br/>boot args, lifecycle actions] --> Helper
-    subgraph Helper["One Rust helper process"]
+    subgraph Helper["One linked Rust engine"]
         broker[Broker: which incarnation runs next]
         clock[Shared virtual clock]
         world[World: ordered external events]
@@ -312,7 +304,7 @@ fixtures byte-identical. Unit tests retain invariants that fixtures cannot
 express, such as lock handling, overlap counters and allocation-free probes;
 coverage must establish replacement before a test is deleted.
 
-Measurement producers live behind the explicit `wasmmeasure` command, outside
+Measurement producers live behind the explicit Rust `gomad-measure` binary, outside
 test targets. They retain their host-admission, identity and resource checks.
 The [WASM implementation guide](internal/backends/wasm/README.md) documents the
 regeneration workflow and command invocation.
