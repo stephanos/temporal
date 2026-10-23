@@ -1,0 +1,65 @@
+{
+  "schema": "gomad.broad-original-go-guest-source-mapping/v1",
+  "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "execution_status": "UNEXECUTED",
+  "selector": "replay::cluster::broad_guest_tests",
+  "execution": {
+    "cargo_profile": "release",
+    "features": ["determinism-fixture"],
+    "harness_flags": ["--ignored", "--nocapture", "--test-threads=1"],
+    "environment": {
+      "GOMAD_STOCK_GO": "absolute stock Go 1.27.1 executable; parent execution lease required",
+      "GOMAD_TEST_BROAD_GUEST_ROOT": "absolute existing empty parent directory; retained source and artifact proofs remain here"
+    },
+    "observation_marker": "GOMAD_RETAINED_OBSERVATION ",
+    "preparation": "native install of original guestRequest Config, memory/fuel/bounds and original clock/entropy/network; sealed campaign prepare with unchanged SHA-pinned Go fixtures",
+    "replay": "Store publish, Opened authentication, native retained reader, public cli replay without installation argument; private original module and installation paths renamed unavailable",
+    "retained_inputs": ["prepared-provenance.json", "preparation-proof/", "original-config.json", "installation.json.unavailable", "prepared-module.wasm.unavailable", "<case>/<artifact>/manifest.json", "<case>/<artifact>/record.json", "<case>/<artifact>/evidence/cluster-replay.json"]
+  },
+  "roots": [
+    {
+      "original_root": "TestSoftAssertionActualClusterGuestAndRetainedReplay",
+      "test": "actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay",
+      "variants": ["seed=7/report-only=false", "seed=19/report-only=false", "seed=7/report-only=true"],
+      "predicates": ["two original Go-test guests complete with exit zero and PASS", "two soft assertion oracles preserve exact invalid fixture state message and policy", "default failure signature unchanged across seeds 7 and 19", "seed 7 retained reader and exact public replay under both policies"]
+    },
+    {
+      "original_root": "TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure",
+      "test": "actual_output_capacity_guest_preserves_original_three_policies",
+      "variants": ["report-only=false/maximum=4096", "report-only=true/maximum=4096", "report-only=true/maximum=1"],
+      "predicates": ["original service Go test accepts exactly PASS with offered=4 and no choice bytes", "capacity/output capacity remains authoritative with inconclusive policy annotation", "original oracle evidence exhaustion and missing-choice detail survive", "producer refuses retained replay publication"]
+    },
+    {
+      "original_root": "TestProviderIndependentGuestsLifecycleReplay",
+      "test": "actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay",
+      "variants": ["compressed=false"],
+      "predicates": ["eight original start/wait/restart lifecycle actions and four independent actual Go guests", "fresh heap 1 and ordered bytes ordered-byte from every incarnation", "retained profile field and exact public replay"],
+      "separate_parent_owned_predicates": ["all original independently resealed malformed retained input readers", "original module independence and retained nonembedding bound"]
+    },
+    {
+      "original_root": "TestProviderCompressedIndependentGuestsLifecycleReplay",
+      "test": "actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay",
+      "variants": ["compressed=true"],
+      "predicates": ["original explicit compressed World profile and original compressed broker bounds", "same eight actions and four independent actual Go guests", "fresh heap 1 and ordered bytes ordered-byte from every incarnation", "retained profile field and exact public replay"],
+      "separate_parent_owned_predicates": ["all original independently resealed malformed retained input readers", "original module independence and retained nonembedding bound"]
+    },
+    {
+      "original_root": "TestProviderDetachedOracleCanarySourceLessReplay",
+      "test": "actual_go_history_oracle_canary_preserves_detached_retained_replay",
+      "variants": ["canary=false", "canary=true"],
+      "predicates": ["two unchanged Go observation fixtures", "four original bound history/convergence oracles", "completed control and oracle_failed canary", "retained report equality and exact public replay without original module/installation paths"]
+    },
+    {
+      "original_root": "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
+      "test": "actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery",
+      "variants": ["two acknowledged crashes then two independent recoveries"],
+      "predicates": ["two original private 8MiB volumes, PendingOperations=1024 and Transitions=10000", "both interrupted guests acknowledge committed durable-a before grouped crash", "both recovered guests print fresh heap 1 then recovered durable-a", "four actual guests, eight lifecycle actions and exact public replay"]
+    }
+  ],
+  "limitations": [
+    "Source-only worker: no Cargo, Go, compiler or guest execution occurred; no runtime or qualification pass is claimed.",
+    "The original repository source tree and shared compiler are preserved; only private original module and installation paths are made unavailable. Native public replay receives solely the retained artifact path.",
+    "Plain lifecycle and compressed lifecycle mutation/refusal and nonembedding assertions require the separately owned parent reader source; this file does not claim those predicates.",
+    "Return from joined native helper execution replaces external-process reaping; no retired external helper PID or filesystem-copy callback semantics are asserted."
+  ]
+}

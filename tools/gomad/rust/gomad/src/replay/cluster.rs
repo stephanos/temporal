@@ -1054,3 +1054,6 @@ mod projection_tests {
 #[cfg(test)]
 #[path = "cluster/retained_tests.rs"]
 mod retained_tests;
+
+#[cfg(all(test, feature = "determinism-fixture"))]
+mod broad_guest_tests;
