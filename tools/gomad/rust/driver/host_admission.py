@@ -2,11 +2,13 @@
 import os
 from pathlib import Path
 import re
+import subprocess
 import time
 
 from driver import REPO, Refusal, read, require, write
 
 MIN_FREE_BYTES = 12 * 1024 ** 3
+STAT = Path('/usr/bin/stat')
 
 
 def bindings(config):
@@ -34,28 +36,21 @@ def bindings(config):
     return scratch, paths
 
 
-def unescape_mount(value):
-    return re.sub(r'\\([0-7]{3})', lambda match: chr(int(match[1], 8)), value)
-
-
-def filesystem(path, mounts):
-    resolved = Path(path).resolve(strict=True)
-    candidates = []
-    for line in mounts.splitlines():
-        fields = line.split()
-        separator = fields.index('-')
-        mount = Path(unescape_mount(fields[4]))
-        if resolved.is_relative_to(mount):
-            candidates.append((len(mount.parts), fields[separator + 1], str(mount)))
-    require(candidates, 'cannot identify native filesystem: ' + str(path))
-    _, kind, mount = max(candidates)
-    return kind, mount
+def filesystem_type(path):
+    # Ask the kernel about the path actually served, as the original shell gate
+    # did. Mount-table sorting cannot identify overmounts or hidden descendants.
+    result = subprocess.run([str(STAT), '-f', '-c', '%T', str(path)],
+                            check=True, capture_output=True, text=True,
+                            env={'LC_ALL': 'C'}, timeout=5)
+    kind = result.stdout.strip()
+    require(re.fullmatch(r'[a-zA-Z0-9._-]+', kind) is not None, 'unrecognized stat filesystem result')
+    return kind
 
 
 def host_fact(path):
-    kind, mount = filesystem(path, Path('/proc/self/mountinfo').read_text())
+    kind = filesystem_type(path)
     space = os.statvfs(path)
-    return dict(path=str(path), filesystem=kind, mount=mount,
+    return dict(path=str(path), filesystem=kind, probe=[str(STAT), '-f', '-c', '%T', str(path)],
                 available_bytes=space.f_bavail * space.f_frsize,
                 fragment_bytes=space.f_frsize, available_fragments=space.f_bavail)
 
@@ -88,7 +83,7 @@ def admit(config, receipt, *, initial, fact=host_fact):
             for name in paths.values():
                 Path(name).mkdir()
         record['status'] = 'PASS'
-    except (Refusal, OSError, ValueError, KeyError, TypeError) as error:
+    except (Refusal, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         record['reason'] = str(error)
         raise Refusal(str(error)) from error
     finally:

@@ -73,16 +73,36 @@ class HostAdmission(unittest.TestCase):
             admission.admit(self.config, self.root / 'stage.json', initial=False, fact=self.facts)
         self.assertFalse(self.scratch.exists())
 
-    def test_mount_escape_and_longest_mount_match(self):
-        (self.parent / 'with space').mkdir()
-        mount = str(self.parent / 'with space').replace(' ', r'\040')
-        mounts = '1 0 0:1 / / rw - ext4 /dev/root rw\n2 1 0:2 / ' + mount + ' rw - fuse.sshfs source rw\n'
-        kind, _ = admission.filesystem(self.parent / 'with space', mounts)
-        self.assertEqual(kind, 'fuse.sshfs')
+    def test_serving_filesystem_uses_actual_stat_not_stacked_mount_inference(self):
+        # The previous max(depth,type,mount) implementation falsely chose xfs
+        # over a later virtiofs overmount at the same mountpoint. The actual
+        # stat probe is authoritative even with hidden/stacked mount entries.
+        import subprocess
+        observed = subprocess.CompletedProcess([], 0, stdout='virtiofs\n', stderr='')
+        with patch.object(admission.subprocess, 'run', return_value=observed) as probe:
+            self.assertEqual(admission.host_fact(self.parent)['filesystem'], 'virtiofs')
+        probe.assert_called_once_with(['/usr/bin/stat', '-f', '-c', '%T', str(self.parent)],
+                                      check=True, capture_output=True, text=True,
+                                      env={'LC_ALL': 'C'}, timeout=5)
+        def facts(path):
+            return dict(self.facts(path), filesystem='virtiofs')
+        with self.assertRaisesRegex(driver.Refusal, 'filesystem refused'):
+            admission.admit(self.config, self.root / 'stacked.json', initial=True, fact=facts)
+        self.assertFalse(self.scratch.exists())
+
+    def test_probe_errors_fail_closed_with_refusal_receipt(self):
+        import subprocess
+        for index, error in enumerate((OSError('probe unavailable'), subprocess.TimeoutExpired('stat', 5),
+                                       subprocess.CalledProcessError(1, 'stat'))):
+            with patch.object(admission.subprocess, 'run', side_effect=error), self.assertRaises(driver.Refusal):
+                admission.admit(self.config, self.root / (str(index) + '.json'), initial=True)
+            self.assertEqual(driver.read(self.root / (str(index) + '.json'))['status'], 'REFUSED')
+            self.assertFalse(self.scratch.exists())
+        with patch.object(admission.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, stdout='')):
+            with self.assertRaises(driver.Refusal):
+                admission.filesystem_type(self.parent)
 
     def test_real_kernel_facts_without_dispatch(self):
-        if not Path('/proc/self/mountinfo').exists():
-            self.skipTest('Linux mountinfo is the original supported host contract')
         row = admission.host_fact(self.parent)
         self.assertGreaterEqual(row['available_bytes'], 0)
         self.assertTrue(row['filesystem'])

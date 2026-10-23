@@ -431,3 +431,15 @@ No Cargo/Go/build/guest/golden/qualification or main retirement occurred. Curren
 low host free space remains a real future qualification refusal. Untracked
 static-stage assembler/ignored inventory are separate unfinished source work;
 no generated runtime result or final source freeze is claimed by this checkpoint.
+
+Host admission review correction: the first mountinfo selector could choose xfs
+lexicographically over a same-path virtiofs overmount. Read-only RED reproducer
+returned xfs for reviewer-provided stacked rows. Removed all mount-topology
+inference. Actual filesystem is now the original fixed `/usr/bin/stat -f -c %T
+PATH` serving-path query, frozen in configuration inputs, bounded to5seconds;
+errors/timeouts/empty results refuse and retain the refusal receipt. Thresholds,
+fresh private scratch/temp bindings, receipt order and send epoch unchanged.
+Meaningful controlled-probe regression observes virtiofs and refuses, plus real
+bounded stat facts and all probe error paths. Admission9tests exit0; complete
+portable driver suite41tests exit0 (includes5separate static draft tests), diff
+check exit0. No main sync/build/Go/Cargo/guest/golden/qualification occurred.

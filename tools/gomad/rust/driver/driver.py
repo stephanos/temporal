@@ -307,8 +307,9 @@ def configured(path):
     require(isinstance(config['sent_epoch'], (int, float)) and math.isfinite(config['sent_epoch'])
             and config['sent_epoch'] > 0 and config['sent_epoch'] <= time.time(), 'invalid send epoch')
     deadline(config['deadline_s'])
-    from host_admission import bindings
+    from host_admission import STAT, bindings
     bindings(config)
+    require(str(STAT) in config['files'], 'unsealed native filesystem probe')
     check_files(config['files'])
     return config
 
