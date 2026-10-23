@@ -72,6 +72,7 @@ def stable_rows(rows, paths):
             # commitments were checked against raw retained bytes above.
             row['record_sha256'] = '$RECORD/' + str(row['ordinal'])
             row['origin_sha256'] = '$ORIGIN'
+            row['stored_bytes'] = '$AUTHENTICATED_STORED_BYTES'
     return rows
 
 
@@ -152,6 +153,56 @@ def bind_module_input(record, manifest, module_sha256, module_bytes):
     entry = manifest['files']['target/module.wasm']
     equal(record['identity']['target'], module_sha256, 'supplied_module.target')
     equal((entry['sha256'], entry['bytes']), (module_sha256, module_bytes), 'supplied_module.bytes')
+
+
+def authenticate_origin(artifact, record, plan_origin):
+    name = 'target/intercepted-origin.json'
+    raw = (artifact / name).read_bytes()
+    if len(raw) > 32 << 20:
+        raise ValueError('sealed origin exceeds existing origin bound')
+    origin = campaign.canonical_file(artifact / name)
+    parity.fields(origin, dict(schema=str, origin=str, invocation=dict, module_sha256=str,
+                               preparation_sha256=str, launch=dict), 'sealed_origin')
+    equal((origin['schema'], origin['origin']), ('gomad.intercepted-origin/v1', 'intercepted-go'), 'origin.schema')
+    invocation, launch = origin['invocation'], origin['launch']
+    parity.fields(invocation, dict(schema=str, wrapper_run_id=str, invocation_id=str, original_argv=list,
+                                   driver_argv=list, compiler_sha256=str, installation_sha256=str,
+                                   recipe_sha256=str, recipe_file=str), 'origin.invocation')
+    launch_fields = dict(invocation_id=str, argv=list, process_id=int, parent_process_id=(int, type(None)))
+    if 'preparation_receipt_sha256' in launch:
+        launch_fields['preparation_receipt_sha256'] = str
+        parity.sha(launch['preparation_receipt_sha256'], 'origin.launch.receipt_sha256')
+    parity.fields(launch, launch_fields, 'origin.launch')
+    equal(invocation['schema'], 'gomad.intercepted-invocation/v1', 'origin.invocation.schema')
+    for value in [origin['module_sha256'], origin['preparation_sha256'], launch['invocation_id'],
+                  *[invocation[key] for key in ('wrapper_run_id', 'invocation_id', 'compiler_sha256',
+                                                'installation_sha256', 'recipe_sha256')]]:
+        parity.sha(value, 'origin.digest')
+    if launch['invocation_id'] in (invocation['wrapper_run_id'], invocation['invocation_id']):
+        raise ValueError('launch identity aliases driver or wrapper')
+    for pid in (launch['process_id'], launch['parent_process_id']):
+        if pid is not None and not 0 < pid < 1 << 32:
+            raise ValueError('invalid sealed launch PID')
+    for argv in (invocation['original_argv'], invocation['driver_argv'], launch['argv']):
+        if not 0 < len(argv) <= 65536 or any(type(value) is not str or len(value) > 2 << 20 or len(value) % 2
+                                           or any(byte not in '0123456789abcdef' for byte in value) for value in argv):
+            raise ValueError('invalid sealed origin argv bytes')
+    if not invocation['recipe_file'] or invocation['recipe_file'] in ('.', '..') or any(value in invocation['recipe_file'] for value in ('/', '\\')):
+        raise ValueError('invalid sealed recipe filename')
+    manifest = campaign.canonical_file(artifact / 'manifest.json')
+    equal(manifest['record'], record, 'origin.artifact_record')
+    entry = manifest['files'][name]
+    equal((entry['bytes'], entry['sha256'], entry['module']), (len(raw), parity.digest(raw), False), 'origin.manifest')
+    equal(record['streams'].get(name), dict(bytes=len(raw), sha256=parity.digest(raw), records=1), 'origin.record_stream')
+    equal(origin['module_sha256'], record['identity']['target'], 'origin.module')
+    provenance = campaign.canonical_file(artifact / 'target/provenance.json')
+    equal(provenance['origin'], origin, 'origin.provenance')
+    equal(provenance['module_sha256'], origin['module_sha256'], 'origin.provenance_module')
+    base = dict(provenance)
+    del base['origin']
+    equal(parity.digest(parity.canonical(base)), origin['preparation_sha256'], 'origin.preparation')
+    equal(origin, plan_origin, 'origin.plan_origin')
+    return origin
 
 
 def campaign_roles(plans):
@@ -274,6 +325,13 @@ def execute_case(runner, case, root, label):
     prepared_record = campaign.authenticate_artifact(prepared_artifact)
     bind_module_input(prepared_record, campaign.canonical_file(prepared_artifact / 'manifest.json'),
                       module_sha256, len(module_bytes))
+    sealed_origin = authenticate_origin(prepared_artifact, prepared_record, preparation['plan']['origin'])
+    execution_prepared = roots[0] / validated['plan']['prepared_artifact']
+    execution_prepared_record = campaign.authenticate_artifact(execution_prepared)
+    bind_module_input(execution_prepared_record, campaign.canonical_file(execution_prepared / 'manifest.json'),
+                      module_sha256, len(module_bytes))
+    equal(authenticate_origin(execution_prepared, execution_prepared_record, validated['plan']['origin']),
+          sealed_origin, name + '.both_prepared_origins')
     equal(validated['plan']['origin']['origin'], 'intercepted-go', name + '.campaign_origin')
     equal(campaign.seeds(validated['plan']['selection']), selected_seeds(case['seeds']), name + '.actual_selection')
     executions = sorted(validated['executions'], key=lambda row: row['ordinal'])
@@ -283,6 +341,7 @@ def execute_case(runner, case, root, label):
     for execution, expected in zip(executions, case['outcomes']):
         artifact = roots[0] / execution['artifact']
         record = campaign.authenticate_artifact(artifact)
+        equal(authenticate_origin(artifact, record, validated['plan']['origin']), sealed_origin, name + '.execution_origin')
         paths[str(artifact)] = '$ARTIFACT/' + str(execution['ordinal'])
         equal((execution['ordinal'], execution['seed']), (expected['ordinal'], expected['seed']), name + '.selection')
         equal((record['outcome']['class'], record['outcome']['termination']),

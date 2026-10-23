@@ -87,7 +87,8 @@ compiler, external module cache or Go temporary file may be recreated for replay
 ## Real parallel package proof
 
 The source extension uses a bounded PRIVATE collection contract and the shared
-prepare/admit algorithm. It is not compiled or actual acceptance evidence yet.
+prepare/admit algorithm. Its focused catalog/admission tests and default/fixture
+host suites compiled and passed; actual Go acceptance remains pending.
 The original single-recipe encoding remains unchanged. No operator verb or shim
 is introduced.
 
@@ -132,11 +133,11 @@ observations, distinct receipts/campaigns/origins and both package statuses at o
 artifact root. Separate concurrent Go drivers are useful additional checks but do
 not replace this wave. Replay both artifacts after temporary inputs are hidden.
 
-Focused source regressions to run only after a compile-lane grant: original single
+Completed focused source regressions cover original single
 recipe canonical bytes and argv; exact two-package argv/member selection;
 missing/duplicate/ambiguous/settings/config/compiler refusal; per-launch identity
-and receipt renewal; four sequential/concurrent campaigns with the same driver
-association and shared artifact root; and authenticated legacy artifact reading
+and receipt renewal; two sequential then two concurrent launches (four total)
+with the same driver association and shared artifact root; and authenticated legacy artifact reading
 without the optional launch extension. These tiny WAT/source fixtures supplement
 the actual Go proof and do not establish its acceptance.
 
@@ -150,7 +151,11 @@ checks exact final replay argv/refusal, runs replay and inspect, minimizes the
 replayable failure, and probes actual qualification provenance admission.
 Each admitted case has separate authenticated preparation and execution campaigns;
 the checker binds both retained modules to the supplied bytes and verifies their
-shared launch origin. Preparation executes zero guests.
+shared sealed launch origin, its provenance association and record-stream
+commitment for both prepared artifacts and every execution artifact. New corpus
+cases require the launch extension. Exact raw logical byte accounting and budgets
+are authenticated before stored_bytes is normalized in the semantic golden view.
+Preparation executes zero guests.
 
 Supply an input JSON with schema `gomad.interception-corpus-inputs/v1` and `cases`
 containing exactly the names in `interception-corpus.json`. Each case provides:
