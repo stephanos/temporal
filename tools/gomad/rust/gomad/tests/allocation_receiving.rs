@@ -5,7 +5,7 @@ mod allocation_measure;
 #[test]
 #[ignore = "explicit allocation receiving operator harness"]
 fn allocation_receiving() {
-    allocation_measure::self_check();
+    allocation_measure::self_check(true);
     bounded_opened_file();
     replay::cluster::allocation_probe(|opened, descriptor| {
         let (bytes, facts) =
@@ -91,7 +91,7 @@ fn terminal_publication_allocation() {
         publish,
         tests::{fixtures, output_path},
     };
-    allocation_measure::self_check();
+    allocation_measure::self_check(false);
     for bytes in [1 << 20, 4 << 20] {
         let (records, admission) = fixtures(bytes);
         let path = output_path("allocation");
@@ -176,7 +176,7 @@ fn terminal_publication_retained_replay() {
         records.push(Record {attempt:Attempt {label:label.into(),native_root:root.join("evidence").join(label),role:"diagnostic-profile".into()},
             execution_failure:Some("original failed collection control is not re-executed or promoted by publication replay".into()),observation:None,retained_paths:vec![],verification_failure:None});
     }
-    allocation_measure::self_check();
+    allocation_measure::self_check(true);
     let (result, facts) = allocation_measure::capture(|| {
         publish(
             &output,

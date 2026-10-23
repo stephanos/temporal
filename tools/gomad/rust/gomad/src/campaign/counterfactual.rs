@@ -379,7 +379,7 @@ fn repreparation_binds_scenario_without_reusing_admission_observations() {
             network: None,
             soft_assertion_report_only: false,
             compile_cache_root: None,
-            auxiliary: Default::default(),
+            auxiliary: std::collections::BTreeMap::default(),
         }
     };
     let expected = prepared();
@@ -424,8 +424,7 @@ fn explore_result(output: &[u8]) -> Value {
     let report: Value = serde_json::from_slice(
         output
             .split(|byte| *byte == b'\n')
-            .filter(|line| !line.is_empty())
-            .last()
+            .rfind(|line| !line.is_empty())
             .unwrap(),
     )
     .unwrap();

@@ -127,6 +127,8 @@ class OriginalClusterReplay(unittest.TestCase):
         self.assertEqual(by_name['ordinary-namespace-run']['timeout_s'],600)
         self.assertEqual(by_name['ordinary-builder-run']['timeout_s'],900)
         sealed.assert_called_once_with(config,'/python')
+        self.assertEqual(by_name[ordinary.VOLUME_REPEAT]['argv'],
+                         ['/ordinary-helper-test','--exact',*ordinary.VOLUME_TESTS,'--test-threads=1'])
         self.assertEqual(by_name[ordinary.WORKLOAD_TOOLS]['argv'],
                          ['/python','-m','unittest','discover','-v','-s','/repo/tools/gomad/rust/workload_tools','-p','test_*.py'])
         self.assertEqual(by_name[ordinary.INSTALLED_PUBLICATION]['argv'],

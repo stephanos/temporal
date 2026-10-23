@@ -16,6 +16,12 @@ ROLES = {'host': ('ordinary-host-test', 'gomad'), 'helper': ('ordinary-helper-te
 NAMESPACE = 'go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceConformanceCorpus'
 WORKLOAD_TOOLS = 'ordinary-workload-tools-run'
 INSTALLED_PUBLICATION = 'ordinary-installed-publication-run'
+# The original Make ran the volume conformance corpus in two selections
+# (namespace-volume-conformance and recursive-test-wasm); the full helper run is
+# the first, this exact repeat the second.
+VOLUME_REPEAT = 'ordinary-helper-volume-run'
+VOLUME_TESTS = ('conformance::tests::volume_conformance_corpus',
+                'volume::image::tests::rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes')
 
 
 def plan(config):
@@ -50,6 +56,8 @@ def recipes(config):
                                   ('run', ['--test-threads=1'])):
             rows.append(dict(name='ordinary-' + name + '-' + suffix, argv=[binary, *arguments],
                              environment=environment, timeout_s=60 if suffix != 'run' else 900))
+    rows.append(dict(name=VOLUME_REPEAT, argv=[live.role(config, ROLES['helper'][0])['binary'], '--exact', *VOLUME_TESTS,
+                                               '--test-threads=1'], environment=environment, timeout_s=900))
     go = value['tools']['go']
     module = str(Path(config['repo']) / 'tools/gomad')
     groups = [
@@ -108,6 +116,10 @@ def collect(config, root):
             identity = 'rust/' + target + '/' + case
             actual.update((identity, identity + '@stage/ordinary@run/' + prefix + '-run'))
         deferred.extend(dict(target=target, test=case, executed=False) for case in sorted(ignored))
+    target = ROLES['helper'][1]
+    for case in static.verify_rust((root / (VOLUME_REPEAT + '.stdout')).read_bytes(), set(VOLUME_TESTS), set()):
+        identity = 'rust/' + target + '/' + case
+        actual.add(identity + '@stage/ordinary@run/' + VOLUME_REPEAT)
     for case in python_cases((root / (WORKLOAD_TOOLS + '.stderr')).read_bytes()):
         identity = 'py/workload_tools/' + case
         actual.update((identity, identity + '@stage/ordinary@run/' + WORKLOAD_TOOLS))

@@ -12,6 +12,7 @@ struct Scope {
     active: bool,
     allocated_bytes: u64,
     allocation_calls: u64,
+    freed_bytes: u64,
 }
 
 thread_local! {
@@ -19,10 +20,26 @@ thread_local! {
         active: false,
         allocated_bytes: 0,
         allocation_calls: 0,
+        freed_bytes: 0,
     }) };
 }
 static LIVE: AtomicU64 = AtomicU64::new(0);
 static PEAK: AtomicU64 = AtomicU64::new(0);
+
+fn freed(bytes: usize) {
+    LIVE.fetch_sub(bytes as u64, Ordering::Relaxed);
+    if ACTIVE.load(Ordering::Relaxed) {
+        SCOPE
+            .try_with(|cell| {
+                let mut scope = cell.get();
+                if scope.active {
+                    scope.freed_bytes += bytes as u64;
+                    cell.set(scope);
+                }
+            })
+            .unwrap_or(());
+    }
+}
 
 fn allocated(bytes: usize) {
     let live = LIVE.fetch_add(bytes as u64, Ordering::Relaxed) + bytes as u64;
@@ -63,7 +80,7 @@ unsafe impl GlobalAlloc for MeasuredAllocator {
     }
 
     unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
-        LIVE.fetch_sub(layout.size() as u64, Ordering::Relaxed);
+        freed(layout.size());
         // SAFETY: The caller supplies the allocation's pointer and layout.
         unsafe { System.dealloc(pointer, layout) };
     }
@@ -72,7 +89,7 @@ unsafe impl GlobalAlloc for MeasuredAllocator {
         // SAFETY: The caller supplies the allocation's pointer/layout and valid new size.
         let next = unsafe { System.realloc(pointer, layout, size) };
         if !next.is_null() {
-            LIVE.fetch_sub(layout.size() as u64, Ordering::Relaxed);
+            freed(layout.size());
             allocated(size);
         }
         next
@@ -86,6 +103,10 @@ pub(crate) struct Facts {
     pub(crate) live_requested_bytes_before: u64,
     pub(crate) live_requested_bytes_after: u64,
     pub(crate) peak_live_requested_bytes: u64,
+    /// Bytes this thread freed inside the capture; the selected thread's net
+    /// live change is exact even while other test threads allocate.
+    #[serde(skip)]
+    pub(crate) thread_freed_bytes: u64,
 }
 
 pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
@@ -107,6 +128,7 @@ pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
             active: true,
             allocated_bytes: 0,
             allocation_calls: 0,
+            freed_bytes: 0,
         });
     });
     let before = LIVE.load(Ordering::Relaxed);
@@ -122,6 +144,7 @@ pub(crate) fn capture<T>(operation: impl FnOnce() -> T) -> (T, Facts) {
         live_requested_bytes_before: before,
         live_requested_bytes_after: LIVE.load(Ordering::Relaxed),
         peak_live_requested_bytes: PEAK.load(Ordering::Relaxed),
+        thread_freed_bytes: scope.freed_bytes,
     };
     (result, facts)
 }
@@ -150,14 +173,21 @@ pub(crate) fn row(
     println!("GOMAD_ALLOCATION_OBSERVATION {value}");
 }
 
-pub(crate) fn self_check() {
+/// `whole_process` additionally binds the process-wide live counter, which is
+/// exact only in an isolated harness process. Inside a parallel libtest binary
+/// other test threads move it, so the control binds the selected thread's net
+/// live change instead.
+pub(crate) fn self_check(whole_process: bool) {
     let (bytes, facts) = capture(|| vec![0xa5_u8; std::hint::black_box(8192)]);
     assert_eq!(facts.allocated_bytes, 8192);
     assert_eq!(facts.allocation_calls, 1);
-    assert_eq!(
-        facts.live_requested_bytes_after - facts.live_requested_bytes_before,
-        8192
-    );
+    assert_eq!(facts.allocated_bytes - facts.thread_freed_bytes, 8192);
+    if whole_process {
+        assert_eq!(
+            facts.live_requested_bytes_after - facts.live_requested_bytes_before,
+            8192
+        );
+    }
     assert_eq!(bytes[8191], 0xa5);
     row(
         "allocator-control",
