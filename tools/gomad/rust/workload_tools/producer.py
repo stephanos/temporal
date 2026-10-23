@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 sys.dont_write_bytecode = True
 import workloads
@@ -19,18 +20,37 @@ def write(path, value):
     path.chmod(0o600)
 
 
+def owned_root(root):
+    write(root/"producer-root.json", dict(schema="gomad.rust-producer-root/v1", root=str(root.resolve()),
+          argv=sys.argv, cwd=os.getcwd(), pid=os.getpid(), start_ns=time.time_ns()))
+
+
 def run(root, name, command, expected, json_output=True, environment=None):
     output = root/(name+".stdout")
     error = root/(name+".stderr")
+    command = [str(item) for item in command]
+    actual_env = dict(os.environ if environment is None else environment)
+    observed_env = {key: actual_env.get(key) for key in (
+        "PATH", "GOMAD_WASM_INSTALLATION", "GOMAD_STOCK_GO", "GOMAD_WASM_RUNTIME_ROOT")}
+    started = time.time_ns()
     with output.open("xb") as stdout, error.open("xb") as stderr:
-        result = subprocess.run(command, stdout=stdout, stderr=stderr, check=False, env=environment)
-    receipt = dict(command=[str(item) for item in command], exit=result.returncode,
+        process = subprocess.Popen(command, stdout=stdout, stderr=stderr, env=actual_env)
+        registered = dict(argv=command, pid=process.pid, stage_pid=os.getpid(), active=False,
+                          start_ns=started)
+        code = process.wait()
+        ended = time.time_ns()
+        registered.update(exit=code, observation="completed", end_ns=ended)
+    write(root/(name+".process.json"), registered)
+    receipt = dict(argv=command, command=command, argv_sha256=hashlib.sha256(workloads.canonical(command)).hexdigest(),
+                   cwd=os.getcwd(), pid=process.pid, exit=code, observation="completed", start_ns=started,
+                   end_ns=time.time_ns(), environment=observed_env,
+                   environment_sha256=hashlib.sha256(workloads.canonical(actual_env)).hexdigest(),
                    stdout=str(output), stderr=str(error),
                    stdout_sha256=hashlib.sha256(output.read_bytes()).hexdigest(),
                    stderr_sha256=hashlib.sha256(error.read_bytes()).hexdigest())
     write(root/(name+".command.json"), receipt)
-    if result.returncode != expected:
-        raise ValueError(f"{name} exit {result.returncode}, expected {expected}; raw logs: {output}, {error}")
+    if code != expected:
+        raise ValueError(f"{name} exit {code}, expected {expected}; raw logs: {output}, {error}")
     if not json_output or not output.stat().st_size:
         return None
     try:
@@ -94,6 +114,7 @@ def main():
     args = parser.parse_args()
     repo, root, binary = args.repo.resolve(), args.root.resolve(), args.binary.resolve()
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
+    owned_root(root)
     capture = None
     source = None
     if args.workload != "sqlite":
