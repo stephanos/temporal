@@ -139,6 +139,8 @@ pub struct Prepared {
     wall_timeout: Duration,
     evidence_bytes: u64,
     conditions: linked::Conditions,
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: Option<(linked::FixtureFault, Option<Handle>)>,
     cancellation: linked::Cancellation,
     simulation: Option<crate::linked_simulation::Shared>,
     observations: BTreeMap<Handle, Observation>,
@@ -329,6 +331,23 @@ impl Prepared {
 
     pub fn cancellation(&mut self, cancellation: linked::Cancellation) {
         self.cancellation = cancellation;
+    }
+
+    #[cfg(feature = "determinism-fixture")]
+    pub fn fixture_fault(
+        &mut self,
+        fault: linked::FixtureFault,
+        owner: Option<Handle>,
+    ) -> Result<()> {
+        let owner = owner.or_else(|| self.incarnations.keys().next().cloned());
+        if owner
+            .as_ref()
+            .is_some_and(|owner| !self.incarnations.contains_key(owner))
+        {
+            return Err(Error::msg("unknown fixture fault logical owner"));
+        }
+        self.fixture_fault = Some((fault, owner));
+        Ok(())
     }
 
     pub fn conditions(&mut self, conditions: linked::Conditions) {
@@ -531,6 +550,8 @@ pub fn prepare(mut request: Request) -> Result<Prepared> {
         wall_timeout: request.wall_timeout,
         evidence_bytes: request.evidence_bytes,
         conditions: linked::Conditions::default(),
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault: None,
         cancellation: linked::Cancellation::default(),
         simulation: None,
         observations: BTreeMap::new(),
@@ -613,6 +634,8 @@ fn instance_state(
         .ok_or_else(|| Error::msg("missing cluster model"))?;
     model.linked_evidence = Some(sink.clone());
     model.inspection.handle = handle.clone();
+    #[cfg(feature = "determinism-fixture")]
+    model.bind_fixture_control();
     model.inspection.recorder = broker.inspection.clone();
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     {
@@ -1359,7 +1382,16 @@ pub fn execute_prepared(prepared: Prepared) -> Result<Execution> {
     if cancellation.cancelled() {
         return Ok(cancelled_execution());
     }
+    #[cfg(not(feature = "determinism-fixture"))]
     let mut conditions = prepared.conditions.enter()?;
+    #[cfg(feature = "determinism-fixture")]
+    let mut conditions = {
+        let (fault, owner) = prepared
+            .fixture_fault
+            .as_ref()
+            .map_or((None, None), |(fault, owner)| (Some(*fault), owner.clone()));
+        prepared.conditions.enter_with_fault(fault, owner)?
+    };
     let session = conditions.session();
     let engine = Engine::new(&engine::configuration(true))?;
     let network = prepared

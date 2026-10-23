@@ -1,5 +1,4 @@
 use super::super::{Fault, Kind};
-use super::*;
 use crate::linked_conditions::Conditions;
 
 #[test]

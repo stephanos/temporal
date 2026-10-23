@@ -268,6 +268,14 @@ fn set64(data: &mut [u8], at: usize, value: u64) {
     data[at..at + 8].copy_from_slice(&value.to_be_bytes());
 }
 
+#[cfg(feature = "determinism-fixture")]
+impl Model {
+    pub(crate) fn bind_fixture_control(&mut self) {
+        self.fixture_fault =
+            crate::determinism_fixture::Fault::from_control(&self.inspection.handle);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod default_cut_corpus;

@@ -13,6 +13,8 @@ use std::{
 };
 use wasmtime::{Engine, Error, Store};
 
+#[cfg(feature = "determinism-fixture")]
+pub use crate::determinism_fixture::Kind as FixtureFault;
 pub use crate::linked_cancellation::Cancellation;
 pub use crate::linked_cluster::NetworkModel;
 pub use crate::linked_conditions::Conditions;
@@ -88,6 +90,8 @@ pub struct Prepared {
     pub(crate) namespace: Option<namespace::Namespace>,
     pub(crate) storage_bounds: Option<crate::storage_evidence_bounds::Bounds>,
     pub(crate) conditions: Conditions,
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: Option<FixtureFault>,
     cancellation: Cancellation,
     output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
@@ -124,6 +128,11 @@ impl Prepared {
     pub fn conditions(&mut self, conditions: Conditions) {
         self.conditions = conditions;
     }
+    #[cfg(feature = "determinism-fixture")]
+    pub fn fixture_fault(&mut self, fault: FixtureFault) {
+        self.fixture_fault = Some(fault);
+    }
+
     /// # Errors
     /// Refuses an exhausted caller budget; a remaining budget may only shorten the original bound.
     pub fn bound_wall_timeout(&mut self, remaining: Duration) -> wasmtime::Result<()> {
@@ -393,6 +402,8 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         namespace,
         storage_bounds,
         conditions: Conditions::default(),
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault: None,
         cancellation: Cancellation::default(),
         output: None,
         network: None,
@@ -415,6 +426,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         namespace,
         storage_bounds,
         conditions,
+        #[cfg(feature = "determinism-fixture")]
+        fixture_fault,
         cancellation,
         output,
         network,
@@ -422,12 +435,17 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());
     }
+    #[cfg(not(feature = "determinism-fixture"))]
     let mut conditions = conditions.enter()?;
+    #[cfg(feature = "determinism-fixture")]
+    let mut conditions = conditions.enter_with_fault(fixture_fault, None)?;
     let sink = Sink::new(request.limits.evidence_bytes)
         .with_storage_bounds(storage_bounds)
         .with_output(output, cancellation.clone());
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
+        #[cfg(feature = "determinism-fixture")]
+        model.bind_fixture_control();
     }
     let preparation = std::time::Instant::now();
     let engine = Engine::new(&engine::configuration(true))?;

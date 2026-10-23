@@ -1,5 +1,7 @@
+pub(crate) mod control;
+
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Kind {
+pub enum Kind {
     None,
     Draw,
     Clock,
@@ -10,6 +12,7 @@ enum Kind {
 pub struct Fault {
     kind: Kind,
     consumed: bool,
+    control: Option<std::sync::Arc<control::Control>>,
 }
 
 impl Fault {
@@ -23,6 +26,7 @@ impl Fault {
                 _ => Kind::None,
             },
             consumed: false,
+            control: None,
         }
     }
 
@@ -37,6 +41,28 @@ impl Fault {
         Self::new(&std::env::var("GOMAD_WASM_DETERMINISM_FAULT").unwrap_or_default())
     }
 
+    pub(crate) fn from_control(owner: &crate::model::inspection::Handle) -> Self {
+        match control::current().filter(|control| control.matches(owner)) {
+            Some(control) => Self {
+                kind: control.kind,
+                consumed: false,
+                control: Some(control),
+            },
+            None => Self::none(),
+        }
+    }
+
+    pub(crate) fn for_broker() -> Self {
+        match control::current() {
+            Some(control) => Self {
+                kind: control.kind,
+                consumed: false,
+                control: Some(control),
+            },
+            None => Self::from_environment(),
+        }
+    }
+
     pub fn bootstrap_seed(&self, seed: u64) -> u64 {
         if self.kind == Kind::Draw {
             seed | (1 << 63)
@@ -49,7 +75,10 @@ impl Fault {
 
     pub fn clock_shift(&mut self, records: u64) -> u64 {
         let output_ready = self.kind == Kind::OutputClock
-            && OUTPUT_COMMITTED.load(std::sync::atomic::Ordering::Relaxed);
+            && self.control.as_ref().map_or_else(
+                || OUTPUT_COMMITTED.load(std::sync::atomic::Ordering::Relaxed),
+                |control| control.output_committed(),
+            );
         if (self.kind != Kind::Clock && !output_ready) || self.consumed || records < 8 {
             return 0;
         }
@@ -79,6 +108,7 @@ static OUTPUT_COMMITTED: std::sync::atomic::AtomicBool = std::sync::atomic::Atom
 
 pub fn output_committed() {
     if crate::linked_conditions::current().is_some() {
+        control::commit_output();
         return;
     }
     OUTPUT_COMMITTED.store(true, std::sync::atomic::Ordering::Relaxed);

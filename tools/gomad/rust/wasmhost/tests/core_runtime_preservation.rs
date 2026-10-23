@@ -1,4 +1,9 @@
-#![cfg(not(feature = "conformance"))]
+#![cfg(not(any(
+    feature = "conformance",
+    feature = "determinism-fixture",
+    feature = "stress-jitter",
+    feature = "diagnostic-profile"
+)))]
 
 use gomad_wasmhost::linked;
 use serde_json::json;

@@ -278,7 +278,7 @@ impl Broker {
         Ok(Self {
             inner: Mutex::new(Inner {
                 #[cfg(feature = "determinism-fixture")]
-                fixture_fault: crate::determinism_fixture::Fault::from_environment(),
+                fixture_fault: crate::determinism_fixture::Fault::for_broker(),
                 commands: VecDeque::new(),
                 metrics: Metrics::default(),
                 observed_at: Instant::now(),

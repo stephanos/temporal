@@ -24,6 +24,19 @@ pub struct Context {
 
 thread_local! { static CURRENT: RefCell<Option<Context>> = const { RefCell::new(None) }; }
 
+#[cfg(feature = "determinism-fixture")]
+pub(crate) fn current_owner() -> Option<crate::model::inspection::Handle> {
+    CURRENT.with(|current| {
+        current
+            .borrow()
+            .as_ref()
+            .map(|context| crate::model::inspection::Handle {
+                node: context.instance.clone(),
+                incarnation: context.incarnation,
+            })
+    })
+}
+
 pub struct Scope(Option<Context>);
 impl Drop for Scope {
     fn drop(&mut self) {
