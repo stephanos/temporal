@@ -168,3 +168,48 @@ predicate dependencies and actual captured commands are reconciled. No binding
 is made now. This batch does **not** bind
 `public-verbs/fresh-differential-and-raw-golden-integrity`: the projector repair
 is source work, not a fresh differential or raw-golden execution result.
+
+
+## Independent native executable publication
+
+The separately checkpointed follow-up preserves
+`tools/gomad/internal/backends/wasm/helper_build_test.go#TestHelperBuildPublishesIndependentExecutable`
+(original blob `acfb086581971204f2018e444192dcf7916384d2`, function span SHA-256
+`6922e308a5d37f2e17b42e3b8f01e48fb646350b2fd4f1497531b0d8b6abaaef`).
+The complete original root and all three table cases were read from the pinned
+host-contract map. The native public `make build` replaces the retired standalone
+helper as the ordinary executable; the explicit `wasm-test-helper` target retains
+its reference transport feature and is tested separately.
+
+`rust/publish-executable.sh` copies Cargo's regular output to a fresh temporary
+inode, sets mode 0755 and atomically renames it to the stable default publication
+path. This works when source and publication path match, when a custom target
+cache is selected, and when an existing publication hard-links the original
+fixture. It rejects symbolic/nonregular sources or destinations, preserving a
+prior publication if admission fails. No host runtime or standalone feature is
+silently changed.
+
+The concrete receiving pointer is:
+
+```sh
+python3 tools/gomad/testdata/parity/installed-publication-test.py
+```
+
+This invokes the **actual copied public Makefile and actual publication helper**
+with the original deliberately controlled Cargo publisher. Both native targets
+run each original default/custom/custom-matching-output case. Each checks exact
+original executable bytes, mode 0755, distinct inode, one link, unchanged fixture
+mode, independence after mutating the source inode, and exact pinned Cargo
+package/feature arguments. The default build must not produce the standalone
+helper; its Cargo binary remains feature-gated. Negative cases reject symlink,
+missing and directory inputs without altering the previous output. The original
+mechanism uses a controlled publisher and does not build or execute the fixture;
+it proves the real shell/filesystem publication behavior and grants no actual
+compiler, guest, ordinary release-build or qualification credit.
+
+Causal RED against the unmodified native Makefile failed four mode checks and
+two missing custom-cache publication checks. GREEN has three tests, including
+six complete public-recipe table executions. Raw logs are
+`/home/agent/evidence/fn232-installed-publication-red.log` and `-green.log`.
+The architecture receiver owner may bind this exact test pointer; frozen actual
+Cargo build-role receipts remain the static build owner's separate obligation.

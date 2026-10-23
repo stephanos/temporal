@@ -242,5 +242,40 @@
   "kill_fixture": {
     "go.mod": "module gomad.wasm.killresume.fixture\n\ngo 1.27.1\n",
     "work_test.go": "package fixture\n\nimport \"testing\"\n\nfunc TestWASMKillResumeWork(t *testing.T) {}\n"
+  },
+  "publication_root": {
+    "original_root": "tools/gomad/internal/backends/wasm/helper_build_test.go#TestHelperBuildPublishesIndependentExecutable",
+    "original_blob": "acfb086581971204f2018e444192dcf7916384d2",
+    "source_span_sha256": "6922e308a5d37f2e17b42e3b8f01e48fb646350b2fd4f1497531b0d8b6abaaef",
+    "receiver": "tools/gomad/testdata/parity/installed-publication-test.py",
+    "cases": [
+      "default-target",
+      "custom-target",
+      "custom-target-matching-output"
+    ],
+    "native_targets": {
+      "build": {
+        "package": "gomad",
+        "features": [],
+        "output": "rust/target/release/gomad"
+      },
+      "wasm-test-helper": {
+        "package": "gomad-wasmhost",
+        "features": [
+          "reference-helper"
+        ],
+        "output": "rust/target/release/gomad-wasmhost"
+      }
+    },
+    "publication_assertions": [
+      "original exact bytes",
+      "mode 0755",
+      "private inode and one link",
+      "original Cargo-linked fixture bytes/mode unchanged",
+      "source mutation leaves publication unchanged",
+      "exact pinned Cargo argv",
+      "standalone reference-helper explicitly selected only"
+    ],
+    "actual_compiler_or_guest_credit": false
   }
 }
