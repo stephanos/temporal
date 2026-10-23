@@ -149,6 +149,24 @@ class RestartOwnership(unittest.TestCase):
             else:bad['retry_slot']=4
             with self.subTest(edit=edit),self.assertRaises(Refusal):gate.validate_case(gate.RESTART,'missing-storage-image',bad)
 
+    def test_held_peer_receiving_root_has_one_complete_disposition(self):
+        import tempfile
+        import hashlib
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as temporary:
+            repo=Path(temporary)
+            config=dict(repo=str(repo),files={})
+            for name in gate.SOURCES:
+                path=repo/name;path.parent.mkdir(parents=True,exist_ok=True)
+                path.write_text(source_fixture(name))
+                config['files'][str(path.resolve())]=hashlib.sha256(path.read_bytes()).hexdigest()
+            with patch.object(gate, 'parse_rows', return_value=[dict(original_roots=[gate.DRAIN],variant='held-peer-release')]):
+                value=gate.observations(config,'')
+            self.assertIn(gate.DRAIN,value['roots'])
+            self.assertNotIn(gate.DRAIN,value['partial_roots'])
+            self.assertEqual(len(value['roots'][gate.DRAIN]['cases']),1)
+            self.assertIn('retired_wire_disposition',value['roots'][gate.DRAIN]['native_receive'])
+
     def test_changed_source_fails_before_case_admission(self):
         import tempfile
         import hashlib

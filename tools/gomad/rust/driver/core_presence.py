@@ -116,8 +116,8 @@ def validate(row):
 
 
 def observations(config,stdout):
-    rows=[decode(line.split(MARKER,1)[1]) for line in stdout.splitlines() if MARKER in line]
-    if not rows:return {}
+    rows=[decode(line.split(MARKER,1)[1]) for line in stdout.split('\n') if MARKER in line]
+    require(rows,'missing retained presence raw cases')
     source=Path(config.get('presence_original_source','/home/agent/evidence/fn232-original-terminal-derived-v3/source'))/ORIGINAL_SOURCE
     require(digest(regular(source).read_bytes())==ORIGINAL_SHA256,'immutable original retained presence assertions changed')
     seen=set();facts=[]

@@ -96,6 +96,7 @@ class Invocation:
 
 HOST_SELECTORS = (
     ('host-retained', 'replay::cluster::retained_tests'),
+    ('host-presence', 'replay::cluster::retained_presence_tests'),
     ('host-lifecycle-matrix', 'replay::cluster::retained_lifecycle_matrix_tests'),
     ('host-projection', 'replay::cluster::projection_tests'),
     ('host-scenario', 'campaign::scenario::preservation_tests'),

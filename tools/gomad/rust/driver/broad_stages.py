@@ -127,13 +127,26 @@ def typed_readers(config, stage, raw, build):
     derive('world', lambda: module('core_world').observations(config, helper))
     derive('network', lambda: module('core_network').observations(config, helper))
     derive('codec', lambda: dict(roots=module('core_codec').observations(config, helper)))
+    derive('boot-network', lambda: dict(partial_roots={module('core_boot_network').ROOT:
+        module('core_boot_network').observations(config, helper)}))
+    derive('presence', lambda: dict(partial_roots=module('core_presence').observations(
+        config, raw_text(raw, 'host-presence'))))
     derive('lifecycle', lambda: module('core_lifecycle').observations(
         config, lifecycle, network_frame_cases=readers.get('network', {}).get('frame_cases')))
+    if 'boot-network' in readers and 'lifecycle' in readers:
+        root = module('core_boot_network').ROOT
+        modern = readers['boot-network']['partial_roots'][root]
+        readers['lifecycle']['partial_roots'][root] = dict(
+            received=modern['received'], additional_controls=modern['additional_controls'],
+            remaining_original_predicates=modern['unreceived'], representation=modern['representation'])
     derive('inspection', lambda: dict(roots=module('core_inspection').observations(
         config, inspection, artifact_roots=[raw['roles']['helper-lib']['raw_artifact_root']])))
     derive('identity', lambda: dict(roots={root: facts for facts in [module('core_identity').observations(
         config, raw_text(raw, 'identity'), build['context'])] for root in IDENTITY_ROOTS}))
     derive('retained', lambda: module('core_retained').observations(config, raw_text(raw, 'host-retained')))
+    if 'presence' in readers and 'retained' in readers:
+        for root, facts in readers['presence']['partial_roots'].items():
+            readers['retained'].get('partial_roots', {}).pop(root, None)
     derive('retained-inputs', lambda: module('core_retained_inputs').observations(config, raw_text(raw, 'host-retained')))
     def decoder():
         root = 'TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput'

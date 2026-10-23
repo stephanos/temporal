@@ -84,6 +84,10 @@ class Presence(unittest.TestCase):
             changed['observed'].update(decoder_error=None,canonical_base64=b64(gate.canonical(gate.shape(baseline(),'required-vector-empty'))))
             with self.assertRaises(Refusal):gate.validate(changed)
 
+    def test_absent_raw_cases_refuse(self):
+        with self.assertRaisesRegex(Refusal,'missing retained presence'):
+            gate.observations({},'test result: ok')
+
     def test_legacy_field_aliases_and_pass_aliases_do_not_receive_presence(self):
         for field in ('Record','Boots','OutputStops','Oracles'):
             changed=row('optional-none-missing','canonical')

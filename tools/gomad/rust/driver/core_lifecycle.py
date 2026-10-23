@@ -412,9 +412,8 @@ def observations(config, stdout, network_frame_cases=None):
         require('self.native_control_attempts' in body and '.fetch_add(1, std::sync::atomic::Ordering::Relaxed)' in body,
                 'native broker control attempt counter no longer measures actual entry')
     facts = parse_rows(stdout)
-    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, RESTART, RETRY, CLEANUP, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
+    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, RESTART, RETRY, CLEANUP, DRAIN, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
     partial = {
-        DRAIN: ['Original shutdown must remain blocked until a held peer drain is released, and must emit no post-failure controls; joined-owner/action facts alone do not prove these predicates.'],
         LAZY: ['Original hard-isolation refusal and explicit isolated reference admission require separate receiving evidence.'],
         MODEL: ['Interrupted terminal model completeness requires the retained result/model receiving owner.'],
         ATTRIBUTION: ['Duplicate JSON keys and corrupt evidence base64 require the retained codec receiving owner.'],

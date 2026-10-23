@@ -83,6 +83,10 @@ class BroadStages(unittest.TestCase):
                 'supporting_obligations': {'TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput': {'strict_cases': strict}},
                 'facts': {case: {'case': case, 'verified': 'synthetic'} for case in strict}}
 
+            modules['core_boot_network'] = SimpleNamespace(ROOT='TestProviderBindsEverySelectedBootNetworkLimit',
+                observations=Mock(return_value=dict(received=['synthetic'], additional_controls=[], unreceived=['unused mismatch'], representation='synthetic')))
+            modules['core_lifecycle'].observations.return_value['partial_roots'] = {}
+            modules['core_presence'] = SimpleNamespace(observations=Mock(return_value={'presence-root': [{'remaining_original_predicates': ['retired forms']}]}))
             for name in ('core_codec', 'core_inspection'):
                 modules[name] = SimpleNamespace(observations=Mock(return_value={}))
             modules['core_identity'] = SimpleNamespace(observations=Mock(return_value={'implementation_sha256': 'synthetic'}))
@@ -103,6 +107,10 @@ class BroadStages(unittest.TestCase):
             modules['core_identity'].observations.assert_called_once_with(config, 'identity', build['context'])
             modules['core_retained'].observations.assert_called_once_with(config, 'host-retained')
             modules['core_retained_inputs'].observations.assert_called_once_with(config, 'host-retained')
+            modules['core_boot_network'].observations.assert_called_once_with(config, 'helper-lib')
+            modules['core_presence'].observations.assert_called_once_with(config, 'host-presence')
+            self.assertEqual(readers['lifecycle']['partial_roots'][modules['core_boot_network'].ROOT]['remaining_original_predicates'],['unused mismatch'])
+            self.assertIn('presence-root',readers['presence']['partial_roots'])
             modules['core_retained_matrix'].lifecycle_matrix.assert_called_once_with('host-lifecycle-matrix')
             self.assertNotIn('roots', readers['retained-matrix'])
             self.assertIn('TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput', readers['retained-decoder']['roots'])
