@@ -65,7 +65,8 @@ fn response(label: &str, result: &Result<clock::TimeResponse, String>) -> Value 
     clippy::too_many_lines,
     reason = "The scenario retains its complete ordered setup and contract assertions."
 )]
-fn replay(name: &str, corpus: &Value) -> Result<(), String> {
+fn replay(name: &str, corpus: &Value) -> Result<Vec<Value>, String> {
+    let mut observed = Vec::new();
     let mut clock = match (
         corpus["clock"]["kind"].as_str(),
         corpus["clock"]["forward"].as_bool(),
@@ -240,8 +241,9 @@ fn replay(name: &str, corpus: &Value) -> Result<(), String> {
                 corpus["origin"], step["expected"], actual
             ));
         }
+        observed.push(actual);
     }
-    Ok(())
+    Ok(observed)
 }
 
 #[test]
@@ -250,10 +252,30 @@ fn clock_corpus_replays_exactly() {
     let mut replayed = 0;
     for (name, corpus) in corpora() {
         match replay(&name, &corpus) {
-            Ok(()) => replayed += 1,
+            Ok(_) => replayed += 1,
             Err(failure) => failures.push(failure),
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
     assert!(replayed >= 50, "only {replayed} clock corpora replayed");
+}
+
+#[test]
+fn generated_clock_runs_reproduce_every_observed_response() {
+    let mut checked = 0;
+    for (name, corpus) in corpora() {
+        if corpus["source"] != "generated" {
+            continue;
+        }
+        let first = replay(&name, &corpus).unwrap();
+        let second = replay(&name, &corpus).unwrap();
+        assert!(!first.is_empty(), "{name}: empty generated scenario");
+        assert_eq!(first, second, "{name}: generated clock execution changed");
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"generated_clock_repeated_execution","inputs":{"corpus":name,"clock":corpus["clock"],"steps":corpus["steps"]},"observed":{"first":first,"second":second}})
+        );
+        checked += 1;
+    }
+    assert!(checked > 0, "no generated clock scenarios replayed");
 }

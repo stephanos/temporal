@@ -1,3 +1,5 @@
+mod state;
+
 use crate::{linked::StorageInput, volume::RecoveryImage};
 
 /// # Errors
@@ -27,4 +29,15 @@ pub fn recovery_volumes(
     )
     .map_err(|error| format!("retained storage image: {error:?}"))?;
     Ok(recovered.volume_ids())
+}
+
+/// # Errors
+/// Refuses unauthenticated storage state or inconsistent pending crash context.
+pub fn validate_state(
+    input: &StorageInput,
+    raw: &[u8],
+    log: &[u8],
+    maximum: u64,
+) -> Result<(), String> {
+    state::validate(input, raw, log, maximum)
 }

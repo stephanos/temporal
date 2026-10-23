@@ -68,6 +68,10 @@ fn first_refusal_is_insertion_order_independent_and_matches_go() {
                     descriptor.attach_context_bytes(context.as_deref().map(str::as_bytes), 1 << 30)
                 })
                 .expect_err(case["name"].as_str().unwrap());
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-validation-order-corpus","inputs":{"name":case["name"],"reversed":reversed,"descriptor":text,"context":context},"observed":{"refusal":refusal.to_string()}})
+            );
             assert_eq!(
                 refusal.to_string(),
                 case["want"].as_str().unwrap(),

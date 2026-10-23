@@ -1625,6 +1625,48 @@ fn cancelled_execution() -> Execution {
     }
 }
 
+/// Validates retained broker network evidence before replay admission.
+///
+/// # Errors
+/// Rejects malformed wire, foreign profiles, owner identities and World state.
+pub fn validate_network_evidence(
+    bytes: &[u8],
+    transcript_limit: u64,
+    model: &NetworkModel,
+) -> Result<(), String> {
+    if model.profile != crate::cluster::network::PROFILE || !model.faults.is_empty() {
+        return Err("retained broker network profile".into());
+    }
+    let transitions = model.limits.transitions;
+    let requests = transitions
+        .checked_mul(2)
+        .ok_or("network World request limit overflow")?;
+    let config = crate::world::Config {
+        seed: 0,
+        limits: crate::world::Limits {
+            max_requests: requests,
+            max_events: requests,
+            max_queued_events: (1 << 16).min(requests),
+            max_transitions: transitions
+                .checked_mul(8)
+                .ok_or("network World transition limit overflow")?,
+            max_payload_bytes: model
+                .limits
+                .bytes
+                .checked_mul(8)
+                .ok_or("network World payload limit overflow")?,
+            max_string_bytes: 1024,
+        },
+    };
+    crate::cluster::network::evidence::decode::decode(
+        bytes,
+        transcript_limit,
+        &model.limits,
+        &config,
+    )
+    .map(|_| ())
+}
+
 /// Validates retained expanded World bytes against the exact broker configuration.
 ///
 /// # Errors

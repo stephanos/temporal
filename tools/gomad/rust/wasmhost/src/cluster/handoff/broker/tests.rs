@@ -1445,3 +1445,67 @@ mod inspection_differential {
         }
     }
 }
+
+#[test]
+fn finished_broker_world_uses_the_shared_binary_owner() {
+    use sha2::Digest;
+    let config = broker_config();
+    let broker = Broker::new(&config, &["a".into()], None, None).unwrap();
+    broker.finish(0);
+    let wire = broker.world_wire().unwrap();
+    let owner_config = world::Config {
+        seed: config.seed,
+        limits: world::Limits {
+            max_requests: config.limits.max_requests,
+            max_events: config.limits.max_events,
+            max_queued_events: config.limits.max_queued_events,
+            max_transitions: config.limits.max_transitions,
+            max_payload_bytes: config.limits.max_payload_bytes,
+            max_string_bytes: config.limits.max_string_bytes,
+        },
+    };
+    world::retained::validate(&wire, &owner_config).unwrap();
+    let envelope = world::retained::compress(&wire).unwrap();
+    assert_eq!(world::retained::expand(&envelope).unwrap(), wire);
+    println!(
+        "GOMAD_CORE_OBSERVATION {}",
+        serde_json::json!({
+            "schema":"gomad.core-predicate-observation/v1",
+            "case":"finished_broker_binary_world_owner",
+            "inputs":{"nodes":["a"],"seed":config.seed},
+            "observed":{"expanded_sha256":format!("{:x}",sha2::Sha256::digest(&wire)),"compressed_sha256":format!("{:x}",sha2::Sha256::digest(&envelope))}
+        })
+    );
+}
+
+#[test]
+fn native_world_configuration_requires_every_explicit_capacity() {
+    let full = serde_json::json!({"seed":7,"limits":{"max_requests":100,"max_events":100,
+        "max_queued_events":10,"max_transitions":1000,"max_payload_bytes":1 << 20,"max_string_bytes":1024}});
+    let admitted: Config = serde_json::from_value(full.clone()).unwrap();
+    admitted.validate().unwrap();
+    for field in [
+        "limits",
+        "max_requests",
+        "max_events",
+        "max_queued_events",
+        "max_transitions",
+        "max_payload_bytes",
+        "max_string_bytes",
+    ] {
+        let mut input = full.clone();
+        if field == "limits" {
+            input.as_object_mut().unwrap().remove(field);
+        } else {
+            input["limits"].as_object_mut().unwrap().remove(field);
+        }
+        let error = serde_json::from_value::<Config>(input.clone())
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("missing field"), "{field}: {error}");
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"world.explicit-capacities","inputs":{"missing":field,"configuration":input},"observed":{"error":error}})
+        );
+    }
+}

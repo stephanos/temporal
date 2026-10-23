@@ -393,3 +393,10 @@ pub fn document(
     bytes(&mut out, world_wire);
     out
 }
+
+#[cfg(not(feature = "conformance"))]
+#[allow(
+    dead_code,
+    reason = "Native evidence admission is retained alongside the binary owner."
+)]
+pub(crate) mod decode;

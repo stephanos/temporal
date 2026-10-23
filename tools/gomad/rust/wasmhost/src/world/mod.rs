@@ -948,3 +948,6 @@ impl std::io::Write for WireSize {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(all(test, not(feature = "conformance")))]
+mod owner_preservation_tests;
