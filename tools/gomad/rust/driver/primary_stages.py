@@ -2,7 +2,10 @@
 """Closed primary recipes and independent raw readers for original live stage labels."""
 import argparse
 import copy
+import hashlib
 import json
+import os
+import stat
 from pathlib import Path
 import re
 import sys
@@ -12,17 +15,142 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
-         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls'}
+         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls', 'wasmmeasure-build', 'helper-build', 'ordinary-helper-publication'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
-            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900}
+            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900}
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
     'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
     'cluster-functional': 'complete original 46 selected roots; lifecycle/protocol/storage-context/codec/identity predicates beyond roots33..35 and private35',
     'retained-cluster': 'all original 24 Retained|Replay roots; independent replay/codec/reader/softassert/stress-reopen predicates beyond roots18,22,24,25,27',
 }
+
+
+def native_bootstrap(config):
+    import native_roles
+    binding = config.get('native_measurement', {})
+    require(set(binding) == {'admission'}, 'sealed native measurement bootstrap admission required')
+    live.sealed_input(config, binding['admission'])
+    admission = native_roles.validate_admission(config, binding['admission'], dict(kind='release'))
+    identity = admission['identity']
+    require(identity['host_implementation_sha256'] == config['identity']['host']
+            and identity['linked_implementation_sha256'] == config['identity']['helper'], 'native bootstrap differs from current candidate')
+    return admission['executable']
+
+
+def managed_native_run(root, response, producer, filename):
+    require(set(response) == {'result', 'requested_root'} and response['requested_root'] == str(root / 'primary'),
+            'native producer changed requested output root')
+    path = Path(response['result'])
+    command_receipt = read(root / 'primary-final.command.json')
+    pid = command_receipt['pid']
+    run = path.parent.parent
+    require(path.name == filename and run.parent == root / 'primary/.gomad-measure' / producer,
+            'native producer borrowed another managed store')
+    match = re.fullmatch('run-' + str(pid) + r'-([0-9]+)-[0-9]+', run.name)
+    require(match and command_receipt['start_ns'] <= int(match[1]) <= command_receipt['end_ns'],
+            'native managed run has foreign PID or creation interval')
+    require(run.resolve() == run and run.is_dir() and stat.S_IMODE(run.stat().st_mode) == 0o700
+            and run.stat().st_uid == os.geteuid(), 'native managed run is not its private actual directory')
+    for name, contents in (('.pin', str(run).encode()), ('.complete', b'')):
+        item = run / name
+        require(item.is_file() and not item.is_symlink() and item.read_bytes() == contents, 'native managed pin/completion changed')
+    require(read(run.parent / 'latest.json') == run.name and (run / '.lease').is_file()
+            and not (run / '.lease').is_symlink(), 'native completed managed run is not published')
+    return path, run, pid
+
+
+def native_build(config, root):
+    import native_roles
+    response = json.loads((root / 'primary-final.stdout').read_text())
+    path, _, pid = managed_native_run(root, response, 'terminal-exit-helper-build', 'helper-build.json')
+    require(re.fullmatch('release-native-' + str(pid) + r'-[0-9]+', path.parent.name), 'native build has foreign actual process owner')
+    receipt = native_roles.validate_build(config, path, dict(kind='release'))
+    require(receipt['identity']['host_implementation_sha256'] == config['identity']['host']
+            and receipt['identity']['linked_implementation_sha256'] == config['identity']['helper'], 'fresh native build differs from current source')
+    admissions = list(path.parent.glob('admitted-native-*/helper-admission.json'))
+    require(len(admissions) == 1, 'missing/duplicate fresh native immutable admission')
+    admission = native_roles.validate_admission(config, admissions[0], dict(kind='release'))
+    require(admission['build_receipt'] == str(path), 'fresh native admission borrowed another build')
+    return receipt, admission
+
+
+def preflight(config, label, root):
+    if label == 'ordinary-helper-publication':
+        native_bootstrap(config)
+        require(config['stages']['helper-build']['adapter'] == config['stages']['conformance-helper-build']['adapter'] == 'primary',
+                'ordinary publication requires distinct actual helper/conformance producers')
+        live.sealed_input(config, config['installations']['cooperative-runtime'])
+    else:
+        recipes(config, label, root)
+
+
+def publish_native_files(config, root):
+    import os
+    original_root = Path(config['root']) / 'stages/conformance-helper-build'
+    source, _ = conformance(config, original_root)
+    destination = root / 'primary/conformance/gomad-wasmhost'
+    destination.parent.mkdir(mode=0o700)
+    with destination.open('xb') as output:
+        os.chmod(destination, 0o755)
+        output.write(Path(source).read_bytes())
+    host = root / 'primary/ordinary-host/gomad'
+    host.parent.mkdir(mode=0o700)
+    with host.open('xb') as output:
+        os.chmod(host, 0o755)
+        output.write(Path(config['binary']).read_bytes())
+
+
+def published_host(config, root):
+    path = root / 'primary/ordinary-host/gomad'
+    require(path.is_file() and not path.is_symlink() and path.resolve() == path and path.stat().st_nlink == 1
+            and path.stat().st_mode & 0o777 == 0o755 and sha(path) == config['binary_sha256'],
+            'ordinary installed host publication changed current executable bytes')
+    return path
+
+
+def published_discovery_command(config, reader, root, item):
+    import receiving
+    path = published_host(config, root)
+    require(item['argv'][0] == str(path) and item['name'] == 'primary-discover', 'foreign derived discovery executable')
+    # This local derived admission is never serialized into the frozen input table.
+    derived = dict(config, files=dict(config['files'], **{str(path): config['binary_sha256']}))
+    verifier = receiving.Retained(derived)
+    verifier.command(derived, root, item['name'], item['argv'], timeout=TIMEOUTS['ordinary-helper-publication'])
+    reader.commands.update(verifier.commands)
+
+
+def native_publication(config, root):
+    import native_roles
+    _, original = native_build(config, Path(config['root']) / 'stages/helper-build')
+    response = json.loads((root / 'primary-final.stdout').read_text())
+    path, run, pid = managed_native_run(root, response, 'terminal-exit-helper-stage', 'helper-admission.json')
+    require(re.fullmatch('admitted-native-' + str(pid) + r'-[0-9]+', path.parent.name), 'ordinary publication borrowed another producer')
+    admission = native_roles.validate_admission(config, path, dict(kind='release'))
+    require(admission['build_receipt'] == original['build_receipt'] and admission['executable'] != original['executable'],
+            'ordinary publication did not copy the original fresh admitted helper')
+    source_run = Path(original['build_receipt']).parent.parent
+    pin = run / '.pins' / hashlib.sha256(str(source_run).encode()).hexdigest()
+    require(pin.is_file() and not pin.is_symlink() and pin.samefile(source_run / '.pin'),
+            'ordinary publication lost its actual managed source input pin')
+    read_stage(config, 'conformance-helper-build', Path(config['root']) / 'stages/conformance-helper-build')
+    source, digest = conformance(config, Path(config['root']) / 'stages/conformance-helper-build')
+    copied = root / 'primary/conformance/gomad-wasmhost'
+    ordinary = Path(admission['executable'])
+    require(copied.is_file() and not copied.is_symlink() and sha(copied) == digest and copied.stat().st_mode & 0o777 == 0o755
+            and copied.stat().st_nlink == ordinary.stat().st_nlink == 1
+            and (copied.stat().st_dev, copied.stat().st_ino) != (ordinary.stat().st_dev, ordinary.stat().st_ino)
+            and ordinary != Path(source) and sha(ordinary) != sha(copied), 'ordinary/conformance publication bytes or role separation changed')
+    published_host(config, root)
+    installation = config['installations']['cooperative-runtime']
+    discovered = json.loads((root / 'primary-discover.stdout').read_text())
+    require(set(discovered) == {'path', 'source', 'sha256', 'manifest', 'capabilities'}
+            and discovered['path'] == installation and discovered['manifest'] == read(installation)
+            and discovered['sha256'].removeprefix('sha256:') == sha(installation)
+            and discovered['manifest']['helper_sha256'] == admission['identity']['linked_implementation_sha256']
+            and discovered['manifest']['host_sha256'] == config['identity']['host'], 'installed ordinary discovery differs from actual published native role')
 
 
 def canonical_argv(config, label, root, mode):
@@ -40,6 +168,17 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label == 'ordinary-helper-publication':
+        binary = native_bootstrap(config)
+        build, _ = native_build(config, Path(config['root']) / 'stages/helper-build')
+        receipt_path = Path(build['environment']['CARGO_TARGET_DIR']).parent / 'helper-build.json'
+        return [dict(name='primary-final', argv=[binary, 'terminal-exit-helper-stage', '--repo', config['repo'],
+                    '--terminal-exit-helper-stage-root', str(work), '--terminal-exit-helper-build-receipt', str(receipt_path)]),
+                dict(name='primary-discover', argv=[str(work / 'ordinary-host/gomad'), '--installation', config['installations']['cooperative-runtime'], 'discover'])]
+    if label in ('wasmmeasure-build', 'helper-build'):
+        binary = native_bootstrap(config)
+        return [dict(name='primary-final', argv=[binary, 'terminal-exit-helper-build', '--repo', config['repo'],
+                                                '--terminal-exit-helper-build-root', str(work)])]
     if label == 'terminal-controls':
         return [recipe('primary-final', HERE / 'terminal_controls.py',
                        ['produce', '--config', config['_config_path'], '--root', str(work)])]
@@ -121,6 +260,8 @@ def run(config, label, root):
     guard(config)
     require(not (root / 'primary').exists(), 'primary stage outputs must be fresh')
     (root / 'primary').mkdir(mode=0o700)
+    if label == 'ordinary-helper-publication':
+        publish_native_files(config, root)
     with busy_host(label):
         for item in recipes(config, label, root):
             observed = dict(config, environment=dict(config.get('environment', {}), **item.get('environment', {})))
@@ -134,7 +275,10 @@ def actual_commands(config, label, root):
     reader.command(config, root, 'producer', canonical_argv(config, label, root, 'run'), timeout=TIMEOUTS[label])
     pids = []
     for item in recipes(config, label, root):
-        reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
+        if label == 'ordinary-helper-publication' and item['name'] == 'primary-discover':
+            published_discovery_command(config, reader, root, item)
+        else:
+            reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
         receipt = read(root / (item['name'] + '.command.json'))
         require(receipt['environment'] == dict(config.get('environment', {}), **item.get('environment', {})),
                 'changed primary command environment')
@@ -324,7 +468,11 @@ def conformance(config, root):
 def read_stage(config, label, root):
     guard(config)
     reader = actual_commands(config, label, root)
-    if label == 'terminal-controls':
+    if label in ('wasmmeasure-build', 'helper-build'):
+        native_build(config, root)
+    elif label == 'ordinary-helper-publication':
+        native_publication(config, root)
+    elif label == 'terminal-controls':
         import terminal_controls
         report = terminal_controls.collect(config, root / 'primary', produce=False)
         require(report['schema'] == 'gomad.rust-driver-check/v1' and report['stage'] == label

@@ -57,6 +57,21 @@ def cell_spec(label, evidence, manifest, source_digest, bindings=None):
                 Campaign=campaign, ArtifactRoot=evidence)
 
 
+def native_bootstrap_inputs(config):
+    binding = config.get('native_measurement', {})
+    require(set(binding) == {'admission'}, 'native measurement bootstrap admission required')
+    admission_path = Path(binding['admission'])
+    admission = read(admission_path)
+    receipt_path = Path(admission['build_receipt'])
+    receipt = read(receipt_path)
+    paths = {str(admission_path), str(receipt_path), admission['executable'], admission['cargo_artifact']} | set(receipt['inputs'])
+    for name in ('artifact-identity', 'staged-identity'):
+        paths.update(str(admission_path.parent / (name + '.' + suffix)) for suffix in ('stdout', 'stderr', 'json'))
+    require(all(Path(path).is_absolute() and Path(path).is_file() and not Path(path).is_symlink() for path in paths),
+            'missing/nonregular static native measurement role input')
+    return paths
+
+
 def freeze_final_cycle(config, output):
     """Pin static inputs, then PLAN, then its all-verb binding; outputs have no hash cycle."""
     require(config.get('stress_cycle', 'GENERATE') == 'GENERATE', 'stress cycle must be generated for this freeze')
@@ -129,6 +144,7 @@ def freeze(bindings, output, source_manifest):
                     and sha(path) == expected, 'changed installation compiler input: ' + path)
             inputs.add(path)
     inputs.update((config['binary'], config['build_receipt']))
+    inputs.update(native_bootstrap_inputs(config))
     for token in config['stages']['sqlite-catalogue'].get('oracle') or []:
         if Path(token).is_absolute():
             require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
@@ -161,7 +177,7 @@ def freeze(bindings, output, source_manifest):
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():
         if entry.get('adapter') == 'primary':
-            primary_stages.recipes(observed, label, Path(config['root']) / 'stages' / label)
+            primary_stages.preflight(observed, label, Path(config['root']) / 'stages' / label)
     for entry in config['final_sections'].values():
         require(all(path in config['files'] for path in entry['argv'][:2]), 'unsealed actual final endpoint')
     for path in inputs:

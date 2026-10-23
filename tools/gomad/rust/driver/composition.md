@@ -25,7 +25,7 @@ producers must already have retained their raw proof. Ringpop inspection produce
 and independently reads its fresh evidence during final collection.
 
 Composition refuses pending original stage producers and arbitrary caller command
-bindings. Eleven fixed primary routes cover the actual conformance helper build,
+bindings. Fourteen fixed primary routes cover the actual native measurement/helper builds, ordinary/conformance publication, conformance helper build,
 original terminal wire controls, durable restart, ten grouped busy repetitions,
 busy boundary/crash cells, independent streams, committed storage recovery,
 named reset/retry, all three inspection owners, retained artifacts and detached
@@ -55,3 +55,16 @@ documents and never contains a future output digest. Caller supplied cycle plans
 are refused; `stress_cycle` may be omitted or set to `GENERATE`. Public verbs
 requires this cycle's exact static footprint and independently calls the stress
 raw reader after authenticating the lane commands.
+
+`native_measurement: {admission: ABSOLUTE_NATIVE_RELEASE_ADMISSION}` supplies the
+sealed ordinary bootstrap. Freezing expands its actual build receipt, compiler and
+source inputs, Cargo artifact, admitted executable and raw staging journals.
+`native_roles.validate_build(config, path, role)` and `validate_admission` reopen
+that complete chain and rederive source and compiled implementation identities.
+Both original build stages execute the fixed native build producer in separate
+fresh process roots. Publication executes native helper staging, copies the
+separate conformance executable and authenticates installed ordinary discovery.
+Role dictionaries use the native tagged schema: `{"kind":"release"}`, `warm`,
+`stress`, or `{"kind":"diagnostic","features":[...]}` with the three reviewed
+diagnostic feature combinations. Future build paths come from that same cycle's
+actual producer stdout; they are never inserted into prefreeze input hashes.
