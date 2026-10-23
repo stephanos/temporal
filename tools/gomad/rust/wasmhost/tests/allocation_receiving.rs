@@ -8,7 +8,7 @@ mod allocation_measure;
 #[test]
 #[ignore = "explicit allocation receiving operator harness"]
 fn allocation_receiving() {
-    allocation_measure::self_check();
+    allocation_measure::self_check(true);
     allocation_metadata_probe(|read| {
         let (sizes, facts) = allocation_measure::capture(|| {
             let mut sizes = [0_u64; 100];
