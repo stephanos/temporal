@@ -146,6 +146,50 @@ def save_process(path, record):
             os.unlink(temporary)
 
 
+class MeasuredPopen(subprocess.Popen):
+    """Popen owns lifecycle; its single reap also retains this exact child's usage."""
+    def __init__(self, *args, **kwargs):
+        require(sys.platform.startswith('linux') and hasattr(os, 'wait4') and hasattr(os, 'WNOWAIT'),
+                'Linux per-child wait4 resource measurement unavailable')
+        self.child_resources = None
+        self._measured_status = None
+        super().__init__(*args, **kwargs)
+
+    def _try_wait(self, wait_flags):
+        # Popen holds _waitpid_lock. Probe without reaping, then retain status
+        # and rusage before delivering a pending termination/interrupt handler.
+        # Cached status lets interrupted Popen.wait finish without a second reap.
+        blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
+        try:
+            if self._measured_status is not None:
+                return self._measured_status
+            ready = os.waitid(os.P_PID, self.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+            if ready is not None:
+                require(ready.si_pid == self.pid, 'resource probe returned another child')
+                waited, status, usage = os.wait4(self.pid, os.WNOHANG)
+                require(waited == self.pid, 'resource measurement lost its exact child')
+                self._measured_status = (waited, status)
+                require(all(math.isfinite(value) and value >= 0 for value in (usage.ru_utime, usage.ru_stime))
+                        and isinstance(usage.ru_maxrss, int) and usage.ru_maxrss >= 0,
+                        'invalid per-child resource measurement')
+                self.child_resources = dict(schema='gomad.driver-child-resources/v1', measurement='wait4',
+                    scope='whole-command-child',
+                    pid=self.pid, waited_pid=waited, wait_status=status, exit_code=os.waitstatus_to_exitcode(status),
+                    user_nanos=round(usage.ru_utime * 1_000_000_000),
+                    system_nanos=round(usage.ru_stime * 1_000_000_000), peak_rss_bytes=usage.ru_maxrss * 1024,
+                    user_seconds=usage.ru_utime, system_seconds=usage.ru_stime,
+                    ru_maxrss=usage.ru_maxrss, ru_maxrss_unit='KiB',
+                    cpu_conversion='round(seconds*1e9)', rss_conversion='ru_maxrss*1024')
+                return self._measured_status
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
+        # Popen's no-timeout path otherwise loops immediately after a WNOHANG
+        # probe. Sleep only affects readiness polling, never resource accounting.
+        if not wait_flags & os.WNOHANG:
+            time.sleep(0.01)
+        return 0, 0
+
+
 def command(config, root, name, argv, accepted=(0,), timeout=None):
     require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
     start = time.time_ns()
@@ -158,7 +202,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
             try:
                 launch = [sys.executable, str(HERE / 'launch.py'), str(read_gate), *argv]
-                proc = subprocess.Popen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
+                proc = MeasuredPopen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
                                         start_new_session=True, pass_fds=(read_gate,))
                 process = dict(pid=proc.pid, stage_pid=os.getpid(), active=True, argv=argv, start_ns=start)
                 save_process(process_path, process)
@@ -186,11 +230,12 @@ def command(config, root, name, argv, accepted=(0,), timeout=None):
             raise
         finally:
             if proc is not None:
-                process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns())
+                process.update(active=False, exit=proc.returncode, observation=observation, end_ns=time.time_ns(),
+                               resources=proc.child_resources)
                 save_process(process_path, process)
                 write(root / (name + '.command.json'), dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
                       environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
-                      observation=observation, start_ns=start, end_ns=time.time_ns()))
+                      resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns()))
     completed(code, accepted)
     return (root / (name + '.stdout')).read_bytes()
 

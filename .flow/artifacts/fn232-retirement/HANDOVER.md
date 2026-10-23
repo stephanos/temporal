@@ -670,3 +670,37 @@ until pending coherent batches/final source freeze and root resource grant.
 Pending Python mapping/source synchronization, explicit slim and test-wasm proof,
 complete static/runtime/strictlint/parity/final qualification, immutable candidate
 identity/custody, final code-size comparison and main retirement remain root-owned.
+
+### Exact per-command child resource measurement source checkpoint
+
+Sole-writer driver.command now uses MeasuredPopen while preserving gated launch,
+actual registered PID, Popen wait lock/status handling and stdout/stderr/status/
+timeout/process-group cleanup. Linux waitid(WNOWAIT) readiness probes do not reap;
+exactly one wait4 obtains the ready command PID's user/system CPU and peakRSS.
+Brief signal masking caches the reaped status and sample before pending handler
+delivery, so cleanup after an immediate interrupt does not double-reap/lose usage.
+No-timeout polling sleeps between probes. No RUSAGE_CHILDREN delta, aggregate
+child sampling or elapsed CPU approximation. Original error precedence retained.
+
+Additive resources schema gomad.driver-child-resources/v1 in command/process
+receipts binds pid/waited_pid/rawwaitstatus/exitcode, rawCPU seconds +roundednanos,
+Linux ru_maxrss rawKiB +normalizedbytes, explicit wait4/whole-command-child scope
+and conversion strings. Existing raw command SHA seals these bytes; historical
+receipts unchanged. Typed shape coordinated before implementation with receiving
+owner, who confirmed units/fields and will independently validate checkeduint64/
+finite/actualPID/status conversions. command-resources.md documents exact shape.
+
+Inspected original qualification/corpus_test.go124–133 and
+sqlite_catalogue_test.go84–92: reader self CPU observations monotone/available,
+positive lifetimeRSS<=2GiB and checkeduint64 sums; mandatorycounts all10execution+
+publication once, catalogue only4selected cells excluding primary. Whole command
+wait4 remains explicitly distinct from those scoped inner-reader self samples;
+no broad2GiB command limit or remaining8final endpoint substitution introduced.
+
+6meaningful realprocess tests exit0: PID/stdout/stderr/CPU success, accepted and
+refused nonzero, signal exit, timeout kill/reap, concurrent heavy/light plus
+unrelated child isolation, immediate post-reap interrupt cached status. Each
+checks exactly one wait4, actual typed receipts and cleanup/exception behavior.
+Integrated driver portable suite103tests exit0; diffcheck exit0. No Cargo/Go/
+build/guest/qualification or leased cache access. Same prospective source only;
+Python f85/f935/d174 dependency chain remains a separate next source checkpoint.
