@@ -60,3 +60,36 @@ fixtures, never Go, Cargo, guests, builds or actual qualification producers.
 
 Owned worktree `/home/agent/wt/fn232-receiving-reader` remains for root integration
 and the qualification mapping extension. No other worktree or cache was created.
+
+## Receiving review corrections
+
+The independent cost reader now recomputes every cost and budget field from
+start/prepared/executed snapshots, compiler and linked counters, complete ordered
+store windows, shared residency, phase high-water attribution and exact retained
+record/replay yields. All 51 existing accounting corpus cases compare against
+every existing golden cost/budget field through portable Python only. Final
+Results require complete measurements and a fully within-budget recomputation.
+The Result fixture retains the actual owner shape: iterations 1/2, controlled
+replay `none`, genuine `compiler_path`/`module_metadata`, a valid core WASM module,
+raw trace bytes and all observation windows. Module imports/memory are recomputed
+from raw WASM, and source/provenance/record/trace/sample bindings are reopened.
+
+Selected Temporal Results must bind exact qualify argv/spec/response and unchanged
+primary preparation inputs, their authorized RuntimeWorkload, actual full selected
+configuration/context and immutable original primary capsules. An unselected fresh
+primary cannot stand in for a selected-state execution.
+
+Inspection reconstructs exact install/explore/full replay/stopped replay argv,
+checks frozen release/toolchain/runtime admission, projects the original policy
+into model/namespace, authenticates every staged and transitive source, binds raw
+prepared configuration/module/replay identities, and requires the aggregate's
+three exact nested owners. Raw debug/heap outputs have retained hashes. A nested
+command reader receives expected argv; it cannot choose argv from its own receipt.
+
+Focused portable verification now passes 51 driver tests and six workload tests.
+The retained logs are `.flow/tmp/fn232-receiving-review-green.log` and
+`.flow/tmp/fn232-receiving-workloads.log`; the missing selected runtime binding
+RED is `.flow/tmp/fn232-receiving-recovery-red.log`. Native writer tests in the
+separate checkpoint remain uncompiled/unrun. Production Rust qualification's
+allowlist mismatch with genuine .11 provenance remains a separate authorized
+source repair and must be integrated before any actual mandatory attempt.
