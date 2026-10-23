@@ -26,6 +26,11 @@ impl Payload {
     /// # Errors
     /// Binds the descriptor to the immutable manifest before reading its opened handle.
     pub fn read(&self, opened: &Opened, maximum: u64) -> Result<Vec<u8>, String> {
+        self.bind(opened, maximum)?;
+        opened.payload(&self.file, self.limit)
+    }
+
+    pub(crate) fn bind(&self, opened: &Opened, maximum: u64) -> Result<(), String> {
         if self.limit > maximum || self.bytes > self.limit || !canonical::valid_digest(&self.sha256)
         {
             return Err("cluster payload exceeds caller bound or has invalid identity".into());
@@ -38,7 +43,7 @@ impl Payload {
         if entry.bytes != self.bytes || entry.sha256 != self.sha256 {
             return Err("retained cluster payload identity mismatch".into());
         }
-        opened.payload(&self.file, self.limit)
+        Ok(())
     }
 }
 

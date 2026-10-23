@@ -375,7 +375,7 @@ fn retained_cluster_streams(
     included: &[&str],
     identity_matches: bool,
 ) -> Retained {
-    let mut fixture = retained(true);
+    let fixture = retained(true);
     let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
     let mut payloads = BTreeMap::new();
     for (name, entry) in &opened.manifest().files {
@@ -403,6 +403,13 @@ fn retained_cluster_streams(
         "evidence/cluster_summary".into(),
         canonical::encode(&summary).unwrap(),
     );
+    publish_cluster_payloads(fixture, payloads)
+}
+
+fn publish_cluster_payloads(
+    mut fixture: Retained,
+    mut payloads: BTreeMap<String, Vec<u8>>,
+) -> Retained {
     fixture.record.streams.clear();
     for (name, raw) in &payloads {
         if name != "target/module.wasm" {
@@ -453,11 +460,10 @@ fn installed_lifecycle_inspect_accepts_silent_and_single_stream_cluster_instance
 }
 
 #[test]
-fn installed_lifecycle_inspect_refuses_inconsistent_or_unrecognized_cluster_streams() {
+fn installed_lifecycle_inspect_refuses_inconsistent_cluster_streams() {
     for (declared, included, matches) in [
         (&["stdout"][..], &[][..], true),
         (&[][..], &["stdout"][..], true),
-        (&["unknown"][..], &[][..], true),
         (&["stdout"][..], &["stdout"][..], false),
     ] {
         let fixture = retained_cluster_streams(declared, included, matches);
@@ -468,5 +474,155 @@ fn installed_lifecycle_inspect_refuses_inconsistent_or_unrecognized_cluster_stre
             )
             .is_err()
         );
+    }
+}
+
+fn retained_projected_cluster(damage: &str) -> Retained {
+    use gomad_wasmhost::linked_cluster as helper;
+    let mut fixture = retained(true);
+    let output_limit = usize::try_from(fixture.record.limits.output_bytes).unwrap();
+    let evidence_limit = usize::try_from(fixture.record.limits.evidence_bytes).unwrap();
+    let mut evidence = BTreeMap::from([
+        (
+            "stdout".into(),
+            [vec![b'x'; 16_384], b"actual output tail".to_vec()].concat(),
+        ),
+        ("choice".into(), b"actual choice bytes".to_vec()),
+        ("transcript".into(), vec![b't'; output_limit + 1]),
+        ("network".into(), b"actual network bytes".to_vec()),
+        ("storage".into(), b"actual storage bytes".to_vec()),
+        (
+            "storage_image".into(),
+            b"actual storage image bytes".to_vec(),
+        ),
+    ]);
+    if damage == "evidence-budget" {
+        evidence.insert("transcript".into(), vec![b't'; evidence_limit / 2 + 1]);
+        evidence.insert("network".into(), vec![b'n'; evidence_limit / 2 + 1]);
+    } else if damage == "output-budget" {
+        evidence.insert("stdout".into(), vec![b'x'; output_limit / 2 + 1]);
+        evidence.insert("stderr".into(), vec![b'e'; output_limit / 2 + 1]);
+    }
+    let mut outcome = linked::Outcome::new("exit", "");
+    outcome.exit_code = Some(0);
+    let projected = crate::replay::cluster::project_encoded(
+        helper::Execution {
+            outcome,
+            executed_steps: vec![],
+            incarnations: vec![helper::IncarnationResult {
+                handle: helper::Handle {
+                    node: "a".into(),
+                    incarnation: 1,
+                },
+                execution: linked::Execution {
+                    authorization_to_terminal_nanos: None,
+                    outcome: linked::Outcome::new("exit", ""),
+                    evidence,
+                    event_order: None,
+                },
+                interrupted: false,
+            }],
+            world: vec![],
+            network: vec![],
+            inspection: vec![],
+            virtual_elapsed_nanos: 42,
+            event_order: None,
+        },
+        "",
+    )
+    .unwrap();
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let mut payloads = BTreeMap::new();
+    for (name, entry) in &opened.manifest().files {
+        if name == "target/module.wasm" || name.starts_with("output/") {
+            payloads.insert(name.clone(), opened.payload(name, entry.bytes).unwrap());
+        }
+    }
+    for (name, raw) in projected.evidence {
+        payloads.insert(format!("evidence/{name}"), raw);
+    }
+    damage_projected_payloads(&mut payloads, damage);
+    fixture.record.outcome = Outcome {
+        class: "success".into(),
+        termination: "exit".into(),
+        exit_code: Some(0),
+        reason: String::new(),
+    };
+    publish_cluster_payloads(fixture, payloads)
+}
+
+fn damage_projected_payloads(payloads: &mut BTreeMap<String, Vec<u8>>, damage: &str) {
+    if matches!(damage, "hash" | "size" | "descriptor" | "malformed") {
+        let mut summary: serde_json::Value =
+            serde_json::from_slice(&payloads["evidence/cluster_summary"]).unwrap();
+        let streams = summary["incarnations"][0]["streams"]
+            .as_object_mut()
+            .unwrap();
+        match damage {
+            "hash" => streams.get_mut("storage").unwrap()["sha256"] = json!("0".repeat(64)),
+            "size" => streams.get_mut("storage").unwrap()["bytes"] = json!(1),
+            "descriptor" => {
+                streams.remove("network");
+            }
+            "malformed" => {
+                streams.insert("../escape".into(), streams["choice"].clone());
+            }
+            _ => unreachable!(),
+        }
+        payloads.insert(
+            "evidence/cluster_summary".into(),
+            canonical::encode(&summary).unwrap(),
+        );
+    } else if damage == "payload" {
+        payloads.remove("evidence/cluster/a/1/storage");
+    }
+}
+
+#[test]
+fn installed_lifecycle_inspect_accepts_actual_project_encoded_nonoutput_streams() {
+    let fixture = retained_projected_cluster("");
+    let opened = crate::evidence::store::Opened::open(&fixture.published.path).unwrap();
+    let tail = opened
+        .payload_tail(
+            "evidence/cluster/a/1/stdout",
+            fixture.record.limits.output_bytes,
+            4096,
+        )
+        .unwrap();
+    assert_eq!(tail.len(), 4096);
+    assert!(tail.ends_with(b"actual output tail"));
+    let mut output = Vec::new();
+    crate::cli::inspect::run(
+        &[fixture.published.path.to_str().unwrap().to_owned()],
+        &mut output,
+    )
+    .unwrap_or_else(|error| panic!("{}", error.message));
+    let text = String::from_utf8(output).unwrap();
+    assert!(text.contains("stdout-bytes=16402 stderr-bytes=0"), "{text}");
+    assert!(text.contains("actual output tail"));
+    assert!(text.len() < 16_384);
+}
+
+#[test]
+fn installed_lifecycle_inspect_authenticates_actual_project_encoded_catalogue_and_budgets() {
+    for damage in [
+        "hash",
+        "size",
+        "payload",
+        "descriptor",
+        "malformed",
+        "evidence-budget",
+        "output-budget",
+    ] {
+        let fixture = retained_projected_cluster(damage);
+        let error = crate::cli::inspect::run(
+            &[fixture.published.path.to_str().unwrap().to_owned()],
+            &mut Vec::new(),
+        )
+        .err()
+        .expect("inconsistent producer evidence was accepted");
+        if damage.ends_with("budget") {
+            assert!(error.message.contains("budget"), "{}", error.message);
+        }
     }
 }
