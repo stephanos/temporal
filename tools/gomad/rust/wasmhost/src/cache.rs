@@ -835,6 +835,10 @@ mod tests {
             identity(&no_unwind, &"a".repeat(64))
         );
         let manifest: serde_json::Value = serde_json::from_slice(&identity_a).unwrap();
+        assert_eq!(
+            manifest["configuration"],
+            crate::linked::Conditions::compiled().cache_configuration()
+        );
         assert_eq!(manifest["host_arch"], std::env::consts::ARCH);
         assert_eq!(manifest["host_os"], std::env::consts::OS);
         assert_eq!(manifest["helper_sha256"].as_str().unwrap().len(), 64);

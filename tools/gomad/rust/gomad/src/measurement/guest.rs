@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
 
@@ -128,13 +128,60 @@ fn add(target: &mut u64, value: u64) -> Result<(), String> {
 /// Refuses inconsistent tables, invalid/cyclic stacks, negative weights and overflow.
 pub fn decode(raw: &[u8]) -> Result<Attribution, String> {
     let profile: Value = serde_json::from_slice(raw).map_err(|error| error.to_string())?;
+    decode_profile(&profile)
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Sampling {
+    pub interval_micros: u64,
+    pub max_samples: u64,
+    pub samples: u64,
+    pub truncated: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SampledAttribution {
+    #[serde(flatten)]
+    pub attribution: Attribution,
+    pub sampling: Sampling,
+}
+
+/// # Errors
+/// Refuses invalid profile tables or sampling metadata that does not match the request and rows.
+pub fn decode_sampled(
+    raw: &[u8],
+    interval_micros: u64,
+    max_samples: u64,
+) -> Result<SampledAttribution, String> {
+    let profile: Value = serde_json::from_slice(raw).map_err(|error| error.to_string())?;
+    let attribution = decode_profile(&profile)?;
+    let sampling: Sampling = serde_json::from_value(profile["meta"]["gomadGuestProfile"].clone())
+        .map_err(|error| error.to_string())?;
+    if sampling.interval_micros != interval_micros
+        || sampling.max_samples != max_samples
+        || sampling.samples > sampling.max_samples
+        || sampling.samples != attribution.sample_rows
+    {
+        return Err(
+            "guest profile sampling metadata does not match requested options and decoded rows"
+                .into(),
+        );
+    }
+    Ok(SampledAttribution {
+        attribution,
+        sampling,
+    })
+}
+
+fn decode_profile(profile: &Value) -> Result<Attribution, String> {
     if !profile["meta"]["interval"]
         .as_f64()
         .is_some_and(|interval| interval.is_finite() && interval > 0.0)
     {
         return Err("guest profile has no positive sampling interval".into());
     }
-    let threads = array(&profile, "threads")?;
+    let threads = array(profile, "threads")?;
     if threads.is_empty() {
         return Err("guest profile has no threads".into());
     }
@@ -330,3 +377,7 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "guest_tests.rs"]
+mod sampled_tests;

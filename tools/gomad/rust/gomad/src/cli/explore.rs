@@ -74,14 +74,30 @@ pub(crate) fn parse(arguments: &[String], json: &mut bool) -> Result<ExploreOpti
     parse_for_strategy(arguments, json, false)
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "One parser preserves the original ordered flag and target grammar"
-)]
+// Original standalone measurement requests permit a 1 GiB choice trace.
+// The ordinary campaign CLI keeps its independent 64 MiB admission bound.
+pub(crate) fn parse_measurement(
+    arguments: &[String],
+    json: &mut bool,
+) -> Result<ExploreOptions, String> {
+    parse_with_choice_maximum(arguments, json, false, 1 << 30)
+}
 pub(super) fn parse_for_strategy(
     arguments: &[String],
     json: &mut bool,
     simulation: bool,
+) -> Result<ExploreOptions, String> {
+    parse_with_choice_maximum(arguments, json, simulation, 64 << 20)
+}
+#[expect(
+    clippy::too_many_lines,
+    reason = "One parser preserves the original ordered flag and target grammar"
+)]
+fn parse_with_choice_maximum(
+    arguments: &[String],
+    json: &mut bool,
+    simulation: bool,
+    choice_maximum: u64,
 ) -> Result<ExploreOptions, String> {
     let mut options = ExploreOptions {
         installation: None,
@@ -238,8 +254,13 @@ pub(super) fn parse_for_strategy(
             return Err("--choice-bytes requires --choices".into());
         }
         options.choice_bytes = 0;
-    } else if !(160..=64 << 20).contains(&options.choice_bytes) {
-        return Err("--choice-bytes must be between 160 bytes and 64MiB".into());
+    } else if !(160..=choice_maximum).contains(&options.choice_bytes) {
+        return Err(if choice_maximum == 64 << 20 {
+            "--choice-bytes must be between 160 bytes and 64MiB"
+        } else {
+            "measurement --choice-bytes must be between 160 bytes and 1GiB"
+        }
+        .into());
     }
     if options.coverage == "choice" && !options.choices {
         return Err("--coverage=choice requires --choices".into());

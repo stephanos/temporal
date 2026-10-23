@@ -1,12 +1,15 @@
 mod artifacts;
 pub mod build;
+mod cancellation;
 pub mod cluster_driver;
+pub(crate) mod collection;
 pub mod evidence;
 pub mod execution;
 pub mod guest;
 pub mod host;
 pub mod inputs;
 pub mod module;
+pub(crate) mod module_recipes;
 pub mod namespace;
 pub mod namespace_driver;
 pub mod operations;
@@ -14,6 +17,8 @@ pub mod retention;
 pub mod sqlitebusy;
 pub mod statistics;
 pub mod stress_driver;
+pub(crate) mod terminal_collection;
+pub mod terminal_module;
 pub mod warm;
 pub mod warm_driver;
 pub mod workloads;
@@ -169,72 +174,37 @@ fn produce(
     }
 }
 
-#[expect(
-    clippy::needless_pass_by_value,
-    reason = "Dispatch consumes the admitted invocation through the CLI callback contract"
-)]
 pub fn dispatch(
     call: inputs::Invocation,
     proof: inputs::CheckoutProof,
     stdout: &mut dyn std::io::Write,
     stderr: &mut dyn std::io::Write,
 ) -> i32 {
-    let mut run = || -> Result<(), String> {
-        let variable = root_variable(&call)?;
-        let requested = call
-            .inputs
-            .get(variable)
-            .ok_or_else(|| format!("missing --{}", inputs::flag(variable)))?;
-        if call.name == "namespace-sample" {
-            let _lease = retention::ChildLease::for_path(std::path::Path::new(requested))?
-                .ok_or("namespace sample requires its authenticated parent child lease")?;
-            let result =
-                namespace_driver::run_sample(&call, &proof, std::path::Path::new(requested))?;
-            writeln!(
-                stdout,
-                "{}",
-                json!({"result":result,"requested_root":requested})
-            )
-            .map_err(|error| error.to_string())?;
-            return Ok(());
-        }
-        let retained = retention::RetainedRun::begin(
-            std::path::Path::new(requested),
-            &call.name,
-            &call.inputs,
-            call.keep,
-            &|| false,
-        )?;
-        let executable = std::env::current_exe().map_err(|error| error.to_string())?;
-        let rerun = inputs::rerun_record(
-            &executable.to_string_lossy(),
-            &call.repo.to_string_lossy(),
-            &call.name,
-            &call.inputs,
-            false,
-        );
-        let result = (|| {
-            let mut file = std::fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .mode(0o600)
-                .open(retained.path().join("rerun.json"))
-                .map_err(|error| error.to_string())?;
-            file.write_all(&canonical::encode(&rerun)?)
-                .and_then(|()| file.sync_all())
-                .map_err(|error| error.to_string())?;
-            let result = produce(&call, &proof, retained.path())?;
-            writeln!(
-                stdout,
-                "{}",
-                json!({"result":result,"requested_root":requested})
-            )
-            .map_err(|error| error.to_string())
-        })();
-        let finish = retained.finish(result.is_ok(), &|| false);
-        combine(result, finish)
-    };
-    match run() {
+    dispatch_with_cancellation(
+        call,
+        proof,
+        stdout,
+        stderr,
+        &gomad_wasmhost::linked::Cancellation::default(),
+    )
+}
+
+/// Runs one synchronous measurement with explicit caller-owned cancellation.
+/// Cancellation applies to this dispatch thread and its supervised native children.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Dispatch consumes the admitted invocation through the CLI callback contract"
+)]
+pub fn dispatch_with_cancellation(
+    call: inputs::Invocation,
+    proof: inputs::CheckoutProof,
+    stdout: &mut dyn std::io::Write,
+    stderr: &mut dyn std::io::Write,
+    token: &gomad_wasmhost::linked::Cancellation,
+) -> i32 {
+    let result = cancellation::within(token, || dispatch_collector(&call, &proof, stdout, produce))
+        .and_then(std::convert::identity);
+    match result {
         Ok(()) => 0,
         Err(error) => {
             if writeln!(stderr, "gomad-measure: {error}").is_err() {
@@ -247,6 +217,76 @@ pub fn dispatch(
             }
         }
     }
+}
+
+fn dispatch_collector(
+    call: &inputs::Invocation,
+    proof: &inputs::CheckoutProof,
+    stdout: &mut dyn std::io::Write,
+    collect: impl FnOnce(
+        &inputs::Invocation,
+        &inputs::CheckoutProof,
+        &std::path::Path,
+    ) -> Result<std::path::PathBuf, String>,
+) -> Result<(), String> {
+    cancellation::check()?;
+    let variable = root_variable(call)?;
+    let requested = call
+        .inputs
+        .get(variable)
+        .ok_or_else(|| format!("missing --{}", inputs::flag(variable)))?;
+    if call.name == "namespace-sample" {
+        let _lease = retention::ChildLease::for_path(std::path::Path::new(requested))?
+            .ok_or("namespace sample requires its authenticated parent child lease")?;
+        cancellation::check()?;
+        let result = namespace_driver::run_sample(call, proof, std::path::Path::new(requested))?;
+        cancellation::check()?;
+        writeln!(
+            stdout,
+            "{}",
+            json!({"result":result,"requested_root":requested})
+        )
+        .map_err(|error| error.to_string())?;
+        return cancellation::check();
+    }
+    let retained = retention::RetainedRun::begin(
+        std::path::Path::new(requested),
+        &call.name,
+        &call.inputs,
+        call.keep,
+        &cancellation::cancelled,
+    )?;
+    let result = (|| {
+        let executable = std::env::current_exe().map_err(|error| error.to_string())?;
+        let rerun = inputs::rerun_record(
+            &executable.to_string_lossy(),
+            &call.repo.to_string_lossy(),
+            &call.name,
+            &call.inputs,
+            false,
+        );
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(retained.path().join("rerun.json"))
+            .map_err(|error| error.to_string())?;
+        file.write_all(&canonical::encode(&rerun)?)
+            .and_then(|()| file.sync_all())
+            .map_err(|error| error.to_string())?;
+        cancellation::check()?;
+        let result = collect(call, proof, retained.path())?;
+        cancellation::check()?;
+        writeln!(
+            stdout,
+            "{}",
+            json!({"result":result,"requested_root":requested})
+        )
+        .map_err(|error| error.to_string())
+    })();
+    let result = combine(result, cancellation::check());
+    let finish = retained.finish(result.is_ok(), &cancellation::cancelled);
+    combine(result, finish)
 }
 
 pub(crate) fn combine(first: Result<(), String>, second: Result<(), String>) -> Result<(), String> {
@@ -263,3 +303,11 @@ pub(crate) fn combine(first: Result<(), String>, second: Result<(), String>) -> 
 pub fn stress_run(arguments: &[String], output: &mut dyn std::io::Write) -> Result<i32, String> {
     crate::stress::run(arguments, output)
 }
+
+#[cfg(test)]
+#[path = "cancellation_tests.rs"]
+mod cancellation_tests;
+
+#[cfg(test)]
+#[path = "rerun_tests.rs"]
+mod rerun_tests;

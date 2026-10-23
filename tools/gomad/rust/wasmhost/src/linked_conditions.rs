@@ -23,7 +23,7 @@ thread_local! {
 
 impl Conditions {
     #[must_use]
-    pub fn compiled() -> Self {
+    pub const fn compiled() -> Self {
         if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
             Self::GuestProfileFuelOff
         } else if cfg!(feature = "guest-profile") {
@@ -63,6 +63,11 @@ impl Conditions {
             Self::DeterminismFixtureReplay => "-determinism-fixture",
         };
         format!("{}{suffix}", crate::linked::CONFIGURATION)
+    }
+
+    #[must_use]
+    pub const fn cache_configuration(self) -> &'static str {
+        crate::engine::configuration_revision(self)
     }
 
     /// # Errors
@@ -398,5 +403,65 @@ mod nonordinary_role_tests {
             "-determinism-fixture"
         };
         assert!(Conditions::compiled().configuration().ends_with(expected));
+    }
+}
+
+#[cfg(test)]
+mod cache_configuration_tests {
+    use super::Conditions;
+
+    #[test]
+    fn role_cache_configuration_preserves_existing_engine_revisions() {
+        for (role, expected) in [
+            (
+                Conditions::Ordinary,
+                "cranelift-fuel-nan-canonical-nounwind-v2",
+            ),
+            (
+                Conditions::DiagnosticProfile,
+                "cranelift-fuel-nan-canonical-nounwind-v2",
+            ),
+            (
+                Conditions::GuestProfile,
+                "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile",
+            ),
+            (
+                Conditions::DiagnosticFuelOff,
+                "cranelift-fuel-nan-canonical-nounwind-v2-fuel-off",
+            ),
+            (
+                Conditions::GuestProfileFuelOff,
+                "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off",
+            ),
+            (
+                Conditions::StressReplay,
+                "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter",
+            ),
+            (
+                Conditions::DeterminismFixtureReplay,
+                "cranelift-fuel-nan-canonical-nounwind-v2-determinism-fixture",
+            ),
+        ] {
+            assert_eq!(role.cache_configuration(), expected);
+        }
+    }
+
+    #[test]
+    fn compiled_cache_configuration_keeps_original_feature_precedence() {
+        let expected = if cfg!(feature = "stress-jitter") {
+            "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter"
+        } else if cfg!(feature = "determinism-fixture") {
+            "cranelift-fuel-nan-canonical-nounwind-v2-determinism-fixture"
+        } else if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
+            "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off"
+        } else if cfg!(feature = "guest-profile") {
+            "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile"
+        } else if cfg!(feature = "diagnostic-fuel-off") {
+            "cranelift-fuel-nan-canonical-nounwind-v2-fuel-off"
+        } else {
+            "cranelift-fuel-nan-canonical-nounwind-v2"
+        };
+        assert_eq!(crate::engine::CONFIGURATION_REVISION, expected);
+        assert_eq!(Conditions::compiled().cache_configuration(), expected);
     }
 }

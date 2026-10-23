@@ -343,7 +343,7 @@ pub(crate) fn choice_implementation(key: &str) -> Result<sha2::digest::Output<Sh
     Ok(hash.finalize())
 }
 
-fn configuration(
+pub(crate) fn configuration(
     options: &ExploreOptions,
     installed: &Installation,
 ) -> Result<Configuration, String> {

@@ -2,12 +2,12 @@
 use super::{
     build, evidence, host,
     inputs::{CheckoutProof, Invocation},
-    module::{self, Selection},
-    warm,
+    module, warm,
     workloads::{self, RunSpec},
 };
 use crate::evidence::canonical;
 use serde_json::{Value, json};
+use std::time::Duration;
 use std::{
     fs,
     io::{Read, Write},
@@ -50,7 +50,14 @@ fn crc32_update(mut crc: u32, bytes: &[u8]) -> u32 {
     }
     crc
 }
-fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64, Value), String> {
+fn cache_sizes(
+    directory: &Path,
+    module: &str,
+    helper: &str,
+    configuration: &str,
+    host_os: &str,
+    host_arch: &str,
+) -> Result<(u64, u64, Value), String> {
     use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
     let mut found = None;
     for entry in fs::read_dir(directory).map_err(|e| e.to_string())? {
@@ -126,7 +133,12 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
         if manifest["module_sha256"] != module || manifest["helper_sha256"] != helper {
             continue;
         }
-        if manifest["engine"] != "wasmtime-47.0.3" || manifest["version"] != 3 {
+        if manifest["engine"] != "wasmtime-47.0.3"
+            || manifest["version"] != 3
+            || manifest["configuration"] != configuration
+            || manifest["host_os"] != host_os
+            || manifest["host_arch"] != host_arch
+        {
             return Err("warm cache manifest mismatch".into());
         }
         if found.is_some() {
@@ -193,8 +205,6 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         role: expected,
         receipt: Some(helper_receipt.into()),
     };
-    let prepared = module::prepare(proof, call, &root.join("module"), &Selection::Workflow)?;
-    module::authenticate_prepared(&prepared)?;
     let (module_key, receipt_key) = if terminal {
         (
             "GOMAD_WASM_TERMINAL_EXIT_MODULE",
@@ -203,18 +213,21 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     } else {
         ("GOMAD_WASM_WARM_MODULE", "GOMAD_WASM_WARM_MODULE_RECEIPT")
     };
-    // Supplied artifacts must be the actual current producer's module and full provenance.
-    for (key, current, maximum) in [
-        (module_key, &prepared.module_path, 512 << 20),
-        (receipt_key, &prepared.provenance_path, 16 << 20),
-    ] {
-        let supplied = value(call, key);
-        if !supplied.is_empty() && read(Path::new(supplied), maximum)? != read(current, maximum)? {
-            return Err(format!(
-                "{key} differs from the actual current module producer"
-            ));
-        }
+    let mut prepared = super::terminal_module::load(proof, Path::new(value(call, receipt_key)))?;
+    if prepared.module_path != Path::new(value(call, module_key)) {
+        return Err("warm/terminal module differs from admitted original descriptor".into());
     }
+    prepared.request = Some(super::module_recipes::temporal_request(
+        proof.repo(),
+        "tests",
+        &[
+            format!("-test.run={WORKFLOW}"),
+            "-persistenceType=sql".into(),
+            "-persistenceDriver=sqlite".into(),
+        ],
+        Duration::from_mins(30),
+    )?);
+    module::authenticate_prepared(&prepared)?;
     let snapshot = host::source_snapshot(proof, &root.join("source"), &call.environ)?;
     let host = host::current(&root.join("host"), &call.environ)?;
     write(&root.join("source.json"), &snapshot)?;
@@ -232,84 +245,40 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         }
         input["compile_cache"] = json!(cache);
     }
-    let module_sha = canonical::digest(&prepared.guest.module);
-    let mut row = RunSpec::new("prime", WORKFLOW, 0, "diagnostic");
-    row.warm = false;
-    let prime = workloads::execute(call, proof, root, &row, &executable, &input)?;
-    if prime.root.outcome["termination"] != "exit" || prime.root.outcome["exit_code"] != 0 {
-        return Err("native priming workload did not exit successfully".into());
-    }
     if terminal {
-        let mut observations = vec![prime];
-        for index in 0..5 {
-            row.name = format!("terminal-{index}");
-            observations.push(workloads::execute(
-                call,
-                proof,
-                root,
-                &row,
-                &executable,
-                &input,
-            )?);
-        }
-        let mut process_exit_observations = Vec::new();
-        for (index, run) in observations.iter().enumerate() {
-            if run.root.outcome["termination"] != "exit"
-                || run.root.outcome["exit_code"] != 0
-                || run.report["terminal_to_return_nanos"]
-                    .as_u64()
-                    .is_none_or(|v| v > 1_000_000_000)
-            {
-                return Err(
-                    "native terminal-to-return bound exceeds one second or observation absent"
-                        .into(),
-                );
-            }
-            evidence::compare(&observations[0], run, evidence::ComparisonMask::Exact)?;
-            let label = if index == 0 {
-                "prime".into()
-            } else {
-                format!("terminal-{}", index - 1)
-            };
-            process_exit_observations.push(process_exit_interval(root, &label, &run.report)?);
-        }
-        let receipt = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER_RECEIPT");
-        let diagnostic_path = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER");
-        if !Path::new(receipt).is_absolute() || !Path::new(diagnostic_path).is_absolute() {
-            return Err(
-                "terminal refusal controls require explicit admitted diagnostic helper and receipt"
-                    .into(),
-            );
-        }
-        let diagnostic_role = build::Role::Diagnostic(vec!["diagnostic-profile".into()]);
-        let diagnostic_admission =
-            build::validate_admission(proof, Path::new(receipt), &diagnostic_role)?;
-        if diagnostic_admission.executable != Path::new(diagnostic_path) {
-            return Err("terminal diagnostic helper differs from admitted executable".into());
-        }
-        let diagnostic = workloads::Executable {
-            path: diagnostic_admission.executable.clone(),
-            sha256: diagnostic_admission.executable_sha256.clone(),
-            role: diagnostic_role,
-            receipt: Some(receipt.into()),
-        };
-        let refusals = admission_refusals(
+        return terminal_measurement(
             call,
             proof,
             root,
-            &diagnostic,
+            &executable,
+            &admission,
+            &prepared,
             &input,
-            &prepared.module_metadata,
-        )?;
-        let path = root.join("terminal-exit.json");
-        write(
-            &path,
-            &json!({"schema":"gomad.native-terminal-exit/v2","admission_refusals":refusals,"process_exit_observations":process_exit_observations,"diagnostic_control_admission":diagnostic_admission,"bound_nanos":1_000_000_000u64,"boundary":"actual classified native Outcome through completed linked Store/engine/watchdog cleanup; child supervisor wait retained separately","observations":observations,"helper_admission":admission,"module_provenance":prepared.provenance_path}),
-        )?;
-        return Ok(path);
+        );
     }
-    let (artifact_bytes, envelope_bytes, artifact) =
-        cache_sizes(&cache, &module_sha, &executable.sha256)?;
+    let module_sha = canonical::digest(&prepared.guest.module);
+    let mut row = RunSpec::new("prime", WORKFLOW, 0, "diagnostic");
+    row.warm = false;
+    let prime = host::with_warm_preparation(&root.join("host"), &row.name, &call.environ, || {
+        workloads::execute(call, proof, root, &row, &executable, &input)
+    })?;
+    workloads::success(&prime, &row)?;
+    if prime.root.outcome["termination"] != "exit" || prime.root.outcome["exit_code"] != 0 {
+        return Err("native priming workload did not exit successfully".into());
+    }
+    // Warm admission authenticates DiagnosticProfile; the cache uses its separate engine revision.
+    let (artifact_bytes, envelope_bytes, artifact) = cache_sizes(
+        &cache,
+        &module_sha,
+        &executable.sha256,
+        gomad_wasmhost::linked::Conditions::DiagnosticProfile.cache_configuration(),
+        prime.report["host_os"]
+            .as_str()
+            .ok_or("warm helper host OS absent")?,
+        prime.report["host_arch"]
+            .as_str()
+            .ok_or("warm helper host architecture absent")?,
+    )?;
     write(&root.join("cache-artifact.json"), &artifact)?;
     if call.name == "warm-preparation-prime" {
         let path = root.join("warm-prime.json");
@@ -370,7 +339,11 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
             return primed.take().ok_or_else(|| "warmup consumed twice".into());
         }
         row.name = format!("warm-{index}");
-        workloads::execute(call, proof, root, &row, &executable, &input)
+        host::with_warm_preparation(&root.join("host"), &row.name, &call.environ, || {
+            let observed = workloads::execute(call, proof, root, &row, &executable, &input)?;
+            workloads::success(&observed, &row)?;
+            Ok(observed)
+        })
     })?;
     let path = root.join(if call.name == "warm-preparation-prime" {
         "warm-prime.json"
@@ -419,7 +392,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                     .as_str()
                     .ok_or("native baseline raw root absent")?,
             );
-            evidence::read_profile_run(path, evidence::ReadLimits::default())
+            evidence::read_profile_run(path, evidence::ReadLimits::for_request(&input)?)
         })?;
         historical.revalidate()?;
         warm::compare(&before, &series)?;
@@ -437,44 +410,202 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
 
 #[expect(
     clippy::too_many_lines,
-    reason = "Keep both actual admission controls and their raw phase/timing checks in one producer transaction."
+    reason = "Keep ordinary and diagnostic role admissions with the complete terminal attempt publication."
 )]
-fn admission_refusals(
+fn terminal_measurement(
+    call: &Invocation,
+    proof: &CheckoutProof,
+    root: &Path,
+    release: &workloads::Executable,
+    admission: &build::Admission,
+    prepared: &module::Prepared,
+    input: &Value,
+) -> Result<PathBuf, String> {
+    let diagnostic = (|| -> Result<(build::Admission, workloads::Executable), String> {
+        let receipt = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER_RECEIPT");
+        let path = value(call, "GOMAD_WASM_TERMINAL_EXIT_DIAGNOSTIC_HELPER");
+        if !Path::new(receipt).is_absolute() || !Path::new(path).is_absolute() {
+            return Err(
+                "terminal refusal controls require explicit admitted diagnostic helper and receipt"
+                    .into(),
+            );
+        }
+        let role = build::Role::Diagnostic(vec!["diagnostic-profile".into()]);
+        let admitted = build::validate_admission(proof, Path::new(receipt), &role)?;
+        if admitted.executable != Path::new(path) {
+            return Err("terminal diagnostic helper differs from admitted executable".into());
+        }
+        let executable = workloads::Executable {
+            path: admitted.executable.clone(),
+            sha256: admitted.executable_sha256.clone(),
+            role,
+            receipt: Some(receipt.into()),
+        };
+        Ok((admitted, executable))
+    })();
+    let mut attempts = Vec::new();
+    for index in 0..6 {
+        let label = if index == 0 {
+            "prime".into()
+        } else {
+            format!("terminal-{}", index - 1)
+        };
+        attempts.push(super::terminal_collection::Attempt {
+            native_root: root.join("evidence").join(&label),
+            label,
+            role: "release".into(),
+        });
+    }
+    for label in ["module-digest", "loaded-module-descriptor"] {
+        attempts.push(super::terminal_collection::Attempt {
+            native_root: root.join("evidence").join(label),
+            label: label.into(),
+            role: "diagnostic".into(),
+        });
+    }
+    let mut reference = None;
+    let path = root.join("terminal-exit.json");
+    super::terminal_collection::collect(
+        &attempts,
+        |attempt| {
+            let (_, diagnostic) = diagnostic.as_ref().map_err(Clone::clone)?;
+            module::authenticate_prepared(prepared)?;
+            let executable = if attempt.role == "release" {
+                release
+            } else {
+                diagnostic
+            };
+            executable.verify(proof)?;
+            if attempt.role == "diagnostic" {
+                return admission_refusal(
+                    call,
+                    proof,
+                    root,
+                    executable,
+                    input,
+                    &prepared.module_metadata,
+                    &attempt.label,
+                )
+                .map(|observation| json!({"kind":"admission-refusal","observation":observation}));
+            }
+            let mut row = RunSpec::new(&attempt.label, WORKFLOW, 0, "ordinary");
+            row.warm = false;
+            let run = workloads::execute(call, proof, root, &row, executable, input)?;
+            workloads::success(&run, &row)?;
+            if run.report["terminal_to_return_nanos"]
+                .as_u64()
+                .is_none_or(|nanos| nanos > 1_000_000_000)
+            {
+                return Err(
+                    "native terminal-to-return bound exceeds one second or observation absent"
+                        .into(),
+                );
+            }
+            workloads::selected_workload_witness(
+                run.root
+                    .streams
+                    .get("stdout")
+                    .ok_or("native terminal stdout absent")?,
+                WORKFLOW,
+            )?;
+            if let Some(reference) = &reference {
+                evidence::compare(reference, &run, evidence::ComparisonMask::Exact)?;
+            }
+            let process_exit = process_exit_interval(root, &attempt.label, &run.report)?;
+            if reference.is_none() {
+                reference = Some(run.clone());
+            }
+            Ok(json!({"kind":"release","observation":run,"process_exit":process_exit}))
+        },
+        |attempt| {
+            module::authenticate_prepared(prepared)?;
+            if attempt.role == "release" {
+                release.verify(proof)
+            } else {
+                diagnostic.as_ref().map_err(Clone::clone)?.1.verify(proof)
+            }
+        },
+        |records, failure| {
+            let payloads = records
+                .iter()
+                .filter_map(|record| record.observation.as_ref())
+                .collect::<Vec<_>>();
+            let observations = payloads
+                .iter()
+                .filter(|payload| payload["kind"] == "release")
+                .map(|payload| payload["observation"].clone())
+                .collect::<Vec<_>>();
+            let process_exit = payloads
+                .iter()
+                .filter(|payload| payload["kind"] == "release")
+                .map(|payload| payload["process_exit"].clone())
+                .collect::<Vec<_>>();
+            let refusals = payloads
+                .iter()
+                .filter(|payload| payload["kind"] == "admission-refusal")
+                .map(|payload| payload["observation"].clone())
+                .collect::<Vec<_>>();
+            write(
+                &path,
+                &json!({
+                    "schema":"gomad.native-terminal-exit/v2","accepted":failure.is_none(),"failure_reasons":failure,
+                    "attempts":records,"admission_refusals":refusals,"process_exit_observations":process_exit,
+                    "diagnostic_control_admission":diagnostic.as_ref().ok().map(|(admitted,_)|admitted),
+                    "bound_nanos":1_000_000_000u64,
+                    "boundary":"actual classified native Outcome through completed linked Store/engine/watchdog cleanup; child supervisor wait retained separately",
+                    "observations":observations,"helper_admission":admission,"module_provenance":prepared.provenance_path,
+                    "original_control_mapping":{"success":"six admitted native release observations","post-load-authorization-mismatch":"separate native diagnostic module-digest and loaded-module-descriptor admission controls; historical helper wire applicability remains separate"}
+                }),
+            )?;
+            Ok(path.clone())
+        },
+    )
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep each actual admission control with its request, profile and cleanup predicates."
+)]
+fn admission_refusal(
     call: &Invocation,
     proof: &CheckoutProof,
     root: &Path,
     executable: &workloads::Executable,
     input: &Value,
     metadata: &Value,
-) -> Result<Vec<Value>, String> {
-    if metadata["initial_memory_pages"]
-        .as_u64()
-        .is_none_or(|pages| pages <= 1)
+    stage: &str,
+) -> Result<Value, String> {
+    if !matches!(stage, "module-digest" | "loaded-module-descriptor") {
+        return Err("unknown native terminal admission control".into());
+    }
+    if stage == "loaded-module-descriptor"
+        && metadata["initial_memory_pages"]
+            .as_u64()
+            .is_none_or(|pages| pages <= 1)
     {
         return Err("loaded-module descriptor refusal requires the actual module to declare more than one initial memory page".into());
     }
-    let mut observations = Vec::new();
-    for stage in ["module-digest", "loaded-module-descriptor"] {
-        let mut controlled = input.clone();
-        controlled
-            .as_object_mut()
-            .ok_or("native request object absent")?
-            .remove("compile_cache");
-        if stage == "module-digest" {
-            let expected = controlled["guest"]["module_sha256"]
-                .as_str()
-                .ok_or("module digest absent")?;
-            controlled["guest"]["module_sha256"] = json!(if expected == "0".repeat(64) {
-                "1".repeat(64)
-            } else {
-                "0".repeat(64)
-            });
+    let mut controlled = input.clone();
+    controlled
+        .as_object_mut()
+        .ok_or("native request object absent")?
+        .remove("compile_cache");
+    if stage == "module-digest" {
+        let expected = controlled["guest"]["module_sha256"]
+            .as_str()
+            .ok_or("module digest absent")?;
+        controlled["guest"]["module_sha256"] = json!(if expected == "0".repeat(64) {
+            "1".repeat(64)
         } else {
-            controlled["guest"]["limits"]["memory_bytes"] = json!(65536);
-        }
-        let mut row = RunSpec::new(stage, WORKFLOW, 0, "diagnostic");
-        row.warm = false;
-        let _attempt = workloads::execute(call, proof, root, &row, executable, &controlled);
+            "0".repeat(64)
+        });
+    } else {
+        controlled["guest"]["limits"]["memory_bytes"] = json!(65536);
+    }
+    let mut row = RunSpec::new(stage, WORKFLOW, 0, "diagnostic");
+    row.warm = false;
+    let attempted = workloads::execute(call, proof, root, &row, executable, &controlled);
+    let observed = (|| -> Result<Value, String> {
         executable.verify(proof)?;
         let native_root = root.join("evidence").join(stage);
         let raw_request = read(&native_root.join("request.json"), 8 << 20)?;
@@ -549,11 +680,21 @@ fn admission_refusals(
             }
         }
         let process_exit = process_exit_interval(root, stage, &report)?;
-        observations.push(json!({"stage":stage,"native_root":native_root,
-            "request_sha256":report["request_sha256"],"refusal":refusal,"profile":profile,"process_exit":process_exit,
-            "terminal_to_return_nanos":refusal["terminal_to_return_nanos"]}));
+        Ok(json!({"stage":stage,"native_root":native_root,
+        "request_sha256":report["request_sha256"],"refusal":refusal,"profile":profile,"process_exit":process_exit,
+        "terminal_to_return_nanos":refusal["terminal_to_return_nanos"]}))
+    })();
+    match observed {
+        Ok(observation) => Ok(observation),
+        Err(error) => {
+            let mut failures = super::collection::FailureReasons::default();
+            if let Err(attempt) = attempted {
+                failures.push(attempt);
+            }
+            failures.push(error);
+            Err(failures.message().unwrap_or_default())
+        }
     }
-    Ok(observations)
 }
 
 pub(super) fn process_exit_interval(
@@ -597,5 +738,133 @@ mod tests {
         let partial = crc32_update(u32::MAX, b"1234");
         assert_eq!(!crc32_update(partial, b"56789"), 0xcbf4_3926);
         assert_ne!(!crc32_update(u32::MAX, b"123456788"), 0xcbf4_3926);
+    }
+
+    struct CacheDirectory(PathBuf);
+    impl CacheDirectory {
+        fn new() -> Self {
+            let root = std::env::temp_dir().join(format!(
+                "gomad-warm-artifact-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            fs::create_dir(&root).unwrap();
+            Self(root)
+        }
+        fn envelope(&self, manifest: &Value) -> (PathBuf, u64) {
+            use std::os::unix::fs::OpenOptionsExt;
+            let raw = canonical::encode(manifest).unwrap();
+            let artifact = [7_u8; 100];
+            let mut envelope = b"GOMADC03".to_vec();
+            envelope.extend(u32::try_from(raw.len()).unwrap().to_le_bytes());
+            envelope.extend(100_u64.to_le_bytes());
+            envelope.extend((!crc32_update(u32::MAX, &artifact)).to_le_bytes());
+            envelope.extend(raw);
+            envelope.extend(artifact);
+            let path = self.0.join(format!(
+                "{}.gomad-cache-v3",
+                canonical::digest(&canonical::encode(manifest).unwrap())
+            ));
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&path)
+                .unwrap();
+            file.write_all(&envelope).unwrap();
+            file.sync_all().unwrap();
+            (path, u64::try_from(envelope.len()).unwrap())
+        }
+    }
+    impl Drop for CacheDirectory {
+        fn drop(&mut self) {
+            fs::remove_dir_all(&self.0).unwrap();
+        }
+    }
+    fn cache_manifest() -> Value {
+        json!({"version":3,"module_sha256":"a".repeat(64),"helper_sha256":"b".repeat(64),
+            "engine":"wasmtime-47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2",
+            "host_os":"linux","host_arch":"aarch64","engine_compatibility_sha256":"c".repeat(64)})
+    }
+    #[test]
+    fn warm_artifact_rejects_matching_module_with_incompatible_engine_or_host() {
+        for (field, mutation) in [
+            ("version", json!(4)),
+            ("engine", json!("wasmtime-other")),
+            (
+                "configuration",
+                json!("cranelift-fuel-nan-canonical-nounwind-v2-fuel-off"),
+            ),
+            (
+                "configuration",
+                json!("cranelift-fuel-nan-canonical-nounwind-epoch-v1-diagnostic-profile"),
+            ),
+            ("host_os", json!("macos")),
+            ("host_arch", json!("x86_64")),
+            ("configuration", Value::Null),
+            ("host_os", Value::Null),
+            ("host_arch", Value::Null),
+        ] {
+            let directory = CacheDirectory::new();
+            let mut manifest = cache_manifest();
+            manifest[field] = mutation;
+            directory.envelope(&manifest);
+            let result = cache_sizes(
+                &directory.0,
+                &"a".repeat(64),
+                &"b".repeat(64),
+                "cranelift-fuel-nan-canonical-nounwind-v2",
+                "linux",
+                "aarch64",
+            );
+            assert_eq!(
+                result.unwrap_err(),
+                "warm cache manifest mismatch",
+                "{field}: {manifest}"
+            );
+        }
+    }
+    #[test]
+    fn warm_artifact_preserves_sizes_and_skips_other_modules_or_helpers() {
+        let directory = CacheDirectory::new();
+        let (expected, envelope_bytes) = directory.envelope(&cache_manifest());
+        for field in ["module_sha256", "helper_sha256"] {
+            let mut unrelated = cache_manifest();
+            unrelated[field] = json!("d".repeat(64));
+            unrelated["configuration"] = json!("unrelated engine configuration");
+            unrelated["host_os"] = json!("unrelated host");
+            directory.envelope(&unrelated);
+        }
+        let (artifact_bytes, observed_envelope, retained) = cache_sizes(
+            &directory.0,
+            &"a".repeat(64),
+            &"b".repeat(64),
+            "cranelift-fuel-nan-canonical-nounwind-v2",
+            "linux",
+            "aarch64",
+        )
+        .unwrap();
+        assert_eq!(artifact_bytes, 100);
+        assert_eq!(observed_envelope, envelope_bytes);
+        assert_eq!(
+            retained,
+            json!({"path":expected,"manifest":cache_manifest(),"envelope_bytes":envelope_bytes,"artifact_bytes":100})
+        );
+        let mut duplicate = cache_manifest();
+        duplicate["engine_compatibility_sha256"] = json!("e".repeat(64));
+        directory.envelope(&duplicate);
+        let error = cache_sizes(
+            &directory.0,
+            &"a".repeat(64),
+            &"b".repeat(64),
+            "cranelift-fuel-nan-canonical-nounwind-v2",
+            "linux",
+            "aarch64",
+        )
+        .unwrap_err();
+        assert_eq!(error, "ambiguous warm cache artifact identity");
     }
 }

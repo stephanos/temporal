@@ -60,9 +60,57 @@ impl Inventory {
         }
         Ok(self.files[name].clone())
     }
+    fn hash_only_wasi(
+        &mut self,
+        prefix: &str,
+        request_name: &str,
+        request_sha256: &str,
+        declaration: &Value,
+        outcome: &Value,
+    ) -> Result<Value, String> {
+        let request = self
+            .json(request_name)?
+            .ok_or("digest-only WASI request absent")?;
+        if self.files[request_name]["sha256"] != request_sha256
+            || request["kind"] != "standalone"
+            || request["guest"]["model"]["configuration"]["digest_only"] != true
+            || declaration
+                .as_object()
+                .is_none_or(|fields| fields.len() != 4 || !fields.contains_key("file"))
+            || !declaration["file"].is_null()
+            || declaration["bytes"]
+                .as_u64()
+                .is_none_or(|bytes| bytes > 1 << 30)
+            || !declaration["sha256"]
+                .as_str()
+                .is_some_and(canonical::valid_digest)
+            || outcome["local_model"]["transcript_bytes"] != declaration["bytes"]
+            || outcome["local_model"]["transcript_sha256"] != declaration["sha256"]
+        {
+            return Err("digest-only WASI request/outcome commitment mismatch".into());
+        }
+        for name in ["transcript", "wasi"] {
+            match rustix::fs::statat(
+                &self.root,
+                format!("{prefix}{name}"),
+                rustix::fs::AtFlags::SYMLINK_NOFOLLOW,
+            ) {
+                Err(rustix::io::Errno::NOENT) => {}
+                Err(error) => return Err(error.to_string()),
+                Ok(_) => {
+                    return Err("digest-only WASI conflicts with a retained raw payload".into());
+                }
+            }
+        }
+        Ok(
+            json!({"status":"digest-only","file":null,"bytes":declaration["bytes"],
+            "sha256":declaration["sha256"],"source":"outcome:local_model.transcript_sha256"}),
+        )
+    }
     fn closed_streams(
         &mut self,
         prefix: &str,
+        request_name: &str,
         request_sha256: Option<&str>,
         report: Option<&Value>,
     ) -> Result<Option<BTreeMap<String, Value>>, String> {
@@ -116,12 +164,28 @@ impl Inventory {
                 );
                 continue;
             };
-            if declaration["file"] != name {
-                return Err("variant canonical stream aliases another payload".into());
-            }
             let source = declaration["source"]
                 .as_str()
                 .ok_or("variant canonical stream source absent")?;
+            if name == "wasi" && source == "outcome:local_model.transcript_sha256" {
+                if native.get("transcript").is_some() || native.get("wasi").is_some() {
+                    return Err("digest-only WASI conflicts with native raw declarations".into());
+                }
+                let mut entry = self.hash_only_wasi(
+                    prefix,
+                    request_name,
+                    request_sha256,
+                    declaration,
+                    &outcome,
+                )?;
+                entry["original_suffix"] = json!(suffix);
+                entry["canonical_catalog_sha256"] = self.files[&catalog_name]["sha256"].clone();
+                entries.insert(meaning.into(), entry);
+                continue;
+            }
+            if declaration["file"] != name {
+                return Err("variant canonical stream aliases another payload".into());
+            }
             if source == format!("native:{name}") {
                 same_declaration(declaration, &native[name])?;
             } else if source == format!("closed-sink-empty:{name}")
@@ -294,7 +358,8 @@ fn retain(
         }
     };
     let canonical =
-        match inventory.closed_streams(prefix, request_sha256.as_deref(), report.as_ref()) {
+        match inventory.closed_streams(prefix, request, request_sha256.as_deref(), report.as_ref())
+        {
             Ok(Some(entries)) => entries,
             Ok(None) => unavailable_canonical(
                 "no finalized linked Execution canonical custody was observed",

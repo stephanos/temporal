@@ -139,10 +139,11 @@ impl RetainedRun {
         };
         self.lease.take();
         // Collection is best effort after the result is final, including cancellation.
-        let _ = reclaim(
+        let _ = reclaim_cancellable(
             self.path
                 .parent()
                 .ok_or("measurement store has no parent")?,
+            cancelled,
         );
         published
     }
@@ -327,7 +328,9 @@ fn open(root: &File, name: &OsStr, directory: bool) -> Result<File, String> {
     let opened = fs::fstat(&file).map_err(|error| error.to_string())?;
     let after =
         fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
-    if before.st_ino != opened.st_ino
+    if (name == OsStr::new("latest.json")
+        && (before.st_nlink != 1 || opened.st_nlink != 1 || after.st_nlink != 1))
+        || before.st_ino != opened.st_ino
         || before.st_dev != opened.st_dev
         || after.st_ino != opened.st_ino
         || after.st_dev != opened.st_dev
@@ -539,16 +542,23 @@ fn dependencies(root: &File) -> Result<Vec<PathBuf>, String> {
     Ok(paths)
 }
 
+#[cfg(test)]
 fn reclaim(path: &Path) -> Result<(), String> {
+    reclaim_cancellable(path, &|| false)
+}
+
+fn reclaim_cancellable(path: &Path, cancelled: &dyn Fn() -> bool) -> Result<(), String> {
     let deadline = Instant::now() + LOCK_TIMEOUT;
     let mut pending = VecDeque::from([path.to_path_buf()]);
     while let Some(path) = pending.pop_front() {
+        check_cancelled(cancelled)?;
         let store = directory(&path, false)?;
-        let lock = store_lock(&store, &|| Instant::now() >= deadline)?;
+        let lock = store_lock(&store, &|| cancelled() || Instant::now() >= deadline)?;
         let (trash, released) = collect(&store, &path)?;
         store.sync_all().map_err(|error| error.to_string())?;
         drop(lock);
         for name in trash {
+            check_cancelled(cancelled)?;
             remove_tree(&store, OsStr::new(&name))?;
         }
         store.sync_all().map_err(|error| error.to_string())?;
@@ -649,3 +659,7 @@ fn collect(store: &File, path: &Path) -> Result<(Vec<String>, Vec<PathBuf>), Str
 #[cfg(test)]
 #[path = "retention_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "retention_process_tests.rs"]
+mod process_tests;

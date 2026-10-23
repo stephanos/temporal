@@ -25,6 +25,19 @@ fn main() {
                 1
             }
         }
+    } else if arguments.len() == 3 && arguments[0] == "--prepare-terminal-module" {
+        finish(
+            measurement::terminal_module::prepare(
+                Path::new(&arguments[1]),
+                Path::new(&arguments[2]),
+            )
+            .and_then(|path| publish(&path)),
+        )
+    } else if arguments.len() == 2 && arguments[0] == "--capture-host-evidence" {
+        finish(
+            measurement::terminal_module::capture_host(Path::new(&arguments[1]))
+                .and_then(|path| publish(&path)),
+        )
     } else if arguments.len() == 4 && arguments[0] == "--linked-run-admitted" {
         finish(measurement::execution::run_admitted(
             Path::new(&arguments[1]),
@@ -71,4 +84,9 @@ fn finish(result: Result<(), String>) -> i32 {
             1
         }
     }
+}
+
+fn publish(path: &Path) -> Result<(), String> {
+    writeln!(std::io::stdout(), "{}", serde_json::json!({"result":path}))
+        .map_err(|error| error.to_string())
 }

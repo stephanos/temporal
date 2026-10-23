@@ -165,3 +165,74 @@ fn created_native_cache_is_private_and_existing_unsafe_cache_is_refused() {
     assert!(cache_directory(&path).is_err());
     fs::remove_dir(&path).unwrap();
 }
+
+#[test]
+fn variant_recommendations_fold_all_seeds_without_losing_per_seed_decisions() {
+    let root = std::env::temp_dir().join(format!(
+        "gomad-variant-decisions-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    fs::create_dir(&root).unwrap();
+    let mut samples = Vec::new();
+    for row in plan(&call("guest-variants")).unwrap() {
+        if row.variant == "fuel-off" && row.seed == 2_000_006 && row.repetition == 4 {
+            continue;
+        }
+        let index = usize::try_from(row.repetition).unwrap();
+        let times = match (row.variant.as_str(), row.seed) {
+            ("baseline", _) => [98, 99, 100, 101, 102],
+            ("gc400" | "gc-off", 0) => [80, 89, 90, 91, 100],
+            ("gc-off", 1_000_003) => [108, 109, 110, 111, 112],
+            _ => [78, 79, 80, 81, 82],
+        };
+        let failed = row.variant == "gowasm" && row.seed == 2_000_006 && row.repetition == 2;
+        samples.push(json!({"sample":row,"status":if failed {"failed"} else {"executed"},"profile":{"phases":{"execute":{"wall_nanos":times[index]}}}}));
+    }
+    variant_recommendations(&root, &samples).unwrap();
+    let measurements: Vec<Value> =
+        serde_json::from_slice(&fs::read(root.join("variant-recommendations.json")).unwrap())
+            .unwrap();
+    let summary: Vec<Value> = serde_json::from_slice(
+        &fs::read(root.join("variant-recommendations-summary.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(measurements.len(), 36);
+    let mut expected_summary = Vec::new();
+    for selection in ["activity", "workflow"] {
+        for (variant, per_seed, decision) in [
+            ("baseline", ["control", "control", "control"], "control"),
+            ("fuel-off", ["adopt", "adopt", "reject"], "reject"),
+            ("gc-off", ["investigate", "reject", "adopt"], "reject"),
+            ("gc200", ["adopt", "adopt", "adopt"], "adopt"),
+            ("gc400", ["investigate", "adopt", "adopt"], "investigate"),
+            ("gowasm", ["adopt", "adopt", "reject"], "reject"),
+        ] {
+            let actual: Vec<_> = measurements
+                .iter()
+                .filter(|row| row["selection"] == selection && row["variant"] == variant)
+                .map(|row| {
+                    (
+                        row["seed"].as_u64().unwrap(),
+                        row["recommendation"].as_str().unwrap(),
+                    )
+                })
+                .collect();
+            assert_eq!(
+                actual,
+                vec![
+                    (0, per_seed[0]),
+                    (1_000_003, per_seed[1]),
+                    (2_000_006, per_seed[2])
+                ],
+                "{selection}/{variant}"
+            );
+            expected_summary.push(json!({"selection":selection,"variant":variant,"recommendation":decision,"adoption_requires_separate_qualification":true}));
+        }
+    }
+    assert_eq!(summary, expected_summary);
+    fs::remove_dir_all(root).unwrap();
+}

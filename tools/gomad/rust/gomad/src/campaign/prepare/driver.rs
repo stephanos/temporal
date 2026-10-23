@@ -224,10 +224,7 @@ fn prepare_sources_with_controls(
         runtime = Some(generated.identity);
         overlay = Some(generated.path);
     }
-    let mut tags = options.build_tags.clone();
-    tags.extend(installed.build_tags.iter().cloned());
-    tags.sort();
-    tags.dedup();
+    let tags = effective_tags(options, &installed);
     let mut flags = vec!["-mod=readonly".into(), "-pgo=off".into()];
     if controls.parallelism == Some(1) {
         flags.push("-p=1".into());
@@ -737,6 +734,14 @@ impl Recipe {
         }
         Ok(())
     }
+}
+
+pub(crate) fn effective_tags(options: &ExploreOptions, installed: &Installation) -> Vec<String> {
+    let mut tags = options.build_tags.clone();
+    tags.extend(installed.build_tags.iter().cloned());
+    tags.sort();
+    tags.dedup();
+    tags
 }
 
 #[cfg(test)]

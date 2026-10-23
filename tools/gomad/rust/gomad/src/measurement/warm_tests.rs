@@ -254,7 +254,7 @@ fn raw_native_behavior_changes_or_projection_tampering_are_refused() {
 }
 
 #[test]
-fn comparisons_require_same_real_host_module_runtime_model_and_current_producer() {
+fn comparisons_require_shared_host_module_runtime_and_current_producer() {
     let before = series(Role::Baseline);
     for mutation in 0..13 {
         let mut after = series(Role::Candidate);
@@ -263,11 +263,11 @@ fn comparisons_require_same_real_host_module_runtime_model_and_current_producer(
             1 => after.binding.host_cpu.push('x'),
             2 => after.binding.host_os.push('x'),
             3 => after.binding.host_arch.push('x'),
-            4 => after.binding.engine_configuration.push('x'),
+            4 => after.binding.engine_version.push('x'),
             5 => after.binding.module_sha256 = "9".repeat(64),
             6 => after.binding.config_sha256 = "9".repeat(64),
             7 => after.binding.runtime_identity.push('x'),
-            8 => after.binding.model_sha256 = "9".repeat(64),
+            8 => after.binding.model_sha256.clear(),
             9 => after.binding.module_producer_sha256 = "9".repeat(64),
             10 => after.binding.seed += 1,
             11 => after.role = Role::Baseline,
@@ -430,4 +430,15 @@ fn direct_native_timing_requires_positive_signed_interval() {
         run.teardown_nanos = interval;
         assert!(run.validate(false, false).is_err());
     }
+}
+
+#[test]
+fn historical_owner_bindings_may_differ_without_changing_shared_behavior() {
+    let mut before = series(Role::Baseline);
+    before.binding.engine_configuration.push_str("-historical");
+    before.binding.model_sha256 = "9".repeat(64);
+    before.binding.host_sha256 = "9".repeat(64);
+    before.binding.driver_sha256 = "9".repeat(64);
+    before.binding.source_commit = "9".repeat(40);
+    compare(&before, &series(Role::Candidate)).unwrap();
 }

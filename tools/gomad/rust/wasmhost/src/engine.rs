@@ -808,22 +808,28 @@ impl State {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
 }
-#[cfg(feature = "stress-jitter")]
 pub(crate) const CONFIGURATION_REVISION: &str =
-    "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter";
-#[cfg(feature = "determinism-fixture")]
-pub(crate) const CONFIGURATION_REVISION: &str =
-    "cranelift-fuel-nan-canonical-nounwind-v2-determinism-fixture";
-#[cfg(not(any(feature = "stress-jitter", feature = "determinism-fixture")))]
-pub(crate) const CONFIGURATION_REVISION: &str = match (
-    cfg!(feature = "guest-profile"),
-    cfg!(feature = "diagnostic-fuel-off"),
-) {
-    (false, false) => "cranelift-fuel-nan-canonical-nounwind-v2",
-    (true, false) => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile",
-    (false, true) => "cranelift-fuel-nan-canonical-nounwind-v2-fuel-off",
-    (true, true) => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off",
-};
+    configuration_revision(crate::linked_conditions::Conditions::compiled());
+
+pub(crate) const fn configuration_revision(
+    role: crate::linked_conditions::Conditions,
+) -> &'static str {
+    use crate::linked_conditions::Conditions;
+    match role {
+        Conditions::Ordinary | Conditions::DiagnosticProfile => {
+            "cranelift-fuel-nan-canonical-nounwind-v2"
+        }
+        Conditions::GuestProfile => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile",
+        Conditions::DiagnosticFuelOff => "cranelift-fuel-nan-canonical-nounwind-v2-fuel-off",
+        Conditions::GuestProfileFuelOff => {
+            "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off"
+        }
+        Conditions::StressReplay => "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter",
+        Conditions::DeterminismFixtureReplay => {
+            "cranelift-fuel-nan-canonical-nounwind-v2-determinism-fixture"
+        }
+    }
+}
 
 #[expect(
     clippy::too_many_lines,

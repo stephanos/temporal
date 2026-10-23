@@ -825,3 +825,33 @@ fn historical_native_admission_does_not_trust_claimed_relocated_checkout() {
     std::os::unix::fs::symlink(proof.repo().join("tools"), relocated.join("tools")).unwrap();
     assert!(validate_historical_admission(&relocated, &path, &role).is_err());
 }
+
+#[test]
+fn actual_child_records_ancestry_and_enclosed_monotonic_spawn_to_reap() {
+    let temp = Temporary::new();
+    let before = gomad_wasmhost::linked::monotonic_nanos().unwrap();
+    let observed = observe_command(
+        &temp.0,
+        "ancestry",
+        &temp.0,
+        &BTreeMap::new(),
+        &features(&["/bin/sh", "-c", "printf '%s\\n' \"$PPID\""]),
+        Duration::from_secs(5),
+        1024,
+    );
+    let after = gomad_wasmhost::linked::monotonic_nanos().unwrap();
+    assert_eq!(observed.error, None);
+    assert_eq!(observed.exit_code, Some(0));
+    assert_eq!(observed.signal, None);
+    assert_eq!(observed.clock.as_deref(), Some("CLOCK_MONOTONIC"));
+    let parent = std::process::id();
+    assert_eq!(observed.parent_pid, Some(parent));
+    assert_ne!(observed.pid, Some(parent));
+    assert_eq!(
+        fs::read_to_string(&observed.stdout.path).unwrap().trim(),
+        parent.to_string()
+    );
+    let start = observed.started_monotonic_nanos.unwrap();
+    let reaped = observed.reaped_monotonic_nanos.unwrap();
+    assert!(before <= start && start <= reaped && reaped <= after);
+}

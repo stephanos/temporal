@@ -7,8 +7,14 @@ fn raw() -> NativeRun {
         report: json!({"linked_implementation_sha256":"b".repeat(64),"host_sha256":"d".repeat(64),"host_implementation_sha256":"e".repeat(64),"authorization_to_terminal_nanos":100,"diagnostic_only":true,"features":["diagnostic-profile"],"configuration":format!("{}-diagnostic-profile",gomad_wasmhost::linked::CONFIGURATION),"host_os":"linux","host_arch":"x86_64"}),
         profile: json!({"owners":{"namespace":{"count":1}},"abi_ops":{"wasi_snapshot_preview1.fd_read":{"served_by":{"namespace":1}}}}),
         root: NativeExecution {
-            outcome: json!({"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":1,"peak_memory_bytes":1,"output_bytes":0,"local_model":{"calls":1,"advances":0}}),
-            streams: BTreeMap::from([("transcript".into(), b"GMWT\x01\0\0\0".to_vec())]),
+            outcome: json!({"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":1,"peak_memory_bytes":1,"output_bytes":0,"metrics":{"cache_hit":true,"compile_nanos":0},"local_model":{"calls":1,"advances":0}}),
+            streams: BTreeMap::from([
+                ("transcript".into(), b"GMWT\x01\0\0\0".to_vec()),
+                (
+                    "stdout".into(),
+                    b"=== RUN   TestActivityTestSuite\n--- PASS: TestActivityTestSuite\n".to_vec(),
+                ),
+            ]),
             handle: None,
         },
         incarnations: Vec::new(),
@@ -153,7 +159,7 @@ fn immutable_four_seed_requests_and_actual_timing_are_required() {
             }
         )
         .unwrap_err()
-        .contains("actual native authorization")
+        .contains("native authorization")
     );
     let mut changed = observed;
     changed.run.request["guest"]["unexpected_configuration"] = true.into();
@@ -184,4 +190,56 @@ fn common_seed_requests_preserve_every_other_input_and_candidate_counter_entries
         .unwrap_err()
         .contains("external callback")
     );
+}
+
+#[test]
+fn original_namespace_run_mutations_reach_the_actual_sample_consumer() {
+    let mut run = raw();
+    attach_counter(&mut run);
+    let observed = Observation {
+        run,
+        fresh_store_id: 1,
+        replay: None,
+    };
+    sample(&common(), Role::Candidate, 0, 1, &observed).unwrap();
+    for mutation in 0..10 {
+        let mut changed = Observation {
+            run: observed.run.clone(),
+            fresh_store_id: observed.fresh_store_id,
+            replay: observed.replay.clone(),
+        };
+        match mutation {
+            0 => {
+                changed.run.root.streams.insert(
+                    "stdout".into(),
+                    b"=== RUN   TestActivityTestSuite\n--- FAIL: TestActivityTestSuite".to_vec(),
+                );
+            }
+            1 => {
+                changed
+                    .run
+                    .root
+                    .streams
+                    .insert("stdout".into(), b"PASS".to_vec());
+            }
+            2 => changed.run.root.outcome["exit_code"] = 1.into(),
+            3 => changed.run.root.outcome["metrics"]["cache_hit"] = false.into(),
+            4 => changed.run.root.outcome["metrics"]["compile_nanos"] = 1.into(),
+            5 => changed.run.report["authorization_to_terminal_nanos"] = 0.into(),
+            6 => changed.run.request["guest"]["module_sha256"] = "f".repeat(64).into(),
+            7 => changed.run.report["configuration"] = "incompatible".into(),
+            8 => {
+                changed
+                    .run
+                    .root
+                    .streams
+                    .insert("transcript".into(), b"invalid".to_vec());
+            }
+            _ => changed.run.report["native_namespace_counter"]["fresh_store_id"] = 2.into(),
+        }
+        assert!(
+            sample(&common(), Role::Candidate, 0, 1, &changed).is_err(),
+            "mutation {mutation}"
+        );
+    }
 }

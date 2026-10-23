@@ -714,7 +714,8 @@ pub(super) fn execute_admitted(
         64 << 20,
     );
     let after = role.verify(proof);
-    let result = evidence::read_profile_run(&output, evidence::ReadLimits::default());
+    let result = evidence::ReadLimits::for_request(input)
+        .and_then(|limits| evidence::read_profile_run(&output, limits));
     let mut failures = Vec::new();
     for failure in [
         command.as_ref().err(),
@@ -745,6 +746,32 @@ pub(super) fn execute_admitted(
         (None, Ok(())) => result,
     }
 }
+pub(super) fn selected_workload_witness(stdout: &[u8], selection: &str) -> Result<(), String> {
+    if selection == "runtime" {
+        return Ok(());
+    }
+    let test = selection
+        .split('/')
+        .next()
+        .unwrap_or("")
+        .trim_matches(['^', '$']);
+    let output = String::from_utf8_lossy(stdout);
+    for witness in [format!("=== RUN   {test}"), format!("--- PASS: {test}")] {
+        if !output.contains(&witness) {
+            return Err(format!(
+                "actual selected suite success witness absent: {witness}"
+            ));
+        }
+    }
+    if selection == "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"
+        && !output.contains("TestPlainASCII/Succeeds")
+    {
+        return Err(
+            "actual selected workflow success witness absent: TestPlainASCII/Succeeds".into(),
+        );
+    }
+    Ok(())
+}
 
 pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     if run.root.outcome["termination"] != "exit" || run.root.outcome["exit_code"] != 0 {
@@ -770,28 +797,14 @@ pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     {
         return Err("validated native authorization-to-terminal boundary unavailable".into());
     }
-    if !row.prepare && row.selection != "runtime" {
-        let test = row
-            .selection
-            .split('/')
-            .next()
-            .unwrap_or("")
-            .trim_matches(['^', '$']);
-        let witness = format!("=== RUN   {test}");
-        let stdout = run
-            .root
-            .streams
-            .get("stdout")
-            .ok_or("native guest stdout absent")?;
-        if !stdout
-            .windows(witness.len())
-            .any(|part| part == witness.as_bytes())
-        {
-            return Err(format!(
-                "{}: actual selected suite did not execute: {witness}",
-                row.name
-            ));
-        }
+    if !row.prepare {
+        selected_workload_witness(
+            run.root
+                .streams
+                .get("stdout")
+                .ok_or("native guest stdout absent")?,
+            &row.selection,
+        )?;
     }
     Ok(())
 }
@@ -1069,7 +1082,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     let mut results: BTreeMap<String, (NativeRun, String)> = BTreeMap::new();
     let mut samples = Vec::new();
     let mut pending = Vec::<RunSpec>::new();
-    let mut failures = Vec::new();
+    let mut failures = super::collection::FailureReasons::default();
     for row in &schedule {
         let prepared = &modules[&selection_key(&row.selection, &row.variant)];
         let executable = &roles[&row.role];
@@ -1153,8 +1166,17 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                         .join("guest-profile.json"),
                     64 << 20,
                 )?;
-                let attribution = guest::decode(&profile)?;
-                if attribution.guest_sample_weight == 0 {
+                let options = &input["guest"]["guest_profile"];
+                let attribution = guest::decode_sampled(
+                    &profile,
+                    options["interval_micros"]
+                        .as_u64()
+                        .ok_or("requested guest sampling interval absent")?,
+                    options["max_samples"]
+                        .as_u64()
+                        .ok_or("requested guest sampling bound absent")?,
+                )?;
+                if attribution.attribution.guest_sample_weight == 0 {
                     return Err("guest profile contains no weighted guest samples".into());
                 }
                 write(
@@ -1185,7 +1207,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 attempt.as_ref().err()
             ));
         }
-        match attempt {
+        match failures.observe(attempt) {
             Ok(observed) => {
                 samples.push(json!({"sample":row,"status":"executed","actual_outcome":observed.root.outcome,"profile":observed.profile,"native_root":root.join("evidence").join(&row.name)}));
                 results.insert(row.name.clone(), (observed, row.role.clone()));
@@ -1215,8 +1237,10 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                             }
                             failures.push(format!("{}: {error}", comparison_row.name));
                             if call.name != "guest-variants" {
-                                retained_report(root, call, &samples, Some(&failures.join("; ")))?;
-                                return Err(failures.join("; "));
+                                failures.publish(|failure| {
+                                    retained_report(root, call, &samples, failure)
+                                })?;
+                                return Err(failures.message().unwrap_or(error));
                             }
                         }
                     } else {
@@ -1227,35 +1251,40 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             }
             Err(error) => {
                 samples.push(json!({"sample":row,"status":"failed","failure":error,"native_root":root.join("evidence").join(&row.name)}));
-                failures.push(error);
                 if call.name != "guest-variants" {
-                    retained_report(root, call, &samples, Some(&failures.join("; ")))?;
-                    return Err(failures.join("; "));
+                    failures.publish(|failure| retained_report(root, call, &samples, failure))?;
+                    return Err(failures.message().unwrap_or(error));
                 }
             }
         }
     }
     if !pending.is_empty() {
-        failures.push("required actual comparison reference unavailable".into());
+        failures.push("required actual comparison reference unavailable");
     }
-    if call.name == "guest-variants" {
-        variant_recommendations(root, &samples)?;
+    let finalized = failures.observe((|| -> Result<(), String> {
+        if call.name == "guest-variants" {
+            variant_recommendations(root, &samples)?;
+        }
+        if call.name == "legacy-workflow-profile" {
+            let retained = &results["seed0-retained"].0;
+            let transcript = retained
+                .root
+                .streams
+                .get("transcript")
+                .ok_or("retained canonical transcript absent")?;
+            let counts = super::count_operations(transcript, 64 << 20)?;
+            write(
+                &root.join("canonical-operation-counts.json"),
+                &json!({"calls":counts.calls,"local":counts.local,"remote":counts.remote,"operations":counts.operations}),
+            )?;
+        }
+        Ok(())
+    })());
+    let report = failures.publish(|failure| retained_report(root, call, &samples, failure))?;
+    if let Err(error) = finalized {
+        return Err(failures.message().unwrap_or(error));
     }
-    if call.name == "legacy-workflow-profile" {
-        let retained = &results["seed0-retained"].0;
-        let transcript = retained
-            .root
-            .streams
-            .get("transcript")
-            .ok_or("retained canonical transcript absent")?;
-        let counts = super::count_operations(transcript, 64 << 20)?;
-        write(
-            &root.join("canonical-operation-counts.json"),
-            &json!({"calls":counts.calls,"local":counts.local,"remote":counts.remote,"operations":counts.operations}),
-        )?;
-    }
-    let failure = (!failures.is_empty()).then(|| failures.join("; "));
-    let report = retained_report(root, call, &samples, failure.as_deref())?;
+    let failure = failures.message();
     if call.name == "guest-variants" {
         return Ok(report);
     }
@@ -1267,6 +1296,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
 }
 fn variant_recommendations(root: &Path, samples: &[Value]) -> Result<(), String> {
     let mut rows = Vec::new();
+    let mut decisions = BTreeMap::<(&str, &str), Vec<&str>>::new();
     for (selection, run) in selections() {
         for seed in SEEDS {
             let baseline: Vec<_> = samples
@@ -1317,11 +1347,28 @@ fn variant_recommendations(root: &Path, samples: &[Value]) -> Result<(), String>
                 } else {
                     statistics::recommendation(&before, &after, failed, !failed)
                 };
+                decisions
+                    .entry((selection, variant))
+                    .or_default()
+                    .push(decision);
                 rows.push(json!({"selection":selection,"seed":seed,"variant":variant,"execute_nanos":after,"baseline_execute_nanos":before,"recommendation":decision,"adoption_requires_separate_qualification":true}));
             }
         }
     }
-    write(&root.join("variant-recommendations.json"), &rows)
+    write(&root.join("variant-recommendations.json"), &rows)?;
+    let summary: Vec<_> = decisions.into_iter().map(|((selection, variant), per_seed)| {
+        let decision = if variant == "baseline" {
+            "control"
+        } else if per_seed.contains(&"reject") {
+            "reject"
+        } else if per_seed.iter().all(|decision| *decision == "adopt") {
+            "adopt"
+        } else {
+            "investigate"
+        };
+        json!({"selection":selection,"variant":variant,"recommendation":decision,"adoption_requires_separate_qualification":true})
+    }).collect();
+    write(&root.join("variant-recommendations-summary.json"), &summary)
 }
 
 #[derive(Deserialize)]
@@ -1337,28 +1384,138 @@ struct MigrationGuest {
     provenance_sha256: String,
     runs: BTreeMap<String, PathBuf>,
 }
+fn migration_baseline_cost(root: &Path, seed: u64) -> Result<Value, String> {
+    use crate::evidence::store::open;
+    let parent = root
+        .parent()
+        .ok_or("native migration baseline registry root has no parent")?;
+    let label = root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("native migration baseline registry root has no UTF-8 name")?;
+    let files = open::pin(root)?;
+    let siblings = open::pin(parent)?;
+    let request_raw = open::read(&files, "request.json", 8 << 20, false)?;
+    let report_raw = open::read(&files, "report.json", 8 << 20, false)?;
+    let command_raw = open::read(&siblings, &format!("{label}-driver.json"), 8 << 20, false)?;
+    let command_value: Value = crate::qualify::spec::strict(&command_raw)?;
+    let wall_nanos = command_value["duration_nanos"]
+        .as_i64()
+        .filter(|wall| *wall > 0)
+        .ok_or_else(|| {
+            format!(
+                "baseline wall time must be positive: root={} seed={seed}",
+                root.display()
+            )
+        })?;
+    let command: build::CommandObservation = serde_json::from_value(command_value.clone())
+        .map_err(|error| format!("native migration baseline cost provenance: {error}"))?;
+    let report: Value = crate::qualify::spec::strict(&report_raw)?;
+    let request: Value = crate::qualify::spec::strict(&request_raw)?;
+    let input = parent.join(format!("{label}.input.json"));
+    if command.schema != "gomad.native-process-observation/v1"
+        || command.command.len() != 4
+        || !Path::new(&command.command[0]).is_absolute()
+        || command.command[1] != "--linked-run"
+        || command.command[2] != input.to_string_lossy()
+        || command.command[3] != root.to_string_lossy()
+        || command_value["command"] != report["invocation"]
+        || command.pid.is_none_or(|pid| pid == 0)
+        || report["fresh_store_id"].as_u64() != command.pid.map(u64::from)
+        || command
+            .reaped_monotonic_nanos
+            .is_none_or(|stamp| stamp == 0)
+        || command.termination != "exit"
+        || command.exit_code != Some(0)
+        || command.signal.is_some()
+        || command.error.is_some()
+        || !command.cleanup_errors.is_empty()
+        || report["schema"] != "gomad.linked-profile-run/v1"
+        || report["execution"]["Ok"]["termination"] != "exit"
+        || !report["host_sha256"]
+            .as_str()
+            .is_some_and(canonical::valid_digest)
+        || report["request_sha256"] != canonical::digest(&request_raw)
+        || request["kind"] != "standalone"
+        || request["guest"]["model"]["configuration"]["seed"] != seed
+        || open::read(&siblings, &format!("{label}.input.json"), 8 << 20, false)? != request_raw
+    {
+        return Err("native migration baseline cost provenance mismatch".into());
+    }
+    Ok(json!({"seed":seed,"raw_root":root,"wall_nanos":wall_nanos,
+        "request_sha256":canonical::digest(&request_raw),"report_sha256":canonical::digest(&report_raw),
+        "command_sha256":canonical::digest(&command_raw),"report":report,"command":command_value}))
+}
+
+fn migration_baseline_preflight(base: &Path) -> Result<(MigrationBaseline, Vec<Value>), String> {
+    use crate::evidence::store::open;
+    if !base.is_absolute() {
+        return Err("absolute native migration baseline root required".into());
+    }
+    let baseline: MigrationBaseline =
+        serde_json::from_value(crate::qualify::spec::strict(&open::read(
+            &open::pin(base)?,
+            "native-migration-baseline.json",
+            8 << 20,
+            false,
+        )?)?)
+        .map_err(|error| {
+            format!("native migration baseline required; Go-lineage reports are refused: {error}")
+        })?;
+    let names = ["choices", "runtime_probes", "time_probes"];
+    if baseline.schema != "gomad.native-migration-baseline/v1"
+        || baseline.guests.len() != names.len()
+        || names
+            .iter()
+            .any(|name| !baseline.guests.contains_key(*name))
+    {
+        return Err("native migration baseline registry requires exact choices/runtime_probes/time_probes guests".into());
+    }
+    let mut roots = std::collections::BTreeSet::new();
+    for guest in baseline.guests.values() {
+        if guest.runs.len() != 2 {
+            return Err(
+                "native migration baseline registry requires exactly seeds 0 and 1000003".into(),
+            );
+        }
+        for seed in ["0", "1000003"] {
+            let root = guest
+                .runs
+                .get(seed)
+                .filter(|root| root.is_absolute())
+                .ok_or(
+                    "native migration baseline registry requires absolute selected seed roots",
+                )?;
+            let root = fs::canonicalize(root)
+                .map_err(|error| format!("native migration baseline registry: {error}"))?;
+            if !roots.insert(root) {
+                return Err(
+                    "native migration baseline registry requires six distinct selected roots"
+                        .into(),
+                );
+            }
+        }
+    }
+    let mut costs = Vec::new();
+    for name in names {
+        for seed in [0, 1_000_003] {
+            let mut cost =
+                migration_baseline_cost(&baseline.guests[name].runs[&seed.to_string()], seed)?;
+            cost["guest"] = json!(name);
+            costs.push(cost);
+        }
+    }
+    Ok((baseline, costs))
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Keep the complete workload matrix and evidence transaction in execution order."
 )]
 fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
-    let base = Path::new(value(call, "GOMAD_WASM_MIGRATION_BASELINE"));
-    if !base.is_absolute() {
-        return Err("absolute native migration baseline root required".into());
-    }
-    let baseline: MigrationBaseline = serde_json::from_slice(&read(
-        &base.join("native-migration-baseline.json"),
-        8 << 20,
-    )?)
-    .map_err(|error| {
-        format!("native migration baseline required; Go-lineage reports are refused: {error}")
-    })?;
-    if baseline.schema != "gomad.native-migration-baseline/v1" || baseline.guests.len() != 3 {
-        return Err(
-            "native migration baseline requires exact choices/runtime_probes/time_probes registry"
-                .into(),
-        );
-    }
+    let (baseline, costs) =
+        migration_baseline_preflight(Path::new(value(call, "GOMAD_WASM_MIGRATION_BASELINE")))?;
+    write(&root.join("baseline-costs.json"), &costs)?;
     let executable = admit(call, proof, root, "ordinary")?;
     let mut samples = Vec::new();
     let cache = if value(call, "GOMAD_WASM_MIGRATION_CACHE").is_empty() {
@@ -1382,11 +1539,19 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
         }
         let provenance = crate::qualify::spec::strict(&read(&guest.provenance, 16 << 20)?)?;
         crate::campaign::prepare::typed_provenance(&provenance)?;
-        let expected_source = proof.repo().join("tools/gomad").join(match name {
-            "choices" => "internal/backends/wasm/toolchain/testdata/choices",
-            "runtime_probes" => "internal/backends/wasm/testdata/runtime_probes",
-            _ => "internal/backends/wasm/testdata/time_probes",
-        });
+        let expected_source = if name == "choices" {
+            let recipe = super::module_recipes::diagnostic_probe(proof.repo());
+            recipe.directory.join(recipe.source)
+        } else {
+            proof
+                .repo()
+                .join("tools/gomad")
+                .join(if name == "runtime_probes" {
+                    "internal/backends/wasm/testdata/runtime_probes"
+                } else {
+                    "internal/backends/wasm/testdata/time_probes"
+                })
+        };
         let actual_directory = Path::new(
             provenance["inputs"]["directory"]
                 .as_str()
@@ -1430,6 +1595,15 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 .filter(|path| path.is_absolute())
                 .ok_or("missing native migration baseline seed root")?;
             let old = evidence::read_profile_run(original_root, evidence::ReadLimits::default())?;
+            if costs
+                .iter()
+                .find(|cost| cost["guest"] == name && cost["seed"] == seed)
+                .is_none_or(|cost| cost["report"] != old.report)
+            {
+                return Err(
+                    "native migration baseline cost provenance changed after preflight".into(),
+                );
+            }
             if old.request["kind"] != "standalone"
                 || old.request["guest"]["module_sha256"] != hex(&identity.target_sha256)
                 || old.request["guest"]["model"]["configuration"]["seed"] != seed
@@ -1513,3 +1687,11 @@ fn migration_success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
 #[cfg(test)]
 #[path = "workloads_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "workloads_witness_tests.rs"]
+mod witness_tests;
+
+#[cfg(test)]
+#[path = "workloads_migration_tests.rs"]
+mod migration_tests;

@@ -27,6 +27,52 @@ impl Default for ReadLimits {
     }
 }
 
+impl ReadLimits {
+    /// Bounds retained reads by the producer's admitted request, rather than an output's claims.
+    pub(crate) fn for_request(request: &Value) -> Result<Self, String> {
+        let guests = match request["kind"].as_str() {
+            Some("standalone") => vec![&request["guest"]],
+            Some("cluster") => request["incarnations"]
+                .as_array()
+                .ok_or("cluster incarnations absent")?
+                .iter()
+                .map(|entry| &entry["guest"])
+                .collect(),
+            _ => return Err("unsupported retained request kind".into()),
+        };
+        let mut limits = Self {
+            module_bytes: 512 << 20,
+            total_bytes: 0,
+            ..Self::default()
+        };
+        for guest in guests {
+            let evidence = guest["limits"]["evidence_bytes"]
+                .as_u64()
+                .ok_or("request evidence bound absent")?;
+            let choice = guest["model"]["configuration"]["limit"]
+                .as_u64()
+                .unwrap_or(0);
+            let transcript = guest["model"]["configuration"]["limits"]["transcript_bytes"]
+                .as_u64()
+                .unwrap_or(0);
+            let output = guest["limits"]["output_bytes"]
+                .as_u64()
+                .ok_or("request output bound absent")?;
+            if choice > 1 << 30 || transcript > 1 << 30 || output > 256 << 20 {
+                return Err("named measurement exceeds original retained request bounds".into());
+            }
+            limits.stream_bytes = limits.stream_bytes.max(choice).max(transcript).max(output);
+            limits.total_bytes = limits
+                .total_bytes
+                .checked_add(evidence)
+                .and_then(|v| v.checked_add(limits.module_bytes))
+                .and_then(|v| v.checked_add(32 << 20))
+                .ok_or("retained request aggregate overflow")?;
+        }
+        Ok(limits)
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct NativeExecution {
     pub outcome: Value,
