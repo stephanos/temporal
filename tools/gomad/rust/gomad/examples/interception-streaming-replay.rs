@@ -21,7 +21,7 @@ const WAIT: Duration = Duration::from_secs(30);
 
 enum Event {
     Marker(u64),
-    Finished(Result<linked::Execution, String>),
+    Finished(Box<Result<linked::Execution, String>>),
 }
 
 #[derive(Default)]
@@ -153,7 +153,7 @@ fn controlled_execution(
         std::thread::scope(|scope| -> Result<_, String> {
             scope.spawn(move || {
                 let executed = preflight::execute(prepared.execution);
-                let _ = events.send(Event::Finished(executed));
+                let _ = events.send(Event::Finished(Box::new(executed)));
             });
             let remaining = || {
                 deadline
@@ -168,7 +168,7 @@ fn controlled_execution(
                 Event::Finished(result) => {
                     return Err(format!(
                         "guest completed before controlled marker: {}",
-                        result.err().unwrap_or_default()
+                        (*result).err().unwrap_or_default()
                     ));
                 }
             };
@@ -194,7 +194,7 @@ fn controlled_execution(
                 .recv_timeout(remaining()?)
                 .map_err(|error| error.to_string())?
             {
-                Event::Finished(result) => result?,
+                Event::Finished(result) => (*result)?,
                 Event::Marker(_) => return Err("duplicate controlled marker".into()),
             };
             Ok((executed, callback_ns, observed_ns, release_written_ns))
