@@ -2,8 +2,7 @@
 use super::{
     build, evidence, host,
     inputs::{CheckoutProof, Invocation},
-    module::{self, Selection},
-    warm,
+    module, warm,
     workloads::{self, RunSpec},
 };
 use crate::evidence::canonical;
@@ -206,27 +205,6 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         role: expected,
         receipt: Some(helper_receipt.into()),
     };
-    let prepared = if terminal {
-        let descriptor = Path::new(value(call, "GOMAD_WASM_TERMINAL_EXIT_MODULE_RECEIPT"));
-        let mut prepared = super::terminal_module::load(proof, descriptor)?;
-        if prepared.module_path != Path::new(value(call, "GOMAD_WASM_TERMINAL_EXIT_MODULE")) {
-            return Err("terminal module differs from admitted descriptor".into());
-        }
-        prepared.request = Some(super::module_recipes::temporal_request(
-            proof.repo(),
-            "tests",
-            &[
-                "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$".into(),
-                "-persistenceType=sql".into(),
-                "-persistenceDriver=sqlite".into(),
-            ],
-            Duration::from_mins(30),
-        )?);
-        prepared
-    } else {
-        module::prepare(proof, call, &root.join("module"), &Selection::Workflow)?
-    };
-    module::authenticate_prepared(&prepared)?;
     let (module_key, receipt_key) = if terminal {
         (
             "GOMAD_WASM_TERMINAL_EXIT_MODULE",
@@ -235,22 +213,21 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     } else {
         ("GOMAD_WASM_WARM_MODULE", "GOMAD_WASM_WARM_MODULE_RECEIPT")
     };
-    // Supplied artifacts must be the actual current producer's module and full provenance.
-    for (key, current, maximum) in if terminal {
-        Vec::new()
-    } else {
-        vec![
-            (module_key, &prepared.module_path, 512 << 20),
-            (receipt_key, &prepared.provenance_path, 16 << 20),
-        ]
-    } {
-        let supplied = value(call, key);
-        if !supplied.is_empty() && read(Path::new(supplied), maximum)? != read(current, maximum)? {
-            return Err(format!(
-                "{key} differs from the actual current module producer"
-            ));
-        }
+    let mut prepared = super::terminal_module::load(proof, Path::new(value(call, receipt_key)))?;
+    if prepared.module_path != Path::new(value(call, module_key)) {
+        return Err("warm/terminal module differs from admitted original descriptor".into());
     }
+    prepared.request = Some(super::module_recipes::temporal_request(
+        proof.repo(),
+        "tests",
+        &[
+            format!("-test.run={WORKFLOW}"),
+            "-persistenceType=sql".into(),
+            "-persistenceDriver=sqlite".into(),
+        ],
+        Duration::from_mins(30),
+    )?);
+    module::authenticate_prepared(&prepared)?;
     let snapshot = host::source_snapshot(proof, &root.join("source"), &call.environ)?;
     let host = host::current(&root.join("host"), &call.environ)?;
     write(&root.join("source.json"), &snapshot)?;

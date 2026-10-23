@@ -83,3 +83,34 @@ qualification are not claimed by these unit/native fixture gates. Earlier source
 three-leg development evidence used a supplied modified request (`gomad-target`
 and campaign environment additions); it proves supplied-request transport
 consistency only and is not original runtime-cost qualification.
+
+## Independent review repairs
+
+The fresh review of `2e8cee0c34` found two real binding gaps. The loader now checks
+actual provenance kind/source/directory/tags/arguments, the authenticated original
+installation tuple, and both normalized native configuration commitments against
+the existing preparation configuration builder. Twelve mutations reject relabeled
+slim builds, selected compile arguments, another source/checkout and changed
+configuration, fuel or memory. Both producer and consumer perform this binding.
+Warm and prime now load the same original terminal module descriptor and construct
+the separate execution request afterwards; they no longer recompile a Workflow
+approximation and compare raw provenance.
+
+The positive fixture exposed the ordinary parser's 64 MiB cap. A private
+measurement parser shares its grammar with the campaign parser while restoring the
+original 1 GiB measurement cap. Ordinary campaign and strategy parsers retain their
+64 MiB bound, with an explicit boundary regression for both entry points.
+
+- `measurement-terminal-binding-review-tests-v2.log`: 18 passed, exit 0.
+- `measurement-terminal-binding-focused.log`: 178 passed, 1 ignored, exit 0.
+- `measurement-terminal-binding-review-clippy-v3.log`: all-target Clippy with
+  warnings denied, exit 0.
+- `measurement-exact-recipes-fixture-controls.log`: actual fixture role warm
+  controls, 16 passed, 1 child-only ignored, exit 0 (before these binding repairs).
+- `measurement-exact-recipes-public-corpus-v2.log`: 7 passed, exit 0 on `2e8cee0c34`.
+
+The optional broad unoptimized 656-test run was interrupted during unrelated cache
+fixtures repeatedly hashing the approximately 400 MB test executable. Its Cargo
+exit is 101 after SIGTERM, and it receives no passing credit. The explicit record
+is `/home/agent/measurement-terminal-binding-full-native-interruption.json`.
+The root integrator owns the final optimized broad suite on the combined source.

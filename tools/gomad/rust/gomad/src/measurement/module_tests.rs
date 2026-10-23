@@ -382,3 +382,132 @@ fn runtime_execution_projection_keeps_original_argv_independent_of_compiler_conf
     let limits = super::super::evidence::ReadLimits::for_request(&input).unwrap();
     assert!(limits.stream_bytes >= 64 << 20);
 }
+
+fn terminal_binding_fixture(repo: &Path) -> (preparation::Installation, Value) {
+    let original = super::super::module_recipes::terminal_exit(repo).unwrap();
+    let converted =
+        crate::install::config::convert(original.configuration.clone(), COOPERATIVE).unwrap();
+    let installed = preparation::Installation {
+        schema: "fixture".into(),
+        admission: Some(crate::install::manifest::Admission {
+            compiler_inputs: BTreeMap::new(),
+            inputs_sha256: String::new(),
+            guest_configuration: original.configuration,
+            configuration_sha256: String::new(),
+            host_executable_sha256: String::new(),
+            explicit_helper: None,
+            environment: converted.environment,
+            arguments: converted.arguments,
+            compile_cache_root: None,
+        }),
+        compiler_path: repo.join("go"),
+        compiler_sha256: String::new(),
+        go_version: String::new(),
+        runtime_root: repo.into(),
+        overlay_module_root: None,
+        cache_root: repo.into(),
+        profile: COOPERATIVE.into(),
+        fuel: original.fuel,
+        memory_bytes: original.memory_bytes,
+        helper_sha256: String::new(),
+        host_sha256: String::new(),
+        runtime_implementation_sha256: None,
+        model: converted.model,
+        namespace: converted.namespace,
+        storage: converted.storage,
+        network: converted.network,
+        build_tags: Vec::new(),
+        excluded_build_tags: Vec::new(),
+    };
+    let bounds = Bounds {
+        memory_bytes: 4 << 30,
+        fuel: 1 << 50,
+        timeout: Duration::from_mins(30),
+        output_bytes: 1 << 20,
+    };
+    let (options, _, _) = options(
+        repo,
+        repo,
+        &repo.join("installation.json"),
+        "go-test",
+        "./tests",
+        &[],
+        &original.module.build_tags,
+        &bounds,
+        1 << 30,
+        None,
+    )
+    .unwrap();
+    let normalized =
+        serde_json::to_value(preparation::configuration(&options, &installed).unwrap()).unwrap();
+    let provenance = json!({"inputs":{"kind":"go-test","source":"./tests","directory":repo,"tags":original.module.build_tags,"arguments":[],"configuration":normalized},"configuration":normalized});
+    (installed, provenance)
+}
+#[test]
+fn terminal_descriptor_cannot_relabel_another_compilation_or_preparation_configuration() {
+    let temp = Temporary::new();
+    fs::write(temp.0.join("go.mod"), b"module fixture\n").unwrap();
+    let (installed, provenance) = terminal_binding_fixture(&temp.0);
+    validate_terminal_binding(&temp.0, &temp.0, &installed, &provenance).unwrap();
+    for mutation in 0..12 {
+        let mut actual = provenance.clone();
+        let mut installation = serde_json::to_value(&installed).unwrap();
+        match mutation {
+            0 => actual["inputs"]["kind"] = json!("go-run"),
+            1 => actual["inputs"]["source"] = json!("./other"),
+            2 => actual["inputs"]["directory"] = json!("/another/checkout"),
+            3 => actual["inputs"]["tags"]
+                .as_array_mut()
+                .unwrap()
+                .push(json!("gomad_wasm_slim")),
+            4 => actual["inputs"]["tags"].as_array_mut().unwrap().reverse(),
+            5 => actual["inputs"]["arguments"] = json!(["-test.run=^Selected$"]),
+            6 => actual["inputs"]["configuration"]["limits"]["output_bytes"] = json!(256 << 20),
+            7 => actual["inputs"]["configuration"]["model"]["limit"] = json!(64 << 20),
+            8 => actual["configuration"]["arguments"] = json!(["temporal.test"]),
+            9 => {
+                installation["admission"]["guest_configuration"]["Args"] = json!(["temporal.test"]);
+            }
+            10 => installation["fuel"] = json!(1_u64 << 40),
+            _ => installation["memory_bytes"] = json!(256 << 20),
+        }
+        let installation = serde_json::from_value(installation).unwrap();
+        assert!(
+            validate_terminal_binding(&temp.0, &temp.0, &installation, &actual).is_err(),
+            "mutation {mutation}"
+        );
+    }
+}
+
+#[test]
+fn original_measurement_trace_bound_does_not_raise_ordinary_campaign_cli_bound() {
+    let temp = Temporary::new();
+    fs::write(temp.0.join("go.mod"), b"module fixture\n").unwrap();
+    let arguments = vec![
+        "--working-dir".into(),
+        temp.0.to_string_lossy().into_owned(),
+        "--choices".into(),
+        "--choice-bytes".into(),
+        (1_u64 << 30).to_string(),
+        "go-test".into(),
+        "./tests".into(),
+    ];
+    assert!(
+        crate::cli::explore::parse(&arguments, &mut false)
+            .unwrap_err()
+            .contains("64MiB")
+    );
+    assert_eq!(
+        crate::cli::explore::parse_measurement(&arguments, &mut false)
+            .unwrap()
+            .choice_bytes,
+        1 << 30
+    );
+    let mut too_large = arguments;
+    too_large[4] = ((1_u64 << 30) + 1).to_string();
+    assert!(
+        crate::cli::explore::parse_measurement(&too_large, &mut false)
+            .unwrap_err()
+            .contains("1GiB")
+    );
+}

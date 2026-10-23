@@ -133,7 +133,10 @@ pub fn prepare(spec: &Path, root: &Path) -> Result<PathBuf, String> {
     };
     fresh(root)?;
     let prepared = module::prepare_terminal(&proof, &call, root)?;
-    module::authenticate_prepared(&prepared)?;
+    let provenance = module::authenticate_prepared(&prepared)?;
+    let installed = crate::install::manifest::resolve(Some(&prepared.installation_path))?;
+    crate::install::manifest::admit_build(&installed.manifest)?;
+    module::validate_terminal_binding(proof.repo(), root, &installed.manifest, &provenance)?;
     let original = module_recipes::terminal_exit(proof.repo())?;
     let observations = root.join("preparation-observations.json");
     let receipt = root.join("preparation-observations/receipt.json");
@@ -159,20 +162,7 @@ pub fn prepare(spec: &Path, root: &Path) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-pub(crate) fn load(proof: &CheckoutProof, path: &Path) -> Result<module::Prepared, String> {
-    let descriptor: Descriptor =
-        serde_json::from_value(crate::qualify::spec::strict(&read(path, 16 << 20)?)?)
-            .map_err(|e| e.to_string())?;
-    let expected = module_recipes::terminal_exit(proof.repo())?;
-    if descriptor.schema != "gomad.native-terminal-module/v1"
-        || descriptor.recipe != Recipe::from(expected.module)
-        || descriptor.configuration != expected.configuration
-        || descriptor.memory_bytes != expected.memory_bytes
-        || descriptor.fuel != expected.fuel
-    {
-        return Err("terminal module original preparation recipe mismatch".into());
-    }
-    let root = path.parent().ok_or("terminal descriptor root absent")?;
+fn authenticate_files(root: &Path, descriptor: &Descriptor) -> Result<(), String> {
     for (file, digest, name, maximum) in [
         (
             &descriptor.module,
@@ -212,10 +202,30 @@ pub(crate) fn load(proof: &CheckoutProof, path: &Path) -> Result<module::Prepare
             return Err("terminal module descriptor artifact binding changed".into());
         }
     }
+    Ok(())
+}
+
+pub(crate) fn load(proof: &CheckoutProof, path: &Path) -> Result<module::Prepared, String> {
+    let descriptor: Descriptor =
+        serde_json::from_value(crate::qualify::spec::strict(&read(path, 16 << 20)?)?)
+            .map_err(|e| e.to_string())?;
+    let expected = module_recipes::terminal_exit(proof.repo())?;
+    if descriptor.schema != "gomad.native-terminal-module/v1"
+        || descriptor.recipe != Recipe::from(expected.module)
+        || descriptor.configuration != expected.configuration
+        || descriptor.memory_bytes != expected.memory_bytes
+        || descriptor.fuel != expected.fuel
+    {
+        return Err("terminal module original preparation recipe mismatch".into());
+    }
+    let root = path.parent().ok_or("terminal descriptor root absent")?;
+    authenticate_files(root, &descriptor)?;
     let raw = read(&descriptor.provenance, 16 << 20)?;
     let provenance = crate::qualify::spec::strict(&raw)?;
     crate::campaign::prepare::typed_provenance(&provenance)?;
     let installed = crate::install::manifest::resolve(Some(&descriptor.installation))?;
+    crate::install::manifest::admit_build(&installed.manifest)?;
+    module::validate_terminal_binding(proof.repo(), root, &installed.manifest, &provenance)?;
     let mut result = module::Prepared {
         request: None,
         observation_receipt_sha256: Some(descriptor.preparation_receipt_sha256.clone()),

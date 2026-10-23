@@ -137,6 +137,61 @@ pub(crate) fn prepare_terminal(
     prepare_selection_controlled(proof, call, root, &Selection::Workflow, None, "", true)
 }
 
+pub(crate) fn validate_terminal_binding(
+    repo: &Path,
+    root: &Path,
+    installed: &preparation::Installation,
+    provenance: &Value,
+) -> Result<(), String> {
+    let original = super::module_recipes::terminal_exit(repo)?;
+    if installed.profile != COOPERATIVE
+        || installed.memory_bytes != original.memory_bytes
+        || installed.fuel != original.fuel
+        || installed
+            .admission
+            .as_ref()
+            .map(|admission| &admission.guest_configuration)
+            != Some(&original.configuration)
+    {
+        return Err("terminal module installation differs from original preparation tuple".into());
+    }
+    let bounds = Bounds {
+        memory_bytes: original.memory_bytes,
+        fuel: original.fuel,
+        timeout: Duration::from_mins(30),
+        output_bytes: 1 << 20,
+    };
+    let recipe = original.module;
+    let (options, _, _) = options(
+        root,
+        &recipe.directory,
+        &root.join("installation.json"),
+        recipe.kind,
+        &recipe.source,
+        &recipe.target_arguments,
+        &recipe.build_tags,
+        &bounds,
+        1 << 30,
+        None,
+    )?;
+    let expected = serde_json::to_value(preparation::configuration(&options, installed)?)
+        .map_err(|error| error.to_string())?;
+    let inputs = &provenance["inputs"];
+    let mut observed = provenance["configuration"].clone();
+    observed["runtime_sha256"] = Value::Null;
+    if inputs["kind"] != recipe.kind
+        || inputs["source"] != recipe.source
+        || inputs["directory"] != json!(recipe.directory)
+        || inputs["tags"] != json!(recipe.build_tags)
+        || inputs["arguments"] != json!(recipe.target_arguments)
+        || inputs["configuration"] != expected
+        || observed != expected
+    {
+        return Err("terminal module actual compiled tuple or native normalization differs from original recipe".into());
+    }
+    Ok(())
+}
+
 fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     let mut bytes = Vec::new();
     fs::File::open(path)
@@ -347,7 +402,7 @@ fn options(
         );
     }
     let mut json = false;
-    let mut options = crate::cli::explore::parse(&arguments, &mut json)?;
+    let mut options = crate::cli::explore::parse_measurement(&arguments, &mut json)?;
     options.installation = Some(installation.into());
     options.scenario = scenario;
     Ok((options, arguments, scenario_path))
