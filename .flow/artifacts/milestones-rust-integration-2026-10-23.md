@@ -550,3 +550,27 @@ acceptance. No performance or final qualification claim is made.
 
 Broad native receiving, the five unresolved references, final96stage cycle and
 the full milestone objective remain open.
+
+
+## Exact source rerun and actual main CLI build
+
+At `33477970e7`, the archive repair and fresh original runtime development proof
+are integrated. Independent review verifies the original archive payloads,
+literal symlinks and modes, actual reference rebuild, and equality of all six
+Go/helper/native streams. This supplies the scoped runtime comparison; it does
+not establish an original test-function pass or frozen qualification.
+
+The preparatory ordinary main CLI build from immutable `e4a68df78e` completed
+with exit zero, no host or helper features, and independently reopened source,
+GNU, Cargo and process evidence. All331 joined Python driver tests pass. Later
+integration changes do not modify this immutable build checkout or its receipts.
+
+The first actual installed-cluster attempt stopped during installation with
+exit2: its private HOME lacks the pinned golang.org/x/sys v0.48.0 module, while
+the compiler correctly refuses network module lookup. The producer exited1;
+no scenario ran. The causal command and stderr remain intact. A genuine
+module-cache prerequisite repair is in progress. Both original scenarios,
+inspection totals, replay assertions and the10-second bound remain required.
+
+Broad receiving, the five unresolved references, full96-stage cycle and the
+remaining milestone requirements stay open.

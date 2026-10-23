@@ -1982,6 +1982,86 @@
         "ActualmainCLIpreparatorybuild toexposeinstalledoperatorprojection gap pendingfreshGNUv2+sourceguardfollowup; finalfrozenmain/fixture builds remainlater.",
         "Actualfn23321real/twogenerations/full81goldens/currentFrontend/hiddenreplays andcoherentfinalMake remainpending; no96manifest changes."
       ]
+    },
+    {
+      "observed_at": "2026-10-23T11:55:40.520506+00:00",
+      "integration_head": "33477970e794f4e2e3b51855f5b2359e2b7536b9",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-main-archive-composition-driver-tests.log",
+          "bytes": 522,
+          "sha256": "3de10f3da75d984c65563bab3280dd50bfde3ec0b40e3f572347283dfe2b91f0",
+          "exit": 0,
+          "scope": "331 joined Python driver tests pass after source closure, immutable static plan and exact archive fixes"
+        }
+      ],
+      "actual_main_build": {
+        "receipt": {
+          "path": "/home/agent/evidence/fn232-main-cli-build-v1/main-build.json",
+          "bytes": 21202665,
+          "sha256": "bd748a2b2d5a5a1d744e51413885566b787a791e68a20af6feb33d1657a3539a"
+        },
+        "launch": {
+          "path": "/home/agent/evidence/fn232-main-cli-build-v1-launch.json",
+          "bytes": 1052,
+          "sha256": "4bc3a7a0772e7a900c7ecd5023bcb2dcb738aeb34eb3d261ae727babcf4d9bf7"
+        },
+        "head": "e4a68df78e1516d23bbba183570f4cb3b311bf68",
+        "binary_sha256": "e4aa6132ee9c94c50843f42161aa9ad333a561b9fc840b506ba9a1d75ea732a0",
+        "host_sha256": "08d4c84fdf87d6da8df03839be5a9fca4d42d2eb0489f9bc3ecd11d49cad0b9f",
+        "helper_sha256": "b33b93e67b3ba302dc18b3a4731ab7913842822e76d130bd19b3a9d4414797eb",
+        "features": [],
+        "helper_features": [],
+        "scope": "Preparatory ordinary Release build from immutable e4a checkout; not final integrated candidate"
+      },
+      "runtime_development_proof": {
+        "artifact": ".flow/artifacts/fn232-original-runtime-development-proof.json",
+        "independent_review": "CLEAR: exact archive/source custody and all six raw Go/helper/native streams",
+        "original_test_function_pass": false,
+        "final_qualification": false
+      },
+      "typed_capture": {
+        "manifest": {
+          "path": "/home/agent/evidence/fn232-installed-typed-capture-v1/manifest.json",
+          "bytes": 11622,
+          "sha256": "c08202fef3788b261c66349a8c299b9406b12a3099748f2d8ac6d64a9c690dd6"
+        },
+        "config": {
+          "path": "/home/agent/evidence/fn232-installed-typed-capture-v1/typed-config.json",
+          "bytes": 2080,
+          "sha256": "06a6fd47cac7c8a038962c48bee43f376e52284fec0bed87ee02e1be320cb1c0"
+        },
+        "scope": "Actual retained Go typed capture; three pinned Go commands exit zero; no guest compilation"
+      },
+      "installed_failure_attempt": {
+        "launch": {
+          "path": "/home/agent/evidence/fn232-installed-cluster-failure-v1-launch.json",
+          "bytes": 1009,
+          "sha256": "d30be167daff86e6f61559bc9e7ca33f55d95b40ca3977fe59a530c0525cb4cf"
+        },
+        "install_command": {
+          "path": "/home/agent/evidence/fn232-installed-cluster-failure-v1/install.command.json",
+          "bytes": 1750,
+          "sha256": "cdc292d226cbff0d04d0e68b0d5c4f28352e9ad679e85154dfd30ced757f9e11"
+        },
+        "stderr": {
+          "path": "/home/agent/evidence/fn232-installed-cluster-failure-v1/install.stderr",
+          "bytes": 179,
+          "sha256": "d1e1fd8b258fea6ee3dc251347bf3fdee97430c3e9459229b101112ac76f6af6"
+        },
+        "producer_exit": 1,
+        "install_exit": 2,
+        "scenarios_executed": false,
+        "reason": "Private HOME has no golang.org/x/sys v0.48.0 dependency; install compiler refuses module lookup with GOPROXY=off",
+        "status": "Causal prerequisite RED retained; dependency cache closure repair in progress"
+      },
+      "pending": [
+        "Broad original preservation receiving batch",
+        "Five unresolved original evidence references",
+        "Full frozen 96-stage / 146-obligation cycle",
+        "Remaining MILESTONES.md requirements"
+      ]
     }
   ],
   "resource_snapshot": {
