@@ -219,6 +219,8 @@ type Driver struct {
 	exchanges  map[*exchange]bool
 	activities []*workflowservice.TerminateActivityExecutionRequest
 	teardowns  []error
+	// unanswered are the task tokens of the tasks held because the Model did not answer them.
+	unanswered map[string]bool
 }
 
 func newDriver(opts Options) (*Driver, error) {
@@ -226,7 +228,7 @@ func newDriver(opts Options) (*Driver, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := &Driver{opts: opts, conn: conn, gate: newGate(opts.WorkerPollTimeout), exchanges: map[*exchange]bool{}, released: make(chan struct{})}
+	d := &Driver{opts: opts, conn: conn, gate: newGate(opts.WorkerPollTimeout), exchanges: map[*exchange]bool{}, released: make(chan struct{}), unanswered: map[string]bool{}}
 	d.ensureWorker = d.startWorker
 	return d, nil
 }
@@ -278,15 +280,6 @@ func (d *Driver) teardown(err error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.teardowns = append(d.teardowns, err)
-}
-
-func (d *Driver) isReleased() bool {
-	select {
-	case <-d.released:
-		return true
-	default:
-		return false
-	}
 }
 
 // Close cancels and joins the Driver's work. It refuses every held worker poll and cancels the

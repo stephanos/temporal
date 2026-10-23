@@ -164,15 +164,27 @@ func (x *fakeExchange) run(steps []step) {
 	defer close(x.events)
 	var next uint64
 	pending := 0
+	record := func(got decided) {
+		x.mu.Lock()
+		x.received = append(x.received, got)
+		x.mu.Unlock()
+	}
 	await := func() bool {
 		for ; pending > 0; pending-- {
 			select {
 			case got := <-x.decisions:
-				x.mu.Lock()
-				x.received = append(x.received, got)
-				x.mu.Unlock()
+				record(got)
 			case <-x.ctx.Done():
-				return false
+				// Respond accepted a decision before the Runner closed the exchange: the Driver
+				// received it, whichever of the two the select happened to see first.
+				for {
+					select {
+					case got := <-x.decisions:
+						record(got)
+					default:
+						return false
+					}
+				}
 			}
 		}
 		return true

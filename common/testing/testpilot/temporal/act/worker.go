@@ -345,32 +345,36 @@ func (d *Driver) execute(ctx context.Context, _ converter.EncodedValues) (conver
 func (d *Driver) deliver(ctx context.Context, token []byte) (converter.RawValue, error) {
 	w, task := d.gate.claim(token)
 	if w == nil {
-		return d.hold(ctx)
+		return d.hold(ctx, token)
 	}
 	defer d.gate.finish(w)
 	c := &workerCall{task: task, reply: make(chan decision, 1)}
 	select {
 	case w.x.calls <- c:
 	case <-w.x.ctx.Done():
-		return d.hold(ctx)
+		return d.hold(ctx, token)
 	case <-ctx.Done():
 		return converter.RawValue{}, ctx.Err()
 	}
 	select {
 	case got := <-c.reply:
 		if got.Refusal != nil {
-			return d.hold(ctx)
+			return d.hold(ctx, token)
 		}
 		return got.delivery.value, got.delivery.err
 	case <-w.x.ctx.Done():
-		return d.hold(ctx)
+		return d.hold(ctx, token)
 	case <-ctx.Done():
 		return converter.RawValue{}, ctx.Err()
 	}
 }
 
-// hold keeps an activity the Model did not answer until the Driver releases it.
-func (d *Driver) hold(ctx context.Context) (converter.RawValue, error) {
+// hold keeps an activity the Model did not answer until the Driver releases it, and remembers
+// its task token so a response the SDK completes for it is a teardown fault.
+func (d *Driver) hold(ctx context.Context, token []byte) (converter.RawValue, error) {
+	d.mu.Lock()
+	d.unanswered[string(token)] = true
+	d.mu.Unlock()
 	select {
 	case <-d.released:
 		return converter.RawValue{}, errReleased
@@ -383,19 +387,27 @@ func (d *Driver) hold(ctx context.Context) (converter.RawValue, error) {
 var errReleased = errors.New("the Run ended without the Model answering this task")
 
 // observeResponses records a worker response the SDK completed for a task the Model did not
-// answer: a teardown fault, never evidence.
+// answer, matched by its task token: a teardown fault, never evidence. A response carrying the
+// Model's own reply is never one, however late it completes.
 func (d *Driver) observeResponses(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	err := invoke(ctx, method, req, reply, cc, opts...)
 	switch method {
 	case workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName,
 		workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName,
 		workflowservice.WorkflowService_RespondActivityTaskCanceled_FullMethodName:
-		if err == nil && d.isReleased() {
-			d.teardown(fmt.Errorf("the SDK completed a task after the Run with %s", method[strings.LastIndexByte(method, '/')+1:]))
+		response, ok := req.(interface{ GetTaskToken() []byte })
+		if err == nil && ok && d.wasUnanswered(response.GetTaskToken()) {
+			d.teardown(fmt.Errorf("the SDK completed a task the Model did not answer with %s", method[strings.LastIndexByte(method, '/')+1:]))
 		}
 	default:
 	}
 	return err
+}
+
+func (d *Driver) wasUnanswered(token []byte) bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.unanswered[string(token)]
 }
 
 // startWorker starts the Driver's SDK worker once, when a read first lets it take a task.

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/testing/await"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -100,6 +101,8 @@ func TestAWorkerTaskIsTakenOnlyBetweenReadsAndPausesThem(t *testing.T) {
 	require.Equal(t, runner.EventObservation, first.Kind)
 	requireBlocked(t, polled, "a poll before the Model asked to continue")
 	require.NoError(t, x.Respond(t.Context(), first.ID, explained(true)))
+	continueUntil(t, x, func() bool { return holding(d) })
+	reads := len(server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName))
 	require.NoError(t, requireReturns(t, polled, "the admitted poll"))
 	type result struct {
 		payload *commonpb.Payload
@@ -118,7 +121,7 @@ func TestAWorkerTaskIsTakenOnlyBetweenReadsAndPausesThem(t *testing.T) {
 	got := new(workflowservice.PollActivityTaskQueueResponse)
 	require.NoError(t, envelope.GetTask().UnmarshalTo(got))
 	require.Equal(t, []byte("token"), got.GetTaskToken(), "the callback carries the captured task")
-	require.Len(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName), 1, "reads pause while a task is unanswered")
+	require.Len(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName), reads, "reads pause while a task is unanswered")
 	payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}
 	require.NoError(t, x.Respond(t.Context(), callback.ID, completedReplyFor(t, payload)))
 	answered := requireReturns(t, delivered, "the activity")
@@ -139,12 +142,13 @@ func TestAnEmptyPollResumesReads(t *testing.T) {
 	polled := make(chan error, 1)
 	go func() { polled <- poll(t.Context(), d, nil) }()
 	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+	continueUntil(t, x, func() bool { return len(polled) > 0 })
 	require.NoError(t, requireReturns(t, polled, "the empty poll"))
 	second := next(t, x)
 	require.Equal(t, runner.EventObservation, second.Kind, "an empty poll resumes reads")
 	go func() { polled <- poll(t.Context(), d, task("token")) }()
 	require.NoError(t, x.Respond(t.Context(), second.ID, explained(true)))
+	continueUntil(t, x, func() bool { return holding(d) })
 	require.NoError(t, requireReturns(t, polled, "the poll of the next window"))
 	go func() { _, _ = d.deliver(t.Context(), []byte("token")) }()
 	require.Equal(t, runner.EventCallback, next(t, x).Kind, "the next window still admits a task")
@@ -245,21 +249,43 @@ func TestNoReadWhilePollsEndAtOnce(t *testing.T) {
 
 func TestCloseRefusesHeldPollsAndCancelsTheAdmittedOne(t *testing.T) {
 	d := testDriver(t, describing(t).address, Options{})
+	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
+	admitted := make(chan error, 1)
+	go func() { admitted <- pollWith(t.Context(), d, hang) }()
+	// Only once the hanging poll holds the gate does a second one start, so it can only be held.
+	continueUntil(t, x, func() bool { return holding(d) })
 	held := make(chan error, 1)
 	go func() { held <- poll(t.Context(), d, nil) }()
-	admitted := make(chan error, 1)
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	go func() { admitted <- pollWith(t.Context(), d, hang) }()
-	require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+	requireBlocked(t, held, "a poll while another is admitted")
 	began := time.Now()
 	require.NoError(t, d.Close())
 	require.Less(t, time.Since(began), 5*time.Second)
-	errs := []error{requireReturns(t, held, "a poll"), requireReturns(t, admitted, "a poll")}
-	for _, err := range errs {
-		require.Contains(t, []codes.Code{codes.Canceled}, status.Code(err), "%v", err)
-	}
+	require.ErrorIs(t, requireReturns(t, held, "the held poll"), errStopped)
+	require.Equal(t, codes.Canceled, status.Code(requireReturns(t, admitted, "the admitted poll")))
 	requireClosed(t, x)
 	require.ErrorIs(t, poll(t.Context(), d, nil), errStopped, "a poll after Close is refused at once")
+}
+
+// continueUntil answers every Observation with continue until ready holds. A window closes after
+// the poll interval when the poller has not reached the gate yet; the next continued read opens
+// another, so a test waits for the gate's state rather than assuming the first window admits.
+func continueUntil(t *testing.T, x runner.Exchange, ready func() bool) {
+	t.Helper()
+	for !ready() {
+		select {
+		case event, open := <-x.Events():
+			require.True(t, open, "the event stream closed")
+			require.Equal(t, runner.EventObservation, event.Kind, "event: %+v", event)
+			require.NoError(t, x.Respond(t.Context(), event.ID, explained(true)))
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+}
+
+func holding(d *Driver) bool {
+	d.gate.mu.Lock()
+	defer d.gate.mu.Unlock()
+	return d.gate.held != nil
 }
 
 func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
@@ -274,7 +300,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				done := make(chan error, 1)
 				go func() { done <- pollWith(t.Context(), d, hang) }()
-				require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+				continueUntil(t, x, func() bool { return holding(d) })
 				return done
 			},
 			fault: "read timeout without Model acceptance",
@@ -284,7 +310,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				done := make(chan error, 1)
 				go func() { done <- poll(t.Context(), d, task("token")) }()
-				require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+				continueUntil(t, x, func() bool { return holding(d) })
 				require.NoError(t, requireReturns(t, done, "the poll"))
 				return nil
 			},
@@ -295,7 +321,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				polled := make(chan error, 1)
 				go func() { polled <- poll(t.Context(), d, task("token")) }()
-				require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+				continueUntil(t, x, func() bool { return holding(d) })
 				require.NoError(t, requireReturns(t, polled, "the poll"))
 				done := make(chan error, 1)
 				go func() {
@@ -311,7 +337,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 	for _, w := range waits {
 		t.Run(w.name+"/read timeout", func(t *testing.T) {
 			d := testDriver(t, describing(t).address, Options{})
-			x := start(t, d, 1, describeInstruction(t, 300*time.Millisecond, 1))
+			x := start(t, d, 1, describeInstruction(t, 2*time.Second, 1))
 			activity := w.setup(t, d, x)
 			event := next(t, x)
 			require.Equal(t, runner.EventFault, event.Kind)
@@ -346,7 +372,7 @@ func TestTheDriverNeverAnswersATaskTheModelDidNot(t *testing.T) {
 		polled := make(chan error, 1)
 		go func() { polled <- poll(t.Context(), d, task("token")) }()
 		x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-		require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+		continueUntil(t, x, func() bool { return holding(d) })
 		require.NoError(t, requireReturns(t, polled, "the poll"))
 		delivered := make(chan error, 1)
 		go func() {
@@ -379,7 +405,7 @@ func TestAnUncapturedTaskIsRefusedBeforeAnswer(t *testing.T) {
 	polled := make(chan error, 1)
 	go func() { polled <- poll(t.Context(), d, task("token")) }()
 	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	require.NoError(t, x.Respond(t.Context(), next(t, x).ID, explained(true)))
+	continueUntil(t, x, func() bool { return holding(d) })
 	require.NoError(t, requireReturns(t, polled, "the poll"))
 	go func() { _, _ = d.deliver(t.Context(), []byte("another token")) }()
 	event := next(t, x)
@@ -462,14 +488,46 @@ func TestCloseTerminatesWhatTheDriverStarted(t *testing.T) {
 	})
 }
 
-func TestALateSDKResponseIsATeardownFault(t *testing.T) {
-	d := testDriver(t, unreachable(t), Options{})
-	respond := func(error) error {
-		return d.observeResponses(t.Context(), workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName, nil, nil, nil,
-			func(context.Context, string, any, any, *grpc.ClientConn, ...grpc.CallOption) error { return nil })
+// TestOnlyAResponseToAnUnansweredTaskIsATeardownFault: a Run that ends right after an Answer may
+// close while the SDK still sends the Model's reply; that response is the Model's own, however
+// late. Only a response for a task held because the Model did not answer it is a fault.
+func TestOnlyAResponseToAnUnansweredTaskIsATeardownFault(t *testing.T) {
+	d := testDriver(t, describing(t).address, Options{})
+	polled := make(chan error, 1)
+	go func() { polled <- poll(t.Context(), d, task("answered")) }()
+	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
+	continueUntil(t, x, func() bool { return holding(d) })
+	require.NoError(t, requireReturns(t, polled, "the poll"))
+	delivered := make(chan error, 1)
+	go func() {
+		_, err := d.deliver(t.Context(), []byte("answered"))
+		delivered <- err
+	}()
+	callback := next(t, x)
+	require.NoError(t, x.Respond(t.Context(), callback.ID, completedReplyFor(t, &commonpb.Payload{Data: []byte("Complete")})))
+	require.NoError(t, requireReturns(t, delivered, "the answered task"))
+	unanswered := make(chan error, 1)
+	go func() {
+		_, err := d.deliver(t.Context(), []byte("unanswered"))
+		unanswered <- err
+	}()
+	await.RequireTrue(t, func() bool { return d.wasUnanswered([]byte("unanswered")) }, 30*time.Second, time.Millisecond)
+	respond := func(token string) {
+		require.NoError(t, d.observeResponses(t.Context(), workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName,
+			&workflowservice.RespondActivityTaskCompletedRequest{TaskToken: []byte(token)}, nil, nil,
+			func(context.Context, string, any, any, *grpc.ClientConn, ...grpc.CallOption) error { return nil }))
 	}
-	require.NoError(t, respond(nil), "a response before Close is the Model's reply")
-	d.releaseOnce.Do(func() { close(d.released) })
-	require.NoError(t, respond(nil))
-	require.ErrorContains(t, d.Close(), "the SDK completed a task after the Run with RespondActivityTaskFailed")
+	require.NoError(t, d.Close())
+	require.ErrorIs(t, requireReturns(t, unanswered, "the unanswered task"), errReleased)
+	faults := func() []error {
+		d.mu.Lock()
+		defer d.mu.Unlock()
+		return append([]error(nil), d.teardowns...)
+	}
+	// Both responses complete after the release, as an in-flight reply can.
+	respond("answered")
+	require.Empty(t, faults(), "the Model's own reply completing after the Run is no fault")
+	respond("unanswered")
+	require.Len(t, faults(), 1)
+	require.ErrorContains(t, faults()[0], "the SDK completed a task the Model did not answer with RespondActivityTaskCompleted")
 }
