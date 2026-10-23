@@ -101,6 +101,7 @@ fn short_markers_are_forwarded_before_guest_waits_for_controller_release() {
                 ),
             );
             store.limiter(|state| &mut state.limits);
+            store.data_mut().helper_owned = true;
             store.set_fuel(10000).unwrap();
             let instance = linker.instantiate(&mut store, &module).unwrap();
             let start = instance

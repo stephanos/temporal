@@ -886,6 +886,7 @@ mod inspection_differential {
             write_scratch: crate::protocol::WriteBuffers::default(),
             broker: Some(member),
             network: None,
+            helper_owned: false,
         }
     }
 

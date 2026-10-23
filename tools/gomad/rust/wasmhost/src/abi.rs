@@ -453,7 +453,14 @@ pub fn invoke(
             .namespace
             .as_ref()
             .is_some_and(|namespace| namespace.standard_output(get(0)));
-    if guest.caller.data().namespace.is_some() && op.is_namespace() && !remote_output {
+    // The protocol transport keeps stock sockets on its remote callback owner.
+    let remote_socket = matches!(op, Operation::SockAccept | Operation::SockShutdown)
+        && !guest.caller.data().helper_owned;
+    if guest.caller.data().namespace.is_some()
+        && op.is_namespace()
+        && !remote_output
+        && !remote_socket
+    {
         #[cfg(feature = "diagnostic-profile")]
         serve(Owner::Namespace);
         return invoke_namespace(&mut guest, op, params, results);
