@@ -1,0 +1,72 @@
+{
+  "schema": "gomad.fn232-core-source-checkpoint/v1",
+  "source_checkpoint": "ff3ec5944309448ecfa945d7d114336f0383190c",
+  "review": {
+    "checkpoint": "38014a8d39358cb592183bdf82f385b231110324",
+    "verdict": "SOURCE_READY",
+    "scope": "Boot network admission, held-peer drain, retained presence, scenario envelope, dual Cargo ignored-test ownership and typed reader composition",
+    "native_execution_verified_by_review": false
+  },
+  "changes": {
+    "network": "Compare shared connection_bytes and stall_nanos against each selected incarnation before linked preparation; collect13 cases with11 original counterparts and2 controls. Unused boot definition mismatch remains unreceived.",
+    "drain": "Keep original production join loop at control-free drain_running seam; measure actual held owned worker publication and actual Broker entry attempts. Retired IPC grammar receives no credit.",
+    "presence": "Authenticate40 variant/spelling cases through actual Store and Inputs decoder. Retired inline Record/Boots/OutputStops representations remain unreceived.",
+    "scenario": "Prepare recipe seed0 independently of execution bind seed7/19; declare grouped crash boundaries required by actual normalizer. No parser relaxation.",
+    "static_ignored": "Resolve each ignored declaration using authenticated Cargo crate/source target; all29 records retain closed final routes and separate actual execution obligations."
+  },
+  "verification": {
+    "focused_python": {
+      "passed": 28,
+      "failed": 0,
+      "kind": "synthetic reader/coordinator regressions; no guest execution"
+    },
+    "static_owner_previous": {
+      "passed": 16,
+      "failed": 0
+    },
+    "full_python_previous": {
+      "passed": 439,
+      "failed": 0,
+      "current_full_rerun": "PENDING measurement quiet window release"
+    },
+    "new_rust_tests": "NOT_RUN; waiting measurement quiet window release",
+    "backend_regressions": "Three test-only regressions added; actual behavioral RED execution pending before production backend v2 fix",
+    "prior_release_build": {
+      "candidate": "2c73f13901",
+      "exit": 0,
+      "seconds": 41.56
+    },
+    "prior_actual_go": {
+      "candidate": "2c73f13901",
+      "exit": 101,
+      "seconds": 24.203,
+      "prepared_families": 5,
+      "executed_variants": 0,
+      "required_variants": 11,
+      "failure": "scenario normalization refused unsupported control plan after every genuine preparation succeeded; source envelope repair not yet rerun"
+    }
+  },
+  "evidence": {
+    "/home/agent/evidence/fn232-core-counterfactual/broad-release-build-v1/process.json": {
+      "bytes": 436,
+      "sha256": "d5ad9f2e025f920c3a36cb57ca7d54d098463eca4b92c9c93a3c53498fa732d9"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/process.json": {
+      "bytes": 438,
+      "sha256": "3eafc03d87c5716577ceb005e6f150cfb4457f0e7a186c57d95e738a8a221582"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/test.stdout": {
+      "bytes": 1318,
+      "sha256": "b98372747a944400794096363bbb00199e7ad324abbbe650ca1fea51b54f5953"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/broad-guests-v1/test.stderr": {
+      "bytes": 1521,
+      "sha256": "285426ee144def3b851920b4971dbd6a667ff59727d29d1a33c1aaa09e514617"
+    },
+    "/home/agent/evidence/fn232-core-counterfactual/broad-static-owner-v1.log": {
+      "bytes": 116,
+      "sha256": "1731f740a074b9b23bc76ff3a1ec6ce5715984550d783827bde8597e08be463c"
+    }
+  },
+  "broad_stage_status": "REFUSED where any original predicate remains unreceived; no78/46/24 aggregate PASS or final qualification credit"
+}
