@@ -163,12 +163,19 @@ fn reference_shape(reference: &str) -> bool {
     let Some((kind, tail)) = reference.split_once(':') else {
         return false;
     };
+    if kind == "migration" {
+        return tail.starts_with("go:internal/backends/wasm/wasi:") && reference_shape(tail);
+    }
     let path = match kind {
         "go" | "rust" => {
             let Some((path, name)) = tail.split_once(':') else {
                 return false;
             };
-            if name.is_empty() {
+            if name.is_empty()
+                || !name
+                    .chars()
+                    .all(|value| value.is_alphanumeric() || value == '_')
+            {
                 return false;
             }
             path
@@ -1841,6 +1848,23 @@ fn appended_retired_identity_cannot_reuse_an_existing_site() {
 mod evidence_inventory;
 #[path = "inventory/evidence_migrations.rs"]
 mod evidence_migrations;
+
+#[test]
+fn inventory_admits_only_retired_go_migration_reference_shapes() {
+    parse(INVENTORY).unwrap();
+    assert!(reference_shape(
+        "migration:go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted"
+    ));
+    for reference in [
+        "migration:migration:go:internal/backends/wasm/wasi:TestMissing",
+        "migration:rust:tests/inventory.rs:test",
+        "migration:go:internal/model/wasi:TestMissing",
+        "migration:go:internal/backends/wasm/wasi:",
+        "migration:go:internal/backends/wasm/wasi:../TestMissing",
+    ] {
+        assert!(!reference_shape(reference), "{reference}");
+    }
+}
 
 #[test]
 fn inventory_rejects_invalid_stable_ids_and_reference_paths() {

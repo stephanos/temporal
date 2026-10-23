@@ -80,7 +80,8 @@ struct Contract {
 #[serde(deny_unknown_fields)]
 struct Assertion {
     id: String,
-    original_assertion: String,
+    #[serde(rename = "original_assertion")]
+    description: String,
     disposition: String,
     reason: String,
     receiving_tests: Vec<String>,
@@ -90,7 +91,7 @@ struct Assertion {
 fn original_assertions_hash(assertions: &[Assertion]) -> String {
     let mut hash = Sha256::new();
     for assertion in assertions {
-        for text in [&assertion.id, &assertion.original_assertion] {
+        for text in [&assertion.id, &assertion.description] {
             hash.update((text.len() as u64).to_le_bytes());
             hash.update(text.as_bytes());
         }
@@ -137,7 +138,7 @@ fn parse_migrations(text: &str, module: &Path) -> Result<Migrations, String> {
         for assertion in &contract.assertions {
             if assertion.id.is_empty()
                 || !ids.insert(&assertion.id)
-                || assertion.original_assertion.is_empty()
+                || assertion.description.is_empty()
                 || assertion.reason.is_empty()
                 || !matches!(
                     assertion.disposition.as_str(),
