@@ -38,3 +38,28 @@ Focused helper-custody tests pass in
 `measurement-reference-helper-root-source-custody.log`; all eleven reference
 controller tests pass in `measurement-reference-helper-root-source-green.log`.
 No previous helper build receipt is modified.
+
+Independent actual-read review found that historical `derived-v2` changed one
+original symlink literal from `./versioned/v15/index_template_v7.json` to the same
+path without `./`. The previous verifier accepted its matching manifest and tree
+without comparing them to the original archive. Its actual unsafe acceptance is
+retained in `measurement-reference-v2-source-custody-red.log`; the old source and
+runtime records remain unchanged. The three-leg v3 records establish raw behavior
+matching, with an original-source custody gap, rather than accepted exact-original
+source execution.
+
+The verifier now reuses the original-ringpop closed archive/source inventories,
+permits only the pinned invocation-glue addition, checks the immutable archive
+revision, file/directory modes, and closed directory membership. Coherent changes
+to both manifest and symlink/file, a mode change, and an extra empty directory fail.
+The causal fixture failed before the repair, then passed; all 318 driver tests
+passed in `measurement-reference-archive-binding-driver.log`. An actual read now
+refuses old v2 and accepts fresh literal-preserving v3, recorded in
+`measurement-reference-archive-binding-actual-read.log`.
+
+The fresh derivation also independently compares all 9,690 archive payloads with
+Git blobs and actual source bytes/modes, including both literal symlinks. The one
+`160000` gitlink is explicitly unexpanded. The full proof is
+`derived-v3-git-archive-source-custody.json` under the owned checkout runtime-v2
+preparation root. A fresh Go harness build and ownership-pair rerun are still
+required before exact-original runtime acceptance.

@@ -231,6 +231,42 @@ class OriginalSourceCustody(unittest.TestCase):
                 reference.verify(directory)
             extra.unlink()
             reference.verify(directory)
+            manifest_path = directory / 'source.json'
+            manifest_raw = manifest_path.read_bytes()
+            literal = source / 'schema/elasticsearch/visibility/index_template_v7.json'
+            original_target = os.readlink(literal)
+            self.assertTrue(original_target.startswith('./'))
+            literal.unlink()
+            literal.symlink_to(original_target[2:])
+            modified = copy.deepcopy(manifest)
+            modified['original_files'][str(literal.relative_to(source))]['target'] = original_target[2:]
+            manifest_path.write_bytes(reference.custody.canonical(modified))
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            literal.unlink()
+            literal.symlink_to(original_target)
+            manifest_path.write_bytes(manifest_raw)
+            original_raw = original.read_bytes()
+            original.write_bytes(original_raw + b'\n')
+            modified = copy.deepcopy(manifest)
+            modified['original_files'][str(original.relative_to(source))] = dict(kind='file',
+                **reference.custody.snapshot(original, 1 << 20))
+            manifest_path.write_bytes(reference.custody.canonical(modified))
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            original.write_bytes(original_raw)
+            manifest_path.write_bytes(manifest_raw)
+            mode = original.stat().st_mode & 0o777
+            original.chmod(mode ^ 0o100)
+            with self.assertRaisesRegex(ValueError, 'mode'):
+                reference.verify(directory)
+            original.chmod(mode)
+            extra_directory = source / 'undeclared-empty-directory'
+            extra_directory.mkdir()
+            with self.assertRaisesRegex(ValueError, 'archive'):
+                reference.verify(directory)
+            extra_directory.rmdir()
+            reference.verify(directory)
 
 class HelperCopyCustody(unittest.TestCase):
     def test_helper_source_inventory_requires_missing_and_extra_tracked_members(self):
