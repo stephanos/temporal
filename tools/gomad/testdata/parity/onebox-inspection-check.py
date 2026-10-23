@@ -93,6 +93,18 @@ def authenticate_payloads(artifact):
     return manifest
 
 
+def failure_artifact(root):
+    failures = []
+    for path in root.rglob('manifest.json'):
+        manifest = json.loads(read(path, 32 << 20))
+        outcome = manifest['record']['outcome']['class']
+        require(outcome in ('prepared', 'target_failure'), 'unexpected retained execution outcome')
+        if outcome == 'target_failure':
+            failures.append(path.parent)
+    require(len(failures) == 1, 'ambiguous or missing retained failure')
+    return failures[0]
+
+
 def validate_debug(root, report):
     require(report['status'] == 'inspected_prefix' and report['prefix_verified'] is True
             and report['witness_match'] is True and report['truncated'] is False, 'inspection prefix/witness mismatch')
@@ -120,11 +132,15 @@ def validate_debug(root, report):
 
 
 class Gate:
-    def __init__(self, root, binary, repo):
+    def __init__(self, root, binary, repo, private_observations=None):
         self.root, self.binary, self.repo = root, binary, repo
+        self.private_observations = private_observations
         self.commands = []
         self.environment = {key: value for key, value in os.environ.items()
-                            if not key.startswith('GOMAD_') and key not in ('GOROOT', 'GOFLAGS', 'GOEXPERIMENT')}
+                            if (not key.startswith('GOMAD_') or key in (
+                                'GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', 'GOMAD_WASM_TEMPORAL_BUILD_CACHE',
+                                'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES'))
+                            and key not in ('GOROOT', 'GOFLAGS', 'GOEXPERIMENT')}
 
     def run(self, name, command, expected, timeout, json_output=False, detached=False):
         command = list(map(str, command))
@@ -137,6 +153,7 @@ class Gate:
         started = datetime.now(timezone.utc).isoformat()
         clock = time.monotonic()
         timed_out = False
+        private_seal, capture_error = None, None
         with stdout.open('xb') as out, stderr.open('xb') as err:
             os.fchmod(out.fileno(), 0o600)
             os.fchmod(err.fileno(), 0o600)
@@ -148,18 +165,39 @@ class Gate:
                 timed_out = True
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
-        receipt = dict(name=name, command=command, exit=process.returncode, timed_out=timed_out,
+        if self.private_observations is not None and name == 'explore' and not timed_out and process.returncode == expected:
+            try:
+                private_seal = producer.observation_module().from_command(
+                    self.private_observations, process.pid, command, read(stdout, 32 << 20))
+            except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+                capture_error = str(error)
+        receipt = dict(name=name, command=command, pid=process.pid, exit=process.returncode, timed_out=timed_out,
                        started=started, ended=datetime.now(timezone.utc).isoformat(),
                        elapsed_seconds=time.monotonic() - clock, timeout_seconds=timeout,
                        environment_intent=dict(mandatory_workloads=False, detached=detached),
+                       environment={key: value for key, value in environment.items() if key.startswith('GOMAD_')},
                        stdout=str(stdout), stderr=str(stderr), stdout_sha256=digest(stdout), stderr_sha256=digest(stderr))
+        if private_seal is not None:
+            receipt['private_observations'] = private_seal
+        if capture_error is not None:
+            receipt['private_observations_error'] = capture_error
         producer.write(self.root / (name + '.command.json'), receipt)
         self.commands.append(receipt)
         require(not timed_out and process.returncode == expected,
                 f'{name} exit {process.returncode}, expected {expected}; logs: {stdout}, {stderr}')
+        require(capture_error is None, 'private preparation capture refused: ' + str(capture_error))
         if json_output:
-            return json.loads(read(stdout, 32 << 20))
+            raw = read(stdout, 32 << 20)
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                return [json.loads(line) for line in raw.splitlines() if line][-1]
         return read(stdout, 32 << 20)
+
+    def verify_private(self):
+        if self.private_observations is not None:
+            explored = next(row for row in self.commands if row['name'] == 'explore')
+            producer.observation_module().verify_snapshot(self.private_observations, explored['pid'], explored['private_observations'])
 
     def replay(self, name, artifact):
         stdout = self.run(name, [self.binary, 'replay', artifact], 1, 1800, detached=True)
@@ -167,15 +205,16 @@ class Gate:
                 'detached replay did not match the complete retained failure')
 
 
-def explore_command(binary, installation, root, repo, stage, scenario):
+def explore_command(binary, installation, root, repo, stage, scenario, guest_profile=''):
     command = [binary, '--installation', installation, 'explore', '--json', '--seeds', '7', '--parallel', '1',
                '--execution-timeout', '30m', '--overall-timeout', '45m', '--terminate-grace', '1s',
                '--on-failure', 'first', '--failure-budget', '1', '--output-limit', str(1 << 20),
-               '--world-transition-limit', str(1 << 20), '--choice-bytes', '0', '--scenario', scenario,
+               '--world-transition-limit', str(1 << 20), '--scenario', scenario,
                '--artifacts', root / 'artifacts']
     for entry in ('GOMAD_DEBUG_CANARY=1', 'TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TEMPORAL_TEST_LOG_LEVEL=warn'):
         command += ['--env', entry]
-    for tag in workloads.TAGS + ['gomad']:
+    tags = workloads.guest_build_tags(guest_profile) if guest_profile else workloads.TAGS
+    for tag in tags + ['gomad']:
         command += ['--build-tag', tag]
     return command + ['--working-dir', repo, 'go-test', './' + str(stage.relative_to(repo)), '--',
                       '-test.run=^TestReplayInspectionWorkflowFailure$', '-test.v']
@@ -196,10 +235,32 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'repo', 'root', 'compiler', 'runtime-root', 'cache', 'captured-config'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--private-observation-config', type=Path)
     args = parser.parse_args()
     binary, repo, root = args.binary.resolve(strict=True), args.repo.resolve(strict=True), args.root.resolve()
+    private_observations = producer.private_configuration(args.private_observation_config, binary, repo, root) if args.private_observation_config else None
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
-    gate = Gate(root, binary, repo)
+    if private_observations is not None:
+        producer.owned_root(root)
+        producer.private_admission(private_observations, root)
+    gate = Gate(root, binary, repo, private_observations)
+    guest_profile = gate.environment.get('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE', '')
+    cache_override = gate.environment.get('GOMAD_WASM_TEMPORAL_BUILD_CACHE', '')
+    minimum = gate.environment.get('GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES', '')
+    if guest_profile or cache_override or minimum:
+        workloads.guest_build_tags(guest_profile)
+        requested_cache = producer.qualification_build_cache(root, cache_override or str(args.cache))
+        require(requested_cache == args.cache, 'private compiler-cache override differs from frozen --cache')
+        controls = dict(guest_profile=guest_profile, requested_build_cache=str(requested_cache),
+                        build_cache=str(args.cache.resolve()), memory_minimum=minimum)
+        try:
+            controls['memory'] = producer.memory_admission(sys.platform, Path('/proc/meminfo'), minimum,
+                                                           retained_raw=root / 'host-memory.raw')
+        except (ValueError, OSError) as error:
+            controls['memory_error'] = str(error)
+            producer.write(root / 'qualification-controls.json', controls)
+            raise
+        producer.write(root / 'qualification-controls.json', controls)
     binary_digest = digest(binary)
     compiler = args.compiler.resolve(strict=True)
     require(compiler.name == 'go' and compiler.parent.name == 'bin', 'stock compiler distribution bin/go required')
@@ -217,12 +278,10 @@ def main():
     gate.run('install', [binary, 'install', '--compiler', private / 'compiler/bin/go', '--runtime-root', private / 'runtime',
                         '--cache', args.cache.resolve(), '--output', installation, '--profile', 'gomad.wasi-cooperative/v1',
                         '--config', policy, '--fuel', str(1 << 50), '--memory-bytes', str(4 << 30)], 0, 600)
-    response = gate.run('explore', explore_command(binary, installation, root, repo, stage, scenario), 1, 2700, True)
+    response = gate.run('explore', explore_command(binary, installation, root, repo, stage, scenario, guest_profile), 1, 2700, True)
     require((response['attempted'], response['failures'], response['retained_evidence']) == (1, 1, 1),
             'onebox must retain exactly one actual failure')
-    manifests = list((root / 'artifacts').rglob('manifest.json'))
-    require(len(manifests) == 1, 'ambiguous or missing retained failure')
-    artifact = manifests[0].parent
+    artifact = failure_artifact(root / 'artifacts')
     before = inventory(artifact)
     manifest = authenticate_payloads(artifact)
     detached = stage.with_name(stage.name + '-unavailable')
@@ -238,9 +297,11 @@ def main():
     gate.replay('reopened-replay', artifact)
     require(inventory(artifact) == before and authenticate_payloads(artifact) == manifest, 'reopen modified retained evidence')
     require(digest(binary) == binary_digest, 'release executable changed during gate')
+    gate.verify_private()
     receipt = root / 'inspection-receipt.json'
     producer.write(receipt, dict(schema='gomad.rust-temporal-inspection/v1', owner='onebox', artifact=str(artifact),
-        binary_sha256=binary_digest, source_detached=str(detached), private_inputs_detached=str(root / 'private-inputs-unavailable'),
+        binary_sha256=binary_digest, private_observation_config=(dict(path=private_observations['_config_path'],
+            sha256=private_observations['_config_sha256']) if private_observations is not None else None), source_detached=str(detached), private_inputs_detached=str(root / 'private-inputs-unavailable'),
         record_sha256=manifest['record_sha256'], report=report, artifact_sha256=before, diagnostic_sha256=diagnostics,
         commands={row['name']: dict(path=str(root / (row['name'] + '.command.json')),
                   sha256=digest(root / (row['name'] + '.command.json')), exit=row['exit']) for row in gate.commands},

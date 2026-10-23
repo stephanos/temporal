@@ -129,13 +129,76 @@ class InspectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'trace bound'):
             gate.authenticate_payloads(artifact)
 
+    def test_failure_selection_excludes_synthetic_preparation(self):
+        artifact, manifest, _ = self.artifact()
+        prepared = self.root / 'prepared'
+        prepared.mkdir()
+        (prepared / 'manifest.json').write_text(json.dumps(dict(record=dict(outcome={'class': 'prepared'}))))
+        self.assertEqual(gate.failure_artifact(self.root), artifact)
+        manifest['record']['outcome']['class'] = 'success'
+        (artifact / 'manifest.json').write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, 'unexpected retained'):
+            gate.failure_artifact(self.root)
+
+    def test_private_native_capture_binds_real_pid_and_verifies_same_snapshot(self):
+        private = {'frozen': 'context'}
+        lane = gate.Gate(self.root, Path(sys.executable), self.root, private)
+        observations = mock.Mock()
+        observations.from_command.return_value = {'sealed': 'actual preparation'}
+        command = [sys.executable, '-c', 'print("{}")']
+        with mock.patch.object(gate.producer, 'observation_module', return_value=observations, create=True):
+            lane.run('explore', command, 0, 10, json_output=True)
+            row = json.loads((self.root / 'explore.command.json').read_bytes())
+            self.assertGreater(row['pid'], 0)
+            observations.from_command.assert_called_once_with(private, row['pid'], command, b'{}\n')
+            self.assertEqual(row['private_observations'], {'sealed': 'actual preparation'})
+            lane.verify_private()
+            observations.verify_snapshot.assert_called_once_with(private, row['pid'], row['private_observations'])
+            observations.verify_snapshot.side_effect = ValueError('mutated private raw bytes')
+            with self.assertRaisesRegex(ValueError, 'mutated private'):
+                lane.verify_private()
+
+    def test_private_capture_refusal_keeps_real_exit_and_prevents_acceptance(self):
+        lane = gate.Gate(self.root, Path(sys.executable), self.root, {'frozen': 'context'})
+        observations = mock.Mock()
+        observations.from_command.side_effect = ValueError('foreign source')
+        with mock.patch.object(gate.producer, 'observation_module', return_value=observations, create=True):
+            with self.assertRaisesRegex(ValueError, 'private preparation capture refused'):
+                lane.run('explore', [sys.executable, '-c', 'print("{}")'], 0, 10)
+        row = json.loads((self.root / 'explore.command.json').read_bytes())
+        self.assertEqual(row['exit'], 0)
+        self.assertEqual(row['private_observations_error'], 'foreign source')
+        self.assertNotIn('private_observations', row)
+
+    def test_private_configuration_refusal_precedes_any_root_or_tool_mutation(self):
+        root = self.root / 'new-root'
+        arguments = ['onebox-inspection-check.py']
+        for name, path in [('binary', Path(sys.executable)), ('repo', self.root), ('root', root),
+                           ('compiler', self.root), ('runtime-root', self.root), ('cache', self.root),
+                           ('captured-config', self.root), ('private-observation-config', self.root / 'config')]:
+            arguments += ['--' + name, str(path)]
+        with mock.patch.object(sys, 'argv', arguments), mock.patch.object(gate.producer, 'private_configuration',
+                side_effect=ValueError('frozen candidate mismatch'), create=True):
+            with self.assertRaisesRegex(ValueError, 'frozen candidate mismatch'):
+                gate.main()
+        self.assertFalse(root.exists())
+
+    def test_only_existing_qualification_controls_survive_environment_filter(self):
+        controls = dict(GOMAD_WASM_QUALIFICATION_GUEST_PROFILE='full', GOMAD_WASM_TEMPORAL_BUILD_CACHE='/frozen/cache',
+                        GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES='1024')
+        with mock.patch.dict(gate.os.environ, dict(controls, GOMAD_WASM_QUALIFY_WORKLOADS='1', GOMAD_UNRELATED='unadmitted')):
+            lane = gate.Gate(self.root, Path('/release'), self.root)
+        self.assertEqual({key: value for key, value in lane.environment.items() if key.startswith('GOMAD_')}, controls)
+
     def test_original_selection_scenario_policy_and_zero_caller_override(self):
         command = list(map(str, gate.explore_command(Path('/release'), Path('/installation'), self.root,
                        Path('/repo'), Path('/repo/service/history/private'), Path('/scenario'))))
-        for flag, value in (('--choice-bytes', '0'), ('--execution-timeout', '30m'), ('--overall-timeout', '45m'),
+        for flag, value in (('--execution-timeout', '30m'), ('--overall-timeout', '45m'),
                             ('--terminate-grace', '1s'), ('--parallel', '1'), ('--output-limit', str(1 << 20)),
                             ('--world-transition-limit', str(1 << 20))):
             self.assertEqual(command[command.index(flag) + 1], value)
+        self.assertNotIn('--choices', command)
+        self.assertNotIn('--choice-bytes', command)
         self.assertEqual(command[-3:], ['--', '-test.run=^TestReplayInspectionWorkflowFailure$', '-test.v'])
         self.assertEqual([command[i + 1] for i, value in enumerate(command) if value == '--build-tag'], gate.workloads.TAGS + ['gomad'])
         scenario = gate.workloads.inspection_scenario(command[-2:])
