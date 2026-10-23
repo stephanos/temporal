@@ -191,10 +191,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestProviderRejectsEmptyModelIdentity": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad_wasmhost/model::replay::tests::replay_preflight_accepts_empty_and_preserves_following_json"
-   ]
+   "retired": "Go provider received a caller model identity; the Rust host has no caller model identity, the linked helper derives it."
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestReplayRejectsChangedArtifactIdentityBeforeGuest": {
    "evidence": [
@@ -1316,10 +1313,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestRetainedV1ReplayIsRefusedBeforeResolvingInstallation": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/installed_lifecycle_tests::installed_lifecycle_replay_explicit_missing_installation_fails_before_execution"
-   ]
+   "retired": "Go-lineage v1 retained replay; the Rust lineage refuses every Go artifact (owner decision 2026-10-20), as for the other Go-lineage retirements."
   },
   "tools/gomad/internal/backends/wasm/command/discover_test.go#TestDiscoverAdvertisesOnlyExecutableScenarioSupport": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -1669,10 +1663,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticDriverSourcesExist": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/measurement_profile_corpus/actual_closed_native_run_publishes_explicit_canonical_stream_sources"
-   ]
+   "retired": "Checks that deleted Go diagnostic driver source files exist for their env-gated self-hashing; no Rust driver hashes Go sources."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticGuestAttributionRejectsMalformedTables": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -1858,20 +1849,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestWarmPreparationHistoricalTranscriptOwnerProjection": {
-   "evidence": [
-    "rust/gomad/measurement::warm::tests::historical_owner_bindings_may_differ_without_changing_shared_behavior"
-   ]
+   "retired": "Converts Go-lineage JSONL warm-preparation transcripts; Rust measurement reads no historical Go transcripts."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestWarmPreparationHistoricalTranscriptPreservesEmptyShape": {
-   "evidence": [
-    "rust/gomad/measurement::evidence::tests::native_shape_preserves_empty_arrays_empty_strings_and_absent_evidence"
-   ]
+   "retired": "Converts Go-lineage JSONL warm-preparation transcripts; Rust measurement reads no historical Go transcripts."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestWarmPreparationHistoricalTranscriptRefusesLostEvidence": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/measurement::warm::tests::historical_owner_bindings_may_differ_without_changing_shared_behavior"
-   ]
+   "retired": "Converts Go-lineage JSONL warm-preparation transcripts; Rust measurement reads no historical Go transcripts."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestCanonicalRemoteOperationClassification": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -1962,10 +1946,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestWarmPreparationHistoricalClockCountsAndPositions": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/measurement::warm::tests::historical_owner_bindings_may_differ_without_changing_shared_behavior"
-   ]
+   "retired": "Converts Go-lineage JSONL warm-preparation transcripts; Rust measurement reads no historical Go transcripts."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_test.go#TestWarmPreparationObservationPrivateFinishControls": {
    "evidence": [
@@ -2059,9 +2040,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/retention_test.go#TestHarnessRetentionRerunRecordsUseRequestedRoot": {
-   "evidence": [
-    "rust/gomad/measurement::stress_driver::tests::malformed_controls_fail_inside_the_parent_owned_stage_and_preserve_requested_rerun_root"
-   ]
+   "retired": "Go source lint over deleted Go measure sources (rerun record paths); no Rust source is linted by it."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/retention_test.go#TestHarnessRetentionRetainedConsumerPinsInputsUntilCollected": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -2085,10 +2064,7 @@
    "retired": "Go measurement fixture staging helper deleted; Rust module recipes stage fixtures through their own tested owner."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/run_test.go#TestProducersMatchCommand": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/measurement_profile_corpus/actual_measure_retained_command_preserves_requested_root_and_failed_diagnostics"
-   ]
+   "retired": "Go test-binary producer table must equal the deleted Go measurement command names; Rust has one gomad-measure command table."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/run_test.go#TestRunCancellationBeforeCollection": {
    "evidence": [
@@ -2192,10 +2168,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/stress_test.go#TestStressSummariesExcludeHelperEventOrder": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/stress::tests::first_event_precedes_later_changes_and_missing_log_cannot_pass"
-   ]
+   "retired": "Field omission of the deleted Go stress summary struct (OrderLog, inspection evidence); Rust stress reports have no such fields."
   },
   "tools/gomad/internal/backends/wasm/internal/measure/temporal_test.go#TestPrototypeTemporalConfigurationPreservesCaptureError": {
    "evidence": [
@@ -2589,10 +2562,7 @@
    "retired": "Tests temporalHostMemoryObserver, a helper defined in the Go test file itself for the deleted Go qualification stage-observer diagnostic; Rust qualify has no stage observer."
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryDiagnosticIsExplicitBoundedAndHostOnly": {
-   "basis": "manual mapping by worker A; confirm in review",
-   "evidence": [
-    "rust/gomad/measurement::host::tests::cold_preparation_memory_witnesses_are_unique_bounded_and_overflow_checked"
-   ]
+   "retired": "Tests temporalHostMemoryObserver, a helper defined in the Go test file itself for the deleted Go stage-observer diagnostic; Rust qualify has no stage observer."
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryPublicationErrorRetainsValidationStagePair": {
    "assertion_applicability": "No-fabrication half ported; the Go-only stage-observer pair (result.validate.before/after) has no Rust counterpart.",
@@ -3188,10 +3158,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/determinism_inventory_test.go#TestDeterminismInventoryMapOrderControls": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/engine/determinism_refuses_unknown_split_remote_reply_fields_and_kinds"
-   ]
+   "retired": "Inventories Go map-range sites of the deleted Go host; the map-order behaviours run in stage/cluster-functional."
   },
   "tools/gomad/internal/backends/wasm/wasi/determinism_inventory_test.go#TestDeterminismInventoryRejectedImportsAreRefused": {
    "evidence": [
@@ -3731,10 +3698,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestDiagnosticHelperStderrIsSeparateFromGuestEvidence": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad_wasmhost/volume::state::tests::allocation_write_and_sync_keep_link_separate_from_data"
-   ]
+   "retired": "Separates the subprocess helper stderr stream from guest evidence; the linked helper has no child stderr stream."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestHelperBuildPublishesConfiguredTarget": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -3909,10 +3873,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalGRPCDiagnosticFixtureStaging": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/measurement::module_recipes::tests::runtime_and_probe_compile_preserve_the_original_mapped_fixture_and_no_tags"
-   ]
+   "retired": "Stages fixtures for the deleted gRPC prototype diagnostic; no retained diagnostic uses them."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalGuestAdmission": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -3940,10 +3901,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalNamespaceStackFixtureStaging": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/gomad/measurement::module_recipes::tests::runtime_and_probe_compile_preserve_the_original_mapped_fixture_and_no_tags"
-   ]
+   "retired": "Stages fixtures for the deleted namespace-stack prototype diagnostic; no retained diagnostic uses them."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalNetworkNamedResetRetriesAndExactReplay": {
    "evidence": [
@@ -4246,10 +4204,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/replay_preflight_test.go#TestHelperInputTapeAttestsNextExpected": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
-   "evidence": [
-    "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
-   ]
+   "retired": "Attests the subprocess helper input tape frame; the linked helper takes the replay tape as a typed in-process value."
   },
   "tools/gomad/internal/backends/wasm/wasi/runtime_test.go#TestCooperativeEnvironmentSeparatesRuntimeControlFromWASIObservations": {
    "evidence": [
