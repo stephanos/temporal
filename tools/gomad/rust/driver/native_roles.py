@@ -148,7 +148,9 @@ def observation(path, argv, directory, environment):
             and type(value['pid']) is int and value['pid'] > 0 and value['exit_code'] == 0 and value['signal'] is None
             and value['termination'] == 'exit' and value['error'] is None and not value['cleanup_errors']
             and type(value['duration_nanos']) is int and value['duration_nanos'] > 0
-            and type(value['reaped_monotonic_nanos']) is int and value['reaped_monotonic_nanos'] > 0,
+            and value['clock'] == 'CLOCK_MONOTONIC' and type(value['parent_pid']) is int and value['parent_pid'] > 0
+            and type(value['started_monotonic_nanos']) is int and type(value['reaped_monotonic_nanos']) is int
+            and 0 < value['started_monotonic_nanos'] < value['reaped_monotonic_nanos'],
             'native command observation differs from actual fixed invocation')
     for stream in ('stdout', 'stderr'):
         stream_path = Path(path).with_suffix('.' + stream)
@@ -214,6 +216,7 @@ def validate_build(config, path, role):
         'cargo-path': ['rustup', 'which', '--toolchain', '1.99.1', 'cargo'],
         'rustc-version': [receipt['rustc'], '-vV'], 'cargo-version': [receipt['cargo'], '--version'],
         'cargo-build': receipt['command'], 'artifact-identity': [receipt['executable'], '--identity']}
+    parents = set()
     for name, argv in commands.items():
         for suffix in ('stdout', 'stderr', 'json'):
             command_path = logs / (name + '.' + suffix)
@@ -221,7 +224,9 @@ def validate_build(config, path, role):
         # Compiler discovery precedes native insertion of the exact RUSTC controls.
         actual_env = environment if name in ('cargo-build', 'artifact-identity') else {key:value for key,value in environment.items()
             if key not in ('RUSTC', 'RUSTC_WRAPPER', 'RUSTC_WORKSPACE_WRAPPER')}
-        observation(logs / (name + '.json'), argv, logs if name == 'artifact-identity' else receipt['crate_root'], actual_env)
+        observed = observation(logs / (name + '.json'), argv, logs if name == 'artifact-identity' else receipt['crate_root'], actual_env)
+        parents.add(observed['parent_pid'])
+    require(len(parents) == 1, 'native build commands borrowed another actual producer')
     require((logs / 'rustc-path.stdout').read_text().strip() == receipt['rustc']
             and (logs / 'cargo-path.stdout').read_text().strip() == receipt['cargo']
             and (logs / 'rustc-version.stdout').read_text() == receipt['rustc_version']

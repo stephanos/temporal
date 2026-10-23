@@ -175,6 +175,9 @@ def freeze(bindings, output, source_manifest):
     inputs.update((config['binary'], config['build_receipt']))
     inputs.update(native_bootstrap_inputs(config))
     inputs.update(native_profile_inputs(config))
+    if config.get('identity_harness') is not None:
+        import identity_harness
+        inputs.update(identity_harness.static_inputs(config))
     for token in config['stages']['sqlite-catalogue'].get('oracle') or []:
         if Path(token).is_absolute():
             require(Path(token).is_file() and not Path(token).is_symlink(), 'nonregular independent oracle input')
@@ -219,6 +222,8 @@ def freeze(bindings, output, source_manifest):
             native_roles.validate_admission(config, entry['admission'], role)
     import final_profiles
     final_profiles.preflight(config)
+    if config.get('identity_harness') is not None:
+        identity_harness.preflight(config)
     import primary_stages
     observed = dict(config, _config_path=str(output))
     for label, entry in config['stages'].items():

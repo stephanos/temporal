@@ -44,6 +44,19 @@ class ChildResourceContract(unittest.TestCase):
             os.kill(receipt['pid'], 0)
         return receipt
 
+    def test_optional_exact_environment_does_not_inherit_ambient_controls(self):
+        import json
+        exact={'PATH':'/usr/bin:/bin','LC_ALL':'C','ONLY':'frozen'}
+        with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'AMBIENT_COMPILER_HOOK':'foreign'}):
+            root=Path(directory)
+            raw=driver.command({'repo':directory},root,'exact',[sys.executable,'-c','import json,os; print(json.dumps(dict(os.environ)))'],timeout=5,exact_environment=exact)
+            self.assertEqual(json.loads(raw),exact)
+            receipt=self.check(root,'exact',0)
+            self.assertEqual(receipt['effective_environment'],exact)
+            self.assertEqual(receipt['environment_mode'],'exact')
+            driver.command({'repo':directory},root,'default',[sys.executable,'-c','pass'],timeout=5)
+            self.assertIsNone(driver.read(root/'default.command.json')['effective_environment'])
+
     def test_nested_actual_child_ancestry_and_shared_clock_enclosure(self):
         import copy
         import json

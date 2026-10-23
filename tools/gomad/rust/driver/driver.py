@@ -195,9 +195,12 @@ class MeasuredPopen(subprocess.Popen):
         return 0, 0
 
 
-def command(config, root, name, argv, accepted=(0,), timeout=None, private_observations=None):
+def command(config, root, name, argv, accepted=(0,), timeout=None, private_observations=None, exact_environment=None):
     require(argv and all(isinstance(arg, str) for arg in argv), 'invalid argv')
     require(private_observations is None or private_observations == config, 'foreign private observation context')
+    require(exact_environment is None or isinstance(exact_environment, dict)
+            and all(isinstance(key, str) and isinstance(value, str) for key, value in exact_environment.items()), 'invalid exact command environment')
+    effective_environment = clean_env(config) if exact_environment is None else dict(exact_environment)
     start = time.time_ns()
     observation, proc = 'completed', None
     private_seal = None
@@ -209,7 +212,7 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
             blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
             try:
                 launch = [sys.executable, str(HERE / 'launch.py'), str(read_gate), *argv]
-                proc = MeasuredPopen(launch, cwd=config['repo'], env=clean_env(config), stdout=stdout, stderr=stderr,
+                proc = MeasuredPopen(launch, cwd=config['repo'], env=effective_environment, stdout=stdout, stderr=stderr,
                                         start_new_session=True, pass_fds=(read_gate,))
                 process = dict(pid=proc.pid, stage_pid=os.getpid(), parent_pid=proc.parent_pid, active=True, argv=argv, start_ns=start,
                                clock='CLOCK_MONOTONIC', started_monotonic_nanos=proc.started_monotonic_nanos)
@@ -254,6 +257,8 @@ def command(config, root, name, argv, accepted=(0,), timeout=None, private_obser
                 save_process(process_path, process)
                 receipt = dict(argv=argv, cwd=config['repo'], pid=proc.pid, exit=proc.returncode,
                       environment=config.get('environment', {}), temporary_paths=config.get('temporary_paths', {}),
+                      effective_environment=None if exact_environment is None else effective_environment,
+                      environment_mode='inherited-clean' if exact_environment is None else 'exact',
                       parent_pid=proc.parent_pid, clock='CLOCK_MONOTONIC',
                       started_monotonic_nanos=proc.started_monotonic_nanos, reaped_monotonic_nanos=proc.reaped_monotonic_nanos,
                       resources=proc.child_resources, observation=observation, start_ns=start, end_ns=time.time_ns())
