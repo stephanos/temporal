@@ -44,7 +44,6 @@ struct Evaluated<A> {
 
 /// The admitted tree with every name resolved to a slot.
 struct Program {
-    fields: usize,
     rejecting: bool,
     /// Field start domains, or `None` when the compiled Model enumerates its starts.
     starts: Option<Vec<Domain>>,
@@ -264,21 +263,12 @@ where
     }
 
     fn judge(
-        &self,
         node: &Node,
         before: &M::State,
         after: Option<&M::State>,
         outcome: Option<&Value>,
     ) -> bool {
-        let mut frame = Frame::new(
-            M::__umpire_get,
-            Some(before),
-            after,
-            &[],
-            outcome,
-            &[],
-            self.program.fields,
-        );
+        let mut frame = Frame::new(M::__umpire_get, Some(before), after, &[], outcome, &[]);
         frame.eval(node).truth()
     }
 }
@@ -343,8 +333,7 @@ where
         let (index, inputs) = self.binding(&action);
         let mut steps = Steps::new();
         // One frame per step, so each field is read once however many arms are tried.
-        let mut frame =
-            Frame::new(M::__umpire_get, Some(state), None, inputs, None, &[], self.program.fields);
+        let mut frame = Frame::new(M::__umpire_get, Some(state), None, inputs, None, &[]);
         for arm in &self.program.actions[*index].branches {
             frame.definitions = &arm.definitions;
             frame.locals.clear();
@@ -426,7 +415,7 @@ where
     M::Action: ActionValues<M>,
 {
     fn __umpire_invariant(&self, index: usize, state: &M::State) {
-        self.judge(&self.program.invariants[index].1, state, None, None);
+        Self::judge(&self.program.invariants[index].1, state, None, None);
     }
 
     fn __umpire_postcondition(
@@ -437,14 +426,14 @@ where
         outcome: &M::Outcome,
     ) {
         let outcome = M::__umpire_outcome_value(outcome);
-        self.judge(&self.program.postconditions[index].1, before, Some(after), Some(&outcome));
+        Self::judge(&self.program.postconditions[index].1, before, Some(after), Some(&outcome));
     }
 
     fn __umpire_progress(&self, index: usize, state: &M::State) -> ProgressEvaluation<M::Action> {
         let claim = &self.progress[index];
         ProgressEvaluation {
-            trigger: self.judge(&claim.trigger, state, None, None).into(),
-            target: self.judge(&claim.target, state, None, None).into(),
+            trigger: Self::judge(&claim.trigger, state, None, None).into(),
+            target: Self::judge(&claim.target, state, None, None).into(),
             assumption: claim.assumption.clone(),
             bound: claim.bound,
         }
@@ -498,7 +487,6 @@ impl Domain {
             &[],
             None,
             &[],
-            0,
         );
         match self {
             Self::Value(value) => vec![frame.eval(value)],
@@ -616,7 +604,6 @@ impl Resolver<'_> {
                 .collect::<Result<Vec<_>, String>>()
         };
         Ok(Program {
-            fields: model.fields.len(),
             rejecting: model.outcome_type != Type::Unit,
             starts,
             actions,
@@ -668,7 +655,6 @@ impl Resolver<'_> {
             &[],
             None,
             &[],
-            0,
         );
         Ok(frame.eval(&node))
     }
@@ -760,7 +746,8 @@ fn range(ty: &Type) -> Range {
 }
 
 /// What one evaluation reads: a state or a judged edge, the action's inputs, and the branch's
-/// definitions, each read at most once.
+/// definitions, each definition evaluated at most once. Fields are read through the accessors
+/// each time; caching them cost an allocation per evaluation, more than a scalar read.
 struct Frame<'a, S> {
     get: fn(&S, usize) -> Value,
     before: Option<&'a S>,
@@ -768,13 +755,10 @@ struct Frame<'a, S> {
     inputs: &'a [Value],
     outcome: Option<&'a Value>,
     definitions: &'a [Node],
-    fields: Vec<Option<Value>>,
-    next: Vec<Option<Value>>,
     locals: Vec<Option<Value>>,
 }
 
 impl<'a, S> Frame<'a, S> {
-    #[expect(clippy::too_many_arguments, reason = "a frame names everything one evaluation reads")]
     fn new(
         get: fn(&S, usize) -> Value,
         before: Option<&'a S>,
@@ -782,7 +766,6 @@ impl<'a, S> Frame<'a, S> {
         inputs: &'a [Value],
         outcome: Option<&'a Value>,
         definitions: &'a [Node],
-        fields: usize,
     ) -> Self {
         Self {
             get,
@@ -791,16 +774,13 @@ impl<'a, S> Frame<'a, S> {
             inputs,
             outcome,
             definitions,
-            fields: vec![None; fields],
-            next: if after.is_some() { vec![None; fields] } else { Vec::new() },
             locals: vec![None; definitions.len()],
         }
     }
 
     fn field(&mut self, slot: usize) -> Value {
         let state = self.before.unwrap_or_else(|| panic!("a constant reads no state"));
-        let get = self.get;
-        self.fields[slot].get_or_insert_with(|| get(state, slot)).clone()
+        (self.get)(state, slot)
     }
 
     fn eval(&mut self, node: &Node) -> Value {
@@ -811,8 +791,7 @@ impl<'a, S> Frame<'a, S> {
                 let state = self
                     .after
                     .unwrap_or_else(|| panic!("only a postcondition reads an after-state"));
-                let get = self.get;
-                self.next[*slot].get_or_insert_with(|| get(state, *slot)).clone()
+                (self.get)(state, *slot)
             }
             Node::Input(index) => self.inputs[*index].clone(),
             Node::Outcome => self
