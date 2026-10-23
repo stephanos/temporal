@@ -43,6 +43,43 @@ class DarwinPolicy(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform.startswith("linux"), "Linux subreaper proof")
 class Supervisor(unittest.TestCase):
+    @unittest.skipIf(os.getuid() == 0 or os.geteuid() == 0, "NPROC requires a non-root user")
+    def test_simulated_darwin_helper_cannot_start_an_escaped_descendant(self):
+        libc = ctypes.CDLL(None, use_errno=True)
+        prior = ctypes.c_int()
+        self.assertEqual(libc.prctl(37, ctypes.byref(prior), 0, 0, 0), 0)
+        self.assertEqual(libc.prctl(36, 1, 0, 0, 0), 0)
+        helper = """import subprocess,sys
+try:
+    p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except BlockingIOError:
+    print('descendant creation refused')
+    sys.exit(75)
+print('escaped ' + str(p.pid))
+"""
+        launch = "import sys; sys.platform='darwin'; exec(compile(sys.argv.pop(1), '<supervisor>', 'exec'))"
+        owned = []
+        try:
+            with subprocess.Popen([sys.executable, "-c", launch, SUPERVISOR.read_text(), "process", sys.executable, "-c", helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as process:
+                process.wait(timeout=5)
+                output, errors = process.communicate()
+            if output.startswith(b"escaped "):
+                owned.append(int(output.split()[1]))
+            self.assertEqual(process.returncode, 75, output + errors)
+            self.assertEqual(output, b"descendant creation refused\n")
+        finally:
+            for pid in owned:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            while True:
+                try:
+                    os.waitpid(-1, 0)
+                except ChildProcessError:
+                    break
+            self.assertEqual(libc.prctl(36, prior.value, 0, 0, 0), 0)
+
     def test_owner_group_and_direct_supervisor_termination_reap_owned_tree(self):
         libc = ctypes.CDLL(None, use_errno=True)
         prior = ctypes.c_int()

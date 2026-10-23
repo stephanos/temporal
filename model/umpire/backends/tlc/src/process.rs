@@ -370,4 +370,44 @@ mod tests {
         assert_eq!(output, "None\nNone\nTrue\n");
         scratch.finish(Ok(()))
     }
+    #[test]
+    fn substituted_log_symlink_cannot_modify_an_external_file() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new(&root)?;
+        let work = Scratch::new(&scratch.0)?;
+        let protected = scratch.0.join("protected");
+        fs::write(&protected, "unchanged")?;
+        let mut command = Command::new("python3");
+        command.args(["-c", "import os,sys; os.unlink('capture.stdout'); os.symlink(sys.argv[1], 'capture.stdout'); print('captured')"]).arg(&protected);
+        let result = run_process(&mut command, &work.0, "capture", Limits::default(), None);
+        assert_eq!(fs::read_to_string(&protected)?, "unchanged");
+        assert!(result.is_err());
+        work.finish(Ok(()))?;
+        scratch.finish(Ok(()))
+    }
+
+    #[test]
+    fn substituted_log_fifo_returns_without_waiting_for_a_reader() -> Result<(), Refusal> {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let scratch = Scratch::new(&root)?;
+        let work = scratch.0.clone();
+        let (send, receive) = std::sync::mpsc::channel();
+        let worker = thread::spawn(move || {
+            let mut command = Command::new("python3");
+            command.args(["-c", "import os; os.unlink('capture.stdout'); os.mkfifo('capture.stdout'); print('captured')"]);
+            let result = run_process(&mut command, &work, "capture", Limits::default(), None);
+            let _ = send.send(result);
+        });
+        let result = receive.recv_timeout(Duration::from_secs(2));
+        let blocked = result.is_err();
+        let unblock = if blocked { Some(fs::OpenOptions::new().read(true).write(true).open(scratch.0.join("capture.stdout"))?) } else { None };
+        let result = result.or_else(|_| receive.recv_timeout(Duration::from_secs(2)))
+            .map_err(|e| Refusal(e.to_string()))?;
+        worker.join().map_err(|_| Refusal("capture thread panicked".into()))?;
+        drop(unblock);
+        assert!(!blocked, "log publication waited for a FIFO reader");
+        assert!(result.is_err());
+        scratch.finish(Ok(()))
+    }
+
 }
