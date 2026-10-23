@@ -279,7 +279,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Qualify the one-box cell on the current Rust candidate with full workflow smoke, inspection and per-test support gates |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 Running | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
@@ -320,10 +320,3 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
-
-### Site-aware minimizer ordering — [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-231-gomad-site-aware-minimizer-ordering-and.1](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md) | 🚧 Running | Scoped proposal ordering with checkpoint key and parent-scope default |
-| [fn-231-gomad-site-aware-minimizer-ordering-and.2](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.2.md) | ⬜ Todo | Symbolized reporting in minimize --json and inspect |

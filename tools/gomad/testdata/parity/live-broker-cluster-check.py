@@ -292,6 +292,23 @@ def compare(output, row, process_exit=None):
         assert row['result']['Frames']['GuestCallbacks'] == 0
 
 
+def independent_stream_recording(row):
+    starts = [step for step in row['steps'] if step['action'] in ('start', 'restart')]
+    assert [(step['node'], step['incarnation']) for step in starts] == [('a', 1), ('b', 1)], 'root36 requires unique original Start a1/b1 controls'
+    modes = []
+    for step in starts:
+        assert step['action'] == 'start', 'root36 requires initial guest starts'
+        runtime = step.get('runtime')
+        assert isinstance(runtime, dict), 'root36 requires explicit original runtime'
+        choice = runtime.get('Choice')
+        assert isinstance(choice, dict), 'root36 requires explicit original Choice'
+        mode = choice.get('Mode')
+        assert type(mode) is int and mode in (1, 2), 'root36 requires record or forced replay mode'
+        modes.append(mode)
+    assert modes[0] == modes[1], 'root36 guest replay modes differ'
+    return modes[0] == 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('binary', 'observation', 'work'):
@@ -343,7 +360,7 @@ def main():
         assert result.returncode == 0, (row['test'], result.stderr)
         receipts[-1]['comparison'] = compare(output, row, process_exit=result.returncode)
         (work / 'commands.json').write_bytes(canonical(receipts))
-        if row['test'].startswith(observe.ROOTS[36] + '/') and row['steps'][0]['runtime']['Choice']['Mode'] == 1:
+        if row['test'].startswith(observe.ROOTS[36] + '/') and independent_stream_recording(row):
             fixture = row['test'].split('/')[-1]
             raw = (output / 'incarnations/a/1/choice').read_bytes()
             stdout = (output / 'incarnations/a/1/stdout').read_bytes()
