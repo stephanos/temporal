@@ -27,9 +27,27 @@ Focused baselines only: the predecessor's default and required full gates are al
 - [ ] Gate and Go host parity pass
 
 ## Done summary
-TBD
+Implemented R2 Propose across the protocol, reusable Runtime/Realize, Temporal realization and Go Host. Configured bootstrap admission and operation-correlated polling now commit atomically with publication, while canonical Model semantics remain authoritative.
 
+Propose never steps the Model. Explicit Start configuration opts into bootstrap; subsequent empty Reset retains that configuration while clearing the prior Run's admission, receipt, pending request/action, freeze and callback context. Only actual matching Start evidence admits a Run. Published Answer replies supply validated callback context; observation instructions never resend those replies. Intermediate reads preserve pending work, completed operation evidence clears it, and Unexplained freezes. Pending Cancel requires its exact invocation; delivery completion includes a validated later attempt when a read missed Started.
+
+Validation covers publication rollback, disabled/internal proposals, quiescence, pre-admission callbacks, stale/crossed evidence, reset reuse, callback-between-polls, completion races, and native/Wasm/Go parity. Existing wire vectors remain unchanged; the new Judge bool/oneof representation pins each legal encoder order and cross-decodes semantic equality. The canonical activity Model, DSL/checker source and protected semantic goldens are unchanged across all 1002 protected paths.
+
+Baseline: focused Rust and Go suites passed before source edits. The first broader Rust baseline's lost host handle is preserved as inconclusive; the first Go launcher failed before Go because of its cwd, and the corrected launcher passed. The conductor explicitly reused the predecessor's full baseline; no fabricated green observation or gate skip is claimed.
+
+The CLI review found two operation-completion defects; both reproduced red in native and Wasm controls, were corrected, and passed re-review. Independent correctness audits have no remaining findings. The standards snapshot-size finding is resolved by exhaustive complete-item snapshots, preserving every expansion item. Final focused tests, strict Rust formatting/clippy/docs, protobuf freshness and both nested Go lint/parity suites passed. Stock Kettle Propose remains Unsupported.
+
+The rebuilt canonical guest SHA-256 is 23dceb5e96baf46db32f4496a0db0cf1c7420d10e4847b1ef67899b03f97f1d4. Fresh actual slice and gaps/privacy proof passed (5.875s and 359.201s; 2336 probe passes). Review, audit, protected-source and live verification records are preserved under .flow/artifacts/fn-228.2/.
+
+Final full gates passed once each after source/review settlement: `UMPIRE_BACKENDS=require make model-time` (all 18 stages, rc0, 877s elapsed) and `env -u UMPIRE_BACKENDS make model-check` (rc0, 392s elapsed). The timed gate measured 870.575s against the 60s soft target; the inner loop measured 6.109s against the 10s target. Both green receipts were recorded. Detailed stage timings are preserved in .flow/artifacts/fn-228.2/final-gates.json; no full-gate repetition or gate weakening was used.
+
+Tier session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-23T08:01:05Z..2026-10-23T08:18:39Z] (codex gpt-6.1-sol high; same family; NEEDS_WORK -> SHIP)
+
+Captured the nontrivial correlation/completion fix in bug/integration/correlate-pending-proposals-with-2026-10-23. Runner/Run schema and commands remain subsequent task scope; no production Runner or Go chooser was introduced.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0a91a7b99df2e43a73eb79209a67208bc12539bb, d207e950283bdece61c9a4f09d50f8487d74b7fe, 9e30e3602d312d908d2ccef0d058fcd4f96f732f, deb9de2ed45008b9311a3b8b977a52ba651f8c0f
+- Tests: UMPIRE_BACKENDS=require make model-time, env -u UMPIRE_BACKENDS make model-check, make umpire-check-model-slice && make umpire-check-model-gaps, CGO_ENABLED=0 mise exec -- go -C /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/hosts/go run /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-228.2/stock-propose.go
 - PRs:
