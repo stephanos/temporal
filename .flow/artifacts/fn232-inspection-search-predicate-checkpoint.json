@@ -1,0 +1,261 @@
+{
+  "schema": "gomad.inspection-search-source-checkpoint/v1",
+  "reference_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "qualification": false,
+  "execution": "UNEXECUTED",
+  "dependency_commit": "95f290ebb1 native linked_cluster::validate_network_evidence",
+  "raw_schema": "gomad.native-inspection-predicate/v1",
+  "raw_contract": "stdout JSON after concrete assertions; original_root + variant + observed. Final receiver must bind independent build/source/stage/testcase/process reports. No line alone supplies acceptance. Retained/provider duplicate root requires two actual stage invocations.",
+  "production_changes": [
+    "Host retained inspection resolve validates each complete raw choice stream against every declared decision boundary and every raw choice prefix length before constructing replay control.",
+    "Choice owner decoder supplies predecision coordinates while retaining unmatched select-poll prefixes.",
+    "Shared search admission refuses invalid range/zero bounds in both flag and typed request paths.",
+    "Native metadata decoder checks terminal owner network state commitments at subsequent boundaries."
+  ],
+  "independent_input": {
+    "path": "tools/gomad/rust/wasmhost/tests/testdata/inspection/source-five-decisions.json",
+    "sha256": "b957bbe24a2b98e28e933efee136e50c8310cd9122783376f05ef587c62dbeef",
+    "origin": "independently byte-encoded source fixture: five branching runnable records, node incarnation2, closed healthy registry, exact binary lifecycle/boundary frames; no guest/runtime execution claim"
+  },
+  "roots": [
+    {
+      "original_root": "TestInspectionCapacityRetainsTemporalScaleBoundariesAndEffects",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "model::inspection::tests::workflow_scale_inventory_fits_without_omitting_boundaries"
+      ],
+      "predicates": [
+        "51000 decisions",
+        "376000 effects",
+        "427002 lifecycle events",
+        "every decoded cut, raw choice/WASI and lifecycle equality"
+      ],
+      "remaining_obligations": [
+        "Original outer ClusterRecord/retained-bundle512MiB admission bound needs host retained-record integration proof."
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionChoiceMappingUsesDecisionsRatherThanObservations",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::decision_mapping_skips_observations_and_refuses_missing_or_relabelled_boundaries",
+        "replay::inspection::predicate_tests::retained_resolve_refuses_observation_coordinate_before_creating_control"
+      ],
+      "predicates": [
+        "coordinates0,2,3,4,5",
+        "observation coordinate1 refused",
+        "truncated boundary inventory refused",
+        "choice prefix byte mutation refused",
+        "production retained resolve refuses changed trace"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::creation_records_use_the_first_creation_coordinate_not_the_decision_record"
+      ],
+      "predicates": [
+        "five creation groups coordinates0,3,6,9,12",
+        "decision record coordinate5 refused"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionControlAuthenticatesRawCutAndRegistry",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::inspection_control_binds_raw_prefix_registry_and_exact_boundary"
+      ],
+      "predicates": [
+        "choice2 exact boundary",
+        "world prefix SHA256",
+        "choice prefix SHA256",
+        "healthy closed registry",
+        "exactly one kind4 command",
+        "changed boundary order refused"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionControlRefusesUnregisteredAndIncompleteBeforeReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::inspection_control_binds_raw_prefix_registry_and_exact_boundary"
+      ],
+      "predicates": [
+        "missing check refused",
+        "incomplete metadata refused"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionInterruptedSelectPrefixKeepsDecisionMapping",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::interrupted_select_poll_keeps_its_presented_decision_coordinate"
+      ],
+      "predicates": [
+        "single unmatched select-poll accepted at0"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionNetworkRawStreamBindsCanonicalIdentity",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "linked_inspection::predicate_tests::terminal_network_raw_stream_cannot_be_replaced_by_an_unrelated_state_commitment"
+      ],
+      "predicates": [
+        "original authenticated GMNETEV1 fixture accepted by native typed decoder",
+        "trailing raw byte refused",
+        "terminal owner raw state commitment accepted",
+        "changed terminal commitment refused"
+      ],
+      "remaining_obligations": [
+        "Original Go raw-to-canonical JSON SHA split is absent in new native record lineage; typed decoder and authenticated native raw owner identity replace that representation, requiring independent review of retired dual-representation assertion."
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionSearchBisectDeclaresConditionalityAndRejectsObservedReversal",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "replay::inspection::search::tests::bisect_declares_conditionality_and_refuses_observed_reversal"
+      ],
+      "predicates": [
+        "transition",
+        "already failing",
+        "never failing",
+        "observed reversal",
+        "conditionality",
+        "no duplicate cached evaluator calls"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionSearchBudgetsAndPredicateErrorsStayInconclusive",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "replay::inspection::search::tests::budgets_and_predicate_errors_never_claim_first_failure"
+      ],
+      "predicates": [
+        "attempt budget2",
+        "panic",
+        "timeout",
+        "divergence",
+        "unverified predicate",
+        "no first failure and remaining interval retained"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionSearchRejectsRequestsBeforeEvaluation",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "replay::inspection::predicate_tests::search_admission_refuses_all_original_requests_before_evaluation"
+      ],
+      "predicates": [
+        "unknown check",
+        "invalid range",
+        "zero attempts",
+        "zero wall bound",
+        "unreachable choice5",
+        "missing monotonic declaration"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionSearchScanDoesNotSkipRecoveredFailures",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "replay::inspection::search::tests::scan_does_not_skip_recovered_failures"
+      ],
+      "predicates": [
+        "fail1 and4 despite recovery2",
+        "only choices0,1 evaluated",
+        "first failure1",
+        "remaining removed"
+      ],
+      "remaining_obligations": [],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestInspectionSearchWallBoundIncludesEvaluatorCleanup",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "native_selectors": [
+        "replay::inspection::search::tests::wall_bound_includes_evaluator_cleanup",
+        "replay::inspection::search::tests::expired_wall_bound_never_calls_evaluator"
+      ],
+      "predicates": [
+        "999ms remaining passed to evaluator",
+        "cleanup reaches wallbound",
+        "timeout incomplete not first_failure",
+        "already expired no evaluator call"
+      ],
+      "remaining_obligations": [
+        "Original context cancellation from evaluator is represented here by deterministic elapsed-clock exhaustion; actual external cancellation path still needs a receiving execution."
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "source-only-partial-predicate-port"
+    }
+  ]
+}

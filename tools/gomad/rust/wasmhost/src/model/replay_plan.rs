@@ -3,9 +3,11 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use super::choice_wire_generated::{
-    RECORD_BYTES, TAPE_CHECKSUM_OFFSET, TAPE_HEADER_BYTES as HEADER_BYTES, TAPE_HEADER_WIRE_BYTES,
-    TAPE_MAGIC, TAPE_RECORD_BYTES,
+    TAPE_CHECKSUM_OFFSET, TAPE_HEADER_BYTES as HEADER_BYTES, TAPE_HEADER_WIRE_BYTES, TAPE_MAGIC,
+    TAPE_RECORD_BYTES,
 };
+
+pub const RECORD_BYTES: usize = super::choice_wire_generated::RECORD_BYTES;
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
@@ -487,6 +489,32 @@ fn project_creation_sites(records: &mut [Record]) -> Result<(), &'static str> {
         return Err("malformed_trace");
     }
     Ok(())
+}
+
+/// # Errors
+/// Maps branching decisions to their runtime predecision coordinates, including interrupted select prefixes.
+pub fn inspection_coordinates(trace: &[u8]) -> Result<Vec<u64>, &'static str> {
+    let (raw, remainder) = trace.as_chunks::<RECORD_BYTES>();
+    if !remainder.is_empty() {
+        return Err("malformed_trace");
+    }
+    let mut records = raw
+        .iter()
+        .enumerate()
+        .map(|(ordinal, bytes)| decode_record(bytes, ordinal))
+        .collect::<Result<Vec<_>, _>>()?;
+    project_creation_sites(&mut records)?;
+    let mut coordinates = Vec::new();
+    let mut presented_at = 0;
+    for (index, record) in records.iter().enumerate() {
+        if index == 0 || records[index - 1].decision.kind != 4 {
+            presented_at = record.decision.ordinal;
+        }
+        if !record.observation && record.decision.kind != 4 && record.decision.alternatives >= 2 {
+            coordinates.push(presented_at);
+        }
+    }
+    Ok(coordinates)
 }
 
 /// # Errors

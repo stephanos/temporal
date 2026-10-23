@@ -65,6 +65,19 @@ pub struct Search {
     pub wall_time: u64,
 }
 
+fn validate_search(search: &Search) -> Result<(), String> {
+    if search.check.is_empty()
+        || search.check.len() > 128
+        || search.first > search.last
+        || search.attempt_budget == 0
+        || search.wall_time == 0
+        || !matches!(search.mode.as_str(), "scan" | "bisect")
+    {
+        return Err("invariant search requires a check, inclusive range, scan or bisect mode and positive bounds".into());
+    }
+    Ok(())
+}
+
 impl Options {
     /// # Errors
     /// Parses the shipped inspection flag values before artifact admission.
@@ -202,14 +215,7 @@ impl Options {
                     "invariant search cannot combine with a stop, dump or probe selection".into(),
                 );
             }
-            if search.check.len() > 128
-                || search.first > search.last
-                || search.attempt_budget == 0
-                || search.wall_time == 0
-                || !matches!(search.mode.as_str(), "scan" | "bisect")
-            {
-                return Err("invariant search requires a check, inclusive range, scan or bisect mode and positive bounds".into());
-            }
+            validate_search(search)?;
         }
         let artifact = absolute(artifact)?;
         let output_directory = absolute(&if get("debug-output").is_empty() {
@@ -414,6 +420,7 @@ fn resolve(
     request: &InspectionRequest,
     choice: Option<u64>,
 ) -> Result<helper::Request, cli::Error> {
+    helper::validate_choice_mapping(evidence).map_err(preflight_error)?;
     let stop = choice.map_or_else(
         || helper::Stop {
             kind: request.stop.kind.clone(),
@@ -698,14 +705,12 @@ fn write_private(path: &Path, bytes: &[u8]) -> Result<(), cli::Error> {
         .map_err(execution_error)
 }
 
-fn search_run(
-    opened: &Opened,
+fn search_admission(
     evidence: &helper::Evidence,
     request: &InspectionRequest,
     search: &Search,
-    compile_cache: Option<&str>,
-) -> Result<Value, cli::Error> {
-    let started = Instant::now();
+) -> Result<(), cli::Error> {
+    validate_search(search).map_err(preflight_error)?;
     let first = resolve(evidence, request, Some(search.first))?;
     resolve(evidence, request, Some(search.last))?;
     let owner = evidence
@@ -733,6 +738,18 @@ fn search_run(
             "bisect requires a retained monotonic failure declaration",
         ));
     }
+    Ok(())
+}
+
+fn search_run(
+    opened: &Opened,
+    evidence: &helper::Evidence,
+    request: &InspectionRequest,
+    search: &Search,
+    compile_cache: Option<&str>,
+) -> Result<Value, cli::Error> {
+    let started = Instant::now();
+    search_admission(evidence, request, search)?;
     search::run(
         search,
         || started.elapsed(),
@@ -803,3 +820,7 @@ fn predicate_evaluation(
 #[cfg(test)]
 #[path = "inspection_cache_tests.rs"]
 mod cache_tests;
+
+#[cfg(test)]
+#[path = "inspection_predicate_tests.rs"]
+mod predicate_tests;
