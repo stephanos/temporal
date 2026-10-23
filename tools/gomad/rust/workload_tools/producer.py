@@ -35,7 +35,7 @@ def run(root, name, command, expected, json_output=True, environment=None):
     observed_env = {key: actual_env.get(key) for key in (
         "PATH", "GOMAD_WASM_INSTALLATION", "GOMAD_STOCK_GO", "GOMAD_WASM_RUNTIME_ROOT",
         "GOMAD_WASM_QUALIFICATION_GUEST_PROFILE", "GOMAD_WASM_TEMPORAL_BUILD_CACHE",
-        "GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES")}
+        "GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES", "GOMAD_WASM_QUALIFY_WORKLOADS")}
     started = time.time_ns()
     with output.open("xb") as stdout, error.open("xb") as stderr:
         process = subprocess.Popen(command, stdout=stdout, stderr=stderr, env=actual_env)
