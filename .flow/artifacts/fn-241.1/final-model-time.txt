@@ -1,0 +1,20 @@
+temporal-guest-freshness         80.432s
+retired-names                     1.295s
+timing-controls                   0.211s
+guest-build-controls              7.208s
+capability-controls               0.272s
+source-boundary                  12.958s
+protobuf-freshness                0.412s
+kettle-protobuf-freshness         0.296s
+temporal-protobuf-freshness       0.165s
+fmt                               1.202s
+clippy                           17.995s
+docs                             122.876s
+tests                            1580.425s
+core-wasm-clippy                  0.424s
+wasm-guest                       118.893s
+go-host                          75.903s
+temporal-go-host                 31.213s
+gate total                       2054.281s  (soft target 60s)
+inner loop                       22.546s  (soft target 10s)
+head c3c95eb00b rc 0 elapsed 2078s; start load 37.29 41.13 40.58; load 37-41 with two other lanes and another repository building

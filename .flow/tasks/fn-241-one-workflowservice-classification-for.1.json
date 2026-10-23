@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-241-one-workflowservice-classification-for",
   "spec_path": ".flow/tasks/fn-241-one-workflowservice-classification-for.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split classify into one service table and per-feature claims",
   "updated_at": "2026-10-23T15:59:26.388065Z"
 }

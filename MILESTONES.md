@@ -87,35 +87,23 @@ and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, 
 and replay; one `umpire` command with five modes. The reviewed contract includes Start bootstrap,
 incremental correlated Driver events, Model-owned polling completion, ordered protocol replay
 including Answer, and immutable publication by model/seed/content hash.
-The rename checkpoint (.1), Propose (.2) and the Go `runner` package (.3) are complete locally.
-Propose is on the protocol, Runtime, `Realize` and Go `Host`. The Runner drives an incremental
-Driver exchange, serializes every Host call, records a `umpire.run.v1` Run, replays it offline and
-publishes it never-overwrite; one `umpire` command with five modes replaced run, fuzz, replay, assess
-and repeat. .3 passed three review rounds; required gate 872.085s exceeds the 60s soft target, inner
-loop 6.687s meets 10s. Four live Testpilot failures pre-date .3 and are carried into .6 with the
-canary and publish retirements. The Temporal Driver (.4) is next.
+The rename checkpoint (.1), Propose (.2), the Go `runner` package (.3) and the Temporal Driver (.4)
+are complete locally. The Runner drives an incremental Driver exchange, serializes every Host call,
+records a `umpire.run.v1` Run, replays it offline and publishes it never-overwrite; one `umpire`
+command with five modes replaced run, fuzz, replay, assess and repeat. The Temporal Driver acts and
+observes over the generated API, gates the in-process worker by the Model's `worker_tasks`
+instruction, never answers for the Model, and joins all its work on Close; the live slice runs
+through `umpire explore` with the Run as the only artifact. .4's required gate passed at 2054.281s
+(load average about 40, not steady state); inner loop 22.546s. fn-241 (one WorkflowService table
+plus per-feature claims) is complete. Four pre-existing live Testpilot failures, the canary and
+publish retirements and `TestTestpilotModelSlice` are carried into .6. The Shim (.5) is next.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.4 | 🔄 in progress | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
-| fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
+| fn-228.5 | 🔄 in progress | After .4: Shim endpoint for non-Go SDK workers (R5) |
 | fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
-
-### fn-241: One WorkflowService classification for all Temporal features (model, temporal)
-
-Filed on 2026-10-23 at the owner's request. `classify` in `model/temporal/feature/activity/api.rs`
-is an exhaustive match over every WorkflowService RPC, but only eight arms are activity-specific;
-the rest classify RPCs by resource family. Splits it into one service table outside `feature/`,
-which owns the exhaustiveness check, and per-feature claim lists, so a second Temporal feature
-does not copy the table. Goldens stay byte-identical except out-of-scope reason text. Runs after
-fn-228.4, which edits the same realization files, and before fn-228.5.
-[Spec](.flow/specs/fn-241-one-workflowservice-classification-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-241.1 | 🔄 in progress | Parallel lane (worktree `work/fn2411-classify`): one service table plus per-feature claims; duplicate-claim and unclassified-RPC controls (R1, R2) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 
@@ -167,7 +155,7 @@ lane after fn-238.6, before fn-237.1.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-242.1 | ⬜ todo | After fn-238.5: `len()` parity or located refusal; TLC evaluation-error parsing (R1, R2) |
+| fn-242.1 | 🔄 in progress | Parallel lane (worktree `work/fn2421-lengths`): `len()` parity or located refusal; TLC evaluation-error parsing (R1, R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
