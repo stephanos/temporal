@@ -112,3 +112,44 @@ fn original_four_phases_by_four_drifts_stop_dispatch_or_observation_at_boundary(
         }
     }
 }
+
+#[test]
+fn separate_go_executable_pin_refuses_real_drift_before_every_phase_dispatch() {
+    let directory = Temporary::new();
+    let go = directory.0.join("go");
+    let compile = directory.0.join("compile");
+    let source = directory.0.join("fixture.go");
+    for path in [&go, &compile, &source] {
+        std::fs::write(path, b"admitted").unwrap();
+    }
+    let inputs = json!({"inputs":{"compiler_path":go,"compiler_sha256":canonical::digest(b"admitted"),
+        "compiler":BTreeMap::from([(compile.clone(),canonical::digest(b"admitted"))]),
+        "sources":BTreeMap::from([(source,canonical::digest(b"admitted"))])}});
+    let pins = prepared_inputs(&inputs).unwrap();
+    assert_eq!(pins[&compile], canonical::digest(b"admitted"));
+    for replay in [false, true] {
+        for incarnation in [1, 2] {
+            let phase = LifecyclePhase {
+                incarnation,
+                handles: ["active", "standby"]
+                    .map(|node| Handle {
+                        node: node.into(),
+                        incarnation,
+                    })
+                    .into(),
+            };
+            let label = phase_label(&phase, replay).unwrap();
+            std::fs::write(&go, b"admitted").unwrap();
+            module::verify_inputs(&pins).unwrap();
+            std::fs::write(&go, b"changed executable").unwrap();
+            let dispatched = Cell::new(false);
+            let result = boundary(true, || module::verify_inputs(&pins), || Ok(()), || Ok(()))
+                .map(|()| dispatched.set(true));
+            assert!(
+                result.is_err(),
+                "{label}: separate Go executable drift dispatched the phase"
+            );
+            assert!(!dispatched.get(), "{label}: guest phase was dispatched");
+        }
+    }
+}
