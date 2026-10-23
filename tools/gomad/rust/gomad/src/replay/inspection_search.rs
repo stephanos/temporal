@@ -42,7 +42,7 @@ pub(super) fn run(
             result["status"] = "incomplete".into();
             return None;
         }
-        if outcome == "divergence" {
+        if outcome == "divergence" || matches!(outcome, "pass" | "fail") && !verified {
             result["status"] = "replay_divergence".into();
             return None;
         }
