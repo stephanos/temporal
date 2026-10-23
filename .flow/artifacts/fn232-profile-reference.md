@@ -123,3 +123,21 @@ and compiler must be present, and both artifact and copied executable must match
 the same hash. Synthetic receipt-mutation tests exercise this admission; they
 supply no additional runtime evidence. Earlier development receipts are retained
 historically, and are not silently upgraded to this stronger contract.
+
+The additive custody check now also requires the complete Git-tracked helper
+source membership, refusing missing inactive source files as well as additions.
+Actual `helper-build-v3/helper-build.json` has source commit `fa175a02a9`, exact
+Cargo/RUSTC paths and hashes, all source-file Git blobs, raw artifact JSON,
+command/process receipts, artifact executable identity and copy binding. Helper
+source files are unchanged from `4fcf9fa06b`; the observed copied bytes retain
+SHA-256 `4dc2eea66907d81654dd45ba1eeee3b0c661826aa48ab4cdb557f46ed9264e4d`.
+`helper-admission-inputs-v3.json` lists every required frozen input hash.
+
+First admission exposed a real receipt timing error: driver process registration
+ends before its enclosing command receipt is written. Exact endpoint equality
+was corrected to require equal start and process end within command end; the
+failed admission exit 1 remains in `helper-build-v3.exit`, while actual Cargo
+exit is 0. Re-admission is `helper-admission-v3.exit` 0. Nine focused tests pass
+in `unit-helper-custody-final2.log`; fresh independent reviewer found no remaining
+source blockers. The final reader must retain/seal the actual artifact path as
+well as the independent copy and all declared receipt/source/compiler files.

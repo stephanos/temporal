@@ -233,8 +233,14 @@ def build(derived, stock_go, output, files):
 
 def helper_sources(repo, commit):
     package = repo / 'tools/gomad/rust/wasmhost'
-    paths = sorted({*package.joinpath('src').rglob('*.rs'), package / 'build.rs', package / 'Cargo.toml',
-                    package.parent / 'Cargo.toml', package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'})
+    fixed = {package / 'build.rs', package / 'Cargo.toml', package.parent / 'Cargo.toml',
+             package.parent / 'Cargo.lock', package.parent / 'rust-toolchain.toml'}
+    tracked = subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-rz', '--name-only', commit,
+                                      '--', 'tools/gomad/rust/wasmhost/src']).split(b'\0')
+    expected = {repo / path.decode() for path in tracked if path.endswith(b'.rs')} | fixed
+    actual = set(package.joinpath('src').rglob('*.rs')) | fixed
+    custody.require(actual == expected, 'helper immutable source membership changed')
+    paths = sorted(expected)
     files = {}
     for path in paths:
         relative = str(path.relative_to(repo))
@@ -313,7 +319,8 @@ def admit_helper(receipt, helper, files):
     process, _ = custody.document(receipt['process_file']['path'], canonical_required=False)
     custody.require(process['active'] is False and process['observation'] == 'completed' and process['exit'] == 0
         and process['pid'] == command['pid'] and process['argv'] == command['argv']
-        and process['start_ns'] == command['start_ns'] and process['end_ns'] == command['end_ns'],
+        and process['start_ns'] == command['start_ns']
+        and process['start_ns'] <= process['end_ns'] <= command['end_ns'],
         'helper build process differs from command receipt')
     rows = [custody.decoded(line) for line in Path(receipt['cargo_stdout']['path']).read_bytes().splitlines()]
     artifacts = [value for value in rows if value.get('reason') == 'compiler-artifact'

@@ -4,6 +4,7 @@ import copy
 import hashlib
 from pathlib import Path
 import sys
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -164,6 +165,28 @@ class OriginalSourceCustody(unittest.TestCase):
             reference.verify(directory)
 
 class HelperCopyCustody(unittest.TestCase):
+    def test_helper_source_inventory_requires_missing_and_extra_tracked_members(self):
+        with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-helper-git-fixture-') as temporary:
+            root = Path(temporary)
+            package = root / 'tools/gomad/rust/wasmhost'
+            (package / 'src').mkdir(parents=True)
+            for name in ('src/lib.rs', 'src/conformance.rs', 'build.rs', 'Cargo.toml', '../Cargo.toml', '../Cargo.lock', '../rust-toolchain.toml'):
+                (package / name).write_text('bounded source fixture\n')
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+            subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+            commit = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD']).decode().strip()
+            reference.helper_sources(root, commit)
+            path = package / 'src/conformance.rs'
+            raw = path.read_bytes()
+            path.unlink()
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+            path.write_bytes(raw)
+            (package / 'src/extra.rs').write_text('undeclared source\n')
+            with self.assertRaisesRegex(ValueError, 'membership'):
+                reference.helper_sources(root, commit)
+
     def test_exact_copy_raw_artifact_compiler_and_process_are_required(self):
         with tempfile.TemporaryDirectory(dir='/home/agent/wt', prefix='fn232-helper-receipt-fixture-') as temporary:
             root = Path(temporary)
@@ -177,7 +200,7 @@ class HelperCopyCustody(unittest.TestCase):
             source = put('source.rs', b'synthetic source')
             source_table = {source['path']: dict(relative='source.rs', git_blob='a' * 40, bytes=source['bytes'], sha256=source['sha256'])}
             argv = [cargo['path'], 'build', '--offline', '--locked', '--manifest-path', str(root / 'tools/gomad/rust/Cargo.toml'), '-p', 'gomad-wasmhost', '--features', 'reference-helper', '--bin', 'gomad-wasmhost', '--message-format=json-render-diagnostics']
-            command = dict(argv=argv, environment=dict(RUSTC=rustc['path']), cwd=str(root), exit=0, observation='completed', pid=1234, start_ns=1, end_ns=2)
+            command = dict(argv=argv, environment=dict(RUSTC=rustc['path']), cwd=str(root), exit=0, observation='completed', pid=1234, start_ns=1, end_ns=3)
             process = dict(argv=argv, active=False, exit=0, observation='completed', pid=1234, start_ns=1, end_ns=2)
             cargo_artifact = dict(reason='compiler-artifact', target=dict(name='gomad-wasmhost', kind=['bin']), features=['reference-helper'], executable=artifact['path'])
             stdout = put('cargo.stdout', reference.custody.canonical(cargo_artifact) + b'\n')
