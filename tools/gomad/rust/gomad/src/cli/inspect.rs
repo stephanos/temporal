@@ -1,3 +1,6 @@
+mod cluster;
+mod storage;
+
 use crate::evidence::inspection::{Choices, Details, Output, Simulation, World};
 use crate::evidence::symbolize::{
     self,
@@ -31,6 +34,10 @@ struct Artifact<'a> {
     world: Option<&'a World>,
     simulation: Option<&'a Simulation>,
     minimization: Option<crate::minimize::report::Report<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    storage: Option<storage::Storage>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cluster: Option<cluster::Cluster>,
 }
 
 fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
@@ -158,17 +165,23 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
                 .as_ref()
                 .and_then(|details| details.simulation.as_ref()),
             minimization,
+            storage: storage::read(&opened)?,
+            cluster: cluster::read(&opened)?,
         },
     };
     let bytes = if json {
         canonical::encode(&report)?
     } else {
-        format!(
+        let mut rendered = format!(
             "gomad inspect: kind=artifact path={}\nidentity: record={} execution={} seed={}\noutcome: class={} termination={} signature={}\nrecord: {}",
             path.display(), manifest.record_sha256, manifest.record.execution_identity,
             manifest.record.seed, manifest.record.outcome.class, manifest.record.outcome.termination,
             report.artifact.failure_signature, String::from_utf8(canonical::encode(&report.artifact)?).map_err(|error| error.to_string())?
-        ).into_bytes()
+        ).into_bytes();
+        if let Some(cluster) = &report.artifact.cluster {
+            cluster.append_text(&mut rendered)?;
+        }
+        rendered
     };
     output
         .write_all(&bytes)

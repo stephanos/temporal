@@ -21,6 +21,7 @@ pub(crate) mod process;
 const MAXIMUM: u64 = 512 << 20;
 
 pub struct Prepared {
+    pub compile_cache_root: Option<String>,
     pub module: Vec<u8>,
     pub configuration: Configuration,
     pub toolchain: String,
@@ -32,6 +33,19 @@ pub struct Prepared {
 }
 
 pub use crate::install::manifest::Installation;
+
+pub(crate) fn compile_cache_root(installed: &Installation) -> Result<Option<String>, String> {
+    installed
+        .admission
+        .as_ref()
+        .and_then(|admission| admission.compile_cache_root.as_ref())
+        .map(|path| {
+            path.to_str()
+                .map(str::to_owned)
+                .ok_or_else(|| failure("compile cache root is not UTF-8"))
+        })
+        .transpose()
+}
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -375,6 +389,7 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
         .as_bool()
         .ok_or_else(|| failure("prepared assertion policy missing"))?;
     Ok(Prepared {
+        compile_cache_root: compile_cache_root(installed)?,
         module,
         configuration: provenance.configuration,
         toolchain: provenance.build_key,

@@ -8,6 +8,7 @@ from importlib.util import module_from_spec, spec_from_loader
 import os
 from pathlib import Path
 import shutil
+import shlex
 import signal
 import subprocess
 import sys
@@ -208,6 +209,31 @@ def authenticate_campaign(root, complete=True):
     return dict(plan=plan, executions=executions, journal=rows)
 
 
+def authenticate_report_advertisements(result, root, validated):
+    expected = {}
+    for execution in validated['executions']:
+        if execution['artifact'] is not None:
+            path = root / execution['artifact']
+            record = authenticate_artifact(path)
+            equal(record, execution['record'], 'report.advertised_record')
+            expected[str(path)] = parity.digest(parity.canonical(record))
+    rows = result.get('artifacts')
+    if not isinstance(rows, list):
+        raise ValueError('missing advertised retained replay invocations')
+    equal((len(rows), result['retained_evidence']), (len(expected), len(expected)), 'report.advertised_count')
+    observed = set()
+    for row in rows:
+        parity.fields(row, dict(path=str, record_hash=str, replay_argv=list, replay_command=str), 'report.artifact')
+        path = row['path']
+        if path not in expected or path in observed or not Path(path).is_absolute():
+            raise ValueError('unexpected/duplicate advertised artifact')
+        equal(row['record_hash'], expected[path], 'report.advertised_hash')
+        equal(row['replay_argv'], ['gomad', 'replay', path], 'report.advertised_argv')
+        equal(shlex.split(row['replay_command']), row['replay_argv'], 'report.advertised_command')
+        observed.add(path)
+    equal(observed, set(expected), 'report.advertised_complete_set')
+
+
 def execution_view(validated):
     return [dict(ordinal=item['ordinal'], seed=item['seed'], record=item['record'],
                  record_sha256=parity.digest(parity.canonical(item['record'])),
@@ -294,6 +320,8 @@ def main():
         results = [row for row in reports if row.get('type') == 'result']
         equal(len(results), 1, 'report.results')
         result = copy.deepcopy(results[0])
+        authenticate_report_advertisements(result, root, authenticate_campaign(root))
+        del result['artifacts']
         equal(result['campaign_path'], str(root), 'report.campaign_path')
         result['campaign_path'] = '<campaign>'
         for retained in result.get('success_artifacts', []):
