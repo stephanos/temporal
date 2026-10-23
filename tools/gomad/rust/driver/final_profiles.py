@@ -590,13 +590,10 @@ def reference_helper_custody(config, entry):
             'reference helper has foreign Cargo feature/target output')
 
 
-def reference_runtime(config, root, work, native_root, runtime_spec):
-    import json
+def original_source(config, root, entry, label, execute=invoke):
     import live
     from driver import sha
-    entry = config['final_profiles']['runtime_reference']
-    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
-        live.sealed_input(config, entry[field])
+    live.sealed_input(config, entry['git'])
     derived = Path(entry['derived'])
     source_path = derived / 'source.json'
     live.sealed_input(config, str(source_path))
@@ -605,7 +602,7 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     require(source['schema'] == 'gomad.derived-go-reference/v1' and source['original_commit'] == original,
             'foreign original reference source')
     import tarfile
-    raw_tree, _ = invoke(config, root, 'final-profile-original-tree',
+    raw_tree, _ = execute(config, root, label,
                          [entry['git'], '-C', config['repo'], 'ls-tree', '-r', '-z', original])
     tree = {}
     for member in raw_tree.split(b'\0'):
@@ -645,10 +642,33 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
     actual_names = {str(path.relative_to(derived / 'source')) for path in (derived / 'source').rglob('*')
                     if path.is_file() or path.is_symlink()}
     require(actual_names == set(original_files) | set(source['glue']), 'undeclared original reference source addition')
-    template = str(Path(entry['script']).parent / 'reference/main.go.txt')
+    template = str(Path(__file__).parent / 'reference/main.go.txt')
     live.sealed_input(config, template)
     for name, digest in source['glue'].items():
         require(sha(derived / 'source' / name) == digest == sha(template), 'changed invocation-only reference glue')
+    for name, item in source['original_files'].items():
+        path = derived / 'source' / name
+        require(path.is_relative_to(derived / 'source') and '..' not in Path(name).parts,
+                'foreign original source member')
+        if item['kind'] == 'symlink':
+            import os
+            require(path.is_symlink() and os.readlink(path) == item['target'], 'changed original source symlink')
+        else:
+            require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
+                    and sha(path) == item['sha256'], 'changed immutable original source')
+    return derived, source
+
+
+def reference_runtime(config, root, work, native_root, runtime_spec):
+    import json
+    import live
+    from driver import sha
+    entry = config['final_profiles']['runtime_reference']
+    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper', 'helper_receipt'):
+        live.sealed_input(config, entry[field])
+    derived, source = original_source(config, root, entry, 'final-profile-original-tree')
+    source_path = derived / 'source.json'
+    original = source['original_commit']
     build = read(entry['build_receipt'])
     require(build['schema'] == 'gomad.reference-build/v1' and build['original_commit'] == original
             and build['source_manifest']['sha256'] == sha(source_path) and build['glue'] == source['glue']
@@ -664,16 +684,6 @@ def reference_runtime(config, root, work, native_root, runtime_spec):
             'reference build did not execute original invocation glue')
     live.sealed_input(config, build['stock_go']['path'])
     require(sha(build['stock_go']['path']) == build['stock_go']['sha256'], 'changed original reference compiler')
-    for name, item in source['original_files'].items():
-        path = derived / 'source' / name
-        require(path.is_relative_to(derived / 'source') and '..' not in Path(name).parts,
-                'foreign original source member')
-        if item['kind'] == 'symlink':
-            import os
-            require(path.is_symlink() and os.readlink(path) == item['target'], 'changed original source symlink')
-        else:
-            require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
-                    and sha(path) == item['sha256'], 'changed immutable original source')
     reference_helper_custody(config, entry)
     request_path = native_root / 'request.json'
     native = read(request_path)
