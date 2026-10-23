@@ -147,9 +147,9 @@ The owned live receiver is `live.py`; `final.py --config CONFIG --root ROOT`
 composes it with the independent `receiving.py` raw-evidence reader and
 separately pinned `final_sections` readers. The live receiver
 owns 39 transferred roots, 84 admission cells and the distinct complete
-`test-wasm` reach obligation. These are 124 of the 145 final obligations. The integrated receiving reader owns
-13 more: runtime, the mandatory ten result/receipt pairs, SQLite primary/four
-selections/catalogue, and the five Temporal obligations. It must return all 13
+`test-wasm` reach obligation. These are 124 of the 146 final obligations. The integrated receiving reader owns
+14 more: runtime, the mandatory ten result/receipt pairs, SQLite primary/four
+selections/catalogue, and the five Temporal obligations. It must return all 14
 actual passing rows; missing, duplicate, failed or unexecuted evidence refuses.
 Its source and imported cost/workload modules are frozen inputs, never proof of
 execution. Eight obligations remain explicitly unbound: the two fn185-R4 checks,
@@ -195,7 +195,7 @@ For the remaining eight nonowned obligations, `final_sections.NAME` specifies ex
 and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
 `gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
 and authenticated `subgates`; their disjoint union with the live and receiving sections must
-match all 145 required IDs. Missing owners remain UNEXECUTED.
+match all 146 required IDs. Missing owners remain UNEXECUTED.
 
 The original source inventory is
 `testdata/parity/original-test-wasm-reach.json` (relative to `tools/gomad`).
@@ -222,3 +222,17 @@ request, verified prefix, real stack/heap and one command for every decision.
 Missing cases and fixed-count declarations refuse. Expanded obligation IDs retain
 the original site byte coordinate, preventing equal labels at different source
 sites from collapsing into one obligation.
+
+
+The optional frozen `fn222.argv` binding uses the original
+`workload_tools/temporal-support.py` entry point with an explicit sealed
+`--support` release example, source manifest, captured policy and private driver
+configuration. `configure.py` replaces `SOURCE_MANIFEST` and `FROZEN_CONFIG`
+operands before sealing the binding. The existing `temporal-inspection` stage
+runs that complete endpoint after its original inspection producer, within the
+unchanged global deadline; no new scheduler stage or larger time allowance is
+introduced. Missing bindings leave `fn222/two-cell-ordered-support-list`
+unexecuted. Its independent final reader reopens both support pairs, exact
+original specs, raw process registrations, logs and private seals, and invokes
+the sealed linked read-only list/inspection validators again. The final reader
+never reruns a guest or producer.

@@ -878,3 +878,110 @@ nondefault feature-role integrated checks, every-verb actual parity, full source
 subvariant receiving reach, mandatory runtime/workload/replay/inspection/stress
 proofs, private resource admission, final immutable freeze and measured final
 qualification remain with root and their assigned owners.
+
+
+## Cleanup refusal follow-through repair (2026-10-22)
+
+Independent review of `8849a27d15` found the new bounded refusal could abort the
+remaining same-stage command cleanup, later-stage cleanup and final outcome
+publication. The last scheduler stage was also absent from `executor.procs`
+after `wait_any`, so the driver's conditional cleanup could miss its still-active
+command registrations. Controlled regressions reproduce these paths, plus the
+older `command()` leader-only wait publishing inactive before group quiescence:
+focused RED5+ERROR1 (`fn232-retirement-cleanup-aggregate-red.log`).
+
+`cleanup_commands` now takes the complete selected stage-id set, signals every
+registered group before waiting on any group, attempts every group's observation,
+and aggregates errors while leaving unconfirmed registrations active. Termination
+selects all recorded stage ids together, including stages already reaped by the
+scheduler. Driver finalization always attempts termination, independently reaps/
+closes remaining stage handles and retains cleanup errors in an INCOMPLETE
+outcome rather than bypassing `outcome.json`. Log-close errors are also retained.
+`command()` uses the same group barrier before inactive publication; refusal
+retains an active process registration and actual inconclusive command receipt.
+
+Only Python source/tests and this handover changed; no Cargo target, Go command,
+guest, actual qualification or final measurement ran in this follow-up. The
+assigned Cargo target was released explicitly to root for the integrated wave.
+Root already integrated `8849a27d15` as a development candidate; retirement and
+all final qualification acceptance remain pending. This worktree remains for
+review/integration; other workers' worktrees/caches/evidence are untouched.
+
+
+Final follow-up verification: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest
+discover -s tools/gomad/rust/driver/tests -q` exit0, 131 tests in 2.870s;
+log `/home/agent/.cache/codex-build/fn232-retirement-cleanup-aggregate-full.log`.
+`git diff --check` exit0. All follow-up processes terminal; shared-overlay disk
+109GiB available after source checks. No additional build/qualification claim.
+
+
+## Nested-session global teardown ownership (2026-10-22)
+
+Root's one-box review found a new global ownership gap: the registered stage
+command launches a wrapper, whose native/inspector command launches another
+session. Its compiler may form another process group in that native session.
+Direct stage-id matching did not reach the wrapper's native registrations.
+The one-box Commands producer now registers every native/inspector session
+leader as `{pid, stage_pid: wrapper_pid, active, argv, start_ns}` before releasing
+its launch gate; compiler processes retain that owned native session.
+
+Global cleanup follows only the exact registered `stage_pid -> pid` ancestry,
+including inactive ancestors needed to reach still-active children. For every
+active selected registration it observes only that registered session's live
+process groups through procfs. All selected groups receive SIGKILL before the
+first quiescence wait. Group/session barriers preserve aggregate-error and
+active-on-refusal semantics. Session rescans catch additional groups, and a
+bounded registration rescan catches a gated child published between the first
+snapshot and wrapper death. Unregistered foreign sessions and registrations
+outside the selected ownership tree are excluded. `command()` also observes its
+whole owned session before inactive publication, preserving inconclusive refusal
+when an exited producer leaves live session members.
+
+Meaningful regressions: original focused RED3 includes actual global terminate
+and hard-killed-stage wrapper/native/compiler executions plus an inactive-ancestor
+and foreign-registration control; log `fn232-retirement-nested-cleanup-red.log`.
+The first fixture inherited the frozen launcher's blocked SIGTERM because it
+bypassed driver.main; its 30s teardown let the unrelated 30s foreign fixture exit
+naturally. The corrected fixture explicitly unblocks the same signals as actual
+driver.main. The source fix did not weaken foreign-session survival checks.
+A separate late-registration RED1 used the exact HEAD cleanup method in memory,
+without modifying source, proving the child was not signalled before rescan;
+log `fn232-retirement-nested-cleanup-late-red.log`.
+
+Final source verification: focused process suite14GREEN, full driver134GREEN
+exit0 in2.159s, `git diff --check` exit0. Full log
+`/home/agent/.cache/codex-build/fn232-retirement-nested-cleanup-full-final.log`;
+focused final log `fn232-retirement-nested-cleanup-green-final.log` in the same
+cache root. All invoked processes terminal; shared overlay89GiB available.
+Python-only follow-up, no Cargo/Go/guest/qualification commands or leased build
+target access. Root owns integration and final measured qualification; no final
+acceptance or Flow lifecycle change. Same retirement worktree remains for root
+integration/review, no other worktree/cache/evidence was changed or removed.
+
+
+## Independent group/session barrier refusal repair (2026-10-22)
+
+Re-review of `6b52f6807a` found a primary-group quiescence refusal skipped the
+following session rescan in both command publication and global cleanup. A late
+compiler group in the already owned session could therefore miss cleanup after
+the first snapshot. Two causal tests force the primary barrier to refuse and
+require the session barrier still run; the stage test also makes the session
+barrier refuse and requires both reasons remain reported. Both tests failed on
+original source (RED2, `fn232-retirement-independent-barriers-red.log`).
+
+A shared `wait_command_processes` independently attempts both barriers and
+aggregates errors before either caller can mark its registration inactive.
+Either refusal preserves active registration and command publication retains
+its inconclusive actual receipt. Existing signal-all-before-wait, registered
+ancestry, owned-session scope, late-registration rescan and complete driver
+outcome semantics remain unchanged. The mocked timeout test now supplies the
+independently attempted session result rather than exhausting its group-clock
+fixture; no timeout or source assertion was weakened.
+
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s
+tools/gomad/rust/driver/tests -q` exit0,136tests in2.254s;
+`git diff --check` exit0. Log
+`/home/agent/.cache/codex-build/fn232-retirement-independent-barriers-full.log`.
+Python-only follow-up: no Cargo/Go/guest/runtime qualification or leased build
+target access. All invoked commands terminal. Root owns integration, re-review
+and final measured qualification; no acceptance/Flow lifecycle action occurred.

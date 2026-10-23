@@ -11,7 +11,7 @@
     "records": "exact canonical execution records and SHA-256, after independent payload authentication",
     "plan": "exact canonical plan bytes, including immutable identities and bounds",
     "journal": "exact canonical linked envelopes with sequential event ordinals and validated execution ordinals",
-    "reports": "public result JSON with campaign_path and success_artifacts paths rooted at <campaign>; no identity normalization",
+    "reports": "public result JSON with campaign_path and success_artifacts paths rooted at <campaign>; no identity normalization; additive artifacts presentation is authenticated against every retained native outcome and excluded from this existing semantic golden; raw output remains retained exactly",
     "shards": "authenticated ordinal-sorted execution records equal the unsharded records",
     "resume": "durably interrupted complete prefix resumes to the same authenticated execution records",
     "regeneration": "two fresh public preparations and executions yield byte-identical golden projections"

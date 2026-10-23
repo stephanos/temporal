@@ -216,10 +216,23 @@ pub(super) fn execute(
             }
         }
     };
-    let status = result?;
+    let status = match result {
+        Ok(status) => status,
+        Err(reason) => {
+            let retained =
+                failure_diagnostic(&request.root, &executable, pid, json!({"failure":reason}));
+            return Err(format!("{reason}; supplemental diagnostic={retained:?}"));
+        }
+    };
     if !status.success() {
+        let retained = failure_diagnostic(
+            &request.root,
+            &executable,
+            pid,
+            json!({"exit":status.code(),"status":status.to_string()}),
+        );
         return Err(format!(
-            "stress child {pid} exited {status}; retain {}",
+            "stress child {pid} exited {status}; retain {}; supplemental diagnostic={retained:?}",
             request.root.display()
         ));
     }
@@ -228,4 +241,27 @@ pub(super) fn execute(
         return Err("stress child process identity mismatch".into());
     }
     Ok(observed)
+}
+
+pub(super) fn failure_diagnostic(
+    root: &Path,
+    executable: &Path,
+    pid: u32,
+    outcome: Value,
+) -> Result<std::path::PathBuf, String> {
+    let stderr = crate::qualify::spec::read_bounded(&root.join("stderr.log"), 32 << 20)?;
+    let request = crate::qualify::spec::read_bounded(&root.join("request.json"), 16 << 20)?;
+    let binary = crate::qualify::spec::read_bounded(executable, 256 << 20)?;
+    let extraction = super::report::extract_diagnostic(&stderr);
+    let report = json!({"schema":"gomad.stress-failure-diagnostic/v1","diagnostic_only":true,"process_id":pid,"outcome":outcome,
+        "command":[executable.to_string_lossy(),"stress","--cell",root.join("request.json").to_string_lossy()],
+        "binary_sha256":canonical::digest(&binary),"request_sha256":canonical::digest(&request),"stderr":{"path":root.join("stderr.log"),"bytes":stderr.len(),"sha256":canonical::digest(&stderr)},
+        "event_order":extraction.as_ref().ok(),"event_order_error":extraction.err()});
+    let encoded = canonical::encode(&report)?;
+    if encoded.len() > 32 << 20 {
+        return Err("supplemental failure diagnostic capacity".into());
+    }
+    let path = root.join("failure-diagnostic.json");
+    write(&path, &encoded)?;
+    Ok(path)
 }

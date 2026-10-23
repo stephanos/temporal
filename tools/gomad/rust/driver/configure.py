@@ -33,7 +33,7 @@ def cell_spec(label, evidence, manifest, source_digest):
         campaign.update(ChoiceTraceLimit=64 << 20, SuccessBytesLimit=2 << 30,
                         Environment=['TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TEMPORAL_TEST_LOG_LEVEL=warn'])
     return dict(Manifest=dict(Provisional=False, IntegratedSourceManifestPath=manifest,
-                             IntegratedSourceSHA256=source_digest, ID=wanted['id'], Workload=wanted['workload'],
+                             IntegratedSourceSHA256='sha256:' + source_digest.removeprefix('sha256:'), ID=wanted['id'], Workload=wanted['workload'],
                              Profile=wanted['profile'], Cell=wanted['cell'], Seed=7, Repeat=2),
                 Campaign=campaign, ArtifactRoot=evidence)
 
@@ -64,7 +64,12 @@ def freeze(bindings, output, source_manifest):
     inputs.update(str(path) for path in FROZEN.glob('*.sh'))
     inputs.update((str(FROZEN / 'dag.tsv'), str(FROZEN.parent / 'q1-serial/run-qualification.sh')))
     inputs.update(config['installations'].values())
+    inputs.update(read(path)['compiler_path'] for path in config['installations'].values())
     inputs.update((config['binary'], config['build_receipt']))
+    for index in range(32):
+        entry = config['stages'][f'runtime-{index}']
+        require(entry['adapter'] == 'runtime', 'runtime stage requires its exact release-library gate')
+        inputs.update((entry['harness'], entry['harness_build_receipt']))
     for label, wanted in CELLS.items():
         entry = config['stages'][label]
         if entry.get('spec') == 'GENERATE':
@@ -73,6 +78,12 @@ def freeze(bindings, output, source_manifest):
             write(path, specification)
             entry['spec'] = str(path)
             inputs.add(str(path))
+    if config.get('fn222'):
+        argv = config['fn222']['argv']
+        config['fn222']['argv'] = argv = [str(output) if item == 'FROZEN_CONFIG' else
+            str(source_manifest) if item == 'SOURCE_MANIFEST' else item for item in argv]
+        require('--support' in argv and '--captured-config' in argv, 'fn222 receiver and captured policy inputs must be explicit')
+        inputs.update([argv[0], argv[1], argv[argv.index('--support') + 1], argv[argv.index('--captured-config') + 1]])
     config['files'] = {str(Path(path).resolve()): sha(path) for path in sorted(inputs)}
     for path in inputs:
         require(Path(path).is_absolute() and not Path(path).is_symlink(), 'non-regular frozen input: ' + path)

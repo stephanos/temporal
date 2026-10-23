@@ -8,3 +8,13 @@ pub fn execute(request: Request) -> Result<Execution, Box<Outcome>> {
     })
     .map_err(|error| Box::new(Outcome::refusal(&error)))
 }
+
+pub(crate) fn cache_failure(outcome: &Outcome) -> bool {
+    outcome.termination == "infrastructure" && outcome.message.starts_with("compile cache:")
+        || outcome.termination == "capacity" && outcome.message == "compile cache artifact capacity"
+}
+
+pub(crate) fn cache_error(message: &str) -> bool {
+    message.starts_with("infrastructure: compile cache:")
+        || message == "capacity: compile cache artifact capacity"
+}

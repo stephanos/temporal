@@ -1,0 +1,94 @@
+Source baseline: b5e80e8d8b86c846353c424bd6dad6e38ba22c1f
+Exclusive Cargo target: /home/agent/.cache/codex-build/fn232-determinism-new
+
+$ CARGO_TARGET_DIR=<target> cargo +1.99.1 clippy --manifest-path tools/gomad/rust/Cargo.toml --release --locked --offline -j1 -p gomad-wasmhost --test inventory --no-deps -- -D warnings
+    Checking gomad-wasmhost v0.1.0 (/home/agent/wt/fn232-determinism-reach/tools/gomad/rust/wasmhost)
+    Finished `release` profile [optimized] target(s) in 0.31s
+Exit: 0
+
+$ env -u GOROOT CARGO_TARGET_DIR=<target> GOMAD_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go cargo +1.99.1 test --manifest-path tools/gomad/rust/Cargo.toml --release --locked --offline -j1 -p gomad-wasmhost --test inventory
+   Compiling gomad-wasmhost v0.1.0 (/home/agent/wt/fn232-determinism-reach/tools/gomad/rust/wasmhost)
+    Finished `release` profile [optimized] target(s) in 5.39s
+     Running tests/inventory.rs (/home/agent/.cache/codex-build/fn232-determinism-new/release/deps/inventory-82e32ac9b31d01f4)
+
+running 32 tests
+test architecture_inventory::modeled_state_io_admits_named_types_and_refuses_host_streams ... ok
+test helper_source_scan_skips_only_test_items ... ok
+test every_escape_resolves_a_readme_heading ... ok
+test engine_settings_are_inventoried ... ok
+test appended_retired_identity_cannot_reuse_an_existing_site ... ok
+test completeness_rejects_unaccepted_retirement ... ok
+test inventory_covers_every_diagnostic_draw_stream ... ok
+test identity_history_preserves_accepted_prefix_and_allows_appends ... ok
+test inventory_pins_require_append_only_dated_reviews ... ok
+test inventory_covers_every_operation ... ok
+test operation_table_parser_fails_closed ... ok
+test inventory_reviewed_versions_match_exact_candidate_pins ... ok
+test retired_helper_allowlist_does_not_cover_new_sites ... ok
+test review_history_rejects_stale_dates_and_non_utc_timestamps ... ok
+test retired_import_requires_historical_identity_and_refusal_evidence ... ok
+test runtime_inventory::source_inventory_preserves_the_collector_file_patch_prohibition ... ok
+test inventory_loader_rejects_unknown_fields_and_reused_ids ... ok
+test inventory_preserves_historical_identities ... ok
+test serde_json_objects_serialize_in_sorted_key_order ... ok
+test source_scan_refuses_inline_modules_that_hide_external_children ... ok
+test source_scan_skips_multiline_raw_and_combined_test_items ... ok
+test evidence_inventory::inventory_all_evidence_references_resolve ... FAILED
+test evidence_inventory::inventory_native_and_retained_model_evidence_resolves ... ok
+test inventory_loader_rejects_every_malformed_row_variant ... ok
+test inventory_rejects_invalid_stable_ids_and_reference_paths ... ok
+test inventory_review_date_requires_a_calendar_day ... ok
+test runtime_inventory::runtime_historical_retirement_keeps_appended_sites_active ... ok
+test runtime_inventory::wasip1_seed_finding_and_seeded_draw_decision_premises ... ok
+test helper_source_scan_sites_are_inventoried ... ok
+test architecture_inventory::native_modeled_state_rejects_host_imports_on_both_source_platforms ... ok
+test host_inventory::receiving_host_effect_sites_are_inventoried ... ok
+test runtime_inventory::wasip1_runtime_draw_and_clock_references_are_reviewed ... ok
+
+failures:
+
+---- evidence_inventory::inventory_all_evidence_references_resolve stdout ----
+
+thread 'evidence_inventory::inventory_all_evidence_references_resolve' (241600) panicked at wasmhost/tests/inventory/evidence.rs:135:5:
+unresolved inventory evidence:
+inventory evidence "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/command:TestInstalledOperatorClusterFailureEndsPromptly" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestClusterInspectionMetadataDoesNotReplaceWorldEvidence" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismRefuseExecuteRequest" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismRefuseNestedHelperFields" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismRefuseOffPinStarted" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperFrames" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDeterminismRefuseUnknownHelperTerminal" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestNetworkV2StateRejectsInvalidProfile" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestTerminalExitMeasurementControls" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestTranscriptClockRunFoldsAndPreservesDigestModes" does not name an existing test or corpus contract
+inventory evidence "go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims" does not name an existing test or corpus contract
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    evidence_inventory::inventory_all_evidence_references_resolve
+
+test result: FAILED. 31 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.67s
+
+error: test failed, to rerun pass `-p gomad-wasmhost --test inventory`
+Exit: 101
+
+$ cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check
+Exit: 0
+$ git diff --check
+Exit: 0

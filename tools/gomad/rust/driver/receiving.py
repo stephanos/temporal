@@ -13,6 +13,7 @@ import sys
 import adapters
 import sqlite
 import receiving_cost
+import onebox_receiving
 from driver import Refusal, Unexecuted, configured, guard, load_module, read, require, sha
 
 
@@ -29,6 +30,7 @@ OWNED = (
     'temporal/actual-committed-storage-all-states',
     'temporal/actual-named-reset-retry',
     'temporal/inspection-shard-workflow-onebox',
+    'fn222/two-cell-ordered-support-list',
 )
 
 
@@ -388,7 +390,8 @@ class Retained:
         self.config = config
         self.root = Path(config['root'])
         self.commands = {}
-        self.adapter = cloned(adapters, dict(command=self.command, write=self.write))
+        self.adapter = cloned(adapters, dict(command=self.command, write=self.write,
+                                             runtime_artifact=self.runtime_artifact))
 
     def contained(self, path):
         path = Path(path)
@@ -622,6 +625,83 @@ class Retained:
                     and replay['divergence'] is None and replay['choice_replay'] == ('exact' if manifest['profile'] == 'cooperative' else 'none'), 'incomplete full-tape Result replay')
         return result
 
+    def runtime_artifact(self, artifact, inspected, index):
+        manifest = self.artifact(artifact)
+        record = manifest['record']
+        require(record['schema'] == 'gomad.execution-record/v2'
+                and decoded(regular(artifact/'storage.json').read_bytes()) == {'format':'gomad.artifact-storage/v2'}
+                and regular(artifact/'record.json').read_bytes() == canonical(record), 'runtime artifact lineage/record mismatch')
+        provenance_raw = regular(artifact/'target/provenance.json').read_bytes()
+        replay_raw = regular(artifact/'evidence/replay.json').read_bytes()
+        provenance, replay = decoded(provenance_raw), decoded(replay_raw)
+        require(canonical(provenance) == provenance_raw and canonical(replay) == replay_raw,
+                'runtime noncanonical retained provenance/replay inputs')
+        derived = self.provenance(dict(provenance=provenance))
+        configuration, inputs = provenance['configuration'], provenance['inputs']
+        import runtime_gate
+        runtime_gate.exact_configuration(configuration, require)
+        installed = read(self.config['installations'][self.config['stages'][f'runtime-{index}']['installation']])
+        require(set(replay) == {'schema','helper_sha256','host_sha256','toolchain_sha256',
+                'runtime_implementation_sha256','configuration'} and replay['schema'] == 'gomad.replay-inputs/v1'
+                and replay['configuration'] == configuration
+                and record['identity']['configuration'] == digest(canonical(configuration))
+                and record['profile'] == configuration['profile'] == 'gomad.wasi-cooperative/v1'
+                and record['arguments'] == configuration['arguments']
+                and record['environment'] == configuration['environment'] and record['limits'] == configuration['limits'],
+                'runtime record/replay/preparation configuration mismatch')
+        require(replay['toolchain_sha256'] == record['identity']['toolchain'] == provenance['build_key']
+                and record['identity']['target'] == provenance['module_sha256']
+                and replay['host_sha256'] == inputs['host'] == self.config['identity']['host']
+                and replay['helper_sha256'] == inputs['helper'] == self.config['identity']['helper']
+                and replay['runtime_implementation_sha256'] == inputs['runtime_implementation']
+                    == installed['runtime_implementation_sha256'], 'runtime retained component binding mismatch')
+        module = regular(artifact/'target/module.wasm').read_bytes()
+        require(module_metadata(module) == provenance['module_metadata'], 'runtime module metadata changed')
+        source = Path(self.config['repo'])/'tools/gomad/internal/backends/wasm/testdata/runtime_probes'
+        require(inputs['source'] == '.' and inputs['kind'] == 'go-run' and inputs['directory'] == str(source)
+                and inputs['arguments'] == ['literal $arg'] and inputs['tags'] == []
+                and inputs['build_flags'] == ['-mod=readonly','-trimpath','-buildvcs=false','-pgo=off']
+                and inputs['soft_assertion_report_only'] is False
+                and inputs['scenario'] is None and inputs['network'] is None
+                and provenance['scenario'] is None and provenance['network'] is None
+                and 'runtime_workload' not in provenance, 'runtime original preparation selection changed')
+        require(inputs['environment'] == dict(CGO_ENABLED='0', GOARCH='wasm', GOCACHEPROG='', GODEBUG='',
+                GOENV='off', GOEXPERIMENT='nogreenteagc', GOFLAGS='', GONOPROXY='none', GOOS='wasip1',
+                GOPRIVATE='', GOPROXY='off', GOSUMDB='off', GOTOOLCHAIN='local', GOVCS='*:off', GOWASM='', GOWORK='off'),
+                'runtime preparation compiler environment changed')
+        admitted = installed['admission']['compiler_inputs']
+        require(all(self.config['files'].get(path,value) == value for path,value in admitted.items()),
+                'runtime admitted compiler inputs disagree with frozen source')
+        trusted = dict(admitted, **self.config['files'])
+        require(inputs['compiler_path'] == installed['compiler_path']
+                and inputs['compiler_sha256'] == installed['compiler_sha256']
+                and inputs['compiler'] and all(trusted.get(path) == value
+                    and digest(regular(Path(path)).read_bytes()) == value for path,value in inputs['compiler'].items()),
+                'runtime compiler inventory changed')
+        stock = Path(installed['compiler_path']).parent.parent
+        require(inputs['sources'] and inputs['sources'].get(str(source/'main.go')) == self.config['files'].get(str(source/'main.go')),
+                'runtime selected source is not frozen')
+        for path,value in inputs['sources'].items():
+            selected = Path(path)
+            require(selected.is_absolute() and '..' not in selected.parts
+                    and (trusted.get(path) == value or selected.is_relative_to(stock/'src')
+                         or selected.is_relative_to(stock/'pkg/include'))
+                    and digest(regular(selected).read_bytes()) == value, 'runtime selected source inventory changed: '+path)
+        overlay = Path(installed['cache_root'])/'runtime-overlay'/inputs['runtime']
+        require(len(inputs['runtime']) == 64 and overlay.parent.name == 'runtime-overlay'
+                and any(Path(path).parent == overlay for path in installed['admission']['compiler_inputs']),
+                'runtime overlay identity is not admitted')
+        details = decoded(regular(artifact/'evidence/inspection.json').read_bytes())['choices']
+        require(details['identity'] == provenance['choice_identity']
+                and details['implementation_sha256'] == self.config['identity']['helper']
+                and details['terminal_state'] == 'complete' and details['trace']['limit'] == 1<<20
+                and details['trace']['file'] == 'evidence/choice'
+                and details['trace']['bytes'] == record['streams']['evidence/choice']['bytes']
+                and details['trace']['sha256'] == record['streams']['evidence/choice']['sha256']
+                and details['records'] == inspected['artifact']['choices']['records'],
+                'runtime inspection/provenance/choice binding mismatch')
+        return derived
+
     def runtime(self):
         paths, pids = set(), set()
         for index in range(32):
@@ -631,16 +711,18 @@ class Retained:
             report = read(root/'runtime.json')
             require(not paths.intersection(report['artifacts']), 'runtime shards borrowed artifacts')
             paths.update(report['artifacts'])
-            for artifact in report['artifacts']:
-                campaign = next((path for path in Path(artifact).parents if path.parent.name == 'campaigns'),None)
-                require(campaign is not None,'runtime campaign root missing')
-                self.journal(campaign,read(Path(artifact)/'manifest.json')['record_sha256'])
-            rows = [read(root/(f'record-{number:02}.command.json')) for number in range(25)]
-            require(len({row['pid'] for row in rows}) == 25 and not pids.intersection(row['pid'] for row in rows),
-                    'runtime repeated producer PID')
-            pids.update(row['pid'] for row in rows)
-            replay = read(root/'forced-replay.command.json')
-            require(replay['end_ns']-rows[0]['start_ns'] <= 600_000_000_000, 'runtime original ten-minute shard exceeded')
+            for number, artifact in enumerate(report['artifacts']):
+                require(Path(artifact).parent == root/'recordings'/f'instance-{number:02}',
+                        'runtime fresh store root mismatch')
+                self.artifact(Path(artifact))
+            producer = read(root/'producer.command.json')
+            require(producer['pid'] not in pids, 'runtime repeated producer PID')
+            pids.add(producer['pid'])
+            installed = read(root/'harness-identity.command.json')
+            inspected = read(root/'inspect-24.command.json')
+            require(installed['start_ns'] <= producer['end_ns'] <= inspected['end_ns']
+                    and inspected['end_ns']-installed['start_ns'] <= 600_000_000_000,
+                    'runtime original ten-minute shard exceeded')
         self.adapter.runtime_aggregate(self.config,self.root/'stages/runtime-aggregate','runtime-aggregate')
 
     def mandatory(self):
@@ -981,6 +1063,8 @@ class Retained:
                 child_argv += ['--root',str(root/owner)]
                 if '--captured-config' in outer_argv:
                     child_argv += ['--captured-config',argument(outer_argv,'--captured-config')]
+                if '--private-observation-config' in outer_argv:
+                    child_argv += ['--private-observation-config',argument(outer_argv,'--private-observation-config')]
                 self.nested(root,owner,child_argv)
                 child = self.owner(root/owner,child_argv)
                 require(child['pid'] == read(root/(owner+'.command.json'))['pid'],'inspection child root/PID mismatch')
@@ -1122,6 +1206,8 @@ class Retained:
         require(runtime_pins == {installation['runtime_implementation_sha256']},'inspection actual runtime implementation differs')
 
     def inspection(self, root, owner):
+        if owner == 'onebox':
+            return onebox_receiving.inspection(self, root)
         observed_owner = self.owner(root)
         argv = observed_owner['argv']
         require(argument(argv,'--owner') == owner and argument(argv,'--binary') == self.config['binary']
@@ -1283,7 +1369,8 @@ def read_receiving(config):
               *(lambda index=index: reader.selected(index) for index in range(4)), reader.catalogue,
               reader.smoke,
               reader.replication, lambda: reader.temporal('storage'),
-              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection')]
+              lambda: reader.temporal('network-streams'), lambda: reader.temporal('temporal-inspection'),
+              lambda: onebox_receiving.support(reader)]
     rows = []
     for name, check in zip(OWNED,checks):
         try:

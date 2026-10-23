@@ -333,7 +333,12 @@ impl Recipe {
             ..
         } = self;
         options.target_args = arguments;
-        configuration.arguments = std::iter::once("gomad-target".into())
+        let program = configuration
+            .arguments
+            .first()
+            .cloned()
+            .ok_or_else(|| failure("prepared configuration has no program argument"))?;
+        configuration.arguments = std::iter::once(program)
             .chain(options.target_args.iter().cloned())
             .collect();
         inputs["arguments"] = json!(options.target_args);
@@ -399,6 +404,7 @@ impl Recipe {
         } else {
             None
         };
+        let compile_cache_root = compile_cache_root(&installed)?;
         let provenance = canonical::encode(&Provenance {
             schema: "gomad.rust-wasm-provenance/v1".into(),
             origin: None,
@@ -414,6 +420,7 @@ impl Recipe {
         })?;
         let decoded: Provenance = serde_json::from_slice(&provenance).map_err(failure)?;
         Ok(Prepared {
+            compile_cache_root,
             module,
             configuration: decoded.configuration,
             toolchain,

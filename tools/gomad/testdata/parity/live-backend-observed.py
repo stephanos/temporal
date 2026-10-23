@@ -93,9 +93,9 @@ def main():
         data[0] ^= 1
         (altered / name).write_bytes(data)
         started = lane.args.work / (label + '-guest-started')
-        result = lane.run('corrupt-' + label, ['replay', altered], (2,),
+        result = lane.run('corrupt-' + label, ['replay', altered], (3,),
                           extra={'GOMAD_FIXTURE_GUEST_START_FILE': str(started)})
-        equal(b'incompatible replay artifact:' in result.stderr, True, name + '.integrity_classification')
+        equal(b'runner_failure: artifact integrity:' in result.stderr, True, name + '.integrity_classification')
         equal(b'unsupported artifact storage' in result.stderr, False, name + '.not_lineage')
         equal(started.exists(), False, name + '.zero_guest_starts')
     missing = lane.args.work / 'missing-provider.json'

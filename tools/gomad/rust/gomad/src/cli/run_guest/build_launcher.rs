@@ -233,6 +233,7 @@ mod tests {
             "module_sha256":canonical::digest(&module),"configuration":configuration,"choice_identity":choice_identity,"scenario":null,"network":null
         })).unwrap();
         Prepared {
+            compile_cache_root: None,
             module,
             configuration,
             toolchain,

@@ -254,9 +254,9 @@ mod private {
     clippy::too_many_lines,
     reason = "The ordered cache transaction keeps trust checks and publication cleanup together."
 )]
-pub fn module(
+pub fn module<B: AsRef<[u8]>>(
     engine: &Engine,
-    load: impl FnOnce() -> Result<Vec<u8>, Outcome>,
+    load: impl FnOnce() -> Result<B, Outcome>,
     directory: &str,
     module_sha256: &str,
     metrics: &mut Metrics,
@@ -358,7 +358,7 @@ pub fn module(
         metrics.cache_hit = true;
         return Ok(module);
     }
-    let module = compile(engine, &load()?, metrics)?;
+    let module = compile(engine, load()?.as_ref(), metrics)?;
     #[cfg(feature = "diagnostic-profile")]
     let _diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::CacheWrite);
     let phase = Instant::now();
@@ -420,9 +420,9 @@ pub fn module(
     any(target_arch = "x86_64", target_arch = "aarch64"),
     any(target_os = "linux", target_os = "macos")
 )))]
-pub fn module(
+pub fn module<B: AsRef<[u8]>>(
     _: &Engine,
-    _: impl FnOnce() -> Result<Vec<u8>, Outcome>,
+    _: impl FnOnce() -> Result<B, Outcome>,
     _: &str,
     _: &str,
     _: &mut Metrics,
@@ -503,7 +503,7 @@ mod tests {
             assert!(
                 module(
                     &engine,
-                    || panic!("cache hit read module bytes"),
+                    || -> Result<&[u8], Outcome> { panic!("cache hit read module bytes") },
                     directory.to_str().unwrap(),
                     &digest,
                     &mut metrics
@@ -536,7 +536,7 @@ mod tests {
             let _session = crate::diagnostic::Session::start();
             let outcome = module(
                 &engine,
-                || panic!("corrupt entry read module bytes"),
+                || -> Result<&[u8], Outcome> { panic!("corrupt entry read module bytes") },
                 directory.to_str().unwrap(),
                 &digest,
                 &mut metrics,
@@ -680,7 +680,9 @@ mod tests {
                 let mut metrics = Metrics::default();
                 let outcome = module(
                     &fixture.engine,
-                    || panic!("corrupt {case} entry loaded source bytes"),
+                    || -> Result<&[u8], Outcome> {
+                        panic!("corrupt {case} entry loaded source bytes")
+                    },
                     fixture.directory.to_str().unwrap(),
                     &fixture.digest,
                     &mut metrics,

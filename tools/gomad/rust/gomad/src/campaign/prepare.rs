@@ -21,6 +21,7 @@ pub(crate) mod process;
 const MAXIMUM: u64 = 512 << 20;
 
 pub struct Prepared {
+    pub compile_cache_root: Option<String>,
     pub module: Vec<u8>,
     pub configuration: Configuration,
     pub toolchain: String,
@@ -32,6 +33,19 @@ pub struct Prepared {
 }
 
 pub use crate::install::manifest::Installation;
+
+pub(crate) fn compile_cache_root(installed: &Installation) -> Result<Option<String>, String> {
+    installed
+        .admission
+        .as_ref()
+        .and_then(|admission| admission.compile_cache_root.as_ref())
+        .map(|path| {
+            path.to_str()
+                .map(str::to_owned)
+                .ok_or_else(|| failure("compile cache root is not UTF-8"))
+        })
+        .transpose()
+}
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -121,7 +135,16 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
     let deadline = Instant::now()
         .checked_add(options.overall_timeout)
         .ok_or("overall_timeout: preparation deadline exceeds clock range")?;
-    let result = prepare_before_deadline(options, deadline);
+    let result = prepare_before_deadline(options, deadline, false);
+    process::check_deadline(deadline)?;
+    result
+}
+
+pub(crate) fn prepare_runtime_qualification(options: &ExploreOptions) -> Result<Prepared, String> {
+    let deadline = Instant::now()
+        .checked_add(options.overall_timeout)
+        .ok_or("runtime qualification preparation deadline exceeds clock range")?;
+    let result = prepare_before_deadline(options, deadline, true);
     process::check_deadline(deadline)?;
     result
 }
@@ -129,11 +152,15 @@ pub fn prepare(options: &ExploreOptions) -> Result<Prepared, String> {
 fn prepare_before_deadline(
     options: &ExploreOptions,
     deadline: Instant,
+    runtime_qualification: bool,
 ) -> Result<Prepared, String> {
     if options.target_kind == "exec" {
         return prepared_exec(options, &installation(options)?);
     }
-    let recipe = driver::prepare(options, deadline)?;
+    let mut recipe = driver::prepare(options, deadline)?;
+    if runtime_qualification {
+        recipe.configuration = crate::runtime_qualification::configuration()?;
+    }
     let temporary = process::Temporary::new(&recipe.installed.cache_root)?;
     let output = temporary.0.join("module.wasm");
     let mut build = if options.target_kind == "go-test" {
@@ -362,6 +389,7 @@ fn prepared_exec(options: &ExploreOptions, installed: &Installation) -> Result<P
         .as_bool()
         .ok_or_else(|| failure("prepared assertion policy missing"))?;
     Ok(Prepared {
+        compile_cache_root: compile_cache_root(installed)?,
         module,
         configuration: provenance.configuration,
         toolchain: provenance.build_key,

@@ -337,7 +337,36 @@ fn valid_inventory(value: &Value) -> bool {
 }
 
 fn authenticate_provenance_module(provenance: &Value, module: &[u8]) -> Result<(), String> {
+    #[derive(Deserialize)]
+    struct SourceInputs {
+        kind: String,
+        source: String,
+        directory: PathBuf,
+        arguments: Vec<String>,
+        tags: Vec<String>,
+        scenario: Option<Vec<u8>>,
+        network: Option<gomad_wasmhost::linked_cluster::NetworkModel>,
+        soft_assertion_report_only: bool,
+    }
     super::prepare::typed_provenance(provenance)?;
+    let source: SourceInputs = serde_json::from_value(provenance["inputs"].clone())
+        .map_err(|error| format!("preparation source binding: {error}"))?;
+    let arguments = std::iter::once("gomad-target".to_owned())
+        .chain(source.arguments)
+        .collect::<Vec<_>>();
+    if !matches!(source.kind.as_str(), "go-test" | "go-run")
+        || source.source.is_empty()
+        || source.source.contains('\0')
+        || !source.directory.is_absolute()
+        || source.tags.iter().any(|tag| tag.contains('\0'))
+        || source.tags.windows(2).any(|pair| pair[0] >= pair[1])
+        || provenance["configuration"]["arguments"] != serde_json::json!(arguments)
+        || provenance["scenario"] != serde_json::json!(source.scenario)
+        || provenance["network"] != serde_json::json!(source.network)
+        || source.soft_assertion_report_only && source.kind != "go-test"
+    {
+        return Err("preparation source binding mismatch".into());
+    }
     let module_metadata: Option<gomad_wasmhost::linked::ModuleMetadata> =
         serde_json::from_value(provenance["module_metadata"].clone())
             .map_err(|error| error.to_string())?;
@@ -399,6 +428,9 @@ fn validate(
             provenance["inputs"]["go_version"].as_str(),
             Some("go1.27.0" | "go1.27.1")
         )
+        || provenance["inputs"]["soft_assertion_report_only"] != prepared.soft_assertion_report_only
+        || provenance["inputs"]["scenario"] != serde_json::json!(prepared.scenario)
+        || provenance["inputs"]["network"] != serde_json::json!(prepared.network)
         || provenance["inputs"]["configuration"] != configuration
         || provenance["inputs"]["runtime_implementation"] != serde_json::json!(runtime)
         || provenance["scenario"] != serde_json::json!(prepared.scenario)
@@ -470,4 +502,105 @@ pub(crate) fn open_receipt(
     let opened = artifact(&receipt.campaign, &plan)?;
     let prepared = validate(&receipt, &plan, &opened)?;
     Ok((receipt, prepared))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn provenance() -> Value {
+        json!({
+            "schema":"gomad.rust-wasm-provenance/v1", "build_key":"fixture",
+            "module_sha256":canonical::digest(b"module"),
+            "configuration":{
+                "engine":"fixture", "profile":"stock", "limits":{
+                    "fuel":1,"memory_bytes":1,"wall_millis":1,"output_bytes":1,"evidence_bytes":1
+                },
+                "arguments":["gomad-target","-test.v"],"environment":{},
+                "runtime_sha256":null,"model":null,"namespace":null,"storage":null
+            },
+            "choice_identity":null,"scenario":null,"network":null,
+            "inputs":{
+                "kind":"go-test","source":"./tests","directory":"/retired/source",
+                "arguments":["-test.v"],"tags":["test_dep"],
+                "scenario":null,"network":null,"soft_assertion_report_only":false
+            }
+        })
+    }
+
+    #[test]
+    fn preparation_restoration_refuses_authenticated_execution_records() {
+        let provenance = provenance();
+        let prepared = Prepared {
+            module: b"module".to_vec(),
+            configuration: serde_json::from_value(provenance["configuration"].clone()).unwrap(),
+            toolchain: "a".repeat(64),
+            choice_identity: None,
+            scenario: None,
+            provenance: canonical::encode(&provenance).unwrap(),
+            network: None,
+            soft_assertion_report_only: false,
+            compile_cache_root: None,
+        };
+        let plan = json!({
+            "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),
+            "helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
+            "configuration":prepared.configuration,"toolchain":prepared.toolchain,
+            "module_sha256":canonical::digest(&prepared.module),
+            "choice_identity":null,"scenario":null,"network":null,
+            "soft_assertion_report_only":false
+        });
+        let store = crate::evidence::search_context::tests::store();
+        let original = store
+            .publish(super::super::prepared_publication(&prepared).unwrap())
+            .unwrap();
+        super::super::restore_from_plan(&plan, &Opened::open(&original.path).unwrap()).unwrap();
+        let mut executed = super::super::prepared_publication(&prepared).unwrap();
+        executed.record.outcome.class = "success".into();
+        executed.record.outcome.termination = "exit".into();
+        executed.record.outcome.exit_code = Some(0);
+        executed
+            .payloads
+            .insert("record.json".into(), executed.record.bytes().unwrap());
+        let executed = store.publish(executed).unwrap();
+        assert!(
+            super::super::restore_from_plan(&plan, &Opened::open(&executed.path).unwrap()).is_err()
+        );
+        std::fs::remove_dir_all(&store.root).unwrap();
+    }
+
+    #[test]
+    fn retained_build_tag_tokens_preserve_go_compiler_grammar() {
+        for tags in [json!(["gomad_fixture,test_dep"]), json!([""])] {
+            let mut retained = provenance();
+            retained["inputs"]["tags"] = tags;
+            authenticate_provenance_module(&retained, b"module").unwrap();
+        }
+    }
+
+    #[test]
+    fn retained_source_bindings_refuse_inconsistent_or_malformed_inputs() {
+        authenticate_provenance_module(&provenance(), b"module").unwrap();
+        for (name, value) in [
+            ("arguments", json!(["-test.list=."])),
+            ("arguments", json!([1])),
+            ("kind", json!("exec")),
+            ("source", json!("")),
+            ("directory", json!("relative/source")),
+            ("tags", json!(["test_dep", "test_dep"])),
+            ("tags", json!([7])),
+            ("scenario", json!([1])),
+            ("network", json!({})),
+            ("soft_assertion_report_only", json!(null)),
+        ] {
+            let mut changed = provenance();
+            changed["inputs"][name] = value;
+            assert!(
+                authenticate_provenance_module(&changed, b"module").is_err(),
+                "accepted inconsistent {name}: {}",
+                changed["inputs"][name]
+            );
+        }
+    }
 }

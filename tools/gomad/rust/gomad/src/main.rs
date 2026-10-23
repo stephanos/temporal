@@ -34,7 +34,11 @@ fn main() {
                 &mut output,
                 installation.as_deref(),
             ),
-            "resume" => gomad::cli::resume::run(&arguments[1..], &mut output),
+            "resume" => gomad::cli::resume::run_with_installation(
+                &arguments[1..],
+                &mut output,
+                installation.as_deref(),
+            ),
             "minimize" => gomad::cli::minimize::run(&arguments[1..], &mut output),
             "stress" => gomad::cli::stress::run(&arguments[1..], &mut output),
             "qualify" => {
@@ -57,7 +61,11 @@ fn main() {
         .first()
         .is_some_and(|argument| argument == "replay")
     {
-        let status = match gomad::cli::replay::run(&arguments[1..], &mut std::io::stdout().lock()) {
+        let status = match gomad::cli::replay::run_with_installation(
+            &arguments[1..],
+            &mut std::io::stdout().lock(),
+            installation.as_deref(),
+        ) {
             Ok(status) => status,
             Err(error) => {
                 eprintln!("gomad: {}", error.message);
