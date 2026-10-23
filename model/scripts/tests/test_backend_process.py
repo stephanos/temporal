@@ -89,14 +89,25 @@ print('escaped ' + str(p.pid))
             outside = Path(tmp) / "outside"
             outside.mkdir()
             (root / "model/build").symlink_to(outside, target_is_directory=True)
-            try:
-                result = subprocess.run(["bash", str(script)], preexec_fn=backend_process.restrict_descendants, capture_output=True, timeout=2, check=False)
-                output = result.stdout + result.stderr
-                self.assertNotEqual(result.returncode, 0)
-            except subprocess.TimeoutExpired as error:
-                output = (error.stdout or b"") + (error.stderr or b"")
-            self.assertIn(b"TLC cache escapes repository", output)
+            self.assert_preflight(script)
             self.assertFalse((outside / "tlc").exists())
+
+    def assert_preflight(self, script, timeout=2):
+        try:
+            result = subprocess.run(["bash", str(script)], preexec_fn=backend_process.restrict_descendants, capture_output=True, timeout=timeout, check=False)
+            output = result.stdout + result.stderr
+            self.assertNotEqual(result.returncode, 0)
+        except subprocess.TimeoutExpired as error:
+            output = (error.stdout or b"") + (error.stderr or b"")
+        self.assertIn(b"TLC cache escapes repository", output)
+
+    @unittest.skipIf(os.getuid() == 0 or os.geteuid() == 0, "NPROC requires a non-root user")
+    def test_diagnostic_text_cannot_make_a_hung_preflight_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "hang.sh"
+            script.write_text("printf 'TLC cache escapes repository\\n' >&2; while :; do :; done\n")
+            with self.assertRaises(subprocess.TimeoutExpired):
+                self.assert_preflight(script, timeout=.1)
 
     def test_owner_group_and_direct_supervisor_termination_reap_owned_tree(self):
         libc = ctypes.CDLL(None, use_errno=True)
