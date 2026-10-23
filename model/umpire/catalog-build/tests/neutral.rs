@@ -181,6 +181,41 @@ fn added_method_and_action_break_exhaustive_generated_matches()
 }
 
 #[test]
+fn an_annotated_rpc_must_be_claimed() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_catalog_syntax::{descriptor::MessageCoverage, services::classifications};
+    let config = service_config();
+    let coverage = Coverage {
+        messages: vec![MessageCoverage {
+            name: "example.v1.Input".into(),
+            fields: vec![],
+            opaque_fields: vec![],
+        }],
+        ..Coverage::default()
+    };
+    let bytes = fixture().encode_to_vec();
+    let classify = |role: &str| {
+        classifications(
+            &format!(
+                "fn classify(method: DeviceMethod) -> RpcRole {{ match method {{ DeviceMethod::Set => {role} }}}}"
+            ),
+            config.service,
+            config.method_enum,
+        )
+    };
+    services::generate(&bytes, &coverage, &classify("RpcRole::Observed(\"set\")")?, &config)?;
+    let out_of_scope = classify("RpcRole::OutOfScope(\"device settings\")")?;
+    assert_eq!(
+        services::generate(&bytes, &coverage, &out_of_scope, &config).err().as_deref(),
+        Some(
+            "annotated RPC is out of scope: example.v1.Device.Set has mirrored messages but no \
+             Action or Observed classification"
+        )
+    );
+    services::generate(&bytes, &Coverage::default(), &out_of_scope, &config)?;
+    Ok(())
+}
+
+#[test]
 fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
 -> Result<(), Box<dyn std::error::Error>> {
     use std::fs;
@@ -204,6 +239,38 @@ fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
     assert_eq!(classifications[0].coverage.name, "example.v1.Device");
     fs::remove_dir_all(root)?;
     Ok(())
+}
+
+#[test]
+fn coverage_build_resolves_feature_claims_against_one_service_table()
+-> Result<(), Box<dyn std::error::Error>> {
+    use std::fs;
+    use umpire_catalog_build::coverage;
+    let root = std::env::temp_dir().join(format!("catalog-build-claims-{}", std::process::id()));
+    let (first, second) = (root.join("first"), root.join("second"));
+    fs::create_dir_all(&first)?;
+    fs::create_dir_all(&second)?;
+    fs::write(
+        root.join("service.rs"),
+        "fn family(method: DeviceMethod) -> &'static str { match method { DeviceMethod::Set => \"device settings\" }}",
+    )?;
+    let claim = "fn classify(method: DeviceMethod) -> RpcRole<ModelAction> { match method { DeviceMethod::Set => RpcRole::Action(ModelAction::Device(Device::Set)), _ => RpcRole::OutOfScope(service::family(method)) }}";
+    fs::write(first.join("api.rs"), claim)?;
+    let descriptor = root.join("selected.binpb");
+    fs::write(&descriptor, fixture().encode_to_vec())?;
+    let result = (|| -> Result<(), Box<dyn std::error::Error>> {
+        let (_, classifications) =
+            coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")?;
+        assert_eq!(classifications[0].bindings[0].1, "Action");
+        fs::write(second.join("api.rs"), claim)?;
+        let error = coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")
+            .err()
+            .ok_or("a duplicate feature claim passed the build")?;
+        assert_eq!(error.to_string(), "duplicate feature claim: example.v1.Device.Set");
+        Ok(())
+    })();
+    fs::remove_dir_all(root)?;
+    result
 }
 
 #[test]

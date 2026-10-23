@@ -3,6 +3,7 @@
 pub mod api;
 pub mod dc;
 pub mod enum_inventory;
+pub mod service;
 pub mod views;
 
 #[cfg(test)]

@@ -785,14 +785,15 @@ Decided/Observed/Ignored borrow AIP vocabulary. Native sidecar checks need no CE
 | --- | --- |
 | Fields | A struct pattern without `..` names every prost field; descriptor checking also names every source oneof alternative and requires nested coverage unless explicitly opaque. |
 | Enum values | A reviewed `foundation/enum_inventory.rs` lists variants; descriptor checks and wildcard-free matches reject additions. Runtime unknown integers return `UnknownEnum`. |
-| RPC methods | Generated service identities feed exhaustive `classify` matches: `Action`, `Observed` or `OutOfScope(reason)`; stale, duplicate and missing declarations fail. |
+| RPC methods | Generated service identities feed one exhaustive `family` match in `foundation/service.rs` that gives every RPC its resource family. Each feature's `classify` claims its RPCs as `Action` or `Observed` and defers the rest with `_ => RpcRole::OutOfScope(service::family(method))`; an unclaimed RPC's reason is its family. Stale, duplicate and missing declarations, a duplicate feature claim and a claim the table lacks fail. |
 | Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC mappings must agree with service classifications. |
 
 The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs` uses
 `getproto --linked-api` to add the actual linked WorkflowService descriptors in
 `OUT_DIR/annotation-api.binpb` for coverage checks, preserving upstream-owned files.
 Rust API generation still reads the upstream image. The build tracks that image and feature
-`api.rs` files recursively, including their directories and the shared enum inventory.
+`api.rs` files recursively, including their directories, the shared enum inventory and the
+service table.
 
 After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action mappings.
 Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.

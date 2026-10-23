@@ -285,7 +285,7 @@ fn diagnostics_exclude_tokens_and_payloads_and_unknown_traffic_refuses()
     assert!(annotate("UnknownRpc", false, &[], 1).is_err());
     assert!(annotate("/another.Service/StartActivityExecution", false, &[], 1).is_err());
     let infrastructure = annotate("GetSystemInfo", false, &[], 1)?;
-    assert!(infrastructure.out_of_scope.is_some_and(|reason| reason.contains("capabilit")));
+    assert_eq!(infrastructure.out_of_scope.as_deref(), Some("Cluster and service information"));
     Ok(())
 }
 
