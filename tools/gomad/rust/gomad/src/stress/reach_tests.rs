@@ -674,7 +674,12 @@ fn literal_reproducer_selects_the_authenticated_compiled_engine_role() {
         linked::Conditions::DeterminismFixtureReplay => {
             assert!(command.contains(&json!("--determinism-fixture")))
         }
-        linked::Conditions::DiagnosticProfile | linked::Conditions::GuestProfile | linked::Conditions::DiagnosticFuelOff | linked::Conditions::GuestProfileFuelOff => panic!("no public diagnostic-profile replay flag"),
+        linked::Conditions::DiagnosticProfile
+        | linked::Conditions::GuestProfile
+        | linked::Conditions::DiagnosticFuelOff
+        | linked::Conditions::GuestProfileFuelOff => {
+            panic!("no public diagnostic-profile replay flag")
+        }
     }
     let mut unknown = configuration;
     unknown["engine"] = json!(format!(

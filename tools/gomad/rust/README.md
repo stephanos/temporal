@@ -100,12 +100,36 @@ attestation that the frozen launcher does not require. Its retained status-3
 receipts describe that newer-producer regression, not frozen-baseline parity.
 
 Fresh same-seed host perturbations use the explicitly admitted [stress producer](STRESS.md). Its full frozen-candidate matrix remains a separate acceptance gate.
+## Native measurement preservation
+
+`gomad-measure` retains the measurement input catalogue and explicit `--repo`,
+per-producer input flags, `--keep` and rerun records. Build it with the ordinary
+workspace toolchain and select `--list` to inspect the declared inputs. Producers
+prepare and execute Rust-lineage modules; they refuse historical Go host artifacts
+and receipts. Diagnostic, sampled-guest and fuel-off variants require their
+actual Cargo features and independently admitted executable identities.
+
+The internal `--linked-run REQUEST OUTPUT` command runs an explicit standalone or
+cluster request and retains its modules, actual terminal outcomes and raw evidence.
+`--retained-linked-run REQUEST ROOT [--keep]` manages the same execution beneath
+`ROOT/.gomad-measure/linked-profile`. Success publication is atomic; failed runs
+retain diagnostics without advancing the latest successful run. Input leases and
+explicit keep markers prevent collection of evidence that is still in use.
+
+These native fixtures and source ports preserve behavior for fn-232.13. They do
+not establish the complete original test-wasm predicate coverage or final frozen
+runtime/workload/replay acceptance. Actual fn-185.2/.3 profiles follow fn-232 in
+the milestone order. The separate stress spec interface is documented in
+[STRESS.md](STRESS.md); catalogue-style stress preparation remains pending.
+
 ## Linked host attribution (fn-185.1)
 
 `gomad-profile` is a separate diagnostic producer, built with
 `--features helper-diagnostic-profile --bin gomad-profile`. The ordinary `gomad`
 entry point refuses commands in that feature build, including qualification.
-Empty-feature builds omit the producer and its capture/collector code.
+Empty-feature builds omit `gomad-profile` and the diagnostic collector.
+The ordinary `gomad-measure` retains native execution evidence without enabling
+diagnostic counters or sampling.
 
 ```sh
 CARGO_TARGET_DIR=/absolute/private/profile-target cargo +1.99.1 build \

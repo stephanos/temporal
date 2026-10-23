@@ -29,11 +29,11 @@ mod live_cluster;
 mod live_runtime;
 pub mod measurement;
 pub(crate) mod minimize;
+#[cfg(feature = "helper-diagnostic-profile")]
+pub mod profile;
 pub(crate) mod qualify;
 pub mod replay;
 pub mod runtime_qualification;
 pub mod slots;
 pub(crate) mod stress;
-#[cfg(feature = "helper-diagnostic-profile")]
-pub mod profile;
 pub mod sweep;

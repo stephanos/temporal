@@ -317,7 +317,7 @@ impl Write for NoRemote {
     fn write(&mut self, _: &[u8]) -> io::Result<usize> {
         #[cfg(feature = "diagnostic-profile")]
         self.attempts
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
                 value.checked_add(1)
             })
             .map_err(|_| io::Error::other("native external-owner counter overflow"))?;
