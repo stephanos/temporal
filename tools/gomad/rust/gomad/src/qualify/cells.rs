@@ -548,7 +548,7 @@ fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> 
                 })
                 .collect();
             let mut metrics =
-                campaign::scenario::store_metrics(&observed, &limits, started.elapsed());
+                campaign::scenario::store_metrics(&observed, &limits, started.elapsed())?;
             metrics.store_peak_rss_bytes = store_peak;
             let virtual_time = observed.virtual_elapsed_nanos;
             let projected = projection

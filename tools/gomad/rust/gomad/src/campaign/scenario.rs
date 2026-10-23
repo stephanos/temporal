@@ -1578,7 +1578,7 @@ fn execute_controlled(
     let wall = started.elapsed();
     let store_peak = crate::qualify::usage::store_end();
     let execution = execution.map_err(|error| format!("runner_failure: {error}"))?;
-    let mut metrics = store_metrics(&execution, &limits, wall);
+    let mut metrics = store_metrics(&execution, &limits, wall)?;
     metrics.store_peak_rss_bytes = store_peak;
     let mut result = publication(prepared, job, bound.configuration, execution, false)?;
     if let super::execution::Completion::Finalized(result) = &mut result {
@@ -1605,7 +1605,7 @@ pub(crate) fn store_metrics(
     execution: &helper::Execution,
     limits: &BTreeMap<String, (u64, u64)>,
     wall: Duration,
-) -> super::execution::Metrics {
+) -> Result<super::execution::Metrics, String> {
     let mut stores: Vec<_> = execution
         .incarnations
         .iter()
@@ -1622,12 +1622,17 @@ pub(crate) fn store_metrics(
             .trace_bytes
             .saturating_add(execution.network.len() as u64);
     }
-    super::execution::Metrics {
+    Ok(super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
         store_peak_rss_bytes: None,
-        raw_backend: None,
+        raw_backend: execution
+            .outcome
+            .metrics
+            .as_deref()
+            .map(canonical::encode)
+            .transpose()?,
         stores,
-    }
+    })
 }
 
 #[expect(
