@@ -1,6 +1,6 @@
 {
   "schema": "gomad.integration-development-evidence/v1",
-  "observed_at": "2026-10-23T14:38:44.003272+00:00",
+  "observed_at": "2026-10-23T14:39:46.025715+00:00",
   "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
   "final_qualification": false,
   "logs": [
@@ -3164,7 +3164,7 @@
       "remaining_acceptance": "Complete genuine candidate roles/installations/input bindings; actual original Go/wire/root19 ABI, full runtime, ten workload cells, stress, counterfactuals, full terminal8, retained/operator/inspection/public verbs and 3600-second cycle; later support/sweep/profiling milestones remain open"
     },
     {
-      "observed_at": "2026-10-23T14:38:44.003272+00:00",
+      "observed_at": "2026-10-23T14:39:46.025715+00:00",
       "integration_head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
       "final_qualification": false,
       "scope": "Actual three frozen candidate role builds and independent typed reads; original module-cache custody after Go build",
@@ -3208,6 +3208,16 @@
           "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-reference-transport-v1/main-build.json",
           "bytes": 21204844,
           "sha256": "0f60276549a861c2bf320e3490a603980b3fbf831bf3792ea213609666a7ee28"
+        },
+        {
+          "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-runtime-harness-v1/main-build.json",
+          "bytes": 21205343,
+          "sha256": "4c77001550bae3299f8eef5e280ca727e24e24f46f33ab602427d66540b0beff"
+        },
+        {
+          "path": "/home/agent/evidence/fn232-final-role-runtime-harness-launch-v1/ready.json",
+          "bytes": 2867,
+          "sha256": "edd097ee32539a8639dc54fbabb84736a8117aa4186a9df604944fdf6d5a65b5"
         }
       ],
       "roles": {
@@ -3246,9 +3256,21 @@
           "build_receipt_sha256": "0f60276549a861c2bf320e3490a603980b3fbf831bf3792ea213609666a7ee28",
           "build_exit": 0,
           "separate_typed_read_exit": 0
+        },
+        "runtime-harness": {
+          "head": "13ecf9f40526eec15497a951b6e8167c1a43bdb9",
+          "source_sha256": "37a83bc6ca7b25b4a4802b9477c121d7ee556be72f0d0dce5373d0aeca1483dd",
+          "binary": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-runtime-harness-v1/admitted/runtime-qualification-replay",
+          "binary_sha256": "9f9e19d418ea4a187f5fb2b744887b0b2e0d181d22c3d88c8604a42f7c5cd46b",
+          "host_sha256": "974c09c3ab0f94dc44ed74ecf74698606f0cf375bdda3f8d43a4b738efeb0de6",
+          "helper_sha256": "3dfd81b7f777aa5a5900f1f4209a3bd125fcd46e9d944a066fc495ddd1c2b2a8",
+          "build_receipt": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-final-role-runtime-harness-v1/main-build.json",
+          "build_receipt_sha256": "4c77001550bae3299f8eef5e280ca727e24e24f46f33ab602427d66540b0beff",
+          "build_exit": 0,
+          "separate_typed_read_exit": 0
         }
       },
-      "runtime_harness": "Actual Cargo compile exited0/reaped; producer completed0; independent typed reader still active owner qualification_composition session22576",
+      "runtime_harness": "Complete actual build and separate full typed reader, both exit0/reaped; matches ordinary release host/helper identities",
       "in_flight": {
         "counterfactual_fixture_then_harness": "executed_divergence_preservation sequential controller session9981; second role starts only after first build+read0",
         "conformance_reference": "runtime_qualification_preservation session54281",
