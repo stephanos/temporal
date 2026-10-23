@@ -84,7 +84,7 @@ fn linked_cache_publishes_once_reuses_and_refuses_poison_or_links() {
     assert!(metadata.is_file());
     assert_eq!(metadata.permissions().mode() & 0o777, 0o600);
     let original = fs::read(&entry).unwrap();
-    assert!(!original.is_empty());
+    assert_ne!(original, []);
     let warm = execute(&root.0);
     assert_eq!(warm.outcome.termination, "exit");
     assert_eq!(warm.evidence, cold.evidence);

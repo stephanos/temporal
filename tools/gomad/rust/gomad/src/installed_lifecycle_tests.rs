@@ -339,8 +339,7 @@ fn installed_lifecycle_selected_cache_is_used_without_old_build_inputs() {
     *bytes.last_mut().unwrap() ^= 1;
     std::fs::write(entry, bytes).unwrap();
     let error = crate::cli::replay::run_with_installation(&arguments, &mut Vec::new(), Some(&path))
-        .err()
-        .expect("poisoned installed cache was ignored");
+        .expect_err("poisoned installed cache was ignored");
     assert_eq!(error.status, 3);
     assert!(
         error.message.contains("compile cache: corrupt entry"),

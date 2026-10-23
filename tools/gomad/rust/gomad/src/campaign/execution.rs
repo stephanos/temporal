@@ -237,7 +237,7 @@ fn admit(
         .compile_cache(prepared.compile_cache_root.as_deref())
         .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     admitted.conditions(linked::Conditions::compiled());
-    if let Some(network) = &configuration.network {
+    if let Some(network) = &prepared.configuration.network {
         admitted
             .network(network.clone())
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
@@ -592,6 +592,7 @@ mod runtime_terminal_tests {
 #[cfg(test)]
 mod compile_cache_tests {
     use super::*;
+    use std::os::unix::fs::PermissionsExt as _;
 
     #[test]
     fn selected_cache_roots_preserve_canonical_records_and_failure_identity() {
@@ -617,7 +618,6 @@ mod compile_cache_tests {
         let root =
             std::env::temp_dir().join(format!("gomad-host-compile-cache-{}", std::process::id()));
         std::fs::create_dir(&root).unwrap();
-        use std::os::unix::fs::PermissionsExt as _;
         std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700)).unwrap();
         for name in ["first", "second", "first"] {
             let path = root.join(name);
