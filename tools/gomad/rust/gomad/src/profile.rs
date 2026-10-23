@@ -3,6 +3,9 @@ use gomad_wasmhost::diagnostic::{self, LinkedProfile};
 use serde_json::Value;
 use std::collections::BTreeSet;
 mod json;
+pub mod producer;
+
+pub use crate::campaign::prepare::{Prepared as PreparedGuest, prepare as prepare_guest};
 
 /// # Errors
 /// Refuses oversized JSON, duplicate or unknown keys and invalid attribution.
@@ -150,31 +153,10 @@ fn row(value: &Value) -> Result<[u64; 4], String> {
     Ok([execute, attributed, guest, outer])
 }
 
-/// # Errors
-/// Refuses incomplete attribution, malformed distributions and reconciliation misses.
-pub fn validate(report: &Value) -> Result<(), String> {
-    if report["schema"] != "gomad.wasm-profile/v2" || report["diagnostic_only"] != true {
-        return Err("diagnostic attribution schema".into());
-    }
-    for field in [
-        "abi_overlap_errors",
-        "span_errors",
-        "unattributed_imports",
-        "unframed_imports",
-        "threads_omitted",
-        "report_rows_dropped",
-    ] {
-        if number(report, field)? != 0 {
-            return Err(format!("diagnostic attribution errors: {field}"));
-        }
-    }
-    let ops = report["abi_ops"]
-        .as_object()
-        .ok_or("diagnostic missing abi_ops")?;
-    let owners = report["owners"]
-        .as_object()
-        .ok_or("diagnostic missing owners")?;
-    legacy(report, ops)?;
+fn series(
+    ops: &serde_json::Map<String, Value>,
+    owners: &serde_json::Map<String, Value>,
+) -> Result<(), String> {
     let names = diagnostic::operation_names();
     for (entries, operations) in [(ops, true), (owners, false)] {
         for (name, entry) in entries {
@@ -229,6 +211,35 @@ pub fn validate(report: &Value) -> Result<(), String> {
             }
         }
     }
+    Ok(())
+}
+
+/// # Errors
+/// Refuses incomplete attribution, malformed distributions and reconciliation misses.
+pub fn validate(report: &Value) -> Result<(), String> {
+    if report["schema"] != "gomad.wasm-profile/v2" || report["diagnostic_only"] != true {
+        return Err("diagnostic attribution schema".into());
+    }
+    for field in [
+        "abi_overlap_errors",
+        "span_errors",
+        "unattributed_imports",
+        "unframed_imports",
+        "threads_omitted",
+        "report_rows_dropped",
+    ] {
+        if number(report, field)? != 0 {
+            return Err(format!("diagnostic attribution errors: {field}"));
+        }
+    }
+    let ops = report["abi_ops"]
+        .as_object()
+        .ok_or("diagnostic missing abi_ops")?;
+    let owners = report["owners"]
+        .as_object()
+        .ok_or("diagnostic missing owners")?;
+    legacy(report, ops)?;
+    series(ops, owners)?;
     let totals = row(&report["reconciliation"])?;
     let attributed = sum(owners
         .values()
@@ -310,7 +321,7 @@ mod tests {
             .map(|count| {
                 let barrier = barrier.clone();
                 std::thread::spawn(move || {
-                    let (_, profile) = capture(|| {
+                    let ((), profile) = capture(|| {
                         barrier.wait();
                         let _execute = PhaseSpan::new(Phase::Execute);
                         // Boundary-only spans must stay unattributed, independently per request.
@@ -340,7 +351,7 @@ mod tests {
         }
         let report = session.finish().unwrap();
         validate(&report).unwrap();
-        let (_, report) = capture(|| {
+        let ((), report) = capture(|| {
             let _execute = PhaseSpan::new(Phase::Execute);
         })
         .unwrap();

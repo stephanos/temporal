@@ -27,7 +27,16 @@ fn main() {
     let root = Path::new(&directory);
     let mut files = BTreeMap::new();
     sources(root, &root.join("src"), &mut files);
-    for name in ["build.rs", "Cargo.toml", "../Cargo.toml", "../Cargo.lock"] {
+    for name in [
+        "build.rs",
+        "Cargo.toml",
+        "../Cargo.toml",
+        "../Cargo.lock",
+        "src/measurement/testdata/sqlite_conn.go.orig",
+        "src/measurement/testdata/LICENSE",
+        "src/measurement/testdata/guest-profile.json",
+        "../../internal/backends/wasm/command/testdata/scenario/network.json",
+    ] {
         files.insert(
             name.into(),
             fs::read(root.join(name)).expect("host build identity input"),
@@ -67,6 +76,16 @@ fn main() {
         "cargo:rustc-env=GOMAD_RUNTIME_IMPLEMENTATION_SHA256={:x}",
         runtime.finalize()
     );
+    let source_inputs: String = files
+        .iter()
+        .map(|(name, bytes)| format!("{:x}\t{name}\n", Sha256::digest(bytes)))
+        .collect();
+    fs::write(
+        Path::new(&env::var_os("OUT_DIR").expect("build output directory"))
+            .join("measurement-source-inputs.tsv"),
+        source_inputs,
+    )
+    .expect("measurement source closure");
     let mut hash = Sha256::new();
     hash.update(b"gomad.host-implementation/v1\0");
     for (name, value) in env::vars()

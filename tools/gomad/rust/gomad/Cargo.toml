@@ -10,9 +10,15 @@ name = "gomad-profile"
 path = "src/bin/profile.rs"
 required-features = ["helper-diagnostic-profile"]
 
+[[bin]]
+name = "gomad-measure"
+path = "src/bin/measure.rs"
+
 [features]
 determinism-fixture = []
 helper-diagnostic-profile = ["gomad-wasmhost/diagnostic-profile"]
+helper-guest-profile = ["helper-diagnostic-profile", "gomad-wasmhost/guest-profile"]
+helper-diagnostic-fuel-off = ["helper-diagnostic-profile", "gomad-wasmhost/diagnostic-fuel-off"]
 helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
 helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 

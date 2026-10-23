@@ -152,16 +152,7 @@ fn legacy_mutations(root: &Path, profile: &Value) {
     reject_profile(root, "extra-op-field", &bad, "field inventory");
 }
 
-#[test]
-fn linked_profile_cli_corpus() {
-    let qualification = Command::new(env!("CARGO_BIN_EXE_gomad"))
-        .arg("qualify")
-        .output()
-        .unwrap();
-    assert_eq!(qualification.status.code(), Some(2));
-    assert!(String::from_utf8_lossy(&qualification.stderr).contains("qualification is refused"));
-    let root = std::env::temp_dir().join(format!("gomad-profile-corpus-{}", std::process::id()));
-    std::fs::create_dir(&root).unwrap();
+fn standalone_fixture(root: &Path) {
     let module = root.join("clock.wat");
     std::fs::write(&module, r#"(module
         (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
@@ -188,7 +179,7 @@ fn linked_profile_cli_corpus() {
     );
     assert_eq!(read(&output.join("outcome.json"))["termination"], "exit");
     gomad::profile::validate(&profile).unwrap();
-    legacy_mutations(&root, &profile);
+    legacy_mutations(root, &profile);
     assert!(
         !invoke(&input, &output).status.success(),
         "retained roots must not be overwritten"
@@ -224,11 +215,13 @@ fn linked_profile_cli_corpus() {
     bad["abi_ops"]["wasi_snapshot_preview1.clock_time_get"]["median_nanos"] = json!(u64::MAX);
     assert!(gomad::profile::validate(&bad).is_err());
 
-    let mut bad = profile.clone();
+    let mut bad = profile;
     let unknown = bad["abi_ops"]["wasi_snapshot_preview1.clock_time_get"].clone();
     bad["abi_ops"]["wasi_snapshot_preview1.unknown"] = unknown;
     assert!(gomad::profile::validate(&bad).is_err());
-
+}
+fn cluster_fixture(root: &Path) -> Value {
+    let module = root.join("clock.wat");
     let handles: Vec<_> = ["a", "b"]
         .into_iter()
         .map(|node| json!({"node":node,"incarnation":1}))
@@ -275,10 +268,13 @@ fn linked_profile_cli_corpus() {
     let duplicate = bad["threads"][0].clone();
     bad["threads"].as_array_mut().unwrap().push(duplicate);
     assert!(gomad::profile::validate(&bad).is_err());
-    let mut bad = profile.clone();
+    let mut bad = profile;
     bad["threads"][0]["difference_nanos"] = json!(1);
     assert!(gomad::profile::validate(&bad).is_err());
 
+    cluster
+}
+fn standalone_cutoffs(root: &Path) {
     let module = root.join("fuel.wat");
     std::fs::write(&module, "(module (memory (export \"memory\") 1) (func (export \"_start\") (loop $loop (br $loop))))").unwrap();
     let input = root.join("fuel.json");
@@ -314,6 +310,8 @@ fn linked_profile_cli_corpus() {
         "watchdog_timeout"
     );
     gomad::profile::validate(&read(&output.join("profile.json"))).unwrap();
+}
+fn cluster_cutoff(root: &Path, cluster: Value) {
     let visible = root.join("visible.wat");
     let spinning = root.join("visible-spin.wat");
     for (path, tail) in [(&visible, ""), (&spinning, "(loop $loop (br $loop))")] {
@@ -334,7 +332,7 @@ fn linked_profile_cli_corpus() {
         "listeners":8,"connections":8,"bytes":1_048_576,"connection_bytes":1_048_576,
         "stall_nanos":10_000_000_000u64,"transitions":10000}},
         "addresses":{},"links":[],"strict_topology":false,"faults":[]});
-    let mut timeout_cluster = cluster.clone();
+    let mut timeout_cluster = cluster;
     timeout_cluster["network"] = network.clone();
     timeout_cluster["wall_millis"] = json!(1000);
     timeout_cluster["incarnations"][0]["guest"] = guest(&visible, 1_000_000_000_000);
@@ -377,5 +375,21 @@ fn linked_profile_cli_corpus() {
         canonical::digest(&world)
     );
     gomad::profile::validate(&read(&output.join("profile.json"))).unwrap();
+}
+
+#[test]
+fn linked_profile_cli_corpus() {
+    let qualification = Command::new(env!("CARGO_BIN_EXE_gomad"))
+        .arg("qualify")
+        .output()
+        .unwrap();
+    assert_eq!(qualification.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&qualification.stderr).contains("qualification is refused"));
+    let root = std::env::temp_dir().join(format!("gomad-profile-corpus-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    standalone_fixture(&root);
+    let cluster = cluster_fixture(&root);
+    standalone_cutoffs(&root);
+    cluster_cutoff(&root, cluster);
     std::fs::remove_dir_all(&root).unwrap();
 }

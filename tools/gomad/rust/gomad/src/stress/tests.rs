@@ -479,6 +479,7 @@ while len(list(root.parent.glob('arrival-*'))) < request['supervision']['cohort_
     let options =
         crate::cli::explore::parse(&["go-run".into(), "./unused".into()], &mut json).unwrap();
     let mut request = Request {
+        requested_root: root.clone(),
         workload: "runtime".into(),
         seed: 7,
         axis: "concurrent".into(),
