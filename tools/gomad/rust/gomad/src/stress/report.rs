@@ -246,7 +246,7 @@ fn diagnostics(opened: &Opened) -> Result<(), String> {
     for prefix in prefixes {
         let choice = opened.payload(&format!("{prefix}choice"), 1 << 30)?;
         let diagnostic = opened.payload(&format!("{prefix}diagnostic"), 1 << 30)?;
-        if diagnostic.is_empty() || diagnostic.len() % 96 != 0 || diagnostic.len() != choice.len() {
+        if diagnostic.len() % 96 != 0 || diagnostic.len() != choice.len() {
             return Err("missing or incomplete diagnostic trace; rerun with --diagnostics".into());
         }
     }

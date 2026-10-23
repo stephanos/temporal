@@ -811,9 +811,21 @@ fn module_declaration(trimmed: &str) -> Result<Option<String>, String> {
         trimmed
     };
     let Some(declaration) = rest.strip_prefix("mod ") else {
+        if trimmed
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .any(|token| token == "mod")
+        {
+            return Err(format!("module declaration not understood: {trimmed:?}"));
+        }
         return Ok(None);
     };
     let Some(name) = declaration.strip_suffix(';') else {
+        let Some(name) = declaration.strip_suffix('{').map(str::trim) else {
+            return Err(format!("module declaration not understood: {trimmed:?}"));
+        };
+        if name.is_empty() || !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
+            return Err(format!("module declaration not understood: {trimmed:?}"));
+        }
         return Ok(None);
     };
     if name.is_empty() || !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
@@ -947,7 +959,9 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
         let item = lines.get(start).ok_or("cfg(test) at end of file")?;
         let indent = item.len() - item.trim_start().len();
         let first = strip_literals(item);
-        if let Some(name) = module_declaration(first.trim())? {
+        if first.trim().ends_with(';')
+            && let Some(name) = module_declaration(first.trim())?
+        {
             test_modules.push(name);
             index += 1;
             continue;
@@ -1019,13 +1033,15 @@ fn source_scan(
         let text = std::fs::read_to_string(src.join(&relative))
             .map_err(|error| format!("{relative}: {error}"))?;
         let (lines, _) = production_lines(&text).map_err(|error| format!("{relative}: {error}"))?;
+        let masked = mask_multiline_literals(&text);
+        let masked_lines: Vec<&str> = masked.lines().collect();
         let directory = relative
             .rsplit_once('/')
             .map_or("", |(directory, _)| directory);
         let stem = relative.strip_suffix(".rs").unwrap();
         let owns_directory = matches!(stem, "main" | "lib" | "mod") || stem.ends_with("/mod");
-        for (index, (_, line)) in lines.iter().enumerate() {
-            let trimmed = line.trim();
+        for (index, (number, line)) in lines.iter().enumerate() {
+            let trimmed = masked_lines[number - 1].trim();
             let Some(name) =
                 module_declaration(trimmed).map_err(|error| format!("{relative}: {error}"))?
             else {
@@ -1232,6 +1248,26 @@ fn production<'a>(value: &'a str) { thread::scope(|_| {}); }
     let (lines, _) = production_lines(source).unwrap();
     assert!(lines.iter().any(|(_, line)| line == "mod production;"));
     assert!(lines.iter().any(|(_, line)| line == "mod receiving;"));
+}
+
+#[test]
+fn source_scan_refuses_inline_modules_that_hide_external_children() {
+    let root = std::env::temp_dir().join(format!("gomad-inline-source-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    std::fs::create_dir(root.join("inner")).unwrap();
+    std::fs::write(root.join("lib.rs"), "mod inner { pub mod hidden; }\n").unwrap();
+    std::fs::write(
+        root.join("inner/hidden.rs"),
+        "pub fn hidden() { let _ = std::time::Instant::now(); }\n",
+    )
+    .unwrap();
+    let result = source_scan(&root, &["lib.rs"]);
+    std::fs::remove_dir_all(root).unwrap();
+    assert!(result.unwrap_err().contains("module declaration"));
+    assert_eq!(module_declaration("mod platform {").unwrap(), None);
+    assert_eq!(module_declaration("pub(crate) mod phases {").unwrap(), None);
+    assert!(module_declaration("#[cfg(unix)] mod hidden;").is_err());
+    assert!(module_declaration("fn wrapper() { mod hidden; }").is_err());
 }
 
 const ENGINE: &str = include_str!("../src/engine.rs");

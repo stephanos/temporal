@@ -327,3 +327,53 @@ pending; no live runtime matrix/stress/full qualification was run here. Own targ
 is retained for parent integration and no assigned process still uses it. The
 extracted scanner evidence and binary are retained with their raw focused log;
 no unregistered scratch checkout remains. Latest free disk:84GiB.
+
+## Independent review corrections — 2026-10-23
+
+Merged root `292b8f8848` with `a10f09c892`, then independently reproduced the
+reviewer's three valid findings. `review-io-red.log` shows the modeled-state guard
+accepting direct `std::io::stdin`; `review-inline-red.log` shows a real fixture
+with `mod inner { pub mod hidden; }` returning only `lib.rs` and no clock site;
+`review-zerochoice-red.log` shows the real retained cluster comparator labeling
+an explicitly diagnostic-enabled zero-choice owner undiagnosable despite a
+nonempty diagnostic owner and complete event-order evidence. All three red runs
+exit101 with one named causal test failing. The reviewer's never-started-owner
+subclaim was withdrawn after checking the existing execution-prefix pruning;
+that correct publication invariant is unchanged.
+
+The modeled-state guard permits only named deterministic I/O types/traits,
+including their ordinary grouped imports and aliases. It refuses concrete host
+streams, whole-module/wildcard imports and the ambient OS-error accessor even
+through a type alias. The source walker now fails closed on unsupported same-line
+inline module bodies, inline attributes and function-local module declarations;
+existing multiline inline platform/phases modules still scan successfully.
+Module recognition uses masked source tokens, so comments/raw literals cannot
+manufacture declarations or hide receiving source. The on-disk hidden-child
+regression removes its scratch directory before asserting.
+
+Stress diagnostic admission now permits two empty owner streams when diagnostics
+are explicitly enabled. It still requires the choice/diagnostic lengths to match
+and be multiples of96, and the primary consumer still requires complete retained
+event-order evidence. The authenticated retained-cluster regression covers one
+empty owner and another owner with an actual retained choice record, plus missing,
+disabled, length-mismatched, truncated, absent-event-order and incomplete-event-order
+refusals. These are retained-consumer unit fixtures, not new live guest or stress
+qualification runs. Existing inventory rows reference all three new regression
+names; no historical reference or obligation was removed.
+
+Final raw logs under the existing evidence root:
+
+- `review-inventory-checked.log`: exit101,31/32 pass. Only the same26 deleted-Go
+  reference-resolution failures remain; all current source/guard/ledger/version
+  checks pass, including the two new source-guard regressions.
+- `review-stress-checked.log`: exit0,26/26 default stress/comparator tests pass,
+  including all seven new retained diagnostic-admission cells.
+- `review-inventory-clippy.log`: exit101,10 pre-existing inventory/parser/runtime
+  warnings; no warning names the new review fixes. No lint pass is claimed.
+- Rustfmt checks of every changed Rust file and `git diff --check`: exit0.
+
+The helper/operator production source change rotates candidate identity; final
+frozen runtime/workload/replay execution is still pending. This checkpoint does
+not accept the earlier276 trust-prefix proposal or supply a Flow completion.
+Worktree `/home/agent/wt/fn232-determinism-reach` and assigned Cargo target remain
+for root integration/review; all assigned checks have ended. Free space83GiB.

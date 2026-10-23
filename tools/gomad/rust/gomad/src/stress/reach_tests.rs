@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 fn event(order: u64, kind: &str) -> Value {
     json!({"type":"event","order":order,"kind":kind,"instance":"a","incarnation":1,"ordinal":order,"trace":17,"decision":8,"time_nanos":101,"value":"early"})
 }
-fn framed(rows: &[Value]) -> Vec<u8> {
+pub(super) fn framed(rows: &[Value]) -> Vec<u8> {
     let mut raw = format!(
         "gomad-wasm-event-order-v1 {}\n",
         json!({"type":"header","schema":"gomad.wasm-event-order/v1"})

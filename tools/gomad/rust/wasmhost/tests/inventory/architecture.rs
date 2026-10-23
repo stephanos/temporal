@@ -13,6 +13,54 @@ fn pure_model_file(file: &str) -> bool {
         && file != "namespace/transport.rs"
 }
 
+fn pure_io_members(members: &[&str]) -> Result<(), String> {
+    if members.first() != Some(&"::") {
+        return Err("modeled state requires named std::io types".into());
+    }
+    let allowed = |name: &str| {
+        matches!(
+            name,
+            "BufRead"
+                | "BufReader"
+                | "BufWriter"
+                | "Cursor"
+                | "Error"
+                | "ErrorKind"
+                | "Read"
+                | "Result"
+                | "Seek"
+                | "SeekFrom"
+                | "Write"
+        )
+    };
+    if members.get(1) == Some(&"{") {
+        let mut member = 2;
+        loop {
+            let name = members
+                .get(member)
+                .ok_or("incomplete std::io import group")?;
+            if *name == "}" {
+                break;
+            }
+            if !allowed(name) {
+                return Err(format!("modeled state imports host std::io::{name}"));
+            }
+            member += 1;
+            if members.get(member) == Some(&"as") {
+                member += 2;
+            }
+            match members.get(member) {
+                Some(&",") => member += 1,
+                Some(&"}") => break,
+                _ => return Err("unrecognized std::io import group".into()),
+            }
+        }
+    } else if !members.get(1).is_some_and(|name| allowed(name)) {
+        return Err("modeled state requires named std::io types".into());
+    }
+    Ok(())
+}
+
 fn pure_imports(source: &str) -> Result<(), String> {
     let (lines, _) = production_lines(source)?;
     let source = lines
@@ -42,6 +90,9 @@ fn pure_imports(source: &str) -> Result<(), String> {
         }
     }
     for (index, token) in tokens.iter().enumerate() {
+        if *token == "last_os_error" {
+            return Err("modeled state reads the host OS error".into());
+        }
         if matches!(*token, "rustix" | "libc") {
             return Err(format!("modeled state imports host {token}"));
         }
@@ -50,6 +101,9 @@ fn pure_imports(source: &str) -> Result<(), String> {
         }
         if tokens.get(index + 1) == Some(&"::") {
             let module = *tokens.get(index + 2).ok_or("incomplete std module path")?;
+            if module == "io" {
+                pure_io_members(&tokens[index + 3..])?;
+            }
             if !matches!(
                 module,
                 "array"
@@ -127,4 +181,28 @@ fn native_modeled_state_rejects_host_imports_on_both_source_platforms() {
         pure_imports("struct Descriptor { std: u32 } let values = std::array::from_fn::<_, 2, _>(|i| i); use std::collections::BTreeMap; // std::env is documentation\n#[cfg(test)]\nmod tests {\n    use std::fs;\n}\n").unwrap();
     }
     assert!(!pure_model_file("namespace/transport.rs"));
+}
+
+#[test]
+fn modeled_state_io_admits_named_types_and_refuses_host_streams() {
+    for source in [
+        "fn read() { std::io::stdin(); }",
+        "fn write() { std :: io :: stdout(); }",
+        "use std::io::{Read, stdin as input};",
+        "use std::io::{self, Write};",
+        "use std::io as host;",
+        "use std::io::*;",
+        "fn write() { std::io::stderr(); }",
+        "fn read() { std::io::Error::last_os_error(); }",
+        "use std::io::Error as HostError; fn read() { HostError::last_os_error(); }",
+    ] {
+        assert!(pure_imports(source).is_err(), "{source}");
+    }
+    for source in [
+        "use std::io::{Read, Write, Error, ErrorKind, Result};",
+        "use std::io::Read as Input;",
+        "fn decode() { std::io::Cursor::new(Vec::new()); }",
+    ] {
+        pure_imports(source).unwrap();
+    }
 }

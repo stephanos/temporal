@@ -558,3 +558,104 @@ pub(super) fn publish_stress_configuration(
     let published = store.publish(Publication { record, payloads }).unwrap();
     json!({"fresh":true,"workload":"fixture/native","seed":7,"artifact":published.path,"identities":{"execution":identity},"axis":"reference","binary":"/retained/gomad","command":["gomad","stress","--rerun","/retained/request.json"]})
 }
+
+#[test]
+fn retained_cluster_zero_choice_owner_keeps_complete_diagnostic_admission() {
+    use crate::evidence::store::Opened;
+    let root = stress_test_root();
+    for (case, choices, diagnostics, enabled, expected) in [
+        ("empty", 0, Some(0), true, "identical"),
+        ("missing", 0, None, true, "undiagnosable"),
+        ("disabled", 0, Some(0), false, "undiagnosable"),
+        ("short", 96, Some(0), true, "undiagnosable"),
+        ("partial", 96, Some(95), true, "undiagnosable"),
+        ("order-missing", 0, Some(0), true, "undiagnosable"),
+        ("order-incomplete", 0, Some(0), true, "undiagnosable"),
+    ] {
+        let configuration = json!({"incarnations":[
+            {"handle":{"node":"empty","incarnation":1},"model":{"mode":1,"diagnostics":enabled}},
+            {"handle":{"node":"active","incarnation":1},"model":{"mode":1,"diagnostics":true}}
+        ]});
+        let base = publish_stress_configuration(
+            &root,
+            &format!("{case}-base"),
+            b"target",
+            super::reach_tests::framed(&[
+                json!({"type":"event","order":1,"kind":"clock","instance":"active","incarnation":1,"ordinal":1,"trace":1,"decision":1,"time_nanos":1,"value":1}),
+            ]),
+            None,
+            configuration.clone(),
+        );
+        let opened = Opened::open(Path::new(base["artifact"].as_str().unwrap())).unwrap();
+        let mut record = opened.manifest().record.clone();
+        let mut payloads: BTreeMap<String, Vec<u8>> = opened
+            .manifest()
+            .files
+            .keys()
+            .map(|name| (name.clone(), opened.payload(name, 1 << 20).unwrap()))
+            .collect();
+        payloads.remove("evidence/replay.json");
+        if case == "order-missing" {
+            payloads.remove("evidence/event-order");
+        } else if case == "order-incomplete" {
+            payloads.insert(
+                "evidence/event-order".into(),
+                b"gomad-wasm-event-order-v1 {\"type\":\"incomplete\",\"reason\":\"capacity\"}\n"
+                    .to_vec(),
+            );
+        }
+        payloads.insert(
+            crate::replay::cluster::FILE.into(),
+            canonical::encode(&json!({"configuration":configuration})).unwrap(),
+        );
+        for (node, choice_count, diagnostic_count) in
+            [("empty", choices, diagnostics), ("active", 96, Some(96))]
+        {
+            let choice = if node == "active" {
+                gomad_wasmhost::linked_inspection::Evidence::decode(include_bytes!(
+                    "testdata/multi-inspection-v3.json"
+                ))
+                .unwrap()
+                .incarnations[0]
+                    .streams
+                    .choice[..96]
+                    .to_vec()
+            } else {
+                vec![0; choice_count]
+            };
+            payloads.insert(format!("evidence/cluster/{node}/1/choice"), choice);
+            if let Some(count) = diagnostic_count {
+                payloads.insert(
+                    format!("evidence/cluster/{node}/1/diagnostic"),
+                    vec![0; count],
+                );
+            }
+        }
+        record.streams = payloads
+            .iter()
+            .map(|(name, raw)| {
+                (
+                    name.clone(),
+                    Stream {
+                        bytes: raw.len() as u64,
+                        sha256: canonical::digest(raw),
+                        records: u64::from(!raw.is_empty()),
+                    },
+                )
+            })
+            .collect();
+        let store = Store {
+            root: root.join(case),
+            maximum_bytes: 1 << 20,
+            target_pool: None,
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        };
+        let published = store.publish(Publication { record, payloads }).unwrap();
+        let mut retained = base;
+        retained["artifact"] = json!(published.path);
+        let compared = report::compare(&retained, &retained).unwrap();
+        assert_eq!(compared["status"], expected, "{case}: {compared}");
+    }
+    std::fs::remove_dir_all(root).unwrap();
+}

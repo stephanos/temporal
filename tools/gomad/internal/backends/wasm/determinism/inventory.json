@@ -101,7 +101,8 @@
    "owner": "wasmhost build.rs",
    "rule": "Build time queries the selected Rust compiler version and hashes it with sorted source bytes, Cargo inputs, target, profile and feature bindings into the actual linked implementation identity; no execution starts a subprocess.",
    "evidence": [
-    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:tests/inventory.rs:source_scan_refuses_inline_modules_that_hide_external_children"
    ]
   },
   {
@@ -115,7 +116,8 @@
    "evidence": [
     "rust:src/event_order.rs:event_order_records_full_values_and_actual_coordinates_in_commit_order",
     "rust:src/event_order.rs:event_order_never_marks_a_dropped_or_disabled_stream_complete",
-    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"
+    "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts",
+    "rust:gomad/src/stress/tests.rs:retained_cluster_zero_choice_owner_keeps_complete_diagnostic_admission"
    ]
   },
   {
@@ -508,7 +510,8 @@
     "rust:tests/inventory.rs:inventory_covers_every_operation",
     "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
     "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
-    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes",
+    "rust:tests/inventory/architecture.rs:modeled_state_io_admits_named_types_and_refuses_host_streams"
    ]
   },
   {
