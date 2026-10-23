@@ -201,11 +201,9 @@ fn classify_request_with_environment<'a>(
         &cwd,
         &parsed,
         &arguments[command_index + 1..],
-        &build_flags,
         &required_tags,
         deadline,
-        inherited,
-        command == "test",
+        &packages_environment(inherited, command == "test")?,
     )?;
     if command != "test" {
         let repo = repo.as_ref().ok_or("guest run/build requires gomad.toml")?;
@@ -384,15 +382,13 @@ fn packages(
     cwd: &Path,
     parsed: &classify::Invocation,
     arguments: &[OsString],
-    flags: &[String],
     required_tags: &[String],
     deadline: Instant,
-    inherited: &std::collections::BTreeMap<OsString, OsString>,
-    guest: bool,
+    environment: &std::collections::BTreeMap<OsString, OsString>,
 ) -> Result<Vec<Package>, String> {
     let scratch = process::Temporary::new(&cache_root()?)?;
     let mut list = vec!["list".into(), "-e".into(), "-json".into(), "-find".into()];
-    list.extend(flags.iter().cloned());
+    list.extend(parsed.build_arguments(arguments)?);
     if !parsed.tags.is_empty() || !required_tags.is_empty() {
         list.extend([
             "-tags".into(),
@@ -419,7 +415,7 @@ fn packages(
         &contract.compiler,
         &list,
         cwd,
-        &packages_environment(inherited, guest)?,
+        environment,
         &scratch.0,
         128 << 20,
         deadline,
