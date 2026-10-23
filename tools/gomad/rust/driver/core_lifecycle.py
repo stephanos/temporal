@@ -435,6 +435,10 @@ def observations(config, stdout, network_frame_cases=None):
         partial[NETWORK] = ['The original seven Shared network configuration refusals require core_network.frame_cases from the same authenticated harness.']
     roots = {root: dict(cases=[fact for fact in facts if root in fact['original_roots']], sources=source_facts,
                         predicates=['closed original subvariant catalog', 'authored action order', 'actual owner/drop observations', 'native refusal and terminal precedence']) for root in sorted(complete)}
+    roots[DRAIN]['native_receive'] = dict(
+        ownership='The production final drain joins the held native worker before publishing its actual Completed result.',
+        controls='Per-broker attempt counters cover native activate/run/command entry points, including rejected commands; raw lifecycle state remains unchanged.',
+        retired_wire_disposition='The former helper IPC run/control channel is retired. These facts close the surviving ownership/control predicate and supply no IPC grammar or frame-codec credit.')
     receiving = {root: dict(remaining_original_predicates=[
         'Original root assertions require their other native receiving owner; no lifecycle-v1 row is assigned to this root.'])
         for root in ORIGINAL_ROOTS if root not in complete and root not in partial}
