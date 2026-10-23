@@ -1573,6 +1573,40 @@ mod tests {
         assert_eq!(calls, 376_000);
         assert_eq!(recorder.evidence.boundaries.len(), 51_000);
         assert!(encoded.len() <= MAX_METADATA);
+        let decoded = crate::linked_inspection::Evidence::decode(&encoded).unwrap();
+        assert_eq!(decoded.boundaries.len(), 51_000);
+        assert_eq!(decoded.lifecycle, recorder.evidence.lifecycle);
+        assert_eq!(decoded.lifecycle.len(), 8 + (51_000 + 376_000 + 2) * 20);
+        assert_eq!(
+            decoded.incarnations[0].streams.choice,
+            recorder.evidence.incarnations[0].streams.choice
+        );
+        assert_eq!(
+            decoded.incarnations[0].streams.wasi,
+            recorder.evidence.incarnations[0].streams.wasi
+        );
+        for (expected, actual) in recorder.evidence.boundaries.iter().zip(&decoded.boundaries) {
+            assert_eq!(actual.handle, expected.handle);
+            assert_eq!(actual.decision, expected.decision);
+            assert_eq!(actual.trace, expected.trace);
+            assert_eq!(actual.order, expected.order);
+            assert_eq!(actual.time_nanos, expected.time_nanos);
+            assert_eq!(actual.world_bytes, expected.world_bytes);
+            assert_eq!(actual.lifecycle_bytes, expected.lifecycle_bytes);
+            assert!(actual.cuts == expected.cuts);
+        }
+        println!(
+            "{}",
+            serde_json::json!({
+                "schema":"gomad.native-inspection-predicate/v1",
+                "original_root":"TestInspectionCapacityRetainsTemporalScaleBoundariesAndEffects",
+                "variant":"51000-decisions-376000-effects",
+                "observed":{"metadata_bytes":encoded.len(),"boundaries":decoded.boundaries.len(),
+                    "effects":calls,"lifecycle_bytes":decoded.lifecycle.len(),
+                    "choice_bytes":decoded.incarnations[0].streams.choice.len(),
+                    "wasi_bytes":decoded.incarnations[0].streams.wasi.len(),"all_cuts_equal":true}
+            })
+        );
     }
 
     /// Supplied commitments and deferred network writes record exactly what

@@ -1349,6 +1349,7 @@ fn execute_inner(
     })();
     let driven = driven.and_then(|()| {
         if running.is_empty()
+            || prepared.cancellation.cancelled()
             || broker.failure().is_some()
             || broker.inspection_stopped()
             || first_failure
@@ -1406,6 +1407,7 @@ fn execute_inner(
     {
         outcome = failure;
     }
+    prepared.cancellation.apply(&mut outcome);
     let world = if matches!(outcome.termination, "exit" | "trap" | "capacity")
         || (cfg!(feature = "diagnostic-profile") && outcome.termination == "watchdog_timeout")
     {
@@ -1595,9 +1597,6 @@ pub fn execute_prepared_observed(
         watcher
             .join()
             .map_err(|_| Error::msg("cluster watchdog panicked"))??;
-        if cancellation.cancelled() && result.is_err() {
-            result = Ok(cancelled_execution());
-        }
         if timed_out.load(Ordering::Acquire)
             && let Ok(execution) = &mut result
         {
@@ -1623,6 +1622,53 @@ fn cancelled_execution() -> Execution {
         virtual_elapsed_nanos: 0,
         event_order: None,
     }
+}
+
+/// Validates retained broker network evidence before replay admission.
+///
+/// # Errors
+/// Rejects malformed wire, foreign profiles, owner identities and World state.
+pub fn validate_network_evidence(
+    bytes: &[u8],
+    transcript_limit: u64,
+    shared: &NetworkModel,
+    local: &NetworkModel,
+) -> Result<(), String> {
+    if shared.profile != crate::cluster::network::PROFILE
+        || local.profile != crate::cluster::network::PROFILE
+        || !shared.faults.is_empty()
+        || !local.faults.is_empty()
+    {
+        return Err("retained broker network profile".into());
+    }
+    let transitions = local.limits.transitions;
+    let requests = transitions
+        .checked_mul(2)
+        .ok_or("network World request limit overflow")?;
+    let config = crate::world::Config {
+        seed: 0,
+        limits: crate::world::Limits {
+            max_requests: requests,
+            max_events: requests,
+            max_queued_events: (1 << 16).min(requests),
+            max_transitions: transitions
+                .checked_mul(8)
+                .ok_or("network World transition limit overflow")?,
+            max_payload_bytes: local
+                .limits
+                .bytes
+                .checked_mul(8)
+                .ok_or("network World payload limit overflow")?,
+            max_string_bytes: 1024,
+        },
+    };
+    crate::cluster::network::evidence::decode::decode(
+        bytes,
+        transcript_limit,
+        &crate::cluster::network::evidence::decode::owner_limits(&shared.limits),
+        &config,
+    )
+    .map(|_| ())
 }
 
 /// Validates retained expanded World bytes against the exact broker configuration.

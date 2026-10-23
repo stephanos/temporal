@@ -18,6 +18,9 @@ mod crash_failure_corpus;
 mod validation_order_corpus;
 
 #[cfg(test)]
+mod preservation_tests;
+
+#[cfg(test)]
 mod simulation_tests {
     use super::*;
     use crate::linked_simulation::{Controller, Dimension, Override, Plan};
@@ -186,7 +189,7 @@ const STATE_VERSION: u32 = 1;
 pub struct StorageCrashContext {
     #[serde(rename = "PendingSHA256")]
     pub pending_sha256: String,
-    pub operations: Vec<volume::Operation>,
+    pub operations: Option<Vec<volume::Operation>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -343,6 +346,8 @@ impl StorageDescriptor {
                 .ok_or_else(|| invalid("storage crash selection requires prior observation"))?;
             let pending: BTreeMap<_, _> = prior
                 .operations
+                .as_deref()
+                .unwrap_or_default()
                 .iter()
                 .map(|operation| (operation.id, operation))
                 .collect();
@@ -372,12 +377,14 @@ impl StorageDescriptor {
                 || !prior.pending_sha256.as_bytes()[7..]
                     .iter()
                     .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(byte))
-                || prior.operations.len() as u64 > self.model.limits.pending_operations
+                || prior.operations.is_none()
+                || prior.operations.as_deref().unwrap_or_default().len() as u64
+                    > self.model.limits.pending_operations
             {
                 return Err(invalid("storage crash context inventory"));
             }
             let mut previous = 0;
-            for operation in &prior.operations {
+            for operation in prior.operations.as_deref().unwrap_or_default() {
                 if operation.id <= previous {
                     return Err(invalid("storage crash context operation order"));
                 }
@@ -650,24 +657,25 @@ fn collect(
         .transpose();
     let storage = namespace.storage().expect("attached storage");
     let snapshots = storage.snapshots();
-    let context: BTreeMap<_, _> =
-        if descriptor.crash_limits.is_some() || descriptor.observed_context.is_some() {
-            let mut pending = storage.fs.pending_operations();
-            snapshots
-                .iter()
-                .map(|snapshot| {
-                    (
-                        snapshot.id.clone(),
-                        StorageCrashContext {
-                            pending_sha256: snapshot.pending_sha256.clone(),
-                            operations: pending.remove(&snapshot.id).expect("configured volume"),
-                        },
-                    )
-                })
-                .collect()
-        } else {
-            BTreeMap::new()
-        };
+    let context: BTreeMap<_, _> = if descriptor.crash_limits.is_some()
+        || descriptor.observed_context.is_some()
+    {
+        let mut pending = storage.fs.pending_operations();
+        snapshots
+            .iter()
+            .map(|snapshot| {
+                (
+                    snapshot.id.clone(),
+                    StorageCrashContext {
+                        pending_sha256: snapshot.pending_sha256.clone(),
+                        operations: Some(pending.remove(&snapshot.id).expect("configured volume")),
+                    },
+                )
+            })
+            .collect()
+    } else {
+        BTreeMap::new()
+    };
     let log = storage.log.clone();
     let snapshots = serde_json::to_vec(&snapshots).expect("in-memory JSON");
     let operations = serde_json::to_vec(&storage.operations()).expect("in-memory JSON");
@@ -808,7 +816,7 @@ pub fn encode_state(
     )
 }
 
-fn encode_state_sections(
+pub(crate) fn encode_state_sections(
     snapshots: &[u8],
     operations: &[u8],
     enumerations: &[u8],

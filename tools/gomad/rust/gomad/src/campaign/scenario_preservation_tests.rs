@@ -500,6 +500,15 @@ fn only_crash_before_storage_fault_declares_a_lifecycle_crash() {
             action == Some("crash-before"),
             "{action:?}: {normalized:?}"
         );
+        println!(
+            "{}",
+            json!({
+                "schema":"gomad.native-lifecycle-predicate/v1",
+                "original_roots":["TestStorageCrashBoundOnlyByCrashBefore","TestOperatorAcceptsDeclaredStorageCrash"],
+                "variant":action.unwrap_or("no-storage"),
+                "observed":{"accepted":normalized.is_ok(),"error":normalized.as_ref().err()}
+            })
+        );
         if let Ok(normalized) = normalized {
             let sealed = parse(&normalized).unwrap();
             storage_input(sealed.boots[0].storage.as_ref().unwrap()).unwrap();
@@ -696,3 +705,6 @@ fn output_capacity_failure_retains_the_selected_actual_static_message() {
         }
     );
 }
+
+#[path = "scenario_sqlite_predicate_tests.rs"]
+mod scenario_sqlite_predicate_tests;

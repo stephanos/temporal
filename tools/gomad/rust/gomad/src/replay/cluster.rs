@@ -559,6 +559,52 @@ fn configure_recovery(
     Ok(())
 }
 
+fn authenticate_retained_incarnation(
+    opened: &Opened,
+    item: &Incarnation,
+    retained: &Retained,
+    shared_network: Option<&helper::NetworkConfig>,
+) -> Result<(), String> {
+    for descriptor in retained.evidence.values() {
+        let stream = opened
+            .manifest()
+            .record
+            .streams
+            .get(&descriptor.file)
+            .ok_or("retained cluster stream is not record bound")?;
+        if stream.bytes != descriptor.bytes || stream.sha256 != descriptor.sha256 {
+            return Err("retained cluster stream identity mismatch".into());
+        }
+        descriptor.read(opened, 1 << 30)?;
+    }
+    if let Some(state) = retained.evidence.get("storage_state") {
+        let storage = storage_input(item)?
+            .ok_or("retained cluster storage evidence requires declared storage")?;
+        let log = retained
+            .evidence
+            .get("storage")
+            .ok_or("retained cluster storage state requires its actual history")?;
+        gomad_wasmhost::linked_storage_inspection::validate_state(
+            &storage,
+            &state.read(opened, item.limits.evidence_bytes)?,
+            &log.read(opened, item.limits.evidence_bytes)?,
+            item.limits.evidence_bytes,
+        )?;
+    }
+    if let (Some(network), Some(model)) = (retained.evidence.get("network"), item.network.as_ref())
+    {
+        let shared = shared_network
+            .ok_or("retained cluster network evidence requires declared shared network")?;
+        helper::validate_network_evidence(
+            &network.read(opened, item.limits.evidence_bytes)?,
+            item.limits.evidence_bytes,
+            &shared.model,
+            model,
+        )?;
+    }
+    Ok(())
+}
+
 /// # Errors
 /// Authenticates every retained module and incarnation before preparing the helper lifecycle.
 pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<Prepared, String> {
@@ -588,23 +634,12 @@ pub fn prepare(opened: Opened, control: Option<&inspection::Request>) -> Result<
             .retained
             .iter()
             .find(|value| value.handle == item.handle);
-        for descriptor in retained
-            .into_iter()
-            .flat_map(|retained| retained.evidence.values())
-        {
-            let stream = opened
-                .manifest()
-                .record
-                .streams
-                .get(&descriptor.file)
-                .ok_or("retained cluster stream is not record bound")?;
-            if stream.bytes != descriptor.bytes || stream.sha256 != descriptor.sha256 {
-                return Err("retained cluster stream identity mismatch".into());
-            }
-            descriptor.read(&opened, 1 << 30)?;
+        if let Some(retained) = retained {
+            authenticate_retained_incarnation(&opened, item, retained, recipe.network.as_ref())?;
         }
         incarnations.push(incarnation(&opened, &inputs, item, retained, control)?);
     }
+    oracles::authenticate_retained(&opened, &inputs)?;
     if let Some(control) = &control {
         let raw = opened.payload("evidence/inspection", inspection::MAX_METADATA as u64)?;
         let evidence = inspection::Evidence::decode(&raw).map_err(|error| error.to_string())?;
@@ -810,7 +845,7 @@ mod projection_tests {
 
     const ENCODING: &str = "gomad/world/compressed-snapshot/v2";
 
-    fn configuration() -> (Configuration, Vec<u8>) {
+    pub(super) fn configuration() -> (Configuration, Vec<u8>) {
         // Expanded bytes from the unchanged compressed-world-single-terminal-owner corpus.
         let raw_world = crate::qualify::cells::base64("R01XU05BUDEAAAABAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAAD0JAAAAAAAIAAAAAAAAAEAAAA/////w0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFVkPwAshKEN5wBwZmobp69AiLehiWr2Xs5nRltJYTzTVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==").unwrap();
         let limits = json!({"fuel":100_000,"memory_bytes":65_536,"wall_millis":1000,
@@ -841,7 +876,11 @@ mod projection_tests {
         (configuration, raw_world)
     }
 
-    fn observe(raw_world: &[u8], bad_live: bool, bad_mandatory: bool) -> helper::Execution {
+    pub(super) fn observe(
+        raw_world: &[u8],
+        bad_live: bool,
+        bad_mandatory: bool,
+    ) -> helper::Execution {
         let history = |payload| {
             format!(
                 "LIVE {}\n",
@@ -1011,3 +1050,7 @@ mod projection_tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "cluster/retained_tests.rs"]
+mod retained_tests;

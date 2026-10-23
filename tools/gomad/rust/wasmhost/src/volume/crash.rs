@@ -14,7 +14,7 @@ pub(crate) struct CrashEnumerationLimits {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct CrashExploration {
     pub volume: String,
     #[serde(rename = "PendingSHA256")]
@@ -27,7 +27,7 @@ pub(crate) struct CrashExploration {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct CrashEntry {
     pub path: String,
     pub mode: u32,
@@ -38,7 +38,7 @@ pub(crate) struct CrashEntry {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct CrashState {
     pub volume: String,
     #[serde(rename = "PendingSHA256")]
@@ -49,7 +49,7 @@ pub(crate) struct CrashState {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct CrashEnumeration {
     pub states: Option<Vec<CrashState>>,
     pub choice_exploration: Option<CrashExploration>,
@@ -404,7 +404,7 @@ impl CrashExploration {
         exploration
     }
 
-    fn identity(&self) -> String {
+    pub(crate) fn identity(&self) -> String {
         let mut hasher = Hasher::new();
         hasher.string("gomad-volume-crash-exploration/v1");
         hasher.string(&self.volume);
@@ -416,7 +416,7 @@ impl CrashExploration {
         hasher.finish()
     }
 
-    fn validate(&self, volume: &str, pending: &str, operations: usize) -> Result<()> {
+    pub(crate) fn validate(&self, volume: &str, pending: &str, operations: usize) -> Result<()> {
         let cursor = self.cursor.as_deref().unwrap_or(&[]);
         if self.volume != volume
             || self.pending_sha256 != pending
@@ -450,7 +450,7 @@ impl CrashExploration {
 }
 
 impl CrashState {
-    fn identity(&self) -> String {
+    pub(crate) fn identity(&self) -> String {
         let mut hasher = Hasher::new();
         hasher.string("gomad-volume-crash-state/v1");
         hasher.string(&self.volume);

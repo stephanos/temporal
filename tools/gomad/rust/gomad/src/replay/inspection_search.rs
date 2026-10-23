@@ -156,6 +156,14 @@ mod tests {
         }
     }
 
+    fn raw(root: &str, variant: &str, result: &Value) {
+        println!(
+            "{}",
+            json!({"schema":"gomad.native-inspection-predicate/v1",
+            "original_root":root,"variant":variant,"observed":result})
+        );
+    }
+
     fn evaluation(outcome: &'static str, prefix_verified: bool) -> Evaluation {
         Evaluation {
             outcome,
@@ -202,6 +210,11 @@ mod tests {
         assert_eq!(called, [0, 1]);
         assert_eq!(result["first_failure"], 1);
         assert!(result.get("remaining").is_none());
+        raw(
+            "TestInspectionSearchScanDoesNotSkipRecoveredFailures",
+            "recovered-at2-fails1-and4",
+            &result,
+        );
     }
 
     #[test]
@@ -226,6 +239,11 @@ mod tests {
             assert_eq!(
                 result["evaluations"].as_array().unwrap().len(),
                 if budget == 2 { 2 } else { 1 }
+            );
+            raw(
+                "TestInspectionSearchBudgetsAndPredicateErrorsStayInconclusive",
+                &format!("{outcome}/budget{budget}/verified{verified}"),
+                &result,
             );
         }
     }
@@ -273,6 +291,11 @@ mod tests {
                 result.get("remaining").is_some(),
                 status == "monotonicity_violation"
             );
+            raw(
+                "TestInspectionSearchBisectDeclaresConditionalityAndRejectsObservedReversal",
+                status,
+                &result,
+            );
         }
     }
 
@@ -292,6 +315,11 @@ mod tests {
         assert_eq!(result["evaluations"][0]["outcome"], "timeout");
         assert_eq!(result["evaluations"].as_array().unwrap().len(), 1);
         assert!(result.get("first_failure").is_none());
+        raw(
+            "TestInspectionSearchWallBoundIncludesEvaluatorCleanup",
+            "cleanup-exhausted-wall",
+            &result,
+        );
     }
 
     #[test]

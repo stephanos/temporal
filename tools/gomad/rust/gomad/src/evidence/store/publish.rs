@@ -127,7 +127,14 @@ fn ordered_roots<'a>(store: &'a File, pools: &[&'a File]) -> Result<Vec<&'a File
     Ok(roots.into_iter().map(|(_, file)| file).collect())
 }
 
-pub(crate) fn write(root: &File, name: &str, bytes: &[u8]) -> Result<(), String> {
+pub(super) type ByteWriter<'a> = dyn FnMut(&mut File, &[u8]) -> std::io::Result<()> + 'a;
+
+fn write_with(
+    root: &File,
+    name: &str,
+    bytes: &[u8],
+    writer: &mut ByteWriter<'_>,
+) -> Result<(), String> {
     let mut file = File::from(
         fs::openat(
             root,
@@ -137,7 +144,7 @@ pub(crate) fn write(root: &File, name: &str, bytes: &[u8]) -> Result<(), String>
         )
         .map_err(|error| error.to_string())?,
     );
-    file.write_all(bytes).map_err(|error| error.to_string())?;
+    writer(&mut file, bytes).map_err(|error| error.to_string())?;
     file.sync_all().map_err(|error| error.to_string())
 }
 
@@ -402,12 +409,13 @@ impl Store {
         Ok(())
     }
 
-    pub(super) fn immutable_file(
+    pub(super) fn immutable_file_with(
         &self,
         root: &File,
         name: &str,
         bytes: &[u8],
         module: bool,
+        writer: &mut ByteWriter<'_>,
     ) -> Result<(), String> {
         match open::child(root, name, false, module) {
             Ok(mut file) => {
@@ -432,9 +440,9 @@ impl Store {
         }
         self.immutable_checkpoint(module, "file_created")?;
         let (first, rest) = bytes.split_at(bytes.len() / 2);
-        file.write_all(first).map_err(|error| error.to_string())?;
+        writer(&mut file, first).map_err(|error| error.to_string())?;
         self.immutable_checkpoint(module, "file_partial")?;
-        file.write_all(rest).map_err(|error| error.to_string())?;
+        writer(&mut file, rest).map_err(|error| error.to_string())?;
         self.immutable_checkpoint(module, "before_file_sync")?;
         self.immutable_checkpoint(module, "file_sync_error")?;
         file.sync_all().map_err(|error| error.to_string())?;
@@ -597,11 +605,19 @@ impl Store {
 
     /// # Errors
     /// Refuses invalid evidence, unsafe stores, exhausted budgets, collisions and durability failures.
+    pub fn publish(&self, publication: Publication) -> Result<Published, String> {
+        self.publish_with_writer(publication, &mut |file, bytes| file.write_all(bytes))
+    }
+
     #[expect(
         clippy::too_many_lines,
         reason = "Publication keeps lock, staging, authentication, exclusive rename and durability boundaries in order."
     )]
-    pub fn publish(&self, publication: Publication) -> Result<Published, String> {
+    fn publish_with_writer(
+        &self,
+        publication: Publication,
+        writer: &mut ByteWriter<'_>,
+    ) -> Result<Published, String> {
         #[cfg(feature = "determinism-fixture")]
         if let Some(fault) = &self.fault {
             let point = fault
@@ -663,7 +679,7 @@ impl Store {
             .into_iter()
             .map(lock)
             .collect::<Result<Vec<_>, _>>()?;
-        self.immutable_file(&root, ".store.json", open::LAYOUT, false)?;
+        self.immutable_file_with(&root, ".store.json", open::LAYOUT, false, writer)?;
         publication.record.validate()?;
         if publication.payloads.is_empty() {
             return Err("artifact requires payloads".into());
@@ -760,18 +776,25 @@ impl Store {
                 let local = fs::fstat(&pool_root).map_err(|error| error.to_string())?;
                 let shared = fs::fstat(pool).map_err(|error| error.to_string())?;
                 if local.st_dev != shared.st_dev || local.st_ino != shared.st_ino {
-                    pool::place(self, pool, &pool_root, &canonical::digest(bytes), bytes)?;
+                    pool::place_with(
+                        self,
+                        pool,
+                        &pool_root,
+                        &canonical::digest(bytes),
+                        bytes,
+                        writer,
+                    )?;
                 }
-                pool::place(self, &pool_root, &directory, &basename, bytes)?;
+                pool::place_with(self, &pool_root, &directory, &basename, bytes, writer)?;
             } else {
-                write(&directory, &basename, bytes)?;
+                write_with(&directory, &basename, bytes, writer)?;
             }
         }
         sync_tree(&stage)?;
         self.checkpoint("payloads_durable")?;
-        write(&stage, "storage.json", lineage::ENVELOPE)?;
+        write_with(&stage, "storage.json", lineage::ENVELOPE, writer)?;
         self.checkpoint("envelope_durable")?;
-        write(&stage, "manifest.json", &manifest_bytes)?;
+        write_with(&stage, "manifest.json", &manifest_bytes, writer)?;
         self.checkpoint("manifest_durable")?;
         sync_tree(&stage)?;
         self.checkpoint("staging_durable")?;
@@ -1070,3 +1093,7 @@ mod tests {
         assert!(super::ordered_roots(&current, &[&current]).is_err());
     }
 }
+
+#[cfg(all(test, feature = "determinism-fixture"))]
+#[path = "write_failure_tests.rs"]
+mod write_failure_tests;

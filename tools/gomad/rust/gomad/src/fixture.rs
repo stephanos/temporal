@@ -57,7 +57,7 @@ fn record(seed: u64) -> Result<Record, String> {
     })
 }
 
-fn publication_record(seed: u64) -> Result<Publication, String> {
+pub(crate) fn publication_record(seed: u64) -> Result<Publication, String> {
     let mut record = record(seed)?;
     let stdout = b"foundation-output".to_vec();
     record.streams.insert(

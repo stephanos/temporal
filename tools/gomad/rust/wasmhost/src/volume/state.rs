@@ -64,8 +64,8 @@ pub(crate) struct Operation {
     pub(crate) destination: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct SnapshotEntry {
     pub(crate) path: String,
     pub(crate) mode: u32,
@@ -76,8 +76,8 @@ pub(crate) struct SnapshotEntry {
     pub(crate) data_sha256: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct VolumeSnapshot {
     #[serde(rename = "ID")]
     pub(crate) id: String,
@@ -1858,7 +1858,7 @@ pub(super) fn write_snapshot_entries(hasher: &mut Hasher, entries: &[SnapshotEnt
     }
 }
 
-pub(super) fn volume_snapshot_identity(snapshot: &VolumeSnapshot) -> String {
+pub(crate) fn volume_snapshot_identity(snapshot: &VolumeSnapshot) -> String {
     let mut hasher = Hasher::new();
     hasher.string("gomad-volume-snapshot/v1");
     hasher.string(&snapshot.id);

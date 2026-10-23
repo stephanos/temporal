@@ -267,6 +267,13 @@ fn validate_boundaries(evidence: &Evidence, handles: &BTreeSet<Handle>) -> Resul
                     return Err(invalid());
                 }
             }
+            if owner.terminal_order != 0
+                && owner.terminal_order < boundary.order
+                && cut.network_bytes != 0
+                && cut.network_state != inspection::commitment("network", &owner.streams.network)
+            {
+                return Err(Error::msg("inspection terminal network state commitment"));
+            }
             if let Some(prior) = previous.insert(cut.handle.clone(), cut.clone())
                 && (cut.choice_records < prior.choice_records
                     || cut.choice_bytes < prior.choice_bytes
@@ -306,6 +313,49 @@ fn streams<'a>(cut: &Cut, streams: &'a inspection::Streams) -> [(u64, &'a [u8]);
         (cut.stdout_bytes, &streams.stdout),
         (cut.stderr_bytes, &streams.stderr),
     ]
+}
+
+/// # Errors
+/// Refuses missing decisions, observation coordinates and cut lengths that disagree with the retained raw choice stream.
+pub fn validate_choice_mapping(evidence: &Evidence) -> Result<()> {
+    if !evidence.complete {
+        return Ok(());
+    }
+    for owner in &evidence.incarnations {
+        let mapped = crate::model::replay_plan::inspection_coordinates(&owner.streams.choice)
+            .map_err(Error::msg)?;
+        let mut decisions = 0usize;
+        for boundary in &evidence.boundaries {
+            if boundary.handle == owner.handle {
+                if mapped.get(decisions) != Some(&boundary.trace)
+                    || boundary.decision != decisions as u64
+                {
+                    return Err(Error::msg("inspection decision/trace mapping"));
+                }
+                decisions += 1;
+            }
+            for cut in boundary
+                .cuts
+                .iter()
+                .filter(|cut| cut.handle == owner.handle)
+            {
+                if cut
+                    .choice_records
+                    .checked_mul(crate::model::replay_plan::RECORD_BYTES as u64)
+                    != Some(cut.choice_bytes)
+                    || cut.choice_bytes > owner.streams.choice.len() as u64
+                {
+                    return Err(Error::msg("inspection choice prefix length"));
+                }
+            }
+        }
+        if decisions != mapped.len() {
+            return Err(Error::msg(
+                "incomplete inspection decision boundary inventory",
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// # Errors
@@ -1221,3 +1271,7 @@ pub fn validate_heap_profile(bytes: &[u8], maximum_expanded: usize) -> Result<()
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "linked_inspection_predicate_tests.rs"]
+mod predicate_tests;

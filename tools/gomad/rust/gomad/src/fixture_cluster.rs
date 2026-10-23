@@ -55,7 +55,7 @@ fn inspection_lifecycle() -> (Vec<helper::Handle>, Vec<helper::Step>) {
     (handles, steps)
 }
 
-fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
+pub(crate) fn publication(corpus: &Path, seed: u64) -> Result<Publication, String> {
     let module = std::fs::read(corpus.join("targets/inspect-choice.wat"))
         .map_err(|error| error.to_string())?;
     let toolchain = canonical::digest(b"gomad.fixture-wat-source/v1");
@@ -580,3 +580,7 @@ mod world_limit_tests {
 ))]
 #[path = "fixture_cluster_lifecycle_tests.rs"]
 mod lifecycle_preservation_tests;
+
+#[cfg(test)]
+#[path = "fixture_cluster_metrics_tests.rs"]
+mod metrics_preservation_tests;

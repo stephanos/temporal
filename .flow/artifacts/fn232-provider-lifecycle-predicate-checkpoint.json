@@ -1,0 +1,734 @@
+{
+  "schema": "gomad.provider-lifecycle-source-checkpoint/v1",
+  "reference_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "qualification": false,
+  "execution": "UNEXECUTED",
+  "raw_schema": "gomad.native-lifecycle-predicate/v1",
+  "raw_contract": "One JSON stdout line after concrete per-case assertions. original_root (or original_roots) and variant identify the original obligation; observed contains native terminal/action/error/owner observations. These lines do not authenticate source, build role, stage or process receipts; final receiver must bind actual command/testcase, source closure and raw report. Repeated stages require separate invocations.",
+  "retired_transport_branches": {
+    "guest-call/sync": "NoRemote native Write sink always refuses Unsupported and records each attempted callback; linked owner transport supplies no Go callback dispatch.",
+    "frame-attribution": "Sealed typed Handle and per-store IncarnationResult ownership; typed pre-execution admission refuses missing model, absent namespace, duplicate/zero/unknown handles. This does not waive retained JSON/base64 decoder checks.",
+    "helper-process-finish": "Native execution owns store JoinHandles and joins all running stores before returning. Mandatory cleanup emits no synthetic modeled actions."
+  },
+  "roots": [
+    {
+      "original_root": "TestClusterBootAdmitsStorageCrashSelectionBeforeSealing",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterBrokerDurableRestartParity",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterEventOrderAccessorIsDetached",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterFinishPreservesSessionWithLiveIncarnations",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterFinishWaitsForInspectionCleanup",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterHostTerminationStatus",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions",
+      "variants": [
+        "cancelled-before-start"
+      ],
+      "remaining_obligations": [
+        "watchdog, parent deadline, mid-execution cancellation and joined owned stores remain required"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestClusterInspectedPrefixRequiresRequestedSealedInstance",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterInspectionAbortsNeighborsWithoutCompletingTheirTapes",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterInspectionMetadataDoesNotReplaceWorldEvidence",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterInternalDeadlineIsWatchdog",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterOutputBoundaryParity",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterPreservesWholeRunInfrastructureFailure",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterProtocolFailureIsNotCancellation",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterRefusedRestartLeavesIncarnationRetryable",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterRejectsGuestCallbacks",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::retired_framed_guest_callbacks_are_refused_by_native_owner_sink",
+      "variants": [
+        "call",
+        "sync"
+      ],
+      "remaining_obligations": [
+        "NoRemote owner-sink refusal replaces retired helper frame path; actual guests must independently prove zero remote callbacks"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestClusterRejectsResultWithoutModelEvidence",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::typed_owner_admission_refuses_missing_model_namespace_and_unattributable_handles",
+      "variants": [
+        "missing-model"
+      ],
+      "remaining_obligations": [
+        "typed pre-execution owner admission replaces retired result-frame decoder; actual interrupted result completeness remains independently required"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestClusterRejectsUnattributableFrames",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::typed_owner_admission_refuses_missing_model_namespace_and_unattributable_handles",
+      "variants": [
+        "unknown-step",
+        "zero-incarnation",
+        "duplicate-handle",
+        "model-seed",
+        "missing-namespace"
+      ],
+      "remaining_obligations": [
+        "typed handle admission replaces frame attribution; duplicate JSON keys/base64 corruption belong retained artifact reader"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestClusterShutdownBoundsFinishedClusterByExecutionDeadline",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterShutdownControlOrder",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterShutdownLiveNodesEvidenceOrder",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterShutdownWaitsForObservedFailureDrain",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::observed_failure_drains_prestarted_peers_without_executing_their_waits",
+      "variants": [
+        "trap",
+        "exit17"
+      ],
+      "remaining_obligations": [
+        "owned join result replaces retired helper process drain; actual runtime gate unexecuted"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestClusterStartAndObserveLeaveControllerPaused",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportCodecCorpus",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportCodecCorpusIsCurrent",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportCodecLiteralStageGuards",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportStageCorpus",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportStageCorpusIsCurrent",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterTransportStageLiteralGuards",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestClusterWaitSerializesTurnsWithoutBlockingLiveControls",
+      "required_stages": [
+        "cluster-functional"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestMarkerBoundaryPreservesSelectedCapacityAndPriorErrors",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestOpenClusterRecordsHelperExecutionDeadline",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::sealed_deadline_is_bounded_before_mutation_and_cannot_be_extended",
+      "variants": [
+        "11m-to7m",
+        "extension-refused",
+        "zero-refused"
+      ],
+      "remaining_obligations": [
+        "original3m/7m instance and11m/1m boot maximum-selection producer remains required"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestOperatorAcceptsDeclaredStorageCrash",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/gomad/src/campaign/scenario_preservation_tests.rs",
+      "native_selector": "campaign::scenario::preservation_tests::only_crash_before_storage_fault_declares_a_lifecycle_crash",
+      "variants": [
+        "crash-before",
+        "crash-after",
+        "io-error",
+        "no-storage"
+      ],
+      "remaining_obligations": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestOperatorArgumentsSurviveNormalization",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestOperatorStopsActionsAfterFailedWait",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::failed_wait_preserves_first_terminal_and_never_starts_later_incarnations",
+      "variants": [
+        "trap",
+        "exit17"
+      ],
+      "remaining_obligations": [],
+      "status": "source-only-predicate-port"
+    },
+    {
+      "original_root": "TestOperatorStrictPreflight",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderActualCrashDurableRestart",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderBindsEverySelectedBootNetworkLimit",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/gomad/src/campaign/scenario_sqlite_predicate_tests.rs",
+      "native_selector": "campaign::scenario::preservation_tests::scenario_sqlite_predicate_tests::every_selected_incarnation_receives_the_same_spec_bound_network_limits",
+      "variants": [
+        "matching-a1-b1-a2",
+        "byte-mismatch",
+        "stall-mismatch"
+      ],
+      "remaining_obligations": [
+        "bind uses one shared sealed NetworkModel cloned into all owners; unused boot divergence and explicit broker override no longer constructible; original12case domain needs review"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestProviderCanceledSplitRevocationCancelsAndReaps",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderClusterStartsOnlyRequestedIncarnations",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions",
+      "variants": [
+        "native-lazy-store"
+      ],
+      "remaining_obligations": [
+        "actual original hard-isolation reference and actual Go service module remain separately required"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestProviderCompressedIndependentGuestsLifecycleReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderDetachedOracleCanarySourceLessReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderGroupedAcknowledgmentCrashSourceLessReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderIndependentGuestsLifecycleReplay",
+      "required_stages": [
+        "cluster-provider",
+        "retained-cluster"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderMandatoryCleanupReapsWithoutLifecycleActions",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/wasmhost/src/linked_cluster/lifecycle_predicate_tests.rs",
+      "native_selector": "linked_cluster::live_controller_tests::lifecycle_predicate_tests::mandatory_cleanup_keeps_only_authored_start_actions",
+      "variants": [
+        "shutdown",
+        "scenario-error",
+        "context-cancel",
+        "action-limit2",
+        "context-cancel-after-actual-output"
+      ],
+      "remaining_obligations": [
+        "native WAT mechanism witness; actual original compiled service workload required"
+      ],
+      "status": "source-only-partial-predicate-port",
+      "native_selectors": [
+        "linked_cluster::live_controller_tests::lifecycle_predicate_tests::mandatory_cleanup_keeps_only_authored_start_actions",
+        "linked_cluster::live_controller_tests::lifecycle_predicate_tests::cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix"
+      ],
+      "source_cancellation_repair": {
+        "cause": "Broker::abort(cancelled) does not populate broker.failure(), so incomplete-lifecycle refusal discarded successfully joined results and the outer blanket cancellation fallback returned an empty execution.",
+        "behavior": "Treat cancellation as an early lifecycle end, preserve joined owner results and authored action prefix, classify cancelled before World/network retention, and propagate real join errors instead of replacing them with an empty execution.",
+        "causal_gate": "Conductor default helper broad gate reported mandatory_cleanup context-cancel red; post-fix execution remains UNEXECUTED in this source checkpoint."
+      }
+    },
+    {
+      "original_root": "TestProviderOutputCrashKeepsItsExistingBoundary",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderStopReapsGuestAndPeerContinues",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderStorageCrashRequiresActualDurableBoundary",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestProviderUnboundRevocationOfSplitStorageNodeRestarts",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestRejectedRestartLeavesNoUnownedBrokerSession",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "status": "unproven-by-this-checkpoint",
+      "remaining_obligations": [
+        "Original source assertions/helper closure and actual native runtime/receiver still required; no root or stage credit supplied by this file."
+      ]
+    },
+    {
+      "original_root": "TestSQLiteObservationUsesFreshFixedLines",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/gomad/src/campaign/scenario_sqlite_predicate_tests.rs",
+      "native_selector": "campaign::scenario::preservation_tests::scenario_sqlite_predicate_tests::sqlite_fixed_lines_reject_every_original_ambiguous_observation",
+      "variants": [
+        "empty",
+        "missing-history",
+        "duplicate-history",
+        "duplicate-integrity",
+        "nonnumeric-event",
+        "trailing-comma",
+        "duplicate-ack"
+      ],
+      "remaining_obligations": [
+        "original configurable maximum_bytes1 refusal has no corresponding parameter on Workload::observe; remains unproven"
+      ],
+      "status": "source-only-partial-predicate-port"
+    },
+    {
+      "original_root": "TestSQLiteObservationsForwardToNativeOracleOwner",
+      "required_stages": [
+        "cluster-provider"
+      ],
+      "execution": "UNEXECUTED",
+      "evidence": [],
+      "native_source": "tools/gomad/rust/gomad/src/campaign/scenario_sqlite_predicate_tests.rs",
+      "native_selector": "campaign::scenario::preservation_tests::scenario_sqlite_predicate_tests::sqlite_fixed_lines_reject_every_original_ambiguous_observation",
+      "variants": [
+        "three-native-checks"
+      ],
+      "remaining_obligations": [],
+      "status": "source-only-predicate-port"
+    }
+  ],
+  "additional_root": {
+    "original_root": "TestStorageCrashBoundOnlyByCrashBefore",
+    "selector": "campaign::scenario::preservation_tests::only_crash_before_storage_fault_declares_a_lifecycle_crash",
+    "variants": [
+      "crash-before",
+      "crash-after",
+      "io-error",
+      "no-storage"
+    ],
+    "execution": "UNEXECUTED"
+  }
+}

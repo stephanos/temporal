@@ -233,3 +233,41 @@ fn world_corpus_replays_exactly() {
     assert!(replayed >= 60, "only {replayed} World corpora replayed");
     assert!(wires >= 50, "only {wires} expanded World wires compared");
 }
+
+#[cfg(not(feature = "conformance"))]
+#[test]
+fn final_world_wires_round_trip_through_the_binary_owner() {
+    let mut checked = 0;
+    for (name, corpus) in corpora() {
+        let Some(final_wire) = corpus["final"].get("expanded_base64") else {
+            continue;
+        };
+        let expanded = bytes(final_wire);
+        let config = config(&corpus["config"]);
+        world::retained::validate(&expanded, &config)
+            .unwrap_or_else(|error| panic!("{name}: {error}"));
+        let envelope = world::retained::compress(&expanded).unwrap();
+        let digest: [u8; 32] = sha2::Sha256::digest(&envelope).into();
+        assert_eq!(hex(&digest), corpus["final"]["envelope_sha256"], "{name}");
+        let restored = world::retained::expand(&envelope).unwrap();
+        assert_eq!(restored, expanded, "{name}");
+        world::retained::validate(&restored, &config).unwrap();
+        assert_eq!(
+            world::retained::compress(&restored).unwrap(),
+            envelope,
+            "{name}"
+        );
+        let model = replay(&name, &corpus).unwrap().unwrap();
+        assert_eq!(
+            hex(&model.state_digest()),
+            corpus["steps"].as_array().unwrap().last().unwrap()["expected"]["state"]["state_digest"],
+            "{name}"
+        );
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"final_world_wire_owner_round_trip","inputs":{"corpus":name,"expanded_sha256":format!("{:x}",sha2::Sha256::digest(&expanded))},"observed":{"envelope_sha256":hex(&digest),"restored_sha256":format!("{:x}",sha2::Sha256::digest(&restored)),"state_digest":hex(&model.state_digest()),"next_ids":model.next_ids()}})
+        );
+        checked += 1;
+    }
+    assert!(checked >= 50, "only {checked} final World wires checked");
+}

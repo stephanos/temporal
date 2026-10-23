@@ -72,7 +72,12 @@ fn replay_context(case: &ContextSequence, input: &[u8]) -> std::result::Result<(
             let counts = descriptor.observed_context.as_ref().map(|contexts| {
                 contexts
                     .iter()
-                    .map(|(name, context)| (name, context.operations.len()))
+                    .map(|(name, context)| {
+                        (
+                            name,
+                            context.operations.as_deref().unwrap_or_default().len(),
+                        )
+                    })
                     .collect::<BTreeMap<_, _>>()
             });
             serde_json::json!({"status":"ok", "context_operation_counts":counts})

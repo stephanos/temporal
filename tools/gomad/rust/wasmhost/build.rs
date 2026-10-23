@@ -2,34 +2,16 @@ use sha2::{Digest, Sha256};
 use std::fmt::Write as _;
 use std::{collections::BTreeMap, env, fs, path::Path};
 
-fn sources(root: &Path, directory: &Path, files: &mut BTreeMap<String, Vec<u8>>) {
-    for entry in fs::read_dir(directory).expect("read helper source directory") {
-        let path = entry.expect("read helper source entry").path();
-        if path.is_dir() {
-            sources(root, &path, files);
-        } else if path.extension().is_some_and(|extension| extension == "rs") {
-            files.insert(
-                path.strip_prefix(root)
-                    .expect("contained helper source")
-                    .to_string_lossy()
-                    .replace('\\', "/"),
-                fs::read(&path).expect("read helper source"),
-            );
-        }
-    }
-}
+mod build_identity;
 
-#[expect(
-    clippy::needless_collect,
-    reason = "Feature bindings must be sorted before hashing the implementation identity."
-)]
 fn main() {
     let root = env::var_os("CARGO_MANIFEST_DIR").expect("helper manifest directory");
     let root = Path::new(&root);
     let mut files = BTreeMap::new();
-    sources(root, &root.join("src"), &mut files);
+    build_identity::sources(root, &root.join("src"), &mut files);
     for name in [
         "build.rs",
+        "build_identity.rs",
         "Cargo.toml",
         "../Cargo.toml",
         "../Cargo.lock",
@@ -51,34 +33,35 @@ fn main() {
         source_inputs,
     )
     .expect("measurement source closure");
-    let mut hash = Sha256::new();
-    hash.update(b"gomad.linked-implementation/v1\0");
-    for (name, value) in env::vars()
+    let bindings = env::vars()
         .filter(|(name, _)| {
             name.starts_with("CARGO_FEATURE_") || matches!(name.as_str(), "TARGET" | "PROFILE")
         })
-        .collect::<BTreeMap<_, _>>()
-    {
-        hash.update(name.as_bytes());
-        hash.update([0]);
-        hash.update(value.as_bytes());
-        hash.update([0]);
-    }
+        .collect::<BTreeMap<_, _>>();
     let compiler = std::process::Command::new(env::var_os("RUSTC").expect("Rust compiler"))
         .arg("--version")
         .output()
         .expect("Rust compiler identity");
     assert!(compiler.status.success(), "Rust compiler identity failed");
-    hash.update(compiler.stdout);
-    for (name, bytes) in files {
-        println!("cargo:rerun-if-changed={name}");
-        hash.update((name.len() as u64).to_be_bytes());
-        hash.update(name.as_bytes());
-        hash.update((bytes.len() as u64).to_be_bytes());
-        hash.update(bytes);
+    let output = env::var_os("OUT_DIR").expect("build output directory");
+    fs::write(
+        Path::new(&output).join("identity-compiler.txt"),
+        &compiler.stdout,
+    )
+    .expect("compiler identity capture");
+    let mut binding_inputs = String::new();
+    for (name, value) in &bindings {
+        writeln!(&mut binding_inputs, "{name}\t{value}").expect("feature identity string");
     }
-    println!(
-        "cargo:rustc-env=GOMAD_LINKED_IMPLEMENTATION_SHA256={:x}",
-        hash.finalize()
-    );
+    fs::write(
+        Path::new(&output).join("identity-bindings.tsv"),
+        binding_inputs,
+    )
+    .expect("feature identity capture");
+    for name in files.keys() {
+        println!("cargo:rerun-if-changed={name}");
+    }
+    let identity = build_identity::implementation(&files, &bindings, &compiler.stdout)
+        .expect("complete helper implementation identity");
+    println!("cargo:rustc-env=GOMAD_LINKED_IMPLEMENTATION_SHA256={identity}");
 }

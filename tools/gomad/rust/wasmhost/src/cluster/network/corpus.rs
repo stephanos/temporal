@@ -278,6 +278,25 @@ fn go_network_cluster_corpus() {
             for (id, endpoint) in &endpoints {
                 let path = directory.join(format!("{id}.gmnetev1"));
                 let evidence = endpoint.evidence().unwrap();
+                #[cfg(not(feature = "conformance"))]
+                {
+                    let decoded = evidence::decode::decode(
+                        &evidence,
+                        1 << 20,
+                        &evidence::decode::owner_limits(&config.model.limits),
+                        endpoint.world.config(),
+                    )
+                    .unwrap();
+                    assert_eq!(decoded.record, shared.lock().unwrap().record().unwrap());
+                    let mut world_wire = Vec::new();
+                    world::wire_generated::write_snapshot(&endpoint.world, &mut world_wire)
+                        .unwrap();
+                    assert_eq!(decoded.world, world_wire);
+                    println!(
+                        "GOMAD_CORE_OBSERVATION {}",
+                        json!({"schema":"gomad.core-predicate-observation/v1","case":"cluster_network_typed_owner_round_trip","inputs":{"corpus":corpus["name"],"node":id,"evidence_sha256":format!("{:x}",Sha256::digest(&evidence))},"observed":{"record":decoded.record,"log_sha256":format!("{:x}",Sha256::digest(&decoded.log)),"world_sha256":format!("{:x}",Sha256::digest(&decoded.world))}})
+                    );
+                }
                 if regenerate {
                     std::fs::create_dir_all(&directory).unwrap();
                     std::fs::write(&path, &evidence).unwrap();

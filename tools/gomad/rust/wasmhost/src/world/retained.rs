@@ -31,14 +31,31 @@ impl<'a> Reader<'a> {
     }
 
     fn text(&mut self) -> Result<String, String> {
+        self.text_with_limit(u64::from(self.config.limits.max_string_bytes))
+    }
+
+    fn text_with_limit(&mut self, maximum: u64) -> Result<String, String> {
         let count = self.number(4)?;
-        if count > u64::from(self.config.limits.max_string_bytes) {
+        if count > maximum {
             return Err("World wire string exceeds bound".into());
         }
         let count = usize::try_from(count).map_err(|error| error.to_string())?;
         std::str::from_utf8(self.take(count)?)
             .map(str::to_owned)
             .map_err(|error| error.to_string())
+    }
+
+    fn owner_tag(&mut self, choices: &[&str]) -> Result<(), String> {
+        let maximum = choices
+            .iter()
+            .map(|choice| choice.len() as u64)
+            .max()
+            .unwrap_or(0);
+        let tag = self.text_with_limit(maximum)?;
+        if !choices.contains(&tag.as_str()) {
+            return Err("World owner tag".into());
+        }
+        Ok(())
     }
 
     fn payload(&mut self) -> Result<Vec<u8>, String> {
@@ -70,7 +87,7 @@ impl<'a> Reader<'a> {
     }
 
     fn quiescence(&mut self) -> Result<(), String> {
-        self.text()?;
+        self.owner_tag(&["delivered", "deadlock", "idle"])?;
         self.take(16)?;
         for _ in 0..self.count(self.config.limits.max_events)? {
             self.take(24)?;
@@ -135,13 +152,13 @@ pub(crate) fn validate_with_transition_limit(
     for _ in 0..input.count(config.limits.max_requests)? {
         input.take(8)?;
         input.request()?;
-        input.text()?;
+        input.owner_tag(&["pending", "queued", "canceled", "delivered"])?;
         input.take(8)?;
     }
     for _ in 0..input.count(config.limits.max_events)? {
         input.take(8)?;
         input.readiness()?;
-        input.text()?;
+        input.owner_tag(&["queued", "canceled", "delivered"])?;
     }
     let mut model = Model::new(config.clone()).map_err(|error| error.to_string())?;
     model
@@ -163,7 +180,7 @@ pub(crate) fn validate_with_transition_limit(
             3 => {
                 let request = input.number(8)?;
                 input.take(16)?;
-                input.text()?;
+                input.owner_tag(&["won", "already-canceled", "already-delivered"])?;
                 model.cancel(request).map_err(|error| error.to_string())?;
             }
             4 => {
@@ -245,6 +262,65 @@ pub(crate) fn expand(bytes: &[u8]) -> Result<Vec<u8>, String> {
 mod tests {
     use super::*;
     use crate::world::Limits;
+    use sha2::Digest as _;
+
+    #[test]
+    fn fixed_owner_tags_remain_valid_below_application_string_capacity() {
+        let config = Config {
+            seed: 7,
+            limits: Limits {
+                max_requests: 4,
+                max_events: 4,
+                max_queued_events: 4,
+                max_transitions: 20,
+                max_payload_bytes: 8,
+                max_string_bytes: 1,
+            },
+        };
+        let mut model = Model::new(config.clone()).unwrap();
+        let request = Request {
+            kind: "k".into(),
+            resource: ResourceId {
+                adapter: "a".into(),
+                kind: "r".into(),
+                key: "k".into(),
+            },
+            priority: 0,
+            payload: Vec::new(),
+        };
+        let canceled = model.register(request.clone()).unwrap();
+        model.cancel(canceled).unwrap();
+        model.cancel(canceled).unwrap();
+        let delivered = model.register(request.clone()).unwrap();
+        model
+            .ready(Readiness {
+                request_id: delivered,
+                at: super::super::INITIAL_TIME + 1,
+                kind: "k".into(),
+                payload: Vec::new(),
+                equivalence_class: String::new(),
+            })
+            .unwrap();
+        model.quiesce().unwrap();
+        model.cancel(delivered).unwrap();
+        let mut raw = Vec::new();
+        wire_generated::write_snapshot(&model, &mut raw).unwrap();
+        validate(&raw, &config).unwrap();
+        let mut invalid_request = request;
+        invalid_request.kind = "kk".into();
+        let application_error = model.register(invalid_request).unwrap_err().to_string();
+        let at = raw
+            .windows(b"already-canceled".len())
+            .position(|part| part == b"already-canceled")
+            .unwrap();
+        let mut forged = raw.clone();
+        forged[at] = b'x';
+        assert_eq!(validate(&forged, &config).unwrap_err(), "World owner tag");
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"world.fixed-owner-tags","inputs":{"configuration":{"seed":7,"max_string_bytes":1},"wire_sha256":super::super::digest::hex(&sha2::Sha256::digest(&raw).into())},"observed":{"forged_tag_error":validate(&forged,&config).unwrap_err(),"application_kind":"kk","application_error":application_error}})
+        );
+    }
 
     #[test]
     fn detached_world_replays_before_admitting_header_digest_or_trailing_bytes() {
