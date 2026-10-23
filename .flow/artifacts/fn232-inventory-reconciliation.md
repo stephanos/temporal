@@ -83,3 +83,9 @@ The clock/thread/hash source scanner is not an exhaustive filesystem or process-
 These are scoped effect proposals and semantic owner references, not an additional generic source-completeness waiver or final behavioral PASS. The existing 276-record trust boundary remains unchanged.
 
 Independent review of the 500-row source batch is clear after the fixes above. The reviewer separately checked all 440 historical ID/site pairs, the protected prefix hash, the 60 direct current-site additions, 17 migration pairs, kernel clock scopes, unchanged helper-allow retirement, and balanced evidence attributes. It ran no builds or guests; execution claims above come from the owner's raw logs. Final composition anchors and ignored-producer integration remain outside that source verdict.
+
+## Final composed source anchors
+
+After merging the receiving owner's final `be2fb79014` checkpoint and root `4c3d159b76`, 29 of the 115 raw native anchors are refreshed. All 63 Python spans match their AST function bounds; all 52 Rust spans retain the original named-function-start through actual-EOF convention. Independent source/AST/hash review recomputed all 115 spans successfully. Five qualification-map integrity and mutation tests pass at `/home/agent/inventory-anchor-final-tests.log`.
+
+All data outside `native_anchors` is unchanged: the original 72 roots, immutable original commit/source spans, assertion reviews, `qualification=false`, 72 `UNEXECUTED` statuses and empty evidence lists. The anchor refresh supplies source authentication only. The new ignored preparation producer still awaits the core source merge before atomic registration; actual four-pair qualification remains unresolved.
