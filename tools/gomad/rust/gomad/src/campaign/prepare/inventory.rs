@@ -7,8 +7,29 @@ use std::{
     time::Instant,
 };
 
+/// Go names cache outputs by their content digest, so a cache-resident compiled file is
+/// recorded under this location-independent root instead of the caller's GOCACHE path.
+const GO_CACHE_ROOT: &str = "/$GOCACHE";
+
+fn cache_output_name(path: &Path, digest: &str) -> Option<PathBuf> {
+    let name = path.file_name()?.to_str()?;
+    let shard = path.parent()?.file_name()?.to_str()?;
+    let output = name.strip_suffix("-d")?;
+    (output == digest && output.get(..2) == Some(shard))
+        .then(|| Path::new(GO_CACHE_ROOT).join(shard).join(name))
+}
+
 pub(crate) fn verify(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
     for (path, expected) in inputs {
+        if path.starts_with(GO_CACHE_ROOT) {
+            if cache_output_name(path, expected).as_ref() != Some(path) {
+                return Err(failure(format!(
+                    "cache build input is not content addressed: {}",
+                    path.display()
+                )));
+            }
+            continue;
+        }
         if canonical::digest(&read(path, MAXIMUM)?) != *expected {
             return Err(failure(format!("build input changed: {}", path.display())));
         }
@@ -93,6 +114,17 @@ fn hash(paths: BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>, String> {
         .into_iter()
         .map(|path| read(&path, MAXIMUM).map(|data| (path, canonical::digest(&data))))
         .collect()
+}
+
+fn hash_sources(paths: BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>, String> {
+    let mut inputs = BTreeMap::new();
+    for (path, digest) in hash(paths)? {
+        let key = cache_output_name(&path, &digest).unwrap_or(path);
+        if inputs.insert(key, digest).is_some() {
+            return Err(failure("duplicate content-addressed cache build input"));
+        }
+    }
+    Ok(inputs)
 }
 
 pub(crate) fn sources(
@@ -196,7 +228,7 @@ pub(crate) fn sources(
     if packages == 0 || paths.is_empty() {
         return Err(failure("empty selected source inventory"));
     }
-    hash(paths)
+    hash_sources(paths)
 }
 
 fn assembly(
@@ -300,4 +332,71 @@ fn assembly(
         return Err(failure("unterminated assembler comment"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn listed(package: &Path, cached: &Path) -> Vec<u8> {
+        serde_json::to_vec(&serde_json::json!({
+            "Dir": package,
+            "GoFiles": ["main.go", cached],
+        }))
+        .unwrap()
+    }
+
+    fn cache_output(cache: &Path, data: &[u8]) -> PathBuf {
+        let digest = canonical::digest(data);
+        let shard = cache.join(&digest[..2]);
+        fs::create_dir_all(&shard).unwrap();
+        let path = shard.join(format!("{digest}-d"));
+        fs::write(&path, data).unwrap();
+        path
+    }
+
+    #[test]
+    fn cache_resident_compiled_files_do_not_bind_the_caller_cache_location() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let package = root.0.join("package");
+        fs::create_dir(&package).unwrap();
+        fs::write(package.join("main.go"), b"package main\n").unwrap();
+        let testmain = b"package main // generated test main\n";
+        let first = cache_output(&root.0.join("first/go-build"), testmain);
+        let second = cache_output(&root.0.join("second/go-build"), testmain);
+        let empty = BTreeMap::new();
+        let observed = sources(&listed(&package, &first), &root.0, &empty).unwrap();
+        assert_eq!(
+            observed,
+            sources(&listed(&package, &second), &root.0, &empty).unwrap()
+        );
+        let digest = canonical::digest(testmain);
+        let key = Path::new(GO_CACHE_ROOT)
+            .join(&digest[..2])
+            .join(format!("{digest}-d"));
+        assert_eq!(observed.get(&key), Some(&digest));
+        assert!(observed.contains_key(&package.join("main.go")));
+        verify(&observed).unwrap();
+        fs::remove_file(&first).unwrap();
+        verify(&observed).unwrap();
+
+        let mut forged = observed.clone();
+        forged.insert(key, "0".repeat(64));
+        assert!(verify(&forged).is_err());
+    }
+
+    #[test]
+    fn misnamed_cache_files_keep_their_exact_path() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let package = root.0.join("package");
+        fs::create_dir(&package).unwrap();
+        fs::write(package.join("main.go"), b"package main\n").unwrap();
+        let shard = root.0.join("go-build/aa");
+        fs::create_dir_all(&shard).unwrap();
+        let misnamed = shard.join(format!("{}-d", "a".repeat(64)));
+        fs::write(&misnamed, b"not the named content").unwrap();
+        let observed = sources(&listed(&package, &misnamed), &root.0, &BTreeMap::new()).unwrap();
+        assert!(observed.contains_key(&misnamed));
+        assert!(!observed.keys().any(|path| path.starts_with(GO_CACHE_ROOT)));
+    }
 }
