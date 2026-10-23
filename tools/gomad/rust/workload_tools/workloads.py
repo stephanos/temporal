@@ -152,7 +152,7 @@ def guest_build_tags(profile=""):
     return [tag for tag in TAGS if profile != "full" or tag != "gomad_wasm_slim"]
 
 
-def qualification_spec(repo, root, workload, canary=False, source=None, source_manifest=None, guest_profile=""):
+def qualification_spec(repo, root, workload, canary=False, source=None, source_manifest=None, guest_profile="", *, source_working_dir=None):
     """Each caller invokes qualify in its own measured process and fresh root."""
     root = Path(root).resolve()
     temporal = workload != "sqlite"
@@ -169,7 +169,7 @@ def qualification_spec(repo, root, workload, canary=False, source=None, source_m
     if source_manifest:
         manifest["IntegratedSourceManifestPath"] = str(Path(source_manifest).resolve())
     target = dict(Backend="wasm", Kind="go-test" if temporal else "go-run", Source=str(source) if temporal else "./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go",
-                  WorkingDir=str(Path(repo).resolve()), BuildTags=guest_build_tags(guest_profile) if temporal else ["sqlite3_dotlk"],
+                  WorkingDir=str(Path(source_working_dir if source_working_dir is not None else repo).resolve()), BuildTags=guest_build_tags(guest_profile) if temporal else ["sqlite3_dotlk"],
                   Scenario=base64.b64encode(canonical(scenario)).decode())
     campaign = dict(Target=target, ExecutionTimeout=(900 if temporal else 60)*10**9, OverallTimeout=(3600 if temporal else 180)*10**9,
                     TerminateGrace=100_000_000, OutputLimit=8 << 20 if temporal else 1 << 20, WorldTransitionLimit=32 << 20,
@@ -269,7 +269,7 @@ def support_policy(row,captured_inputs):
     return value
 
 
-def support_spec(repo,root,row,canary=False,source=None,source_manifest=None,guest_profile=""):
+def support_spec(repo,root,row,canary=False,source=None,source_manifest=None,guest_profile="", *, source_working_dir=None):
     identity,package,cwd,selection=SUPPORT_ROWS[row]
     root=Path(root).resolve()
     if row=="retry" and (canary or not source):
@@ -279,7 +279,7 @@ def support_spec(repo,root,row,canary=False,source=None,source_manifest=None,gue
         IntegratedSourceSHA256="sha256:"+hashlib.sha256(Path(source_manifest).read_bytes() if source_manifest else canonical(arguments)).hexdigest())
     if source_manifest:
         manifest["IntegratedSourceManifestPath"]=str(Path(source_manifest).resolve())
-    value=dict(Manifest=manifest,ArtifactRoot=str(root),Campaign=dict(Target=dict(Backend="wasm",Kind="go-test",Source=source or package,WorkingDir=str(Path(repo).resolve()),BuildTags=(["test_dep","disable_grpc_modules","sqlite3_dotlk"] if row=="retry" else guest_build_tags(guest_profile)),Args=arguments),
+    value=dict(Manifest=manifest,ArtifactRoot=str(root),Campaign=dict(Target=dict(Backend="wasm",Kind="go-test",Source=source or package,WorkingDir=str(Path(source_working_dir if source_working_dir is not None else repo).resolve()),BuildTags=(["test_dep","disable_grpc_modules","sqlite3_dotlk"] if row=="retry" else guest_build_tags(guest_profile)),Args=arguments),
         ExecutionTimeout=900*10**9,OverallTimeout=1800*10**9,TerminateGrace=10**9,OutputLimit=256<<20,WorldTransitionLimit=32<<20,
         ChoiceTraceLimit=1<<30 if row=="retry" else 64<<20,SuccessBytesLimit=2<<30,Environment=support_policy(row,{"unused":True})["Environment"],OnFailure="all",FailureBudget=1,Artifacts=str(root/"artifacts")))
     if row=="retry":
