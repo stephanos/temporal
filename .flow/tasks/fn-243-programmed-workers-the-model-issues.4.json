@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T23:51:30.041994Z",
+  "depends_on": [
+    "fn-243-programmed-workers-the-model-issues.2",
+    "fn-243-programmed-workers-the-model-issues.3"
+  ],
+  "id": "fn-243-programmed-workers-the-model-issues.4",
+  "priority": null,
+  "spec": "fn-243-programmed-workers-the-model-issues",
+  "spec_path": ".flow/tasks/fn-243-programmed-workers-the-model-issues.4.md",
+  "status": "todo",
+  "title": "DESIGN.md: R40 rewritten, Shim superseded",
+  "updated_at": "2026-10-23T23:51:30.041994Z"
+}
