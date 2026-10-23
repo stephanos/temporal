@@ -1625,6 +1625,11 @@ pub(crate) fn store_metrics(
     Ok(super::execution::Metrics {
         wall_nanos: super::execution::nanos(wall),
         store_peak_rss_bytes: None,
+        cache_hit: execution
+            .outcome
+            .metrics
+            .as_ref()
+            .map(|metrics| metrics.cache_hit),
         raw_backend: execution
             .outcome
             .metrics

@@ -98,6 +98,9 @@ pub(crate) struct Metrics {
     /// The linked image high water of this store window, when qualification
     /// attributes process memory by phase.
     pub store_peak_rss_bytes: Option<u64>,
+    /// Whether this window loaded its compiled module from the installation's
+    /// compile cache (warm) instead of compiling it (cold), when reported.
+    pub cache_hit: Option<bool>,
     /// One entry per fresh guest store; a cluster has one per incarnation.
     pub stores: Vec<StoreMetrics>,
     pub raw_backend: Option<Vec<u8>>,
@@ -156,6 +159,11 @@ impl Metrics {
         Self {
             wall_nanos: nanos(wall),
             store_peak_rss_bytes: None,
+            cache_hit: execution
+                .outcome
+                .metrics
+                .as_ref()
+                .map(|metrics| metrics.cache_hit),
             raw_backend: None,
             stores: vec![StoreMetrics::observed(
                 None,

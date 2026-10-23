@@ -41,6 +41,10 @@ pub(crate) struct Sample {
     /// compilation, instantiation and guest execution), when attributed.
     #[serde(default)]
     pub store_peak_rss_bytes: Option<u64>,
+    /// Whether the window loaded a cached compiled module (warm) rather than
+    /// compiling it (cold); absent when the helper reported no metrics.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_hit: Option<bool>,
 }
 
 /// Raw, retained measurements. Missing platform observations stay `None`.
@@ -162,6 +166,7 @@ struct Group<'a> {
     /// The linked lifetime peaks at the boundaries around the window.
     peaks: (u64, u64),
     store_peak_rss_bytes: Option<u64>,
+    cache_hit: Option<bool>,
     virtual_time_nanos: u64,
     residents: u64,
     stores: Vec<&'a Sample>,
@@ -224,6 +229,7 @@ fn groups(
                 || store.linked_before != first.linked_before
                 || store.linked_after != first.linked_after
                 || store.store_peak_rss_bytes != first.store_peak_rss_bytes
+                || store.cache_hit != first.cache_hit
             {
                 return Err("concurrent stores must share their execution window".into());
             }
@@ -252,6 +258,7 @@ fn groups(
             wall_nanos: first.wall_nanos,
             peaks: (before.peak_rss_bytes, after.peak_rss_bytes),
             store_peak_rss_bytes: first.store_peak_rss_bytes,
+            cache_hit: first.cache_hit,
             virtual_time_nanos: first.virtual_time_nanos,
             residents: (nodes.len() as u64).max(1),
             stores,
@@ -499,11 +506,11 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
 /// phase (QUALIFICATION.md#measured-costs; Go `EvaluateBudget`):
 ///
 /// - operator work outside guest stores: operator lifetime peak, 2 GiB;
-/// - a single-guest store window, which always compiles in the linked host
-///   (fresh engine, no compile cache): the cold-cache-miss helper peak, 6 GiB;
-/// - execution without compilation: the warm-cache-hit helper peak, 4 GiB. No
-///   linked window executes without compiling, so the window peak is only an
-///   upper bound of it;
+/// - a single-guest store window: the cold-cache-miss helper peak, 6 GiB,
+///   bounds every such window;
+/// - a single-guest window that loaded its compiled module from the compile
+///   cache: the warm-cache-hit helper peak, 4 GiB. When no window reports a
+///   cache hit, the largest window peak is only an upper bound of it;
 /// - a cluster window, which holds every resident guest at once: the resident
 ///   helper peak, 8 GiB, never the single-guest limits.
 ///
@@ -532,7 +539,13 @@ fn memory_checks(
             group
                 .store_peak_rss_bytes
                 .filter(|peak| *peak > 0)
-                .map(|peak| (group.stores[0].incarnation.is_none(), peak))
+                .map(|peak| {
+                    (
+                        group.stores[0].incarnation.is_none(),
+                        peak,
+                        group.cache_hit == Some(true),
+                    )
+                })
         })
         .collect::<Option<Vec<_>>>();
     let operator = observations
@@ -553,7 +566,7 @@ fn memory_checks(
     let (Some(operator), Some(windows)) = (operator, windows) else {
         return Ok(fallback_checks(groups, operator, linked));
     };
-    let largest = windows.iter().map(|(_, peak)| *peak).max().unwrap_or(0);
+    let largest = windows.iter().map(|(_, peak, _)| *peak).max().unwrap_or(0);
     // Follow the lifetime peak from the operator baseline through every
     // boundary: a rise inside a window is explained by that window or by
     // operator work around it, any other rise (preparation, between windows,
@@ -563,7 +576,7 @@ fn memory_checks(
     // windows.
     let mut previous = prepared;
     let mut unexplained = start > operator || prepared > start.max(operator);
-    for (group, (_, window)) in groups.iter().zip(&windows) {
+    for (group, (_, window, _)) in groups.iter().zip(&windows) {
         let (before, after) = group.peaks;
         unexplained |= before > previous.max(operator)
             || *window > after
@@ -578,14 +591,19 @@ fn memory_checks(
     }
     let single = windows
         .iter()
-        .filter(|(single, _)| *single)
-        .map(|(_, peak)| *peak)
+        .filter(|(single, _, _)| *single)
+        .map(|(_, peak, _)| *peak)
         .max()
         .unwrap_or(0);
+    let warm = windows
+        .iter()
+        .filter(|(single, _, warm)| *single && *warm)
+        .map(|(_, peak, _)| *peak)
+        .max();
     let cluster = windows
         .iter()
-        .filter(|(single, _)| !*single)
-        .map(|(_, peak)| *peak)
+        .filter(|(single, _, _)| !*single)
+        .map(|(_, peak, _)| *peak)
         .max();
     let mut checks = vec![
         check(
@@ -595,13 +613,7 @@ fn memory_checks(
             2 * GIB,
             true,
         ),
-        check(
-            "individual warm helper peak RSS",
-            "single store window upper bound",
-            single,
-            4 * GIB,
-            false,
-        ),
+        warm_check(warm, single),
         check(
             "individual cold helper peak RSS",
             "single store window",
@@ -620,6 +632,27 @@ fn memory_checks(
         ));
     }
     Ok(checks)
+}
+
+/// A cache-hit window measures the warm phase exactly; otherwise the largest
+/// single-guest window only upper-bounds it.
+fn warm_check(warm: Option<u64>, single: u64) -> Check {
+    match warm {
+        Some(warm) => check(
+            "individual warm helper peak RSS",
+            "single cache-hit store window",
+            warm,
+            4 * GIB,
+            true,
+        ),
+        None => check(
+            "individual warm helper peak RSS",
+            "single store window upper bound",
+            single,
+            4 * GIB,
+            false,
+        ),
+    }
 }
 
 /// Without full attribution: a measured phase that already exceeds its
@@ -741,4 +774,111 @@ pub(crate) fn terminal(
         }
         .into(),
     })
+}
+
+#[cfg(test)]
+mod warm_window_tests {
+    use super::*;
+
+    const MIB: u64 = 1 << 20;
+
+    fn usage(cpu: u64, peak: u64) -> Usage {
+        Usage {
+            user_nanos: cpu,
+            system_nanos: cpu,
+            peak_rss_bytes: peak,
+        }
+    }
+
+    fn sample(
+        phase: &str,
+        iteration: u64,
+        cpu: u64,
+        peaks: (u64, u64, u64),
+        hit: Option<bool>,
+    ) -> Sample {
+        Sample {
+            phase: phase.into(),
+            iteration,
+            incarnation: None,
+            wall_nanos: 1_000_000_000,
+            fuel_used: 1,
+            guest_peak_memory_bytes: 200 * MIB,
+            guest_memory_limit_bytes: 4 * GIB,
+            trace_bytes: 1,
+            virtual_time_nanos: 1,
+            linked_before: Some(usage(cpu, peaks.0)),
+            linked_after: Some(usage(cpu + 1, peaks.1)),
+            store_peak_rss_bytes: Some(peaks.2),
+            cache_hit: hit,
+        }
+    }
+
+    /// Shaped on an actual onebox cell: one cold compile above the warm
+    /// ceiling, then cache-hit executions and replays well below it.
+    fn observations(hits: [Option<bool>; 4]) -> Observations {
+        let cold = 5_700 * MIB;
+        let warm = 2_000 * MIB;
+        let snapshot = |cpu, peak| Snapshot {
+            linked: usage(cpu, peak),
+            children: usage(cpu, 4_400 * MIB),
+        };
+        Observations {
+            operator_process_id: 1,
+            resident_stores: 1,
+            start: Some(snapshot(0, 3 * MIB)),
+            prepared: Some(snapshot(1, 700 * MIB)),
+            executed: Some(snapshot(9, cold)),
+            preparation_wall_nanos: 1,
+            samples: vec![
+                sample("execute", 1, 1, (700 * MIB, cold, cold), hits[0]),
+                sample("execute", 2, 3, (cold, cold, warm), hits[1]),
+                sample("replay", 1, 5, (cold, cold, warm), hits[2]),
+                sample("replay", 2, 7, (cold, cold, warm), hits[3]),
+            ],
+            operator_peak_rss_bytes: Some(1_100 * MIB),
+        }
+    }
+
+    fn warm_check(budget: &Budget) -> &Check {
+        budget
+            .checks
+            .iter()
+            .find(|check| check.name == "individual warm helper peak RSS")
+            .unwrap()
+    }
+
+    #[test]
+    fn cache_hit_windows_attribute_the_warm_helper_peak_exactly() {
+        let budget = budget(&observations([
+            Some(false),
+            Some(true),
+            Some(true),
+            Some(true),
+        ]))
+        .unwrap();
+        let warm = warm_check(&budget);
+        assert_eq!(
+            (warm.quantity.as_str(), warm.observed, warm.status.as_str()),
+            ("single cache-hit store window", 2_000 * MIB, "within")
+        );
+        assert!(budget.within_budget, "{budget:?}");
+    }
+
+    #[test]
+    fn a_cold_warm_window_still_exceeds_and_unreported_hits_stay_unattributed() {
+        let mut cold_replay = observations([Some(false), Some(true), Some(true), Some(true)]);
+        cold_replay.samples[3].store_peak_rss_bytes = Some(5_600 * MIB);
+        let budget = budget(&cold_replay).unwrap();
+        assert_eq!(warm_check(&budget).status, "exceeded");
+        assert!(!budget.within_budget);
+
+        let budget = budget_without_hits();
+        assert_eq!(warm_check(&budget).status, "unattributed");
+        assert!(!budget.within_budget);
+    }
+
+    fn budget_without_hits() -> Budget {
+        budget(&observations([None; 4])).unwrap()
+    }
 }

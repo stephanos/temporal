@@ -380,7 +380,7 @@ mod tests {
         fs::remove_file(&first).unwrap();
         verify(&observed).unwrap();
 
-        let mut forged = observed.clone();
+        let mut forged = observed;
         forged.insert(key, "0".repeat(64));
         assert!(verify(&forged).is_err());
     }

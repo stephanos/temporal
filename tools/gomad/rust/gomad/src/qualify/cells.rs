@@ -453,6 +453,7 @@ fn samples(
             linked_before: before,
             linked_after: after,
             store_peak_rss_bytes: metrics.store_peak_rss_bytes,
+            cache_hit: metrics.cache_hit,
         })
         .collect()
 }
@@ -511,9 +512,18 @@ fn execute(frozen: &Frozen, iteration: u64) -> Result<Iteration, String> {
 
 /// Replays one retained artifact in fresh stores through the shared opener.
 /// A retained cluster replays every incarnation; each store is measured.
-fn replay(path: &Path, iteration: u64) -> Result<(Replay, Vec<Sample>), String> {
+fn replay(
+    path: &Path,
+    iteration: u64,
+    compile_cache: Option<&str>,
+) -> Result<(Replay, Vec<Sample>), String> {
     let before = usage::linked();
-    let prepared = preflight::open(path).map_err(|error| format!("runner_failure: {error}"))?;
+    let mut prepared = preflight::open(path).map_err(|error| format!("runner_failure: {error}"))?;
+    // Replay loads the module the executions compiled into the installation's
+    // cache, as the public replay verb does with that installation.
+    prepared
+        .compile_cache(compile_cache)
+        .map_err(|error| format!("runner_failure: {error}"))?;
     let record = prepared.opened.manifest().record.clone();
     if !prepared.available {
         return Ok((
@@ -665,6 +675,12 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
         }
     }
     if stopped.is_none() {
+        let compile_cache = match &frozen.options.installation {
+            Some(path) => prepare::compile_cache_root(
+                &crate::install::manifest::resolve(Some(path))?.manifest,
+            )?,
+            None => None,
+        };
         for (index, execution) in executions.iter_mut().enumerate() {
             let path = PathBuf::from(
                 execution
@@ -672,7 +688,7 @@ pub(crate) fn run(frozen: &Frozen) -> Result<QualificationResult, String> {
                     .clone()
                     .ok_or("qualification execution lost its artifact")?,
             );
-            match replay(&path, index as u64 + 1) {
+            match replay(&path, index as u64 + 1, compile_cache.as_deref()) {
                 Ok((replay, measured)) => {
                     execution.replay = Some(replay);
                     samples.extend(measured);
