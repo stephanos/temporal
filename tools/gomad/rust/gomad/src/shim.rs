@@ -26,7 +26,7 @@ struct Package {
     import_path: String,
     #[serde(rename = "Dir")]
     directory: PathBuf,
-    #[serde(rename = "Name")]
+    #[serde(rename = "Name", default)]
     name: String,
 }
 
@@ -194,26 +194,44 @@ fn classify_request_with_environment<'a>(
     };
     let deadline = Instant::now() + Duration::from_secs(600);
     let build_flags = parsed.build_arguments(&arguments[command_index + 1..])?;
-    let packages = packages(
+    let mut packages = packages(
         contract,
         &cwd,
         &parsed,
         &arguments[command_index + 1..],
         &required_tags,
         deadline,
-        &packages_environment(inherited, command == "test")?,
+        PackageQuery {
+            environment: &packages_environment(inherited, command == "test")?,
+            identity_only: false,
+        },
     )?;
     if command != "test" {
         let repo = repo.as_ref().ok_or("guest run/build requires gomad.toml")?;
-        if packages.iter().any(|package| {
-            package.name != "main"
-                || !repo.guest.iter().any(|guest| {
-                    repo.module_root.join(guest).canonicalize().ok().as_ref()
-                        == Some(&package.directory)
-                })
-        }) {
+        if packages.is_empty()
+            || packages.iter().any(|package| {
+                (!package.name.is_empty() && package.name != "main")
+                    || !repo.guest.iter().any(|guest| {
+                        repo.module_root.join(guest).canonicalize().ok().as_ref()
+                            == Some(&package.directory)
+                    })
+            })
+        {
             return Ok(None);
         }
+        let Some(guest) = guest_packages(
+            contract,
+            &cwd,
+            &parsed,
+            &arguments[command_index + 1..],
+            &required_tags,
+            deadline,
+            &packages,
+        )?
+        else {
+            return Ok(None);
+        };
+        packages = guest;
     }
     parsed.admit()?;
     guest_env::validate()?;
@@ -228,6 +246,47 @@ fn classify_request_with_environment<'a>(
         packages,
         deadline,
     }))
+}
+
+fn guest_packages(
+    contract: &Contract,
+    cwd: &Path,
+    parsed: &classify::Invocation,
+    arguments: &[OsString],
+    required_tags: &[String],
+    deadline: Instant,
+    packages: &[Package],
+) -> Result<Option<Vec<Package>>, String> {
+    let identity_only = packages.iter().any(|package| package.name.is_empty());
+    if !identity_only {
+        parsed.admit()?;
+        guest_env::validate()?;
+    }
+    let guest = self::packages(
+        contract,
+        cwd,
+        parsed,
+        arguments,
+        required_tags,
+        deadline,
+        PackageQuery {
+            environment: &packages_environment(&std::collections::BTreeMap::new(), true)?,
+            identity_only,
+        },
+    )?;
+    let association = |packages: &[Package]| {
+        packages
+            .iter()
+            .map(|package| (package.directory.clone(), package.import_path.clone()))
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    if association(&guest) != association(packages) {
+        return Err("guest package metadata association changed".into());
+    }
+    if guest.iter().any(|package| package.name != "main") {
+        return Ok(None);
+    }
+    Ok(Some(guest))
 }
 
 fn prepare_guest(
@@ -375,6 +434,11 @@ fn command_location(arguments: &[OsString], cwd: &Path) -> Option<(usize, PathBu
     Some((index, cwd))
 }
 
+struct PackageQuery<'a> {
+    environment: &'a std::collections::BTreeMap<OsString, OsString>,
+    identity_only: bool,
+}
+
 fn packages(
     contract: &Contract,
     cwd: &Path,
@@ -382,16 +446,41 @@ fn packages(
     arguments: &[OsString],
     required_tags: &[String],
     deadline: Instant,
-    environment: &std::collections::BTreeMap<OsString, OsString>,
+    query: PackageQuery<'_>,
 ) -> Result<Vec<Package>, String> {
     let scratch = process::Temporary::new(&cache_root()?)?;
     let mut list = vec!["list".into(), "-e".into(), "-json".into(), "-find".into()];
-    list.extend(parsed.build_arguments(arguments)?);
-    if !parsed.tags.is_empty() || !required_tags.is_empty() {
+    list.extend(
+        parsed
+            .build_arguments(arguments)?
+            .into_iter()
+            .filter(|flag| {
+                !query.identity_only
+                    || !matches!(
+                        flag.split('=').next(),
+                        Some("-race" | "-msan" | "-asan" | "-cover" | "-covermode" | "-coverpkg")
+                    )
+            }),
+    );
+    let mut tags = required_tags.to_vec();
+    if query.identity_only {
+        // Go's work.instrumentInit adds the selected instrumentation mode to ToolTags.
+        for mode in ["race", "msan", "asan"] {
+            if parsed
+                .effective
+                .get(mode)
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| matches!(value, "1" | "t" | "T" | "true" | "True" | "TRUE"))
+            {
+                tags.push(mode.into());
+            }
+        }
+    }
+    if !parsed.tags.is_empty() || !tags.is_empty() {
         list.extend([
             "-tags".into(),
             parsed
-                .merged_tags(required_tags)
+                .merged_tags(&tags)
                 .into_string()
                 .map_err(|_| "tag is not UTF-8")?,
         ]);
@@ -413,7 +502,7 @@ fn packages(
         &contract.compiler,
         &list,
         cwd,
-        environment,
+        query.environment,
         &scratch.0,
         128 << 20,
         deadline,
@@ -886,18 +975,27 @@ esac
         }
     }
 
-    #[test]
-    #[expect(
-        clippy::too_many_lines,
-        reason = "One metadata-only fake compiler exercises omitted-name main, library and association boundaries"
-    )]
-    fn omitted_host_package_name_resolves_declared_wasi_main_without_race_builds() {
+    struct DiscoveryFixture {
+        root: process::Temporary,
+        contract: Contract,
+        inherited: std::collections::BTreeMap<OsString, OsString>,
+        queries: PathBuf,
+    }
+
+    fn discovery_fixture() -> DiscoveryFixture {
         let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
-        for directory in ["declared", "library", "native-library", "host", "drift"] {
+        for directory in [
+            "declared",
+            "race-main",
+            "library",
+            "native-library",
+            "host",
+            "drift",
+        ] {
             fs::create_dir(root.0.join(directory)).unwrap();
         }
         fs::write(root.0.join("go.mod"), "module example.test/discovery\n").unwrap();
-        fs::write(root.0.join("gomad.toml"), "runtime_root = \".\"\nderive = \"default\"\nguest = [\"./declared\", \"./library\", \"./native-library\", \"./drift\"]\n").unwrap();
+        fs::write(root.0.join("gomad.toml"), "runtime_root = \".\"\nderive = \"default\"\nguest = [\"./declared\", \"./race-main\", \"./library\", \"./native-library\", \"./drift\"]\n").unwrap();
         let metadata = |directory: &str, name: Option<&str>| {
             let mut value = serde_json::json!({"ImportPath":format!("example.test/discovery/{directory}"),"Dir":root.0.join(directory)});
             if let Some(name) = name {
@@ -909,6 +1007,8 @@ esac
             value
         };
         let declared_host = metadata("declared", None);
+        let race_host = metadata("race-main", None);
+        let race_guest = metadata("race-main", Some("main"));
         let library_host = metadata("library", None);
         let native_library = metadata("native-library", Some("library"));
         let unmatched_host = metadata("host", None);
@@ -921,8 +1021,11 @@ esac
 [ "$1" = list ] || exit 90
 race=0
 needed=0
+race_tag=0
 for arg do
-    case "$arg" in -race=true) race=1;; needed) needed=1;; esac
+    case "$arg" in -race=true) race=1;; esac
+    case ",$arg," in *,needed,*) needed=1;; esac
+    case ",$arg," in *,race,*) race_tag=1;; esac
     last="$arg"
 done
 printf '%s:%s:%s\n' "$GOOS" "$race" "$last" >> '{queries}'
@@ -931,11 +1034,17 @@ if [ "$GOOS" = wasip1 ]; then
     [ "$GOARCH/$CGO_ENABLED" = wasm/0 ] || exit 92
     [ "$race" = 0 ] || {{ printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; }}
     [ "$needed" = 1 ] || exit 93
-    case "$last" in ./declared|./drift) printf '%s' '{declared_guest}';; ./library) printf '%s' '{library_guest}';; *) exit 94;; esac
+    case "$last" in
+        ./declared|./drift) printf '%s' '{declared_guest}';;
+        ./race-main) if [ "$race_tag" = 1 ]; then printf '%s' '{race_guest}'; else printf '%s' '{race_host}'; fi;;
+        ./library) printf '%s' '{library_guest}';;
+        *) exit 94;;
+    esac
 else
     [ "$GOOS/$GOARCH/$CGO_ENABLED" = linux/arm64/1 ] || exit 95
     case "$last" in
         ./declared) printf '%s' '{declared_host}';;
+        ./race-main) printf '%s' '{race_host}';;
         ./library) printf '%s' '{library_host}';;
         ./native-library) printf '%s' '{native_library}';;
         ./drift) printf '%s' '{drift_host}';;
@@ -960,6 +1069,22 @@ fi
         for (name, value) in [("GOOS", "linux"), ("GOARCH", "arm64"), ("CGO_ENABLED", "1")] {
             inherited.insert(name.into(), value.into());
         }
+        DiscoveryFixture {
+            root,
+            contract,
+            inherited,
+            queries,
+        }
+    }
+
+    #[test]
+    fn omitted_host_package_name_resolves_declared_wasi_main_without_race_builds() {
+        let DiscoveryFixture {
+            root,
+            contract,
+            inherited,
+            queries,
+        } = discovery_fixture();
         for command in ["run", "build"] {
             let arguments = |package: &str| {
                 vec![
@@ -993,6 +1118,16 @@ fi
             let error = classify_request_with_environment(
                 &contract,
                 &main,
+                OsStr::new("-race"),
+                &inherited,
+            )
+            .err()
+            .unwrap();
+            assert_eq!(error, "gomad: unsupported guest option -race");
+            let guarded = arguments("./race-main");
+            let error = classify_request_with_environment(
+                &contract,
+                &guarded,
                 OsStr::new("-race"),
                 &inherited,
             )
