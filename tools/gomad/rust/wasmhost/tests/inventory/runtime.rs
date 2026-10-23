@@ -31,24 +31,26 @@ impl Drop for Scratch {
     }
 }
 
+fn stock_command(go: &std::ffi::OsStr, module: &Path) -> Command {
+    let mut command = Command::new(go);
+    command
+        .current_dir(module)
+        .env_remove("GOROOT")
+        .env("GOTOOLCHAIN", "local")
+        .env("GOENV", "off")
+        .env("GOWORK", "off")
+        .env("GOFLAGS", "")
+        .env("GOMAXPROCS", "1");
+    command
+}
+
 fn derived() -> Result<(SourceInventory, Scratch), String> {
     let module = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
         .map_err(|e| e.to_string())?;
     let go = std::env::var_os("GOMAD_STOCK_GO").unwrap_or_else(|| "go".into());
-    let command = || {
-        let mut command = Command::new(&go);
-        command
-            .current_dir(&module)
-            .env_remove("GOROOT")
-            .env("GOTOOLCHAIN", "local")
-            .env("GOENV", "off")
-            .env("GOWORK", "off")
-            .env("GOFLAGS", "")
-            .env("GOMAXPROCS", "1");
-        command
-    };
+    let command = || stock_command(&go, &module);
     let root = command()
         .args(["env", "GOROOT"])
         .output()
@@ -85,9 +87,10 @@ fn derived() -> Result<(SourceInventory, Scratch), String> {
     );
     let retained = std::env::var_os("GOMAD_INVENTORY_EVIDENCE_ROOT");
     let scratch = Scratch(
-        retained.clone().map(PathBuf::from).unwrap_or_else(|| {
-            std::env::temp_dir().join(format!("gomad-runtime-inventory-{}", std::process::id()))
-        }),
+        retained.clone().map_or_else(
+            || std::env::temp_dir().join(format!("gomad-runtime-inventory-{}", std::process::id())),
+            PathBuf::from,
+        ),
         retained.is_some(),
     );
     fs::create_dir(&scratch.0).map_err(|e| e.to_string())?;
@@ -241,7 +244,9 @@ fn collector_patch_policy(inputs: &BTreeMap<String, PathBuf>) -> Result<(), Stri
             .or_else(|| name.strip_prefix("stock/"))
         {
             let file = path.rsplit('/').next().unwrap();
-            if file.starts_with("mgc") && file.ends_with(".go") {
+            if file.starts_with("mgc")
+                && Path::new(file).extension() == Some(std::ffi::OsStr::new("go"))
+            {
                 return Err(format!("collector-file patch policy forbids {name}"));
             }
         }
@@ -296,7 +301,7 @@ fn reviewed(kind: &str, table: &str) -> BTreeMap<String, u64> {
             assert!(["target-ordered", "host-timed", "reference"].contains(&fields[6]));
             assert!(["process-purpose", "M-local", "wrapper", "none"].contains(&fields[7]));
             assert!(["active", "disabled", "contract-excluded", "blocked"].contains(&fields[8]));
-            assert!(!fields[9].is_empty());
+            assert_ne!(fields[9], "");
             assert!(fields[6] != "host-timed" || fields[8] != "active" || fields[7] == "M-local");
         } else if kind == "runtime-clock" {
             assert!(
@@ -316,7 +321,7 @@ fn reviewed(kind: &str, table: &str) -> BTreeMap<String, u64> {
             );
         } else {
             assert_eq!(fields[3], "patch");
-            assert!(!fields[5].is_empty());
+            assert_ne!(fields[5], "");
         }
         assert!(
             sites.insert(fields[..key_end].join(" "), count).is_none(),

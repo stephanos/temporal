@@ -141,7 +141,7 @@ fn calendar_date(text: &str) -> bool {
     let year: u32 = text[..4].parse().unwrap();
     let month: usize = text[5..7].parse().unwrap();
     let day: u32 = text[8..].parse().unwrap();
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let leap = year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400));
     let days = [
         31,
         if leap { 29 } else { 28 },
@@ -204,92 +204,97 @@ fn parse(text: &str) -> Result<Inventory, String> {
         if !sites.insert(entry.site.as_str()) {
             return Err(format!("inventory site {:?} has two rows", entry.site));
         }
-        let required = [
-            &entry.id,
-            &entry.site,
-            &entry.layer,
-            &entry.class,
-            &entry.disposition,
-            &entry.owner,
-            &entry.rule,
-        ];
-        if required.iter().any(|field| field.is_empty()) || entry.evidence.is_empty() {
-            return Err(format!("inventory row {:?} incomplete", entry.id));
-        }
-        let mut parts = entry.id.split(['.', '-']);
-        if !parts.next().is_some_and(|part| {
-            !part.is_empty()
-                && part
-                    .bytes()
-                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
-        }) || parts.any(|part| {
-            part.is_empty()
-                || !part
-                    .bytes()
-                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
-        }) {
-            return Err(format!(
-                "inventory row {:?} id is not a stable lower-case identifier",
-                entry.id
-            ));
-        }
-        let known = [
-            (
-                &entry.layer,
-                &[
-                    "guest-runtime",
-                    "guest-stdlib",
-                    "helper",
-                    "host-go",
-                    "engine-config",
-                    "host-process",
-                ][..],
-            ),
-            (
-                &entry.class,
-                &[
-                    "clock",
-                    "entropy",
-                    "scheduling",
-                    "gc-finalizer",
-                    "address",
-                    "fs-io",
-                    "network-io",
-                    "thread-order",
-                    "settings",
-                ][..],
-            ),
-            (
-                &entry.disposition,
-                &["controlled", "recorded", "rejected", "escape"][..],
-            ),
-        ];
-        if known
-            .iter()
-            .any(|(value, allowed)| !allowed.contains(&value.as_str()))
-        {
-            return Err(format!(
-                "inventory row {:?} has an unknown enum value",
-                entry.id
-            ));
-        }
-        if entry
-            .evidence
-            .iter()
-            .any(|reference| !reference_shape(reference))
-        {
-            return Err(format!("inventory row {:?} evidence kind", entry.id));
-        }
-        if if entry.disposition == "escape" {
-            entry.justification.trim().is_empty() || entry.readme_anchor.trim().is_empty()
-        } else {
-            !entry.justification.is_empty() || !entry.readme_anchor.is_empty()
-        } {
-            return Err(format!("inventory row {:?} escape justification", entry.id));
-        }
+        validate_entry(entry)?;
     }
     check_identity_history(IDENTITY_HISTORY, &inventory.entries)?;
     Ok(inventory)
+}
+
+fn validate_entry(entry: &Entry) -> Result<(), String> {
+    let required = [
+        &entry.id,
+        &entry.site,
+        &entry.layer,
+        &entry.class,
+        &entry.disposition,
+        &entry.owner,
+        &entry.rule,
+    ];
+    if required.iter().any(|field| field.is_empty()) || entry.evidence.is_empty() {
+        return Err(format!("inventory row {:?} incomplete", entry.id));
+    }
+    let mut parts = entry.id.split(['.', '-']);
+    if !parts.next().is_some_and(|part| {
+        !part.is_empty()
+            && part
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+    }) || parts.any(|part| {
+        part.is_empty()
+            || !part
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+    }) {
+        return Err(format!(
+            "inventory row {:?} id is not a stable lower-case identifier",
+            entry.id
+        ));
+    }
+    let known = [
+        (
+            &entry.layer,
+            &[
+                "guest-runtime",
+                "guest-stdlib",
+                "helper",
+                "host-go",
+                "engine-config",
+                "host-process",
+            ][..],
+        ),
+        (
+            &entry.class,
+            &[
+                "clock",
+                "entropy",
+                "scheduling",
+                "gc-finalizer",
+                "address",
+                "fs-io",
+                "network-io",
+                "thread-order",
+                "settings",
+            ][..],
+        ),
+        (
+            &entry.disposition,
+            &["controlled", "recorded", "rejected", "escape"][..],
+        ),
+    ];
+    if known
+        .iter()
+        .any(|(value, allowed)| !allowed.contains(&value.as_str()))
+    {
+        return Err(format!(
+            "inventory row {:?} has an unknown enum value",
+            entry.id
+        ));
+    }
+    if entry
+        .evidence
+        .iter()
+        .any(|reference| !reference_shape(reference))
+    {
+        return Err(format!("inventory row {:?} evidence kind", entry.id));
+    }
+    if if entry.disposition == "escape" {
+        entry.justification.trim().is_empty() || entry.readme_anchor.trim().is_empty()
+    } else {
+        !entry.justification.is_empty() || !entry.readme_anchor.is_empty()
+    } {
+        return Err(format!("inventory row {:?} escape justification", entry.id));
+    }
+    Ok(())
 }
 
 /// One row of the `operations!` table: variant, module and import name.
@@ -1488,7 +1493,7 @@ fn check_review_history(text: &str, reviewed: &Reviewed) -> Result<(), String> {
 fn inventory_pins_require_append_only_dated_reviews() {
     let inventory = parse(INVENTORY).unwrap();
     check_review_history(REVIEW_HISTORY, &inventory.reviewed).unwrap();
-    let mut changed = inventory.reviewed.clone();
+    let mut changed = inventory.reviewed;
     changed.wasmtime.push_str(".new");
     assert!(
         check_review_history(REVIEW_HISTORY, &changed)

@@ -377,3 +377,24 @@ frozen runtime/workload/replay execution is still pending. This checkpoint does
 not accept the earlier276 trust-prefix proposal or supply a Flow completion.
 Worktree `/home/agent/wt/fn232-determinism-reach` and assigned Cargo target remain
 for root integration/review; all assigned checks have ended. Free space83GiB.
+
+## Strict inventory lint cleanup — 2026-10-23
+
+The ten inventory Clippy warnings are repaired without lint allowances. Entry
+validation and stock-command construction are extracted with their existing
+checks, error ordering and command environment preserved. The calendar uses
+integer divisibility methods; the review mutation moves its consumed value;
+the scratch path uses `map_or_else`; empty-field assertions retain values on
+failure. Collector suffix matching uses an exact case-sensitive path extension,
+preserving the existing lowercase `.go` policy.
+
+Fresh strict inventory Clippy exits0. The unfiltered inventory rerun exits101:
+31/32 pass and only the same26 unresolved deleted-Go proof references fail.
+No reference, inventory row, ledger prefix or disposition was changed. Full
+workspace rustfmt and whitespace checks exit0. Raw command output and exit
+codes are retained in `fn232-determinism-lint-checks.log` beside this artifact;
+external originals remain under the existing evidence root. This is a focused
+lint result, not a full feature-matrix lint or qualification result.
+
+The worktree and assigned target remain for parent integration and independent
+review; no cache or scratch checkout was removed. Available disk is82GiB.
