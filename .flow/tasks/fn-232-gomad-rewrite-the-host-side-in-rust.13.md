@@ -98,6 +98,22 @@ In addition to the full qualification/test-wasm transfer, accept the following e
 
 The darwin/arm64-only `gomad-choice-trace/v3` baselines (`tools/gomad/internal/runner/testdata/diagnostic-identity-choices{,-native,-portable}.json`) were removed with the Go runner and `TestDiagnosticsOffPreservesExistingIdentities` in b64f3dcb89; they were never regenerated or faked. Branch `fn232-retirement-v2` removes the orphaned sibling `diagnostic-identity-plain{,-native,-portable}.json` baselines of the same retired test. No Go runner test survives, so no darwin regeneration is owed.
 
+### Closeout ledger: Go versus Rust code size (pre-freeze row, 2026-10-23)
+
+Counter `gomad-source-size/v1` (sha256 e9e4a58c…), baseline 1d7b37f00a (frozen Go baseline), candidate fac2e3f4cb (`fn232-retirement-v2`). Full table, commands and path-group rules: `.flow/artifacts/fn232-retirement/source-size-2026-10-23.md`. Code = physical lexical code lines.
+
+| Group | Baseline files / bytes / code | Candidate files / bytes / code |
+| --- | --- | --- |
+| Go host retired by fn-232 (prod 51,329 + tests 53,341 code) | 432 / 4,755,828 / 104,670 | 6 / 8,243 / 336 (cmd/gomad testdata fixtures) |
+| Rust host outside the engine (`rust/gomad`, `rust/driver`, workload tools): Rust prod 84,230 + tests 22,701, Python 19,715 + 11,588, other | 0 | 415 / 6,372,871 / 138,368 |
+| Linked Rust engine (preexisting helper relocated and extended) | 83 / 1,710,919 / 43,336 | 152 / 2,647,488 / 67,221 |
+| Go WASI reference (moved to internal/model/wasi) | 85 / 1,286,015 / 30,346 | 74 / 858,915 / 21,209 |
+| Retained Go models/oracles/toolchain/support | 328 / 2,754,813 / 68,628 | 305 / 2,246,407 / 56,971 |
+| Go native backend (removed by fn-223, not this port) | 558 / 4,289,404 / 101,564 | 0 |
+| Whole repository (all tracked blobs) | 9,938 files / 238,487,870 bytes | 9,825 files / 271,649,866 bytes |
+
+Headline: the retired Go host (104,670 code lines) is replaced by 106,931 Rust lines (mostly the `gomad` crate) plus 31,303 Python driver/tool lines; the linked engine grew by 23,885 lines over the preexisting helper. Final row: rerun on the frozen candidate.
+
 ## Acceptance
 The admitted/shipped release binary excludes fault and deterministic-fixture features and rejects their fixture-only controls; retain build-feature evidence. Every verb uses task .4's declared golden view with independent canonical record/hash and raw ledger-integrity checks, never normalization of behavior or evidence fields. Qualification reports retained for every cell on the Rust binary; default build contains no Go host packages (archcheck test); CI source wiring validated and mandatory local commands pass, with no CI run dispatched; docs updated; every public verb's local parity/golden lane passes before harness job removal, and goldens remain as regressions; runtime/workload/retained-replay exits and final identities recorded under the unchanged one-hour qualification limit.
 
