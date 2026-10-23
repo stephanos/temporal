@@ -70,5 +70,7 @@
     "runtime-cost-profile repeats ordinary linked owner instead of original remote-model/helper-model comparison",
     "terminal-exit lacks original post-load authorization mismatch execution"
   ],
-  "qualification": "UNEXECUTED: recipe and source checks supply no actual final gate pass"
+  "qualification": "UNEXECUTED: recipe and source checks supply no actual final gate pass",
+  "reference_revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "reference_original_source_sha256": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
 }

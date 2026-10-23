@@ -14,6 +14,12 @@
   bounded current producer output; all modeled request fields match the
   template exactly. The actual dynamic module provenance, installation and
   retained preparation observations authenticate its source/compiler closure.
+- `runtime_reference`: `{python,script,derived,files,build_receipt,binary,helper}`.
+  The immutable original archive, derived source manifest, compiler, build
+  command receipt, helper and binary are sealed static inputs. The wrapper runs
+  both original model owners against the actual current native module/request;
+  this receiver recomputes raw Result streams, metadata, nested command custody
+  and the source archive/file inventory before comparing the native release.
 - `qualified.workflow` and `qualified.activity`: each has sealed `recipe`,
   `release_input`, and `diagnostic_input` paths. Each recipe contains the exact
   `native_input` object, seed, original bounds, module path/hash, selection,
@@ -36,8 +42,11 @@ assertions. It is a recipe manifest, not qualification evidence.
 
 The current native runtime producer repeats the ordinary linked owner twice.
 The original `measureRuntimeCostProfile` compares remote-model and helper-model
-ownership. No authenticated equivalent has been supplied. The receiver raises
-`Unexecuted` for the current schedule instead of accepting its `accepted` flag.
+ownership. The `runtime_reference` invocation supplies both original model-owner runs on
+the actual current module. Without that binding the receiver raises
+`Unexecuted` instead of accepting ordinary repetition or the `accepted` flag.
+The wrapper and native preparation custody are source integrations; their actual
+frozen-candidate execution remains pending.
 
 The current native terminal producer records six successful workflow runs. The
 original additionally executes the post-load authorization identity mismatch,

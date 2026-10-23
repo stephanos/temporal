@@ -1,4 +1,5 @@
 import copy
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -155,6 +156,44 @@ class FinalProfiles(unittest.TestCase):
         spec['preparation'] = dict(provenance=str(provenance), installation=str(installation), observations=str(self.root))
         with patch('live.sealed_input'), self.assertRaises(Refusal):
             gate.preparation_proof(dict(repo='/repo'), spec, request['guest'])
+
+    def test_reference_projection_recomputes_actual_original_result(self):
+        run = self.run_evidence('original')
+        run.update(schema='gomad.go-reference-run/v1', owner='go', original_commit='original',
+                   error='', cancelled=False, watchdog_timeout=False, transcript_sha256='00' * 32)
+        payloads = {name: base64.b64encode(Path(entry['path']).read_bytes()).decode()
+                    for name, entry in run['streams'].items()}
+        result = dict(Stdout=payloads['stdout'], Stderr=payloads['stderr'], Transcript=payloads['wasi'],
+                      TranscriptSHA256=[0] * 32, NetworkTranscript=payloads['network'],
+                      ChoiceTrace=dict(Bytes=payloads['choice'], Summary=dict(SelectPoll=run['select_poll'])),
+                      Termination='exit', ExitCode=0, Reaped=True, Cancelled=False, WatchdogTimeout=False,
+                      Calls=run['calls'], TimeAdvances=run['time_advances'], EnvironmentIdentity=run['environment_identity'],
+                      FuelRemaining=run['fuel_remaining'], AuthorizationToTerminalNanos=run['authorization_to_terminal_nanos'])
+        raw = self.root / 'raw-result.json'
+        raw.write_text(json.dumps(dict(result=result, terminal=payloads['terminal'], error='')))
+        (self.root / 'invoke.stdout').write_bytes(raw.read_bytes())
+        run['raw_result'] = dict(path=str(raw), sha256=hashlib.sha256(raw.read_bytes()).hexdigest())
+        path = self.root / 'run.json'
+        path.write_text(json.dumps(run))
+        gate.reference_result(self.root, dict(path=str(path)), 'go', 'original')
+        for field, value in [('fuel_remaining', 0), ('calls', 999), ('transcript_sha256', 'bad')]:
+            path.write_text(json.dumps(dict(run, **{field: value})))
+            with self.subTest(field=field), self.assertRaises(Refusal):
+                gate.reference_result(self.root, dict(path=str(path)), 'go', 'original')
+        changed = copy.deepcopy(run)
+        result['Calls'] = 999
+        raw.write_text(json.dumps(dict(result=result, terminal=payloads['terminal'], error='')))
+        changed['calls'] = 999
+        changed['raw_result']['sha256'] = hashlib.sha256(raw.read_bytes()).hexdigest()
+        path.write_text(json.dumps(changed))
+        with self.assertRaises(Refusal):
+            gate.reference_result(self.root, dict(path=str(path)), 'go', 'original')
+        result['Calls'] = run['calls']
+        raw.write_bytes((self.root / 'invoke.stdout').read_bytes())
+        path.write_text(json.dumps(run))
+        Path(run['streams']['stdout']['path']).write_bytes(b'forged')
+        with self.assertRaises(Refusal):
+            gate.reference_result(self.root, dict(path=str(path)), 'go', 'original')
 
     def test_changed_hash_and_foreign_output_are_refused(self):
         run = self.run_evidence('run')

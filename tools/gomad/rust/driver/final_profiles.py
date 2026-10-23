@@ -152,7 +152,7 @@ def preparation_proof(config, spec, guest, *, runtime=False, dynamic_root=None):
         module_root = Path(guest['module']).parent
         proof = dict(provenance=str(bounded_path(dynamic_root, str(module_root / 'module-provenance.json'))),
                      installation=str(bounded_path(dynamic_root, str(module_root / 'installation.json'))),
-                     observations=str(module_root))
+                     observations=str(module_root / 'preparation-observations'))
     provenance, installation = read(proof['provenance']), read(proof['installation'])
     inputs = provenance['inputs']
     require(provenance['module_sha256'] == guest['module_sha256']
@@ -268,6 +268,182 @@ def invoke(config, root, name, argv):
     return raw, process
 
 
+def reference_result(output, item, owner, original):
+    from driver import sha
+    run = read(item['path'])
+    require(run['schema'] == 'gomad.go-reference-run/v1' and run['original_commit'] == original
+            and run['owner'] == owner and run['error'] == '' and run['cancelled'] is False
+            and run['watchdog_timeout'] is False, 'original reference failed/cancelled')
+    raw_path = bounded_path(output, run['raw_result']['path'])
+    require(sha(raw_path) == run['raw_result']['sha256']
+            and raw_path.read_bytes() == (Path(item['path']).parent / 'invoke.stdout').read_bytes(),
+            'original raw result differs from actual child stdout')
+    raw = read(raw_path)
+    result = raw['result']
+    for stream, payload in dict(stdout=result['Stdout'], stderr=result['Stderr'], wasi=result['Transcript'],
+            choice=result['ChoiceTrace']['Bytes'], network=result['NetworkTranscript'], terminal=raw['terminal']).items():
+        value = base64.b64decode(payload or '', validate=True)
+        require(bounded_path(output, run['streams'][stream]['path']).read_bytes() == value,
+                'original reference stream differs from actual raw Result')
+    fields = dict(termination='Termination', exit_code='ExitCode', reaped='Reaped', cancelled='Cancelled',
+                  watchdog_timeout='WatchdogTimeout', calls='Calls',
+                  time_advances='TimeAdvances', environment_identity='EnvironmentIdentity',
+                  fuel_remaining='FuelRemaining', authorization_to_terminal_nanos='AuthorizationToTerminalNanos')
+    require(run['transcript_sha256'] == bytes(result['TranscriptSHA256']).hex(), 'original WASI digest changed')
+    require(all(run[field] == result[key] for field, key in fields.items())
+            and run['select_poll'] == result['ChoiceTrace']['Summary']['SelectPoll']
+            and raw['error'] == '', 'original reference metadata differs from raw Result')
+    return run
+
+
+def reference_runtime(config, root, work, native_root, runtime_spec):
+    import live
+    from driver import sha
+    entry = config['final_profiles']['runtime_reference']
+    for field in ('python', 'script', 'git', 'files', 'build_receipt', 'binary', 'helper'):
+        live.sealed_input(config, entry[field])
+    derived = Path(entry['derived'])
+    source_path = derived / 'source.json'
+    live.sealed_input(config, str(source_path))
+    source = read(source_path)
+    original = '1d695061b6382009d0659238c652a5a765b1d5f5'
+    require(source['schema'] == 'gomad.derived-go-reference/v1' and source['original_commit'] == original,
+            'foreign original reference source')
+    import tarfile
+    raw_tree, _ = invoke(config, root, 'final-profile-original-tree',
+                         [entry['git'], '-C', config['repo'], 'ls-tree', '-r', '-z', original])
+    tree = {}
+    for member in raw_tree.split(b'\0'):
+        if not member:
+            continue
+        header, name = member.split(b'\t', 1)
+        mode, kind, identity = header.decode().split(' ')
+        require(kind == 'blob' and mode in ('100644', '100755', '120000'), 'unsupported immutable original tree entry')
+        tree[name.decode()] = (mode, identity)
+    archive_path = derived / 'original.tar'
+    live.sealed_input(config, str(archive_path))
+    original_files = {}
+    with tarfile.open(archive_path) as archive:
+        require(archive.pax_headers.get('comment') == original, 'archive does not identify immutable original commit')
+        for member in archive:
+            if member.isdir():
+                continue
+            require(not Path(member.name).is_absolute() and '..' not in Path(member.name).parts,
+                    'foreign original archive member')
+            require(member.name in tree, 'archive contains foreign original source')
+            mode, identity = tree[member.name]
+            if member.issym():
+                require(mode == '120000', 'original archive symlink mode differs')
+                body = member.linkname.encode()
+                original_files[member.name] = dict(kind='symlink', target=member.linkname)
+            else:
+                require(member.isfile(), 'unsupported original archive member')
+                body = archive.extractfile(member).read()
+                require(mode in ('100644', '100755') and bool(member.mode & 0o111) == (mode == '100755'),
+                        'original archive file mode differs')
+                original_files[member.name] = dict(kind='file', bytes=len(body), sha256=hashlib.sha256(body).hexdigest())
+            blob = b'blob ' + str(len(body)).encode() + b'\0' + body
+            require(hashlib.sha1(blob, usedforsecurity=False).hexdigest() == identity, 'archive differs from immutable original Git object')
+    require(set(original_files) == set(tree), 'archive omits immutable original source')
+    require(original_files == source['original_files'], 'original source table differs from immutable archive')
+    require(set(source['glue']) == {'tools/gomad/cmd/gomad-reference/main.go'}, 'reference source has undeclared glue')
+    actual_names = {str(path.relative_to(derived / 'source')) for path in (derived / 'source').rglob('*')
+                    if path.is_file() or path.is_symlink()}
+    require(actual_names == set(original_files) | set(source['glue']), 'undeclared original reference source addition')
+    template = str(Path(entry['script']).parent / 'reference/main.go.txt')
+    live.sealed_input(config, template)
+    for name, digest in source['glue'].items():
+        require(sha(derived / 'source' / name) == digest == sha(template), 'changed invocation-only reference glue')
+    build = read(entry['build_receipt'])
+    require(build['schema'] == 'gomad.reference-build/v1' and build['original_commit'] == original
+            and build['source_manifest']['sha256'] == sha(source_path) and build['glue'] == source['glue']
+            and build['binary']['path'] == entry['binary'] and build['binary']['sha256'] == sha(entry['binary']),
+            'foreign reference binary build custody')
+    live.sealed_input(config, build['command']['path'])
+    build_command = read(build['command']['path'])
+    require(sha(build['command']['path']) == build['command']['sha256']
+            and build_command['exit'] == 0 and build_command['observation'] == 'completed'
+            and build_command['cwd'] == str(derived / 'source/tools/gomad')
+            and build_command['argv'] == [build['stock_go']['path'], 'build', '-p=1', '-mod=readonly',
+                '-tags=test_dep', '-trimpath', '-buildvcs=false', '-o', entry['binary'], './cmd/gomad-reference'],
+            'reference build did not execute original invocation glue')
+    live.sealed_input(config, build['stock_go']['path'])
+    require(sha(build['stock_go']['path']) == build['stock_go']['sha256'], 'changed original reference compiler')
+    for name, item in source['original_files'].items():
+        path = derived / 'source' / name
+        require(path.is_relative_to(derived / 'source') and '..' not in Path(name).parts,
+                'foreign original source member')
+        if item['kind'] == 'symlink':
+            import os
+            require(path.is_symlink() and os.readlink(path) == item['target'], 'changed original source symlink')
+        else:
+            require(path.is_file() and not path.is_symlink() and path.stat().st_size == item['bytes']
+                    and sha(path) == item['sha256'], 'changed immutable original source')
+    request_path = native_root / 'request.json'
+    native = read(request_path)
+    provenance = Path(native['guest']['module']).parent / 'module-provenance.json'
+    output = work / 'runtime-reference'
+    argv = [entry['python'], entry['script'], 'run', '--derived', str(derived),
+            '--native-request', str(request_path), '--request-sha256', sha(request_path),
+            '--provenance', str(provenance), '--provenance-sha256', sha(provenance),
+            '--files', entry['files'], '--build-receipt', entry['build_receipt'],
+            '--reference-binary', entry['binary'], '--helper', entry['helper'], '--output', str(output)]
+    invoke(config, root, 'final-profile-runtime-reference', argv)
+    manifest = read(output / 'manifest.json')
+    require(manifest['schema'] == 'gomad.runtime-reference-pair/v1' and manifest['original_commit'] == original
+            and manifest['native_request']['path'] == str(request_path)
+            and manifest['native_request']['sha256'] == sha(request_path)
+            and manifest['provenance']['sha256'] == sha(provenance)
+            and manifest['module']['sha256'] == native['guest']['module_sha256'], 'foreign original reference custody')
+    actual = []
+    for owner in ('go', 'helper'):
+        directory = output / owner
+        item = manifest['runs'][owner]
+        require(bounded_path(output, item['path']) == directory / 'run.json'
+                and item['sha256'] == sha(item['path']), 'changed original reference run')
+        run = reference_result(output, item, owner, original)
+        invocation_path = directory / 'invocation.json'
+        invocation = read(invocation_path)
+        request = invocation['request']
+        require(invocation['remote_model'] is (owner == 'go')
+                and request['MemoryBytes'] == runtime_spec['memory_bytes'] and request['Fuel'] == runtime_spec['fuel']
+                and request['Timeout'] == runtime_spec['wall_nanos'] and request['Runtime']['Seed'] == 7
+                and request['Runtime']['Diagnostics'] is False and request['Runtime']['Choice']['Limit'] == 64 << 20
+                and request['Config']['Args'] == native['guest']['model']['arguments']
+                and request['Config']['Environment'] == native['guest']['model']['environment']
+                and request['ModuleSHA256'] == native['guest']['module_sha256']
+                and request['HelperPath'] == entry['helper'] and request['HelperSHA256'] == sha(entry['helper']),
+                'original reference executed a different runtime request')
+        model = native['guest']['model']
+        namespace = native['guest']['namespace']
+        config_model, limits = model['configuration'], native['guest']['limits']
+        fs = namespace['limits']
+        expected_config = dict(Profile='gomad.wasi-cooperative/v1', Args=model['arguments'],
+            Environment=model['environment'], WorkingDirectory=bytes(namespace['working_directory']).decode(),
+            WritableDirectories=[bytes(path).decode() for path in namespace['writable_directories']],
+            Stdin=base64.b64encode(bytes(namespace['stdin'])).decode(), EntropyKey=config_model['entropy_key'],
+            Clock=dict(EpochNanos=config_model['epoch_nanos'], ReadStepNanos=config_model['read_step_nanos']),
+            Limits=dict(OutputBytes=limits['output_bytes'], TranscriptBytes=config_model['limits']['transcript_bytes'],
+                Calls=config_model['limits']['calls'], PendingEvents=config_model['limits']['pending_events'],
+                Descriptors=fs['descriptors'], Files=fs['files'], FilesystemBytes=fs['filesystem_bytes']))
+        require(request['Config'] == expected_config
+                and request['Runtime']['Choice']['ExecutionIdentity'] == read(provenance)['choice_identity']
+                and request['Runtime']['Choice']['Mode'] == 1
+                and request['DigestTranscript'] == config_model.get('digest_only', False)
+                and request['ModulePath'] == manifest['module']['pinned_path']
+                and sha(request['ModulePath']) == native['guest']['module_sha256'],
+                'original reference modeled request differs from actual native input')
+        require(request['Config']['Clock']['ReadStepNanos'] == 0
+                and request['Config']['Limits']['Calls'] == 1 << 20
+                and request['Config']['Limits']['TranscriptBytes'] == 64 << 20,
+                'original reference runtime bounds changed')
+        live.completed_command(read(directory / 'invoke.command.json'), read(directory / 'invoke.process.json'),
+                               [entry['binary'], str(invocation_path)], str(derived / 'source/tools/gomad'))
+        actual.append(run)
+    runtime_pair(work, runtime_spec, *actual)
+    return actual
+
+
 def collect(config, root):
     import json
     import live
@@ -298,9 +474,8 @@ def collect(config, root):
     runs = runtime_report['runs']
     require(len(runs) == 2 and all(row['status'] == 'executed' for row in runs),
             'missing runtime original owner pair')
-    # An ordinary/ordinary repetition is not the original owner comparison.
-    if [row['sample'].get('owner') for row in runs] != ['remote-model', 'helper-model']:
-        raise Unexecuted('runtime-cost original remote-model/helper-model comparison is unexecuted; ordinary/ordinary repeats supply no receiving proof')
+    if not entry.get('runtime_reference'):
+        raise Unexecuted('runtime-cost original remote-model/helper-model comparison requires the immutable original reference producer')
     observed = [native_run(bounded_path(runtime_root, str(Path(row['native_root']) / 'report.json')).parent) for row in runs]
     live.sealed_input(config, entry['runtime_recipe'])
     runtime_spec = read(entry['runtime_recipe'])
@@ -313,6 +488,8 @@ def collect(config, root):
                 and report['linked_implementation_sha256'] == config['identity']['helper']
                 and report['features'] == [], 'foreign runtime original native request/role')
     runtime_pair(work, runtime_spec, observed[0][1], observed[1][1])
+    references = reference_runtime(config, root, work, Path(runs[0]['native_root']), runtime_spec)
+    same_evidence(work, references[0], observed[0][1], qualified=False)
     terminal_argv = [measure, 'terminal-exit', *common, '--terminal-exit-root', str(terminal_root),
         '--terminal-exit-module', entry['terminal_module'], '--terminal-exit-module-receipt',
         entry['terminal_module_receipt'], '--terminal-exit-helper-receipt', entry['terminal_helper_receipt']]
