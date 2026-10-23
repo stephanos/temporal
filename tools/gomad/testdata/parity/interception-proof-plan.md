@@ -73,8 +73,9 @@ First confirm Go removed its original temporary module. Use per-process hiding,
 not deletion of shared source/cache paths. With the working bubblewrap facility,
 read-only-bind `/`, isolate user/PID/network, replace `/proc` and `/dev`, then hide
 `/Users`, `/home/agent/wt`, `/home/agent/.cache`, the Go module cache if present,
-`PROOF_ROOT/preparation`, `PROOF_ROOT/manual-invocation` and `/tmp` with empty
-mounts. Hide the selected installation file with `/dev/null` too. Preserve only
+`PROOF_ROOT/preparation`, `PROOF_ROOT/manual-invocation`, the later
+`PROOF_ROOT/parallel-invocation` when present, and `/tmp` with empty mounts.
+Hide the selected installation file with `/dev/null` too. Preserve only
 system libraries, the immutable binary and retained evidence/target pool.
 
 Execute the exact explicit replay argv printed by the launcher (or its equivalent
@@ -147,6 +148,9 @@ record/manifest, checks default stdout against exact retained guest bytes, prove
 first-failure/unexecuted semantics (including a separate later-would-pass probe),
 checks exact final replay argv/refusal, runs replay and inspect, minimizes the
 replayable failure, and probes actual qualification provenance admission.
+Each admitted case has separate authenticated preparation and execution campaigns;
+the checker binds both retained modules to the supplied bytes and verifies their
+shared launch origin. Preparation executes zero guests.
 
 Supply an input JSON with schema `gomad.interception-corpus-inputs/v1` and `cases`
 containing exactly the names in `interception-corpus.json`. Each case provides:
