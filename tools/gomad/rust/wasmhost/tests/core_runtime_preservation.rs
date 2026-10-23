@@ -207,3 +207,77 @@ fn native_model_admission_rejects_unknown_fields_at_each_typed_level() {
         );
     }
 }
+
+#[test]
+fn rejected_stock_import_inventory_has_an_actual_ordinary_refusal_for_every_site() {
+    let cases = [
+        (
+            "path_readlink",
+            "i32 i32 i32 i32 i32 i32",
+            "(i32.const 3) (i32.const 64) (i32.const 1) (i32.const 128) (i32.const 1) (i32.const 132)",
+        ),
+        (
+            "path_symlink",
+            "i32 i32 i32 i32 i32",
+            "(i32.const 64) (i32.const 1) (i32.const 3) (i32.const 65) (i32.const 1)",
+        ),
+        (
+            "sock_accept",
+            "i32 i32 i32",
+            "(i32.const 3) (i32.const 0) (i32.const 0)",
+        ),
+        ("sock_shutdown", "i32 i32", "(i32.const 3) (i32.const 0)"),
+    ];
+    let inventory: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../internal/backends/wasm/determinism/inventory.json"
+    ))
+    .unwrap();
+    let rejected: std::collections::BTreeSet<_> = inventory["entries"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|entry| entry["layer"] == "import" && entry["disposition"] == "rejected")
+        .filter_map(|entry| {
+            entry["site"]
+                .as_str()
+                .unwrap()
+                .strip_prefix("wasi_snapshot_preview1::")
+        })
+        .collect();
+    assert_eq!(rejected, cases.iter().map(|(name, _, _)| *name).collect());
+    for (name, parameters, arguments) in cases {
+        let mut input = request("");
+        input.module = format!(r#"(module
+            (import "wasi_snapshot_preview1" "{name}" (func $rejected (param {parameters}) (result i32)))
+            (memory (export "memory") 1) (data (i32.const 64) "xy")
+            (func (export "_start") (drop (call $rejected {arguments}))))"#).into_bytes();
+        input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
+        let observed = linked::execute(input).unwrap();
+        assert_eq!(observed.outcome.termination, "unsupported", "{name}");
+        assert_eq!(observed.outcome.exit_code, None);
+        assert!(
+            observed
+                .outcome
+                .message
+                .contains(&format!("operation outside stock WASI profile: {name}"))
+        );
+        assert!(observed.evidence.get("stdout").is_none_or(Vec::is_empty));
+        assert!(observed.evidence.get("stderr").is_none_or(Vec::is_empty));
+    }
+}
+
+#[test]
+fn malformed_guest_memory_is_a_trap_instead_of_capacity_or_host_io() {
+    let mut input = request("");
+    input.module = br#"(module
+        (import "wasi_snapshot_preview1" "random_get" (func $random (param i32 i32) (result i32)))
+        (memory (export "memory") 1)
+        (func (export "_start") (drop (call $random (i32.const -1) (i32.const 2)))))"#
+        .to_vec();
+    input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
+    let observed = linked::execute(input).unwrap();
+    assert_eq!(observed.outcome.termination, "trap");
+    assert_eq!(observed.outcome.exit_code, None);
+    assert!(observed.evidence.get("stdout").is_none_or(Vec::is_empty));
+    assert!(observed.evidence.get("stderr").is_none_or(Vec::is_empty));
+}
