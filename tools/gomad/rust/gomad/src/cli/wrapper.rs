@@ -126,6 +126,32 @@ fn private_directory(path: &Path) -> Result<(), super::Error> {
     Ok(())
 }
 
+fn outer_shim_is_compiler(compiler: &fs::Metadata) -> bool {
+    let Some(run) = std::env::var("GOMAD_SHIM_RUN")
+        .ok()
+        .filter(|run| crate::evidence::canonical::valid_digest(run))
+    else {
+        return false;
+    };
+    let Some(directory) = std::env::var_os("GOMAD_SHIM_RUN_DIR").map(PathBuf::from) else {
+        return false;
+    };
+    let Some(binary) = std::env::var_os("GOMAD_SHIM_BINARY").map(PathBuf::from) else {
+        return false;
+    };
+    if !directory.is_absolute()
+        || !binary.is_absolute()
+        || directory.file_name() != Some(OsStr::new(&format!("run-{run}")))
+        || private_directory(&directory).is_err()
+    {
+        return false;
+    }
+    [binary, directory.join("go")].iter().all(|path| {
+        fs::metadata(path)
+            .is_ok_and(|meta| meta.dev() == compiler.dev() && meta.ino() == compiler.ino())
+    })
+}
+
 fn lock(path: &Path) -> Result<File, super::Error> {
     let file = OpenOptions::new()
         .read(true)
@@ -295,8 +321,9 @@ pub fn run(
         fs::canonicalize(std::env::current_exe().map_err(filesystem)?).map_err(filesystem)?;
     let compiler_metadata = fs::metadata(&compiler).map_err(filesystem)?;
     let binary_metadata = fs::metadata(&binary).map_err(filesystem)?;
-    if compiler_metadata.dev() == binary_metadata.dev()
-        && compiler_metadata.ino() == binary_metadata.ino()
+    if (compiler_metadata.dev() == binary_metadata.dev()
+        && compiler_metadata.ino() == binary_metadata.ino())
+        || outer_shim_is_compiler(&compiler_metadata)
     {
         return Err("nested wrapper is unsupported: go on the original PATH is Gomad".into());
     }
