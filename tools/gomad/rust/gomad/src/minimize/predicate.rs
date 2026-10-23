@@ -78,6 +78,7 @@ impl Parent {
             .map_err(|error| error.to_string())?
             .unwrap_or_else(|| configuration.network.clone());
         let prepared = Prepared {
+            compile_cache_root: None,
             module: opened.payload("target/module.wasm", 512 << 20)?,
             network,
             configuration,

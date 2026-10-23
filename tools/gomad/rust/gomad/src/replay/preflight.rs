@@ -64,6 +64,18 @@ pub enum Execution {
     Cluster(Box<super::cluster::Execution>),
 }
 
+impl Prepared {
+    /// # Errors
+    /// Refuses invalid host cache configuration before execution, without opening build inputs.
+    pub fn compile_cache(&mut self, directory: Option<String>) -> Result<(), String> {
+        match &mut self.execution {
+            Execution::Standalone(prepared) => prepared.compile_cache(directory),
+            Execution::Cluster(prepared) => prepared.prepared.compile_cache(directory),
+        }
+        .map_err(|error| error.to_string())
+    }
+}
+
 /// # Errors
 /// Executes the admitted bytes using the matching typed helper core.
 pub fn execute(execution: Execution) -> Result<linked::Execution, String> {

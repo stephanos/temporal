@@ -287,6 +287,7 @@ fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared,
     let choice_identity = serde_json::from_value(plan["choice_identity"].clone())
         .map_err(|error| error.to_string())?;
     Ok(prepare::Prepared {
+        compile_cache_root: None,
         module,
         configuration,
         toolchain: inputs.toolchain_sha256,

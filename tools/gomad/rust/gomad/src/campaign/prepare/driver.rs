@@ -341,6 +341,7 @@ impl Recipe {
         } else {
             None
         };
+        let compile_cache_root = compile_cache_root(&installed)?;
         let provenance = canonical::encode(&Provenance {
             schema: "gomad.rust-wasm-provenance/v1".into(),
             origin: None,
@@ -356,6 +357,7 @@ impl Recipe {
         })?;
         let decoded: Provenance = serde_json::from_slice(&provenance).map_err(failure)?;
         Ok(Prepared {
+            compile_cache_root,
             module,
             configuration: decoded.configuration,
             toolchain,

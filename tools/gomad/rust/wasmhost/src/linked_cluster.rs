@@ -151,6 +151,15 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    /// # Errors
+    /// Refuses an invalid host compile-cache selection.
+    pub fn compile_cache(&mut self, directory: Option<String>) -> Result<()> {
+        for sealed in self.incarnations.values_mut() {
+            sealed.execution.compile_cache(directory.clone())?;
+        }
+        Ok(())
+    }
+
     #[must_use]
     pub fn activity(&self) -> Activity {
         self.activity.clone()
@@ -763,10 +772,14 @@ fn compile(
         if modules.contains_key(&request.module_sha256) {
             continue;
         }
-        let module = engine::compile(engine, &request.module, &mut Metrics::default())
-            .and_then(|module| engine::describe_module(&sealed.execution.execute, module))
-            .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
-            .0;
+        let module = linked::compile_module(
+            engine,
+            &sealed.execution.execute,
+            &request.module,
+            &mut Metrics::default(),
+        )
+        .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
+        .0;
         let pre = engine::linker(engine, &module)?.instantiate_pre(&module)?;
         modules.insert(request.module_sha256.clone(), Arc::new(pre));
     }
