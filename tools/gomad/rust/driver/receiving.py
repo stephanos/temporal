@@ -1027,15 +1027,19 @@ class Retained:
         return row, result
 
     def catalogue(self):
+        import sqlite_oracle
+        require('oracle' not in self.config['stages']['sqlite-catalogue'], 'legacy SQLite oracle argv is forbidden')
+        binding = sqlite_oracle.validate_build(self.config)
         reference, primary, native = self.sqlite_primary()
         root = self.root/'stages/sqlite-catalogue'
-        oracle = self.config['stages']['sqlite-catalogue'].get('oracle')
-        if not oracle:
-            raise Unexecuted('independent actual native catalogue oracle not bound')
         artifact = primary['report']['executions'][0]['artifact_path']
         inspected = decoded(self.command(self.config,root,'primary-inspect',adapters.public(self.config)+['inspect','--json',artifact]))
         self.write(root/'oracle-input.json',sqlite.native_input(artifact,inspected,native))
-        actual = decoded(self.command(self.config,root,'native-Go-oracle',oracle+['--input',str(root/'oracle-input.json')]))
+        self.command(self.config,root,'native-Go-oracle-build-info',
+            [binding['stock_go'],'version','-m',binding['binary']],timeout=900)
+        self.command(self.config,root,'native-Go-oracle',
+            [binding['binary'],'--input',str(root/'oracle-input.json')],timeout=900)
+        actual = sqlite_oracle.read_run(self.config,root,root/'oracle-input.json')
         require(actual == dict(enumeration=native['enumeration'],context=native['context']), 'independent native oracle mismatch')
         hashes, pids, cpu, tail = set(), {reference['pid']}, 0, 0
         for index in range(4):

@@ -8,9 +8,11 @@
     "tools/gomad/rust/driver/sqlite.py": "3658949ea6fdd7f027efb29c7d77879a1be661cd57be54bc729e2c5e32f45a43",
     "tools/gomad/rust/driver/tests/test_composition.py": "a86a92d757465b28d09f322aebe37ee5cbde44599e3b9faa2ce4c1ccba4140db",
     "tools/gomad/rust/driver/tests/test_sqlite.py": "8f6d190ff0b1f463df6173209fdf3afb31daddcf9be0e37b26aee3e52053d848",
-    "tools/gomad/rust/driver/sqlite-native-oracle.md": "f12c511efa6796ac69fc819c17ed0a84f18058682028dcbe3554dd3cab2be4af",
+    "tools/gomad/rust/driver/sqlite-native-oracle.md": "d6a07cc2450705818a25752ee777fb93b2228dbadf3fca236d817c865e11f42c",
     "tools/gomad/rust/driver/sqlite_oracle.py": "524249e8f93d9865a6b570d214f22db3375d8c28c4381099d4575ea4e442249c",
-    "tools/gomad/rust/driver/tests/test_sqlite_oracle.py": "5870ff7dcb030bbc6d8455c8ff0e5e18c9a2531e96f8b6253dd8f709d6058936"
+    "tools/gomad/rust/driver/tests/test_sqlite_oracle.py": "ac2ff2461da880ca965a3ffb9f17c8d06c6c4a2393bdd3028619c56a7d598055",
+    "tools/gomad/rust/driver/receiving.py": "e3dbae2c260770080a7cc1b237abf3d7937320f61df882aeb2d7dc4b3a5fbacc",
+    "tools/gomad/rust/driver/qualification-map.json": "e217675c744c9886e422bb261d49bae4980b078e8aa8d1693da4f101890508d4"
   },
   "interface": {
     "binding": {
@@ -67,7 +69,7 @@
     },
     "focused": {
       "exit": 0,
-      "tests": 13,
+      "tests": 14,
       "mutations": "wrong source/compiler/executable/SDK/module inventory, coherent command and clock repin, wrong Go main, unreaped process, changed actual input/output, actual Go identity refusal before comparator launch"
     },
     "composition": {
@@ -76,13 +78,19 @@
     },
     "full_python": {
       "exit": 0,
-      "tests": 516
+      "tests": 516,
+      "scope": "7b1dab131e before narrow independent receiving repair; conductor owns full joined gate"
     },
     "source_anchor": {
       "exit": 0
     },
     "diff_and_pycompile": {
       "exit": 0
+    },
+    "independent_receiving": {
+      "exit": 0,
+      "tests": 35,
+      "scope": "existing read-only receiving suite after repair"
     }
   },
   "logs": {
@@ -105,9 +113,39 @@
     "fn232-sqlite-oracle-anchors-final.log": {
       "path": "/home/agent/evidence/fn232-sqlite-oracle-anchors-final.log",
       "sha256": "1c33b988a8b3d102ea731b198deb5d78db3c5a556f573fc1367d85ba03897b12"
+    },
+    "fn232-sqlite-oracle-receiving-causal-red.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-receiving-causal-red.log",
+      "sha256": "87293b7c7def7a95cc168b9f280dfcc291e29519ab0e8ae803a9d61493588910"
+    },
+    "fn232-sqlite-oracle-receiving-green.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-receiving-green.log",
+      "sha256": "125b7546c17c6ccad2ba1dfaaf61103010547fa89eee46038d05f9471e6bdb00"
+    },
+    "fn232-sqlite-oracle-focused-receiving-final.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-focused-receiving-final.log",
+      "sha256": "7badb6910fcfc46910edcf1df8d5fc79e6c3a96fcd0cc7f28f1ce8590c81946b"
+    },
+    "fn232-sqlite-oracle-existing-receiving-final.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-existing-receiving-final.log",
+      "sha256": "d8329f6216ee9d85fe4b0c84ad72b8d423ef4b97cecf4f1a2715115cf41938a3"
+    },
+    "fn232-sqlite-oracle-anchors-receiving-final.log": {
+      "path": "/home/agent/evidence/fn232-sqlite-oracle-anchors-receiving-final.log",
+      "sha256": "01cef267da234ca582012827bdbe16dfc3bd635997d29e926293257aed0943a0"
     }
   },
   "actual_go_build": "NOT_EXECUTED_LEASE_PENDING",
   "actual_go_oracle_run": "NOT_EXECUTED_REQUIRED_FINAL",
-  "qualification": "NO_PASS; no source-only original root or final/fn185 acceptance"
+  "qualification": "NO_PASS; no source-only original root or final/fn185 acceptance",
+  "review_repair": {
+    "finding": "Retained.catalogue still required/replayed removed legacy oracle argv, so typed producer and independent receiver could not join.",
+    "causal_red": {
+      "exit": 1,
+      "failure": "Unexecuted independent actual native catalogue oracle not bound"
+    },
+    "fix": "Retained.catalogue validates current fixed Go build, reopens both Go identity/oracle command journals with existing sent_epoch/process checks, then calls sqlite_oracle.read_run; it independently rederives actual input and original selected catalogue/cost.",
+    "green": "Actual Retained.catalogue positive typed fixture with both raw command registrations, plus changed-input refusal. No Go compiler/reference execution in these unit fixtures.",
+    "source_map": "Only current receiving function AST spans/hashes refreshed; all obligation statuses/requirements/counts remain unchanged."
+  }
 }

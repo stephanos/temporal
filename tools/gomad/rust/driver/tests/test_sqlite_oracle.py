@@ -63,7 +63,7 @@ class SQLiteOracle(unittest.TestCase):
                  clock='CLOCK_MONOTONIC',parent_pid=99,started_monotonic_nanos=10,reaped_monotonic_nanos=20,
                  environment_mode='exact',effective_environment=env)
         put(root/(name+'.command.json'),row)
-        put(root/(name+'.process.json'),dict(row,active=False))
+        put(root/(name+'.process.json'),dict(row,active=False,stage_pid=99))
         put(root/(name+'.stdout'),stdout);put(root/(name+'.stderr'),'')
 
     def test_configure_requires_full_oracle_closure_and_rejects_legacy_argv(self):
@@ -144,6 +144,37 @@ class SQLiteOracle(unittest.TestCase):
                 with self.assertRaises(Refusal):oracle.invoke(config,run,request)
                 self.assertEqual(invoke.call_count,1)
                 self.assertEqual(invoke.call_args.args[3],[receipt['stock_go'],'version','-m',receipt['binary']])
+
+    def test_independent_receiving_catalogue_uses_typed_oracle_without_legacy_argv(self):
+        import receiving
+        import sqlite
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as temporary:
+            config,build,receipt=self.fixture(Path(temporary))
+            attempt=Path(temporary)/'attempt';run=attempt/'stages/sqlite-catalogue';run.mkdir(parents=True)
+            config.update(root=str(attempt),sent_epoch=0,binary='/sealed/release',stages={'sqlite-catalogue':dict(adapter='sqlite-catalogue')})
+            request=run/'oracle-input.json';put(request,{'authenticated':'primary storage'})
+            self.journal(run,'native-Go-oracle-build-info',[receipt['stock_go'],'version','-m',receipt['binary']],config['repo'],receipt['environment'],(build/'build-info.stdout').read_text())
+            for suffix in ('process.json','command.json'):
+                path=run/('native-Go-oracle-build-info.'+suffix);row=json.loads(path.read_text());row['started_monotonic_nanos']=1;row['reaped_monotonic_nanos']=9;put(path,row)
+            self.journal(run,'native-Go-oracle',[receipt['binary'],'--input',str(request)],config['repo'],{'PATH':'/usr/bin:/bin'},json.dumps(dict(enumeration={},context={})))
+            identity,_=oracle.run_identity(config,run,request,receipt);put(run/'native-Go-oracle.json',identity)
+            reference=dict(sha256='a'*64,pid=5)
+            primary=dict(report=dict(executions=[dict(artifact_path=str(attempt/'artifact'))]))
+            native=dict(enumeration={},context={})
+            selected=[(dict(sha256=f'{index:064x}',pid=index+100),dict(cost=dict(cpu_nanos=1),_driver_publication=dict(cpu_nanos=2))) for index in range(4)]
+            put(run/'catalogue.json',dict(primary='a'*64,selected=sorted(row['sha256'] for row,_ in selected),producer_pids=[5,100,101,102,103],selected_execution_cpu_nanos=4,selected_terminal_cpu_nanos=8,selected_total_cpu_nanos=12,primary_cpu_counted=False))
+            reader=receiving.Retained(config);actual_command=reader.command
+            def command(cfg,root,name,argv,**kwargs):
+                if name=='primary-inspect':return b'{}'
+                return actual_command(cfg,root,name,argv,**kwargs)
+            with patch.object(reader,'sqlite_primary',return_value=(reference,primary,native)),patch.object(reader,'selected',side_effect=lambda index:selected[index]), \
+                 patch.object(reader,'command',side_effect=command),patch.object(sqlite,'native_input',return_value={'authenticated':'primary storage'}):
+                reader.catalogue()
+                self.assertIn(str(run/'native-Go-oracle.command.json'),reader.commands)
+                self.assertIn(str(run/'native-Go-oracle-build-info.command.json'),reader.commands)
+                put(request,{'authenticated':'changed primary'})
+                with self.assertRaises(Refusal):reader.catalogue()
 
     def test_actual_run_journals_bind_fixed_argv_input_output_and_process(self):
         with tempfile.TemporaryDirectory() as temporary:
