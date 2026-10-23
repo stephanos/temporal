@@ -65,6 +65,15 @@ pub const CATALOG_LIMIT: usize = 4096;
 /// Admit a `#[machine]` module, as the macro receives it, into the tree, given its declarations
 /// as [`declare::machine`] read them; a refusal here is a subset refusal.
 pub fn admit(declared: &declare::Machine, module: &syn::ItemMod) -> Result<Lifted, Diagnostic> {
+    shape::parse(declared, module).map(|(model, _)| model)
+}
+
+/// [`admit`], with the argument tokens of each `check!` the tree's `ExprKind::Check` indexes,
+/// so the macro can spell their failures as `check!` does.
+pub fn admit_checks(
+    declared: &declare::Machine,
+    module: &syn::ItemMod,
+) -> Result<(Lifted, Vec<TokenStream>), Diagnostic> {
     shape::parse(declared, module)
 }
 

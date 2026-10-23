@@ -34,6 +34,9 @@ pub enum ExprKind {
     Append(Box<Expr>, Box<Expr>),
     GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
     Checks(Vec<Expr>),
+    /// One `check!` in a claim body, by its position in the Model's check table, which holds
+    /// the text a failure reports; back ends that do not report it read through.
+    Check(usize, Box<Expr>),
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
 #[print_path(::umpire_dsl::__lifted::expr::Unary)]
@@ -129,7 +132,9 @@ impl Expr {
             | ExprKind::Outcome
             | ExprKind::Enum(_) => true,
             ExprKind::Local(_) | ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
-            ExprKind::Unary(Unary::Not, value) | ExprKind::Length(value) => value.infallible(),
+            ExprKind::Unary(Unary::Not, value)
+            | ExprKind::Length(value)
+            | ExprKind::Check(_, value) => value.infallible(),
             ExprKind::Binary(op, left, right) => {
                 !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
                     && left.infallible()

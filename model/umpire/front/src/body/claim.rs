@@ -109,15 +109,11 @@ impl Environment {
         let mut checks = Vec::new();
         for statement in &block.stmts {
             let value = match statement {
-                Stmt::Macro(mac) if mac.mac.path.is_ident("check") => {
-                    let expr: RustExpr = syn::parse2(mac.mac.tokens.clone())
-                        .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
-                    self.expr(&expr, state, locals, Some(&Type::Bool), depth)?
-                }
-                Stmt::Expr(RustExpr::Macro(mac), _) if mac.mac.path.is_ident("check") => {
-                    let expr: RustExpr = syn::parse2(mac.mac.tokens.clone())
-                        .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
-                    self.expr(&expr, state, locals, Some(&Type::Bool), depth)?
+                Stmt::Macro(syn::StmtMacro { mac, .. })
+                | Stmt::Expr(RustExpr::Macro(syn::ExprMacro { mac, .. }), _)
+                    if mac.path.is_ident("check") =>
+                {
+                    self.check(mac, state, locals, depth)?
                 }
                 Stmt::Expr(RustExpr::If(condition), _) => {
                     let cond =
@@ -153,6 +149,15 @@ impl Environment {
             checks.push(value);
         }
         Ok(Expr { kind: ExprKind::Checks(checks), ty: Type::Bool })
+    }
+    /// One `check!`, recording its tokens so a failure can report them as `check!` does.
+    fn check(&self, mac: &syn::Macro, state: &Env, locals: &Env, depth: usize) -> Result<Expr> {
+        let expr: RustExpr = syn::parse2(mac.tokens.clone())
+            .map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
+        let value = self.expr(&expr, state, locals, Some(&Type::Bool), depth)?;
+        let mut checks = self.checks.borrow_mut();
+        checks.push(mac.tokens.clone());
+        Ok(Expr { kind: ExprKind::Check(checks.len() - 1, Box::new(value)), ty: Type::Bool })
     }
 }
 

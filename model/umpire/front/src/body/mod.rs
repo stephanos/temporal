@@ -98,6 +98,8 @@ pub(crate) struct Environment {
     pub(crate) phased: bool,
     /// The module's `use umpire_dsl::...` bindings: bound name to the path after `umpire_dsl::`.
     pub(crate) dsl: BTreeMap<String, String>,
+    /// Each lowered `check!`'s argument tokens, which `ExprKind::Check` indexes.
+    pub(crate) checks: std::cell::RefCell<Vec<proc_macro2::TokenStream>>,
 }
 impl Environment {
     /// The environment golden hook claims read in: the admitted Model's schema and constants.
@@ -139,6 +141,7 @@ impl Environment {
             outcome_type: model.outcome_type.clone(),
             phased: false,
             dsl: BTreeMap::new(),
+            checks: std::cell::RefCell::default(),
         }
     }
     #[expect(clippy::unused_self, reason = "refusals read as methods of the admitting environment")]

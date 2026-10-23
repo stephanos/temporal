@@ -967,6 +967,7 @@ dependencies = [
 name = "umpire-fixtures"
 version = "0.0.1"
 dependencies = [
+ "imbl",
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",

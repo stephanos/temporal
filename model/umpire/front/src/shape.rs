@@ -13,7 +13,10 @@ type Result<T> = std::result::Result<T, Diagnostic>;
 
 /// Admit a `#[machine]` module, as the macro receives it.
 #[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
-pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Result<Lifted> {
+pub(crate) fn parse(
+    declared: &declare::Machine,
+    module: &syn::ItemMod,
+) -> Result<(Lifted, Vec<proc_macro2::TokenStream>)> {
     let mut conditional = Conditional(None);
     syn::visit::Visit::visit_item_mod(&mut conditional, module);
     if let Some(attribute) = conditional.0 {
@@ -49,6 +52,7 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
         vector_imported: admit_imports(items)?,
         outcome_type: if declared.rejecting { Type::outcome() } else { Type::Unit },
         phased: false,
+        checks: std::cell::RefCell::default(),
         dsl: imports(items)
             .into_iter()
             .filter_map(|(_, name, path)| {
@@ -335,7 +339,7 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
         }
     }
     let name = pascal(&module.ident.to_string());
-    Ok(Lifted {
+    let lifted = Lifted {
         name,
         state_name,
         outcome_type: parser.outcome_type,
@@ -355,7 +359,8 @@ pub(crate) fn parse(declared: &declare::Machine, module: &syn::ItemMod) -> Resul
         progress,
         assumptions,
         negative: Vec::new(),
-    })
+    };
+    Ok((lifted, parser.checks.into_inner()))
 }
 
 /// The State, World and actor declarations, read as their derives read them.

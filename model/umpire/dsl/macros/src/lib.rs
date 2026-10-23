@@ -55,7 +55,7 @@ pub fn machine(
     let declared = umpire_front::declare::machine(&args, &input)?;
     let mut module = machine::generate(&declared, &input)?;
     if let Some((_, items)) = &mut module.content {
-        items.push(lifted::embed(&declared, &input));
+        items.extend(lifted::embed(&declared, &input));
     }
     Ok(quote::quote!(#module))
 }

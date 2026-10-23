@@ -116,6 +116,24 @@ pub fn generate_lifted(root: &Path, output: &Path) -> io::Result<()> {
     fs::write(output, lifted)
 }
 
+/// Generate the differential-check dispatch of shared fixtures whose `tests.rs` defines
+/// `interpreted` through `fixture!` or `lifted!`.
+#[allow(dead_code)]
+pub fn generate_interpreted(root: &Path, output: &Path) -> io::Result<()> {
+    let mut source = String::from(
+        "/// The differential check of each fixture whose Model is admitted.\nfn interpreted(name: &str) -> Result<Option<umpire_testing::Agreement>, Box<dyn std::error::Error>> {\n    match name {\n",
+    );
+    for fixture in discover(root, MODEL_AND_TESTS)? {
+        let module = input_module(&fixture.module, "tests.rs");
+        writeln!(source, "        {:?} => {module}::interpreted(),", fixture.name)
+            .map_err(io::Error::other)?;
+    }
+    source.push_str(
+        "        _ => Err(format!(\"unregistered source fixture: {name}\").into()),\n    }\n}\n",
+    );
+    fs::write(output, source)
+}
+
 fn input_module(module: &str, input: &str) -> String {
     match input.strip_suffix(".rs") {
         Some("model") | None => module.into(),

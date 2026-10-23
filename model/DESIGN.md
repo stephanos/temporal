@@ -74,6 +74,20 @@ interpreter case and a `Value` bridge per body-level construct on top of lowerin
 (+35–55%, the archived Scala's "written three times"), while native speed limits no gate. It
 returns on a concrete need: checker speed, or a construct rustc cannot run.
 
+**Interpreter as a differential check** (fn-238.5, reactivated 2026-10-23). `Interpreted<M>` in
+`umpire-checker` is a `Machine` that evaluates the embedded tree: branch guards in written
+order, the checked-arithmetic checks with Rust's own overflow and division failures, updates,
+and `reject!`/`stay!` outcomes, then claims, progress evaluations and assumptions. State stays
+the compiled `M::State`; `#[machine]` generates `Interprets` accessors beside `Lifts`, off the
+wasm guest, and a table of each `check!`'s text that the tree's new `ExprKind::Check` indexes
+(emission reads through it, so TLA+ is unchanged). The catalog, claim order and computed or
+World-bound starts stay compiled. Every fixture whose World embeds an admitted Model (18 shared
+fixtures, two checker controls, the lifter's seven Models and a checked-arithmetic control)
+explores identically both ways, and two seeded mutant trees are caught. First rough release
+timing of `Checker::explore_within` (shared, loaded 12-core host, medians): Kettle 88 µs
+compiled against 228 µs interpreted (2.6×), the 2,001-start wide shape 1.48 ms against 3.84 ms
+(2.6×). That is above .6's 2× gate; see `.flow/tmp/fn-238.5/handoff.md`.
+
 **Guest identity** (fn-238.8). .2 changed the Temporal guest without a code change because each
 crate's `-C metadata` hashed the whole `Cargo.lock`; it now hashes the crate's own lockfile
 closure (`scripts/guest-lock.py`), and a control shows an unrelated crate leaves both guests

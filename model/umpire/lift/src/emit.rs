@@ -714,6 +714,7 @@ fn prime(value: &Expr) -> Expr {
         }
         ExprKind::Sequence(values) => ExprKind::Sequence(values.iter().map(prime).collect()),
         ExprKind::Checks(values) => ExprKind::Checks(values.iter().map(prime).collect()),
+        ExprKind::Check(index, value) => ExprKind::Check(*index, Box::new(prime(value))),
         ExprKind::Length(value) => ExprKind::Length(Box::new(prime(value))),
         ExprKind::Append(sequence, value) => {
             ExprKind::Append(Box::new(prime(sequence)), Box::new(prime(value)))
@@ -774,6 +775,7 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
         ExprKind::Outcome => format!("{OUTCOME}'"),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => format!("<<{}>>", list(values)),
         ExprKind::Length(sequence) => format!("Len({})", child(sequence)),
+        ExprKind::Check(_, value) => child(value),
         ExprKind::Checks(checks) => {
             format!("(<<{}>> = <<{}>>)", list(checks), vec!["TRUE"; checks.len()].join(", "))
         }

@@ -221,6 +221,7 @@ fn query_contracts() -> umpire_testing::TestResult {
 
 pub(crate) fn run() -> umpire_testing::RunResult {
     query_contracts()?;
+    umpire_testing::interpreted(generated::world, None, 16, None)?;
     let mut text = String::new();
     let generated = Checker::explore(&generated::world(), 16)?.verify_all()?;
     text.push_str("generated_exact_bound: ");
