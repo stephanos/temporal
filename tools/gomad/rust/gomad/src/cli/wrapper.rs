@@ -291,6 +291,15 @@ pub fn run(
     let original_path = std::env::var_os("PATH").unwrap_or_default();
     let compiler = fs::canonicalize(resolve(OsStr::new("go"), &original_path)?)
         .map_err(|error| super::Error::from(error.to_string()))?;
+    let binary =
+        fs::canonicalize(std::env::current_exe().map_err(filesystem)?).map_err(filesystem)?;
+    let compiler_metadata = fs::metadata(&compiler).map_err(filesystem)?;
+    let binary_metadata = fs::metadata(&binary).map_err(filesystem)?;
+    if compiler_metadata.dev() == binary_metadata.dev()
+        && compiler_metadata.ino() == binary_metadata.ino()
+    {
+        return Err("nested wrapper is unsupported: go on the original PATH is Gomad".into());
+    }
     let selected = arguments.installation.take().or_else(|| {
         std::env::var_os("GOMAD_WASM_INSTALLATION")
             .filter(|value| !value.is_empty())
@@ -307,8 +316,6 @@ pub fn run(
         crate::config::repo::Repo::optional(&std::env::current_dir().map_err(filesystem)?)?;
         (PathBuf::new(), cache_root()?)
     };
-    let binary =
-        fs::canonicalize(std::env::current_exe().map_err(filesystem)?).map_err(filesystem)?;
     let directory = Directory::create(&cache, &binary)?;
     let result = launch(
         &arguments,
