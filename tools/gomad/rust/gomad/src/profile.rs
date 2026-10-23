@@ -379,3 +379,204 @@ mod tests {
         validate(&report).unwrap();
     }
 }
+
+#[cfg(test)]
+mod attribution_tests {
+    use super::validate;
+    use serde_json::{Value, json};
+
+    const CLOCK: &str = "wasi_snapshot_preview1.clock_time_get";
+
+    fn fixture() -> Value {
+        let mut profile = json!({"schema":"gomad.wasm-profile/v2","diagnostic_only":true,"backend":"cranelift-jit","host_os":"linux","host_arch":"aarch64",
+            "phases":{},"abi":{},"nested":{},"residual":{"instantiate_wall_nanos":0,"execute_wall_nanos":70},"abi_overlap_errors":0,
+            "abi_excluded":{"count":0,"wall_nanos":0,"instantiate_wall_nanos":0,"execute_wall_nanos":0},"abi_ops":{},"owners":{},
+            "reconciliation":{"execute_wall_nanos":100,"attributed_host_wall_nanos":30,"guest_residual_wall_nanos":70,"outer_host_wall_nanos":30,"difference_nanos":0,"tolerance_nanos":50000,"distribution_relative_error_ppm":62500},
+            "threads":[],"threads_omitted":0,"unattributed_imports":0,"unframed_imports":0,"span_errors":0,"elapsed_wall_nanos":100,"wall_basis":"single-store elapsed","report_rows_dropped":0});
+        for name in "module_read module_hash engine_init cache_identity cache_read envelope_verify deserialize compile cache_write instantiate execute".split_whitespace() {
+            profile["phases"][name] = json!({"count":0,"wall_nanos":0,"user_nanos":0,"system_nanos":0,"cpu_samples":0,"peak_rss_bytes_high_water":0});
+        }
+        profile["phases"]["execute"] = json!({"count":1,"wall_nanos":100,"user_nanos":70,"system_nanos":10,"cpu_samples":1,"peak_rss_bytes_high_water":1024});
+        for name in
+            "clock scheduler select observation idle other_local remote_callback".split_whitespace()
+        {
+            profile["abi"][name] = profile["abi_excluded"].clone();
+        }
+        profile["abi"]["clock"] =
+            json!({"count":1,"wall_nanos":30,"instantiate_wall_nanos":0,"execute_wall_nanos":30});
+        for name in "alternative_hash encoding transcript_hash flush remote_write remote_read_wait"
+            .split_whitespace()
+        {
+            profile["nested"][name] = json!({"count":0,"wall_nanos":0});
+        }
+        let series = json!({"count":1,"wall_nanos":30,"exclusive_wall_nanos":30,"instantiate_wall_nanos":0,"execute_wall_nanos":30,"execute_exclusive_wall_nanos":30,"min_nanos":30,"median_nanos":30,"p99_nanos":30,"max_nanos":30});
+        profile["owners"]["clock"] = series.clone();
+        profile["abi_ops"][CLOCK] = series;
+        profile["abi_ops"][CLOCK]["served_by"] = json!({"clock":1});
+        profile
+    }
+
+    fn remove(value: &mut Value, field: &str) {
+        value.as_object_mut().unwrap().remove(field);
+    }
+
+    /// Original `TestDiagnosticAttributionRequiresEveryImportAndReconciliation`:
+    /// a v2 profile is attributed only when every import has a known serving
+    /// owner, every distribution and row is consistent, no attribution error
+    /// counter is set and the execute interval reconciles within tolerance.
+    #[test]
+    fn attribution_requires_every_import_and_reconciliation() {
+        validate(&fixture()).unwrap();
+        let mut v1 = fixture();
+        v1["schema"] = json!("gomad.wasm-profile/v1");
+        assert!(validate(&v1).unwrap_err().contains("attribution schema"));
+        let cases: [(&str, &str, fn(&mut Value)); 23] = [
+            ("unknown-op", "unknown series", |d| {
+                let op = d["abi_ops"][CLOCK].clone();
+                remove(&mut d["abi_ops"], CLOCK);
+                d["abi_ops"]["wasi_snapshot_preview1.fd_invented"] = op;
+            }),
+            ("unknown-owner", "unknown series", |d| {
+                d["owners"]["kernel"] = d["owners"]["clock"].clone();
+            }),
+            (
+                "unknown-served-owner",
+                "missing serving owner: kernel",
+                |d| {
+                    d["abi_ops"][CLOCK]["served_by"] = json!({"kernel":1});
+                },
+            ),
+            ("missing-op-field", "field inventory", |d| {
+                remove(&mut d["abi_ops"][CLOCK], "p99_nanos");
+            }),
+            ("missing-reconciliation-field", "field inventory", |d| {
+                remove(&mut d["reconciliation"], "tolerance_nanos");
+            }),
+            ("missing-counter", "span_errors", |d| {
+                remove(d, "span_errors")
+            }),
+            ("missing-thread-field", "field inventory", |d| {
+                d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1}]);
+            }),
+            ("served-exceeds-calls", "calls without owner", |d| {
+                d["abi_ops"][CLOCK]["served_by"] = json!({"clock":2});
+            }),
+            (
+                "ops-differ-from-buckets",
+                "differ from legacy buckets",
+                |d| {
+                    d["abi_ops"][CLOCK]["count"] = json!(2);
+                },
+            ),
+            ("exclusive-exceeds-wall", "invalid series: clock", |d| {
+                d["owners"]["clock"]["exclusive_wall_nanos"] = json!(31);
+            }),
+            ("unordered-distribution", "invalid series", |d| {
+                d["abi_ops"][CLOCK]["median_nanos"] = json!(31);
+            }),
+            (
+                "execute-row-mismatch",
+                "guest residual plus outer host",
+                |d| {
+                    d["reconciliation"]["execute_wall_nanos"] = json!(99);
+                },
+            ),
+            ("unattributed-import", "attribution errors", |d| {
+                d["unattributed_imports"] = json!(1);
+            }),
+            ("unframed-import", "attribution errors", |d| {
+                d["unframed_imports"] = json!(1);
+            }),
+            ("span-error", "attribution errors", |d| {
+                d["span_errors"] = json!(1)
+            }),
+            ("threads-omitted", "attribution errors", |d| {
+                d["threads_omitted"] = json!(1);
+            }),
+            ("op-without-owner", "calls without owner", |d| {
+                d["abi_ops"][CLOCK]["served_by"] = json!({});
+            }),
+            (
+                "missing-serving-owner",
+                "missing serving owner: clock",
+                |d| {
+                    remove(&mut d["owners"], "clock");
+                },
+            ),
+            ("owner-wall-short", "totals differ", |d| {
+                d["owners"]["clock"]["execute_exclusive_wall_nanos"] = json!(29);
+            }),
+            ("row-disagrees", "row differs from recomputed", |d| {
+                d["reconciliation"]["difference_nanos"] = json!(3);
+            }),
+            ("thread-miss", "reconciliation miss", |d| {
+                d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1_000_000,"attributed_host_wall_nanos":100_000,"guest_residual_wall_nanos":800_000,"outer_host_wall_nanos":200_000,"difference_nanos":100_000,"tolerance_nanos":50_000}]);
+                d["wall_basis"] =
+                    json!("aggregate store thread-time; overlapping spans are not elapsed shares");
+            }),
+            (
+                "guest-gaps-do-not-telescope",
+                "guest residual plus outer host",
+                |d| {
+                    d["reconciliation"]["outer_host_wall_nanos"] = json!(33);
+                },
+            ),
+            ("reconciliation-miss", "reconciliation miss", |d| {
+                let execute = 20_000_000;
+                d["phases"]["execute"]["wall_nanos"] = json!(execute);
+                d["residual"]["execute_wall_nanos"] = json!(execute - 30);
+                d["reconciliation"] = json!({"execute_wall_nanos":execute,"attributed_host_wall_nanos":30,
+                    "guest_residual_wall_nanos":execute - 200_000,"outer_host_wall_nanos":200_000,
+                    "difference_nanos":200_000 - 30,"tolerance_nanos":100_000,"distribution_relative_error_ppm":62500});
+            }),
+        ];
+        let mismatched: Vec<_> = cases
+            .into_iter()
+            .filter_map(|(name, expected, mutate)| {
+                let mut profile = fixture();
+                mutate(&mut profile);
+                match validate(&profile) {
+                    Err(error) if error.contains(expected) => None,
+                    other => Some(format!("{name}: {other:?}")),
+                }
+            })
+            .collect();
+        assert!(mismatched.is_empty(), "{mismatched:#?}");
+    }
+
+    /// Original `TestDiagnosticThreadRowsBindAggregateAndFullIdentities`: a
+    /// thread row keeps its full incarnation identity, and duplicate rows, a
+    /// row missing its aggregate share and more than 64 rows are refused.
+    #[test]
+    fn thread_rows_bind_aggregate_and_full_identities() {
+        let thread = json!({"slot":1,"incarnation":1_u64 << 40,"execute_wall_nanos":100,"attributed_host_wall_nanos":30,"guest_residual_wall_nanos":70,"outer_host_wall_nanos":30,"difference_nanos":0,"tolerance_nanos":50_000});
+        let with = |rows: Value| {
+            let mut profile = fixture();
+            profile["threads"] = rows;
+            profile["wall_basis"] =
+                json!("aggregate store thread-time; overlapping spans are not elapsed shares");
+            profile
+        };
+        validate(&with(json!([thread]))).unwrap();
+        let share = json!({"slot":1,"incarnation":0,"execute_wall_nanos":50,"attributed_host_wall_nanos":0,"guest_residual_wall_nanos":50,"outer_host_wall_nanos":0,"difference_nanos":0,"tolerance_nanos":50_000});
+        let many: Vec<_> = (0..65)
+            .map(|slot| {
+                let mut row = thread.clone();
+                row["slot"] = json!(slot);
+                row
+            })
+            .collect();
+        for (name, rows, expected) in [
+            ("duplicate", json!([thread, thread]), "duplicate thread row"),
+            (
+                "missing-aggregate-share",
+                json!([share]),
+                "thread totals differ",
+            ),
+            ("too-many", json!(many), "thread row capacity"),
+        ] {
+            let error = validate(&with(rows)).expect_err(name);
+            assert!(error.contains(expected), "{name}: {error}");
+        }
+    }
+}

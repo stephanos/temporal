@@ -1576,12 +1576,12 @@
   },
   "tools/gomad/internal/backends/wasm/internal/measure/attribution_test.go#TestDiagnosticAttributionRequiresEveryImportAndReconciliation": {
    "evidence": [
-    "rust/profile_corpus/linked_profile_cli_corpus"
+    "rust/gomad/profile::attribution_tests::attribution_requires_every_import_and_reconciliation"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/attribution_test.go#TestDiagnosticThreadRowsBindAggregateAndFullIdentities": {
    "evidence": [
-    "rust/profile_corpus/linked_profile_cli_corpus"
+    "rust/gomad/profile::attribution_tests::thread_rows_bind_aggregate_and_full_identities"
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/cluster_owner_test.go#TestClusterOwnerEvidenceRejectsNonChoiceDivergence": {
@@ -4419,7 +4419,8 @@
    "evidence": [
     "go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestTranscriptClockRunDecoderBoundsCountsAndPositions",
     "rust/gomad/measurement::operations::tests::clock_fold_prevents_reuse_and_oversize_count",
-    "rust/gomad_wasmhost/transcript::tests::clock_run_rejects_folding_count_and_id_overflow"
+    "rust/gomad_wasmhost/transcript::tests::clock_run_rejects_folding_count_and_id_overflow",
+    "rust/gomad/measurement::operations::tests::clock_run_decoder_bounds_counts_positions_and_ordinals"
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/transcript_test.go#TestTranscriptClockRunDigestBindsFrozenCountsKeysAndPositions": {

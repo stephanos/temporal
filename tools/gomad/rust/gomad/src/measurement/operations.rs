@@ -410,6 +410,38 @@ mod tests {
         }
         assert!(count(&valid, valid.len() as u64 - 1).is_err());
     }
+    /// Original `TestTranscriptClockRunDecoderBoundsCountsAndPositions`: a
+    /// canonical clock run refuses a zero or over-capacity count, an
+    /// out-of-range virtual position and an ordinal overflow, a later record
+    /// inside the run's ordinals, and a successful clock outside a run.
+    #[test]
+    fn clock_run_decoder_bounds_counts_positions_and_ordinals() {
+        let valid = b"GMWT\x01\x00\x00\x00\x21\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x01\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00";
+        count(valid, 1024).unwrap();
+        for (name, offset, value) in [
+            ("zero count", 44, 0),
+            ("count overflow", 44, (1 << 28) + 1),
+            ("position overflow", 36, 1 << 63),
+            ("call id overflow", 12, u64::MAX),
+        ] {
+            let mut data = valid.to_vec();
+            data[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
+            assert!(count(&data, 1024).is_err(), "{name}");
+        }
+        let mut duplicate = valid.to_vec();
+        duplicate.extend_from_slice(
+            b"\x0d\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x03\x00\x00\x00",
+        );
+        assert!(
+            count(&duplicate, 1024).is_err(),
+            "record id inside preceding clock run admitted"
+        );
+        let plain = b"GMWT\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xe9\x03\x00\x00\x00\x00\x00\x00";
+        assert!(
+            count(plain, 1024).is_err(),
+            "successful clock outside canonical run record admitted"
+        );
+    }
     #[test]
     fn clock_fold_prevents_reuse_and_oversize_count() {
         let mut clock = vec![0u8; 28];
