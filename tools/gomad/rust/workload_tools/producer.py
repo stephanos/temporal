@@ -5,6 +5,8 @@ import base64
 import hashlib
 import json
 import os
+import posixpath
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -31,7 +33,9 @@ def run(root, name, command, expected, json_output=True, environment=None):
     command = [str(item) for item in command]
     actual_env = dict(os.environ if environment is None else environment)
     observed_env = {key: actual_env.get(key) for key in (
-        "PATH", "GOMAD_WASM_INSTALLATION", "GOMAD_STOCK_GO", "GOMAD_WASM_RUNTIME_ROOT")}
+        "PATH", "GOMAD_WASM_INSTALLATION", "GOMAD_STOCK_GO", "GOMAD_WASM_RUNTIME_ROOT",
+        "GOMAD_WASM_QUALIFICATION_GUEST_PROFILE", "GOMAD_WASM_TEMPORAL_BUILD_CACHE",
+        "GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES")}
     started = time.time_ns()
     with output.open("xb") as stdout, error.open("xb") as stderr:
         process = subprocess.Popen(command, stdout=stdout, stderr=stderr, env=actual_env)
@@ -99,6 +103,56 @@ def captured(repo, path):
     return value
 
 
+def qualification_build_cache(root, override=""):
+    cache = override or str(Path(root)/"temporal-cluster-build-cache")
+    if not isinstance(cache, str) or not cache.startswith("/") or cache == "/" or cache.startswith("//") or posixpath.normpath(cache) != cache:
+        raise ValueError("explicit absolute non-root verified compiler cache required")
+    return Path(cache)
+
+
+def memory_decimal(value):
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{1,20}", value) or int(value) > (1 << 64)-1:
+        raise ValueError("bounded unsigned decimal memory value required")
+    return int(value)
+
+
+def memory_admission(platform, path, minimum, retained_raw=None):
+    observation = dict(minimum_bytes=0, available_bytes=0)
+    if minimum == "":
+        return observation
+    value = memory_decimal(minimum)
+    if value == 0:
+        raise ValueError("positive decimal memory admission threshold required")
+    observation["minimum_bytes"] = value
+    if platform != "linux":
+        raise ValueError("explicit memory admission requires Linux MemAvailable")
+    with Path(path).open("rb") as stream:
+        raw = stream.read((8 << 10)+1)
+    if retained_raw is not None:
+        with Path(retained_raw).open("xb") as retained:
+            retained.write(raw)
+        Path(retained_raw).chmod(0o600)
+    if len(raw) > 8 << 10:
+        raise ValueError("MemAvailable observation exceeds 8KiB")
+    seen = False
+    for line in raw.decode("utf-8", errors="replace").split("\n"):
+        fields = re.findall(r"[^\t\n\v\f\r \u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+", line)
+        if not fields or fields[0].split(":", 1)[0].casefold() != "memavailable":
+            continue
+        if seen or fields[0] != "MemAvailable:" or len(fields) != 3 or fields[2] != "kB":
+            raise ValueError("unique exact MemAvailable field in kB required")
+        seen = True
+        kilobytes = memory_decimal(fields[1])
+        if kilobytes > ((1 << 64)-1)//1024:
+            raise ValueError("MemAvailable byte conversion overflow")
+        observation["available_bytes"] = kilobytes*1024
+    if not seen:
+        raise ValueError("MemAvailable observation missing")
+    if observation["available_bytes"] < value:
+        raise ValueError("insufficient available memory before helper dispatch")
+    return observation
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", required=True, type=Path)
@@ -115,6 +169,26 @@ def main():
     repo, root, binary = args.repo.resolve(), args.root.resolve(), args.binary.resolve()
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
     owned_root(root)
+    guest_profile = os.environ.get("GOMAD_WASM_QUALIFICATION_GUEST_PROFILE", "")
+    if args.workload != "sqlite":
+        workloads.guest_build_tags(guest_profile)
+        override = os.environ.get("GOMAD_WASM_TEMPORAL_BUILD_CACHE", "")
+        cache = qualification_build_cache(root, override or str(args.cache))
+        if override and cache != args.cache:
+            raise ValueError("private compiler-cache override differs from frozen --cache")
+        minimum = os.environ.get("GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES", "")
+        controls = dict(guest_profile=guest_profile, build_cache=str(cache), memory_minimum=minimum,
+                        memory_platform=sys.platform, memory_path="/proc/meminfo")
+        try:
+            controls["memory"] = memory_admission(sys.platform, Path("/proc/meminfo"), minimum,
+                                                   retained_raw=root/"host-memory.raw")
+        except (ValueError, OSError) as error:
+            controls["memory_error"] = str(error)
+            write(root/"qualification-controls.json", controls)
+            raise
+        write(root/"qualification-controls.json", controls)
+    else:
+        cache = args.cache
     capture = None
     source = None
     if args.workload != "sqlite":
@@ -131,10 +205,10 @@ def main():
     write(policy, workloads.support_policy(args.workload,capture) if args.workload in workloads.SUPPORT_ROWS else workloads.policy(args.workload, capture))
     installation = root/"installation.json"
     run(root, "install", [str(binary), "install", "--compiler", str(args.compiler.resolve()), "--runtime-root", str(args.runtime_root.resolve()),
-        "--cache", str(args.cache.resolve()), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
+        "--cache", str(cache.resolve()), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
         "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
-    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest))
+    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile))
     response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0)
     result_path = Path(response["result_path"])
     report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 0)

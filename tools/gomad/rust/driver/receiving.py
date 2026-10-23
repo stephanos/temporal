@@ -346,6 +346,34 @@ def retry_witness(stdout, network):
     require(fault and reset and reconnected and retried,'named reset lacks established stream error, new connection or in-flight retry')
 
 
+def memory_observation(raw, minimum, platform):
+    def decimal(value):
+        require(isinstance(value,str) and 1 <= len(value) <= 20
+                and all('0' <= char <= '9' for char in value), 'bounded ASCII memory decimal required')
+        number = int(value)
+        require(number < 1 << 64, 'memory decimal overflow')
+        return number
+    if minimum == '':
+        require(raw is None, 'unrequested host memory observation')
+        return dict(minimum_bytes=0,available_bytes=0)
+    threshold = decimal(minimum)
+    require(threshold > 0 and platform == 'linux', 'positive Linux memory threshold required')
+    require(isinstance(raw,bytes) and len(raw) <= 8 << 10, 'bounded raw MemAvailable bytes required')
+    matches = []
+    for line in raw.decode('utf-8',errors='replace').split('\n'):
+        # Go unicode.IsSpace excludes Python's extra four C0 separators.
+        normalized = ''.join(' ' if char.isspace() and char not in '\x1c\x1d\x1e\x1f' else char for char in line)
+        fields = [field for field in normalized.split(' ') if field]
+        if fields and fields[0].split(':',1)[0].lower() == 'memavailable':
+            require(len(fields) == 3 and fields[0] == 'MemAvailable:' and fields[2] == 'kB',
+                    'nonexact MemAvailable field')
+            matches.append(decimal(fields[1]))
+    require(len(matches) == 1 and matches[0] <= ((1 << 64)-1)//1024, 'missing, repeated or overflowing MemAvailable')
+    available = matches[0]*1024
+    require(available >= threshold, 'host memory observation below dispatch threshold')
+    return dict(minimum_bytes=threshold,available_bytes=available)
+
+
 class Retained:
     def __init__(self, config):
         self.config = config
@@ -784,8 +812,42 @@ class Retained:
         for name in names:
             require(regular(stage/Path(name).name).read_bytes() == regular(base/name).read_bytes(), 'Temporal staged source changed original bytes')
 
+    def private_controls(self, root, owner):
+        flags = ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',
+                 'GOMAD_WASM_TEMPORAL_MIN_AVAILABLE_BYTES')
+        environment = self.config.get('environment',{})
+        profile,override,minimum = [environment.get(flag,'') for flag in flags]
+        workloads.guest_build_tags(profile)
+        argv = owner['argv']
+        require(argv.count('--cache') == 1, 'private controls require one explicit compiler cache')
+        cache = argv[argv.index('--cache')+1]
+        require(isinstance(cache,str) and cache.startswith('/') and not cache.startswith('//')
+                and str(Path(cache)) == cache and '..' not in Path(cache).parts and cache != '/',
+                'private compiler cache is not clean, absolute and non-root')
+        require(not override or override == cache, 'private cache differs from frozen explicit cache')
+        controls = read(regular(root/'qualification-controls.json'))
+        expected = dict(guest_profile=profile,build_cache=cache,memory_minimum=minimum,
+                        memory_platform=sys.platform,memory_path='/proc/meminfo')
+        require(set(controls) == set(expected)|{'memory'} and all(controls[key] == value for key,value in expected.items()),
+                'private controls differ from frozen host, path, profile, cache or threshold')
+        raw = root/'host-memory.raw'
+        if minimum:
+            require(regular(raw).stat().st_size <= 8 << 10, 'raw host memory observation byte limit')
+            body = raw.read_bytes()
+        else:
+            require(not raw.exists() and not raw.is_symlink(),'absent opt-in retained a host memory observation')
+            body = None
+        require(canonical(controls['memory']) == canonical(memory_observation(body,minimum,sys.platform)),
+                'private memory summary differs from independent raw observation')
+        for stage in ('install','qualify','report'):
+            command = read(regular(root/(stage+'.command.json')))
+            require(all(flag in command['environment'] and command['environment'][flag] == environment.get(flag) for flag in flags),
+                    'nested command private controls differ from frozen environment')
+        return controls
+
     def producer(self, root, workload, mode='success'):
         owner = self.owner(root)
+        controls = self.private_controls(root,owner) if workload != 'sqlite' else None
         receipt = read(regular(root/'producer.json'))
         require(receipt['schema'] == 'gomad.rust-mandatory-workload-producer/v1'
                 and receipt['workload'] == workload and receipt['mode'] == mode, 'wrong actual producer cell')
@@ -793,7 +855,8 @@ class Retained:
         target = spec['Campaign']['Target']
         source_manifest = self.config['source_manifest']
         expected = (workloads.support_spec if workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(
-            Path(self.config['repo']),root/'cell',workload,mode=='canary',target['Source'],Path(source_manifest))
+            Path(self.config['repo']),root/'cell',workload,mode=='canary',target['Source'],Path(source_manifest),
+            guest_profile=controls['guest_profile'] if controls else '')
         require(spec == expected, 'actual producer changed original request, target, seed, repetition or bounds')
         policy = read(regular(root/'policy.json'))
         capture = policy.get('CapturedInputs')
@@ -814,6 +877,8 @@ class Retained:
                 and installation['profile'] == 'gomad.wasi-cooperative/v1'
                 and installation['admission']['host_executable_sha256'] == self.config['binary_sha256'],
                 'actual producer installation role/bounds mismatch')
+        if controls:
+            require(installation['cache_root'] == controls['build_cache'], 'actual installation changed admitted compiler cache')
         for key,value in self.config['identity'].items():
             require(installation[key+'_sha256'] == value,'actual producer installation identity mismatch')
         installed_command = read(regular(root/'install.command.json'))['argv']
