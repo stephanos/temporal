@@ -249,18 +249,28 @@ def inspection_policy_projection(policy):
             require(entries[prefix]['directory'],'captured namespace parent is a file')
     capture = policy.get('CapturedInputs')
     if capture:
-        descriptor_raw = base64.b64decode(capture['Descriptor'],validate=True)
-        require(digest(descriptor_raw) == capture['Manifest']['SHA256'].removeprefix('sha256:'), 'inspection capture descriptor identity')
-        descriptor = decoded(descriptor_raw)
-        roots = descriptor['mappings']
-        for entry in descriptor['entries']:
-            path = entry['path']
-            ensure(str(Path(path).parent),True)
-            raw = base64.b64decode(capture['Payloads'][entry['payload']],validate=True) if entry['kind']=='file' else b''
-            require(entry['kind'] in ('file','directory') and (path not in entries or entry['kind']=='directory' and entries[path]['directory']), 'invalid captured namespace entry')
-            if entry['kind']=='file':
-                require(len(raw) == int(entry['size']) and 'sha256:'+digest(raw) == entry['sha256'], 'inspection capture raw payload identity')
-            entries[path] = dict(path=list(path.encode()),directory=entry['kind']=='directory',readonly=True,data=list(raw))
+        manifest,descriptor,payloads = capture.get('Manifest',{}),capture.get('Descriptor'),capture.get('Payloads')
+        require(isinstance(manifest,dict) and isinstance(manifest.get('Schema',''),str), 'invalid capture schema type')
+        require(descriptor is None or isinstance(descriptor,str), 'invalid capture descriptor type')
+        require(payloads is None or isinstance(payloads,dict), 'invalid capture payload type')
+        try:
+            descriptor_raw = base64.b64decode(descriptor or '',validate=True)
+        except ValueError as error:
+            raise Refusal('invalid capture descriptor encoding') from error
+        if not manifest.get('Schema',''):
+            require(not descriptor_raw and not payloads, 'captured manifest required')
+        else:
+            require(digest(descriptor_raw) == capture['Manifest']['SHA256'].removeprefix('sha256:'), 'inspection capture descriptor identity')
+            descriptor = decoded(descriptor_raw)
+            roots = descriptor['mappings']
+            for entry in descriptor['entries']:
+                path = entry['path']
+                ensure(str(Path(path).parent),True)
+                raw = base64.b64decode(capture['Payloads'][entry['payload']],validate=True) if entry['kind']=='file' else b''
+                require(entry['kind'] in ('file','directory') and (path not in entries or entry['kind']=='directory' and entries[path]['directory']), 'invalid captured namespace entry')
+                if entry['kind']=='file':
+                    require(len(raw) == int(entry['size']) and 'sha256:'+digest(raw) == entry['sha256'], 'inspection capture raw payload identity')
+                entries[path] = dict(path=list(path.encode()),directory=entry['kind']=='directory',readonly=True,data=list(raw))
     writable = policy['WritableDirectories']
     for path in writable:
         ensure(path,False)

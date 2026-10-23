@@ -13079,36 +13079,36 @@
     "tools/gomad/rust/driver/receiving.py#artifact": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "artifact",
-      "start_line": 480,
-      "end_line": 501,
+      "start_line": 490,
+      "end_line": 511,
       "sha256": "b9e79b25cb54e2b6c3edf2d2520ad4d0466472e917c11a30d27d1df9f46051a6"
     },
     "tools/gomad/rust/driver/receiving.py#catalogue": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "catalogue",
-      "start_line": 1019,
-      "end_line": 1037,
+      "start_line": 1029,
+      "end_line": 1047,
       "sha256": "e824c08424b1c024d0d73c2db2484ae0c793af2729db64f05a72fd5527a61f93"
     },
     "tools/gomad/rust/driver/receiving.py#mandatory": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "mandatory",
-      "start_line": 935,
-      "end_line": 939,
+      "start_line": 945,
+      "end_line": 949,
       "sha256": "abf131e4250acc8dd41901e9722a099d912b163ef50341b9a28fd010fd213f1b"
     },
     "tools/gomad/rust/driver/receiving.py#memory_observation": {
-      "end_line": 409,
+      "end_line": 419,
       "path": "tools/gomad/rust/driver/receiving.py",
       "sha256": "f8be8002c1accbb07e3657f5487bf9687c15d0cae7ade342cfb2714759fb104b",
-      "start_line": 384,
+      "start_line": 394,
       "symbol": "memory_observation"
     },
     "tools/gomad/rust/driver/receiving.py#native_catalogue": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "native_catalogue",
-      "start_line": 941,
-      "end_line": 963,
+      "start_line": 951,
+      "end_line": 973,
       "sha256": "791685810f7e59f90da8c1e2161751ddec44e828e58db6948e6c5f278ccc8858"
     },
     "tools/gomad/rust/driver/receiving.py#native_state": {
@@ -13121,36 +13121,36 @@
     "tools/gomad/rust/driver/receiving.py#private_controls": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "private_controls",
-      "start_line": 1117,
-      "end_line": 1156,
+      "start_line": 1127,
+      "end_line": 1166,
       "sha256": "a3c577bd388e5fbe661e7093119fb425323d7e6feab9c1792ee8a60f4e8a6614"
     },
     "tools/gomad/rust/driver/receiving.py#producer": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "producer",
-      "start_line": 1158,
-      "end_line": 1221,
+      "start_line": 1168,
+      "end_line": 1231,
       "sha256": "2d4e947f07a1315b45da6de6f6d481ed32cdcea8c4d2aa7985599a2ec3f873c8"
     },
     "tools/gomad/rust/driver/receiving.py#replication": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "replication",
-      "start_line": 1228,
-      "end_line": 1255,
+      "start_line": 1238,
+      "end_line": 1265,
       "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef"
     },
     "tools/gomad/rust/driver/receiving.py#result": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "result",
-      "start_line": 671,
-      "end_line": 780,
+      "start_line": 681,
+      "end_line": 790,
       "sha256": "f5bbde6e171f6359da1438ab1fc491c620e2f12ec25205dec84c4cf02c52d2f7"
     },
     "tools/gomad/rust/driver/receiving.py#selected": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "selected",
-      "start_line": 994,
-      "end_line": 1017,
+      "start_line": 1004,
+      "end_line": 1027,
       "sha256": "b2f8c7299a414736787acdae82be3bfd6be11123111ec4c184788235edddb6e3"
     },
     "tools/gomad/rust/driver/receiving.py#selected_marker": {
@@ -13163,22 +13163,22 @@
     "tools/gomad/rust/driver/receiving.py#smoke": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "smoke",
-      "start_line": 1223,
-      "end_line": 1226,
+      "start_line": 1233,
+      "end_line": 1236,
       "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734"
     },
     "tools/gomad/rust/driver/receiving.py#sources": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "sources",
-      "start_line": 1102,
-      "end_line": 1109,
+      "start_line": 1112,
+      "end_line": 1119,
       "sha256": "d94225592acbb62c80288566fbccc0b24da52913632789a619ce252724c9e269"
     },
     "tools/gomad/rust/driver/receiving.py#sqlite_primary": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "sqlite_primary",
-      "start_line": 982,
-      "end_line": 992,
+      "start_line": 992,
+      "end_line": 1002,
       "sha256": "ca67980abb539b223c6d19b02f2f1176c18f7d48715fda2ce5aa6a22aa6849b9"
     },
     "tools/gomad/rust/driver/receiving.py#state_identity": {

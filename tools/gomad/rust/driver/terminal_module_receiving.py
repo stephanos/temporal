@@ -211,7 +211,7 @@ def context(config, owner, spec, root):
     require(admission['configuration_sha256'] == native.digest(native.canonical(original_configuration())) and admission['arguments'] == []
             and admission['explicit_helper'] is None and admission['compile_cache_root'] is None
             and admission['host_executable_sha256'] == native.snapshot(primary_stages.native_bootstrap(config),native.MODULE_LIMIT)['sha256'], 'terminal installation admission changed')
-    policy=original_configuration();policy.pop('CapturedInputs')
+    policy=original_configuration()
     model,namespace,environment,_=receiving.inspection_policy_projection(policy)
     exact([installation['model'],installation['namespace'],admission['environment']],[model,namespace,environment], 'terminal installed native policy projection changed')
     compiler=admission['compiler_inputs']
