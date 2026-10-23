@@ -452,4 +452,99 @@ mod tests {
             .clean()
             .unwrap_or_else(|e| panic!("{}", e.message));
     }
+
+    #[test]
+    fn nested_wrapper_refuses_without_spawning_child() {
+        use std::time::{Duration, Instant};
+        let root =
+            crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let compiler_dir = root.0.join("compiler");
+        fs::create_dir(&compiler_dir).unwrap();
+        let compiler = compiler_dir.join("go");
+        fs::write(
+            &compiler,
+            b"#!/bin/sh\nprintf invoked > \"$GOMAD_TEST_WRAPPER_ROOT/compiler-ran\"\nexit 98\n",
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let mut child = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "cli::wrapper::tests::wrapper_nested_process_probe",
+                "--nocapture",
+            ])
+            .current_dir(&root.0)
+            .env_clear()
+            .env("PATH", &compiler_dir)
+            .env("HOME", &root.0)
+            .env("XDG_CACHE_HOME", root.0.join("cache"))
+            .env("GOMAD_TEST_WRAPPER_ROOT", &root.0)
+            .process_group(0)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        loop {
+            if child.try_wait().unwrap().is_some() {
+                break;
+            }
+            if Instant::now() >= deadline {
+                let raw = i32::try_from(child.id()).unwrap();
+                let pid = rustix::process::Pid::from_raw(raw).unwrap();
+                let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::KILL);
+                let _ = child.kill();
+                let _ = child.wait();
+                panic!("nested wrapper regression exceeded its bound");
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let output = child.wait_with_output().unwrap();
+        assert!(
+            output.status.success(),
+            "stdout={} stderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(!root.0.join("child-ran").exists());
+        assert!(!root.0.join("compiler-ran").exists());
+    }
+
+    #[test]
+    fn wrapper_nested_process_probe() {
+        let Some(root) = std::env::var_os("GOMAD_TEST_WRAPPER_ROOT") else {
+            return;
+        };
+        if std::env::var_os("GOMAD_SHIM_RUN").is_some() {
+            let arguments = [
+                "--",
+                "/bin/sh",
+                "-c",
+                "printf spawned > \"$GOMAD_TEST_WRAPPER_ROOT/child-ran\"",
+            ]
+            .map(OsString::from);
+            match run(&arguments, None) {
+                Err(error) => {
+                    assert_eq!(error.status, 2);
+                    assert!(
+                        error.message.contains("nested wrapper"),
+                        "{}",
+                        error.message
+                    );
+                }
+                Ok(status) => panic!("nested wrapper launched its child with status {status}"),
+            }
+            assert!(!Path::new(&root).join("child-ran").exists());
+        } else {
+            let arguments = [
+                OsString::from("--"),
+                std::env::current_exe().unwrap().into_os_string(),
+                OsString::from("--exact"),
+                OsString::from("cli::wrapper::tests::wrapper_nested_process_probe"),
+                OsString::from("--nocapture"),
+            ];
+            let status = run(&arguments, None).unwrap_or_else(|error| panic!("{}", error.message));
+            assert_eq!(status, 0);
+        }
+    }
 }
