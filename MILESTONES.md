@@ -135,11 +135,15 @@ per invariant at the native depth plus one, ITF counterexamples decoded through 
 replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
 liveness through Apalache; TLC owns progress claims. Since 2026-10-21 it also checks symbolic Worlds: every World in a
 declared finite domain in one run per property (owner request, toward full Quint parity).
+Task .1 is complete locally: typed safety emission, ordered checked arithmetic and one-step
+history passed implementation review, both audits, actual pinned-tool controls and fresh live
+slice/gap proof. The required full gate passed in 562.098s against its 60s soft target;
+inner loop 7.893s met 10s. Runner lifecycle, typed replay, fixture integration and symbolic
+Worlds remain below.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-211.1 | 🔄 in progress | Typed Apalache safety relation, checked arithmetic and postcondition history; TLC results unchanged (R1) |
 | fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
