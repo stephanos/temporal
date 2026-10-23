@@ -276,10 +276,16 @@ fn parse_build(
             index += 1;
             break;
         }
-        if help(raw) {
+        if matches!(raw, b"-h" | b"-help" | b"--h" | b"--help") {
             return Err("go: help requested".into());
         }
         let Some((name, explicit)) = flag(raw) else {
+            if raw.len() > 1 && raw[0] == b'-' {
+                return Err(format!(
+                    "go: bad flag syntax: {}",
+                    arguments[index].to_string_lossy()
+                ));
+            }
             break;
         };
         let descriptor = descriptor(name, kind)
@@ -985,6 +991,17 @@ mod tests {
         assert_eq!(invocation.package_indices, [2, 3]);
         assert!(invocation.guest_ranges.is_empty());
         assert!(inspect(&args(&["-exec=true", "./cmd"]), OsStr::new(""), Kind::Build).is_err());
+    }
+
+    #[test]
+    fn malformed_standard_build_flags_do_not_become_packages() {
+        for kind in [Kind::Run, Kind::Build] {
+            for raw in ["---race", "-=value", "--=value"] {
+                assert!(inspect_unchecked(&args(&[raw]), OsStr::new(""), kind).is_err());
+            }
+        }
+        let invocation = test(&["---race"], "").unwrap();
+        assert_eq!(invocation.package_indices, [0]);
     }
 
     #[test]
