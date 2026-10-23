@@ -876,3 +876,7 @@ pub(crate) fn validate_receipt(
         .ok_or("missing or mismatched publication self observation")?;
     cost::terminal(&result.observations, after, receipt.operator_peak_rss_bytes)
 }
+
+#[cfg(test)]
+#[path = "receiving_publication_tests.rs"]
+mod receiving_publication_tests;
