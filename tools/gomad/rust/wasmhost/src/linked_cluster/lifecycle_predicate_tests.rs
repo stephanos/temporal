@@ -18,6 +18,21 @@ fn raw(root: &str, variant: &str, observed: Value) {
     println!("{row}");
 }
 
+fn store_result_fact(item: &IncarnationResult) -> Value {
+    json!({"handle":item.handle,"terminal":item.execution.outcome.termination,
+        "exit_code":item.execution.outcome.exit_code,"message":item.execution.outcome.message,
+        "authorization_to_terminal_nanos":item.execution.authorization_to_terminal_nanos,
+        "interrupted":item.interrupted,"stdout":item.execution.evidence.get("stdout")})
+}
+
+fn store_facts(execution: &Execution) -> Vec<Value> {
+    execution
+        .incarnations
+        .iter()
+        .map(store_result_fact)
+        .collect()
+}
+
 #[test]
 fn failed_wait_preserves_first_terminal_and_never_starts_later_incarnations() {
     for (body, terminal, code) in [
@@ -47,7 +62,7 @@ fn failed_wait_preserves_first_terminal_and_never_starts_later_incarnations() {
             terminal,
             json!({
                 "steps":execution.executed_steps,"terminal":terminal,"exit_code":code,
-                "incarnations":["a/1"],"activity":activity.snapshot()
+                "incarnations":["a/1"],"store_results":store_facts(&execution),"activity":activity.snapshot()
             }),
         );
     }
@@ -70,7 +85,7 @@ fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() 
         "TestProviderClusterStartsOnlyRequestedIncarnations",
         "native-lazy-store",
         json!({
-            "declared_nodes":["a","b"],"incarnations":["a/1"],"activity":activity.snapshot()
+            "declared_nodes":["a","b"],"incarnations":["a/1"],"store_results":store_facts(&execution),"activity":activity.snapshot()
         }),
     );
 
@@ -89,7 +104,7 @@ fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() 
         "cancelled-before-start",
         json!({
             "terminal":execution.outcome.termination,"steps":execution.executed_steps,
-            "activity":activity.snapshot()
+            "store_results":store_facts(&execution),"activity":activity.snapshot()
         }),
     );
 }
@@ -217,7 +232,7 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
                 "acknowledged_stdout":acknowledged.execution.evidence["stdout"],
                 "all_stores_dropped_before_return":execution.incarnations.iter().all(|item|
                     item.execution.authorization_to_terminal_nanos.is_some()),
-                "dormant_started":false,"activity":activity.snapshot()
+                "dormant_started":false,"store_results":store_facts(&execution),"activity":activity.snapshot()
             }),
         );
     }
@@ -324,7 +339,7 @@ fn observed_failure_drains_prestarted_peers_without_executing_their_waits() {
             json!({
                 "steps":execution.executed_steps,"joined_incarnations":["a/1","b/1"],
                 "terminal":execution.outcome.termination,"exit_code":execution.outcome.exit_code,
-                "message":execution.outcome.message,"activity":activity.snapshot()
+                "message":execution.outcome.message,"store_results":store_facts(&execution),"activity":activity.snapshot()
             }),
         );
     }
@@ -408,7 +423,7 @@ fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix()
             "terminal":execution.outcome.termination,"steps":execution.executed_steps,
             "joined_incarnations":["a/1","b/1"],"acknowledged_stdout":"mark",
             "store_dropped_before_return":acknowledged.execution.authorization_to_terminal_nanos.is_some(),
-            "activity":activity.snapshot()
+            "store_results":store_facts(&execution),"activity":activity.snapshot()
         }),
     );
 }
@@ -535,6 +550,7 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
             serde_json::to_value(&sealed.execution.request.storage).unwrap(),
             original_storage
         );
+        let refused_storage = serde_json::to_value(&sealed.execution.request.storage).unwrap();
         assert!(sealed.recovery_source.is_none());
         assert!(broker.failure().is_none());
         assert_eq!(activity.snapshot().launched_stores, 0);
@@ -574,7 +590,9 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
                 "after_refusal_incarnation":1,"after_refusal_slot":1,
                 "refused_storage_unchanged":true,"retry_incarnation":2,"retry_slot":slot,
                 "peer_incarnation":1,"peer_slot":2,"recovery_input_unchanged":true,
-                "activity":activity.snapshot()
+                "storage_before":original_storage,"storage_after_refusal":refused_storage,
+                "retry_storage":serde_json::to_value(&sealed.execution.request.storage).unwrap(),
+                "recovery_image":images["a"],"activity":activity.snapshot()
             }),
         );
         if variant == "missing-storage-image" {
@@ -584,7 +602,10 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
                 json!({
                     "refusal":error.to_string(),"refused_incarnation_owned":false,
                     "current_after_refusal":1,"retry_incarnation":2,"retry_slot":slot,
-                    "recovery_input_unchanged":true,"activity":activity.snapshot()
+                    "recovery_input_unchanged":true,"storage_before":original_storage,
+                    "storage_after_refusal":refused_storage,
+                    "retry_storage":serde_json::to_value(&sealed.execution.request.storage).unwrap(),
+                    "recovery_image":images["a"],"activity":activity.snapshot()
                 }),
             );
         }
@@ -668,7 +689,7 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
                 "joined_incarnations":execution.incarnations.len(),
                 "all_stores_dropped_before_return":execution.incarnations.iter().all(|item|
                     item.execution.authorization_to_terminal_nanos.is_some()),
-                "activity":activity.snapshot()
+                "store_results":store_facts(&execution),"activity":activity.snapshot()
             }),
         );
     }
@@ -776,7 +797,8 @@ fn live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace()
             "elapsed_nanos":elapsed.as_nanos(),"cleanup_error":error.to_string(),
             "acknowledged_stdout":result.execution.evidence["stdout"],
             "authored_steps":prepared.steps,"joined_incarnations":1,
-            "all_stores_dropped_before_return":true,"activity":activity.snapshot()
+            "all_stores_dropped_before_return":true,"store_results":[store_result_fact(result)],
+            "activity":activity.snapshot()
         }),
     );
 }
