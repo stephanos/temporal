@@ -83,8 +83,8 @@ fn soft_execution(
 
 fn execution_input(execution: &helper::Execution, configuration: &Configuration) -> Value {
     let item = &execution.incarnations[0];
-    json!({"handle":item.handle,"stdout_base64":crate::campaign::exploration::base64(&item.execution.evidence["stdout"]),
-        "stderr_base64":crate::campaign::exploration::base64(&item.execution.evidence["stderr"]),
+    json!({"handle":item.handle,"stdout_base64":crate::campaign::exploration::base64(item.execution.evidence.get("stdout").map_or(&[], Vec::as_slice)),
+        "stderr_base64":crate::campaign::exploration::base64(item.execution.evidence.get("stderr").map_or(&[], Vec::as_slice)),
         "termination":item.execution.outcome.termination,"message":item.execution.outcome.message,
         "offered_bytes":item.execution.outcome.output_bytes,"oracle_plan":configuration.oracle_plan})
 }
@@ -226,6 +226,7 @@ fn output_capacity_annotation_is_narrow_and_preserves_oracle_budget_errors() {
                 ("capacity", "transcript capacity"),
                 ("exit", ""),
                 ("capacity", "output capacity"),
+                ("capacity", "WASI capacity: offered-output-bytes"),
             ] {
                 let mut execution = soft_execution(
                     &configuration,
@@ -235,7 +236,11 @@ fn output_capacity_annotation_is_narrow_and_preserves_oracle_budget_errors() {
                 execution.incarnations[0].execution.outcome.termination = termination;
                 execution.incarnations[0].execution.outcome.message = message.into();
                 let value = oracles::capacity_observation(&execution, &configuration);
-                let capacity = termination == "capacity" && message == "output capacity";
+                let capacity = termination == "capacity"
+                    && matches!(
+                        message,
+                        "output capacity" | "WASI capacity: offered-output-bytes"
+                    );
                 assert_eq!(!value["capacity_failure"].is_null(), capacity);
                 if capacity {
                     assert_eq!(value["capacity_failure"]["termination"], "capacity");
@@ -1608,3 +1613,7 @@ fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
 }
 #[path = "allocation_probe.rs"]
 pub(crate) mod allocation_probe;
+
+#[cfg(feature = "determinism-fixture")]
+#[path = "retained_output_capacity_tests.rs"]
+mod output_capacity_execution_tests;

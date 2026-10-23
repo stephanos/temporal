@@ -473,7 +473,10 @@ pub(crate) fn capacity_observation(
     };
     if let Some(item) = execution.incarnations.iter().find(|item| {
         item.execution.outcome.termination == "capacity"
-            && item.execution.outcome.message == "output capacity"
+            && matches!(
+                item.execution.outcome.message.as_str(),
+                "output capacity" | "WASI capacity: offered-output-bytes"
+            )
     }) {
         let test_workload = configuration.incarnations.iter().any(|incarnation| {
             incarnation.handle == item.handle && incarnation.workload_kind == "go-test"
