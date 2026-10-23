@@ -983,10 +983,49 @@
           "same_family": true
         }
       ]
+    },
+    {
+      "observed_at": "2026-10-23T10:06:24.135654+00:00",
+      "integration_head": "92f2301bc4b637ab00b68d7c05f603ba39ebce05",
+      "final_qualification": false,
+      "logs": [
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-isolated-cluster-driver-tests.log",
+          "bytes": 1701,
+          "sha256": "0c7c94d248b33d2d948415202f219ac60cd5743c7366d34e3be93cb733f73200",
+          "exit": 0,
+          "scope": "9 actual integrated cluster tests pass including cross-filesystem isolated source fixture"
+        },
+        {
+          "path": "/home/agent/.cache/codex-build/fn232-root-isolated-cluster-clippy.log",
+          "bytes": 279,
+          "sha256": "8fcccb223459c26173c10bc50e6f59b664ed29902edf3b45456d8cf6033b2512",
+          "exit": 0,
+          "scope": "Strict release gomad lib/tests Clippy after isolated fixture repair"
+        }
+      ],
+      "completed_scope": [
+        "Resolved real root receiving fixture failure via genuine clean isolated Git source checkout, actual authenticated source closure and read-only inode binding.",
+        "Same-filesystem allocator falls back to private Git metadata namespace when root source and temp live on distinct filesystems; actual root cross-filesystem branch passes, namespace cleaned, user paths untouched.",
+        "Root cluster9PASS0; strict Clippy0; final same-family independent fixture review4aab58c6ba clear."
+      ],
+      "pending": [
+        "Measurement producer recipe repair and native final lifecycle/writer broad source batch still in progress.",
+        "20 original evidence references unresolved; exact-original capture/identity/runtime/lifecycle receiving worker actively implements next coherent batch.",
+        "Full MILESTONES objective remains active: no final qualification or Flow task completion claimed."
+      ],
+      "reviews": [
+        {
+          "agent": "/root/retained_final_sections/stable_backend_review",
+          "scope": "94fff5a07d..4aab58c6ba fixture repair and same-filesystem allocation",
+          "status": "no remaining concrete blockers",
+          "same_family": true
+        }
+      ]
     }
   ],
   "resource_snapshot": {
-    "observed_at": "2026-10-23T10:03:50.287392+00:00",
+    "observed_at": "2026-10-23T10:06:24.135683+00:00",
     "worktrees": [
       {
         "worktree": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
@@ -1343,7 +1382,7 @@
       }
     ],
     "free_space": "Filesystem      Size  Used Avail Use% Mounted on\nhost            927G  825G  102G  90% /Users/stephan/Workspace/skunkworks\noverlay         196G  173G   13G  94% /\n",
-    "cleanup": "No cache/evidence cleanup this update; all root test/build handles terminal.",
+    "cleanup": "No cache/evidence deletion. Root cluster fixture cleaned its owned Git metadata scratch namespace; all root test/build handles terminal.",
     "preserved_user_paths": [
       "tools/gomad/.turbo/",
       "tools/gomad/internal/backends/wasm/wasmhost/"

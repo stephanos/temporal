@@ -411,3 +411,16 @@ The evidence resolver now reports 20 unresolved original references, down from
 Strict integrated release Clippy, workspace formatting and diff checks pass.
 The remaining capture/identity/runtime/lifecycle predicates are assigned as one
 isolated implementation batch. Full frozen qualification stays outstanding.
+
+## Cluster fixture receiving repair verified
+
+At `92f2301bc4b637ab00b68d7c05f603ba39ebce05`, the actual root cluster suite passes all nine tests
+and strict release Clippy passes. The source fixture now uses a genuine
+isolated clean Git tree and retains inode authentication without modifying
+original source bytes. A private Git metadata fallback handles the root
+checkout/temp filesystem split; the actual root fallback ran and its owned
+scratch namespace was removed. The production source/host guards are intact.
+Fresh independent same-family review is clear. Earlier receiving failures
+remain recorded. All root test/build handles are terminal; active isolated
+workers retain their listed worktrees and targets. The full milestone goal
+and frozen qualification remain open.
