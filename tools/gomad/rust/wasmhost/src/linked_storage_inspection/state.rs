@@ -402,6 +402,11 @@ mod tests {
     fn actual_native_storage_state_refuses_forged_context_and_unrequested_context_presence() {
         let (input, evidence) = actual();
         validate(&input, &evidence.state, &evidence.log, 8 << 20).unwrap();
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.native-original-state",
+                "inputs":{"storage":input},"observed":{"state_bytes":evidence.state,"log_bytes":evidence.log,"image_bytes":evidence.image}})
+        );
         let (_, sections) = sections(&evidence.state, 8 << 20).unwrap();
         let original: Value = serde_json::from_slice(sections[5]).unwrap();
         for edit in [

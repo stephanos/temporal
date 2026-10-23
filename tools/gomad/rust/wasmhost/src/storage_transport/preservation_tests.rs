@@ -127,6 +127,47 @@ fn original_crash_context_equality_preserves_every_operation_field_and_null_shap
         assert_ne!(base, changed, "{field}");
         assert_ne!(changed, base, "{field}");
     }
+    let mut original = base.clone();
+    original.operations.as_mut().unwrap()[0].dependencies = Some(vec![1]);
+    for (variant, dependencies) in [
+        ("nil-dependencies", None),
+        ("empty-dependencies", Some(Vec::new())),
+        ("dependency", Some(vec![3])),
+    ] {
+        let mut changed = original.clone();
+        changed.operations.as_mut().unwrap()[0].dependencies = dependencies;
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-equality-original-dependency",
+                "inputs":{"variant":variant,"base":original,"changed":changed},
+                "observed":{"equal_forward":original == changed,"equal_reverse":changed == original}})
+        );
+        assert_ne!(original, changed);
+    }
+    for variant in ["hash", "nil-operations", "empty-operations", "field"] {
+        let mut value = serde_json::to_value(&original).unwrap();
+        match variant {
+            "hash" => value["PendingSHA256"] = json!(format!("sha256:{}", "b".repeat(64))),
+            "nil-operations" => value["Operations"] = Value::Null,
+            "empty-operations" => value["Operations"] = json!([]),
+            _ => value["Operations"][0]["EffectSHA256"] = json!("sha256:x"),
+        }
+        let changed: StorageCrashContext = serde_json::from_value(value).unwrap();
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-equality-original-dependency",
+                "inputs":{"variant":variant,"base":original,"changed":changed},
+                "observed":{"equal_forward":original == changed,"equal_reverse":changed == original}})
+        );
+        assert_ne!(original, changed);
+    }
+    println!(
+        "GOMAD_CORE_OBSERVATION {}",
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-equality-positive",
+            "inputs":{"base":original,"clone":original.clone()},
+            "observed":{"clone_equal":original == original.clone(),
+                "map_equal":BTreeMap::from([("data",original.clone())]) == BTreeMap::from([("data",original.clone())])}})
+    );
     for value in [Value::Null, json!([])] {
         let mut changed = encoded.clone();
         changed["Operations"] = value;
@@ -147,6 +188,13 @@ fn original_crash_context_equality_preserves_every_operation_field_and_null_shap
     );
     let mut changed = base.clone();
     changed.pending_sha256 = format!("sha256:{}", "b".repeat(64));
+    println!(
+        "GOMAD_CORE_OBSERVATION {}",
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-equality-hash-map",
+            "inputs":{"base":base,"changed":changed},
+            "observed":{"hash_equal":base == changed,"map_equal":BTreeMap::from([("data",base.clone())]) == BTreeMap::new(),
+                "null_empty_equal":Value::Null == json!([])}})
+    );
     assert_ne!(base, changed);
     assert_ne!(BTreeMap::from([("data", base)]), BTreeMap::new());
 }
@@ -180,11 +228,11 @@ fn original_large_context_transport_round_trips_five_thousand_operations() {
     let mut framed = direct.clone();
     framed.observed_context = None;
     framed
-        .read_context(&mut std::io::Cursor::new(wire), 64 << 20)
+        .read_context(&mut std::io::Cursor::new(&wire), 64 << 20)
         .unwrap();
     println!(
         "GOMAD_CORE_OBSERVATION {}",
-        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-context-transport","inputs":{"descriptor":direct,"transport_sha256":format!("{:x}",Sha256::digest(&bytes)),"typed_context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(direct.observed_context.as_ref().unwrap()).unwrap()))},"observed":{"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap())),"operation_ids":framed.observed_context.as_ref().unwrap()["data"].operations.as_ref().unwrap().iter().map(|op|op.id).collect::<Vec<_>>()}})
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-context-transport","inputs":{"descriptor":direct,"transport_bytes":bytes,"wire_bytes":wire,"typed_context_bytes":serde_json::to_vec(direct.observed_context.as_ref().unwrap()).unwrap(),"transport_sha256":format!("{:x}",Sha256::digest(&bytes)),"typed_context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(direct.observed_context.as_ref().unwrap()).unwrap()))},"observed":{"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(framed.observed_context.as_ref().unwrap()).unwrap())),"operation_ids":framed.observed_context.as_ref().unwrap()["data"].operations.as_ref().unwrap().iter().map(|op|op.id).collect::<Vec<_>>()}})
     );
     assert_eq!(direct.observed_context, framed.observed_context);
     let expected: BTreeMap<String, StorageCrashContext> = serde_json::from_slice(&bytes).unwrap();
@@ -248,6 +296,12 @@ fn original_selected_states_recover_and_divergence_keeps_enumeration_without_ima
     assert!(states.len() >= 2);
     let original = evidence(&mut first, &baseline);
     assert_eq!(original.failure, None);
+    println!(
+        "GOMAD_CORE_OBSERVATION {}",
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-selected-baseline",
+            "inputs":{"context":context,"descriptor":baseline},
+            "observed":{"states":states,"image_bytes":original.image,"state_bytes":original.state,"log_bytes":original.log}})
+    );
     for state in states {
         let mut selected = baseline.clone();
         selected.crash_selection = Some(BTreeMap::from([(
@@ -269,7 +323,7 @@ fn original_selected_states_recover_and_divergence_keeps_enumeration_without_ima
         let present = recovered.fs.lookup("/workspace/db").is_ok();
         println!(
             "GOMAD_CORE_OBSERVATION {}",
-            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-selected-state-recovery","inputs":{"context":context,"state":state},"observed":{"recovery_image_sha256":format!("{:x}",Sha256::digest(&image)),"db_present":present,"snapshots":recovered.snapshots()}})
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-selected-state-recovery","inputs":{"context":context,"state":state},"observed":{"image_bytes":image,"recovery_image_sha256":format!("{:x}",Sha256::digest(&image)),"db_present":present,"snapshots":recovered.snapshots()}})
         );
         assert_eq!(
             present,
@@ -296,7 +350,7 @@ fn original_selected_states_recover_and_divergence_keeps_enumeration_without_ima
         );
         println!(
             "GOMAD_CORE_OBSERVATION {}",
-            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-divergence","inputs":{"variant":edit,"context":forged},"observed":{"failure":refused.failure,"image":refused.image,"state_sha256":format!("{:x}",Sha256::digest(&refused.state))}})
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-context-divergence","inputs":{"variant":edit,"context":forged},"observed":{"failure":refused.failure,"image":refused.image,"state_bytes":refused.state,"log_bytes":refused.log,"original_state_bytes":original.state,"original_log_bytes":original.log,"state_sha256":format!("{:x}",Sha256::digest(&refused.state))}})
         );
         assert!(refused.image.is_none());
         assert_eq!(refused.log, original.log);
@@ -370,7 +424,7 @@ fn original_large_observed_selection_uses_fifty_four_thousand_byte_paths() {
     .unwrap();
     println!(
         "GOMAD_CORE_OBSERVATION {}",
-        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-observed-selection","inputs":{"files":50,"path_bytes":4000,"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(&context).unwrap())),"selection":selected.crash_selection},"observed":{"image_sha256":format!("{:x}",Sha256::digest(&image)),"snapshots_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(&recovered.snapshots()).unwrap()))}})
+        json!({"schema":"gomad.core-predicate-observation/v1","case":"storage-large-observed-selection","inputs":{"files":50,"path_bytes":4000,"context":context,"context_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(&context).unwrap())),"selection":selected.crash_selection},"observed":{"image_bytes":image,"snapshots":recovered.snapshots(),"image_sha256":format!("{:x}",Sha256::digest(&image)),"snapshots_sha256":format!("{:x}",Sha256::digest(serde_json::to_vec(&recovered.snapshots()).unwrap()))}})
     );
     for index in 0..50 {
         assert!(
@@ -423,13 +477,13 @@ fn original_volume_validation_first_refusal_is_stable_for_sixty_four_orders() {
             let error = if kind == "selection" {
                 descriptor.validate().unwrap_err()
             } else {
-                attach(&mut descriptor, &Value::Object(context)).unwrap_err()
+                attach(&mut descriptor, &Value::Object(context.clone())).unwrap_err()
             };
             println!(
                 "GOMAD_CORE_OBSERVATION {}",
                 json!({"schema":"gomad.core-predicate-observation/v1",
                 "case":"storage-validation-volume-order","inputs":{"kind":kind,"iteration":iteration,
-                "insertion_ids":ids,"descriptor":descriptor},"observed":{"refusal":error.to_string()}})
+                "insertion_ids":ids,"descriptor":descriptor,"context":context},"observed":{"refusal":error.to_string()}})
             );
             assert_eq!(
                 error.to_string(),
