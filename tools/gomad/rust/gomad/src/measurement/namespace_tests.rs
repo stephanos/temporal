@@ -3,7 +3,7 @@ use super::*;
 
 fn raw() -> NativeRun {
     NativeRun {
-        request: json!({"kind":"standalone","guest":{"module_sha256":identity().target_sha256.iter().map(|byte|format!("{byte:02x}")).collect::<String>(),"model":{"configuration":{"seed":0}},"namespace":{"entries":[]}}}),
+        request: json!({"kind":"standalone","guest":{"module_sha256":super::super::workloads::hex(&identity().target_sha256),"model":{"configuration":{"seed":0}},"namespace":{"entries":[]}}}),
         report: json!({"linked_implementation_sha256":"b".repeat(64),"host_sha256":"d".repeat(64),"host_implementation_sha256":"e".repeat(64),"authorization_to_terminal_nanos":100,"diagnostic_only":true,"features":["diagnostic-profile"],"configuration":format!("{}-diagnostic-profile",gomad_wasmhost::linked::CONFIGURATION),"host_os":"linux","host_arch":"x86_64"}),
         profile: json!({"owners":{"namespace":{"count":1}},"abi_ops":{"wasi_snapshot_preview1.fd_read":{"served_by":{"namespace":1}}}}),
         root: NativeExecution {
@@ -35,7 +35,7 @@ fn common() -> Common {
             })
             .collect(),
         environment_identity: "environment".into(),
-        runtime_identity: identity().toolchain_build_key.clone(),
+        runtime_identity: identity().toolchain_build_key,
         choice_identity: identity(),
         current_module_producer_sha256: "c".repeat(64),
         native_role: VariantRole::DiagnosticProfile,
@@ -71,14 +71,14 @@ fn actual_counter_envelope_requires_implementation_store_and_positive_native_att
         match mutation {
             0 => {
                 changed.report["native_namespace_counter"]["implementation_sha256"] =
-                    "d".repeat(64).into()
+                    "d".repeat(64).into();
             }
             1 => changed.report["native_namespace_counter"]["fresh_store_id"] = 2.into(),
             2 => changed.report["native_namespace_counter"]["namespace_calls"] = 2.into(),
             3 => changed.profile["owners"]["namespace"]["count"] = 0.into(),
             4 => {
                 changed.profile["abi_ops"]["wasi_snapshot_preview1.fd_read"]["served_by"]["namespace"] =
-                    0.into()
+                    0.into();
             }
             5 => {
                 changed.report["native_namespace_counter"]
@@ -88,11 +88,11 @@ fn actual_counter_envelope_requires_implementation_store_and_positive_native_att
             }
             6 => {
                 changed.report["native_namespace_counter"]["counter_domain"] =
-                    "completed filesystem calls".into()
+                    "completed filesystem calls".into();
             }
             _ => {
                 changed.report["native_namespace_counter"]["namespace_boundary"] =
-                    "unbound boundary".into()
+                    "unbound boundary".into();
             }
         }
         assert!(counter(&changed, 1).is_err(), "mutation {mutation}");

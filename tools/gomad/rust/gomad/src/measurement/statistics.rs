@@ -48,7 +48,7 @@ pub fn recommendation(
 pub fn reap_consistent(observed_wall_nanos: u64, recorded_monotonic_nanos: u64) -> bool {
     observed_wall_nanos > 0
         && recorded_monotonic_nanos > 0
-        && recorded_monotonic_nanos <= i64::MAX as u64
+        && i64::try_from(recorded_monotonic_nanos).is_ok()
         && observed_wall_nanos.abs_diff(recorded_monotonic_nanos)
             <= 10_000.max(recorded_monotonic_nanos / 1000)
 }

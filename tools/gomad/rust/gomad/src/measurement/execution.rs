@@ -27,8 +27,8 @@ struct Guest {
     model: Option<Model>,
     namespace: Option<linked::NamespaceImage>,
     storage: Option<linked::StorageInput>,
-    #[serde(default)]
-    guest_profile: Option<Sampling>,
+    #[serde(default, rename = "guest_profile")]
+    sampling: Option<Sampling>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -41,7 +41,7 @@ impl Guest {
         self,
         root: &Path,
         index: usize,
-        handle: Value,
+        handle: &Value,
         modules: &mut Vec<Value>,
     ) -> Result<linked::Request, String> {
         let module = std::fs::read(&self.module).map_err(|error| error.to_string())?;
@@ -184,7 +184,7 @@ pub fn run(input: &Path, root: &Path) -> Result<(), String> {
         .mode(0o700)
         .create(root)
         .map_err(|error| error.to_string())?;
-    execute(raw, request, root)
+    execute(&raw, request, root)
 }
 
 /// # Errors
@@ -234,13 +234,17 @@ pub fn run_retained_command(
     let rerun = json!({"requested_root":requested_root,"input":input,
         "command":command});
     let result =
-        write(&output.join("rerun.json"), &rerun).and_then(|()| execute(raw, request, &output));
+        write(&output.join("rerun.json"), &rerun).and_then(|()| execute(&raw, request, &output));
     let finish = retained.finish(result.is_ok(), &|| false);
     super::combine(result, finish).map(|()| output)
 }
 
-fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
-    write_raw(&root.join("request.json"), &raw)?;
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep standalone and cluster execution retention and diagnostic reporting in the same transaction."
+)]
+fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
+    write_raw(&root.join("request.json"), raw)?;
     let mut modules = Vec::new();
     let mut retained_incarnations = 0usize;
     let mut authorization_to_terminal_nanos = None;
@@ -253,7 +257,7 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
             network,
             compile_cache,
         } => {
-            let sampling = guest.guest_profile.take();
+            let sampling = guest.sampling.take();
             if sampling.as_ref().is_some_and(|sampling| {
                 !(1..=1_000_000).contains(&sampling.interval_micros)
                     || !(1..=100_000).contains(&sampling.max_samples)
@@ -264,7 +268,7 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
             if sampling.is_some() {
                 return Err("guest sampling requires the actual helper-guest-profile role".into());
             }
-            let request = guest.request(root, 0, Value::Null, &mut modules)?;
+            let request = guest.request(root, 0, &Value::Null, &mut modules)?;
             write(&root.join("rootmodules.json"), &modules)?;
             let timeout = request.limits.wall_timeout;
             let (result, profile) = capture(|| {
@@ -311,16 +315,17 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
                 }
                 retain(root, execution)?;
             }
+            #[cfg(feature = "helper-guest-profile")]
+            let result = result.and_then(|execution| {
+                if let Some(error) = &execution.guest_profile_error {
+                    return Err(format!(
+                        "guest profile finalization failed after terminal retention: {error}"
+                    ));
+                }
+                Ok(execution)
+            });
             (
-                result.and_then(|execution| {
-                    #[cfg(feature = "helper-guest-profile")]
-                    if let Some(error) = execution.guest_profile_error {
-                        return Err(format!(
-                            "guest profile finalization failed after terminal retention: {error}"
-                        ));
-                    }
-                    Ok(json!({"termination":execution.outcome.termination}))
-                }),
+                result.map(|execution| json!({"termination":execution.outcome.termination})),
                 profile,
             )
         }
@@ -352,10 +357,10 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
                         Ok(linked_cluster::Incarnation {
                             handle: incarnation.handle,
                             request: {
-                                if incarnation.guest.guest_profile.is_some() {
+                                if incarnation.guest.sampling.is_some() {
                                     return Err("cluster guest sampling requires a per-incarnation sampling producer".into());
                                 }
-                                incarnation.guest.request(root,index,handle,&mut modules)?
+                                incarnation.guest.request(root,index,&handle,&mut modules)?
                             },
                             network: incarnation.network,
                         })
@@ -429,7 +434,7 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
             "fresh_store_id":std::process::id(),"terminal_to_return_nanos":nanos,
             "clock":"monotonic","scope":"validated-native-terminal-to-linked-return"})),
         "native_namespace_counter":namespace_counter,
-        "request_sha256":canonical::digest(&raw), "host_sha256":canonical::digest(&binary),
+        "request_sha256":canonical::digest(raw), "host_sha256":canonical::digest(&binary),
         "linked_implementation_sha256":linked::IMPLEMENTATION_SHA256,
         "host_implementation_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),
         "configuration":linked::Conditions::compiled().configuration(), "features":crate::measurement::features(),
@@ -444,6 +449,13 @@ fn execute(raw: Vec<u8>, request: Input, root: &Path) -> Result<(), String> {
     result.map(|_| ())
 }
 
+#[cfg_attr(
+    not(feature = "helper-diagnostic-profile"),
+    expect(
+        clippy::unnecessary_wraps,
+        reason = "Keep diagnostic and ordinary capture call sites identical; diagnostic capture can fail."
+    )
+)]
 fn capture<T>(run: impl FnOnce() -> T) -> Result<(T, Option<Value>), String> {
     #[cfg(feature = "helper-diagnostic-profile")]
     {

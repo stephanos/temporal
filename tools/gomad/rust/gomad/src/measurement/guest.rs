@@ -280,12 +280,12 @@ mod tests {
         let raw = std::str::from_utf8(PROFILE).unwrap();
         for (label, before, after) in [
             ("sample length", r#""length":4"#, r#""length":3"#),
-            ("weight length", r#"[3,2,5,7]"#, r#"[3,2,5]"#),
-            ("negative weight", r#"[3,2,5,7]"#, r#"[-3,2,5,7]"#),
+            ("weight length", r"[3,2,5,7]", r"[3,2,5]"),
+            ("negative weight", r"[3,2,5,7]", r"[-3,2,5,7]"),
             (
                 "weight overflow",
-                r#"[3,2,5,7]"#,
-                r#"[9223372036854775807,9223372036854775807,5,7]"#,
+                r"[3,2,5,7]",
+                r"[9223372036854775807,9223372036854775807,5,7]",
             ),
             (
                 "allocation weight",

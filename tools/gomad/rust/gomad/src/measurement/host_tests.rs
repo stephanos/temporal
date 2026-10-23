@@ -47,7 +47,10 @@ fn diagnostic_performance_host_any_native_policy() {
             "oversized witness",
             "linux",
             "arm64",
-            format!("{ARM}{}", "\n".repeat(CPUINFO_LIMIT as usize)),
+            format!(
+                "{ARM}{}",
+                "\n".repeat(usize::try_from(CPUINFO_LIMIT).unwrap())
+            ),
             false,
         ),
     ] {
@@ -84,7 +87,7 @@ fn diagnostic_performance_host_any_native_policy() {
                 2 => changed.kernel_version.clear(),
                 3 => changed.translation = "1".into(),
                 _ => changed.cpuinfo.clear(),
-            };
+            }
             assert!(
                 !host_check(os, arch, &changed),
                 "{os}/{arch} mutation{mutation}"
@@ -105,7 +108,10 @@ fn diagnostic_performance_host_evidence_bounds() {
     fs::create_dir(&root).unwrap();
     let path = root.join("cpuinfo");
     for size in [CPUINFO_LIMIT, CPUINFO_LIMIT + 1] {
-        let bytes = format!("{ARM}{}", "\n".repeat(size as usize - ARM.len()));
+        let bytes = format!(
+            "{ARM}{}",
+            "\n".repeat(usize::try_from(size).unwrap() - ARM.len())
+        );
         fs::write(&path, &bytes).unwrap();
         let (observed, admitted) = performance_host_evidence(&path, "linux", "arm64");
         if size == CPUINFO_LIMIT {
@@ -135,7 +141,7 @@ fn actual_current_host_evidence_binds_engine_architecture() {
         .map(|(key, value)| format!("{key}={value}"))
         .collect::<Vec<_>>();
     let result = current(&root, &environ).unwrap();
-    assert!(!result.boot_id.is_empty());
+    assert_ne!(result.boot_id, "");
     assert!(host_check(
         std::env::consts::OS,
         std::env::consts::ARCH,

@@ -1,4 +1,5 @@
 use super::*;
+use sha2::Digest;
 use std::os::unix::fs::PermissionsExt;
 struct Temporary(PathBuf);
 impl Temporary {
@@ -216,18 +217,17 @@ fn prototype_temporal_configuration_preserves_complete_capture() {
         actual["WritableDirectories"],
         json!(["/workspace", "/tmp", "/workspace/tests"])
     );
-    use sha2::Digest;
     assert_eq!(
         actual["EntropyKey"],
         json!(sha2::Sha256::digest(b"gomad-wasm-prototype/v1").to_vec())
     );
     assert_eq!(
         actual["Clock"],
-        json!({"EpochNanos":946684800000000000_u64,"ReadStepNanos":0})
+        json!({"EpochNanos":946_684_800_000_000_000_u64,"ReadStepNanos":0})
     );
     assert_eq!(
         actual["Limits"],
-        json!({"OutputBytes":256<<20,"TranscriptBytes":1<<30,"Calls":1<<28,"Descriptors":4096,"Files":100000,"FilesystemBytes":512<<20,"PendingEvents":4096})
+        json!({"OutputBytes":256<<20,"TranscriptBytes":1<<30,"Calls":1<<28,"Descriptors":4096,"Files":100_000,"FilesystemBytes":512<<20,"PendingEvents":4096})
     );
     let captured = &actual["CapturedInputs"];
     let descriptor =
@@ -318,7 +318,7 @@ fn runtime_configuration_preserves_original_request_without_widening() {
     assert_eq!(config["EntropyKey"], json!(entropy));
     assert_eq!(
         config["Clock"],
-        json!({"EpochNanos":946684800000000000_u64,"ReadStepNanos":0})
+        json!({"EpochNanos":946_684_800_000_000_000_u64,"ReadStepNanos":0})
     );
     assert_eq!(
         config["Limits"],

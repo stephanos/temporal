@@ -32,7 +32,7 @@ fn flags_and_commands_are_derived_from_inputs() {
     }
     let values = BTreeMap::from([
         ("GOMAD_WASM_PROFILE_ROOT".into(), "/root".into()),
-        ("GOMAD_STOCK_GO".into(), "".into()),
+        ("GOMAD_STOCK_GO".into(), String::new()),
         ("PATH".into(), "/bin".into()),
     ]);
     assert_eq!(

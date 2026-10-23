@@ -59,12 +59,7 @@ fn validate_common(common: &Common) -> Result<(), String> {
     {
         return Err("namespace collection requires four immutable prepared seed requests and source/runtime bindings".into());
     }
-    let target: String = common
-        .choice_identity
-        .target_sha256
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let target = super::workloads::hex(&common.choice_identity.target_sha256);
     let mut immutable = None;
     for (seed, request) in &common.requests {
         if request["guest"]["module_sha256"] != target
@@ -93,7 +88,7 @@ fn normalize_seed_request(request: &Value, seed: u64) -> Result<Value, String> {
         let entries = environment
             .as_array_mut()
             .ok_or("namespace environment must be explicit strings")?;
-        let mut seen = false;
+        let mut seed_present = false;
         let mut original_bytes = 0usize;
         for entry in entries.iter_mut() {
             let value = entry
@@ -103,10 +98,10 @@ fn normalize_seed_request(request: &Value, seed: u64) -> Result<Value, String> {
                 .checked_add(value.len() + 1)
                 .ok_or("namespace environment size overflow")?;
             if let Some(value) = value.strip_prefix("GOMADSEED=") {
-                if seen || value != seed.to_string() {
+                if seed_present || value != seed.to_string() {
                     return Err("namespace derived seed environment mismatch".into());
                 }
-                seen = true;
+                seed_present = true;
                 *entry = "GOMADSEED=0".into();
             }
         }
@@ -330,15 +325,13 @@ pub fn collect(
             if let Some(first) = samples
                 .iter()
                 .find(|prior: &&NamespaceSample| prior.seed == seed)
-            {
-                if row.evidence_sha256 != first.evidence_sha256
+                && (row.evidence_sha256 != first.evidence_sha256
                     || row.calls != first.calls
-                    || row.time_advances != first.time_advances
-                {
-                    return Err(
-                        "namespace repetition changed canonical evidence or model counts".into(),
-                    );
-                }
+                    || row.time_advances != first.time_advances)
+            {
+                return Err(
+                    "namespace repetition changed canonical evidence or model counts".into(),
+                );
             }
             samples.push(row);
             observations.push(observation);
@@ -352,6 +345,8 @@ pub fn collect(
     })
 }
 
+/// # Errors
+/// Refuses series with changed immutable bindings, invalid samples or failed comparison gates.
 pub fn compare(before: &Series, after: &Series) -> Result<(), String> {
     validate_common(&before.common)?;
     validate_common(&after.common)?;

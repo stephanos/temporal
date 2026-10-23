@@ -17,6 +17,8 @@ pub struct Adapter {
     pub replacement_sha256: String,
     pub source: Vec<u8>,
 }
+/// # Errors
+/// Refuses unsupported dependency identities, source digests or replacement bytes.
 pub fn prepare(dependency: &Dependency<'_>, source: &[u8]) -> Result<Adapter, String> {
     if dependency.path != "github.com/ncruces/go-sqlite3"
         || dependency.version != "v0.35.6"

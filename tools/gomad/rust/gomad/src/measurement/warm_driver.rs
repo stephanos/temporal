@@ -51,6 +51,7 @@ fn crc32_update(mut crc: u32, bytes: &[u8]) -> u32 {
     crc
 }
 fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64, Value), String> {
+    use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
     let mut found = None;
     for entry in fs::read_dir(directory).map_err(|e| e.to_string())? {
         let path = entry.map_err(|e| e.to_string())?.path();
@@ -61,7 +62,6 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
         if !metadata.is_file() {
             return Err("warm cache entry must be a regular private file".into());
         }
-        use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
         let mut file = fs::OpenOptions::new()
             .read(true)
             .custom_flags(
@@ -83,7 +83,7 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
         if &header[..8] != b"GOMADC03" {
             return Err("warm cache envelope version mismatch".into());
         }
-        let manifest_bytes = u32::from_le_bytes(header[8..12].try_into().unwrap()) as u64;
+        let manifest_bytes = u64::from(u32::from_le_bytes(header[8..12].try_into().unwrap()));
         let artifact_bytes = u64::from_le_bytes(header[12..20].try_into().unwrap());
         if manifest_bytes > 16 * 1024
             || artifact_bytes == 0
@@ -92,7 +92,7 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
         {
             return Err("warm cache envelope size mismatch".into());
         }
-        let mut raw = vec![0; manifest_bytes as usize];
+        let mut raw = vec![0; usize::try_from(manifest_bytes).map_err(|error| error.to_string())?];
         file.read_exact(&mut raw).map_err(|e| e.to_string())?;
         let manifest: Value = crate::qualify::spec::strict(&raw)?;
         if path.file_name().and_then(|name| name.to_str())
@@ -141,6 +141,12 @@ fn cache_sizes(directory: &Path, module: &str, helper: &str) -> Result<(u64, u64
     found.ok_or_else(|| "actual warm serialized artifact not retained".into())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the full warm and terminal measurement sequence together."
+)]
+/// # Errors
+/// Returns errors admitting inputs, executing the warm measurement sequence or retaining its evidence.
 pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let terminal = call.name == "terminal-exit";
     for key in if terminal {
@@ -187,7 +193,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         role: expected,
         receipt: Some(helper_receipt.into()),
     };
-    let prepared = module::prepare(proof, call, &root.join("module"), Selection::Workflow)?;
+    let prepared = module::prepare(proof, call, &root.join("module"), &Selection::Workflow)?;
     module::authenticate_prepared(&prepared)?;
     let (module_key, receipt_key) = if terminal {
         (
@@ -229,7 +235,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     let module_sha = canonical::digest(&prepared.guest.module);
     let mut row = RunSpec::new("prime", WORKFLOW, 0, "diagnostic");
     row.warm = false;
-    let prime = workloads::execute(call, proof, root, &row, &executable, input.clone())?;
+    let prime = workloads::execute(call, proof, root, &row, &executable, &input)?;
     if prime.root.outcome["termination"] != "exit" || prime.root.outcome["exit_code"] != 0 {
         return Err("native priming workload did not exit successfully".into());
     }
@@ -243,7 +249,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                 root,
                 &row,
                 &executable,
-                input.clone(),
+                &input,
             )?);
         }
         for run in &observations {
@@ -329,7 +335,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
             return primed.take().ok_or_else(|| "warmup consumed twice".into());
         }
         row.name = format!("warm-{index}");
-        workloads::execute(call, proof, root, &row, &executable, input.clone())
+        workloads::execute(call, proof, root, &row, &executable, &input)
     })?;
     let path = root.join(if call.name == "warm-preparation-prime" {
         "warm-prime.json"

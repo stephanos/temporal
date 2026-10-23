@@ -38,6 +38,7 @@ fn os(value: &str) -> &str {
         other => other,
     }
 }
+#[must_use]
 pub fn architecture(value: &str) -> &str {
     match value.trim() {
         "arm64" | "aarch64" => "aarch64",
@@ -45,6 +46,7 @@ pub fn architecture(value: &str) -> &str {
         other => other,
     }
 }
+#[must_use]
 pub fn performance_host(host_os: &str, host_arch: &str, cpuinfo: &str) -> bool {
     if cpuinfo.is_empty() || cpuinfo.len() as u64 > CPUINFO_LIMIT {
         return false;
@@ -74,6 +76,7 @@ pub fn performance_host(host_os: &str, host_arch: &str, cpuinfo: &str) -> bool {
         _ => false,
     }
 }
+#[must_use]
 pub fn host_check(host_os: &str, host_arch: &str, witness: &HostWitness) -> bool {
     if witness.kernel_version.is_empty()
         || witness.cpuinfo.is_empty()
@@ -112,6 +115,7 @@ fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     }
     Ok(bytes)
 }
+#[must_use]
 pub fn performance_host_evidence(path: &Path, host_os: &str, host_arch: &str) -> (String, bool) {
     let Ok(bytes) = read(path, CPUINFO_LIMIT) else {
         return (String::new(), false);
@@ -173,6 +177,8 @@ fn save(
     inputs.insert(path, canonical::digest(bytes));
     Ok(())
 }
+/// # Errors
+/// Returns errors collecting and retaining the current host identity and witness.
 pub fn current(root: &Path, environ: &[String]) -> Result<HostEvidence, String> {
     if !root.is_absolute() {
         return Err("absolute host evidence root required".into());
@@ -260,6 +266,8 @@ pub struct SourceSnapshot {
     pub status: String,
     pub source_inputs: BTreeMap<PathBuf, String>,
 }
+/// # Errors
+/// Returns errors collecting the checkout, toolchain and host source bindings.
 pub fn source_snapshot(
     proof: &CheckoutProof,
     root: &Path,
@@ -333,6 +341,8 @@ fn memory_decimal(value: &str) -> Result<u64, String> {
         .map_err(|error: std::num::ParseIntError| error.to_string())
 }
 
+/// # Errors
+/// Refuses missing, malformed, duplicate or overflowing available-memory values.
 pub fn linux_available_memory(raw: &str) -> Result<u64, String> {
     let mut available = None;
     for line in raw.lines() {
@@ -358,6 +368,8 @@ pub fn linux_available_memory(raw: &str) -> Result<u64, String> {
     }
     available.ok_or_else(|| "MemAvailable host witness required".into())
 }
+/// # Errors
+/// Refuses missing, malformed, duplicate or overflowing available-page values.
 pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
     let (header, rest) = raw.split_once('\n').ok_or("vm_stat header required")?;
     let page_size = memory_decimal(
@@ -373,16 +385,14 @@ pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
     for line in rest.lines() {
         if let Some((key, value)) = line.split_once(':')
             && matches!(key, "Pages free" | "Pages inactive")
-        {
-            if values
+            && values
                 .insert(
                     key,
                     memory_decimal(value.trim().strip_suffix('.').unwrap_or(value.trim()))?,
                 )
                 .is_some()
-            {
-                return Err("unique vm_stat available page counts required".into());
-            }
+        {
+            return Err("unique vm_stat available page counts required".into());
         }
     }
     if values.len() != 2 {
@@ -393,6 +403,8 @@ pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
         .and_then(|pages| pages.checked_mul(page_size))
         .ok_or_else(|| "vm_stat available memory overflow".into())
 }
+/// # Errors
+/// Refuses unsupported preparation modes, insufficient memory or unavailable host evidence.
 pub fn admit_preparation(
     root: &Path,
     label: &str,

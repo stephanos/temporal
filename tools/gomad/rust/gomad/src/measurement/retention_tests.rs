@@ -1,4 +1,5 @@
 use super::*;
+use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::symlink;
 
 struct Scratch(PathBuf);
@@ -144,7 +145,6 @@ fn pins_hold_input_identity_and_release_dependencies_transitively() {
     assert!(input_path.exists());
     assert!(middle_path.exists());
     let input_pin = std::fs::metadata(input_path.join(".pin")).unwrap();
-    use std::os::unix::fs::MetadataExt;
     assert_eq!(input_pin.nlink(), 2);
     scratch
         .begin("matched", false)

@@ -85,7 +85,7 @@ fn guest_variant_rotation_preserves_five_measured_samples_per_seed() {
                     assert_eq!(
                         row.variant,
                         ["baseline", "gc200", "gc400", "gc-off", "gowasm", "fuel-off"]
-                            [1 + (slot - 1 + repetition as usize) % 5]
+                            [1 + (slot - 1 + usize::try_from(repetition).unwrap()) % 5]
                     );
                 }
             }
@@ -97,7 +97,7 @@ fn profile_sampling_and_host_owner_warmup_are_explicit() {
     let rows = plan(&call("guest-profile")).unwrap();
     assert_eq!(rows.iter().filter(|row| row.sampling).count(), 6);
     assert!(rows[0].prepare);
-    for pair in rows[1..].chunks_exact(2) {
+    for pair in rows[1..].as_chunks::<2>().0 {
         assert!(!pair[0].sampling);
         assert!(pair[1].sampling);
         assert_eq!(pair[1].compare_to.as_deref(), Some(pair[0].name.as_str()));

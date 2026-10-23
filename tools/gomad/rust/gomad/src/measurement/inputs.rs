@@ -13,17 +13,20 @@ pub struct Input {
     pub required: bool,
 }
 
+#[must_use]
 pub fn names() -> Vec<&'static str> {
     let mut result: Vec<_> = PRODUCERS.iter().map(|(name, _)| *name).collect();
     result.sort_unstable();
     result
 }
+#[must_use]
 pub fn inputs(name: &str) -> Option<&'static [Input]> {
     PRODUCERS
         .iter()
         .find(|(candidate, _)| *candidate == name)
         .map(|(_, inputs)| *inputs)
 }
+#[must_use]
 pub fn flag(variable: &str) -> String {
     if variable == "GOMAD_WASM_DIAGNOSTIC_HELPER_FEATURES" {
         return "features".into();
@@ -34,6 +37,7 @@ pub fn flag(variable: &str) -> String {
         .to_lowercase()
         .replace('_', "-")
 }
+#[must_use]
 pub fn command(
     executable: &str,
     repo: &str,
@@ -48,6 +52,7 @@ pub fn command(
     }
     result
 }
+#[must_use]
 pub fn environment(values: &BTreeMap<String, String>) -> BTreeMap<String, String> {
     values
         .iter()
@@ -55,6 +60,7 @@ pub fn environment(values: &BTreeMap<String, String>) -> BTreeMap<String, String
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect()
 }
+#[must_use]
 pub fn shell(command: &[String]) -> String {
     command
         .iter()
@@ -84,6 +90,7 @@ pub struct RerunRecord {
     pub environment: BTreeMap<String, String>,
     pub command: RerunCommand,
 }
+#[must_use]
 pub fn rerun_record(
     executable: &str,
     repo: &str,
@@ -131,6 +138,11 @@ fn status(output: &mut dyn Write, code: i32, message: &str) -> i32 {
         code
     }
 }
+/// # Errors
+/// Returns an error if writing usage to the output fails.
+///
+/// # Panics
+/// Panics if the producer registry returns a name without its input specification.
 pub fn usage(output: &mut dyn Write) -> std::io::Result<()> {
     writeln!(
         output,
@@ -149,6 +161,12 @@ pub fn usage(output: &mut dyn Write) -> std::io::Result<()> {
     Ok(())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep CLI parsing and validation precedence together."
+)]
+/// # Panics
+/// Panics if a validated producer flag has no matching input specification.
 pub fn run<F>(
     args: &[String],
     environ: &[String],
@@ -327,6 +345,7 @@ pub struct CheckoutProof {
     repo: PathBuf,
 }
 impl CheckoutProof {
+    #[must_use]
     pub fn repo(&self) -> &Path {
         &self.repo
     }
@@ -336,6 +355,8 @@ pub(super) fn fixture_checkout(repo: PathBuf) -> CheckoutProof {
     CheckoutProof { repo }
 }
 
+/// # Errors
+/// Refuses a checkout with a different executor source identity or source closure.
 pub fn authenticate_checkout(repo: &Path) -> Result<CheckoutProof, String> {
     let compiled = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/measurement/inputs.rs");
     let selected = repo.join("tools/gomad/rust/gomad/src/measurement/inputs.rs");
@@ -392,6 +413,8 @@ fn rust_sources(
     }
     Ok(())
 }
+/// # Errors
+/// Refuses malformed manifests, unreadable sources, or changed source membership or bytes.
 pub fn authenticate_source_closure(root: &Path, manifest: &str) -> Result<(), String> {
     let mut expected = std::collections::BTreeSet::new();
     let mut listed = std::collections::BTreeSet::new();
@@ -413,7 +436,7 @@ pub fn authenticate_source_closure(root: &Path, manifest: &str) -> Result<(), St
         if crate::evidence::canonical::digest(&bytes) != digest {
             return Err(format!("native measurement source closure changed: {name}"));
         }
-        if name.starts_with("src/") && name.ends_with(".rs") {
+        if name.starts_with("src/") && name.as_bytes().ends_with(b".rs") {
             expected.insert(name.to_string());
         }
     }

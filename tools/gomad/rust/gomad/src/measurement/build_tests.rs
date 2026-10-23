@@ -1,4 +1,5 @@
 use super::*;
+use std::os::unix::fs::MetadataExt;
 struct Temporary(PathBuf);
 impl Temporary {
     fn new() -> Self {
@@ -16,8 +17,8 @@ fn features(values: &[&str]) -> Vec<String> {
 fn cargo_frame(actual: &[String], opt: &str, debug: bool) -> serde_json::Value {
     serde_json::json!({"reason":"compiler-artifact","target":{"name":"gomad-measure","kind":["bin"]},"profile":{"opt_level":opt,"debug_assertions":debug},"executable":"/release/gomad-measure","features":actual})
 }
-fn stream(frame: serde_json::Value, finished: Option<bool>) -> Vec<u8> {
-    let mut bytes = serde_json::to_vec(&frame).unwrap();
+fn stream(frame: &serde_json::Value, finished: Option<bool>) -> Vec<u8> {
+    let mut bytes = serde_json::to_vec(frame).unwrap();
     if let Some(success) = finished {
         bytes.extend(
             serde_json::to_vec(&serde_json::json!({"reason":"build-finished","success":success}))
@@ -32,23 +33,23 @@ fn terminal_exit_cargo_artifact_controls() {
     let mut missing = release.clone();
     missing.as_object_mut().unwrap().remove("features");
     for (label, data, valid) in [
-        ("release", stream(release.clone(), Some(true)), true),
+        ("release", stream(&release, Some(true)), true),
         (
             "debug-build",
-            stream(cargo_frame(&[], "0", true), Some(true)),
+            stream(&cargo_frame(&[], "0", true), Some(true)),
             false,
         ),
         (
             "diagnostic-feature",
             stream(
-                cargo_frame(&features(&["helper-diagnostic-profile"]), "3", false),
+                &cargo_frame(&features(&["helper-diagnostic-profile"]), "3", false),
                 Some(true),
             ),
             false,
         ),
-        ("missing-features", stream(missing, Some(true)), false),
-        ("failed-build", stream(release.clone(), Some(false)), false),
-        ("missing-finish", stream(release.clone(), None), false),
+        ("missing-features", stream(&missing, Some(true)), false),
+        ("failed-build", stream(&release, Some(false)), false),
+        ("missing-finish", stream(&release, None), false),
         (
             "missing-helper",
             serde_json::to_vec(&serde_json::json!({"reason":"build-finished","success":true}))
@@ -59,8 +60,8 @@ fn terminal_exit_cargo_artifact_controls() {
         (
             "duplicate",
             {
-                let mut data = stream(release.clone(), None);
-                data.extend(stream(release, Some(true)));
+                let mut data = stream(&release, None);
+                data.extend(stream(&release, Some(true)));
                 data
             },
             false,
@@ -90,7 +91,7 @@ fn diagnostic_admission_cargo_features() {
             (wanted[1..].to_vec(), false),
             (extra, false),
         ] {
-            let data = stream(cargo_frame(&actual, "3", false), Some(true));
+            let data = stream(&cargo_frame(&actual, "3", false), Some(true));
             assert_eq!(cargo_artifact(&data, &role).is_ok(), accepted, "{actual:?}");
             assert_eq!(
                 cargo_artifact(&data, &Role::Release).is_ok(),
@@ -104,7 +105,7 @@ fn warm_preparation_diagnostic_cargo_feature_controls() {
     assert!(
         cargo_artifact(
             &stream(
-                cargo_frame(&features(&["helper-diagnostic-profile"]), "3", false),
+                &cargo_frame(&features(&["helper-diagnostic-profile"]), "3", false),
                 Some(true)
             ),
             &Role::Warm
@@ -118,7 +119,7 @@ fn warm_preparation_diagnostic_cargo_feature_controls() {
     ] {
         assert!(
             cargo_artifact(
-                &stream(cargo_frame(&actual, "3", false), Some(true)),
+                &stream(&cargo_frame(&actual, "3", false), Some(true)),
                 &Role::Warm
             )
             .is_err()
@@ -214,7 +215,6 @@ fn terminal_exit_stages_hardlinked_cargo_helper() {
         fs::metadata(&helper).unwrap().permissions().mode() & 0o777,
         0o755
     );
-    use std::os::unix::fs::MetadataExt;
     assert_ne!(
         fs::metadata(&helper).unwrap().ino(),
         fs::metadata(&artifact).unwrap().ino()
@@ -378,7 +378,7 @@ fn identity_role_features_source_and_executable_are_bound() {
             4 => changed.host_implementation_sha256.clear(),
             5 => changed.linked_implementation_sha256.clear(),
             _ => changed.schema = "foreign/v1".into(),
-        };
+        }
         assert!(validate_identity(&changed, &role, &"e".repeat(64)).is_err());
     }
 }
@@ -401,6 +401,10 @@ fn duplicate_compiler_environment_json_is_refused() {
     );
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the bounded command or admission transaction and its refusal order together."
+)]
 fn synthetic_receipts(
     root: &Path,
     role: Role,
@@ -457,7 +461,7 @@ fn synthetic_receipts(
     artifact_frame["executable"] = serde_json::to_value(&artifact).unwrap();
     fs::write(
         build.join("cargo-build.stdout"),
-        stream(artifact_frame, Some(true)),
+        stream(&artifact_frame, Some(true)),
     )
     .unwrap();
     let mut raw_command = command.clone();
@@ -598,7 +602,7 @@ fn diagnostic_admission_helper_evidence_full_mutation_matrix() {
                     "diagnostic-profile",
                     "guest-profile",
                     "unexpected",
-                ]))
+                ]));
             }
             _ => {}
         }
@@ -659,10 +663,10 @@ fn native_admission_refusal_order_and_binding_variants() {
             "wrong-admission-identity" => admission.identity.role = "ordinary".into(),
             "linked-helper" => fs::hard_link(&helper, temp.0.join("helper-alias")).unwrap(),
             "helper-mode" => {
-                fs::set_permissions(&helper, fs::Permissions::from_mode(0o700)).unwrap()
+                fs::set_permissions(&helper, fs::Permissions::from_mode(0o700)).unwrap();
             }
             "new-source" => {
-                fs::write(receipt.crate_root.join("src/injected.rs"), b"additional").unwrap()
+                fs::write(receipt.crate_root.join("src/injected.rs"), b"additional").unwrap();
             }
             "source-and-artifact" => {
                 fs::write(receipt.crate_root.join("src/lib.rs"), b"source tampered").unwrap();
@@ -671,7 +675,7 @@ fn native_admission_refusal_order_and_binding_variants() {
             "raw-cargo-features" => {
                 let target = Path::new(&receipt.environment["CARGO_TARGET_DIR"]);
                 let raw = target.parent().unwrap().join("cargo-build.stdout");
-                fs::write(raw, stream(cargo_frame(&[], "3", false), Some(true))).unwrap();
+                fs::write(raw, stream(&cargo_frame(&[], "3", false), Some(true))).unwrap();
             }
             _ => {}
         }

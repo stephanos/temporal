@@ -61,6 +61,8 @@ impl ChildLease {
 }
 
 impl RetainedRun {
+    /// # Errors
+    /// Refuses invalid scratch ownership or active inputs and returns filesystem or cancellation errors.
     pub fn begin(
         requested_root: &Path,
         producer: &str,
@@ -122,10 +124,13 @@ impl RetainedRun {
         Ok(run)
     }
 
+    #[must_use]
     pub fn path(&self) -> &Path {
         &self.path
     }
 
+    /// # Errors
+    /// Returns errors publishing retained evidence, checking cancellation or releasing input pins.
     pub fn finish(mut self, success: bool, cancelled: &dyn Fn() -> bool) -> Result<(), String> {
         let published = if success {
             self.publish(cancelled)
@@ -483,7 +488,7 @@ fn sync_tree(root: &File, cancelled: &dyn Fn() -> bool) -> Result<(), String> {
         let info = fs::statat(root, &name, AtFlags::SYMLINK_NOFOLLOW)
             .map_err(|error| error.to_string())?;
         match FileType::from_raw_mode(info.st_mode) {
-            FileType::Symlink => continue,
+            FileType::Symlink => {}
             FileType::Directory => sync_tree(&open(root, &name, true)?, cancelled)?,
             FileType::RegularFile => open(root, &name, false)?
                 .sync_all()

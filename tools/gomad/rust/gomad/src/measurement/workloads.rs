@@ -19,7 +19,7 @@ use std::{
 };
 const WORKFLOW: &str = "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$";
 const ACTIVITY: &str = "^TestActivityTestSuite$";
-const SEEDS: [u64; 3] = [0, 1000003, 2000006];
+const SEEDS: [u64; 3] = [0, 1_000_003, 2_000_006];
 #[derive(Clone, Debug, Serialize)]
 pub struct RunSpec {
     pub name: String,
@@ -92,6 +92,12 @@ fn pair(
     rows.push(after);
 }
 /// The execution order, including preparations and failure-tail labels, is producer-specific.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the complete workload matrix and evidence transaction in execution order."
+)]
+/// # Errors
+/// Refuses unsupported measurements, invalid repetition counts or selection inputs.
 pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
     let mut rows = Vec::new();
     match call.name.as_str() {
@@ -112,7 +118,8 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                 {
                     let name = format!("activity-seed{seed}-rep{repetition}");
                     let mut row = RunSpec::new(name, ACTIVITY, seed, "diagnostic");
-                    row.repetition = repetition as i32;
+                    row.repetition =
+                        i32::try_from(repetition).map_err(|error| error.to_string())?;
                     if repetition > 0 {
                         row.compare_to = Some(format!("activity-seed{seed}-rep0"));
                     }
@@ -150,7 +157,8 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                 let reference = format!("{label}-seed{seed}-reference");
                 rows.push(RunSpec::new(&reference, selection, seed, "reference"));
                 for repetition in
-                    -1..repetitions(call, "GOMAD_WASM_HOST_OWNER_REPETITIONS", 3)? as i32
+                    -1..i32::try_from(repetitions(call, "GOMAD_WASM_HOST_OWNER_REPETITIONS", 3)?)
+                        .map_err(|error| error.to_string())?
                 {
                     let mut row = RunSpec::new(
                         if repetition < 0 {
@@ -221,7 +229,8 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                             );
                             row.variant = variant.into();
                             row.gc = gc(variant).into();
-                            row.repetition = repetition as i32;
+                            row.repetition =
+                                i32::try_from(repetition).map_err(|error| error.to_string())?;
                             row.compare_to = Some(format!("{selection}-baseline-seed{seed}-rep0"));
                             if index == 0 && repetition == 0 {
                                 row.compare_to = None;
@@ -241,7 +250,7 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                 ("child", "^TestChildWorkflowSuite$"),
                 ("timers", "^TestUserTimersTestSuite$"),
             ] {
-                for seed in [0, 1000003] {
+                for seed in [0, 1_000_003] {
                     pair(
                         &mut rows,
                         &format!("{name}-seed{seed}"),
@@ -258,7 +267,7 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
             }
         }
         "legacy-workflow-profile" => {
-            for seed in [0, 1000003] {
+            for seed in [0, 1_000_003] {
                 rows.push(RunSpec::new(
                     format!("seed{seed}"),
                     WORKFLOW,
@@ -290,7 +299,7 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                     if !only.is_empty() && only != selection {
                         continue;
                     }
-                    for seed in [0, 1000003] {
+                    for seed in [0, 1_000_003] {
                         rows.push(RunSpec::new(
                             format!("{name}-{selection}-seed{seed}"),
                             run,
@@ -320,7 +329,7 @@ pub fn plan(call: &Invocation) -> Result<Vec<RunSpec>, String> {
                 for role in ["baseline", "candidate"] {
                     rows.push(prepare_row(&format!("{name}-prepare-{role}"), run, role));
                 }
-                for (sample, seed) in [0, 1000003, 2000006, 3000009].into_iter().enumerate() {
+                for (sample, seed) in [0, 1_000_003, 2_000_006, 3_000_009].into_iter().enumerate() {
                     let roles = if sample % 2 == 0 {
                         ["baseline", "candidate"]
                     } else {
@@ -406,7 +415,6 @@ fn role_kind(role: &Role) -> Result<VariantRole, String> {
     Ok(match role {
         Role::Stress => return Err("stress-jitter helper cannot serve profile comparisons".into()),
         Role::Release => VariantRole::Ordinary,
-        Role::Warm => VariantRole::DiagnosticProfile,
         Role::Diagnostic(features) if features.iter().any(|value| value == "guest-profile") => {
             VariantRole::GuestProfile
         }
@@ -415,7 +423,7 @@ fn role_kind(role: &Role) -> Result<VariantRole, String> {
         {
             VariantRole::DiagnosticFuelOff
         }
-        Role::Diagnostic(_) => VariantRole::DiagnosticProfile,
+        Role::Warm | Role::Diagnostic(_) => VariantRole::DiagnosticProfile,
     })
 }
 fn role_input(call: &Invocation, name: &str) -> Result<(PathBuf, Role, String), String> {
@@ -647,13 +655,13 @@ pub(super) fn execute(
     root: &Path,
     row: &RunSpec,
     role: &Executable,
-    input: Value,
+    input: &Value,
 ) -> Result<NativeRun, String> {
     role.verify(proof)?;
     let evidence_root = root.join("evidence");
     fs::create_dir_all(&evidence_root).map_err(|error| error.to_string())?;
     let input_path = evidence_root.join(format!("{}.input.json", row.name));
-    write(&input_path, &input)?;
+    write(&input_path, input)?;
     let output = evidence_root.join(&row.name);
     let environment = call
         .environ
@@ -878,21 +886,27 @@ fn retained_report(
 }
 
 /// Runs actual named single-guest measurement recipes, retaining every attempted native child.
+/// # Errors
+/// Returns execution, admission, validation or evidence-retention errors from the selected measurement.
 pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let result = run_inner(call, proof, root);
-    if let Err(error) = &result {
-        if root.is_dir() {
-            let report = write(
-                &root.join("failure-report.json"),
-                &json!({"schema":"gomad.native-measurement-failure/v1","producer":call.name,"error":error,"raw_attempts":root.join("evidence"),"completed":false}),
-            );
-            if let Err(retention) = report {
-                return Err(format!("{error}; retain failure report: {retention}"));
-            }
+    if let Err(error) = &result
+        && root.is_dir()
+    {
+        let report = write(
+            &root.join("failure-report.json"),
+            &json!({"schema":"gomad.native-measurement-failure/v1","producer":call.name,"error":error,"raw_attempts":root.join("evidence"),"completed":false}),
+        );
+        if let Err(retention) = report {
+            return Err(format!("{error}; retain failure report: {retention}"));
         }
     }
     result
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the complete workload matrix and evidence transaction in execution order."
+)]
 fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     if proof.repo() != call.repo || !root.is_absolute() {
         return Err("measurement selected-checkout proof and absolute output root required".into());
@@ -973,13 +987,13 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
     let mut modules: BTreeMap<String, module::Prepared> = BTreeMap::new();
     for row in &schedule {
         let key = selection_key(&row.selection, &row.variant);
-        if !modules.contains_key(&key) {
-            let directory = root.join("modules").join(&key);
+        if let std::collections::btree_map::Entry::Vacant(entry) = modules.entry(key) {
+            let directory = root.join("modules").join(entry.key());
             let prepared = module::prepare_variant(
                 proof,
                 call,
                 &directory,
-                selection(&row.selection),
+                &selection(&row.selection),
                 if row.variant == "gowasm" {
                     "satconv,signext"
                 } else {
@@ -987,7 +1001,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 },
             )?;
             check_supplied_module(call, &prepared)?;
-            modules.insert(key, prepared);
+            entry.insert(prepared);
         }
     }
     let mut variant_proofs = BTreeMap::new();
@@ -1045,7 +1059,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                     .ok_or("native cooperative execution identity absent")?,
             )?;
         }
-        let attempt = execute(call, proof, root, row, executable, input).and_then(|observed| {
+        let attempt = execute(call, proof, root, row, executable, &input).and_then(|observed| {
             success(&observed, row)?;
             if row.selection == "runtime" {
                 let stdout = observed
@@ -1073,7 +1087,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                         .ok_or("runtime choice identity absent")?,
                 )
                 .map_err(str::to_owned)?;
-                if counts.select_poll < 100000
+                if counts.select_poll < 100_000
                     || observed.root.outcome["metrics"]["execute_nanos"]
                         .as_u64()
                         .unwrap_or(0)
@@ -1276,6 +1290,10 @@ struct MigrationGuest {
     provenance_sha256: String,
     runs: BTreeMap<String, PathBuf>,
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the complete workload matrix and evidence transaction in execution order."
+)]
 fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
     let base = Path::new(value(call, "GOMAD_WASM_MIGRATION_BASELINE"));
     if !base.is_absolute() {
@@ -1358,7 +1376,7 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             module::verify_inputs(&files)?;
         }
         let mut first = None;
-        for (seed_index, seed) in [0, 1000003].into_iter().enumerate() {
+        for (seed_index, seed) in [0, 1_000_003].into_iter().enumerate() {
             let original_root = guest
                 .runs
                 .get(&seed.to_string())
@@ -1375,9 +1393,9 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             let configuration = &request["guest"]["model"]["configuration"];
             if request["guest"]["limits"]["memory_bytes"] != (4_u64 << 30)
                 || request["guest"]["limits"]["fuel"] != (1_u64 << 50)
-                || request["guest"]["limits"]["wall_millis"] != 1800000_u64
+                || request["guest"]["limits"]["wall_millis"] != 1_800_000_u64
                 || request["guest"]["limits"]["output_bytes"] != (1_u64 << 20)
-                || configuration["limits"]["calls"] != 1000000_u64
+                || configuration["limits"]["calls"] != 1_000_000_u64
                 || configuration["limits"]["transcript_bytes"] != (64_u64 << 20)
                 || configuration["read_step_nanos"] != 0
                 || configuration["diagnostics"] != false
@@ -1390,7 +1408,7 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 let row = prepare_row(&format!("{name}-strict-prepare"), "migration", "ordinary");
                 let mut input = old.request.clone();
                 input["compile_cache"] = json!(cache);
-                let warmed = execute(call, proof, root, &row, &executable, input)?;
+                let warmed = execute(call, proof, root, &row, &executable, &input)?;
                 migration_success(&warmed, &row)?;
                 samples.push(json!({"sample":row,"status":"executed","native_root":root.join("evidence").join(&row.name)}));
             }
@@ -1402,7 +1420,7 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             );
             let mut input = old.request.clone();
             input["compile_cache"] = json!(cache);
-            let observed = execute(call, proof, root, &row, &executable, input)?;
+            let observed = execute(call, proof, root, &row, &executable, &input)?;
             migration_success(&observed, &row)?;
             evidence::compare(&old, &observed, ComparisonMask::Exact)?;
             samples.push(json!({"sample":row,"status":"identical","baseline_root":original_root,"native_root":root.join("evidence").join(&row.name),"actual_outcome":observed.root.outcome}));
@@ -1414,15 +1432,22 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
         let row = RunSpec::new(format!("{name}-strict-replay"), "migration", 0, "ordinary");
         let mut input = first.request.clone();
         replay_input(&mut input, &first, &identity)?;
-        let replayed = execute(call, proof, root, &row, &executable, input)?;
+        let replayed = execute(call, proof, root, &row, &executable, &input)?;
         migration_success(&replayed, &row)?;
         evidence::compare_replay(&first, &replayed, &identity)?;
         samples.push(json!({"sample":row,"status":"exact-replay","native_root":root.join("evidence").join(&row.name)}));
     }
     retained_report(root, call, &samples, None)
 }
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+pub(super) fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+    bytes.iter().fold(
+        String::with_capacity(bytes.len() * 2),
+        |mut output, byte| {
+            write!(&mut output, "{byte:02x}").expect("writing to String cannot fail");
+            output
+        },
+    )
 }
 fn migration_success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     let code = run.root.outcome["exit_code"].as_u64();

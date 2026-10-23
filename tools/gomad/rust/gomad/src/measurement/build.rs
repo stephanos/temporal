@@ -6,7 +6,7 @@ use std::{
     fs::{self, OpenOptions},
     io::{Read, Write},
     os::unix::{
-        fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt},
+        fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt},
         process::CommandExt,
     },
     path::{Path, PathBuf},
@@ -28,6 +28,8 @@ pub enum Role {
     Diagnostic(Vec<String>),
 }
 impl Role {
+    /// # Errors
+    /// Refuses unsupported role features.
     pub fn features(&self) -> Result<Vec<String>, String> {
         let mut features = match self {
             Self::Release => vec![],
@@ -79,6 +81,8 @@ fn cargo_features(role: &Role) -> Result<Vec<String>, String> {
         .map(|feature| format!("helper-{feature}"))
         .collect())
 }
+/// # Errors
+/// Refuses unsupported role features before constructing the pinned build command.
 pub fn cargo_command(cargo: &Path, crate_root: &Path, role: &Role) -> Result<Vec<String>, String> {
     let mut command = vec![
         cargo.to_string_lossy().into_owned(),
@@ -168,6 +172,7 @@ fn unique_environment<'de, D: serde::Deserializer<'de>>(
     }
     deserializer.deserialize_map(Unique)
 }
+#[must_use]
 pub fn compiler_environment(
     rustc: &Path,
     inputs: &BTreeMap<PathBuf, String>,
@@ -193,6 +198,7 @@ pub fn compiler_environment(
     }
     true
 }
+#[must_use]
 pub fn exact_cargo_command(receipt: &BuildReceipt, role: &Role) -> bool {
     receipt.cargo.is_absolute()
         && receipt.inputs.contains_key(&receipt.cargo)
@@ -234,11 +240,11 @@ fn write_json(path: &Path, value: &impl Serialize) -> Result<(), String> {
     file.sync_all().map_err(error)
 }
 fn directory(root: &Path, prefix: &str) -> Result<PathBuf, String> {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
     if !root.is_absolute() {
         return Err("helper build/stage root must be absolute".into());
     }
     fs::create_dir_all(root).map_err(error)?;
-    static NEXT: AtomicU64 = AtomicU64::new(0);
     for _ in 0..100 {
         let path = root.join(format!(
             "{prefix}-{}-{}",
@@ -368,6 +374,10 @@ pub(super) fn command_bounded(
     }
     bounded(&observation.stdout.path, limit)
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the bounded command or admission transaction and its refusal order together."
+)]
 pub(super) fn observe_command(
     root: &Path,
     label: &str,
@@ -459,12 +469,11 @@ pub(super) fn observe_command(
         } else {
             cleanup_errors.push("native process group identity exceeds signed PID range".into());
         }
-        if status.is_none() {
-            if let Err(error) = process.kill() {
-                if error.kind() != std::io::ErrorKind::InvalidInput {
-                    cleanup_errors.push(format!("kill native child: {error}"));
-                }
-            }
+        if status.is_none()
+            && let Err(error) = process.kill()
+            && error.kind() != std::io::ErrorKind::InvalidInput
+        {
+            cleanup_errors.push(format!("kill native child: {error}"));
         }
         match process.wait() {
             Ok(exit) => {
@@ -557,9 +566,12 @@ impl NativeSourceProof {
             current: true,
         }
     }
+    #[must_use]
     pub fn repo(&self) -> &Path {
         &self.repo
     }
+    /// # Errors
+    /// Refuses changed admitted source bindings.
     pub fn verify(&self) -> Result<(), String> {
         source_semantic_inputs(self, &BTreeMap::new()).map(|_| ())
     }
@@ -572,6 +584,8 @@ pub struct HistoricalAdmission {
     role: Role,
 }
 impl HistoricalAdmission {
+    /// # Errors
+    /// Refuses a historical admission whose source, receipt or executable changed.
     pub fn revalidate(&self) -> Result<Admission, String> {
         validate_admission_source(&self.source, &self.receipt, &self.role)
     }
@@ -655,6 +669,8 @@ fn tool_path(bytes: &[u8]) -> Result<PathBuf, String> {
     }
     Ok(path)
 }
+/// # Errors
+/// Refuses identities with incompatible schemas, features, source owners or executable digests.
 pub fn validate_identity(
     identity: &NativeIdentity,
     role: &Role,
@@ -741,6 +757,11 @@ fn executable_identity(
     Ok(identity)
 }
 
+/// # Panics
+/// Panics if a validated Cargo executable field is not a string.
+///
+/// # Errors
+/// Refuses malformed Cargo output, unsuccessful builds or ambiguous release artifacts.
 pub fn cargo_artifact(data: &[u8], role: &Role) -> Result<PathBuf, String> {
     let mut found = None;
     let mut finished = false;
@@ -750,7 +771,7 @@ pub fn cargo_artifact(data: &[u8], role: &Role) -> Result<PathBuf, String> {
             && frame["target"]["name"] == "gomad-measure"
             && frame
                 .get("executable")
-                .is_some_and(|value| value.is_string())
+                .is_some_and(serde_json::Value::is_string)
         {
             let mut features: Vec<String> =
                 serde_json::from_value(frame["features"].clone()).map_err(error)?;
@@ -777,10 +798,16 @@ pub fn cargo_artifact(data: &[u8], role: &Role) -> Result<PathBuf, String> {
     found.ok_or_else(|| "successful native release artifact absent from Cargo output".into())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the bounded command or admission transaction and its refusal order together."
+)]
+/// # Errors
+/// Returns errors from tool identity checks, isolated compilation, receipt validation or staging.
 pub fn build_role(
     proof: &CheckoutProof,
     root: &Path,
-    role: Role,
+    role: &Role,
     environ: &[String],
 ) -> Result<PathBuf, String> {
     role.features()?;
@@ -844,9 +871,9 @@ pub fn build_role(
         ("RUSTC_WRAPPER".into(), String::new()),
         ("RUSTC_WORKSPACE_WRAPPER".into(), String::new()),
     ]);
-    let argv = cargo_command(&cargo, &crate_root, &role)?;
+    let argv = cargo_command(&cargo, &crate_root, role)?;
     let output = command(&root, "cargo-build", &crate_root, &environment, &argv)?;
-    let executable = cargo_artifact(&output, &role)?;
+    let executable = cargo_artifact(&output, role)?;
     if executable != root.join("target/release/gomad-measure") {
         return Err("Cargo did not produce the fresh isolated native release executable".into());
     }
@@ -858,7 +885,7 @@ pub fn build_role(
     }
     let executable_sha256 = hash(&executable)?;
     let identity =
-        executable_identity(&root, "artifact-identity", &executable, &environment, &role)?;
+        executable_identity(&root, "artifact-identity", &executable, &environment, role)?;
     for label in [
         "rustc-path",
         "cargo-path",
@@ -889,10 +916,12 @@ pub fn build_role(
     };
     let receipt_path = root.join("helper-build.json");
     write_json(&receipt_path, &receipt)?;
-    stage_role(proof, &root, &receipt_path, &role)?;
+    stage_role(proof, &root, &receipt_path, role)?;
     Ok(receipt_path)
 }
 
+/// # Errors
+/// Refuses receipts with changed source, build commands, role features or artifact bindings.
 pub fn validate_build_receipt(
     proof: &CheckoutProof,
     receipt: &BuildReceipt,
@@ -900,6 +929,10 @@ pub fn validate_build_receipt(
 ) -> Result<(), String> {
     validate_build_receipt_source(&NativeSourceProof::current(proof), receipt, expected)
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep the bounded command or admission transaction and its refusal order together."
+)]
 fn validate_build_receipt_source(
     source: &NativeSourceProof,
     receipt: &BuildReceipt,
@@ -1025,11 +1058,19 @@ fn validate_build_receipt_source(
     Ok(())
 }
 
+/// # Errors
+/// Refuses changed or invalid artifacts and returns filesystem errors while publishing the private executable.
 pub fn stage_executable(
     artifact: &Path,
     destination: &Path,
     expected_sha256: &str,
 ) -> Result<(), String> {
+    struct Staged(PathBuf);
+    impl Drop for Staged {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
     let metadata = fs::symlink_metadata(artifact).map_err(error)?;
     if !metadata.is_file()
         || metadata.len() == 0
@@ -1044,12 +1085,6 @@ pub fn stage_executable(
     }
     let parent = destination.parent().ok_or("staging parent absent")?;
     let temporary = directory(parent, ".native-stage")?;
-    struct Staged(PathBuf);
-    impl Drop for Staged {
-        fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.0);
-        }
-    }
     let staged = Staged(temporary);
     let path = staged.0.join("executable");
     let mut file = OpenOptions::new()
@@ -1079,6 +1114,8 @@ pub fn stage_executable(
     Ok(())
 }
 
+/// # Errors
+/// Refuses invalid build receipts or changed executable identities and returns staging errors.
 pub fn stage_role(
     proof: &CheckoutProof,
     root: &Path,
@@ -1135,6 +1172,8 @@ pub fn stage_role(
     Ok(path)
 }
 
+/// # Errors
+/// Refuses an admission with changed source, receipt, identity or private executable bindings.
 pub fn validate_admission(
     proof: &CheckoutProof,
     path: &Path,
@@ -1171,7 +1210,6 @@ fn validate_admission_source(
     {
         return Err("native admission changed raw Cargo build bindings".into());
     }
-    use std::os::unix::fs::MetadataExt;
     let metadata = fs::symlink_metadata(&admission.executable).map_err(error)?;
     if !metadata.is_file()
         || metadata.nlink() != 1
@@ -1182,6 +1220,8 @@ fn validate_admission_source(
     Ok(admission)
 }
 
+/// # Errors
+/// Refuses historical receipts whose explicit source closure or staged executable does not match.
 pub fn validate_historical_admission(
     source_root: &Path,
     receipt_path: &Path,
@@ -1217,6 +1257,8 @@ pub fn validate_historical_admission(
     validate_admission_source(&source, receipt_path, expected)
 }
 
+/// # Errors
+/// Refuses historical bindings or executable identity observations that fail authentication.
 pub fn admit_historical(
     source_root: &Path,
     receipt_path: &Path,
@@ -1289,6 +1331,8 @@ pub fn admit_historical(
     })
 }
 
+/// # Errors
+/// Returns filesystem or serialization errors while retaining compiled source ownership.
 pub fn compiled_owners(root: &Path) -> Result<PathBuf, String> {
     let owners = BTreeMap::from([
         ("host", env!("GOMAD_HOST_IMPLEMENTATION_SHA256")),

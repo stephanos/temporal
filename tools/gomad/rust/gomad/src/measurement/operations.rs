@@ -184,6 +184,10 @@ fn add(total: &mut u64, count: u64) -> Result<(), String> {
 
 /// # Errors
 /// Validates the entire retained binary trace before counting operation ownership.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep transcript decoding and operation accounting in wire order."
+)]
 pub fn count_with_unknown(
     data: &[u8],
     maximum: u64,
@@ -266,9 +270,9 @@ pub fn count_with_unknown(
             fd = input_fd;
             if tag == 1
                 && (flags != 1
-                    || body
-                        .get(..4)
-                        .is_none_or(|bytes| u32::from_le_bytes(bytes.try_into().unwrap()) <= 1))
+                    || body.get(..4).is_none_or(|bytes| {
+                        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) <= 1
+                    }))
             {
                 return Err("invalid canonical unsupported clock".into());
             }

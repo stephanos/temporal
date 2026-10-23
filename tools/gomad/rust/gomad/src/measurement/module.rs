@@ -29,6 +29,7 @@ pub struct Bounds {
     pub timeout: Duration,
     pub output_bytes: u64,
 }
+#[must_use]
 pub fn resource_bounds(selection: &Selection) -> Bounds {
     if matches!(selection, Selection::Runtime) {
         Bounds {
@@ -41,7 +42,7 @@ pub fn resource_bounds(selection: &Selection) -> Bounds {
         Bounds {
             fuel: 1 << 50,
             memory_bytes: 4 << 30,
-            timeout: Duration::from_secs(1800),
+            timeout: Duration::from_mins(30),
             output_bytes: 256 << 20,
         }
     }
@@ -57,6 +58,8 @@ pub struct Prepared {
     pub scenario_path: Option<PathBuf>,
 }
 impl Prepared {
+    /// # Errors
+    /// Refuses cluster inputs, changed retained module bytes or invalid prepared model configuration.
     pub fn native_input(&self, seed: u64) -> Result<Value, String> {
         if self.guest.scenario.is_some() {
             return Err("cluster preparation requires actual broker scenario assembly".into());
@@ -104,6 +107,8 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     file.sync_all().map_err(|error| error.to_string())
 }
 
+/// # Errors
+/// Refuses working directories outside the workspace or invalid installation configuration.
 pub fn temporal_configuration(
     repo: &Path,
     cwd: &str,
@@ -121,6 +126,8 @@ pub fn temporal_configuration(
     args.extend(arguments.iter().map(|argument| json!(argument)));
     Ok(config)
 }
+/// # Errors
+/// Returns errors constructing the runtime installation configuration.
 pub fn runtime_configuration() -> Result<Value, String> {
     let mut config = crate::install::config::build(COOPERATIVE, None, None)?.original;
     config["Args"] = json!(["guest", "literal $arg"]);
@@ -136,6 +143,8 @@ pub fn runtime_configuration() -> Result<Value, String> {
     Ok(config)
 }
 
+/// # Errors
+/// Refuses an unsupported module build kind.
 pub fn diagnostic_module_commands(
     compiler: &str,
     overlay: &str,
@@ -199,11 +208,13 @@ pub(crate) fn compiler_controls(
     })
 }
 
+/// # Errors
+/// Returns errors authenticating, installing or preparing the selected bounded guest.
 pub fn prepare(
     proof: &CheckoutProof,
     call: &Invocation,
     root: &Path,
-    selection: Selection,
+    selection: &Selection,
 ) -> Result<Prepared, String> {
     if matches!(selection, Selection::Cluster) {
         let scenario = read(&root.join("scenario.json"), 256 << 10)?;
@@ -211,6 +222,8 @@ pub fn prepare(
     }
     prepare_selection(proof, call, root, selection, None)
 }
+/// # Errors
+/// Returns errors authenticating, installing or preparing the supplied bounded scenario.
 pub fn prepare_scenario(
     proof: &CheckoutProof,
     call: &Invocation,
@@ -222,10 +235,14 @@ pub fn prepare_scenario(
         proof,
         call,
         root,
-        Selection::Cluster,
+        &Selection::Cluster,
         Some((source.into(), scenario)),
     )
 }
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Keep the complete preparation recipe explicit at the CLI boundary."
+)]
 fn options(
     root: &Path,
     directory: &Path,
@@ -289,16 +306,18 @@ fn prepare_selection(
     proof: &CheckoutProof,
     call: &Invocation,
     root: &Path,
-    selection: Selection,
+    selection: &Selection,
     scenario: Option<(String, Vec<u8>)>,
 ) -> Result<Prepared, String> {
     prepare_selection_controlled(proof, call, root, selection, scenario, "")
 }
+/// # Errors
+/// Refuses unsupported variants and returns guest installation or preparation errors.
 pub fn prepare_variant(
     proof: &CheckoutProof,
     call: &Invocation,
     root: &Path,
-    selection: Selection,
+    selection: &Selection,
     gowasm: &str,
 ) -> Result<Prepared, String> {
     if !matches!(gowasm, "" | "satconv,signext") {
@@ -306,11 +325,15 @@ pub fn prepare_variant(
     }
     prepare_selection_controlled(proof, call, root, selection, None, gowasm)
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep installation and preparation identity bindings in one transaction."
+)]
 fn prepare_selection_controlled(
     proof: &CheckoutProof,
     call: &Invocation,
     root: &Path,
-    selection: Selection,
+    selection: &Selection,
     scenario: Option<(String, Vec<u8>)>,
     gowasm: &str,
 ) -> Result<Prepared, String> {
@@ -326,16 +349,15 @@ fn prepare_selection_controlled(
         .ok_or("native measurement requires explicit absolute --stock-go")?;
     fs::create_dir_all(root).map_err(|error| error.to_string())?;
     let runtime = matches!(selection, Selection::Runtime);
-    let mut bounds = resource_bounds(&selection);
+    let mut bounds = resource_bounds(selection);
     if call.name == "legacy-workflow-profile" {
         bounds.timeout = Duration::from_secs(180);
     } else if call.name == "failing-suite-profile" {
         bounds.timeout = Duration::from_secs(300);
     }
-    let selectors = match &selection {
-        Selection::Runtime => vec![],
+    let selectors = match selection {
+        Selection::Runtime | Selection::Cluster => vec![],
         Selection::Activity => vec!["-test.run=^TestActivityTestSuite$".into()],
-        Selection::Cluster => vec![],
         Selection::Workflow => {
             vec!["-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$".into()]
         }
@@ -353,7 +375,7 @@ fn prepare_selection_controlled(
         ]);
         temporal_configuration(
             proof.repo(),
-            if let Selection::Target { cwd, .. } = &selection {
+            if let Selection::Target { cwd, .. } = selection {
                 cwd
             } else {
                 "/workspace/tests"
@@ -364,12 +386,11 @@ fn prepare_selection_controlled(
     let config_path = root.join("guest-config.json");
     write(&config_path, &canonical::encode(&config)?)?;
     let installation_path = root.join("installation.json");
-    let cache = call
-        .inputs
-        .get("GOMAD_WASM_TOOLCHAIN_CACHE")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| proof.repo().join("tools/gomad/.toolchain"));
-    let argv = vec![
+    let cache = call.inputs.get("GOMAD_WASM_TOOLCHAIN_CACHE").map_or_else(
+        || proof.repo().join("tools/gomad/.toolchain"),
+        PathBuf::from,
+    );
+    let installation_arguments = vec![
         "--compiler".into(),
         compiler.clone(),
         "--cache".into(),
@@ -392,8 +413,8 @@ fn prepare_selection_controlled(
         bounds.memory_bytes.to_string(),
     ];
     let mut installation_output = Vec::new();
-    let status =
-        crate::cli::install::run(&argv, &mut installation_output).map_err(|error| error.message)?;
+    let status = crate::cli::install::run(&installation_arguments, &mut installation_output)
+        .map_err(|error| error.message)?;
     write(&root.join("installation-output.txt"), &installation_output)?;
     if status != 0 {
         return Err("native guest installation failed".into());
@@ -408,7 +429,7 @@ fn prepare_selection_controlled(
             (
                 if runtime {
                     "./internal/model/wasi/testdata/runtime_cost".into()
-                } else if let Selection::Target { source, .. } = &selection {
+                } else if let Selection::Target { source, .. } = selection {
                     source.clone()
                 } else {
                     "./tests".into()
@@ -482,6 +503,8 @@ fn prepare_selection_controlled(
     })
 }
 
+/// # Errors
+/// Refuses malformed package listings and returns errors reading source inputs.
 pub fn source_bindings(
     listed: &[u8],
     compiler: &Path,
@@ -536,6 +559,8 @@ pub fn source_bindings(
     }
     Ok(result)
 }
+/// # Errors
+/// Refuses source inputs whose retained digests no longer match.
 pub fn verify_inputs(inputs: &BTreeMap<PathBuf, String>) -> Result<(), String> {
     preparation::inventory::verify(inputs)
 }
@@ -547,9 +572,11 @@ pub struct VariantProof {
     after_sha256: String,
 }
 impl VariantProof {
+    #[must_use]
     pub fn module_pair(&self) -> (&str, &str) {
         (&self.before_sha256, &self.after_sha256)
     }
+    #[must_use]
     pub fn matches_requests(&self, before: &Value, after: &Value) -> bool {
         before["kind"] == "standalone"
             && after["kind"] == "standalone"
@@ -559,6 +586,8 @@ impl VariantProof {
             && after["guest"]["module_sha256"] == self.after_sha256
     }
 }
+/// # Errors
+/// Refuses retained module, provenance or installation bindings that no longer match preparation.
 pub fn authenticate_prepared(prepared: &Prepared) -> Result<Value, String> {
     if read(&prepared.module_path, 512 << 20)? != prepared.guest.module
         || read(&prepared.provenance_path, 16 << 20)? != prepared.guest.provenance
@@ -621,6 +650,8 @@ pub fn authenticate_prepared(prepared: &Prepared) -> Result<Value, String> {
 fn linked_metadata(module: &[u8]) -> Result<gomad_wasmhost::linked::ModuleMetadata, String> {
     gomad_wasmhost::linked::module_metadata(module).map_err(|error| error.to_string())
 }
+/// # Errors
+/// Refuses module variants that change undeclared preparation inputs or lack the expected instructions.
 pub fn prove_gowasm_variant(before: &Prepared, after: &Prepared) -> Result<VariantProof, String> {
     let before_provenance = authenticate_prepared(before)?;
     let after_provenance = authenticate_prepared(after)?;
