@@ -239,6 +239,93 @@ class ProcessContract(unittest.TestCase):
                 if live_stage:
                     log.close.assert_called_once()
 
+    def test_cleanup_follows_registered_tree_and_owned_sessions_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            rows = [('wrapper', 123, 456, False), ('native', 456, 789, True), ('foreign', 999, 987, True)]
+            for name, stage, pid, active in rows:
+                driver.write(root/(name+'.process.json'), dict(stage_pid=stage, pid=pid, active=active))
+            executor = driver.StageExecutor([], str(root/'scheduler'), {})
+            killed = []
+            def wait(pid):
+                self.assertCountEqual(killed, [789, 790])
+            with mock.patch.object(driver.os, 'killpg', side_effect=lambda pid, sig: killed.append(pid)), \
+                 mock.patch.object(driver, 'process_session_groups', return_value={789: {789, 790}}, create=True), \
+                 mock.patch.object(driver, 'wait_process_group', side_effect=wait), \
+                 mock.patch.object(driver, 'wait_process_session', create=True):
+                self.assertTrue(executor.cleanup_commands({123}))
+            self.assertFalse(driver.read(root/'native.process.json')['active'])
+            self.assertTrue(driver.read(root/'foreign.process.json')['active'])
+
+    def test_cleanup_rescans_registration_published_before_wrapper_quiesces(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            driver.write(root/'wrapper.process.json', dict(stage_pid=123, pid=456, active=True))
+            executor = driver.StageExecutor([], str(root/'scheduler'), {})
+            killed = []
+            def wait(pid):
+                if pid == 456:
+                    driver.write(root/'native.process.json', dict(stage_pid=456, pid=789, active=True))
+            with mock.patch.object(driver.os, 'killpg', side_effect=lambda pid, sig: killed.append(pid)), \
+                 mock.patch.object(driver, 'process_session_groups', return_value={}), \
+                 mock.patch.object(driver, 'wait_process_group', side_effect=wait), \
+                 mock.patch.object(driver, 'wait_process_session', return_value=False):
+                self.assertTrue(executor.cleanup_commands({123}))
+            self.assertCountEqual(killed, [456, 789])
+            self.assertFalse(driver.read(root/'native.process.json')['active'])
+
+    def test_global_teardown_reaps_registered_nested_native_and_compiler_groups(self):
+        import time
+        for teardown in ('terminate', 'killed-stage'):
+            with self.subTest(teardown=teardown), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                compiler = "import time; time.sleep(30)"
+                native = root/'native.py'
+                native.write_text("import subprocess,sys,time; from pathlib import Path; child=subprocess.Popen([sys.executable,'-c',"+repr(compiler)+"],process_group=0); Path("+repr(str(root/'compiler.pid'))+").write_text(str(child.pid)); time.sleep(30)")
+                wrapper = root/'wrapper.py'
+                wrapper.write_text("import sys; from pathlib import Path; sys.path.insert(0,"+repr(str(driver.HERE))+"); import driver; driver.command({'repo':"+repr(str(root))+"},Path("+repr(str(root))+"),'native',[sys.executable,"+repr(str(native))+"])")
+                stage_file = root/'stage.py'
+                stage_file.write_text("import sys,signal; signal.pthread_sigmask(signal.SIG_UNBLOCK,{signal.SIGTERM,signal.SIGHUP,signal.SIGINT}); from pathlib import Path; sys.path.insert(0,"+repr(str(driver.HERE))+"); import driver; driver.command({'repo':"+repr(str(root))+"},Path("+repr(str(root))+"),'wrapper',[sys.executable,"+repr(str(wrapper))+"])")
+                executor = driver.StageExecutor([sys.executable, str(stage_file)], str(root/'scheduler'), dict(os.environ))
+                stage = driver.scheduler.load_dag(driver.DAG)['busy-boundaries']
+                foreign = subprocess.Popen([sys.executable, '-c', compiler], start_new_session=True)
+                proc = None
+                try:
+                    executor.start(stage, 0)
+                    proc = executor.procs[stage.label][0]
+                    until = time.monotonic()+3
+                    while not (root/'compiler.pid').exists() and proc.poll() is None and time.monotonic()<until:
+                        time.sleep(0.01)
+                    self.assertTrue((root/'compiler.pid').exists())
+                    compiler_pid = int((root/'compiler.pid').read_text())
+                    native_pid = driver.read(root/'native.process.json')['pid']
+                    self.assertEqual(os.getsid(compiler_pid), native_pid)
+                    self.assertEqual(os.getpgid(compiler_pid), compiler_pid)
+                    if teardown == 'terminate':
+                        executor.terminate()
+                    else:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                        proc.wait(timeout=3)
+                        self.assertNotEqual(executor.wait_any()[1], 0)
+                    self.assertFalse(driver.process_group_live(compiler_pid))
+                    for name in ('wrapper', 'native'):
+                        record = driver.read(root/(name+'.process.json'))
+                        self.assertFalse(record['active'])
+                        self.assertFalse(driver.process_group_live(record['pid']))
+                    self.assertIsNone(foreign.poll())
+                finally:
+                    for name in ('compiler.pid',):
+                        if (root/name).exists():
+                            try: os.killpg(int((root/name).read_text()), signal.SIGKILL)
+                            except ProcessLookupError: pass
+                    for path in root.glob('*.process.json'):
+                        try: os.killpg(driver.read(path)['pid'], signal.SIGKILL)
+                        except ProcessLookupError: pass
+                    foreign.kill()
+                    foreign.wait()
+                    if proc is not None:
+                        self.stop(executor, proc)
+
     def test_killed_stage_cannot_leave_detached_command_running(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
