@@ -60,6 +60,29 @@ class BroadHarness(unittest.TestCase):
                     self.assertEqual(argv[argv.index('--features') + 1], 'determinism-fixture')
                 self.assertEqual('--lib' in argv, role in (broad.Role.HELPER, broad.Role.HOST))
 
+    def test_helper_inspection_artifact_environment_is_stage_owned(self):
+        class Fixed:
+            @staticmethod
+            def environment(config, root, target):
+                return {'CARGO_TARGET_DIR': str(root / 'target')}
+        config = {'root': '/owned/cycle', 'repo': '/source'}
+        evidence = {'context': {'bindings': {'TARGET': 'x86_64-unknown-linux-gnu'}}}
+        with patch.object(broad, 'fixed', return_value=Fixed):
+            roots = set()
+            for stage in broad.Stage:
+                for row in broad.catalog(stage):
+                    if row.ignored:
+                        continue
+                    observed, environment = broad.invocation_context(config, stage, row, evidence)
+                    if row.role is broad.Role.HELPER:
+                        path = environment['GOMAD_INSPECTION_RAW_DIR']
+                        self.assertEqual(path, '/owned/cycle/broad-harness/' + stage.value + '/helper-lib-raw')
+                        self.assertEqual(observed['repo'], config['repo'])
+                        roots.add(path)
+                    else:
+                        self.assertNotIn('GOMAD_INSPECTION_RAW_DIR', environment)
+            self.assertEqual(len(roots), 3)
+
     def artifact_fixture(self, directory, role):
         root = directory / 'cycle/broad-harness'
         spec = broad.target(role)

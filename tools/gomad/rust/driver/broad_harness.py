@@ -128,6 +128,8 @@ def invocation_context(config, stage, row, evidence):
     destination = stage_root(config, stage)
     environment = fixed().environment(config, owned_root(config), evidence['context']['bindings']['TARGET'])
     cwd = Path(config['repo'])
+    if row.role is Role.HELPER:
+        environment['GOMAD_INSPECTION_RAW_DIR'] = str(destination / 'helper-lib-raw')
     if not target(row.role).harness:
         cwd = destination / row.name
     if row.ignored:
@@ -335,6 +337,8 @@ def run(config, stage):
     files.update({str(owned_root(config) / 'admitted' / role.value): evidence['roles'][role.value]['executable_sha256'] for role in Role})
     for row in catalog(stage):
         observed, environment = invocation_context(config, stage, row, evidence)
+        if row.role is Role.HELPER:
+            Path(environment['GOMAD_INSPECTION_RAW_DIR']).mkdir(mode=0o700)
         if not target(row.role).harness:
             Path(observed['repo']).mkdir(mode=0o700)
         if row.ignored:
@@ -371,6 +375,11 @@ def read(config, stage):
                                       argv=test_argv(config, candidate, row.name), source=target(row.role).source,
                                       features=list(target(row.role).features), command=command_hashes(destination, row.name),
                                       build=evidence['roles'][row.role.value])
+                if row.role is Role.HELPER:
+                    artifact_root = Path(environment['GOMAD_INSPECTION_RAW_DIR'])
+                    require(artifact_root.resolve() == artifact_root and artifact_root.is_dir(),
+                            'broad helper inspection artifact root is foreign')
+                    rows[row.name]['raw_artifact_root'] = str(artifact_root)
     require(set(rows) == {row.name for row in catalog(stage)}, 'broad stage lacks a fixed native process')
     guard(config)
     return dict(schema='gomad.broad-harness-raw/v1', stage=stage.value, source_sha256=config['source_sha256'],
