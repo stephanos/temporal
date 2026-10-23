@@ -98,6 +98,21 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        self.execute.compile_cache.as_deref()
+    }
+
+    /// # Errors
+    /// Refuses an invalid host compile-cache selection.
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> wasmtime::Result<()> {
+        if directory.is_some_and(|directory| !std::path::Path::new(directory).is_absolute()) {
+            return Err(Error::msg("invalid compile cache directory"));
+        }
+        self.execute.compile_cache = directory.map(str::to_owned);
+        Ok(())
+    }
+
     /// The execution wall bound the host's process-wide deadline backstop arms.
     #[must_use]
     pub fn wall_timeout(&self) -> Duration {
@@ -458,9 +473,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             scope.spawn(|| watch(&engine, &timed_out, request.limits.wall_timeout, completed));
         let result = (|| -> wasmtime::Result<Outcome> {
             let mut metrics = Metrics::default();
-            let module = match engine::compile(&engine, &request.module, &mut metrics)
-                .and_then(|module| engine::describe_module(&execute, module))
-            {
+            let module = match compile_module(&engine, &execute, &request.module, &mut metrics) {
                 Ok((module, _)) => module,
                 Err(mut outcome) => {
                     metrics.prepare_nanos = crate::metrics::elapsed(preparation);
@@ -524,6 +537,25 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         evidence,
         event_order,
     })
+}
+
+pub(crate) fn compile_module(
+    engine: &Engine,
+    execute: &protocol::Execute,
+    bytes: &[u8],
+    metrics: &mut Metrics,
+) -> Result<(wasmtime::Module, serde_json::Value), Outcome> {
+    let module = match &execute.compile_cache {
+        Some(directory) => crate::cache::module(
+            engine,
+            || Ok(bytes),
+            directory,
+            &execute.module_sha256,
+            metrics,
+        )?,
+        None => engine::compile(engine, bytes, metrics)?,
+    };
+    engine::describe_module(execute, module)
 }
 
 fn start_instance(

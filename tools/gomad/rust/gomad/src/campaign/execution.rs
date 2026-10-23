@@ -363,20 +363,13 @@ fn run_with_controls(
     };
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
-    let mut admitted = linked::prepare(request)
-        .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
-    admitted.conditions(linked::Conditions::compiled());
+    let mut admitted = admit(prepared, request)?;
     #[cfg(all(test, feature = "helper-determinism-fixture"))]
     if let Some(fault) = fault {
         if fault.owner.is_some() {
             return Err("standalone fixture fault cannot select a cluster owner".into());
         }
         admitted.fixture_fault(fault.kind);
-    }
-    if let Some(network) = &configuration.network {
-        admitted
-            .network(network.clone())
-            .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
     if let Some(output) = output {
@@ -385,9 +378,35 @@ fn run_with_controls(
     let (observed, metrics) = measured(admitted, &configuration.limits)?;
     #[cfg(feature = "determinism-fixture")]
     crate::live_backend::after_execution(job.ordinal, cancellation)?;
+    refuse_cache_failure(&observed.outcome)?;
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(Completion::Finalized(result))
+}
+
+fn refuse_cache_failure(outcome: &linked::Outcome) -> std::result::Result<(), String> {
+    if crate::execute::cache_failure(outcome) {
+        return Err(format!("runner_failure: {}", outcome.message));
+    }
+    Ok(())
+}
+
+fn admit(
+    prepared: &Prepared,
+    request: linked::Request,
+) -> std::result::Result<linked::Prepared, String> {
+    let mut admitted = linked::prepare(request)
+        .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
+    admitted
+        .compile_cache(prepared.compile_cache_root.as_deref())
+        .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
+    admitted.conditions(linked::Conditions::compiled());
+    if let Some(network) = &prepared.configuration.network {
+        admitted
+            .network(network.clone())
+            .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
+    }
+    Ok(admitted)
 }
 
 /// Runs one admitted store inside the whole-process backstop and its
@@ -419,6 +438,7 @@ pub(crate) fn publication(
     job: &ledger::Job,
     observed: linked::Execution,
 ) -> std::result::Result<Result, String> {
+    refuse_cache_failure(&observed.outcome)?;
     let mut observed = observed;
     if let Some(raw) = observed.event_order.take() {
         observed.evidence.insert("event-order".into(), raw);
@@ -806,5 +826,70 @@ mod completion_batch_tests {
             observed.err().unwrap(),
             "host panic in execution slot; campaign aborted"
         );
+    }
+}
+
+#[cfg(test)]
+mod compile_cache_tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt as _;
+
+    #[test]
+    fn selected_cache_roots_preserve_canonical_records_and_failure_identity() {
+        let module =
+            br#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#
+                .to_vec();
+        let mut prepared = Prepared {
+            module,
+            configuration: serde_json::from_value(json!({
+                "engine":linked::Conditions::compiled().configuration(), "profile":"gomad.wasi-stock-exploratory/v1",
+                "limits":{"fuel":1000,"memory_bytes":65536,"output_bytes":1024,"evidence_bytes":4096,"wall_millis":5000},
+                "arguments":[],"environment":{},"runtime_sha256":null,"model":null,"namespace":null
+            })).unwrap(),
+            toolchain: "a".repeat(64), choice_identity: None, scenario: None, provenance: b"{}".to_vec(), network: None,
+            soft_assertion_report_only: false, compile_cache_root: None,
+        };
+        let job = ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        };
+        let cancellation = linked::Cancellation::default();
+        let baseline = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+        let root =
+            std::env::temp_dir().join(format!("gomad-host-compile-cache-{}", std::process::id()));
+        std::fs::create_dir(&root).unwrap();
+        std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700)).unwrap();
+        for name in ["first", "second", "first"] {
+            let path = root.join(name);
+            prepared.compile_cache_root = Some(path.to_str().unwrap().into());
+            let result = run(&prepared, &job, Duration::from_secs(5), &cancellation).unwrap();
+            assert_eq!(
+                result.execution.record.bytes().unwrap(),
+                baseline.execution.record.bytes().unwrap()
+            );
+            assert_eq!(
+                result.execution.record.failure_signature().unwrap(),
+                baseline.execution.record.failure_signature().unwrap()
+            );
+            assert_eq!(result.publication.payloads, baseline.publication.payloads);
+            assert_eq!(result.metrics.stores.len(), 1);
+            assert_eq!(
+                result.metrics.stores[0].fuel_used,
+                baseline.metrics.stores[0].fuel_used
+            );
+            let entries = std::fs::read_dir(path)
+                .unwrap()
+                .filter(|entry| {
+                    entry
+                        .as_ref()
+                        .unwrap()
+                        .path()
+                        .extension()
+                        .is_some_and(|suffix| suffix == "gomad-cache-v3")
+                })
+                .count();
+            assert_eq!(entries, 1);
+        }
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

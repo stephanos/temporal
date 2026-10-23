@@ -37,6 +37,8 @@ test-wasm: test-wasm-slim-refusals validate-model-corpora test-rust-engine
 # The standalone protocol transport is available only to retained oracle fixtures.
 wasm-test-helper:
 	cargo +1.99.1 build --manifest-path rust/Cargo.toml --release --locked -p gomad-wasmhost --features reference-helper
+	@target_root="$${CARGO_TARGET_DIR:-$(CURDIR)/rust/target}"; \
+	sh rust/publish-executable.sh "$$target_root/release/gomad-wasmhost" "$(CURDIR)/rust/target/release/gomad-wasmhost"
 
 # The shared wire codecs are written by protocolgen with stock Go and no tags.
 generate:
@@ -83,6 +85,8 @@ lint-code:
 
 build:
 	cargo +1.99.1 build --manifest-path rust/Cargo.toml --release --locked -p gomad
+	@target_root="$${CARGO_TARGET_DIR:-$(CURDIR)/rust/target}"; \
+	sh rust/publish-executable.sh "$$target_root/release/gomad" "$(CURDIR)/rust/target/release/gomad"
 
 world-test:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -race -tags test_dep ./internal/model/world/...

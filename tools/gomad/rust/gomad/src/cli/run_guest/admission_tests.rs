@@ -11,13 +11,22 @@ fn prepared(label: &str, invocation: &origin::Invocation) -> Prepared {
 }
 
 fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>) -> Prepared {
+    prepared_module_with_wall(label, invocation, module, 1000)
+}
+
+fn prepared_module_with_wall(
+    label: &str,
+    invocation: &origin::Invocation,
+    module: Vec<u8>,
+    wall_millis: u64,
+) -> Prepared {
     let configuration = Configuration {
         engine: gomad_wasmhost::linked::Conditions::compiled().configuration(),
         profile: "gomad.wasi-stock-exploratory/v1".into(),
         limits: crate::evidence::record::Limits {
             fuel: 1000,
             memory_bytes: 1 << 20,
-            wall_millis: 1000,
+            wall_millis,
             output_bytes: 1 << 20,
             evidence_bytes: 16 << 20,
         },
@@ -66,6 +75,7 @@ fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>
     }))
     .unwrap();
     let mut prepared = Prepared {
+        compile_cache_root: None,
         module,
         configuration,
         toolchain,
@@ -757,5 +767,256 @@ fn detached_pooled_artifact_authenticates_after_original_store_is_removed() {
     copied.authenticate_all().unwrap();
     assert_eq!(copied.manifest().record_sha256, original_record);
     assert_eq!(origin::authenticate(&copied).unwrap(), original_origin);
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
+    use crate::campaign::{
+        execution, launcher,
+        ledger::{Event, Job, Journal},
+    };
+    use gomad_wasmhost::linked;
+    use std::time::Duration;
+    let root = std::env::temp_dir().join(format!(
+        "gomad-cache-launcher-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    for name in ["first", "second"] {
+        let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+        let mut prepared = prepared_module_with_wall(name, &invocation(), module, 10_000);
+        let cache = root.join(name);
+        prepared.compile_cache_root = Some(cache.to_str().unwrap().into());
+        execution::run_with_replay(
+            &prepared,
+            &Job {
+                ordinal: 0,
+                seed: 1,
+            },
+            Duration::from_secs(10),
+            &linked::Cancellation::default(),
+            None,
+            None,
+        )
+        .unwrap();
+        let entries: Vec<_> = fs::read_dir(&cache)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|entry| {
+                entry
+                    .extension()
+                    .is_some_and(|extension| extension == "gomad-cache-v3")
+            })
+            .collect();
+        assert_eq!(entries.len(), 1);
+        let mut bytes = fs::read(&entries[0]).unwrap();
+        *bytes.last_mut().unwrap() ^= 1;
+        fs::write(&entries[0], bytes).unwrap();
+        let mut ignored = false;
+        let mut options =
+            super::super::explore::parse(&["go-run".into(), "fixture".into()], &mut ignored)
+                .unwrap();
+        options.artifacts = root.join(format!("artifacts-{name}"));
+        options.seeds = "1".into();
+        options.parallel = 1;
+        options.on_failure = "first".into();
+        options.execution_timeout = Duration::from_secs(10);
+        options.json = true;
+        let error = launcher::run(
+            &options,
+            &prepared,
+            Instant::now() + Duration::from_secs(30),
+        )
+        .err()
+        .expect("cache failure produced a launcher publication");
+        assert!(error.contains("compile cache: corrupt entry"), "{error}");
+        assert!(error.contains(cache.to_str().unwrap()));
+        let launch = origin::from_preparation(&prepared)
+            .unwrap()
+            .unwrap()
+            .launch
+            .unwrap();
+        let campaign = options
+            .artifacts
+            .join("campaigns")
+            .join(format!("campaign-{}", launch.invocation_id));
+        let journal = Journal::open(&campaign, false).unwrap();
+        assert!(
+            journal
+                .events()
+                .iter()
+                .all(|event| matches!(event, Event::Admit { .. }))
+        );
+        let artifact = journal
+            .open_artifact(journal.plan()["prepared_artifact"].as_str().unwrap())
+            .unwrap();
+        let record = artifact.manifest().record.bytes().unwrap();
+        assert!(
+            !String::from_utf8(record)
+                .unwrap()
+                .contains(cache.to_str().unwrap())
+        );
+    }
+    fs::remove_dir_all(root).unwrap();
+}
+
+fn cache_installation(root: &Path, cache: &Path) -> PathBuf {
+    let profile = "gomad.wasi-stock-exploratory/v1";
+    let configured = crate::install::config::build(profile, None, None).unwrap();
+    let compiler = root.join("unavailable-go/bin/go");
+    let compiler_inputs = BTreeMap::from([(compiler.clone(), "2".repeat(64))]);
+    let value = json!({
+        "schema":"gomad.rust-wasm-installation/v1", "compiler_path":compiler,
+        "compiler_sha256":"2".repeat(64), "go_version":"go1.27.1", "runtime_root":"",
+        "cache_root":root.join("unavailable-preparation"), "profile":profile,
+        "fuel":1000, "memory_bytes":1<<20, "helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
+        "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"), "runtime_implementation_sha256":null,
+        "model":configured.model, "namespace":configured.namespace, "storage":configured.storage,
+        "network":configured.network, "build_tags":[],
+        "admission":{
+            "compiler_inputs":compiler_inputs, "inputs_sha256":canonical::digest(&canonical::encode(&compiler_inputs).unwrap()),
+            "guest_configuration":configured.original, "configuration_sha256":canonical::digest(&canonical::encode(&configured.original).unwrap()),
+            "host_executable_sha256":canonical::digest(&fs::read(std::env::current_exe().unwrap()).unwrap()),
+            "explicit_helper":null, "environment":configured.environment, "arguments":configured.arguments,
+            "compile_cache_root":cache
+        }
+    });
+    let path = root.join("installation.json");
+    fs::write(&path, canonical::encode(&value).unwrap()).unwrap();
+    path
+}
+
+#[test]
+fn receipt_admission_restores_authenticated_selected_cache_and_detached_receipt_does_not() {
+    let root = std::env::temp_dir().join(format!(
+        "gomad-receipt-cache-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    let cache = root.join("engine-cache");
+    let installation = cache_installation(&root, &cache);
+    let selected = crate::install::manifest::resolve(Some(&installation)).unwrap();
+    let mut invocation = invocation();
+    invocation.installation_sha256 = selected.sha256;
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let prepared = prepared_module_with_wall("receipt", &invocation, module.clone(), 10_000);
+    let mut ignored = false;
+    let mut options =
+        super::super::explore::parse(&["go-run".into(), "fixture".into()], &mut ignored).unwrap();
+    options.artifacts = root.join("original");
+    let retained = preparation::retain_admitted(&options, prepared).unwrap();
+    let (receipt, _, digest) = retained
+        .publish(&root.join("plan.json"), vec!["run-guest".into()])
+        .unwrap();
+    assert!(
+        preparation::open_receipt(&receipt, &digest)
+            .unwrap()
+            .1
+            .compile_cache_root
+            .is_none()
+    );
+    let arguments = Arguments {
+        module: root.join("retained.wasm"),
+        argv: vec!["receipt".into()],
+        seeds: Some("1".into()),
+        artifacts: Some(root.join("admitted")),
+        json: true,
+    };
+    let mut deadline = Deadline::new();
+    let admitted = admit_receipt(
+        &arguments,
+        Some(&installation),
+        &module,
+        receipt.as_os_str(),
+        &digest,
+        &mut deadline,
+    )
+    .unwrap();
+    assert_eq!(
+        admitted.prepared.compile_cache_root.as_deref(),
+        cache.to_str()
+    );
+    assert!(
+        preparation::open_receipt(&receipt, &digest)
+            .unwrap()
+            .1
+            .compile_cache_root
+            .is_none()
+    );
+    let mut changed = arguments;
+    changed.argv.push("changed".into());
+    assert!(
+        admit_receipt(
+            &changed,
+            Some(&installation),
+            &module,
+            receipt.as_os_str(),
+            &digest,
+            &mut deadline
+        )
+        .is_err()
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn selected_cache_resume_executes_retained_module_without_compiler_or_source() {
+    let root = std::env::temp_dir().join(format!(
+        "gomad-resume-cache-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    let cache = root.join("engine-cache");
+    let installation = cache_installation(&root, &cache);
+    let selected = crate::install::manifest::resolve(Some(&installation)).unwrap();
+    let mut invocation = invocation();
+    invocation.installation_sha256 = selected.sha256;
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let prepared = prepared_module_with_wall("resume", &invocation, module, 10_000);
+    let mut ignored = false;
+    let mut options = super::super::explore::parse(
+        &["--seeds=7".into(), "go-run".into(), "fixture".into()],
+        &mut ignored,
+    )
+    .unwrap();
+    options.artifacts = root.join("artifacts");
+    let retained = preparation::retain_admitted(&options, prepared).unwrap();
+    assert!(!cache.exists());
+    let mut output = Vec::new();
+    assert_eq!(
+        crate::cli::resume::run_with_installation(
+            &["--json".into(), retained.campaign.to_str().unwrap().into()],
+            &mut output,
+            Some(&installation),
+        )
+        .unwrap_or_else(|error| panic!("{}", error.message)),
+        0,
+        "{}",
+        String::from_utf8_lossy(&output)
+    );
+    assert_eq!(
+        fs::read_dir(&cache)
+            .unwrap()
+            .filter(|entry| entry
+                .as_ref()
+                .unwrap()
+                .path()
+                .extension()
+                .is_some_and(|suffix| suffix == "gomad-cache-v3"))
+            .count(),
+        1
+    );
+    assert!(!root.join("unavailable-go").exists());
+    assert!(!root.join("unavailable-preparation").exists());
+    let journal = crate::campaign::ledger::Journal::open(&retained.campaign, false).unwrap();
+    assert!(
+        !String::from_utf8(canonical::encode(journal.plan()).unwrap())
+            .unwrap()
+            .contains(cache.to_str().unwrap())
+    );
     fs::remove_dir_all(root).unwrap();
 }

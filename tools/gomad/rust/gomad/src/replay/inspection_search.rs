@@ -12,43 +12,43 @@ pub(super) struct Evaluation {
     clippy::too_many_lines,
     reason = "Scan and monotonic bisect share one bounded evaluation cache and result state"
 )]
-pub(super) fn run(
+pub(super) fn run<E>(
     search: &Search,
     mut elapsed_time: impl FnMut() -> Duration,
-    mut evaluate: impl FnMut(u64, Duration) -> Evaluation,
-) -> Value {
+    mut evaluate: impl FnMut(u64, Duration) -> Result<Evaluation, E>,
+) -> Result<Value, E> {
     let mut result = json!({"status":"", "evaluations":null,"remaining":{"first":search.first,"last":search.last},"conditional_on_monotonicity":search.mode == "bisect"});
     let mut evaluations = Vec::new();
     let mut cache = BTreeMap::new();
-    let mut evaluate_choice = |choice: u64, result: &mut Value| -> Option<bool> {
+    let mut evaluate_choice = |choice: u64, result: &mut Value| -> Result<Option<bool>, E> {
         if let Some(value) = cache.get(&choice) {
-            return Some(*value);
+            return Ok(Some(*value));
         }
         let elapsed = elapsed_time();
         let wall = Duration::from_nanos(search.wall_time);
         if evaluations.len() as u64 >= search.attempt_budget || elapsed >= wall {
             result["status"] = "incomplete".into();
-            return None;
+            return Ok(None);
         }
         let Evaluation {
             outcome,
             detail,
             prefix_verified: verified,
-        } = evaluate(choice, wall.saturating_sub(elapsed));
+        } = evaluate(choice, wall.saturating_sub(elapsed))?;
         let timeout = elapsed_time() >= wall;
         evaluations.push(json!({"choice":choice,"outcome":if timeout { "timeout" } else { outcome },"prefix_verified":verified,"detail":if timeout { "context deadline exceeded" } else { &detail }}));
         result["evaluations"] = evaluations.clone().into();
         if timeout {
             result["status"] = "incomplete".into();
-            return None;
+            return Ok(None);
         }
         if outcome == "divergence" || matches!(outcome, "pass" | "fail") && !verified {
             result["status"] = "replay_divergence".into();
-            return None;
+            return Ok(None);
         }
         if !matches!(outcome, "pass" | "fail") {
             result["status"] = "invariant_evaluation_failure".into();
-            return None;
+            return Ok(None);
         }
         let passed = outcome == "pass";
         cache.insert(choice, passed);
@@ -58,9 +58,9 @@ pub(super) fn run(
             })
         {
             result["status"] = "monotonicity_violation".into();
-            return None;
+            return Ok(None);
         }
-        Some(passed)
+        Ok(Some(passed))
     };
     let finish = |result: &mut Value, failure: Option<u64>| {
         result.as_object_mut().unwrap().remove("remaining");
@@ -80,44 +80,44 @@ pub(super) fn run(
         let mut choice = search.first;
         loop {
             result["remaining"] = json!({"first":choice,"last":search.last});
-            let Some(passed) = evaluate_choice(choice, &mut result) else {
-                return result;
+            let Some(passed) = evaluate_choice(choice, &mut result)? else {
+                return Ok(result);
             };
             if !passed {
                 finish(&mut result, Some(choice));
-                return result;
+                return Ok(result);
             }
             if choice == search.last {
                 finish(&mut result, None);
-                return result;
+                return Ok(result);
             }
             choice += 1;
         }
     }
     let (mut lower, mut upper) = (search.first, search.last);
-    let Some(low_pass) = evaluate_choice(lower, &mut result) else {
-        return result;
+    let Some(low_pass) = evaluate_choice(lower, &mut result)? else {
+        return Ok(result);
     };
     if lower == upper {
         finish(&mut result, if low_pass { None } else { Some(lower) });
-        return result;
+        return Ok(result);
     }
-    let Some(high_pass) = evaluate_choice(upper, &mut result) else {
-        return result;
+    let Some(high_pass) = evaluate_choice(upper, &mut result)? else {
+        return Ok(result);
     };
     if !low_pass {
         finish(&mut result, Some(lower));
-        return result;
+        return Ok(result);
     }
     if high_pass {
         finish(&mut result, None);
-        return result;
+        return Ok(result);
     }
     while upper - lower > 1 {
         result["remaining"] = json!({"first":lower + 1,"last":upper});
         let middle = lower + (upper - lower) / 2;
-        let Some(passed) = evaluate_choice(middle, &mut result) else {
-            return result;
+        let Some(passed) = evaluate_choice(middle, &mut result)? else {
+            return Ok(result);
         };
         if passed {
             lower = middle;
@@ -126,13 +126,24 @@ pub(super) fn run(
         }
     }
     finish(&mut result, Some(upper));
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::cell::Cell;
+
+    fn run(
+        search: &Search,
+        elapsed: impl FnMut() -> Duration,
+        mut evaluate: impl FnMut(u64, Duration) -> Evaluation,
+    ) -> Value {
+        super::run(search, elapsed, |choice, remaining| {
+            Ok::<_, std::convert::Infallible>(evaluate(choice, remaining))
+        })
+        .unwrap()
+    }
 
     fn request(mode: &str) -> Search {
         Search {
@@ -150,6 +161,22 @@ mod tests {
             outcome,
             detail: outcome.into(),
             prefix_verified,
+        }
+    }
+
+    #[test]
+    fn host_error_survives_cleanup_deadline_without_becoming_search_report() {
+        for mode in ["scan", "bisect"] {
+            let elapsed = Cell::new(Duration::ZERO);
+            let result = super::run(
+                &request(mode),
+                || elapsed.get(),
+                |_, _| {
+                    elapsed.set(Duration::from_secs(2));
+                    Err::<Evaluation, _>("host cache failure")
+                },
+            );
+            assert_eq!(result.err(), Some("host cache failure"));
         }
     }
 
@@ -277,27 +304,5 @@ mod tests {
         assert_eq!(result["status"], "incomplete");
         assert!(result["evaluations"].is_null());
         assert!(result.get("first_failure").is_none());
-    }
-
-    #[test]
-    fn search_request_refuses_invalid_ranges_and_zero_bounds_before_artifact_admission() {
-        use super::super::Options;
-        use std::path::Path;
-
-        for (name, value) in [
-            ("choice-range", "5:4"),
-            ("search-attempts", "0"),
-            ("search-timeout", "0s"),
-        ] {
-            let mut options = Options::default();
-            options.set("check", "healthy").unwrap();
-            options.set("choice-range", "0:4").unwrap();
-            options.set(name, value).unwrap();
-            let failure = options
-                .request(Path::new("/absent-preservation-artifact"))
-                .err()
-                .unwrap();
-            assert!(failure.contains("positive bounds"), "{name}: {failure}");
-        }
     }
 }

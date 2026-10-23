@@ -1549,6 +1549,9 @@ fn execute_controlled(
             .committed_temporal_reopens()
             .map_err(|error| error.to_string())?;
     }
+    execution
+        .compile_cache(prepared.compile_cache_root.as_deref())
+        .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     execution.conditions(linked::Conditions::compiled());
     #[cfg(all(test, feature = "helper-determinism-fixture"))]
     if let Some(fault) = fault {

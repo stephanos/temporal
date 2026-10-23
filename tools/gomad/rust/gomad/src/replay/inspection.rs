@@ -441,13 +441,48 @@ fn resolve(
     .map_err(preflight_error)
 }
 
+enum EvaluationError {
+    Host(cli::Error),
+    Evaluation(cli::Error),
+}
+
+impl From<cli::Error> for EvaluationError {
+    fn from(error: cli::Error) -> Self {
+        Self::Evaluation(error)
+    }
+}
+
+impl From<EvaluationError> for cli::Error {
+    fn from(error: EvaluationError) -> Self {
+        match error {
+            EvaluationError::Host(error) | EvaluationError::Evaluation(error) => error,
+        }
+    }
+}
+
+fn inspection_execution(
+    execution: Result<linked::Execution, String>,
+) -> Result<linked::Execution, EvaluationError> {
+    match execution {
+        Ok(execution) if crate::execute::cache_failure(&execution.outcome) => Err(
+            EvaluationError::Host(execution_error(execution.outcome.message)),
+        ),
+        Err(message) if crate::execute::cache_error(&message) => {
+            Err(EvaluationError::Host(execution_error(message)))
+        }
+        Err(message) => Err(EvaluationError::Evaluation(execution_error(message))),
+        Ok(execution) => Ok(execution),
+    }
+}
+
 fn evaluate(
     opened: &Opened,
     evidence: &helper::Evidence,
     control: helper::Request,
     request: &InspectionRequest,
     timeout: Option<Duration>,
-) -> Result<helper::Diagnostics, cli::Error> {
+    compile_cache: Option<&str>,
+) -> Result<helper::Diagnostics, EvaluationError> {
     let target = control.target.clone();
     let expected = control.expected.clone();
     let registry = evidence
@@ -457,13 +492,20 @@ fn evaluate(
         .ok_or_else(|| preflight_error("unknown inspection target"))?
         .registry
         .clone();
-    let prepared =
+    let mut prepared =
         preflight::prepare_with_inspection(opened.try_clone().map_err(preflight_error)?, control)
             .map_err(preflight_error)?;
+    prepared
+        .compile_cache(compile_cache)
+        .map_err(preflight_error)?;
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started()?;
-    let observed = preflight::execute_inspection(prepared, &target, request.conditions, timeout)
-        .map_err(execution_error)?;
+    let observed = inspection_execution(preflight::execute_inspection(
+        prepared,
+        &target,
+        request.conditions,
+        timeout,
+    ))?;
     if observed.outcome.termination != "inspected_prefix" {
         let kind = observed.outcome.termination;
         if matches!(
@@ -473,12 +515,14 @@ fn evaluate(
             return Err(execution_error(format!(
                 "inspection evaluation {kind}: {}",
                 observed.outcome.message
-            )));
+            ))
+            .into());
         }
         return Err(execution_error(format!(
             "instrumentation divergence: inspection terminal {kind:?}: {}",
             observed.outcome.message
-        )));
+        ))
+        .into());
     }
     helper::verify_prefix(
         evidence,
@@ -496,6 +540,7 @@ fn evaluate(
         request.per_dump_bytes,
     )
     .map_err(execution_error)
+    .map_err(EvaluationError::from)
 }
 
 /// # Errors
@@ -565,8 +610,9 @@ pub fn run(
     let mut report = json!({"status":"", "artifact_id":prepared.opened.manifest().record_sha256,"requested":request,
         "resolved":{"instance":control.target.node,"incarnation":control.target.incarnation,"choice":at.decision,"trace":at.trace,"order":at.order,"time_nanos":at.time_nanos},
         "prefix_verified":false,"witness_match":false,"prefix_cuts":null,"output_path":"","truncated":false});
+    let cache = prepared.compile_cache_directory();
     if let Some(search) = &request.search {
-        let result = search_run(&prepared.opened, &evidence, request, search)?;
+        let result = search_run(&prepared.opened, &evidence, request, search, cache)?;
         let status = i32::from(result["status"] != "no_failure");
         report["status"] = "invariant_search".into();
         report["search"] = result;
@@ -577,7 +623,7 @@ pub fn run(
     let cuts: Vec<_> = at.cuts.iter().map(|cut| json!({"instance":cut.handle.node,"incarnation":cut.handle.incarnation,
         "choice_records":cut.choice_records,"choice_bytes":cut.choice_bytes,"wasi_bytes":cut.wasi_bytes,
         "network_bytes":cut.network_bytes,"storage_bytes":cut.storage_bytes,"stdout_bytes":cut.stdout_bytes,"stderr_bytes":cut.stderr_bytes})).collect();
-    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None)?;
+    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None, cache)?;
     let (debug, heap, truncated) = diagnostics
         .bound(request.maximum_bytes)
         .map_err(execution_error)?;
@@ -657,6 +703,7 @@ fn search_run(
     evidence: &helper::Evidence,
     request: &InspectionRequest,
     search: &Search,
+    compile_cache: Option<&str>,
 ) -> Result<Value, cli::Error> {
     let started = Instant::now();
     let first = resolve(evidence, request, Some(search.first))?;
@@ -686,51 +733,73 @@ fn search_run(
             "bisect requires a retained monotonic failure declaration",
         ));
     }
-    Ok(search::run(
+    search::run(
         search,
         || started.elapsed(),
         |choice, remaining| {
             let evaluation = resolve(evidence, request, Some(choice))
-                .and_then(|control| evaluate(opened, evidence, control, request, Some(remaining)));
-            let (outcome, detail, verified) = match evaluation {
-                Ok(output) => {
-                    let checks = output.output["checks"].as_array();
-                    if let Some(checks) = checks
-                        && checks.len() == 1
-                        && checks[0]["name"] == search.check
-                    {
-                        let status = checks[0]["status"].as_str().unwrap_or("");
-                        (
-                            match status {
-                                "true" => "pass",
-                                "false" => "fail",
-                                _ => "error",
-                            },
-                            status.to_owned(),
-                            true,
-                        )
-                    } else {
-                        (
-                            "error",
-                            "inspection did not return exactly one invariant result".into(),
-                            false,
-                        )
-                    }
-                }
-                Err(error) => {
-                    let divergence = error.message.contains("instrumentation divergence");
-                    (
-                        if divergence { "divergence" } else { "error" },
-                        error.message,
-                        false,
+                .map_err(EvaluationError::from)
+                .and_then(|control| {
+                    evaluate(
+                        opened,
+                        evidence,
+                        control,
+                        request,
+                        Some(remaining),
+                        compile_cache,
                     )
-                }
-            };
-            search::Evaluation {
-                outcome,
-                detail,
-                prefix_verified: verified,
-            }
+                });
+            predicate_evaluation(evaluation, &search.check)
         },
-    ))
+    )
 }
+
+fn predicate_evaluation(
+    evaluation: Result<helper::Diagnostics, EvaluationError>,
+    check: &str,
+) -> Result<search::Evaluation, cli::Error> {
+    let (outcome, detail, verified) = match evaluation {
+        Ok(output) => {
+            let checks = output.output["checks"].as_array();
+            if let Some(checks) = checks
+                && checks.len() == 1
+                && checks[0]["name"] == check
+            {
+                let status = checks[0]["status"].as_str().unwrap_or("");
+                (
+                    match status {
+                        "true" => "pass",
+                        "false" => "fail",
+                        _ => "error",
+                    },
+                    status.to_owned(),
+                    true,
+                )
+            } else {
+                (
+                    "error",
+                    "inspection did not return exactly one invariant result".into(),
+                    false,
+                )
+            }
+        }
+        Err(EvaluationError::Host(error)) => return Err(error),
+        Err(EvaluationError::Evaluation(error)) => {
+            let divergence = error.message.contains("instrumentation divergence");
+            (
+                if divergence { "divergence" } else { "error" },
+                error.message,
+                false,
+            )
+        }
+    };
+    Ok(search::Evaluation {
+        outcome,
+        detail,
+        prefix_verified: verified,
+    })
+}
+
+#[cfg(test)]
+#[path = "inspection_cache_tests.rs"]
+mod cache_tests;

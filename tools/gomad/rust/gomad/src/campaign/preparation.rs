@@ -541,6 +541,7 @@ mod tests {
             provenance: canonical::encode(&provenance).unwrap(),
             network: None,
             soft_assertion_report_only: false,
+            compile_cache_root: None,
         };
         let plan = json!({
             "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),

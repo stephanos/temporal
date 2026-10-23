@@ -1,4 +1,5 @@
 import copy
+import base64
 from pathlib import Path
 import sys
 import tempfile
@@ -57,6 +58,9 @@ class OneboxReceiving(unittest.TestCase):
             with self.assertRaisesRegex(driver.Refusal, 'private observation seal'):
                 onebox.command(reader, path, accepted=(1,), native=True)
             row['private_observations'] = {'retained': 'original seal'}
+            raw_spec = b'{"Campaign":{"WorldTransitionLimit":33554432}}'
+            row['qualification_spec'] = dict(path='/spec', sha256=receiving.digest(raw_spec),
+                bytes_base64=base64.b64encode(raw_spec).decode('ascii'))
             put(row)
             class Observations:
                 def verify_snapshot(self, actual, pid, seal):
@@ -65,6 +69,12 @@ class OneboxReceiving(unittest.TestCase):
             with patch.object(onebox, 'load_module', return_value=observations):
                 onebox.command(reader, path, accepted=(1,), native=True)
             self.assertEqual(observations.assertions, (config, 123, row['private_observations']))
+            for witness in [None, dict(row['qualification_spec'], path='/foreign'),
+                            dict(row['qualification_spec'], sha256='0' * 64)]:
+                put(dict(row, qualification_spec=witness))
+                with self.assertRaises(driver.Refusal):
+                    onebox.command(reader, path, accepted=(1,), native=True)
+            put(row)
             stdout.write_bytes(b'forged evidence\n')
             with self.assertRaises(driver.Refusal):
                 onebox.command(reader, path, accepted=(1,))

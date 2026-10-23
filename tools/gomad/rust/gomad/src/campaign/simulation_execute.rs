@@ -73,6 +73,9 @@ pub(super) fn run(
         }
         let mut admitted = linked_cluster::prepare(bound.request)
             .map_err(|error| format!("runner_failure: {error}"))?;
+        admitted
+            .compile_cache(prepared.compile_cache_root.as_deref())
+            .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
         admitted.conditions(linked::Conditions::compiled());
         admitted.cancellation(cancellation.clone());
         #[cfg(feature = "determinism-fixture")]

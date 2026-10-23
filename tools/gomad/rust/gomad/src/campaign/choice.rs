@@ -123,6 +123,15 @@ pub(super) fn commit_planned_base(
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
+    resume_with_cache(path, json, output, None)
+}
+
+pub(crate) fn resume_with_cache(
+    path: &Path,
+    json: bool,
+    output: &mut dyn Write,
+    compile_cache_root: Option<String>,
+) -> Result<i32, String> {
     let mut journal = RoundJournal::open(path, true)?;
     let summary = journal.summary()?;
     resume_admission(
@@ -130,7 +139,8 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
             .as_str()
             .ok_or("campaign completion state missing")?,
     )?;
-    let prepared = plan::restore(&journal)?;
+    let mut prepared = plan::restore(&journal)?;
+    prepared.compile_cache_root = compile_cache_root;
     let remaining = plan::duration(&journal)?;
     run(
         &mut journal,

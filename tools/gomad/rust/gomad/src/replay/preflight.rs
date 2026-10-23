@@ -108,6 +108,26 @@ pub enum Execution {
     Cluster(Box<super::cluster::Execution>),
 }
 
+impl Prepared {
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        match &self.execution {
+            Execution::Standalone(prepared) => prepared.compile_cache_directory(),
+            Execution::Cluster(prepared) => prepared.prepared.compile_cache_directory(),
+        }
+    }
+
+    /// # Errors
+    /// Refuses invalid host cache configuration before execution, without opening build inputs.
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> Result<(), String> {
+        match &mut self.execution {
+            Execution::Standalone(prepared) => prepared.compile_cache(directory),
+            Execution::Cluster(prepared) => prepared.prepared.compile_cache(directory),
+        }
+        .map_err(|error| error.to_string())
+    }
+}
+
 /// # Errors
 /// Executes the admitted bytes using the matching typed helper core.
 pub fn execute(execution: Execution) -> Result<linked::Execution, String> {
@@ -185,16 +205,28 @@ pub fn prepare_with_inspection(
     prepare_internal(opened, Some(control), false)
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "Ordered replay admission keeps all identity and bound checks before guest construction"
-)]
 fn prepare_internal(
     opened: Opened,
     control: Option<gomad_wasmhost::linked_inspection::Request>,
     qualification_diagnostics_off: bool,
 ) -> Result<Prepared, String> {
     opened.authenticate_all()?;
+    prepare_authenticated_internal(opened, control, qualification_diagnostics_off)
+}
+
+pub(crate) fn prepare_authenticated(opened: Opened) -> Result<Prepared, String> {
+    prepare_authenticated_internal(opened, None, false)
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "Ordered replay admission keeps all identity and bound checks before guest construction"
+)]
+fn prepare_authenticated_internal(
+    opened: Opened,
+    control: Option<gomad_wasmhost::linked_inspection::Request>,
+    qualification_diagnostics_off: bool,
+) -> Result<Prepared, String> {
     let manifest = opened.manifest();
     let record = &manifest.record;
     if manifest.files.contains_key("record.json")

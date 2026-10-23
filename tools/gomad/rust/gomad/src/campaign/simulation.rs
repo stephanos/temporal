@@ -70,11 +70,21 @@ pub(crate) fn explore(options: &ExplorationOptions, output: &mut dyn Write) -> R
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
+    resume_with_cache(path, json, output, None)
+}
+
+pub(crate) fn resume_with_cache(
+    path: &Path,
+    json: bool,
+    output: &mut dyn Write,
+    compile_cache_root: Option<String>,
+) -> Result<i32, String> {
     let mut journal = RoundJournal::open(path, true)?;
     if !matches!(journal.state(), RoundState::Simulation(_)) {
         return Err("campaign is not simulation exploration".into());
     }
-    let prepared = plan::restore(&journal)?;
+    let mut prepared = plan::restore(&journal)?;
+    prepared.compile_cache_root = compile_cache_root;
     let timeout = plan::duration(&journal)?;
     run(&mut journal, &prepared, timeout, json, output)
 }

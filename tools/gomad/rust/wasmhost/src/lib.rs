@@ -54,6 +54,8 @@ mod linked_network;
 pub mod linked_simulation;
 #[cfg(not(feature = "conformance"))]
 mod linked_storage;
+#[cfg(not(feature = "conformance"))]
+pub mod linked_storage_inspection;
 mod local_model;
 #[cfg(not(feature = "conformance"))]
 mod metrics;
