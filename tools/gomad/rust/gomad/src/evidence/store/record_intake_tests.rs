@@ -265,3 +265,65 @@ fn resealed_unknown_nested_record_fields_refuse_before_inspection_output() {
     );
     assert_eq!(output, Vec::<u8>::new());
 }
+
+fn reseal_backend_counter(path: &Path, field: &str, value: u64) {
+    let mut manifest: Manifest =
+        serde_json::from_slice(&std::fs::read(path.join("manifest.json")).unwrap()).unwrap();
+    let name = "evidence/backend-outcome.json";
+    let mut backend: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(path.join(name)).unwrap()).unwrap();
+    backend[field] = value.into();
+    let bytes = canonical::encode(&backend).unwrap();
+    std::fs::write(path.join(name), &bytes).unwrap();
+    let entry = manifest.files.get_mut(name).unwrap();
+    entry.bytes = bytes.len().try_into().unwrap();
+    entry.sha256 = canonical::digest(&bytes);
+    if let Some(stream) = manifest.record.streams.get_mut(name) {
+        stream.bytes = entry.bytes;
+        stream.sha256.clone_from(&entry.sha256);
+    }
+    let record = canonical::encode(&manifest.record).unwrap();
+    manifest.record_sha256 = canonical::digest(&record);
+    let entry = manifest.files.get_mut("record.json").unwrap();
+    entry.bytes = record.len().try_into().unwrap();
+    entry.sha256.clone_from(&manifest.record_sha256);
+    std::fs::write(path.join("record.json"), &record).unwrap();
+    std::fs::write(
+        path.join("manifest.json"),
+        canonical::encode(&manifest).unwrap(),
+    )
+    .unwrap();
+    for (name, entry) in &manifest.files {
+        let bytes = std::fs::read(path.join(name)).unwrap();
+        assert_eq!(entry.bytes, u64::try_from(bytes.len()).unwrap(), "{name}");
+        assert_eq!(entry.sha256, canonical::digest(&bytes), "{name}");
+    }
+    assert_eq!(manifest.record_sha256, canonical::digest(&record));
+}
+
+#[test]
+fn resealed_backend_fuel_above_admitted_limit_refuses_public_intake() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let published = publish(&root.0.join("store"), "");
+    let record = assert_genuine(&published.path);
+    let backend: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(published.path.join("evidence/backend-outcome.json")).unwrap(),
+    )
+    .unwrap();
+    assert!(backend["fuel_remaining"].as_u64().unwrap() <= record.limits.fuel);
+    reseal_backend_counter(&published.path, "fuel_remaining", record.limits.fuel + 1);
+    let authentication = Opened::open(&published.path).and_then(|opened| opened.authenticate_all());
+    let mut output = Vec::new();
+    let inspection = inspect(&published.path, &mut output);
+    assert!(authentication.unwrap_err().contains("backend outcome fuel"));
+    assert!(
+        inspection
+            .err()
+            .unwrap()
+            .message
+            .contains("backend outcome fuel")
+    );
+    assert_eq!(output, Vec::<u8>::new());
+}
