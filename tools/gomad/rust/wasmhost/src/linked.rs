@@ -86,6 +86,7 @@ pub struct Prepared {
     pub(crate) execute: protocol::Execute,
     pub(crate) model: Option<model::Model>,
     pub(crate) namespace: Option<namespace::Namespace>,
+    pub(crate) storage_bounds: Option<crate::storage_evidence_bounds::Bounds>,
     pub(crate) conditions: Conditions,
     cancellation: Cancellation,
     output: Option<Arc<dyn OutputConsumer>>,
@@ -138,6 +139,7 @@ impl Prepared {
 pub(crate) struct Sink {
     streams: Arc<Mutex<BTreeMap<String, Vec<u8>>>>,
     maximum: u64,
+    storage_bounds: Option<crate::storage_evidence_bounds::Bounds>,
     output: Option<Arc<Output>>,
 }
 
@@ -152,8 +154,17 @@ impl Sink {
         Self {
             streams: Arc::new(Mutex::new(BTreeMap::new())),
             maximum,
+            storage_bounds: None,
             output: None,
         }
+    }
+
+    pub(crate) fn with_storage_bounds(
+        mut self,
+        bounds: Option<crate::storage_evidence_bounds::Bounds>,
+    ) -> Self {
+        self.storage_bounds = bounds;
+        self
     }
 
     fn with_output(
@@ -219,6 +230,13 @@ impl Sink {
             .streams
             .lock()
             .map_err(|_| Error::msg("linked evidence lock poisoned"))?;
+        if let Some(bounds) = &self.storage_bounds {
+            bounds.admit(
+                stream,
+                streams.get(stream).map_or(&[], Vec::as_slice),
+                bytes,
+            )?;
+        }
         let retained = Self::retained_bytes(&streams, bytes.len() as u64)?;
         if retained > self.maximum {
             return Err(Error::new(model::RemoteCapacity(
@@ -366,12 +384,14 @@ pub fn validate(request: Request) -> wasmtime::Result<()> {
 /// # Errors
 /// Authenticates helper-owned inputs and replay projection without creating an engine.
 pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
+    let storage_bounds = crate::storage_evidence_bounds::Bounds::for_request(&request);
     let (execute, model, namespace) = admitted(&mut request)?;
     Ok(Prepared {
         request,
         execute,
         model,
         namespace,
+        storage_bounds,
         conditions: Conditions::default(),
         cancellation: Cancellation::default(),
         output: None,
@@ -393,6 +413,7 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         execute,
         mut model,
         namespace,
+        storage_bounds,
         conditions,
         cancellation,
         output,
@@ -402,7 +423,9 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         return Ok(Cancellation::execution());
     }
     let mut conditions = conditions.enter()?;
-    let sink = Sink::new(request.limits.evidence_bytes).with_output(output, cancellation.clone());
+    let sink = Sink::new(request.limits.evidence_bytes)
+        .with_storage_bounds(storage_bounds)
+        .with_output(output, cancellation.clone());
     if let Some(model) = &mut model {
         model.linked_evidence = Some(sink.clone());
     }

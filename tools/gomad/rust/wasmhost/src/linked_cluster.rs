@@ -604,7 +604,8 @@ fn instance_state(
     activity: &Activity,
 ) -> Result<(engine::State, linked::Sink)> {
     let limits = &sealed.execution.request.limits;
-    let sink = linked::Sink::new(limits.evidence_bytes);
+    let sink = linked::Sink::new(limits.evidence_bytes)
+        .with_storage_bounds(sealed.execution.storage_bounds.clone());
     let mut model = sealed
         .execution
         .model
