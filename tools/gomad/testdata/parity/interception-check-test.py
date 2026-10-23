@@ -4,6 +4,8 @@ from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 import tempfile
+import sys
+from types import SimpleNamespace
 import unittest
 
 loader = SourceFileLoader('interception_check', str(Path(__file__).with_name('interception-check.py')))
@@ -97,6 +99,115 @@ def sealed_campaign(root, work='/short', pid=7):
         journal.append(check.parity.canonical(row))
     (root / 'journal.jsonl').write_bytes(b'\n'.join(journal) + b'\n')
     return origin, execution
+
+
+def sealed_preparation(root):
+    campaign = root / 'campaigns/campaign-prepared'
+    artifact = campaign / 'prepared'
+    origin, record, payloads, _ = sealed_fixture(artifact)
+    record['outcome'] = dict(**{'class':'prepared'}, termination='prepared', exit_code=None, reason='')
+    seal_artifact(artifact, record, payloads)
+    plan = dict(schema='gomad.seed-campaign-plan/v2', selection='1', selection_count=1, parallel=1,
+                shard=None, journal_bytes=1 << 20, prepared_artifact='prepared', module_sha256=record['identity']['target'],
+                toolchain=record['identity']['toolchain'], configuration=dict(limits=record['limits']), origin=origin, scenario=None)
+    raw = check.parity.canonical(plan)
+    (campaign / 'plan.json').write_bytes(raw)
+    (campaign / 'storage.json').write_bytes(check.parity.canonical(dict(format='gomad.campaign-storage/v2',
+                                                                      plan_sha256=check.parity.digest(raw), max_bytes=1 << 20)))
+    (campaign / 'journal.jsonl').write_bytes(b'')
+    published = root / 'admissions/driver/launch/plan.json'
+    published.parent.mkdir(parents=True)
+    published.write_bytes(raw)
+    receipt = dict(schema='gomad.rust-preparation-receipt/v1', guest_executions=0, exit_code=0,
+                   campaign=str(campaign), plan=str(published), plan_sha256=check.parity.digest(raw),
+                   prepared_artifact='prepared', record_sha256=check.parity.digest(check.parity.canonical(record)))
+    for prefix, filename in [('module', 'target/module.wasm'), ('provenance', 'target/provenance.json')]:
+        raw = (artifact / filename).read_bytes()
+        receipt.update({prefix + '_file':filename, prefix + '_bytes':len(raw), prefix + '_sha256':check.parity.digest(raw)})
+    path = published.with_name('plan.json.preparation.json')
+    path.write_bytes(check.parity.canonical(receipt))
+    return artifact, path
+
+
+class FixturePreparation(unittest.TestCase):
+    def test_plan_uses_shared_exporter_and_fixed_seed_fixture_modes(self):
+        preparation = check.load('interception_preparation_test', Path(__file__).with_name('interception-prepare.py'))
+        waves = preparation.plan(Path('/frozen/gomad'), Path('/frozen/install.json'),
+                                 Path('/frozen/source'), Path('/evidence/new'))
+        self.assertEqual([wave['name'] for wave in waves], ['success', 'failure', 'infrastructure', 'callback'])
+        for wave in waves:
+            self.assertEqual(wave['export_argv'][:2], ['/frozen/gomad', 'fixture-driver-prepare'])
+            self.assertIn('go-run', wave['export_argv'])
+            self.assertIn('./cmd/gomad/testdata/seedfree', wave['export_argv'])
+            self.assertEqual(wave['export_argv'][wave['export_argv'].index('--seeds') + 1], '1')
+        infra = waves[2]['export_argv']
+        self.assertEqual(infra[infra.index('--output-limit') + 1], '1')
+        self.assertEqual(waves[1]['export_argv'][-1], 'seed-failure')
+        self.assertEqual(waves[3]['export_argv'][-1], 'stream')
+
+    def test_collected_case_plan_preserves_failure_prefix_and_separate_callback(self):
+        preparation = check.load('interception_preparation_cases_test', Path(__file__).with_name('interception-prepare.py'))
+        prepared = {name: dict(module='/actual/' + name + '.wasm', receipt='/actual/' + name + '.json',
+                               receipt_sha256='a' * 64, args=[]) for name in ['success', 'failure', 'infrastructure', 'callback']}
+        prepared['failure']['args'] = ['seed-failure']
+        prepared['callback']['args'] = ['stream']
+        inputs = preparation.corpus_inputs(prepared)
+        check.validate_cases(inputs, check.document(check.HERE / 'interception-corpus.json'))
+        cases = {case['name']:case for case in inputs['cases']}
+        self.assertEqual(cases['first-failure']['seeds'], '2,1')
+        self.assertEqual([row['seed'] for row in cases['first-failure']['outcomes']], [2])
+        self.assertEqual(cases['first-failure']['later_would_pass_seed'], 1)
+        self.assertEqual(cases['infrastructure']['module'], '/actual/infrastructure.wasm')
+        self.assertNotIn('receipt', cases['unprepared-module'])
+        self.assertEqual(inputs['callback']['args'], ['stream'])
+
+    def test_collector_binds_real_serialized_preparation_payloads(self):
+        preparation = check.load('interception_preparation_receipt_test', Path(__file__).with_name('interception-prepare.py'))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            artifact, receipt = sealed_preparation(root)
+            actual = preparation.retained_input(root)
+            self.assertEqual(actual['module'], str(artifact / 'target/module.wasm'))
+            self.assertEqual(actual['receipt_sha256'], check.parity.digest(receipt.read_bytes()))
+            self.assertEqual(actual['args'], [])
+            document = check.campaign.canonical_file(receipt)
+            document['module_sha256'] = 'f' * 64
+            receipt.write_bytes(check.parity.canonical(document))
+            with self.assertRaisesRegex(ValueError, 'receipt.payload_binding'):
+                preparation.retained_input(root)
+
+    def test_closed_pipe_controller_reads_marker_and_retains_process_observation(self):
+        callback = check.load('interception_callback_process_test', Path(__file__).with_name('interception-callback-check.py'))
+        child = """import os
+os.write(1, b'gomad callback marker\\n')
+try:
+    for _ in range(64):
+        os.write(1, b'x' * 65536)
+except BrokenPipeError:
+    os.write(2, b'closed consumer observed\\n')
+    os._exit(3)
+os._exit(0)
+"""
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(work=Path(temporary), timeout=2)
+            runner = check.Runner(args)
+            delivered, stderr = callback.refuse_stdout(runner, [sys.executable, '-c', child], {})
+            self.assertEqual(delivered, callback.MARKER)
+            self.assertEqual(stderr, b'closed consumer observed\n')
+            self.assertEqual(runner.commands[0]['status'], 3)
+            self.assertFalse(runner.commands[0]['overall_deadline_expired'])
+
+    def test_closed_consumer_proof_requires_real_partial_bytes_and_failed_delivery(self):
+        callback = check.load('interception_callback_test', Path(__file__).with_name('interception-callback-check.py'))
+        record = dict(outcome=dict(**{'class':'runner_failure'}, termination='infrastructure', exit_code=None,
+                                   reason='Broken pipe (os error 32)'))
+        callback.validate_partial(record, b'gomad callback marker\n', b'gomad callback marker\nmore')
+        for delivered, retained in [(b'', b'prefix'), (b'other', b'prefix'), (b'prefix', b'prefix')]:
+            with self.subTest(delivered=delivered), self.assertRaises(ValueError):
+                callback.validate_partial(record, delivered, retained)
+        record['outcome']['termination'] = 'exit'
+        with self.assertRaises(ValueError):
+            callback.validate_partial(record, b'prefix', b'prefixmore')
 
 
 class SealedOriginAndGolden(unittest.TestCase):
