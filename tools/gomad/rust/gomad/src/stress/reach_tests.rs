@@ -622,3 +622,124 @@ fn native_inspection_diagnostics_refuse_incomplete_or_excessive_comparison_work(
             .contains("capacity")
     );
 }
+
+#[test]
+fn literal_reproducer_selects_the_authenticated_compiled_engine_role() {
+    use gomad_wasmhost::linked_inspection::Evidence;
+    let root = std::env::temp_dir().join(format!("gomad-reproducer-role-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let mut metadata =
+        Evidence::decode(include_bytes!("testdata/native-inspection-v3.json")).unwrap();
+    metadata.incarnations[0].streams.choice = vec![0; 96];
+    let metadata = serde_json::to_vec(&metadata).unwrap();
+    let marker = json!({"type":"boundary","order":0,"instance":"a","incarnation":1,"trace":0,"decision":0,"time_nanos":100,"inspection_order":2});
+    let left_rows = vec![marker, event(1, "clock")];
+    let mut right_rows = left_rows.clone();
+    right_rows[1]["value"] = json!("changed");
+    let configuration = json!({"engine":linked::Conditions::compiled().configuration(),"model":{"mode":1,"diagnostics":true}});
+    let publish = |name: &str, rows: &[Value], configuration: Value| {
+        super::tests::publish_stress_configuration(
+            &root,
+            name,
+            b"target",
+            framed(rows),
+            Some(metadata.clone()),
+            configuration,
+        )
+    };
+    let left = publish("left", &left_rows, configuration.clone());
+    let right = publish("right", &right_rows, configuration.clone());
+    let report = report::compare(&left, &right).unwrap();
+    #[cfg(feature = "helper-determinism-fixture")]
+    assert_eq!(
+        super::compare_counterfactual(&left, &right).unwrap(),
+        report
+    );
+    assert_eq!(report["status"], "diverged");
+    let command = report["reproducer"]["replay_command"].as_array().unwrap();
+    assert_eq!(report["reproducer"]["stop"]["stop"]["value"], 0);
+    assert!(
+        command
+            .windows(2)
+            .any(|pair| pair == [json!("--stop"), json!("choice=0")])
+    );
+    match linked::Conditions::compiled() {
+        linked::Conditions::Ordinary => assert!(
+            !command
+                .iter()
+                .any(|arg| arg == "--stress-jitter" || arg == "--determinism-fixture")
+        ),
+        linked::Conditions::StressReplay => assert!(command.contains(&json!("--stress-jitter"))),
+        linked::Conditions::DeterminismFixtureReplay => {
+            assert!(command.contains(&json!("--determinism-fixture")))
+        }
+        linked::Conditions::DiagnosticProfile => panic!("no public diagnostic-profile replay flag"),
+    }
+    let mut unknown = configuration;
+    unknown["engine"] = json!(format!(
+        "{}-unknown",
+        linked::Conditions::compiled().configuration()
+    ));
+    let left = publish("unknown-left", &left_rows, unknown.clone());
+    let right = publish("unknown-right", &right_rows, unknown);
+    let rejected = report::compare(&left, &right).unwrap();
+    #[cfg(feature = "helper-determinism-fixture")]
+    assert!(
+        super::compare_counterfactual(&left, &right)
+            .unwrap_err()
+            .contains("replay role")
+    );
+    assert_eq!(rejected["status"], "undiagnosable");
+    assert!(rejected["reproducer"].get("replay_command").is_none());
+    assert!(
+        rejected["reproducer"]["prefix_unavailable"]
+            .as_str()
+            .unwrap()
+            .contains("replay role")
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn retained_replay_roles_require_exact_engines_and_cluster_agreement() {
+    let engine = linked::Conditions::compiled().configuration();
+    assert!(
+        report::configuration_role(&json!({"engine":engine}), false).unwrap()
+            == linked::Conditions::compiled()
+    );
+    assert!(
+        report::configuration_role(
+            &json!({"incarnations":[{"engine":engine},{"engine":engine}]}),
+            true
+        )
+        .unwrap()
+            == linked::Conditions::compiled()
+    );
+    for config in [
+        json!({"incarnations":[]}),
+        json!({"incarnations":[{"engine":engine},{"engine":"unknown"}]}),
+        json!({"incarnations":[{}]}),
+    ] {
+        assert!(report::configuration_role(&config, true).is_err());
+    }
+    for role in [
+        linked::Conditions::Ordinary,
+        linked::Conditions::StressReplay,
+        linked::Conditions::DeterminismFixtureReplay,
+    ] {
+        if role != linked::Conditions::compiled() {
+            assert!(
+                report::configuration_role(&json!({"engine":role.configuration()}), false)
+                    .err()
+                    .unwrap()
+                    .contains("compiled replay role")
+            );
+        }
+    }
+    assert!(
+        report::configuration_role(&json!({"engine":format!("{engine}-unknown")}), false)
+            .err()
+            .unwrap()
+            .contains("unknown retained replay role")
+    );
+}

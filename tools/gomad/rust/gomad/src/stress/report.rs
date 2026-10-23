@@ -305,6 +305,21 @@ fn prefix(left: &Opened, right: &Opened, a: &Log, b: &Log, before: u64) -> Resul
 }
 
 pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
+    compare_inner(left, right, None)
+}
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(super) fn compare_counterfactual(left: &Value, right: &Value) -> Result<Value, String> {
+    let role = gomad_wasmhost::linked::Conditions::DeterminismFixtureReplay;
+    role.validate().map_err(|error| error.to_string())?;
+    compare_inner(left, right, Some(role))
+}
+
+fn compare_inner(
+    left: &Value,
+    right: &Value,
+    required_role: Option<gomad_wasmhost::linked::Conditions>,
+) -> Result<Value, String> {
     super::comparable(left, right)?;
     let a = Opened::open(std::path::Path::new(
         left["artifact"].as_str().ok_or("missing stress artifact")?,
@@ -323,6 +338,11 @@ pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
         || a.manifest().record.seed != b.manifest().record.seed
     {
         return Err("stress artifact identity or seed changed".into());
+    }
+    if let Some(required) = required_role
+        && replay_role(&a, &b)? != required
+    {
+        return Err("counterfactual replay role is not the compiled fixture role".into());
     }
     let read_log = |opened: &Opened| {
         diagnostics(opened)?;
@@ -361,21 +381,25 @@ pub(super) fn compare(left: &Value, right: &Value) -> Result<Value, String> {
         &expected,
         &actual,
         result["first"]["coordinate"]["Shared"].as_u64().unwrap(),
-    ) {
-        Ok(stop) => {
+    )
+    .and_then(|stop| Ok((stop, replay_flag(replay_role(&a, &b)?)?)))
+    {
+        Ok((stop, flag)) => {
             result["reproducer"]["stop"] = stop.clone();
-            result["reproducer"]["replay_command"] = json!([
-                left["binary"],
-                "replay",
-                "--stress-jitter",
-                "--stop",
-                format!("choice={}", stop["stop"]["value"]),
-                "--instance",
-                stop["instance"],
-                "--incarnation",
-                stop["incarnation"].as_u64().unwrap().to_string(),
-                left["artifact"]
+            let mut command = vec![left["binary"].clone(), json!("replay")];
+            if let Some(flag) = flag {
+                command.push(json!(flag));
+            }
+            command.extend([
+                json!("--stop"),
+                json!(format!("choice={}", stop["stop"]["value"])),
+                json!("--instance"),
+                stop["instance"].clone(),
+                json!("--incarnation"),
+                json!(stop["incarnation"].as_u64().unwrap().to_string()),
+                left["artifact"].clone(),
             ]);
+            result["reproducer"]["replay_command"] = json!(command);
         }
         Err(reason) => {
             result["status"] = json!("undiagnosable");
@@ -462,5 +486,83 @@ fn supplement_inspection(report: &mut Value, left: &Opened, right: &Opened) {
     match super::inspection::compare(left, right) {
         Ok(diagnostic) => report["inspection_diagnostic"] = diagnostic,
         Err(reason) => report["inspection_diagnostic_unavailable"] = json!(reason),
+    }
+}
+
+pub(super) fn configuration_role(
+    configuration: &Value,
+    clustered: bool,
+) -> Result<gomad_wasmhost::linked::Conditions, String> {
+    use gomad_wasmhost::linked::Conditions;
+    let models = if clustered {
+        configuration["incarnations"]
+            .as_array()
+            .filter(|items| !items.is_empty() && items.len() <= 65_536)
+            .ok_or("missing bounded cluster replay role")?
+            .iter()
+            .collect::<Vec<_>>()
+    } else {
+        vec![configuration]
+    };
+    let engine = models[0]["engine"]
+        .as_str()
+        .ok_or("missing retained replay role")?;
+    if models
+        .iter()
+        .any(|model| model["engine"].as_str() != Some(engine))
+    {
+        return Err("cluster incarnations disagree on retained replay role".into());
+    }
+    let role = [
+        Conditions::Ordinary,
+        Conditions::StressReplay,
+        Conditions::DeterminismFixtureReplay,
+        Conditions::DiagnosticProfile,
+    ]
+    .into_iter()
+    .find(|role| role.configuration() == engine)
+    .ok_or("unknown retained replay role")?;
+    role.validate()
+        .map_err(|error| format!("incompatible compiled replay role: {error}"))?;
+    if role == Conditions::DiagnosticProfile {
+        return Err("diagnostic profile has no public replay role flag".into());
+    }
+    Ok(role)
+}
+
+fn replay_role(
+    left: &Opened,
+    right: &Opened,
+) -> Result<gomad_wasmhost::linked::Conditions, String> {
+    let read = |opened: &Opened| {
+        let clustered = opened
+            .manifest()
+            .files
+            .contains_key(crate::replay::cluster::FILE);
+        let file = if clustered {
+            crate::replay::cluster::FILE
+        } else {
+            crate::replay::preflight::FILE
+        };
+        let raw = opened.payload(file, 16 << 20)?;
+        let inputs: Value = crate::qualify::spec::strict(&raw)?;
+        configuration_role(&inputs["configuration"], clustered)
+    };
+    let a = read(left)?;
+    if read(right)? != a {
+        return Err("retained executions disagree on replay role".into());
+    }
+    Ok(a)
+}
+
+fn replay_flag(role: gomad_wasmhost::linked::Conditions) -> Result<Option<&'static str>, String> {
+    use gomad_wasmhost::linked::Conditions;
+    match role {
+        Conditions::Ordinary => Ok(None),
+        Conditions::StressReplay => Ok(Some("--stress-jitter")),
+        Conditions::DeterminismFixtureReplay => Ok(Some("--determinism-fixture")),
+        Conditions::DiagnosticProfile => {
+            Err("diagnostic profile has no public replay role flag".into())
+        }
     }
 }

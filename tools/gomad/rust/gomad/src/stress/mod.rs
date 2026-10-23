@@ -534,3 +534,8 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
 
 #[cfg(test)]
 mod reach_tests;
+
+#[cfg(all(test, feature = "helper-determinism-fixture"))]
+pub(crate) fn compare_counterfactual(left: &Value, right: &Value) -> Result<Value, String> {
+    report::compare_counterfactual(left, right)
+}

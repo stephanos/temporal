@@ -483,7 +483,18 @@ pub(super) fn publish_stress_fixture(
     metadata: Option<Vec<u8>>,
     diagnostics: bool,
 ) -> Value {
-    let configuration = json!({"model":{"mode":mode,"diagnostics":diagnostics}});
+    let configuration = json!({"engine":linked::Conditions::compiled().configuration(),"model":{"mode":mode,"diagnostics":diagnostics}});
+    publish_stress_configuration(root, name, target, log, metadata, configuration)
+}
+
+pub(super) fn publish_stress_configuration(
+    root: &Path,
+    name: &str,
+    target: &[u8],
+    log: Vec<u8>,
+    metadata: Option<Vec<u8>>,
+    configuration: Value,
+) -> Value {
     let replay = canonical::encode(&json!({"configuration":configuration})).unwrap();
     let mut payloads: BTreeMap<String, Vec<u8>> = BTreeMap::from([
         ("evidence/event-order".into(), log),
