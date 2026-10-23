@@ -2981,7 +2981,11 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/cluster_inspection_test.go#TestHelperPreservesInspectionFailuresWithoutFullTapeFinish": {
-   "retired": "Go cluster inspection session plumbing deleted; linked inspection predicates cover the behaviour."
+   "evidence": [
+    "rust/gomad_wasmhost/cluster::handoff::broker::tests::inspection_failures_keep_their_termination_and_stop_inspection",
+    "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
+   ],
+   "reason": "The helper corpus case model_debug_pending_refused_stream keeps transcript and inspection evidence under instrumentation_divergence."
   },
   "tools/gomad/internal/backends/wasm/wasi/cluster_inspection_test.go#TestHelperRejectsUnsolicitedInspectionTerminal": {
    "retired": "Go cluster inspection session plumbing deleted; linked inspection predicates cover the behaviour."
