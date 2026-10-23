@@ -62,7 +62,7 @@ fn terminal_failure_retains_each_partial_report_stderr_and_aggregate() {
                     &root.0.join(format!("{}-driver.stderr", attempt.label)),
                     b"helper diagnostics",
                 );
-                Err("helper transport failed".into())
+                Err::<Value, String>("helper transport failed".into())
             },
             |_| {
                 verifications += 1;
@@ -165,7 +165,7 @@ fn actual_supervised_child_failures_still_publish_terminal_aggregate() {
             assert_eq!(observed.exit_code, Some(7));
             assert!(observed.pid.is_some());
             assert!(observed.reaped_monotonic_nanos.is_some());
-            Err(observed.error.unwrap())
+            Err::<Value, String>(observed.error.unwrap())
         },
         |attempt| {
             verifications += 1;

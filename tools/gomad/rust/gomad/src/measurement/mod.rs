@@ -19,6 +19,7 @@ pub mod statistics;
 pub mod stress_driver;
 pub(crate) mod terminal_collection;
 pub mod terminal_module;
+pub(crate) mod terminal_publication;
 pub mod warm;
 pub mod warm_driver;
 pub mod workloads;

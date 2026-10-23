@@ -486,7 +486,9 @@ fn terminal_measurement(
                     &prepared.module_metadata,
                     &attempt.label,
                 )
-                .map(|observation| json!({"kind":"admission-refusal","observation":observation}));
+                .map(|observation| {
+                    super::terminal_publication::Observation::AdmissionRefusal { observation }
+                });
             }
             let mut row = RunSpec::new(&attempt.label, WORKFLOW, 0, "ordinary");
             row.warm = false;
@@ -515,7 +517,10 @@ fn terminal_measurement(
             if reference.is_none() {
                 reference = Some(run.clone());
             }
-            Ok(json!({"kind":"release","observation":run,"process_exit":process_exit}))
+            Ok(super::terminal_publication::Observation::Release {
+                observation: Box::new(run),
+                process_exit,
+            })
         },
         |attempt| {
             module::authenticate_prepared(prepared)?;
@@ -526,36 +531,13 @@ fn terminal_measurement(
             }
         },
         |records, failure| {
-            let payloads = records
-                .iter()
-                .filter_map(|record| record.observation.as_ref())
-                .collect::<Vec<_>>();
-            let observations = payloads
-                .iter()
-                .filter(|payload| payload["kind"] == "release")
-                .map(|payload| payload["observation"].clone())
-                .collect::<Vec<_>>();
-            let process_exit = payloads
-                .iter()
-                .filter(|payload| payload["kind"] == "release")
-                .map(|payload| payload["process_exit"].clone())
-                .collect::<Vec<_>>();
-            let refusals = payloads
-                .iter()
-                .filter(|payload| payload["kind"] == "admission-refusal")
-                .map(|payload| payload["observation"].clone())
-                .collect::<Vec<_>>();
-            write(
+            super::terminal_publication::publish(
                 &path,
-                &json!({
-                    "schema":"gomad.native-terminal-exit/v2","accepted":failure.is_none(),"failure_reasons":failure,
-                    "attempts":records,"admission_refusals":refusals,"process_exit_observations":process_exit,
-                    "diagnostic_control_admission":diagnostic.as_ref().ok().map(|(admitted,_)|admitted),
-                    "bound_nanos":1_000_000_000u64,
-                    "boundary":"actual classified native Outcome through completed linked Store/engine/watchdog cleanup; child supervisor wait retained separately",
-                    "observations":observations,"helper_admission":admission,"module_provenance":prepared.provenance_path,
-                    "original_control_mapping":{"success":"six admitted native release observations","post-load-authorization-mismatch":"separate native diagnostic module-digest and loaded-module-descriptor admission controls; historical helper wire applicability remains separate"}
-                }),
+                records,
+                failure,
+                admission,
+                diagnostic.as_ref().ok().map(|(admitted, _)| admitted),
+                &prepared.provenance_path,
             )?;
             Ok(path.clone())
         },

@@ -1,0 +1,169 @@
+{
+  "schema": "gomad.native-terminal-publication-development-handover/v1",
+  "owner": "fn232.13/test-wasm complete behavioral reach; no fn185 or final qualification pass",
+  "source_parent": "cc92e63822b3a1f7d8d9f5b7a1adebefa55f9dce",
+  "source_files_sha256": {
+    "tools/gomad/rust/gomad/src/measurement/execution.rs": "1415b2ba21988848cb9796fa61137b77ba99fc9983765c93b7f9d36548e5dd45",
+    "tools/gomad/rust/gomad/src/measurement/execution_artifacts_tests.rs": "81177293eeccb1075225031c0bf92d26f7db9ca01b86d5a4e07d2214ef3c5ef4",
+    "tools/gomad/rust/gomad/src/measurement/mod.rs": "25bfe4cb1f7130c0ee03f966dea8ef7c7cca55373b19ebafe516637ce824074b",
+    "tools/gomad/rust/gomad/src/measurement/terminal_collection.rs": "98c0c1e18e0ad5c1a60a7bf817943495fc19e39274a4b7aa9fa1181852adb56b",
+    "tools/gomad/rust/gomad/src/measurement/terminal_collection_tests.rs": "16aad833e53d174760ad4427e84cc916998c3aa2f9068fae9bd1554ba4fa9af8",
+    "tools/gomad/rust/gomad/src/measurement/warm_driver.rs": "2422b90455ecaa04810f55fa4434c2eaa2691a01404304f646ff973c9b8ecf6e",
+    "tools/gomad/rust/gomad/tests/allocation_receiving.rs": "e574416ebac6bbd8c54b8c58f1441e231d6f6e1220910b81e13ec9b7b74aba0f",
+    "tools/gomad/rust/gomad/src/measurement/terminal_publication.rs": "c3d6f36e1e79185a6912b48a57c4b1e94b96402f4836a13a3c3b8035e4380159",
+    "tools/gomad/rust/gomad/src/measurement/terminal_publication_tests.rs": "b74d69ff1dee9f003207eb424f21a603d5c3c3ea4e7e81f14a32eced7a403883"
+  },
+  "evidence_root": "/home/agent/evidence/fn232-terminal-controls-development-v1",
+  "proofs": {
+    "terminal-producer.command.json": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/terminal-producer.command.json",
+      "sha256": "7701cacca174033863aa00135bcca1cde7fa83c1d98c885b7ee68cd17609e6bb"
+    },
+    "six-release-read.json": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/six-release-read.json",
+      "sha256": "0140a2adab498fb75e4ccc82745944aa7634d46d18e20989e40955e8f4a29084"
+    },
+    "kernel-after-publication.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/kernel-after-publication.log",
+      "sha256": "f685dcf3d3f0667f5f235be2b627938834d4d26eaa20448fa2048f5a363f02c5"
+    },
+    "original-wire/proof.json": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/original-wire/proof.json",
+      "sha256": "c3d5b373c6320d4c6720441603e291a3361b8dda11fed65f655faf6255179c53"
+    },
+    "repair-tests-role-custody.json": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/repair-tests-role-custody.json",
+      "sha256": "e9f523e73ce4e0b4f524a74be518199d7621a143c9852de221a7f4399fffc65c"
+    },
+    "admission-retention-fixture-red-v3.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/admission-retention-fixture-red-v3.log",
+      "sha256": "d907ea1aa457a98cfd7ddcf8415c02a76abf2babd333bf5de646cc901d4fd51d"
+    },
+    "admission-retention-default-green.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/admission-retention-default-green.log",
+      "sha256": "9e5612e38095d293317799f623a0eb818556bb5dbba09a0933d4325b31fb9bdd"
+    },
+    "admission-retention-diagnostic-green.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/admission-retention-diagnostic-green.log",
+      "sha256": "db109628df4f70a314426dae526852711c991cf6cc7bb5bc027fb33824dc2817"
+    },
+    "streaming-unit-green.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/streaming-unit-green.log",
+      "sha256": "0e09d9cb0cef51c17271ec5d4325082b0df8ad45459dc3ad86459815adc45014"
+    },
+    "streaming-focused-final.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/streaming-focused-final.log",
+      "sha256": "38aa8fc807847871e2c33da5b5621a13bb7852bfcd902eedc0b591d3c1e33005"
+    },
+    "streaming-allocation-green.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/streaming-allocation-green.log",
+      "sha256": "8cf191f1b4e9f304c716949f2aa7a46bf96e21aab45bb2b714dd4143be0d5806"
+    },
+    "publication-only-replay.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/publication-only-replay.log",
+      "sha256": "4c1f7bb4e986eb7292c43de6981dcb2cd156ef804544af34508674c896938351"
+    },
+    "streaming-clippy-v3.log": {
+      "path": "/home/agent/evidence/fn232-terminal-controls-development-v1/streaming-clippy-v3.log",
+      "sha256": "ef8dd40c9c40afb1285ce6c6d6849b17258ff4bcad89536c6f7ceb1e977dc52d"
+    }
+  },
+  "original_wire_baseline": {
+    "status": "PASS",
+    "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "go_pid": 890923,
+    "exit_code": 0,
+    "events": 17,
+    "roots": 5,
+    "subcases": 12,
+    "scope": "Actual unchanged original five TestTerminalExit roots, including seven synthetic shell lifecycle controls; distinct from native full Temporal producer and not a native equivalence waiver."
+  },
+  "full_native_development": {
+    "status": "NONPASS",
+    "source": "cda65407c6ab0d72d8c3061bca8b87b32def7b40",
+    "collector_pid": 882884,
+    "collector_exit_code": -9,
+    "collector_reaped_monotonic_nanos": 24273560865405,
+    "six_release_children_exit_zero": true,
+    "six_release_reader": "six-release-read.json",
+    "aggregate_bytes": 0,
+    "loaded_descriptor_control": "Actual capacity refusal before instantiate, followed by publication error digest-only WASI outcome metadata absent; no report/profile retained.",
+    "oom": "Kernel global OOM killed ordinary-releas at matching wall time/cgroup; kernel hostPID13086 to containerPID882884 mapping was not independently captured before death. No watchdog fired.",
+    "scope": "All child groups reaped; actual native aggregate and two-control acceptance remain unproven."
+  },
+  "fixes": {
+    "publication": "Typed terminal records retain native byte vectors and stream a borrowed canonical view with a 64KiB buffer; exact existing gomad.native-terminal-exit/v2 schema/bytes preserved.",
+    "admission": "Typed preinstantiation admission refusal retains actual outcome and empty native catalogue without fabricating model digest/canonical stream receipt; modeled execution keeps strict digest requirements."
+  },
+  "checks": {
+    "native_admission_causal_red": {
+      "exit": 101,
+      "failure": "digest-only WASI outcome metadata absent"
+    },
+    "native_admission_default_green": {
+      "exit": 0,
+      "passed": 1
+    },
+    "native_admission_diagnostic_green": {
+      "exit": 0,
+      "passed": 1,
+      "assertions": "actual compile count1,instantiate/execute counts0; actual nonzero compile/prepare metrics, absent model"
+    },
+    "canonical_bytes": {
+      "exit": 0,
+      "passed": 1,
+      "success_and_failure": true
+    },
+    "final_focused": {
+      "exit": 0,
+      "passed": 7
+    },
+    "allocation": {
+      "exit": 0,
+      "cases": 2,
+      "publish_allocated_bytes_each": 70102,
+      "raw_bytes_each": [
+        1048576,
+        4194304
+      ],
+      "ledger_bytes": [
+        44932443,
+        179707227
+      ]
+    },
+    "retained_publication_replay": {
+      "exit": 0,
+      "original_release_records": 6,
+      "ledger_path": "/home/agent/evidence/fn232-terminal-controls-development-v1/publication-only-replay.json",
+      "ledger_bytes": 673995959,
+      "publish_allocated_bytes": 108021,
+      "peak_extra_requested_bytes": 107573,
+      "accepted": false,
+      "scope": "Publication-only supporting fact, no guest replay/execution or endpoint pass; both original diagnostic controls explicitly unaccepted."
+    },
+    "strict_clippy": {
+      "exit": 0,
+      "selection": "-p gomad --lib --tests --no-default-features -- -D warnings",
+      "profile": "unoptimized dev DEBUG0/incremental0; no release qualification"
+    }
+  },
+  "custody_exception": {
+    "status": "OLD_BOOTSTRAP_REFERENCE_UNVERIFIABLE",
+    "proof": "/home/agent/evidence/fn232-terminal-controls-development-v1/repair-tests-role-custody.json",
+    "reason": "Cargo integration test automatically rebuilt old preparatory debug binary in released bootstrap-target; old exact bytes not found. Original receipt not relabelled. Genuine copied ordinary/diagnostic role files still authenticate and cda tree clean."
+  },
+  "new_operator_route": {
+    "file": "tools/gomad/rust/gomad/tests/allocation_receiving.rs",
+    "test": "terminal_publication_retained_replay",
+    "ignore_reason": "explicit retained terminal publication replay; no guest execution",
+    "registration": "separate actual supporting measurement allocation proof, no generic ignoredPASS; existing exact allocation_receiving four-row route unchanged"
+  },
+  "side_effect_sites": [
+    "terminal_publication::publish creates0600 ledger, buffered write,flush,sync_all; replaces prior warm_driver JSON Value publication site"
+  ],
+  "remaining": [
+    "Fresh integrated candidate genuine ordinary and diagnostic role builds/admissions plus exact terminal module preparation.",
+    "Actual full eight native end-to-end producer and independent final reader acceptance on that candidate.",
+    "Final frozen whole qualification and fn185 profiling remain separate."
+  ]
+}
