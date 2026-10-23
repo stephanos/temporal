@@ -184,7 +184,26 @@ pub fn run(input: &Path, root: &Path) -> Result<(), String> {
         .mode(0o700)
         .create(root)
         .map_err(|error| error.to_string())?;
-    execute(&raw, request, root)
+    execute(&raw, request, root, None)
+}
+
+/// # Errors
+/// Refuses phase admission before dispatch and after joined stores.
+pub fn run_admitted(input: &Path, root: &Path, spec: &Path) -> Result<(), String> {
+    let raw = std::fs::read(input).map_err(|error| error.to_string())?;
+    let request: Input = serde_json::from_slice(&raw).map_err(|error| error.to_string())?;
+    if !matches!(request, Input::Cluster { .. }) {
+        return Err("cluster admission requires cluster request".into());
+    }
+    std::fs::DirBuilder::new()
+        .mode(0o700)
+        .create(root)
+        .map_err(|error| error.to_string())?;
+    let observer = super::cluster_driver::admission::Observer::new(
+        super::cluster_driver::admission::Spec::read(spec)?,
+        root,
+    )?;
+    execute(&raw, request, root, Some(&observer))
 }
 
 /// # Errors
@@ -233,8 +252,8 @@ pub fn run_retained_command(
     }
     let rerun = json!({"requested_root":requested_root,"input":input,
         "command":command});
-    let result =
-        write(&output.join("rerun.json"), &rerun).and_then(|()| execute(&raw, request, &output));
+    let result = write(&output.join("rerun.json"), &rerun)
+        .and_then(|()| execute(&raw, request, &output, None));
     let finish = retained.finish(result.is_ok(), &|| false);
     super::combine(result, finish).map(|()| output)
 }
@@ -243,7 +262,12 @@ pub fn run_retained_command(
     clippy::too_many_lines,
     reason = "Keep standalone and cluster execution retention and diagnostic reporting in the same transaction."
 )]
-fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
+fn execute(
+    raw: &[u8],
+    request: Input,
+    root: &Path,
+    observer: Option<&dyn linked_cluster::LifecycleObserver>,
+) -> Result<(), String> {
     write_raw(&root.join("request.json"), raw)?;
     let mut modules = Vec::new();
     let mut retained_incarnations = 0usize;
@@ -416,7 +440,7 @@ fn execute(raw: &[u8], request: Input, root: &Path) -> Result<(), String> {
                             })
                             .transpose()?,
                     )?;
-                    linked_cluster::execute_prepared(prepared)
+                    linked_cluster::execute_prepared_observed(prepared, observer)
                 })
             })?;
             let result = result.map_err(|error| error.to_string());

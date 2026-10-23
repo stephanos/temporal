@@ -1,3 +1,9 @@
+#[path = "cluster_admission.rs"]
+pub(crate) mod admission;
+
+#[path = "cluster_profile_pair.rs"]
+mod profile_pair;
+
 use super::{
     inputs::{CheckoutProof, Invocation},
     module,
@@ -59,7 +65,7 @@ pub fn prepare(
     module::prepare_scenario(proof, call, root, &source, scenario_bytes()?)
 }
 
-fn stage_broker(repo: &Path) -> Result<String, String> {
+pub(super) fn stage_broker(repo: &Path) -> Result<String, String> {
     let sources = [
         (
             "recovery_test.go",
@@ -370,11 +376,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 &row,
                 reference,
                 &native_input(&prepared, seed)?,
-                prepared
-                    .guest
-                    .choice_identity
-                    .as_ref()
-                    .ok_or("cluster replay choice identity absent")?,
+                &prepared,
             )?;
             Some(result)
         } else {
@@ -399,19 +401,8 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
             let cache = root.join(format!("seed{seed}-compile-cache"));
             workloads::cache_directory(&cache)?;
             request["compile_cache"] = json!(cache);
-            let result = execute_replayed(
-                call,
-                proof,
-                root,
-                &row,
-                &candidate,
-                &request,
-                prepared
-                    .guest
-                    .choice_identity
-                    .as_ref()
-                    .ok_or("cluster replay choice identity absent")?,
-            )?;
+            let result =
+                execute_replayed(call, proof, root, &row, &candidate, &request, &prepared)?;
             if let Some(reference) = &reference_run {
                 evidence::compare(
                     reference,
@@ -435,7 +426,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                         .ok_or("cluster choice bytes absent")?,
                 );
             }
-            rows.push(json!({"seed":seed,"repetition":repetition,"warmup":repetition==0,"request":result.request,"report":result.report,"profile":result.profile,"choice_witness_sha256":canonical::digest(&witness)}));
+            rows.push(json!({"seed":seed,"repetition":repetition,"warmup":repetition==0,"request":result.request,"report":result.report,"profile":result.profile,"profile_pair":profile_pair::summarize(&result)?,"choice_witness_sha256":canonical::digest(&witness)}));
             baseline = Some(result);
         }
     }
@@ -499,15 +490,47 @@ fn execute_replayed(
     row: &super::workloads::RunSpec,
     executable: &super::workloads::Executable,
     request: &Value,
-    identity: &gomad_wasmhost::linked::ChoiceIdentity,
+    prepared: &module::Prepared,
 ) -> Result<super::evidence::NativeRun, String> {
-    let result = super::workloads::execute(call, proof, root, row, executable, request)?;
+    let identity = prepared
+        .guest
+        .choice_identity
+        .as_ref()
+        .ok_or("cluster replay choice identity absent")?;
+    let admitted = |row: &super::workloads::RunSpec, request: &Value, replay: bool| {
+        let spec = admission::Spec::prepared(
+            prepared,
+            proof,
+            executable,
+            input(call, "GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"),
+            replay,
+        )?;
+        let path = root.join(format!("{}-phase-inputs.json", row.name));
+        write(
+            &path,
+            &canonical::encode(&serde_json::to_value(spec).map_err(|error| error.to_string())?)?,
+        )?;
+        let result = super::workloads::execute_admitted(
+            call,
+            proof,
+            root,
+            row,
+            executable,
+            request,
+            Some(&path),
+        )?;
+        admission::check_observations(&root.join("evidence").join(&row.name), replay)?;
+        module::authenticate_prepared(prepared)?;
+        executable.verify(proof)?;
+        Ok::<_, String>(result)
+    };
+    let result = admitted(row, request, false)?;
     success(&result)?;
     let mut request = result.request.clone();
     replay_input(&mut request, &result, identity)?;
     let mut replay_row = row.clone();
     replay_row.name.push_str("-replay");
-    let replay = super::workloads::execute(call, proof, root, &replay_row, executable, &request)?;
+    let replay = admitted(&replay_row, &request, true)?;
     success(&replay)?;
     compare_replay(&result, &replay, identity)?;
     Ok(result)

@@ -206,6 +206,7 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
                 None,
                 &AtomicBool::new(false),
                 &session,
+                None,
             )
         })
         .unwrap();
@@ -785,5 +786,114 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
         }
         validate_world(&observed.world, &broker).unwrap();
         assert_ne!(observed.world, [] as [u8; 0]);
+    }
+}
+
+#[test]
+fn measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_schedules() {
+    use std::sync::Mutex;
+    struct Observer {
+        calls: Mutex<Vec<(u64, bool)>>,
+        refuse: Option<(u64, bool)>,
+    }
+    impl LifecycleObserver for Observer {
+        fn before(&self, phase: &LifecyclePhase) -> std::result::Result<(), String> {
+            assert_eq!(phase.handles.len(), 2);
+            self.calls.lock().unwrap().push((phase.incarnation, true));
+            if self.refuse == Some((phase.incarnation, true)) {
+                return Err("before input changed".into());
+            }
+            Ok(())
+        }
+        fn after(&self, phase: &LifecyclePhase) -> std::result::Result<(), String> {
+            assert_eq!(phase.handles.len(), 2);
+            self.calls.lock().unwrap().push((phase.incarnation, false));
+            if self.refuse == Some((phase.incarnation, false)) {
+                return Err("after input changed".into());
+            }
+            Ok(())
+        }
+    }
+    for slow_first in [false, true] {
+        for refuse in [
+            None,
+            Some((1, true)),
+            Some((1, false)),
+            Some((2, true)),
+            Some((2, false)),
+        ] {
+            let mut request = output_wait_request(1, "", &["a", "b"], Action::Stop);
+            request.boundaries.clear();
+            let second = output_wait_request(1, "", &["a", "b"], Action::Stop)
+                .incarnations
+                .into_iter()
+                .map(|mut item| {
+                    item.handle.incarnation = 2;
+                    item
+                })
+                .collect::<Vec<_>>();
+            request.incarnations.extend(second);
+            for (index, incarnation) in request.incarnations.iter_mut().enumerate() {
+                let module = if (index % 2 == 0) == slow_first {
+                    br#"(module (memory (export "memory") 1) (func (export "_start") (local $i i32)
+                    (loop $loop local.get $i i32.const 1 i32.add local.tee $i i32.const 10000 i32.lt_u br_if $loop)))"#.to_vec()
+                } else {
+                    br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec()
+                };
+                incarnation.request.module_sha256 = format!("{:x}", Sha256::digest(&module));
+                incarnation.request.module = module;
+                incarnation.request.model = None;
+            }
+            request.steps = [(1, Action::Start), (2, Action::Restart)]
+                .into_iter()
+                .flat_map(|(incarnation, start)| {
+                    let order = if slow_first {
+                        [
+                            ("a", start),
+                            ("b", start),
+                            ("a", Action::Wait),
+                            ("b", Action::Wait),
+                        ]
+                    } else {
+                        [
+                            ("a", start),
+                            ("a", Action::Wait),
+                            ("b", start),
+                            ("b", Action::Wait),
+                        ]
+                    };
+                    order.map(move |(node, action)| Step {
+                        action,
+                        handle: Handle {
+                            node: node.into(),
+                            incarnation,
+                        },
+                    })
+                })
+                .collect();
+            let observer = Observer {
+                calls: Mutex::new(Vec::new()),
+                refuse,
+            };
+            let result = execute_prepared_observed(prepare(request).unwrap(), Some(&observer));
+            let expected = [(1, true), (1, false), (2, true), (2, false)];
+            let through = refuse.map_or(4, |refuse| {
+                expected.iter().position(|value| *value == refuse).unwrap() + 1
+            });
+            assert_eq!(*observer.calls.lock().unwrap(), expected[..through]);
+            if refuse.is_some() {
+                assert!(result.err().unwrap().to_string().contains("input changed"));
+            } else {
+                let run = result.unwrap();
+                assert_eq!(run.incarnations.len(), 4);
+                assert!(
+                    run.incarnations
+                        .iter()
+                        .all(|item| item.execution.outcome.termination == "exit"
+                            && item.execution.outcome.exit_code == Some(0))
+                );
+                assert_eq!(run.executed_steps.len(), 8);
+            }
+        }
     }
 }
