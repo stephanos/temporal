@@ -5440,6 +5440,48 @@
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
     "rust:gomad/src/sweep/lifecycle_tests.rs:one_absolute_deadline_covers_enumeration_installation_warmup_and_test"
    ]
+  },
+  {
+   "id": "host.rust.gomad.src.runtime_qualification.rs.produce.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/runtime_qualification.rs|produce|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "runtime qualification produce",
+   "rule": "The first monotonic sample establishes the 600-second shard deadline; the second checks its remaining budget before each fresh recording and limits execution to min(remaining,60 seconds). Expiry refuses the shard, never supplies guest model time or seeds. The request fixes virtual read_step_nanos to 1000 and has no derived seed environment.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/runtime_qualification.rs:original_preparation_options_preserve_target_arguments_and_budgets",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.runtime_qualification.rs.replay_before_deadline.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/runtime_qualification.rs|replay_before_deadline|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "runtime qualification replay_before_deadline",
+   "rule": "The monotonic sample checks the remaining optional 600-second shard deadline before full-tape replay and narrows the prepared execution watchdog. Expiry refuses the shard. Retained canonical record/streams are authenticated and compared independently; host time never rewrites replay tape or guest virtual clock.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/runtime_qualification.rs:original_preparation_options_preserve_target_arguments_and_budgets",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.campaign.prepare.rs.prepare_runtime_qualification.instant.now.1",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/campaign/prepare.rs|prepare_runtime_qualification|Instant::now|1",
+   "disposition": "controlled",
+   "owner": "campaign runtime qualification preparation",
+   "rule": "This monotonic sample establishes the original overall timeout for runtime qualification source preparation. The compiler/process owner enforces the deadline; prepared model clock and entropy inputs come from the exact qualification configuration, independently of host elapsed time.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/runtime_qualification.rs:original_preparation_options_preserve_target_arguments_and_budgets",
+    "rust:gomad/src/runtime_qualification.rs:original_request_configuration_is_seed_independent_and_exact"
+   ]
   }
  ]
 }

@@ -1746,5 +1746,17 @@
  {
   "id": "host.rust.gomad.src.sweep.run.rs.run.instant.now.1",
   "site": "host-rust:gomad/src/sweep/run.rs|run|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.runtime_qualification.rs.produce.instant.now.2",
+  "site": "host-rust:gomad/src/runtime_qualification.rs|produce|Instant::now|2"
+ },
+ {
+  "id": "host.rust.gomad.src.runtime_qualification.rs.replay_before_deadline.instant.now.1",
+  "site": "host-rust:gomad/src/runtime_qualification.rs|replay_before_deadline|Instant::now|1"
+ },
+ {
+  "id": "host.rust.gomad.src.campaign.prepare.rs.prepare_runtime_qualification.instant.now.1",
+  "site": "host-rust:gomad/src/campaign/prepare.rs|prepare_runtime_qualification|Instant::now|1"
  }
 ]

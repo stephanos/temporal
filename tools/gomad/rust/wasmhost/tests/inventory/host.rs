@@ -123,6 +123,7 @@ fn receiving_host_effect_sites_are_inventoried() {
         "gomad/src/qualify/cells.rs|",
         "gomad/src/sweep/process.rs|",
         "gomad/src/backstop.rs|",
+        "gomad/src/runtime_qualification.rs|",
     ] {
         assert!(
             sites.iter().any(|site| site.starts_with(required)),

@@ -284,3 +284,26 @@ must acquire exact rows when that source becomes reachable. Counterpart/live
 regressions and final frozen runtime/workload/replay qualification remain pending.
 Worktree and own Cargo target remain for parent integration/review; no scratch
 checkout or evidence owner was deleted. Free space after build:89GiB.
+
+### Root runtime integration checkpoint
+
+Merged root `652103a3e4` as `149b581b87`. The complete operator scan immediately
+refused three newly reachable per-function entries: runtime `produce` has two
+`Instant::now` samples, `replay_before_deadline` has one, and the receiving
+`campaign/prepare.rs::prepare_runtime_qualification` has one. Added exactly these
+three identities, covering four static samples. Their rules distinguish the
+600-second shard/preparation bound, 60-second recording limit and replay remaining
+budget from the fixed guest model clock. Evidence names the actual two runtime
+configuration/budget tests and the per-site source completeness regression.
+
+`inventory-runtime-candidate.log` is the unfiltered integrated run: exit101,
+29/30 pass, with only the same26 unresolved historical Go references failing.
+No missing or stale helper/operator site remains at this source. The ledger has
+440 identities; the original protected276 digest remains
+`6ae785f83f0b8325df082e577699059728954b9b9efcf0c2637fca72aaf92f55`.
+`runtime-clock-contract-tests.log` records the separately requested two ordinary
+release runtime contract unit tests; it is still compiling at checkpoint time
+and supplies no runtime or stress qualification credit. Formatting/whitespace
+checks pass. The review scope is root `652103a3e4` through this candidate, including
+all earlier receiving changes and the trust-prefix proposal, not merely the last
+three rows. Global reference resolution and final frozen execution remain open.
