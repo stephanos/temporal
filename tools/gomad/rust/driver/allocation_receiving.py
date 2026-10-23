@@ -141,7 +141,7 @@ def main():
     parser.add_argument("log", type=Path)
     parser.add_argument("--artifact-root", type=Path, help="fixed wire outputs (defaults to log directory)")
     arguments = parser.parse_args()
-    rows = [json.loads(line.split(MARKER, 1)[1]) for line in arguments.log.read_text().splitlines() if MARKER in line]
+    rows = [json.loads(line.split(MARKER, 1)[1]) for line in arguments.log.read_text().split('\n') if MARKER in line]
     print(json.dumps(derive(rows, arguments.target, arguments.artifact_root or arguments.log.parent), indent=2))
 
 

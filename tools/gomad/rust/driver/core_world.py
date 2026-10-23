@@ -269,7 +269,7 @@ def observations(config, stdout):
     sources = {}
     for kind in ('world', 'clock'):
         documents[kind], sources[kind] = corpus_inputs(config, kind)
-    rows = [native_roles.decode(line[line.index(MARKER) + len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
+    rows = [native_roles.decode(line[line.index(MARKER) + len(MARKER):]) for line in stdout.split('\n') if MARKER in line]
     rows = [row for row in rows if row.get('case') in CASES]
     expected = {}
     for kind in ('world', 'clock'):

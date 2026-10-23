@@ -33,6 +33,63 @@ def regular(path):
     return path
 
 
+def rust_code(text):
+    """Keep token positions while excluding comments and string test fixtures."""
+    result, at = list(text), 0
+    character_pattern = re.compile(r"'(?:\\(?:x[0-9a-fA-F]{2}|u\{[0-9a-fA-F_]+\}|.)|[^'\\\n])'")
+    raw_pattern = re.compile(r'(?:br|r)(#{0,255})"')
+    def erase(start, end):
+        result[start:end] = ['\n' if char == '\n' else ' ' for char in text[start:end]]
+    while at < len(text):
+        if text.startswith('//', at):
+            end = text.find('\n', at)
+            end = len(text) if end < 0 else end
+            erase(at, end); at = end
+        elif text.startswith('/*', at):
+            end, depth = at + 2, 1
+            while end < len(text) and depth:
+                if text.startswith('/*', end): depth += 1; end += 2
+                elif text.startswith('*/', end): depth -= 1; end += 2
+                else: end += 1
+            require(depth == 0, 'unterminated Rust comment in ignored inventory')
+            erase(at, end); at = end
+        else:
+            character = character_pattern.match(text, at)
+            raw = raw_pattern.match(text, at)
+            if character:
+                end = at + len(character[0])
+                erase(at, end); at = end
+            elif raw:
+                closing = '"' + raw[1]
+                end = text.find(closing, at + len(raw[0]))
+                require(end >= 0, 'unterminated Rust raw string in ignored inventory')
+                end += len(closing)
+                erase(at, end); at = end
+            elif text[at] == '"':
+                end = at + 1
+                while end < len(text):
+                    if text[end] == '\\': end += 2
+                    elif text[end] == '"': end += 1; break
+                    else: end += 1
+                require(end <= len(text) and text[end - 1] == '"', 'unterminated Rust string in ignored inventory')
+                erase(at, end); at = end
+            else: at += 1
+    return ''.join(result)
+
+
+def ignored_attributes(text):
+    code = rust_code(text)
+    rows = []
+    for match in re.finditer(r'#\s*\[\s*ignore\b[^\]]*\]', code):
+        attribute = text[match.start():match.end()]
+        reason = re.fullmatch(r'#\s*\[\s*ignore\s*=\s*("(?:[^"\\]|\\.)*")\s*\]', attribute, re.S)
+        require(reason is not None, 'ignored test requires an explicit registered reason')
+        name = re.search(r'\bfn\s+(\w+)\s*\(', code[match.end():])
+        require(name is not None, 'ignored attribute has no function')
+        rows.append((name[1], json.loads(reason[1])))
+    return rows
+
+
 def ignored_inventory(repo):
     declared = read(HERE / 'static-ignored.json')['tests']
     require(read(HERE / 'static-ignored.json')['schema'] == 'gomad.driver-static-ignored/v1', 'unknown ignored schema')
@@ -40,11 +97,32 @@ def ignored_inventory(repo):
     observed = set()
     attributes = 0
     for crate in ('gomad', 'wasmhost'):
-        for path in (repo / 'tools/gomad/rust' / crate / 'src').rglob('*.rs'):
-            attributes += len(re.findall(r'#\[ignore(?:\s|=|\])', path.read_text()))
-            for match in re.finditer(r'#\[ignore = "([^"]+)"\](.*?)\bfn (\w+)\s*\(', path.read_text(), re.S):
-                observed.add((str(path.relative_to(repo / 'tools/gomad/rust')), match[3], match[1]))
+        for folder in ('src', 'tests'):
+            for path in (repo / 'tools/gomad/rust' / crate / folder).rglob('*.rs'):
+                rows = ignored_attributes(path.read_text())
+                attributes += len(rows)
+                for name, reason in rows:
+                    observed.add((str(path.relative_to(repo / 'tools/gomad/rust')), name, reason))
     require(attributes == len(declared) and expected == observed and len(expected) == len(declared), 'unknown/changed/missing ignored test disposition')
+    import broad_harness
+    for row in declared:
+        if 'broad_routes' not in row:
+            continue
+        routes = row['broad_routes']
+        require(isinstance(routes, list) and routes, 'ignored broad test lacks a closed actual route')
+        expected_routes = []
+        for stage in broad_harness.Stage:
+            for invocation in broad_harness.catalog(stage):
+                target = broad_harness.target(invocation.role)
+                if target.crate != row['crate'] or not invocation.ignored:
+                    continue
+                selected = (invocation.selector == row['name'] or invocation.selector.endswith('::' + row['name'])) if invocation.exact else (
+                    row['source'].endswith('/' + invocation.selector.replace('::', '/') + '.rs'))
+                if selected:
+                    expected_routes.append(dict(stage=stage.value, invocation=invocation.name,
+                                                selector=invocation.selector, features=list(target.features)))
+        require(routes == expected_routes and expected_routes, 'ignored broad test changed its fixed executable, features or final selectors')
+
     final_ids = set(read(HERE / 'required-final.json')['subgates'])
     for row in declared:
         require(row['final_id'] is None or row['final_id'] in final_ids, 'unknown receiving obligation')

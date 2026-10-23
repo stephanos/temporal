@@ -430,7 +430,7 @@ def source_inputs(config):
 
 def observations(config, stdout, artifact_roots=()):
     rows=[]
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if SCHEMA in line:
             start=line.find('{')
             require(start>=0, 'inspection raw envelope absent')

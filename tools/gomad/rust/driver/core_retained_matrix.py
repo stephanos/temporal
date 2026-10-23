@@ -204,7 +204,7 @@ def boundary_facts(boundaries, *, admitted, actual=None):
 
 
 def lifecycle_matrix(stdout):
-    rows = [decode(line.split(MATRIX_MARKER, 1)[1]) for line in stdout.splitlines() if MATRIX_MARKER in line]
+    rows = [decode(line.split(MATRIX_MARKER, 1)[1]) for line in stdout.split('\n') if MATRIX_MARKER in line]
     expected = ('valid', *MUTATIONS, 'module-nonembedding')
     require([row.get('case') for row in rows] == list(expected), 'original retained mutation inventory omitted, duplicated or reordered')
     facts = []

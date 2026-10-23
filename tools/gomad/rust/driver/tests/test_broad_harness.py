@@ -37,6 +37,9 @@ class BroadHarness(unittest.TestCase):
                 self.assertEqual(argv[-2:], ['--nocapture', '--test-threads=1'])
                 if row.role in broad.ALLOCATION_ROLES:
                     self.assertEqual(argv[1:], ['--ignored', '--exact', 'allocation_receiving', '--nocapture', '--test-threads=1'])
+                elif row.name.startswith('helper-') and row.name.endswith('-probe'):
+                    self.assertEqual(argv[1:3], ['--ignored', '--exact'])
+                    self.assertIn('world::owner_preservation_tests::', argv[3])
                 elif row.name == 'host-inspection-scale':
                     self.assertEqual(argv[1:], ['--ignored', '--exact',
                         'replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads',

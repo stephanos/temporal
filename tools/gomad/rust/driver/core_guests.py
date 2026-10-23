@@ -242,7 +242,7 @@ def soft_oracle(owner, stdout, stderr, policy, complete=True):
     messages=[]
     for raw in (stdout,stderr):
         text=raw.decode('utf8')
-        for line in text.splitlines():
+        for line in text.split('\n'):
             if line.startswith('{'):
                 value=decode(line)
                 tagged=value.get('failed-assertion',value.get('FailedAssertion',False))
@@ -262,7 +262,7 @@ def soft_oracle(owner, stdout, stderr, policy, complete=True):
 def history_report(outputs, canary):
     histories=[]
     for owner in ('a/1','b/1'):
-        rows=[line[len(b'GOMAD_HISTORY_OBSERVATION '):] for line in outputs[owner]['stdout'].splitlines() if line.startswith(b'GOMAD_HISTORY_OBSERVATION ')]
+        rows=[line[len(b'GOMAD_HISTORY_OBSERVATION '):] for line in outputs[owner]['stdout'].split(b'\n') if line.startswith(b'GOMAD_HISTORY_OBSERVATION ')]
         require(len(rows)==1 and len(rows[0])<=4096, 'history line missing/ambiguous/oversized')
         value=decode(rows[0]);fields(value,('cluster_id','history','event_ids','types'))
         expected=b'different history' if canary and owner=='b/1' else b'committed history'
@@ -425,7 +425,7 @@ def preparation(files, family_root, row, config, owner_pid):
 
 def parse_rows(stdout):
     rows=[];seen=set()
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if MARKER not in line:continue
         row=decode(line.split(MARKER,1)[1])
         require(isinstance(row,dict) and row.get('case') in CASES and row['case'] not in seen, 'unknown or duplicate actual Go guest case')

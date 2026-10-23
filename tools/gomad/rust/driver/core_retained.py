@@ -48,7 +48,7 @@ def messages(stdout, stderr, complete, report_only):
         except UnicodeError:
             complete = False
             continue
-        for line in text.splitlines():
+        for line in text.split('\n'):
             line = line.lstrip(' \t')
             tagged = False
             record = line.find('{')
@@ -286,7 +286,7 @@ SOURCES = ('tools/gomad/rust/gomad/src/replay/cluster/retained_tests.rs',
 
 
 def observations(config, stdout):
-    rows = [decode(line.split(MARKER, 1)[1]) for line in stdout.splitlines() if MARKER in line]
+    rows = [decode(line.split(MARKER, 1)[1]) for line in stdout.split('\n') if MARKER in line]
     ordinary_rows = [row for row in rows if 'original_root' not in row]
     require(all(set(row) == {'schema', 'case', 'inputs', 'observed'} and row['schema'] == 'gomad.retained-reader-observation/v1' for row in ordinary_rows), 'foreign retained observation envelope')
     require(len({row['case'] for row in ordinary_rows}) == len(ordinary_rows), 'duplicate retained receiving case')
@@ -298,12 +298,13 @@ def observations(config, stdout):
     spelling, soft = ordinary(ordinary_rows), soft_cases(ordinary_rows)
     oracle, producers = oracle_cases(ordinary_rows), producer_cases(ordinary_rows)
     roots = {
-        'TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence': dict(cases=spelling),
         'TestSoftAssertionIncompleteClusterEvidenceIsInconclusive': dict(cases=soft),
         'TestSoftAssertionClusterCapacityCountersNeverProveCompleteness': dict(cases=[row for row in soft if 'capacity-equal-counters' in row['case']]),
         'TestSoftAssertionRetainedEvidenceRequiresActualOutput': dict(cases=oracle[:10]),
         'TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage': dict(cases=[row for row in oracle if '/shortened=' in row['case']]),
         'TestSoftAssertionRetainedTruncatedOutputIsInconclusive': dict(cases=oracle[-2:]),
     }
-    return dict(roots=roots, spelling_cases=spelling, producer_cases=producers,
+    partial = {'TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence': dict(cases=spelling,
+        remaining_original_predicates=['Original present empty oracle pointer and nil versus empty record/boot/output collections require an explicit native presence/retired-representation contract; seven None-based spellings do not establish this.'])}
+    return dict(roots=roots, partial_roots=partial, spelling_cases=spelling, producer_cases=producers,
                 oracle_cases=oracle, soft_cases=soft)

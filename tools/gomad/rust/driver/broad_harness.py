@@ -114,6 +114,10 @@ def catalog(stage):
                        'replay::inspection::predicate_tests::native_retained_scale_admission_preserves_complete_inspection_and_owner_payloads',
                        ignored=True, exact=True)]
     rows.extend(Invocation(name, Role.HOST, selector) for name, selector in HOST_SELECTORS)
+    rows.extend(Invocation(name, Role.HELPER, selector, ignored=True, exact=True) for name, selector in (
+        ('helper-world-probe', 'world::owner_preservation_tests::world_owner_codec_measured_cardinality'),
+        ('helper-compressed-world-probe', 'world::owner_preservation_tests::compressed_world_owner_measured_cardinality'),
+        ('helper-compressed-world-large-probe', 'world::owner_preservation_tests::compressed_world_owner_measured_cardinality')))
     rows.extend((Invocation('helper-allocation', Role.HELPER_ALLOCATION, 'allocation_receiving', ignored=True, exact=True),
                  Invocation('host-allocation', Role.HOST_ALLOCATION, 'allocation_receiving', ignored=True, exact=True), Invocation('identity', Role.IDENTITY)))
     if stage in (Stage.PROVIDER, Stage.RETAINED):
@@ -140,6 +144,11 @@ def invocation_context(config, stage, row, evidence):
     cwd = Path(config['repo'])
     if row.role is Role.HELPER or row.name == 'host-inspection-scale':
         environment['GOMAD_INSPECTION_RAW_DIR'] = str(destination / 'helper-lib-raw')
+    if row.name == 'helper-world-probe':
+        environment['GOMAD_WORLD_CODEC_PROBE'] = '1'
+    if row.name in ('helper-compressed-world-probe', 'helper-compressed-world-large-probe'):
+        environment.update(GOMAD_COMPRESSED_WORLD_PROBE='1',
+                           GOMAD_COMPRESSED_WORLD_PROBE_REQUESTS='200000' if row.name.endswith('-large-probe') else '20000')
     if row.role in ALLOCATION_ROLES:
         cwd = destination / row.name
     if row.name == 'host-broad-guest':
@@ -347,7 +356,7 @@ def run(config, stage):
     files.update({str(owned_root(config) / 'admitted' / role.value): evidence['roles'][role.value]['executable_sha256'] for role in Role})
     for row in catalog(stage):
         observed, environment = invocation_context(config, stage, row, evidence)
-        if row.role is Role.HELPER:
+        if row.name == 'helper-lib':
             Path(environment['GOMAD_INSPECTION_RAW_DIR']).mkdir(mode=0o700)
         if row.role in ALLOCATION_ROLES:
             Path(observed['repo']).mkdir(mode=0o700)

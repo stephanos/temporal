@@ -361,7 +361,7 @@ PARTIAL={
 def observations(config,stdout):
     rows={};expected=expected_cases()
     prefixes=('history/','policy/','capacity/','authentication/','decode/','binding/','admission/','module/','storage-selection/','sqlite-intent/')
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if MARKER not in line:continue
         row=decoded(line[line.index(MARKER)+len(MARKER):])
         if not row.get('case','').startswith(prefixes):continue

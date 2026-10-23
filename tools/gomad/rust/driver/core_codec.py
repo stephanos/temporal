@@ -324,7 +324,7 @@ ROOTS = {
 
 def observations(config,stdout):
     catalog=storage_catalog(config);seen=set()
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if MARKER not in line:continue
         row=decoded(line[line.index(MARKER)+len(MARKER):])
         if not row.get('case','').startswith(('storage-context-admission','storage-context-equality','storage-large-context-transport','storage-validation-')):continue
@@ -335,10 +335,10 @@ def observations(config,stdout):
     facts={root:dict(cases=[list(key) for key in sorted(seen) if key[0] in cases],
                       lineage='native typed storage context; exact semantic fields and refusal precedence')
             for root,cases in ROOTS.items()}
-    selected=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
+    selected=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.split('\n') if MARKER in line]
     selected=[row for row in selected if row.get('case') in {'storage-selected-baseline','storage-selected-state-recovery','storage-context-divergence','storage-large-observed-selection'}]
     facts.update(selected_observations(selected))
-    evidence=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.splitlines() if MARKER in line]
+    evidence=[decoded(line[line.index(MARKER)+len(MARKER):]) for line in stdout.split('\n') if MARKER in line]
     facts.update(evidence_observations([row for row in evidence if row.get('case','').startswith('storage.native-')],selected))
     engine=[row for row in evidence if row.get('case','').startswith('storage-engine-')]
     facts['TestStorageCrashContextSelectedOwnersAndDivergence']['engine']=engine_observations(config,engine)

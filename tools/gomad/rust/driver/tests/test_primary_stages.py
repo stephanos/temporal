@@ -20,6 +20,21 @@ class PrimaryRecipes(unittest.TestCase):
                 'cluster': dict(role='host-fixture', argv=['/sealed/python', 'cluster', '--input', str(template)]),
                 'broker': dict(role='host-fixture', argv=['/sealed/python', 'broker', '--observation', '/sealed/observation'])}))
 
+    def test_broad_routes_require_independent_closed_receiving(self):
+        root = Path('/sealed/cycle/stages/cluster-provider')
+        config = dict(root='/sealed/cycle', python='/sealed/python', _config_path='/sealed/config.json')
+        self.assertTrue(primary.BROAD <= primary.OWNED)
+        self.assertFalse(primary.BROAD & primary.MISSING.keys())
+        with patch('broad_stages.preflight', return_value={'fixed': True}) as preflight:
+            self.assertEqual(primary.preflight(config, 'cluster-provider', root), {'fixed': True})
+            preflight.assert_called_once_with(config, 'cluster-provider', root)
+        with patch('broad_stages.run', side_effect=Refusal('unreceived literal branch')):
+            with self.assertRaisesRegex(Refusal, 'unreceived literal branch'):
+                primary.run(config, 'cluster-provider', root)
+        with patch('receiving.Retained.command'), patch('broad_stages.read', side_effect=Refusal('raw mutation omitted')):
+            with self.assertRaisesRegex(Refusal, 'raw mutation omitted'):
+                primary.read_stage(config, 'cluster-provider', root)
+
     def test_terminal_preflight_never_reads_future_module_or_publication(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

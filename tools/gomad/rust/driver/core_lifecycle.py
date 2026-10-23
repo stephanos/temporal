@@ -152,7 +152,7 @@ def recovery(observed):
 def sqlite_observation(ack, stdout):
     def line(raw, prefix):
         text = raw.decode('utf-8')
-        values = [line[len(prefix):] for line in text.splitlines() if line.startswith(prefix)]
+        values = [line[len(prefix):] for line in text.split('\n') if line.startswith(prefix)]
         if not values or not values[0] or len(values[0].encode()) > 1 << 20:
             return None, 'missing or oversized workload observation'
         if len(values) > 1: return None, 'ambiguous workload observation'
@@ -324,7 +324,7 @@ def validate_case(root, variant, observed, inputs=None):
 
 def parse_rows(stdout, required=CATALOG):
     seen, facts = set(), []
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if SCHEMA not in line:
             continue
         require('{' in line, 'native lifecycle row lacks JSON')
@@ -354,8 +354,9 @@ def observations(config, stdout, network_frame_cases=None):
             'native store result collector no longer exposes actual drop timing')
     require('CLUSTER_STOP_GRACE: Duration = Duration::from_secs(5)' in production and 'watcher.join()' in production.replace('\n', '').replace(' ', ''), 'native cleanup bound/join source contract changed')
     facts = parse_rows(stdout)
-    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, DRAIN, RESTART, RETRY, CLEANUP, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
+    complete = {OPERATOR, HOST, INTERNAL, CALLBACK, RESTART, RETRY, CLEANUP, ORACLE, STORAGE_ROOTS[0], STORAGE_ROOTS[1]}
     partial = {
+        DRAIN: ['Original shutdown must remain blocked until a held peer drain is released, and must emit no post-failure controls; joined-owner/action facts alone do not prove these predicates.'],
         LAZY: ['Original hard-isolation refusal and explicit isolated reference admission require separate receiving evidence.'],
         MODEL: ['Interrupted terminal model completeness requires the retained result/model receiving owner.'],
         ATTRIBUTION: ['Duplicate JSON keys and corrupt evidence base64 require the retained codec receiving owner.'],

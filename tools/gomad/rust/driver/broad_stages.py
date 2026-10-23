@@ -47,7 +47,7 @@ def raw_text(raw, name):
 
 def document(stdout, schema):
     rows = []
-    for line in stdout.splitlines():
+    for line in stdout.split('\n'):
         if schema in line:
             start = line.find('{')
             require(start >= 0, 'missing broad raw JSON envelope')
@@ -170,7 +170,7 @@ def typed_readers(config, stage, raw, build):
                 and re.search(r'test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured; [0-9]+ filtered out;', text),
                 'allocation process did not execute its one exact ignored test')
         allocator = module('allocation_receiving')
-        rows = [native_roles.decode(line.split(allocator.MARKER, 1)[1]) for line in text.splitlines() if allocator.MARKER in line]
+        rows = [native_roles.decode(line.split(allocator.MARKER, 1)[1]) for line in text.split('\n') if allocator.MARKER in line]
         facts = allocator.derive(rows, target, artifact_root=Path(owned['cwd']))
         if target == 'gomad':
             roots = {'TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation': dict(

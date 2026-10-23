@@ -206,7 +206,7 @@ class StaticStageContract(unittest.TestCase):
 
     def test_exact_known_ignored_inventory(self):
         rows = static.ignored_inventory(driver.REPO)
-        self.assertEqual(len(rows), 19)
+        self.assertEqual(len(rows), 29)
         root34 = [row for row in rows if row['name'].startswith(('final_network_', 'joined_storage_'))]
         self.assertEqual(len(root34), 2)
         self.assertTrue(all(row['final_id'] == 'transferred-live/TestClusterBrokerDurableRestartParity' for row in root34))
@@ -226,6 +226,31 @@ class StaticStageContract(unittest.TestCase):
             (repo / 'tools/gomad/rust/gomad/src').mkdir(parents=True)
             with self.assertRaises(driver.Refusal):
                 static.ignored_inventory(repo)
+
+    def test_ignored_inventory_excludes_rust_literal_fixtures_and_comments(self):
+        text = '\n'.join([
+            '// #[ignore = "comment"] fn fake() {}',
+            '/* nested /* #[ignore = "nested"] */ fn fake() {} */',
+            'let fixture = r##"#[ignore = "raw"] fn fake() {}"##;',
+            'let normal = "#[ignore = \\"normal\\"] fn fake() {}";',
+            "let quote = b'\"'; let lifetime: &'static str = \"literal\";",
+            '#[test] #[ignore = "actual reason"] fn actual() {}',
+        ])
+        self.assertEqual(static.ignored_attributes(text), [('actual', 'actual reason')])
+        with self.assertRaises(driver.Refusal): static.ignored_attributes('#[ignore] fn missing_reason() {}')
+        with self.assertRaises(driver.Refusal): static.ignored_attributes('/* unclosed')
+
+    def test_ignored_broad_routes_bind_fixed_final_selectors_and_features(self):
+        original = static.read(static.HERE / 'static-ignored.json')
+        read = static.read
+        for field, value in (('selector', 'caller::selector'), ('features', ['caller-feature']), ('stage', 'ordinary')):
+            forged = copy.deepcopy(original)
+            row = next(row for row in forged['tests'] if 'broad_routes' in row)
+            row['broad_routes'][0][field] = value
+            def inputs(path):
+                return forged if path == static.HERE / 'static-ignored.json' else read(path)
+            with self.subTest(field=field), patch.object(static, 'read', side_effect=inputs), self.assertRaisesRegex(driver.Refusal, 'fixed executable'):
+                static.ignored_inventory(driver.REPO)
 
     def test_changed_missing_duplicate_and_unknown_ignored_routes_refuse(self):
         original = static.read(static.HERE / 'static-ignored.json')

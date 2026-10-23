@@ -14,17 +14,17 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
                     guard, read, require, sha, subgates, write)
 import live
 
-OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
+BROAD = {'cluster-provider', 'cluster-functional', 'retained-cluster'}
+OWNED = BROAD | {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
          'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls', 'wasmmeasure-build', 'helper-build', 'ordinary-helper-publication', 'terminal-module', 'terminal-host-admission', 'terminal-exit'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
             'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900, 'terminal-module': 3600, 'terminal-host-admission': 900, 'terminal-exit': 3600}
+TIMEOUTS.update({label: 7200 for label in BROAD})
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
-    'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
-    'cluster-functional': 'complete original 46 selected roots; lifecycle/protocol/storage-context/codec/identity predicates beyond roots33..35 and private35',
-    'retained-cluster': 'all original 24 Retained|Replay roots; independent replay/codec/reader/softassert/stress-reopen predicates beyond roots18,22,24,25,27',
+
 }
 
 
@@ -78,6 +78,9 @@ def native_build(config, root):
 
 
 def preflight(config, label, root):
+    if label in BROAD:
+        import broad_stages
+        return broad_stages.preflight(config, label, root)
     if label in ('terminal-module', 'terminal-host-admission', 'terminal-exit'):
         import terminal_inputs
         native_bootstrap(config)
@@ -385,6 +388,9 @@ def endpoint(config, label):
 
 
 def run(config, label, root):
+    if label in BROAD:
+        import broad_stages
+        return broad_stages.run(config, label, root)
     guard(config)
     require(not (root / 'primary').exists(), 'primary stage outputs must be fresh')
     (root / 'primary').mkdir(mode=0o700)
@@ -602,6 +608,18 @@ def conformance(config, root):
 
 
 def read_stage(config, label, root):
+    if label in BROAD:
+        import broad_stages
+        import broad_harness
+        import receiving
+        receiving.Retained(config).command(config, root, 'producer', canonical_argv(config, label, root, 'run'), timeout=TIMEOUTS[label])
+        facts = broad_stages.read(config, label, root)
+        stage_root = broad_harness.stage_root(config, broad_harness.Stage(label))
+        enclose_child(read(root / 'producer.command.json'), read(root / 'producer.process.json'),
+                      read(stage_root / 'run-producer.command.json'))
+        rows = facts['subgates']
+        coverage(subgates(label), rows)
+        return dict(schema='gomad.rust-driver-check/v1', stage=label, source_sha256=config['source_sha256'], identity=config['identity'], subgates=rows)
     guard(config)
     reader = actual_commands(config, label, root)
     if label == 'terminal-module':

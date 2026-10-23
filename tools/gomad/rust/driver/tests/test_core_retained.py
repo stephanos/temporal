@@ -1,6 +1,8 @@
 import base64
 import copy
 import unittest
+import json
+from unittest.mock import patch
 
 import core_retained as reader
 from driver import Refusal
@@ -54,6 +56,16 @@ class RetainedOracleTests(unittest.TestCase):
         forged = copy.deepcopy(rows)
         forged[0]['observed']['public_status'] = 2
         with self.assertRaises(Refusal): reader.ordinary(forged)
+
+    def test_ndjson_uses_physical_lf_and_preserves_unicode_line_separators(self):
+        row = dict(schema='gomad.retained-reader-observation/v1', case='unicode-control',
+                   inputs={'text': 'before\u2028middle\u0085after'}, observed={})
+        raw = reader.MARKER + json.dumps(row, ensure_ascii=False) + '\n'
+        with patch('native_roles.pinned'), patch.object(reader, 'ordinary', return_value=[]), \
+             patch.object(reader, 'soft_cases', return_value=[]) as soft, \
+             patch.object(reader, 'oracle_cases', return_value=[]), patch.object(reader, 'producer_cases', return_value=[]):
+            reader.observations({'repo': '/sealed'}, raw)
+        self.assertEqual(soft.call_args.args[0], [row])
 
     def test_missing_catalog_does_not_receive_original_root(self):
         with self.assertRaises(Refusal): reader.oracle_cases([])
