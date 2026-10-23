@@ -169,7 +169,7 @@ fn rejects_resealed(outcome: Outcome) {
             .message
             .contains("invalid record outcome")
     );
-    assert!(output.is_empty());
+    assert_eq!(output, Vec::<u8>::new());
 }
 
 #[test]
