@@ -201,7 +201,7 @@ fn original_limits() -> Value {
 
 fn scenario(nodes: Value, boots: Value, actions: Value, links: Value) -> Value {
     let mut spec = json!({"schema":"gomad.simulation-spec/v8", "backend":"wasm",
-        "fidelity":"simulation_model", "seed":7, "limits":original_limits()});
+        "fidelity":"simulation_model", "seed":0, "limits":original_limits()});
     let spec_fields = spec.as_object_mut().unwrap();
     spec_fields.insert("nodes".into(), nodes);
     spec_fields.insert("links".into(), links);
@@ -213,6 +213,71 @@ fn scenario(nodes: Value, boots: Value, actions: Value, links: Value) -> Value {
         ("incarnation_boots".into(), json!([])),
         ("network_faults".into(), json!([])),
     ]))
+}
+
+fn soft_scenario() -> Value {
+    scenario(
+        json!([{"id":"a","boot":"fixture","address":"10.0.0.1"},{"id":"b","boot":"fixture","address":"10.0.0.2"}]),
+        json!([{"id":"fixture","args":["-test.v","-assertion-mode=late"]}]),
+        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}},
+                {"action":"start","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
+        json!([]),
+    )
+}
+
+fn capacity_scenario() -> Value {
+    scenario(
+        json!([{"id":"a","boot":"fixture","address":"10.0.0.1"}]),
+        json!([{"id":"fixture","args":["-test.run=TestOutputCapacity"]}]),
+        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}}]),
+        json!([]),
+    )
+}
+
+fn lifecycle_scenario() -> Value {
+    scenario(
+        json!([{"id":"a","boot":"server","address":"10.0.0.1"},{"id":"b","boot":"client","address":"10.0.0.2"}]),
+        json!([{"id":"server","args":["server"]},{"id":"client","args":["client","10.0.0.1"]}]),
+        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
+                {"action":"wait","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}},
+                {"action":"restart","handle":{"node":"a","incarnation":2}},{"action":"restart","handle":{"node":"b","incarnation":2}},
+                {"action":"wait","handle":{"node":"b","incarnation":2}},{"action":"wait","handle":{"node":"a","incarnation":2}}]),
+        json!([{"from":"a","to":"b","enabled":true},{"from":"b","to":"a","enabled":true}]),
+    )
+}
+
+fn canary_scenario(canary: bool) -> Value {
+    scenario(
+        json!([{"id":"a","boot":"a","address":"10.0.0.1"},{"id":"b","boot":"b","address":"10.0.0.2"}]),
+        json!([{"id":"a","args":["observation"]},{"id":"b","args":if canary {vec!["observation","canary"]} else {vec!["observation"]}}]),
+        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
+                {"action":"wait","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
+        json!([]),
+    )
+}
+
+fn grouped_scenario() -> Value {
+    let mut spec = scenario(
+        json!([{"id":"a","boot":"a-commit","address":"10.0.0.1","volumes":[{"volume":"a","path":"/workspace"}]},
+        {"id":"b","boot":"b-commit","address":"10.0.0.2","volumes":[{"volume":"b","path":"/workspace"}]}]),
+        json!([]),
+        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
+            {"action":"crash","handle":{"node":"a","incarnation":1}},{"action":"crash","handle":{"node":"b","incarnation":1}},
+            {"action":"restart","handle":{"node":"a","incarnation":2}},{"action":"restart","handle":{"node":"b","incarnation":2}},
+            {"action":"wait","handle":{"node":"a","incarnation":2}},{"action":"wait","handle":{"node":"b","incarnation":2}}]),
+        json!([]),
+    );
+    spec["spec"]["volumes"] =
+        json!([{"id":"a","capacity_bytes":8<<20},{"id":"b","capacity_bytes":8<<20}]);
+    spec["boots"]=json!(["a","b"].into_iter().flat_map(|node|["commit","recover"].into_iter().map(move |phase|json!({"id":format!("{node}-{phase}"),
+        "args":[if phase=="commit" {"durable"} else {"recover"}],"storage":{"volumes":[{"ID":node,"Path":"/workspace","CapacityBytes":8<<20}],
+            "limits":{"PendingOperations":1024,"Transitions":10000}}}))).collect::<Vec<_>>());
+    spec["incarnation_boots"] = json!([{"handle":{"node":"a","incarnation":2},"boot":"a-recover"},{"handle":{"node":"b","incarnation":2},"boot":"b-recover"}]);
+    spec["output_crashes"] = json!([
+        {"handle":{"node":"a","incarnation":1},"marker":b"committed durable-a"},
+        {"handle":{"node":"b","incarnation":1},"marker":b"committed durable-a"}
+    ]);
+    spec
 }
 
 fn bind(producer: &Producer, scenario: &Value, seed: u64) -> Configuration {
@@ -353,13 +418,7 @@ fn actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay() {
     let producer = producer("softassert", true, true);
     let mut signature = None;
     for (report_only, seed) in [(false, 7), (false, 19), (true, 7)] {
-        let scenario = scenario(
-            json!([{"id":"a","boot":"fixture","address":"10.0.0.1"},{"id":"b","boot":"fixture","address":"10.0.0.2"}]),
-            json!([{"id":"fixture","args":["-test.v","-assertion-mode=late"]}]),
-            json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}},
-                {"action":"start","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
-            json!([]),
-        );
+        let scenario = soft_scenario();
         let mut configuration = bind(&producer, &scenario, seed);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "soft-assertion".into();
@@ -427,12 +486,7 @@ fn actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay() {
 fn actual_output_capacity_guest_preserves_original_three_policies() {
     let producer = producer("capacity", false, true);
     for (report_only, maximum) in [(false, 4096), (true, 4096), (true, 1)] {
-        let scenario = scenario(
-            json!([{"id":"a","boot":"fixture","address":"10.0.0.1"}]),
-            json!([{"id":"fixture","args":["-test.run=TestOutputCapacity"]}]),
-            json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}}]),
-            json!([]),
-        );
+        let scenario = capacity_scenario();
         let mut configuration = bind(&producer, &scenario, 7);
         configuration.limits.output_bytes = 4;
         for item in &mut configuration.incarnations {
@@ -529,15 +583,7 @@ fn observe_execution(
 fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay() {
     let producer = producer("lifecycle", false, false);
     for compressed in [false, true] {
-        let scenario = scenario(
-            json!([{"id":"a","boot":"server","address":"10.0.0.1"},{"id":"b","boot":"client","address":"10.0.0.2"}]),
-            json!([{"id":"server","args":["server"]},{"id":"client","args":["client","10.0.0.1"]}]),
-            json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
-                {"action":"wait","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}},
-                {"action":"restart","handle":{"node":"a","incarnation":2}},{"action":"restart","handle":{"node":"b","incarnation":2}},
-                {"action":"wait","handle":{"node":"b","incarnation":2}},{"action":"wait","handle":{"node":"a","incarnation":2}}]),
-            json!([{"from":"a","to":"b","enabled":true},{"from":"b","to":"a","enabled":true}]),
-        );
+        let scenario = lifecycle_scenario();
         let mut configuration = bind(&producer, &scenario, 7);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "service".into();
@@ -602,13 +648,7 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
 fn actual_go_history_oracle_canary_preserves_detached_retained_replay() {
     let producer = producer("canary", false, false);
     for canary in [false, true] {
-        let scenario = scenario(
-            json!([{"id":"a","boot":"a","address":"10.0.0.1"},{"id":"b","boot":"b","address":"10.0.0.2"}]),
-            json!([{"id":"a","args":["observation"]},{"id":"b","args":if canary {vec!["observation","canary"]} else {vec!["observation"]}}]),
-            json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
-                {"action":"wait","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
-            json!([]),
-        );
+        let scenario = canary_scenario(canary);
         let mut configuration = bind(&producer, &scenario, 7);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "service".into();
@@ -643,26 +683,21 @@ fn actual_go_history_oracle_canary_preserves_detached_retained_replay() {
 #[ignore = "actual pinned Go compilation and live guests require the parent execution lease"]
 fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery() {
     let producer = producer("grouped", false, false);
-    let mut spec = scenario(
-        json!([{"id":"a","boot":"a-commit","address":"10.0.0.1","volumes":[{"volume":"a","path":"/workspace"}]},
-        {"id":"b","boot":"b-commit","address":"10.0.0.2","volumes":[{"volume":"b","path":"/workspace"}]}]),
-        json!([]),
-        json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"start","handle":{"node":"b","incarnation":1}},
-            {"action":"crash","handle":{"node":"a","incarnation":1}},{"action":"crash","handle":{"node":"b","incarnation":1}},
-            {"action":"restart","handle":{"node":"a","incarnation":2}},{"action":"restart","handle":{"node":"b","incarnation":2}},
-            {"action":"wait","handle":{"node":"a","incarnation":2}},{"action":"wait","handle":{"node":"b","incarnation":2}}]),
-        json!([]),
-    );
-    spec["spec"]["volumes"] =
-        json!([{"id":"a","capacity_bytes":8<<20},{"id":"b","capacity_bytes":8<<20}]);
-    spec["boots"]=json!(["a","b"].into_iter().flat_map(|node|["commit","recover"].into_iter().map(move |phase|json!({"id":format!("{node}-{phase}"),
-        "args":[if phase=="commit" {"durable"} else {"recover"}],"storage":{"volumes":[{"ID":node,"Path":"/workspace","CapacityBytes":8<<20}],
-            "limits":{"PendingOperations":1024,"Transitions":10000}}}))).collect::<Vec<_>>());
-    spec["incarnation_boots"] = json!([{"handle":{"node":"a","incarnation":2},"boot":"a-recover"},{"handle":{"node":"b","incarnation":2},"boot":"b-recover"}]);
+    let spec = grouped_scenario();
     let mut configuration = bind(&producer, &spec, 7);
     for item in &mut configuration.incarnations {
         item.arguments[0] = "service".into();
     }
+    let expected_boundaries = json!([
+        {"handle":{"node":"a","incarnation":1},"action":"crash","marker":b"committed durable-a"},
+        {"handle":{"node":"b","incarnation":1},"action":"crash","marker":b"committed durable-a"}
+    ]);
+    assert_eq!(
+        serde_json::to_value(&configuration.boundaries).unwrap(),
+        expected_boundaries
+    );
+    // The native group replaces the admitted per-handle boundaries with one acknowledgment barrier.
+    configuration.boundaries.clear();
     configuration.crash_groups = vec![helper::CrashGroup {
         nodes: vec!["a".into(), "b".into()],
         marker: b"committed durable-a".to_vec(),
@@ -695,5 +730,48 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
         "grouped/replay",
         &configuration,
         json!({"producer":proof,"report":report,"replay":replay}),
+    );
+}
+
+#[test]
+fn original_go_guest_recipes_pass_typed_scenario_normalization_before_preparation() {
+    for (name, recipe, actions) in [
+        ("softassert", soft_scenario(), 4),
+        ("capacity", capacity_scenario(), 2),
+        ("lifecycle", lifecycle_scenario(), 8),
+        ("canary-control", canary_scenario(false), 4),
+        ("canary-failure", canary_scenario(true), 4),
+        ("grouped", grouped_scenario(), 8),
+    ] {
+        let raw = canonical::encode(&recipe).unwrap();
+        let normalized =
+            scenario::normalize(&raw).unwrap_or_else(|error| panic!("{name}: {error}"));
+        assert_eq!(
+            scenario::normalize(&normalized).unwrap(),
+            normalized,
+            "{name}"
+        );
+        let typed: Value = serde_json::from_slice(&normalized).unwrap();
+        assert_eq!(typed["spec"]["seed"], 0, "{name}");
+        assert_eq!(typed["spec"]["limits"], original_limits(), "{name}");
+        assert_eq!(
+            typed["actions"].as_array().unwrap().len(),
+            actions,
+            "{name}"
+        );
+        let mut execution_seed_in_envelope = recipe.clone();
+        execution_seed_in_envelope["spec"]["seed"] = json!(7);
+        assert_eq!(
+            scenario::normalize(&canonical::encode(&execution_seed_in_envelope).unwrap())
+                .unwrap_err(),
+            "unsupported WASM scenario schema or control plan",
+            "{name}"
+        );
+    }
+    let mut undeclared = grouped_scenario();
+    undeclared.as_object_mut().unwrap().remove("output_crashes");
+    assert_eq!(
+        scenario::normalize(&canonical::encode(&undeclared).unwrap()).unwrap_err(),
+        "undeclared WASM lifecycle boundary"
     );
 }
