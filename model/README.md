@@ -869,3 +869,34 @@ They are declared once in `[workspace.dependencies]`; a crate opts in with `name
 `deny.toml` bans the unmaintained alternatives (`im`, `derivative`, `proc-macro-error`,
 `proc-macro-error2`, `deluxe`, `index_vec`, `stateright`); `cargo deny check bans` enforces it. A new
 dependency needs the same check and a line in the spec.
+
+## Configured activity proposals
+
+`Host.Propose` uses method 6; the guest selects requests from enabled external Model actions.
+The Temporal guest opts into bootstrap with `ResetRequest.configuration` containing a typed
+`StartActivityExecutionRequest`. This is explicit run configuration: namespace, activity/queue
+identity, retry policy and callback input remain caller-selected. Propose fills absent declared
+identifiers through the existing annotation catalog using its seed. Record the exact configuration
+and Reset call for replay. An empty Reset on an already configured guest retains configuration
+and starts a fresh admission; unconfigured guests preserve legacy Reset behavior.
+
+The first proposal is BOOTSTRAP with an empty action. Only successful actual Start evidence with
+that exact filled request installs its World and immutable per-run receipt. Missing, failed or
+crossed evidence cannot admit. Callbacks refuse before admission. Configuration, admission, pending
+requests, callback context and Model state change only after response publication.
+
+Action proposals name the exact checked Model action. A cancellation request is sent normally.
+An `umpire.temporal.v1.ObserveActivity` instead requests a Describe read, with explicit poll interval,
+read timeout and backoff in milliseconds (10, 30000 and 10). It carries no worker response to resend.
+The immediate Answer reply remains the only worker response instruction; a successfully published
+Answer retains validated callback context so a later proposal can observe that same response.
+Delivery proposals complete at Started, worker responses at their corresponding completion or
+retry state, and cancellation at its explained result. Intermediate reads retain pending; Answer
+may commit delivery between those reads. Final evidence invalidates the corresponding callback
+context. Rejected Cancel self-loops remain eligible after closure; a bounded Run may stop by budget.
+
+Realization authoring uses `#[propose]` on one `(&self, state, seed)` handler returning typed
+`Proposal<Action>`. Optional `matches = method` and `continue_polling = method` arguments delegate
+correlation and completion hooks; omitted hooks retain the core's fail-closed correlation and
+final-observation defaults. The polling hook receives the prospective state and optional typed
+pending action. This changes no Model syntax or transition semantics.

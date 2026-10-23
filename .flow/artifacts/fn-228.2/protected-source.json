@@ -1,0 +1,7 @@
+{
+  "base": "bbd870394c",
+  "protected_count": 994,
+  "selection": "all tracked model.rs files, DSL/checker source trees, expected artifact trees and wire.txt files",
+  "changed": [],
+  "scope": "intermediate check; repeat against final tree before completion"
+}

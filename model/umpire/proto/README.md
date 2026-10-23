@@ -27,8 +27,8 @@ remain pinned by host tests.
 Annotate (7) carries an opaque input Any and returns an opaque output Any at
 Response tag 8. Shared `umpire.annotations.v1` messages carry annotation requests,
 results and probe metadata; system probe controls remain system-owned.
-`AnnotationRuntime` dispatches this stateless operation independently of Judge's frozen run. Method 6 and Response tag 7 remain
-reserved for Propose; every existing method and field number is unchanged.
+`AnnotationRuntime` dispatches this stateless operation independently of Judge's frozen run.
+Response tag 7 stays reserved; Propose uses fresh tag 9.
 
 The wasm32-wasip1 guest directly exports application functions
 `umpire_buffer_alloc(u32) -> u32`, `umpire_buffer_release(u32, u32)` and
@@ -72,3 +72,27 @@ Callback carries a task Any and Reply a request Any. `umpire.annotations.v1`
 owns stateless annotation and generic probe metadata, results and recipe transport.
 System-specific controls remain in their owner's protocol. Regenerate these Go
 messages together with the core contract using `bash model/scripts/proto-go.sh`.
+
+Propose (6) returns a deterministic fully filled request and its typed kind at Response
+tag 9: ACTION (1) names an enabled external Model action; BOOTSTRAP (2) has an empty
+action and admits a fresh run outside the transition graph. Consumers refuse unspecified
+or unknown kinds. QUIESCENT (9) means the realization has no eligible external request;
+rejected self-loops are still enabled actions. Propose never steps the Model. A second
+proposal while pending refuses STATE. Internal actions cannot be proposed.
+
+Realize defaults to unsupported proposals, no bootstrap and final observations. Opted-in
+ realizations correlate actual observations with the pending request; a final Explained
+ clears pending, an intermediate Explained publishes continue_polling (Judge tag 3), and
+ Unexplained freezes without continuing. The continuation hook sees the prospective state
+and typed pending action; callbacks may commit delivery between polls without clearing it.
+Bootstrap requires a positively matched current start, never a replayed transition.
+All pending/admission/state changes share response-publication transactions. Reset clears
+pending and frozen state and, for bootstrap realizations, admission.
+
+ResetRequest.configuration (Any, tag 1) is an optional system-owned configuration handoff;
+absent fields preserve the old empty Reset wire bytes. The core runtime refuses unknown
+configuration; composing system dispatchers own its validation and transactional install.
+Replay must retain this exact Reset call. Existing wire vectors remain unchanged. The new
+Judge response with both a judgment and continue_polling has separate literal Rust/Go
+vectors: protobuf permits field ordering differences (prost writes the oneof first; Go
+writes the scalar first). Both decode to the same message.

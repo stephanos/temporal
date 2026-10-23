@@ -14,6 +14,7 @@ crate-type = ["cdylib"]
 [dependencies]
 umpire-runtime.workspace = true
 umpire-dsl.workspace = true
+prost.workspace = true
 
 [lints.rust]
 unsafe_code = "deny"

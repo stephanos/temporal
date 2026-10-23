@@ -97,7 +97,7 @@ fn start_selects_world_and_original_replay_never_resets_progress() {
         ..Default::default()
     })));
     explained(judge(&mut guest, &replay));
-    call(&mut guest, 3, &protocol::ResetRequest {});
+    call(&mut guest, 3, &protocol::ResetRequest::default());
     explained(judge(&mut guest, &replay));
     explained(judge(&mut guest, &describe(1, 1, 1)));
 }
@@ -136,7 +136,7 @@ fn admission_and_first_domain_freeze_publish_atomically() {
                     first,
                     refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported)
                 );
-                call(&mut guest, 3, &protocol::ResetRequest {});
+                call(&mut guest, 3, &protocol::ResetRequest::default());
                 refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);
                 refused(judge(&mut guest, &start(1)), protocol::RefusalCode::State);
             }

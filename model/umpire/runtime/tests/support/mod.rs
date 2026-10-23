@@ -80,7 +80,7 @@ impl Machine for World {
 
 pub(crate) struct Realization;
 
-fn payload(value: &Any) -> Result<u8, protocol::Refusal> {
+pub(crate) fn payload(value: &Any) -> Result<u8, protocol::Refusal> {
     if value.type_url != TYPE {
         return Err(protocol::Refusal {
             code: protocol::RefusalCode::Unsupported as i32,
@@ -101,6 +101,32 @@ pub(crate) fn transition(action: Action) -> Transition<Action> {
 }
 
 impl Realize<World> for Realization {
+    fn propose(
+        &self,
+        state: &State,
+        _seed: u64,
+    ) -> Result<umpire_runtime::Proposal<Action>, protocol::Refusal> {
+        let action = match state.0 {
+            0 => Action::Deliver,
+            1 => Action::Respond,
+            2 => Action::Finish,
+            _ => {
+                return Err(protocol::Refusal::new(
+                    protocol::RefusalCode::Quiescent,
+                    "no external action",
+                ));
+            }
+        };
+        Ok(umpire_runtime::Proposal::Action { action, request: any(state.0 + 1) })
+    }
+    fn matches(&self, request: &Any, observation: &Any) -> Result<(), protocol::Refusal> {
+        if payload(request)? == payload(observation)? {
+            Ok(())
+        } else {
+            Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed observation"))
+        }
+    }
+
     fn observe(
         &self,
         observation: &Any,

@@ -928,6 +928,7 @@ dependencies = [
 name = "umpire-control-guest"
 version = "0.0.1"
 dependencies = [
+ "prost",
  "umpire-dsl",
  "umpire-runtime",
 ]

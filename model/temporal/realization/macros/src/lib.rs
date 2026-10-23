@@ -70,12 +70,10 @@ pub fn answer(_: proc_macro::TokenStream, _: proc_macro::TokenStream) -> proc_ma
     misplaced("answer")
 }
 
-/// Reserved for future proposal authoring; currently always refuses.
+/// Delegate deterministic proposal selection inside `#[realization]`.
 #[proc_macro_attribute]
 pub fn propose(_: proc_macro::TokenStream, _: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    syn::Error::new(proc_macro::Span::call_site().into(), "propose is reserved")
-        .into_compile_error()
-        .into()
+    misplaced("propose")
 }
 
 #[cfg(test)]

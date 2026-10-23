@@ -803,16 +803,66 @@ pub fn expand_in_source(
     expand_scoped(model, item, schema, scope)
 }
 
-fn expand_scoped(
-    model: &Path,
-    mut item: ItemImpl,
-    schema: &Schema,
-    scope: Scope,
-) -> syn::Result<TokenStream> {
-    if item.trait_.is_some() || !item.generics.params.is_empty() {
-        return Err(syn::Error::new(item.span(), "realization requires a concrete inherent impl"));
+struct ProposalHandler {
+    name: Ident,
+    matches: Option<Ident>,
+    polling: Option<Ident>,
+}
+
+fn proposal_handler(name: &Ident, attribute: &Attribute) -> syn::Result<ProposalHandler> {
+    let mut handler = ProposalHandler { name: name.clone(), matches: None, polling: None };
+    if matches!(attribute.meta, syn::Meta::Path(_)) {
+        return Ok(handler);
     }
+    let options = attribute.parse_args_with(
+        syn::punctuated::Punctuated::<syn::MetaNameValue, Token![,]>::parse_terminated,
+    )?;
+    for option in options {
+        let slot = if option.path.is_ident("matches") {
+            &mut handler.matches
+        } else if option.path.is_ident("continue_polling") {
+            &mut handler.polling
+        } else {
+            return Err(syn::Error::new(option.path.span(), "unknown proposal hook"));
+        };
+        let syn::Expr::Path(value) = option.value else {
+            return Err(syn::Error::new(
+                option.value.span(),
+                "proposal hook requires a method name",
+            ));
+        };
+        let name = value
+            .path
+            .get_ident()
+            .ok_or_else(|| syn::Error::new(value.span(), "proposal hook requires a method name"))?;
+        if slot.replace(name.clone()).is_some() {
+            return Err(syn::Error::new(option.path.span(), "duplicate proposal hook"));
+        }
+    }
+    Ok(handler)
+}
+
+fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
+    let name = &handler.name;
+    let matches = handler.matches.as_ref().map(|name| quote! {
+        fn matches(&self, request: &::umpire_runtime::google::protobuf::Any, observation: &::umpire_runtime::google::protobuf::Any)
+            -> Result<(), ::umpire_runtime::protocol::Refusal> { self.#name(request, observation) }
+    });
+    let polling = handler.polling.as_ref().map(|name| quote! {
+        fn continue_polling(&self, observation: &::umpire_runtime::google::protobuf::Any, state: &#model::Model, action: Option<&<#model::World as ::umpire_dsl::Machine>::Action>)
+            -> Result<bool, ::umpire_runtime::protocol::Refusal> { self.#name(observation, state, action) }
+    });
+    quote! {
+        fn propose(&self, state: &#model::Model, seed: u64)
+            -> Result<::umpire_runtime::Proposal<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> { self.#name(state, seed) }
+        #matches
+        #polling
+    }
+}
+
+fn admit_handlers(item: &mut ItemImpl) -> syn::Result<(Vec<Handler>, Option<ProposalHandler>)> {
     let mut handlers = Vec::new();
+    let mut proposal = None;
     let mut seen = BTreeSet::new();
     for entry in &mut item.items {
         let ImplItem::Fn(function) = entry else {
@@ -820,7 +870,11 @@ fn expand_scoped(
         };
         for attribute in &function.attrs {
             if attribute.path().is_ident("propose") {
-                return Err(syn::Error::new(attribute.span(), "propose is reserved"));
+                if proposal.is_some() {
+                    return Err(syn::Error::new(attribute.span(), "duplicate proposal handler"));
+                }
+                proposal = Some(proposal_handler(&function.sig.ident, attribute)?);
+                continue;
             }
             let is_answer = attribute.path().is_ident("answer");
             if !is_answer && !attribute.path().is_ident("observe") {
@@ -851,9 +905,24 @@ fn expand_scoped(
             function.attrs.push(syn::parse_quote!(#[allow(clippy::unnecessary_wraps, reason = "Realization handlers share a fallible return contract")]));
         }
         function.attrs.retain(|attribute| {
-            !attribute.path().is_ident("answer") && !attribute.path().is_ident("observe")
+            !attribute.path().is_ident("answer")
+                && !attribute.path().is_ident("observe")
+                && !attribute.path().is_ident("propose")
         });
     }
+    Ok((handlers, proposal))
+}
+
+fn expand_scoped(
+    model: &Path,
+    mut item: ItemImpl,
+    schema: &Schema,
+    scope: Scope,
+) -> syn::Result<TokenStream> {
+    if item.trait_.is_some() || !item.generics.params.is_empty() {
+        return Err(syn::Error::new(item.span(), "realization requires a concrete inherent impl"));
+    }
+    let (handlers, proposal) = admit_handlers(&mut item)?;
     check_enums(&item, schema, scope, model)?;
     let mut task_types = BTreeSet::new();
     for handler in handlers.iter().filter(|handler| handler.answer) {
@@ -875,6 +944,7 @@ fn expand_scoped(
             observations.push(observation(handler, model, schema, &mut contexts)?);
         }
     }
+    let proposal = proposal.as_ref().map(|name| proposal_dispatch(model, name));
     let ty = &item.self_ty;
     Ok(quote! {
         #item
@@ -883,6 +953,7 @@ fn expand_scoped(
             pub const REALIZATION: &'static [::umpire_temporal::Context] = &[#(#contexts),*];
         }
         impl ::umpire_runtime::Realize<#model::World> for #ty {
+            #proposal
             fn observe(&self, observation: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;

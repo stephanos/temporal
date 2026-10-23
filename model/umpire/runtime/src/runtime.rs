@@ -63,11 +63,65 @@ impl<A> AnswerPlan<A> {
     }
 }
 
+/// A realization-selected external request, checked against the Model before publication.
+pub enum Proposal<A> {
+    /// One enabled external Model action, without committing its step.
+    Action {
+        /// Selected external action.
+        action: A,
+        /// Fully filled system request.
+        request: Any,
+    },
+    /// Admission to a fresh run, outside the Model transition graph.
+    Bootstrap {
+        /// Fully filled admission request.
+        request: Any,
+    },
+}
+
 /// A system-owned payload registry and projection realization for one Model.
 pub trait Realize<M: Machine> {
     /// Whether this realization admits stateful operations.
     fn enabled(&self) -> bool {
         true
+    }
+
+    /// Whether a fresh run requires admission before callbacks and action proposals.
+    fn needs_bootstrap(&self) -> bool {
+        false
+    }
+
+    /// Selects a deterministic external request for the current state and seed.
+    fn propose(
+        &self,
+        _state: &M::State,
+        _seed: u64,
+    ) -> Result<Proposal<M::Action>, protocol::Refusal> {
+        Err(protocol::Refusal::unsupported("proposal unsupported"))
+    }
+
+    /// Supplies admission independently of the action proposal policy.
+    fn bootstrap(
+        &self,
+        state: &M::State,
+        seed: u64,
+    ) -> Result<Proposal<M::Action>, protocol::Refusal> {
+        self.propose(state, seed)
+    }
+
+    /// Verifies that an observation belongs to the pending request.
+    fn matches(&self, _request: &Any, _observation: &Any) -> Result<(), protocol::Refusal> {
+        Err(protocol::Refusal::unsupported("proposal correlation unsupported"))
+    }
+
+    /// Requests another observation after a positively explained intermediate read.
+    fn continue_polling(
+        &self,
+        _observation: &Any,
+        _state: &M::State,
+        _action: Option<&M::Action>,
+    ) -> Result<bool, protocol::Refusal> {
+        Ok(false)
     }
 
     /// Validates and projects an observation without changing Model state.
@@ -93,6 +147,14 @@ pub struct Runtime<M: Machine, R: Realize<M>> {
     initial: Option<M::State>,
     frozen: Option<protocol::Unexplained>,
     exploration: Option<umpire_checker::Result<M>>,
+    pending: Option<Pending<M::Action>>,
+    admitted: bool,
+}
+
+#[derive(Clone)]
+struct Pending<A> {
+    request: Any,
+    action: Option<A>,
 }
 
 /// A prepared dispatch's opaque prospective changes.
@@ -102,7 +164,12 @@ pub struct Transaction<M: Machine> {
 
 enum Change<M: Machine> {
     Explore(Box<umpire_checker::Result<M>>),
-    Run { state: M::State, frozen: Option<protocol::Unexplained> },
+    Run {
+        state: M::State,
+        frozen: Option<protocol::Unexplained>,
+        pending: Option<Pending<M::Action>>,
+        admitted: bool,
+    },
 }
 
 type Prepared<M> = Result<(protocol::response::Outcome, Option<Transaction<M>>), protocol::Refusal>;
@@ -118,6 +185,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     /// Creates a private run. Stateful calls refuse zero or multiple declared starts.
     pub fn new(machine: M, realization: R) -> Self {
         let state = unique_start(&machine).ok();
+        let admitted = !realization.needs_bootstrap();
         Self {
             machine,
             realization,
@@ -125,6 +193,8 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             state,
             frozen: None,
             exploration: None,
+            pending: None,
+            admitted,
         }
     }
 
@@ -142,6 +212,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                 "initial state is not a declared start",
             ));
         }
+        let admitted = !realization.needs_bootstrap();
         Ok(Self {
             machine,
             realization,
@@ -149,7 +220,14 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             initial: Some(initial),
             frozen: None,
             exploration: None,
+            pending: None,
+            admitted,
         })
+    }
+
+    /// Replaces transport context inside a composing dispatcher's publication commit.
+    pub fn replace_realization(&mut self, realization: R) {
+        self.realization = realization;
     }
 
     /// Dispatches natively, committing after the response encodes successfully.
@@ -180,7 +258,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             1 => self.explore(decode::<protocol::ExploreRequest>(request)?.budget),
             2 => self.rows(decode::<protocol::RowsRequest>(request)?.state_id),
             3 => {
-                decode::<protocol::ResetRequest>(request)?;
+                let request = decode::<protocol::ResetRequest>(request)?;
+                if request.configuration.is_some() {
+                    return Err(protocol::Refusal::unsupported("configuration unsupported"));
+                }
                 self.require_realization()?;
                 let state = self.initial.clone().ok_or_else(|| {
                     protocol::Refusal::new(
@@ -190,7 +271,14 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                 })?;
                 Ok((
                     protocol::response::Outcome::Reset(protocol::ResetResponse {}),
-                    Some(Transaction { change: Change::Run { state, frozen: None } }),
+                    Some(Transaction {
+                        change: Change::Run {
+                            state,
+                            frozen: None,
+                            pending: None,
+                            admitted: !self.realization.needs_bootstrap(),
+                        },
+                    }),
                 ))
             }
             4 => {
@@ -204,6 +292,11 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                 let callback = Any::required(request.callback)?;
                 self.require_realization()?;
                 self.answer(&callback)
+            }
+            6 => {
+                let request = decode::<protocol::ProposeRequest>(request)?;
+                self.require_realization()?;
+                self.propose(request.seed)
             }
             _ => Err(protocol::Refusal::new(
                 protocol::RefusalCode::UnknownMethod,
@@ -239,13 +332,32 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         use protocol::judge_response::Judgment;
 
         let current = self.current()?;
+        if !self.admitted && self.pending.is_none() {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "bootstrap proposal required",
+            ));
+        }
         let projection = self.realization.observe(observation, current)?;
+        if !self.admitted && !matches!(projection, Projection::Current) {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "bootstrap cannot step the Model",
+            ));
+        }
+        if let Some(request) = &self.pending {
+            self.realization.matches(&request.request, observation)?;
+        }
         if let Some(frozen) = &self.frozen {
             return Ok((judgment(Judgment::Unexplained(frozen.clone())), None));
         }
         match projection {
             Projection::Current => {
-                return Ok((judgment(Judgment::Explained(protocol::Explanation::default())), None));
+                return self.explained(
+                    observation,
+                    current.clone(),
+                    protocol::Explanation::default(),
+                );
             }
             Projection::Candidates(paths) => {
                 for candidate in paths {
@@ -258,15 +370,14 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                             .as_ref()
                             .is_none_or(|expected| Some(expected) == replay.outcome.as_ref())
                     {
-                        return Ok((
-                            judgment(Judgment::Explained(protocol::Explanation {
+                        return self.explained(
+                            observation,
+                            replay.state,
+                            protocol::Explanation {
                                 steps: replay.steps,
                                 outcomes: replay.outcomes,
-                            })),
-                            Some(Transaction {
-                                change: Change::Run { state: replay.state, frozen: None },
-                            }),
-                        ));
+                            },
+                        );
                     }
                 }
             }
@@ -281,12 +392,108 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         Ok((
             judgment(Judgment::Unexplained(frozen.clone())),
             Some(Transaction {
-                change: Change::Run { state: current.clone(), frozen: Some(frozen) },
+                change: Change::Run {
+                    state: current.clone(),
+                    frozen: Some(frozen),
+                    pending: self.pending.clone(),
+                    admitted: self.admitted,
+                },
+            }),
+        ))
+    }
+
+    fn explained(
+        &self,
+        observation: &Any,
+        state: M::State,
+        explanation: protocol::Explanation,
+    ) -> Prepared<M> {
+        let continues = self.realization.continue_polling(
+            observation,
+            &state,
+            self.pending.as_ref().and_then(|pending| pending.action.as_ref()),
+        )?;
+        let pending = if continues { self.pending.clone() } else { None };
+        Ok((
+            protocol::response::Outcome::Judge(protocol::JudgeResponse {
+                judgment: Some(protocol::judge_response::Judgment::Explained(explanation)),
+                continue_polling: continues,
+            }),
+            Some(Transaction {
+                change: Change::Run {
+                    state,
+                    frozen: None,
+                    pending,
+                    admitted: self.admitted || (self.pending.is_some() && !continues),
+                },
+            }),
+        ))
+    }
+
+    fn propose(&self, seed: u64) -> Prepared<M> {
+        if self.frozen.is_some() || self.pending.is_some() {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "run frozen or proposal pending until final Judge or Reset",
+            ));
+        }
+        let current = self.current()?;
+        let proposal = if self.admitted {
+            self.realization.propose(current, seed)?
+        } else {
+            self.realization.bootstrap(current, seed)?
+        };
+        let (request, action, kind, pending_action) = match proposal {
+            Proposal::Action { action, request } => {
+                if !self.admitted
+                    || !self.catalog()?.contains(&action)
+                    || self.machine.internal(&action)
+                    || self.checked_step(current, action.clone())?.is_empty()
+                {
+                    return Err(protocol::Refusal::new(
+                        protocol::RefusalCode::State,
+                        "proposed action is not enabled externally",
+                    ));
+                }
+                (request, action.to_string(), protocol::ProposalKind::Action, Some(action))
+            }
+            Proposal::Bootstrap { request } => {
+                if self.admitted || !self.realization.needs_bootstrap() {
+                    return Err(protocol::Refusal::new(
+                        protocol::RefusalCode::State,
+                        "bootstrap unavailable",
+                    ));
+                }
+                (request, String::new(), protocol::ProposalKind::Bootstrap, None)
+            }
+        };
+        if request.type_url.is_empty() {
+            return Err(protocol::Refusal::malformed("proposal request type is missing"));
+        }
+        Ok((
+            protocol::response::Outcome::Propose(protocol::ProposeResponse {
+                request: Some(request.clone()),
+                action,
+                kind: kind as i32,
+            }),
+            Some(Transaction {
+                change: Change::Run {
+                    state: current.clone(),
+                    frozen: None,
+                    pending: Some(Pending { request, action: pending_action }),
+                    admitted: self.admitted,
+                },
             }),
         ))
     }
 
     fn answer(&self, callback: &Any) -> Prepared<M> {
+        if !self.admitted {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "bootstrap admission required",
+            ));
+        }
         let current = self.current()?;
         if self.frozen.is_some() {
             return Err(protocol::Refusal::new(
@@ -316,7 +523,14 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             protocol::response::Outcome::Answer(protocol::AnswerResponse {
                 reply: Some(plan.reply),
             }),
-            Some(Transaction { change: Change::Run { state, frozen: None } }),
+            Some(Transaction {
+                change: Change::Run {
+                    state,
+                    frozen: None,
+                    pending: self.pending.clone(),
+                    admitted: self.admitted,
+                },
+            }),
         ))
     }
 
@@ -431,7 +645,9 @@ where
     fn commit(&mut self, transaction: Self::Transaction) {
         match transaction.change {
             Change::Explore(result) => self.exploration = Some(*result),
-            Change::Run { state, frozen } => {
+            Change::Run { state, frozen, pending, admitted } => {
+                self.pending = pending;
+                self.admitted = admitted;
                 self.state = Some(state);
                 self.frozen = frozen;
             }
@@ -440,7 +656,10 @@ where
 }
 
 fn judgment(value: protocol::judge_response::Judgment) -> protocol::response::Outcome {
-    protocol::response::Outcome::Judge(protocol::JudgeResponse { judgment: Some(value) })
+    protocol::response::Outcome::Judge(protocol::JudgeResponse {
+        judgment: Some(value),
+        continue_polling: false,
+    })
 }
 
 fn unique_start<M: Machine>(machine: &M) -> Result<M::State, protocol::Refusal> {

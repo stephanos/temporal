@@ -26,7 +26,9 @@ pub use generated::{
         annotations::v1 as annotations, model::v1 as protocol, realization::v1 as realization,
     },
 };
-pub use runtime::{AnswerPlan, Candidate, Projection, Realize, Runtime, Transaction, Transition};
+pub use runtime::{
+    AnswerPlan, Candidate, Projection, Proposal, Realize, Runtime, Transaction, Transition,
+};
 pub use stock::Model;
 
 impl protocol::Refusal {

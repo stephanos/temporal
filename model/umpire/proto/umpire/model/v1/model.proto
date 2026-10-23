@@ -12,7 +12,7 @@ enum Method {
   METHOD_RESET = 3;
   METHOD_JUDGE = 4;
   METHOD_ANSWER = 5;
-  reserved 6;
+  METHOD_PROPOSE = 6;
   METHOD_ANNOTATE = 7;
 }
 
@@ -26,6 +26,7 @@ enum RefusalCode {
   REFUSAL_CODE_ALLOCATION = 6;
   REFUSAL_CODE_SCOPE_ACTION = 7;
   REFUSAL_CODE_UNSUPPORTED = 8;
+  REFUSAL_CODE_QUIESCENT = 9;
 }
 
 message ExploreRequest { uint32 budget = 1; }
@@ -46,7 +47,7 @@ message Refusal {
   string message = 2;
 }
 
-message ResetRequest {}
+message ResetRequest { google.protobuf.Any configuration = 1; }
 message ResetResponse {}
 message JudgeRequest { google.protobuf.Any observation = 1; }
 message Explanation {
@@ -59,9 +60,21 @@ message JudgeResponse {
     Explanation explained = 1;
     Unexplained unexplained = 2;
   }
+  bool continue_polling = 3;
 }
 message AnswerRequest { google.protobuf.Any callback = 1; }
 message AnswerResponse { google.protobuf.Any reply = 1; }
+enum ProposalKind {
+  PROPOSAL_KIND_UNSPECIFIED = 0;
+  PROPOSAL_KIND_ACTION = 1;
+  PROPOSAL_KIND_BOOTSTRAP = 2;
+}
+message ProposeRequest { uint64 seed = 1; }
+message ProposeResponse {
+  google.protobuf.Any request = 1;
+  string action = 2;
+  ProposalKind kind = 3;
+}
 message AnnotateRequest { google.protobuf.Any input = 1; }
 message AnnotateResponse { google.protobuf.Any output = 1; }
 
@@ -75,5 +88,6 @@ message Response {
     JudgeResponse judge = 5;
     AnswerResponse answer = 6;
     AnnotateResponse annotate = 8;
+    ProposeResponse propose = 9;
   }
 }

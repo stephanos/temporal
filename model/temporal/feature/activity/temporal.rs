@@ -9,14 +9,15 @@ pub use included::activity;
 
 use activity::{Client, Phase, Worker};
 use umpire_dsl::{Machine, Outcome};
-use umpire_runtime::{Candidate, Projection, google::protobuf::Any, protocol::Refusal};
+use umpire_runtime::{Candidate, Projection, Proposal, google::protobuf::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
     common::v1::Payloads,
     failure::v1::Failure,
     workflowservice::v1::{
-        DescribeActivityExecutionResponse, PollActivityTaskQueueResponse,
+        DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+        PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
         RequestCancelActivityExecutionResponse, RespondActivityTaskCompletedRequest,
-        RespondActivityTaskFailedRequest,
+        RespondActivityTaskFailedRequest, StartActivityExecutionRequest,
     },
 };
 
@@ -29,14 +30,189 @@ type Action = <activity::World as Machine>::Action;
 
 /// Creates one independently owned guest run.
 pub fn runtime() -> umpire_runtime::Runtime<activity::World, Realization> {
-    umpire_runtime::Runtime::new(activity::World::new(3), Realization)
+    umpire_runtime::Runtime::new(activity::World::new(3), Realization::default())
 }
 
 /// The strict mini activity observation and callback registry.
-pub struct Realization;
+#[derive(Default)]
+pub struct Realization {
+    context: Option<ProposalContext>,
+}
+
+pub(crate) struct ProposalContext {
+    pub start: StartActivityExecutionRequest,
+    pub run_id: String,
+    pub response: Option<(PollActivityTaskQueueResponse, Any)>,
+}
+
+impl Realization {
+    pub(crate) fn configured(context: ProposalContext) -> Self {
+        Self { context: Some(context) }
+    }
+}
 
 #[realization(activity)]
 impl Realization {
+    #[propose(matches = matches_proposal, continue_polling = polling)]
+    fn proposal(&self, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let describe = Any::pack(&DescribeActivityExecutionRequest {
+            namespace: context.start.namespace.clone(),
+            activity_id: context.start.activity_id.clone(),
+            run_id: context.run_id.clone(),
+            ..Default::default()
+        });
+        let mut eligible = vec![(
+            Action::from(Client::Cancel),
+            Any::pack(&RequestCancelActivityExecutionRequest {
+                namespace: context.start.namespace.clone(),
+                activity_id: context.start.activity_id.clone(),
+                run_id: context.run_id.clone(),
+                ..Default::default()
+            }),
+        )];
+        if state.phase == Phase::Scheduled {
+            eligible.push((
+                Worker::Poll(state.attempt).into(),
+                Any::pack(&umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+                    request: Some(describe.clone()),
+                    poll_interval_ms: 10,
+                    read_timeout_ms: 30_000,
+                    backoff_ms: 10,
+                }),
+            ));
+        }
+        if let Some((task, response)) = &context.response
+            && task.attempt == i32::from(state.attempt)
+            && state.phase == Phase::Started
+        {
+            let reply = Self::respond(task.clone(), state)?;
+            if reply.request == *response {
+                eligible.push((
+                    reply.action.into(),
+                    Any::pack(&umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+                        request: Some(describe),
+                        poll_interval_ms: 10,
+                        read_timeout_ms: 30_000,
+                        backoff_ms: 10,
+                    }),
+                ));
+            }
+        }
+        let attempts = context.start.retry_policy.as_ref().map_or(0, |p| p.maximum_attempts);
+        let maximum = u8::try_from(attempts)
+            .map_err(|_| Refusal::unsupported("invalid configured attempts"))?;
+        let world = activity::World::new(maximum);
+        eligible.retain(|(action, _)| {
+            !world.internal(action)
+                && world.checked_step(state, action.clone()).is_ok_and(|steps| !steps.is_empty())
+        });
+        if eligible.is_empty() {
+            return Err(Refusal::new(
+                umpire_runtime::protocol::RefusalCode::Quiescent,
+                "no external action",
+            ));
+        }
+        let index = usize::try_from(seed % eligible.len() as u64)
+            .map_err(|_| Refusal::malformed("seed selection overflow"))?;
+        let (action, request) = eligible.swap_remove(index);
+        Ok(Proposal::Action { action, request })
+    }
+
+    fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let observation: umpire_runtime::realization::Observation = observation.unpack()?;
+        let actual =
+            observation.request.ok_or_else(|| Refusal::malformed("actual request is missing"))?;
+        if request.type_url == <RequestCancelActivityExecutionRequest as prost::Name>::type_url()
+            && observation.method
+                == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+            && actual == *request
+        {
+            return Ok(());
+        }
+        if observation.method
+            != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+        {
+            return Err(Refusal::new(
+                umpire_runtime::protocol::RefusalCode::State,
+                "observation RPC does not correlate with proposal",
+            ));
+        }
+        let actual: DescribeActivityExecutionRequest = actual.unpack()?;
+        if actual.namespace != context.start.namespace
+            || actual.activity_id != context.start.activity_id
+            || actual.run_id != context.run_id
+        {
+            return Err(Refusal::new(
+                umpire_runtime::protocol::RefusalCode::State,
+                "observation crosses proposal identity",
+            ));
+        }
+        if request.type_url
+            == <umpire_temporal_api::umpire::temporal::v1::ObserveActivity as prost::Name>::type_url(
+            )
+        {
+            let instruction: umpire_temporal_api::umpire::temporal::v1::ObserveActivity =
+                request.unpack()?;
+            let expected: DescribeActivityExecutionRequest =
+                Any::required(instruction.request)?.unpack()?;
+            if expected != actual {
+                return Err(Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "Describe differs from proposal",
+                ));
+            }
+        } else if request.type_url
+            != <RequestCancelActivityExecutionRequest as prost::Name>::type_url()
+        {
+            return Err(Refusal::unsupported("unknown proposal request"));
+        }
+        Ok(())
+    }
+
+    fn polling(
+        &self,
+        observation: &Any,
+        state: &activity::Model,
+        action: Option<&Action>,
+    ) -> Result<bool, Refusal> {
+        if self.context.is_none() || action.is_none() {
+            return Ok(false);
+        }
+        let observed = umpire_runtime::Observed::new(observation)?;
+        if observed.method
+            != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+            || umpire_dsl::Phase::closed(&state.phase)
+        {
+            return Ok(false);
+        }
+        for attempt in 1..=3 {
+            if action == Some(&Worker::Poll(attempt).into()) {
+                return Ok(state.phase != Phase::Started || state.attempt != attempt);
+            }
+        }
+        if action == Some(&Worker::RespondFailed { retryable: true }.into()) {
+            let context = self
+                .context
+                .as_ref()
+                .ok_or_else(|| Refusal::unsupported("proposal context required"))?;
+            if let Some((task, _)) = &context.response
+                && state.phase == Phase::Scheduled
+                && i32::from(state.attempt) == task.attempt + 1
+            {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
     #[observe(WorkflowService::RequestCancelActivityExecution)]
     fn cancel(
         response: Result<RequestCancelActivityExecutionResponse, i32>,

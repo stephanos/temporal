@@ -178,7 +178,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         activity::Phase::TimedOut,
     ] {
         let before = activity::Model { phase, attempt: 1 };
-        let Projection::Candidates(paths) = Realization
+        let Projection::Candidates(paths) = Realization::default()
             .observe(&cancel(Some(5)), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
         else {
@@ -195,8 +195,9 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         let closed = umpire_dsl::Phase::closed(&phase);
         assert_eq!(paths[0].outcome.as_ref() == Some(&outcome), closed);
         assert_eq!(paths[0].outcome, Some(StepOutcome::Rejected(Rejection::NotFound)));
-        let Projection::Candidates(success) =
-            Realization.observe(&cancel(None), &before).unwrap_or_else(|error| panic!("{error:?}"))
+        let Projection::Candidates(success) = Realization::default()
+            .observe(&cancel(None), &before)
+            .unwrap_or_else(|error| panic!("{error:?}"))
         else {
             panic!("cancel must replay")
         };
@@ -244,7 +245,7 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
             assert_eq!(unexplained(judge(&mut guest, cancel(Some(code)))), expected);
             assert_eq!(unexplained(judge(&mut guest, cancel(None))), expected);
             refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
-            call(&mut guest, 3, &protocol::ResetRequest {});
+            call(&mut guest, 3, &protocol::ResetRequest::default());
             explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
         }
     }
@@ -489,7 +490,7 @@ fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_
         );
         assert_eq!(unexplained(judge(&mut guest, observation(1, 1))), first);
         refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
-        call(&mut guest, 3, &protocol::ResetRequest {});
+        call(&mut guest, 3, &protocol::ResetRequest::default());
         explained(judge(&mut guest, observation(1, 1)), &[]);
     }
     let mut guest = Guest::new(runtime());
@@ -681,7 +682,9 @@ fn callback_uses_observed_attempt_and_retains_fatal_fail_policy() {
             phase: activity::Phase::Scheduled,
             attempt: u8::try_from(attempt).unwrap_or_else(|_| panic!("bounded attempt")),
         };
-        let plan = Realization.answer(&request, &state).unwrap_or_else(|error| panic!("{error:?}"));
+        let plan = Realization::default()
+            .answer(&request, &state)
+            .unwrap_or_else(|error| panic!("{error:?}"));
         assert_eq!(plan.delivery.len(), 1);
         assert_eq!(plan.delivery[0].action, activity::Worker::Poll(state.attempt).into());
         assert_eq!(

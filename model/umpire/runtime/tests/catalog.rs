@@ -111,6 +111,7 @@ fn explore_judge_answer_and_replay_refuse_without_publishing() {
         runtime.dispatch(4, &protocol::JudgeRequest { observation: Some(any(0)) }.encode_to_vec());
     let Some(Outcome::Judge(protocol::JudgeResponse {
         judgment: Some(protocol::judge_response::Judgment::Explained(explanation)),
+        ..
     })) = current.outcome
     else {
         panic!("refusals must leave the run current and unfrozen: {current:?}")

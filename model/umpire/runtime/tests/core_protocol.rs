@@ -34,11 +34,13 @@ fn new_core_messages_match_shared_literal_bytes() {
                 let outcome = match name {
                     "reset_response" => Outcome::Reset(protocol::ResetResponse {}),
                     "judge_explained" => Outcome::Judge(protocol::JudgeResponse {
+                        continue_polling: false,
                         judgment: Some(protocol::judge_response::Judgment::Explained(
                             protocol::Explanation::default(),
                         )),
                     }),
                     "judge_unexplained" => Outcome::Judge(protocol::JudgeResponse {
+                        continue_polling: false,
                         judgment: Some(protocol::judge_response::Judgment::Unexplained(
                             protocol::Unexplained { expected_actions: vec![] },
                         )),
@@ -67,6 +69,7 @@ fn new_core_messages_match_shared_literal_bytes() {
 #[test]
 fn explained_zero_steps_is_present_and_distinct_from_unexplained() {
     let explained = protocol::JudgeResponse {
+        continue_polling: false,
         judgment: Some(protocol::judge_response::Judgment::Explained(protocol::Explanation {
             steps: vec![],
             outcomes: vec![],
@@ -78,6 +81,7 @@ fn explained_zero_steps_is_present_and_distinct_from_unexplained() {
         explained
     );
     let unexplained = protocol::JudgeResponse {
+        continue_polling: false,
         judgment: Some(protocol::judge_response::Judgment::Unexplained(protocol::Unexplained {
             expected_actions: vec![],
         })),

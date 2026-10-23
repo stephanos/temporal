@@ -1,0 +1,7 @@
+propose_request 089601
+propose_action 4a100a070a01781202010212034163741801
+propose_bootstrap 4a0b0a070a0178120201021802
+judge_poll 2a040a001801
+reset_configuration 0a070a017812020102
+refusal_quiescent 1a050809120178
+judge_poll_go 2a0418010a00

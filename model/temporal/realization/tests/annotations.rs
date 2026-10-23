@@ -94,7 +94,7 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
     let bytes = request("PollActivityTaskQueue", true, &[]).encode_to_vec();
     assert!(!guest.dispatch_to(7, &bytes, |_| false));
     assert_eq!(call(&mut guest, 4, &observation), frozen);
-    call(&mut guest, 3, &protocol::ResetRequest {});
+    call(&mut guest, 3, &protocol::ResetRequest::default());
     annotate(&mut guest, "PollActivityTaskQueue", true, &[]);
 }
 

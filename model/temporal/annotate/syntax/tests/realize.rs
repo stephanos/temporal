@@ -18,7 +18,8 @@ fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
             "#[observe(WorkflowService::Describe)] fn first(response: Response) -> Result<usize, Refusal> { todo!() }",
             "expected Projection, Step, or a state value with project",
         ),
-        ("#[propose] fn first() {}", "propose is reserved"),
+        ("#[propose] fn first() {} #[propose] fn second() {}", "duplicate proposal handler"),
+        ("#[propose(unknown = method)] fn first() {}", "unknown proposal hook"),
         (
             "#[answer(Task, ignores(input = \" \"))] fn first(task: Task) -> Result<Reply<Action>, Refusal> { todo!() }",
             "ignore reason must not be empty",
@@ -450,3 +451,22 @@ const ALIAS_CASES: &[(&str, usize, bool)] = &[
         false,
     ),
 ];
+
+#[test]
+fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
+-> Result<(), Box<dyn std::error::Error>> {
+    let schema = Schema::new(&[], &[])?;
+    for (attribute, hooks) in [
+        ("#[propose]", false),
+        ("#[propose(matches = correlated, continue_polling = polling)]", true),
+    ] {
+        let item = syn::parse_str(&format!(
+            "impl Realization {{ {attribute} fn selected(&self, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {{ todo!() }} }}"
+        ))?;
+        let expanded = expand(&syn::parse_str("activity")?, item, &schema)?.to_string();
+        assert!(expanded.contains("self . selected (state , seed)"));
+        assert_eq!(expanded.contains("self . correlated"), hooks);
+        assert_eq!(expanded.contains("self . polling"), hooks);
+    }
+    Ok(())
+}

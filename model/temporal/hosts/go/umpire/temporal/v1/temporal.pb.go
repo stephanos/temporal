@@ -9,7 +9,9 @@ package v1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -20,19 +22,111 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Read an in-flight activity. Answer replies are sent separately and never resent.
+type ObserveActivity struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Request        *anypb.Any             `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	PollIntervalMs uint64                 `protobuf:"varint,2,opt,name=poll_interval_ms,json=pollIntervalMs,proto3" json:"poll_interval_ms,omitempty"`
+	ReadTimeoutMs  uint64                 `protobuf:"varint,3,opt,name=read_timeout_ms,json=readTimeoutMs,proto3" json:"read_timeout_ms,omitempty"`
+	BackoffMs      uint64                 `protobuf:"varint,4,opt,name=backoff_ms,json=backoffMs,proto3" json:"backoff_ms,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ObserveActivity) Reset() {
+	*x = ObserveActivity{}
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObserveActivity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObserveActivity) ProtoMessage() {}
+
+func (x *ObserveActivity) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObserveActivity.ProtoReflect.Descriptor instead.
+func (*ObserveActivity) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ObserveActivity) GetRequest() *anypb.Any {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *ObserveActivity) GetPollIntervalMs() uint64 {
+	if x != nil {
+		return x.PollIntervalMs
+	}
+	return 0
+}
+
+func (x *ObserveActivity) GetReadTimeoutMs() uint64 {
+	if x != nil {
+		return x.ReadTimeoutMs
+	}
+	return 0
+}
+
+func (x *ObserveActivity) GetBackoffMs() uint64 {
+	if x != nil {
+		return x.BackoffMs
+	}
+	return 0
+}
+
 var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.protoB*Z(umpire.local/temporal/umpire/temporal/v1P\x00b\x06proto3"
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.proto\x1a\x19google/protobuf/any.proto\"\xb2\x01\n" +
+	"\x0fObserveActivity\x12.\n" +
+	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequest\x12(\n" +
+	"\x10poll_interval_ms\x18\x02 \x01(\x04R\x0epollIntervalMs\x12&\n" +
+	"\x0fread_timeout_ms\x18\x03 \x01(\x04R\rreadTimeoutMs\x12\x1d\n" +
+	"\n" +
+	"backoff_ms\x18\x04 \x01(\x04R\tbackoffMsB*Z(umpire.local/temporal/umpire/temporal/v1P\x00b\x06proto3"
 
-var file_umpire_temporal_v1_temporal_proto_goTypes = []any{}
+var (
+	file_umpire_temporal_v1_temporal_proto_rawDescOnce sync.Once
+	file_umpire_temporal_v1_temporal_proto_rawDescData []byte
+)
+
+func file_umpire_temporal_v1_temporal_proto_rawDescGZIP() []byte {
+	file_umpire_temporal_v1_temporal_proto_rawDescOnce.Do(func() {
+		file_umpire_temporal_v1_temporal_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_temporal_proto_rawDesc), len(file_umpire_temporal_v1_temporal_proto_rawDesc)))
+	})
+	return file_umpire_temporal_v1_temporal_proto_rawDescData
+}
+
+var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_umpire_temporal_v1_temporal_proto_goTypes = []any{
+	(*ObserveActivity)(nil), // 0: umpire.temporal.v1.ObserveActivity
+	(*anypb.Any)(nil),       // 1: google.protobuf.Any
+}
 var file_umpire_temporal_v1_temporal_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: umpire.temporal.v1.ObserveActivity.request:type_name -> google.protobuf.Any
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_temporal_proto_init() }
@@ -47,12 +141,13 @@ func file_umpire_temporal_v1_temporal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_temporal_proto_rawDesc), len(file_umpire_temporal_v1_temporal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_umpire_temporal_v1_temporal_proto_goTypes,
 		DependencyIndexes: file_umpire_temporal_v1_temporal_proto_depIdxs,
+		MessageInfos:      file_umpire_temporal_v1_temporal_proto_msgTypes,
 	}.Build()
 	File_umpire_temporal_v1_temporal_proto = out.File
 	file_umpire_temporal_v1_temporal_proto_goTypes = nil

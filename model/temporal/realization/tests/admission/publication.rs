@@ -73,14 +73,14 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
                 "reset live" => {
                     explained(judge(&mut guest, &captured));
                     explained(judge(&mut guest, &describe(1, 1, 2)));
-                    call(&mut guest, 3, &protocol::ResetRequest {});
+                    call(&mut guest, 3, &protocol::ResetRequest::default());
                     explained(judge(&mut guest, &captured));
                     explained(judge(&mut guest, &describe(1, 1, 1)));
                     assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
                 }
                 "reset freeze" => {
                     refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
-                    call(&mut guest, 3, &protocol::ResetRequest {});
+                    call(&mut guest, 3, &protocol::ResetRequest::default());
                     refused(judge(&mut guest, &captured), protocol::RefusalCode::State);
                     refused(judge(&mut guest, &start(1)), protocol::RefusalCode::State);
                     refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);

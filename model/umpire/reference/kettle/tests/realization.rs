@@ -121,7 +121,8 @@ fn exact_receipts_reject_wrong_state_or_action() {
         assert!(!matches!(
             response.outcome,
             Some(Outcome::Judge(protocol::JudgeResponse {
-                judgment: Some(protocol::judge_response::Judgment::Explained(_))
+                judgment: Some(protocol::judge_response::Judgment::Explained(_)),
+                ..
             }))
         ));
     }

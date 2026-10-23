@@ -245,6 +245,40 @@ func (h *Host) Answer(ctx context.Context, request *modelv1.AnswerRequest) (*mod
 	return response.GetAnswer(), nil
 }
 
+func (h *Host) Propose(ctx context.Context, request *modelv1.ProposeRequest) (*modelv1.ProposeResponse, error) {
+	if request == nil {
+		return nil, &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Propose requires a request"}
+	}
+	data, err := proto.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	response, err := h.Call(ctx, modelv1.Method_METHOD_PROPOSE, data)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetPropose(), nil
+}
+
+func validateProposal(proposal *modelv1.ProposeResponse) error {
+	if proposal == nil || proposal.GetRequest().GetTypeUrl() == "" {
+		return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Propose response requires a request"}
+	}
+	switch proposal.GetKind() {
+	case modelv1.ProposalKind_PROPOSAL_KIND_ACTION:
+		if proposal.GetAction() == "" {
+			return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Action proposal requires an action"}
+		}
+	case modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP:
+		if proposal.GetAction() != "" {
+			return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Bootstrap action must be empty"}
+		}
+	default:
+		return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED, Message: "unknown proposal kind"}
+	}
+	return nil
+}
+
 func (h *Host) Annotate(ctx context.Context, request *modelv1.AnnotateRequest) (*modelv1.AnnotateResponse, error) {
 	if request.GetInput() == nil || request.GetInput().TypeUrl == "" {
 		return nil, &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Annotate requires an input Any type URL"}
@@ -356,6 +390,12 @@ func (h *Host) Call(ctx context.Context, method modelv1.Method, request []byte) 
 	if method == modelv1.Method_METHOD_ANSWER && response.GetAnswer() != nil {
 		if reply := response.GetAnswer().GetReply(); reply == nil || reply.TypeUrl == "" {
 			return nil, fmt.Errorf("%s: missing Answer reply Any type URL", name)
+		}
+		return response, nil
+	}
+	if method == modelv1.Method_METHOD_PROPOSE && response.GetPropose() != nil {
+		if err := validateProposal(response.GetPropose()); err != nil {
+			return nil, err
 		}
 		return response, nil
 	}

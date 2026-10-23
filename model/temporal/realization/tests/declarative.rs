@@ -165,8 +165,9 @@ fn reply_requests_are_partial_and_wrapped_exactly_once() {
                 }] }), attempt: 1, ..Default::default()
             }
         )) });
-        let plan =
-            Realization.answer(&callback, &state).unwrap_or_else(|error| panic!("{error:?}"));
+        let plan = Realization::default()
+            .answer(&callback, &state)
+            .unwrap_or_else(|error| panic!("{error:?}"));
         let reply: Reply = plan.reply.unpack().unwrap_or_else(|error| panic!("{error:?}"));
         let request = reply.request.unwrap_or_else(|| panic!("missing request"));
         if policy == b"Complete" {

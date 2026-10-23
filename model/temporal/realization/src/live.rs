@@ -41,6 +41,9 @@ pub struct LiveRuntime {
     model: ModelRuntime,
     receipt: Option<Receipt>,
     frozen: Option<Refusal>,
+    configuration: Option<Any>,
+    bootstrap: Option<Any>,
+    callback: Option<(PollActivityTaskQueueResponse, Any)>,
 }
 
 /// Owned facade effects, installed only after the complete response is published.
@@ -50,19 +53,53 @@ pub struct LiveTransaction {
 
 enum Change {
     Model(Transaction<activity::World>),
-    Admit { model: Box<ModelRuntime>, receipt: Receipt },
-    Freeze { receipt: Receipt, refusal: Refusal },
+    Admit {
+        model: Box<ModelRuntime>,
+        receipt: Receipt,
+    },
+    Freeze {
+        receipt: Receipt,
+        refusal: Refusal,
+    },
     Reset(Transaction<activity::World>),
+    Configure(Any),
+    Propose(Any),
+    Answer {
+        transaction: Transaction<activity::World>,
+        task: Box<PollActivityTaskQueueResponse>,
+        response: Any,
+    },
+    Observe {
+        transaction: Transaction<activity::World>,
+        clear_callback: bool,
+    },
 }
 
 impl LiveRuntime {
     pub(super) fn new() -> Self {
-        Self { model: runtime(), receipt: None, frozen: None }
+        Self {
+            model: runtime(),
+            receipt: None,
+            frozen: None,
+            configuration: None,
+            bootstrap: None,
+            callback: None,
+        }
     }
 
     fn prepare_method(&self, method: u32, bytes: &[u8]) -> Prepared {
         match method {
             3 => {
+                let request = protocol::ResetRequest::decode(bytes)
+                    .map_err(|_| Refusal::malformed("malformed Reset request"))?;
+                let configuration = request.configuration.or_else(|| self.configuration.clone());
+                if let Some(configuration) = configuration {
+                    let _: StartActivityExecutionRequest = configuration.unpack()?;
+                    return Ok((
+                        Outcome::Reset(protocol::ResetResponse {}),
+                        Some(LiveTransaction { change: Change::Configure(configuration) }),
+                    ));
+                }
                 let (response, transaction) = self.model.prepare(method, bytes);
                 Ok((
                     response.outcome.ok_or_else(|| state("Reset response is missing"))?,
@@ -72,6 +109,7 @@ impl LiveRuntime {
             }
             4 => self.judge(bytes),
             5 => self.answer(bytes),
+            6 => self.propose(bytes),
             _ => {
                 let (response, transaction) = self.model.prepare(method, bytes);
                 Ok((
@@ -92,12 +130,14 @@ impl LiveRuntime {
             return self.start(&value);
         }
         let observation: Observation = value.unpack()?;
+        let mut clear_callback = false;
         match observation.method.as_str() {
             DESCRIBE => {
                 let response: DescribeActivityExecutionResponse = observed.response()?;
                 let info =
                     response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
-                activity::Phase::try_from(info.clone())?;
+                let phase = activity::Phase::try_from(info.clone())?;
+                clear_callback = phase != activity::Phase::Started;
                 let request: DescribeActivityExecutionRequest = required_request(&observation)?;
                 let receipt = self.receipt()?;
                 receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
@@ -113,6 +153,7 @@ impl LiveRuntime {
             }
             CANCEL => {
                 if observed.code()?.is_none() {
+                    clear_callback = true;
                     let _: RequestCancelActivityExecutionResponse =
                         observed.response().map_err(|error| Refusal::malformed(error.message))?;
                 }
@@ -137,7 +178,50 @@ impl LiveRuntime {
         if receipt.maximum_attempts.is_none() {
             return Err(state("live Start was not admitted"));
         }
+        if self.configuration.is_some() {
+            let transaction = match prepared.1 {
+                Some(LiveTransaction { change: Change::Model(transaction) }) => {
+                    Some(LiveTransaction {
+                        change: Change::Observe { transaction, clear_callback },
+                    })
+                }
+                other => other,
+            };
+            return Ok((prepared.0, transaction));
+        }
         Ok(prepared)
+    }
+
+    fn propose(&self, bytes: &[u8]) -> Prepared {
+        let request = protocol::ProposeRequest::decode(bytes)
+            .map_err(|_| Refusal::malformed("malformed Propose request"))?;
+        let configuration = self
+            .configuration
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        if self.frozen.is_some() || self.bootstrap.is_some() {
+            return Err(state("admission frozen or bootstrap pending until Reset or final Judge"));
+        }
+        if self.receipt.is_some() {
+            return self.delegate(6, bytes);
+        }
+        let start: StartActivityExecutionRequest = configuration.unpack()?;
+        let filled =
+            crate::activity_api::annotate(START, false, &start.encode_to_vec(), request.seed)?;
+        if filled.out_of_scope.is_some() || !filled.violations.is_empty() {
+            return Err(Refusal::malformed("configured Start violates its catalog"));
+        }
+        let start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
+            .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
+        let request = Any::pack(&start);
+        Ok((
+            Outcome::Propose(protocol::ProposeResponse {
+                request: Some(request.clone()),
+                action: String::new(),
+                kind: protocol::ProposalKind::Bootstrap as i32,
+            }),
+            Some(LiveTransaction { change: Change::Propose(request) }),
+        ))
     }
 
     fn receipt(&self) -> Result<&Receipt, Refusal> {
@@ -157,7 +241,29 @@ impl LiveRuntime {
         if receipt.maximum_attempts.is_none() {
             return Err(state("live Start was not admitted"));
         }
-        self.delegate(5, bytes)
+        let (outcome, transaction) = self.delegate(5, bytes)?;
+        if self.configuration.is_some() {
+            if let (
+                Outcome::Answer(answer),
+                Some(LiveTransaction { change: Change::Model(transaction) }),
+            ) = (&outcome, transaction)
+            {
+                let reply: umpire_runtime::realization::Reply =
+                    Any::required(answer.reply.clone())?.unpack()?;
+                return Ok((
+                    outcome,
+                    Some(LiveTransaction {
+                        change: Change::Answer {
+                            transaction,
+                            task: Box::new(task),
+                            response: Any::required(reply.request)?,
+                        },
+                    }),
+                ));
+            }
+            return Ok((outcome, None));
+        }
+        Ok((outcome, transaction))
     }
 
     fn delegate(&self, method: u32, bytes: &[u8]) -> Prepared {
@@ -175,6 +281,12 @@ impl LiveRuntime {
             .as_ref()
             .ok_or_else(|| Refusal::malformed("Start actual request is missing"))?;
         let request: StartActivityExecutionRequest = raw_request.unpack()?;
+        if self.configuration.is_some()
+            && self.receipt.is_none()
+            && self.bootstrap.as_ref() != Some(raw_request)
+        {
+            return Err(state("Start actual request does not match pending bootstrap"));
+        }
         let Some(ResultValue::Response(raw_response)) = &observation.result else {
             return Err(Refusal::malformed("successful Start response is required"));
         };
@@ -228,11 +340,31 @@ impl LiveRuntime {
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));
         };
-        let model = Runtime::with_initial(world, Realization, initial.clone())?;
+        let model = Runtime::with_initial(world, Realization::default(), initial.clone())?;
         Ok((
             explained(),
             Some(LiveTransaction { change: Change::Admit { model: Box::new(model), receipt } }),
         ))
+    }
+}
+
+impl LiveRuntime {
+    fn install_context(&mut self) {
+        if self.configuration.is_some()
+            && let Some(receipt) = &self.receipt
+        {
+            let request: StartActivityExecutionRequest = receipt
+                .request
+                .unpack()
+                .unwrap_or_else(|_| unreachable!("validated Start receipt"));
+            self.model.replace_realization(Realization::configured(
+                crate::temporal::ProposalContext {
+                    start: request,
+                    run_id: receipt.run_id.clone(),
+                    response: self.callback.clone(),
+                },
+            ));
+        }
     }
 }
 
@@ -269,10 +401,34 @@ impl Dispatch for LiveRuntime {
             Change::Admit { model, receipt } => {
                 self.model = *model;
                 self.receipt = Some(receipt);
+                self.bootstrap = None;
+                self.callback = None;
+                self.install_context();
             }
             Change::Freeze { receipt, refusal } => {
                 self.receipt = Some(receipt);
                 self.frozen = Some(refusal);
+            }
+            Change::Configure(configuration) => {
+                self.model = runtime();
+                self.configuration = Some(configuration);
+                self.receipt = None;
+                self.bootstrap = None;
+                self.callback = None;
+                self.frozen = None;
+            }
+            Change::Propose(request) => self.bootstrap = Some(request),
+            Change::Answer { transaction, task, response } => {
+                self.model.commit(transaction);
+                self.callback = Some((*task, response));
+                self.install_context();
+            }
+            Change::Observe { transaction, clear_callback } => {
+                self.model.commit(transaction);
+                if clear_callback {
+                    self.callback = None;
+                }
+                self.install_context();
             }
             Change::Reset(transaction) => {
                 self.model.commit(transaction);
@@ -294,6 +450,7 @@ fn state(message: impl Into<String>) -> Refusal {
 }
 fn explained() -> Outcome {
     Outcome::Judge(protocol::JudgeResponse {
+        continue_polling: false,
         judgment: Some(protocol::judge_response::Judgment::Explained(
             protocol::Explanation::default(),
         )),
