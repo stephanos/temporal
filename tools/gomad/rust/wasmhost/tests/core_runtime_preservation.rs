@@ -94,3 +94,44 @@ fn ordinary_linked_exit_requires_the_configured_runtime_finish() {
         false
     );
 }
+
+#[test]
+fn native_outcomes_keep_real_exit_trap_fuel_and_output_claims_within_admitted_limits() {
+    for (body, expected, exit_code) in [
+        ("(call $exit (i32.const 7))", "exit", Some(7)),
+        ("unreachable", "trap", None),
+        ("(loop $spin (br $spin))", "capacity", None),
+        (
+            "(i32.store (i32.const 0) (i32.const 64)) (i32.store (i32.const 4) (i32.const 5)) (drop (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 16)))",
+            "capacity",
+            None,
+        ),
+    ] {
+        let mut input = request("");
+        input.module = format!(r#"(module
+            (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
+            (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+            (memory (export "memory") 1)
+            (data (i32.const 64) "hello")
+            (func (export "_start") {body}))"#).into_bytes();
+        input.module_sha256 = format!("{:x}", Sha256::digest(&input.module));
+        input.limits.output_bytes = 4;
+        let observed = linked::execute(input).unwrap();
+        assert_eq!(observed.outcome.termination, expected, "{body}");
+        assert_eq!(observed.outcome.exit_code, exit_code, "{body}");
+        assert!(observed.outcome.fuel_remaining <= 10000);
+        assert!(observed.outcome.peak_memory_bytes <= 65536);
+        let retained: usize = ["stdout", "stderr"]
+            .into_iter()
+            .map(|stream| observed.evidence.get(stream).map_or(0, Vec::len))
+            .sum();
+        assert!(retained <= 4);
+        assert!(observed.authorization_to_terminal_nanos.is_some());
+        if body.contains("$write") {
+            assert_eq!(observed.outcome.output_bytes, 5);
+            assert_eq!(retained, 0);
+        } else {
+            assert_eq!(observed.outcome.output_bytes, 0);
+        }
+    }
+}

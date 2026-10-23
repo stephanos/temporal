@@ -873,6 +873,30 @@ mod projection_tests {
     }
 
     #[test]
+    fn inspection_metadata_cannot_replace_the_actual_session_world() {
+        let (_, raw_world) = configuration();
+        let mut missing = observe(&[], false, false);
+        missing.inspection = br#"{"schema":"retained"}"#.to_vec();
+        assert!(project_encoded(missing, "").is_err());
+
+        let mut present = observe(&raw_world, false, false);
+        present.inspection = br#"{"schema":"retained"}"#.to_vec();
+        let projected = project_encoded(present, "").unwrap();
+        assert_eq!(projected.evidence["world"], raw_world);
+        assert_eq!(
+            projected.evidence["inspection"],
+            br#"{"schema":"retained"}"#
+        );
+        let summary: Value =
+            serde_json::from_slice(&projected.evidence["cluster_summary"]).unwrap();
+        assert_eq!(summary["world_sha256"], canonical::digest(&raw_world));
+        assert_ne!(
+            summary["world_sha256"],
+            canonical::digest(&projected.evidence["inspection"])
+        );
+    }
+
+    #[test]
     fn shared_projection_preserves_mandatory_live_oracles_and_retained_world() {
         let (configuration, raw_world) = configuration();
         for (bad_live, bad_mandatory) in [(false, false), (true, false), (false, true)] {
