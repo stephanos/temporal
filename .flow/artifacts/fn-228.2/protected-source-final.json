@@ -1,0 +1,9 @@
+{
+  "base": "bbd870394ce0cea8fc473076a5ddd7cdc03a496c",
+  "head": "d207e950283bdece61c9a4f09d50f8487d74b7fe",
+  "protected_count": 1002,
+  "selection": "all tracked model.rs files, DSL/checker source trees, expected artifact trees and wire.txt files",
+  "changed": [],
+  "scope": "final verification after implementation and review corrections",
+  "count_note": "This expanded predicate protects 1002 paths, including extra archived/tooling artifacts; the conductor initial predicate covered994. The initial fixed-count assertion expected994 and failed, while all1002 source hashes matched. No source/hash mismatch occurred."
+}

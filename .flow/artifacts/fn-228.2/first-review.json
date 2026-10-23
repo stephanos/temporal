@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-228-runner-and-run-the-one-go-host-loop.2",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a167c7-223d-77b0-b49c-6cfb95b25441",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: A delivery proposal stays pending if its attempt retries before Describe observes Started\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: A delivery proposal stays pending if its attempt retries before Describe observes Started. Reproduced against the committed WASM: propose `Worker::Poll(1)`, Answer `RetryThenComplete`, then Judge Scheduled/attempt 2. Judge explains the retry but returns `continue_polling=true`; subsequent Propose refuses STATE. Even observing Started/attempt 2 keeps Poll(1) pending. Since attempts cannot return to 1, the proposal cannot finish until terminal closure, blocking further proposals and potentially causing a read timeout after delivery already succeeded.\n- **Suggestion**: Complete Poll when the validated prospective state has advanced beyond its target attempt, as well as when Started is observed for that attempt. Add a regression covering retry between callback delivery and the first Describe read.\n- **File:Line**: model/temporal/feature/activity/temporal.rs:198\n- **R-IDs**: R2\n\n## Issue 2\n- **Severity**: P2\n- **Title**: The correlation fallback accepts Describe evidence for a pending Cancel\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The correlation fallback accepts Describe evidence for a pending Cancel. Reproduced against the committed wasm: Answer `Complete` \u2192 Propose `Client::Cancel` \u2192 Judge Describe `Completed`. Judge explains `Worker::RespondCompleted`, clears the cancellation proposal, and permits another Propose despite never receiving the cancellation result. Matching the activity identity does not establish that this observation explains the pending cancellation.\n- **Suggestion**: Restrict Describe correlation to `ObserveActivity` proposals. Require the matching Cancel invocation\u2019s result before clearing a cancellation proposal, and add a crossed-method negative control.\n- **File:Line**: model/temporal/feature/activity/temporal.rs:172\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R2\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a167c7-223d-77b0-b49c-6cfb95b25441",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a167c7-223e-71b0-977b-2ca3363521b5",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a167c7-223a-7a23-a409-83825f5fe602",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R2"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

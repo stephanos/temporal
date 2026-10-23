@@ -1,0 +1,17 @@
+{
+  "guest_sha256": "23dceb5e96baf46db32f4496a0db0cf1c7420d10e4847b1ef67899b03f97f1d4",
+  "guest_bytes": 3452597,
+  "command": "make umpire-check-model-slice && make umpire-check-model-gaps",
+  "exit_code": 0,
+  "required_parent_passes": {
+    "TestTestpilotModelGaps": true,
+    "TestTestpilotModelGapLoggerPreservesFailuresWithoutPrivateOutput": true
+  },
+  "probe_passes": 2336,
+  "package_times_seconds": [
+    "5.875",
+    "359.201"
+  ],
+  "log": ".flow/tmp/fn-228.2/live-final.log",
+  "pre_review_log": ".flow/tmp/fn-228.2/live-proof.log"
+}

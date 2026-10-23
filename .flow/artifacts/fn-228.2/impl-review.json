@@ -1,0 +1,61 @@
+{
+  "base": "bbd870394ce0cea8fc473076a5ddd7cdc03a496c",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "bbd870394ce0cea8fc473076a5ddd7cdc03a496c",
+    "headSha": "d207e950283bdece61c9a4f09d50f8487d74b7fe",
+    "items": [
+      {
+        "body": "A delivery proposal stays pending if its attempt retries before Describe observes Started. Reproduced against the committed WASM: propose `Worker::Poll(1)`, Answer `RetryThenComplete`, then Judge Scheduled/attempt 2. Judge explains the retry but returns `continue_polling=true`; subsequent Propose refuses STATE. Even observing Started/attempt 2 keeps Poll(1) pending. Since attempts cannot return to 1, the proposal cannot finish until terminal closure, blocking further proposals and potentially causing a read timeout after delivery already succeeded.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-aaa88b321704960f8af3799ee4d9ba776a6b4d1fe313a7dc6f6130e44b8ad626",
+        "id": "finding-1f1b2b40cc128432b39ff800313625ce",
+        "lastSeenReceiptId": "review-32c0d0873005dafb585680882a85e696c8564ced66b9c91a817a92a727b547d1",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Complete Poll when the validated prospective state has advanced beyond its target attempt, as well as when Started is observed for that attempt. Add a regression covering retry between callback delivery and the first Describe read.",
+        "title": "A delivery proposal stays pending if its attempt retries before Describe observes Started"
+      },
+      {
+        "body": "The correlation fallback accepts Describe evidence for a pending Cancel. Reproduced against the committed wasm: Answer `Complete` \u2192 Propose `Client::Cancel` \u2192 Judge Describe `Completed`. Judge explains `Worker::RespondCompleted`, clears the cancellation proposal, and permits another Propose despite never receiving the cancellation result. Matching the activity identity does not establish that this observation explains the pending cancellation.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-aaa88b321704960f8af3799ee4d9ba776a6b4d1fe313a7dc6f6130e44b8ad626",
+        "id": "finding-2d5005453adb0d2fcc6c70b88e4837cc",
+        "lastSeenReceiptId": "review-32c0d0873005dafb585680882a85e696c8564ced66b9c91a817a92a727b547d1",
+        "ordinal": 2,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Restrict Describe correlation to `ObserveActivity` proposals. Require the matching Cancel invocation\u2019s result before clearing a cancellation proposal, and add a crossed-method negative control.",
+        "title": "The correlation fallback accepts Describe evidence for a pending Cancel"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-32c0d0873005dafb585680882a85e696c8564ced66b9c91a817a92a727b547d1",
+    "supersedesReceiptId": "review-aaa88b321704960f8af3799ee4d9ba776a6b4d1fe313a7dc6f6130e44b8ad626"
+  },
+  "id": "fn-228-runner-and-run-the-one-go-host-loop.2",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nDelivery proposals now finish when validated state advances beyond their target attempt. Pending Cancel proposals now require the matching cancellation invocation and reject Describe evidence. Both fixes have Rust and Go regression coverage.\n\nAll 19 cached proposal/wire tests passed, including both regressions. Fresh Cargo verification was blocked by the read-only build cache. No new blocking findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Predecessor task; outside task .2. |\n| R2 | met | Protocol, runtime, realization, host and regression coverage; both prior defects fixed. |\n| R3 | deferred | Subsequent Runner task. |\n| R4 | deferred | Subsequent Driver task. |\n| R5 | deferred | Subsequent Shim task. |\n| R6 | deferred | Subsequent removal task. |\n| R7 | deferred | Parent documentation closure. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "ed6b4de2044e4dd596cff445e5957c0d",
+  "session_id": "01a167c7-223d-77b0-b49c-6cfb95b25441",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-23T08:18:39.479964Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

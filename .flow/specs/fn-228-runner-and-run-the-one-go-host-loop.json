@@ -12,7 +12,7 @@
   "id": "fn-228-runner-and-run-the-one-go-host-loop",
   "impl_review_rounds": {
     "fn-228-runner-and-run-the-one-go-host-loop.1": 0,
-    "fn-228-runner-and-run-the-one-go-host-loop.2": 1
+    "fn-228-runner-and-run-the-one-go-host-loop.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -359,10 +359,63 @@
       "task": "fn-228-runner-and-run-the-one-go-host-loop.2",
       "timestamp": "2026-10-23T08:09:19.581181Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "187dec08aab6f558ae3841b22facf96e6a28c626ee8a1cd80f45b3a4105549e3",
+      "backend": "codex",
+      "base_sha": "bbd870394ce0cea8fc473076a5ddd7cdc03a496c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1f1b2b40cc128432b39ff800313625ce",
+            "classification": "introduced",
+            "findingId": "finding-1f1b2b40cc128432b39ff800313625ce",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2d5005453adb0d2fcc6c70b88e4837cc",
+            "classification": "introduced",
+            "findingId": "finding-2d5005453adb0d2fcc6c70b88e4837cc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d207e950283bdece61c9a4f09d50f8487d74b7fe",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1100,
+      "output_sha256": "a2a762c273cd714abc8d2096991f0d00e50009a5348b315ab9a11593641bd63d",
+      "reservation_id": "ed6b4de2044e4dd596cff445e5957c0d",
+      "round_consumed": true,
+      "scope": "impl:fn-228-runner-and-run-the-one-go-host-loop.2",
+      "superseded_by": null,
+      "task": "fn-228-runner-and-run-the-one-go-host-loop.2",
+      "timestamp": "2026-10-23T08:18:39.484043Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-228-runner-and-run-the-one-go-host-loop.1": 1,
+    "impl:fn-228-runner-and-run-the-one-go-host-loop.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -387,5 +440,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T08:09:19.585816Z"
+  "updated_at": "2026-10-23T08:18:39.490878Z"
 }
