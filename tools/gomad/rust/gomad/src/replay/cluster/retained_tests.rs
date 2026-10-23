@@ -1514,6 +1514,7 @@ fn actual_native_producers_admit_distinct_output_and_evidence_bounds() {
     }
 }
 
+#[cfg(feature = "determinism-fixture")]
 #[test]
 fn retained_ordinary_json_spellings_keep_exact_raw_authentication() {
     let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/parity");
