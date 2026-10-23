@@ -88,7 +88,7 @@ fn shared_message_transport_keeps_response_bytes_and_fills_only_requests()
     )
     .err()
     .ok_or("malformed bytes were accepted")?;
-    assert_eq!(refusal.code, umpire_wasm::protocol::RefusalCode::MalformedRequest as i32);
+    assert_eq!(refusal.code, umpire_runtime::protocol::RefusalCode::MalformedRequest as i32);
     Ok(())
 }
 
@@ -96,7 +96,7 @@ fn shared_message_transport_keeps_response_bytes_and_fills_only_requests()
 fn probe_recipe_retains_literal_runs_integrity_and_bound() -> Result<(), Box<dyn std::error::Error>>
 {
     let bytes = b"xyaaaaaaaaaaaaaaaaz";
-    let recipe = umpire_wasm::probe_recipe(bytes)?;
+    let recipe = umpire_runtime::probe_recipe(bytes)?;
     assert_eq!(recipe.decoded_length, 19);
     assert_eq!(recipe.fnv64, 14_352_489_339_731_911_568);
     assert_eq!(
@@ -107,6 +107,6 @@ fn probe_recipe_retains_literal_runs_integrity_and_bound() -> Result<(), Box<dyn
             .collect::<Vec<_>>(),
         vec![(b"xy".as_slice(), 1), (b"a".as_slice(), 16), (b"z".as_slice(), 1)]
     );
-    assert!(umpire_wasm::probe_recipe(&vec![0; 16 * 1024 * 1024 + 1]).is_err());
+    assert!(umpire_runtime::probe_recipe(&vec![0; 16 * 1024 * 1024 + 1]).is_err());
     Ok(())
 }

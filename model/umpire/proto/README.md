@@ -13,11 +13,11 @@ opaque reply Any. `umpire.realization.v1` supplies Observation, Error, Callback 
 Observation retains optional request Any at tag 4 and unchanged absent-request bytes.
 System payload registries own type-URL admission; the old namespace
 is not an alias for the new one. The Kettle guest currently refuses these three operations
-with Unsupported (8). The export-free `umpire-wasm` library supplies the transactional
-runtime and ABI; system guests supply a `Machine` and `Realize` binding. Reset restores
+with Unsupported (8). The export-free `umpire-runtime` library supplies the transactional
+runtime and ABI; system guests supply a `Machine` and `Realize` realization. Reset restores
 the unique start and clears frozen evidence. Judge replays actual Model steps; the
 Explanation lists Debug-formatted outcomes in parallel with its steps, including `()`
-for unit outcomes. The binding matches the final replayed outcome; a zero-step current
+for unit outcomes. The realization matches the final replayed outcome; a zero-step current
 check has no outcome. The first Unexplained freezes advancement until Reset. Answer validates
 delivery and its enabled response action before committing. Failed response publication commits nothing.
 `Any::pack`/`unpack` use generated `prost::Name` canonical URLs and typed Refusal
@@ -52,7 +52,7 @@ The host copies response bytes before freeing either allocation, then frees both
 Access to one instance is serialized. An unexpected trap invalidates the host instance.
 
 Rust generates into Cargo's OUT_DIR with prost-build 0.14 and mise's protoc 29.5.
-`umpire_wasm::google::protobuf` owns the generated standard well-known types; bindings
+`umpire_runtime::google::protobuf` owns the generated standard well-known types; realizations
 reuse this owner through prost-build's `extern_path` with default WKT mapping disabled.
 This owner compiles the standard schema inputs independently of any system descriptors.
 Upstream WKT comments contain examples in other languages, so their generated Rust

@@ -6,14 +6,14 @@ use crate::{
     },
 };
 use umpire_dsl::Machine;
-use umpire_wasm::{
+use umpire_runtime::{
     AnswerPlan, Observed, Projection, Realize, callback,
     google::protobuf::Any,
     protocol::{Refusal, RefusalCode},
     reply,
 };
 
-/// Strict evidence binding for one Kettle instance.
+/// Strict evidence realization for one Kettle instance.
 pub struct Realization;
 
 fn matches(observed: State, state: &Model) -> bool {

@@ -1,6 +1,6 @@
 [package]
 name = "umpire-kettle-guest"
-description = "Kettle reference guest binding"
+description = "Kettle reference guest realization"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
@@ -11,7 +11,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-umpire-wasm.workspace = true
+umpire-runtime.workspace = true
 umpire-reference-kettle.workspace = true
 
 [lints.rust]

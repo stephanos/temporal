@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, fmt::Write};
 
 use prost::Message;
-use umpire_wasm::google::protobuf::{
+use umpire_runtime::google::protobuf::{
     DescriptorProto, FieldDescriptorProto, FileDescriptorSet,
     field_descriptor_proto::{Label, Type},
 };
@@ -138,7 +138,7 @@ impl<'a> Schema<'a> {
         for file in &descriptors.file {
             let package = file.package.as_deref().unwrap_or_default();
             let rust = if package == "google.protobuf" {
-                "::umpire_wasm::google::protobuf".into()
+                "::umpire_runtime::google::protobuf".into()
             } else if rust_type_root.is_empty() {
                 package.replace('.', "::")
             } else {

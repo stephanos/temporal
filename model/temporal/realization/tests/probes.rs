@@ -1,7 +1,7 @@
 //! Typed request witnesses must survive the actual protobuf projection.
 
-use umpire_wasm::annotations::ProbeMatch;
-use umpire_wasm::annotations::ProbeObservation;
+use umpire_runtime::annotations::ProbeMatch;
+use umpire_runtime::annotations::ProbeObservation;
 
 #[test]
 fn black_box_inventory_includes_ignored_wire_fields() -> Result<(), Box<dyn std::error::Error>> {
@@ -67,7 +67,7 @@ fn large_generic_witnesses_use_transport_recipes() -> Result<(), Box<dyn std::er
 #[test]
 fn generic_actual_witness_predictions_and_observation_admission()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_wasm::annotations::ProbeMatch;
+    use umpire_runtime::annotations::ProbeMatch;
     let inventory = probe(&ProbeRequest::default())?;
     let case = inventory
         .cases
@@ -327,7 +327,7 @@ fn repeated_parallel_probes_materialize_and_validate_current_slots()
     })
 }
 
-fn reference_observation(case: &umpire_wasm::annotations::ProbeCase) -> ProbeObservation {
+fn reference_observation(case: &umpire_runtime::annotations::ProbeCase) -> ProbeObservation {
     if case.generic {
         let rejects = case.predictions.iter().find(|prediction| !prediction.accepts);
         ProbeObservation {

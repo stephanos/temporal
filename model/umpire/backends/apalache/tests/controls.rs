@@ -6,10 +6,10 @@ use std::{
 use umpire_apalache::{Apalache, Confirmation, Replay, native_bound};
 use umpire_dsl::Machine;
 #[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
-#[path = "../../../tests/fixtures/sample_kettle/model.rs"]
+#[path = "../../../fixtures/fixtures/sample_kettle/model.rs"]
 mod selected_kettle;
 use umpire_lift::{Lift, Tla};
-const KETTLE: &str = include_str!("../../../tests/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../../fixtures/fixtures/sample_kettle/model.rs");
 fn required() -> bool {
     std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require")
 }

@@ -2,7 +2,7 @@
 use prost::Message;
 use umpire_catalog_build::{services, wire_schema};
 use umpire_catalog_syntax::descriptor::Coverage;
-use umpire_wasm::google::protobuf::{
+use umpire_runtime::google::protobuf::{
     DescriptorProto, FileDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
     ServiceDescriptorProto,
 };
@@ -69,7 +69,7 @@ fn omitted_field_enum_and_method_are_rejected() -> Result<(), String> {
     use umpire_catalog_syntax::descriptor::{
         self, Disposition, EnumCoverage, MessageCoverage, MethodCoverage, ServiceCoverage,
     };
-    use umpire_wasm::google::protobuf::{
+    use umpire_runtime::google::protobuf::{
         EnumDescriptorProto, EnumValueDescriptorProto, FieldDescriptorProto,
         field_descriptor_proto::{Label, Type},
     };

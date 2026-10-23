@@ -1,7 +1,7 @@
 //! Authored-source admission and emitter controls.
 use umpire_lift::{Lift, Tla, Type};
 
-const KETTLE: &str = include_str!("../../tests/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../fixtures/fixtures/sample_kettle/model.rs");
 
 #[test]
 fn kettle_source_lifts_registered_properties_and_explicit_assumptions()

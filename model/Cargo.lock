@@ -866,7 +866,7 @@ dependencies = [
  "trybuild",
  "umpire-annotations",
  "umpire-catalog-macros",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -877,7 +877,7 @@ dependencies = [
  "prost-build",
  "quote",
  "umpire-catalog-syntax",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -897,7 +897,7 @@ dependencies = [
  "prost",
  "quote",
  "syn 3.0.9",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -906,7 +906,7 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "umpire-dsl",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -929,7 +929,7 @@ name = "umpire-control-guest"
 version = "0.0.1"
 dependencies = [
  "umpire-dsl",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -960,6 +960,18 @@ dependencies = [
  "umpire-front",
  "umpire-ir",
  "umpire-testing",
+]
+
+[[package]]
+name = "umpire-fixtures"
+version = "0.0.1"
+dependencies = [
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-lift",
+ "umpire-suite",
+ "umpire-testing",
+ "umpire-tlc",
 ]
 
 [[package]]
@@ -996,7 +1008,7 @@ name = "umpire-kettle-guest"
 version = "0.0.1"
 dependencies = [
  "umpire-reference-kettle",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -1017,7 +1029,7 @@ name = "umpire-overflow-guest"
 version = "0.0.1"
 dependencies = [
  "umpire-dsl",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -1033,14 +1045,24 @@ dependencies = [
  "umpire-catalog-syntax",
  "umpire-checker",
  "umpire-dsl",
- "umpire-wasm",
+ "umpire-runtime",
+]
+
+[[package]]
+name = "umpire-runtime"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "prost-build",
+ "umpire-checker",
+ "umpire-dsl",
 ]
 
 [[package]]
 name = "umpire-stock-guest"
 version = "0.0.1"
 dependencies = [
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -1062,10 +1084,10 @@ dependencies = [
  "umpire-annotations",
  "umpire-catalog",
  "umpire-dsl",
+ "umpire-runtime",
  "umpire-temporal-annotate",
  "umpire-temporal-api",
  "umpire-temporal-realization-macros",
- "umpire-wasm",
 ]
 
 [[package]]
@@ -1077,9 +1099,9 @@ dependencies = [
  "trybuild",
  "umpire-annotations",
  "umpire-catalog",
+ "umpire-runtime",
  "umpire-temporal-annotate-macros",
  "umpire-temporal-api",
- "umpire-wasm",
 ]
 
 [[package]]
@@ -1102,7 +1124,7 @@ dependencies = [
  "syn 3.0.9",
  "umpire-catalog-build",
  "umpire-catalog-syntax",
- "umpire-wasm",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -1113,16 +1135,16 @@ dependencies = [
  "prost-build",
  "umpire-annotations",
  "umpire-catalog-build",
+ "umpire-runtime",
  "umpire-temporal-annotate-syntax",
- "umpire-wasm",
 ]
 
 [[package]]
 name = "umpire-temporal-guest"
 version = "0.0.1"
 dependencies = [
+ "umpire-runtime",
  "umpire-temporal",
- "umpire-wasm",
 ]
 
 [[package]]
@@ -1144,12 +1166,12 @@ dependencies = [
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",
+ "umpire-runtime",
  "umpire-suite",
  "umpire-temporal",
  "umpire-temporal-api",
  "umpire-testing",
  "umpire-tlc",
- "umpire-wasm",
 ]
 
 [[package]]
@@ -1164,18 +1186,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "umpire-tests"
-version = "0.0.1"
-dependencies = [
- "umpire-checker",
- "umpire-dsl",
- "umpire-lift",
- "umpire-suite",
- "umpire-testing",
- "umpire-tlc",
-]
-
-[[package]]
 name = "umpire-tlc"
 version = "0.0.1"
 dependencies = [
@@ -1183,16 +1193,6 @@ dependencies = [
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",
-]
-
-[[package]]
-name = "umpire-wasm"
-version = "0.0.1"
-dependencies = [
- "prost",
- "prost-build",
- "umpire-checker",
- "umpire-dsl",
 ]
 
 [[package]]

@@ -5,15 +5,15 @@ use umpire_annotations::{
     Expectation, GapEntry, MutationApplicability, ProbeResult, Violation, WireCase,
     mutation_entries, wire_cases,
 };
+use umpire_runtime::annotations::ProbeApplicability;
+use umpire_runtime::annotations::ProbeCase;
+use umpire_runtime::annotations::ProbeExpectation;
+use umpire_runtime::annotations::ProbeObservation;
+use umpire_runtime::annotations::ProbeResponse;
 use umpire_temporal_api::{
     WorkflowServiceMethod, mutate_workflow_request, umpire::temporal::v1::ProbeRequest,
     workflow_request_fields,
 };
-use umpire_wasm::annotations::ProbeApplicability;
-use umpire_wasm::annotations::ProbeCase;
-use umpire_wasm::annotations::ProbeExpectation;
-use umpire_wasm::annotations::ProbeObservation;
-use umpire_wasm::annotations::ProbeResponse;
 
 pub(super) const MAX_CASES: usize = 32_768;
 pub(super) const MAX_PREDICTIONS: usize = 256;

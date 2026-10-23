@@ -1,7 +1,7 @@
 //! Phase access, rejecting outcomes and closure-law admission, and their located refusals.
 use umpire_lift::Lift;
 
-const JOB: &str = include_str!("../../tests/fixtures/phased_rejection/model.rs");
+const JOB: &str = include_str!("../../fixtures/fixtures/phased_rejection/model.rs");
 
 fn mutant(edits: &[(&str, &str)]) -> Result<String, String> {
     let mut source = JOB.to_owned();

@@ -5,7 +5,7 @@ use crate::{
     config::Limits,
 };
 use umpire_catalog::annotate_message;
-use umpire_wasm::{
+use umpire_runtime::{
     annotations::{AnnotationRequest, AnnotationResponse},
     google::protobuf::Any,
     protocol::Refusal,

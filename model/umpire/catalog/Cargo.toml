@@ -12,7 +12,7 @@ workspace = true
 
 [dependencies]
 prost.workspace = true
-umpire-wasm.workspace = true
+umpire-runtime.workspace = true
 umpire-annotations.workspace = true
 umpire-catalog-macros.workspace = true
 

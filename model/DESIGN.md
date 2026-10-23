@@ -257,7 +257,7 @@ Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
 ## Attribute Kettle and the authoring sketch (final flat form)
 
-The canonical `umpire/tests/fixtures/sample_kettle/model.rs` uses the owner-approved
+The canonical `umpire/fixtures/fixtures/sample_kettle/model.rs` uses the owner-approved
 flat surface derived from the historical `Kettle.attrs.rs` sketch, retaining its separate
 `User` and `Heater` enums, transition bodies and claim predicates.
 
@@ -468,7 +468,7 @@ its native/WASM reference payloads remain byte-identical.
 
 ## Kettle construct comparison
 
-These anchors compare the final [attribute source](umpire/tests/fixtures/sample_kettle/model.rs)
+These anchors compare the final [attribute source](umpire/fixtures/fixtures/sample_kettle/model.rs)
 with frozen [Kettle.scala](archived/framework/samples/Kettle.scala), including its imports and
 declarations. They compare authored constructs, not a claim of general front-end equivalence.
 
@@ -509,8 +509,8 @@ snapshot payloads are excluded. `awk` counts records, rather than language-aware
 | DSL plus macros | 10 | 1,506 | 1,382 | 22 / 16 |
 | `umpire-checker` | 6 | 1,056 | 1,000 | 11 / 8 |
 | `umpire-testing` (development support) | 4 | 398 | 373 | none |
-| `umpire-wasm` | 2 | 220 | 200 | 6 / 5 |
-| `umpire-tests` (fixture runner only) | 0 | 0 | 0 | 9 / 7 |
+| `umpire-runtime` | 2 | 220 | 200 | 6 / 5 |
+| `umpire-fixtures` (fixture runner only) | 0 | 0 | 0 | 9 / 7 |
 
 | Frozen Scala counterpart | Files | Physical | Nonblank |
 | --- | ---: | ---: | ---: |
@@ -572,7 +572,7 @@ its selected World explicitly and checks the exact documented source against a R
 `Finite` is enumeration, not automatic validation. Its bounded scalar derive generates
 `try_new(raw) -> Option<Self>` and `contains(raw)` from the one range; raw construction
 remains possible. `World::new` assigns fields without generic admission or state validation.
-Consumers admit their own policy: activity's live binding accepts maximum_attempts 1..=3.
+Consumers admit their own policy: activity's live realization accepts maximum_attempts 1..=3.
 Native states need Clone/Eq/Hash/Display, not a whole-state catalog. Persistent collections
 remain admitted dependencies, without a Bank or Voting port. Native `imbl::Vector<T>` value
 export preserves element order through `IntoValue` when `T: IntoValue + Clone`. This supports
@@ -632,7 +632,7 @@ This is the retry checkpoint, not old-byte equality. fn-237.3 owns final Tick-er
 
 ### Live admission and retained verification
 
-The Temporal binding transports optional actual `Observation.request` at tag 4 with its
+The Temporal realization transports optional actual `Observation.request` at tag 4 with its
 same-invocation successful Start result. It binds namespace/activity/request/run identity and
 immutable raw request bytes before publishing the World. Failed, crossed or missing evidence
 cannot install it. An out-of-domain maximum_attempts yields field-named Unsupported and freezes
@@ -770,7 +770,7 @@ Decided/Observed/Ignored borrow AIP vocabulary. Native sidecar checks need no CE
 | Fields | A struct pattern without `..` names every prost field; descriptor checking also names every source oneof alternative and requires nested coverage unless explicitly opaque. |
 | Enum values | A reviewed `foundation/enum_inventory.rs` lists variants; descriptor checks and wildcard-free matches reject additions. Runtime unknown integers return `UnknownEnum`. |
 | RPC methods | Generated service identities feed exhaustive `classify` matches: `Action`, `Observed` or `OutOfScope(reason)`; stale, duplicate and missing declarations fail. |
-| Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC bindings must agree with service classifications. |
+| Model actions | Exhaustive outer actor and inner action matches bind each action to an RPC, an observation or `Environmental(reason)`. RPC mappings must agree with service classifications. |
 
 The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs` uses
 `getproto --linked-api` to add the actual linked WorkflowService descriptors in
@@ -778,7 +778,7 @@ The current `proto/api.binpb` has no service descriptors. `temporal/api/build.rs
 Rust API generation still reads the upstream image. The build tracks that image and feature
 `api.rs` files recursively, including their directories and the shared enum inventory.
 
-After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action bindings.
+After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action mappings.
 Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
 
 ### Validation and the first gap report

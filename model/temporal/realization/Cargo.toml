@@ -10,7 +10,7 @@ rust-version.workspace = true
 [dependencies]
 umpire-catalog.workspace = true
 umpire-dsl.workspace = true
-umpire-wasm.workspace = true
+umpire-runtime.workspace = true
 umpire-temporal-api.workspace = true
 umpire-annotations.workspace = true
 umpire-temporal-annotate.workspace = true

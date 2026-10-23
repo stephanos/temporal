@@ -654,7 +654,7 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
         .ok_or_else(|| syn::Error::new(proto.span(), "missing protobuf message name"))?;
     let package = parts.join("::");
     let path = if package == "google::protobuf" {
-        format!("::umpire_wasm::google::protobuf::{message}")
+        format!("::umpire_runtime::google::protobuf::{message}")
     } else {
         {
             let root = quote::quote!(#api).to_string();

@@ -95,7 +95,7 @@ fn every_applicable_descriptor_case_constructs_a_typed_request()
 #[test]
 fn descriptor_changes_drive_inventory_and_unsupported_shapes_refuse()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_wasm::google::protobuf::{
+    use umpire_runtime::google::protobuf::{
         FieldDescriptorProto, FileDescriptorSet, field_descriptor_proto::Type,
     };
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));

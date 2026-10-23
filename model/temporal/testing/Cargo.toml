@@ -28,6 +28,6 @@ umpire-tlc.workspace = true
 umpire-suite.workspace = true
 umpire-temporal.workspace = true
 umpire-temporal-api.workspace = true
-umpire-wasm.workspace = true
+umpire-runtime.workspace = true
 prost.workspace = true
 

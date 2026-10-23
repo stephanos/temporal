@@ -1,5 +1,5 @@
 use umpire_temporal::{Step, activity, realization};
-use umpire_wasm::protocol::Refusal;
+use umpire_runtime::protocol::Refusal;
 
 struct Binding;
 struct RequestCancelActivityExecutionResponse;

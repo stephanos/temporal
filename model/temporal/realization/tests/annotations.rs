@@ -1,12 +1,13 @@
 //! Typed transport annotation controls preserve the independent Model run.
 
-use umpire_wasm::annotations::AnnotationRequest;
-use umpire_wasm::annotations::AnnotationResponse;
-use umpire_wasm::annotations::ProbeResponse;
+use umpire_runtime::annotations::AnnotationRequest;
+use umpire_runtime::annotations::AnnotationResponse;
+use umpire_runtime::annotations::ProbeResponse;
 
 mod common;
 
 use prost::Message;
+use umpire_runtime::{Dispatch, Guest, google::protobuf::Any, protocol};
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::{
     temporal::api::{
@@ -14,7 +15,6 @@ use umpire_temporal_api::{
     },
     umpire::temporal::v1::ProbeRequest,
 };
-use umpire_wasm::{Dispatch, Guest, google::protobuf::Any, protocol};
 
 #[test]
 fn annotation_route_admits_empty_successful_worker_polls() {

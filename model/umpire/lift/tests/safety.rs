@@ -1,6 +1,6 @@
 //! Source-derived symbolic safety projection.
 use umpire_lift::{Lift, Tla};
-const KETTLE: &str = include_str!("../../tests/fixtures/sample_kettle/model.rs");
+const KETTLE: &str = include_str!("../../fixtures/fixtures/sample_kettle/model.rs");
 
 #[test]
 fn tlc_declarations_carry_snowcat_types() -> Result<(), Box<dyn std::error::Error>> {

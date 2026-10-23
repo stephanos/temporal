@@ -7,8 +7,8 @@ pub(crate) fn generate(
     include: &Path,
 ) -> io::Result<()> {
     config
-        .extern_path(".umpire.realization.v1", "::umpire_wasm::realization")
-        .extern_path(".umpire.annotations.v1", "::umpire_wasm::annotations");
+        .extern_path(".umpire.realization.v1", "::umpire_runtime::realization")
+        .extern_path(".umpire.annotations.v1", "::umpire_runtime::annotations");
     umpire_catalog_build::codegen::generate(
         config,
         upstream,

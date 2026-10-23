@@ -1,4 +1,4 @@
-//! Temporal protobuf binding for the independently authored mini activity Model.
+//! Temporal protobuf realization for the independently authored mini activity Model.
 
 // The fixture runner compiles the Model independently of this realization.
 #[path = "model.rs"]
@@ -9,6 +9,7 @@ pub use included::activity;
 
 use activity::{Client, Phase, Worker};
 use umpire_dsl::{Machine, Outcome};
+use umpire_runtime::{Candidate, Projection, google::protobuf::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
     common::v1::Payloads,
     failure::v1::Failure,
@@ -18,7 +19,6 @@ use umpire_temporal_api::temporal::api::{
         RespondActivityTaskFailedRequest,
     },
 };
-use umpire_wasm::{Candidate, Projection, google::protobuf::Any, protocol::Refusal};
 
 use crate::{
     Reply, realization,
@@ -28,8 +28,8 @@ use crate::{
 type Action = <activity::World as Machine>::Action;
 
 /// Creates one independently owned guest run.
-pub fn runtime() -> umpire_wasm::Runtime<activity::World, Realization> {
-    umpire_wasm::Runtime::new(activity::World::new(3), Realization)
+pub fn runtime() -> umpire_runtime::Runtime<activity::World, Realization> {
+    umpire_runtime::Runtime::new(activity::World::new(3), Realization)
 }
 
 /// The strict mini activity observation and callback registry.
@@ -114,7 +114,7 @@ impl Realization {
             && state.attempt.checked_add(1) == Some(attempt);
         if state.attempt != attempt && !retry {
             return Err(Refusal::new(
-                umpire_wasm::protocol::RefusalCode::State,
+                umpire_runtime::protocol::RefusalCode::State,
                 "Describe attempt does not match the current attempt",
             ));
         }
@@ -230,7 +230,7 @@ impl Realization {
             .map_err(|_| Refusal::unsupported("callback attempt is outside maximum_attempts"))?;
         if attempt != state.attempt {
             return Err(Refusal::new(
-                umpire_wasm::protocol::RefusalCode::State,
+                umpire_runtime::protocol::RefusalCode::State,
                 "callback attempt does not match the current attempt",
             ));
         }

@@ -1,5 +1,5 @@
 # model: the Umpire framework in Rust. Current scope: what model/archived/framework/samples/Kettle.scala
-# uses today. Shared Models and their end-to-end goldens live in umpire/tests.
+# uses today. Shared Models and their end-to-end goldens live in umpire/fixtures.
 [workspace]
 resolver = "3"
 members = [
@@ -11,7 +11,7 @@ members = [
     "umpire/dsl",
     "umpire/dsl/macros",
     "umpire/checker",
-    "umpire/tests",
+    "umpire/fixtures",
     "umpire/testing",
     "umpire/suite",
     "umpire/ir",
@@ -22,11 +22,11 @@ members = [
     "umpire/backends/apalache",
     "umpire/reference/kettle",
     "umpire/reference/kettle/guest",
-    "umpire/wasm",
-    "umpire/wasm/guests/stock",
-    "umpire/wasm/guests/control",
-    "umpire/wasm/guests/caught-panic",
-    "umpire/wasm/guests/overflow",
+    "umpire/runtime",
+    "umpire/runtime/guests/stock",
+    "umpire/runtime/guests/control",
+    "umpire/runtime/guests/caught-panic",
+    "umpire/runtime/guests/overflow",
     "temporal/api",
     "temporal/annotate",
     "temporal/annotate/macros",
@@ -62,7 +62,7 @@ umpire-front = { version = "0.0.1", path = "umpire/front" }
 umpire-lift = { version = "0.0.1", path = "umpire/lift" }
 umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
-umpire-wasm = { version = "0.0.1", path = "umpire/wasm" }
+umpire-runtime = { version = "0.0.1", path = "umpire/runtime" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
 umpire-temporal-annotate = { version = "0.0.1", path = "temporal/annotate" }
 umpire-temporal-annotate-macros = { version = "0.0.1", path = "temporal/annotate/macros" }

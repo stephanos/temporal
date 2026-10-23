@@ -1,7 +1,7 @@
 //! The reference catalog uses the same typed transport for filling and scoped validation.
 use prost::Message;
 use umpire_reference_kettle::{annotation_runtime, wire::umpire::reference::kettle::v1 as k};
-use umpire_wasm::{
+use umpire_runtime::{
     Dispatch,
     annotations::{AnnotationRequest, AnnotationResponse},
     google::protobuf::Any,

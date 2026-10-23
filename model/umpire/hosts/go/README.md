@@ -27,7 +27,7 @@ under `../../../target`. A missing artifact is an error. The parity test compare
 the report and every ordered row against the native trait Kettle fixtures.
 Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/guest/stateful_control.wasm`, with the same
-local-target fallback. Both guest crates link the export-free `umpire-wasm` library.
+local-target fallback. Both guest crates link the export-free `umpire-runtime` library.
 
 Umpire ships no prebuilt wasm; these generic guests stay source-built and uncommitted.
 Temporal separately commits `model/temporal/hosts/go/umpire_temporal_guest.wasm` and
@@ -62,7 +62,7 @@ enum values and response arms that do not match the called method are errors.
 The guest may return Unsupported for a recognized method whose system adapter is
 not installed.
 
-The reusable runtime and ABI live in the export-free `umpire-wasm` crate. A system
+The reusable runtime and ABI live in the export-free `umpire-runtime` crate. A system
 guest supplies its own Model and realization through `export_guest!`; this Go host
 transports their opaque Any payloads without importing their schemas. Native and Go
 controls pin old message bytes, refusal codes, independent instances and publication

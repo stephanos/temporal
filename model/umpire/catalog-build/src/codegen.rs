@@ -18,7 +18,7 @@ pub fn generate(
         .type_name_domain(["."], "type.googleapis.com")
         .compile_well_known_types()
         .btree_map(["."])
-        .extern_path(".google.protobuf", "::umpire_wasm::google::protobuf")
+        .extern_path(".google.protobuf", "::umpire_runtime::google::protobuf")
         .include_file("protocol.rs")
         .disable_comments(["."])
         .protoc_arg(format!("--descriptor_set_in={}", upstream.display()));

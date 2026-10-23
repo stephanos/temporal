@@ -3,9 +3,9 @@
 use super::{RpcRole, classify};
 use crate::foundation::dc;
 use prost::Message;
+use umpire_runtime::protocol::Refusal;
 use umpire_temporal_api::WorkflowServiceMethod;
 use umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskFailedRequest;
-use umpire_wasm::protocol::Refusal;
 
 pub use umpire_catalog::AnnotationResult;
 use umpire_catalog::{annotate_message, annotation_findings as findings};

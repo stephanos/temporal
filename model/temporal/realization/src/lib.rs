@@ -19,7 +19,7 @@ pub struct Reply<A> {
     /// Response action whose enablement the runtime checks.
     pub action: A,
     /// `Any::pack(&typed_request)`; generation adds the Temporal Reply envelope once.
-    pub request: umpire_wasm::google::protobuf::Any,
+    pub request: umpire_runtime::google::protobuf::Any,
 }
 
 /// Declared coverage for one distinct protobuf use.

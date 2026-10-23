@@ -1,13 +1,13 @@
 //! Framework-owned Kettle reference system using the canonical independent Model.
 
-#[path = "../../tests/fixtures/sample_kettle/model.rs"]
+#[path = "../../fixtures/fixtures/sample_kettle/model.rs"]
 mod model;
 pub use model::kettle;
 
 /// Generated reference service messages.
 #[allow(missing_docs, clippy::all, clippy::pedantic)]
 pub mod wire {
-    pub use umpire_wasm::google;
+    pub use umpire_runtime::google;
     pub mod umpire {
         pub mod reference {
             pub mod kettle {
@@ -32,12 +32,12 @@ pub mod config;
 /// Stateless generic probe controls.
 pub mod probes;
 
-/// Evidence projection and callback binding.
+/// Evidence projection and callback realization.
 pub mod realization;
 pub use realization::Realization;
 
 /// Transactional live Kettle run, independent of full-space exploration.
-pub type KettleRuntime = umpire_wasm::Runtime<kettle::World, Realization>;
+pub type KettleRuntime = umpire_runtime::Runtime<kettle::World, Realization>;
 
 /// Select the declared room-temperature start for one live Kettle instance.
 pub fn runtime() -> KettleRuntime {
@@ -50,15 +50,15 @@ pub fn runtime() -> KettleRuntime {
 }
 
 /// Kettle Model dispatcher with independent annotation and probe operations.
-pub type AnnotationRuntime = umpire_wasm::AnnotationRuntime<
+pub type AnnotationRuntime = umpire_runtime::AnnotationRuntime<
     KettleRuntime,
     fn(
-        &umpire_wasm::google::protobuf::Any,
-    ) -> Result<umpire_wasm::google::protobuf::Any, umpire_wasm::protocol::Refusal>,
+        &umpire_runtime::google::protobuf::Any,
+    ) -> Result<umpire_runtime::google::protobuf::Any, umpire_runtime::protocol::Refusal>,
 >;
 
 /// Creates the selected live run and its stateless annotation extension.
 pub fn annotation_runtime() -> AnnotationRuntime {
-    umpire_wasm::AnnotationRuntime::new(runtime(), transport::dispatch)
+    umpire_runtime::AnnotationRuntime::new(runtime(), transport::dispatch)
 }
 mod transport;

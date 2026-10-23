@@ -3,7 +3,7 @@
 use crate::Inspect;
 use prost::Message;
 use umpire_annotations::{Expectation, Violation};
-use umpire_wasm::protocol::Refusal;
+use umpire_runtime::protocol::Refusal;
 
 /// Filled request bytes or untouched response bytes, with value-free findings.
 pub struct AnnotationResult {

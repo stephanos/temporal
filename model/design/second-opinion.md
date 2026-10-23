@@ -24,8 +24,8 @@ design history, not evidence of implemented Rust capabilities.
 
 | Current source | Evidence relevant to a second checker |
 | --- | --- |
-| [Attribute Kettle](../umpire/tests/fixtures/sample_kettle/model.rs) and [manual Kettle](../umpire/checker/tests/fixtures/sample_kettle_trait/kettle.rs) | Separate authoring implementations of the same small machine. The attribute [report](../umpire/tests/fixtures/sample_kettle/expected/report.snap.txt) records 81 starts, 283 reached states, 424 edges, no cut and four verified claims. |
-| [Kettle progress questions](../umpire/tests/fixtures/kettle_progress/model.rs) | The [golden](../umpire/tests/fixtures/kettle_progress/expected/report.snap.txt) distinguishes 81/141-step room/cold bounds, an unrestricted cycle, a filtered dead end, a missed deadline and an unknown budget cut. |
+| [Attribute Kettle](../umpire/fixtures/fixtures/sample_kettle/model.rs) and [manual Kettle](../umpire/checker/tests/fixtures/sample_kettle_trait/kettle.rs) | Separate authoring implementations of the same small machine. The attribute [report](../umpire/fixtures/fixtures/sample_kettle/expected/report.snap.txt) records 81 starts, 283 reached states, 424 edges, no cut and four verified claims. |
+| [Kettle progress questions](../umpire/fixtures/fixtures/kettle_progress/model.rs) | The [golden](../umpire/fixtures/fixtures/kettle_progress/expected/report.snap.txt) distinguishes 81/141-step room/cold bounds, an unrestricted cycle, a filtered dead end, a missed deadline and an unknown budget cut. |
 | [Fairness graph](../umpire/checker/tests/fixtures/progress_self_loop/model.rs) and its fixtures | Explicit fair actions cover continuous versus intermittent enabledness, excluded fair actions, multiple choices, self-loops, multiple starts and target barriers. [Native progress](../umpire/checker/src/progress.rs) searches target-avoiding components and checks weak-fairness obligations. |
 | [Activity Model](../temporal/feature/activity/model.rs) | One real Temporal slice. Its [report](../temporal/feature/activity/expected/report.snap.txt) records six states and seven edges. It has atomic cancellation and fatal failure, with no retry branch or progress registration. Its terminal-preservation tests exercise the antecedent directly and reject a hypothetical reopening; the verified edge report alone is vacuous at terminal states. |
 | [Choices fixture](../umpire/checker/tests/fixtures/choices/model.rs) and [Machine trait](../umpire/dsl/src/machine.rs) | The engine already permits several ordered choices, outcomes and facts, including repeated destinations. The attribute macro currently emits unit outcomes/facts and only changed-state edges. |
@@ -144,7 +144,7 @@ but an opt-in check gives no agreement evidence when it is not run.
 
 Choose a build-time `syn` pass. It can read both current Kettles and the manual
 `Machine` controls through one source route, retain file locations, and leave
-`#[machine]` registration-only. The existing [fixture discovery entry point](../umpire/tests/build.rs)
+`#[machine]` registration-only. The existing [fixture discovery entry point](../umpire/fixtures/build.rs)
 already identifies selected source roots; lifting should track those inputs and
 their admitted helper dependencies as Cargo build inputs. `syn` is already a
 workspace dependency. Reading source does not imply that every manual trait body

@@ -70,7 +70,7 @@ only a validated callback supplies delivery evidence.
 Observation carries a result oneof, with response Any at tag 2 or error at tag 3.
 The local `umpire.realization.v1.Error` has code and message because `google.rpc.Status`
 is absent from the upstream descriptor closure used by generation. The host transports
-the envelope as opaque Any; the Temporal binding owns numeric status interpretation.
+the envelope as opaque Any; the Temporal realization owns numeric status interpretation.
 
 Optional request Any at tag 4 carries the same invocation's actual completed request.
 Request-absent bytes and tags 1 to 3 are unchanged; Go emits the oneof after regular
@@ -88,7 +88,7 @@ request ID.
 For `/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution`,
 the actual `RequestCancelActivityExecutionResponse` proposes one `Client::Cancel` and
 matches only `Accepted`. An actual error with NotFound code 5 proposes the same step and
-matches only `Rejected(NotFound)`, leaving the closed phase unchanged. The binding maps
+matches only `Rejected(NotFound)`, leaving the closed phase unchanged. The realization maps
 the recognized status vocabulary and compares the replayed outcome; contradictory or
 unknown codes are Unexplained and freeze the run. An unknown method is Unsupported.
 Explanations carry parallel steps/outcomes; repeated current Describe carries neither.
@@ -166,7 +166,7 @@ Present valid timeout values are neither refused nor quantized into Model parame
 A successful new-run result (`started=true`) prepares a whole replacement Runtime with
 that World's unique Scheduled/attempt-one start and no exploration. Before admission,
 Explore/Rows concern only the explicit fixture World; Judge/Answer cannot use it as a live
-binding. Each execution needs a fresh guest. Original exact request/run replay is zero-step
+realization. Each execution needs a fresh guest. Original exact request/run replay is zero-step
 after progress and Reset, including `started=false` only with retained original successful
 provenance. Same-ID changed bytes, changed response evidence or crossed executions refuse.
 

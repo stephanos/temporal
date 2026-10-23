@@ -36,7 +36,7 @@ fn observations_require_exact_inventory() {
 
 #[test]
 fn classification_requires_live_evidence_and_correlated_predictions() -> Result {
-    use umpire_wasm::annotations::{ProbeMatch, ProbeObservation};
+    use umpire_runtime::annotations::{ProbeMatch, ProbeObservation};
     let inventory = probes::run(&ProbeRequest::default())?;
     // Synthetic server evidence exercises classification only, never golden generation.
     let observations: Vec<_> = inventory

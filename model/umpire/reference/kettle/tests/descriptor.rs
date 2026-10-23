@@ -5,7 +5,7 @@ use umpire_catalog_syntax::{
     descriptor::{self, Coverage},
     services::classifications,
 };
-use umpire_wasm::google::protobuf::{
+use umpire_runtime::google::protobuf::{
     EnumValueDescriptorProto, FieldDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
 };
 

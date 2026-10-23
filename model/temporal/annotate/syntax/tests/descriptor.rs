@@ -3,12 +3,12 @@
 use std::{fs, path::Path};
 
 use prost::Message;
-use umpire_temporal_annotate_syntax::descriptor::{
-    Coverage, Disposition, EnumCoverage, MessageCoverage, MethodCoverage, ServiceCoverage, check,
-};
-use umpire_wasm::google::protobuf::{
+use umpire_runtime::google::protobuf::{
     DescriptorProto, EnumValueDescriptorProto, FieldDescriptorProto, FileDescriptorSet,
     MethodDescriptorProto,
+};
+use umpire_temporal_annotate_syntax::descriptor::{
+    Coverage, Disposition, EnumCoverage, MessageCoverage, MethodCoverage, ServiceCoverage, check,
 };
 
 #[test]

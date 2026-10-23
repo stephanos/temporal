@@ -9,7 +9,7 @@ use std::{
 use proc_macro2::TokenStream;
 use prost::Message as _;
 use quote::{format_ident, quote};
-use umpire_wasm::google::protobuf::{
+use umpire_runtime::google::protobuf::{
     DescriptorProto, FileDescriptorSet,
     field_descriptor_proto::{Label, Type},
 };
@@ -165,7 +165,7 @@ impl Schema {
         for file in &descriptors.file {
             let package = file.package.as_deref().unwrap_or_default();
             let module = if package == "google.protobuf" {
-                "::umpire_wasm::google::protobuf".to_owned()
+                "::umpire_runtime::google::protobuf".to_owned()
             } else {
                 format!("::umpire_temporal_api::{}", package.replace('.', "::"))
             };
@@ -377,7 +377,7 @@ impl Schema {
         for field in fields.iter().filter(|field| field.class == Classification::Unsupported) {
             let present = self.presence(name, &field.path, value, 0)?;
             let message = format!("unsupported realization field: {name}.{}", field.path);
-            checks.extend(quote! { if #present { return Err(::umpire_wasm::protocol::Refusal::unsupported(#message)); } });
+            checks.extend(quote! { if #present { return Err(::umpire_runtime::protocol::Refusal::unsupported(#message)); } });
         }
         Ok(checks)
     }
@@ -585,7 +585,7 @@ fn camel(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use umpire_wasm::google::protobuf::{
+    use umpire_runtime::google::protobuf::{
         DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet,
         MethodDescriptorProto, ServiceDescriptorProto,
         field_descriptor_proto::{Label, Type},

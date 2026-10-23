@@ -3,6 +3,7 @@
 use umpire_temporal::foundation::dc::Limits;
 
 use prost::Message;
+use umpire_runtime::google::protobuf::Duration;
 use umpire_temporal::activity_api::{AnnotationResult, annotate as annotate_wire};
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
@@ -19,7 +20,6 @@ use umpire_temporal_api::temporal::api::{
         StartActivityExecutionRequest,
     },
 };
-use umpire_wasm::google::protobuf::Duration;
 
 fn annotate(
     method: &str,

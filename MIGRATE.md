@@ -17,7 +17,7 @@ The target repository puts the contents of
 
 Keep checker behavior, macro authoring, fixtures, protobuf messages and ABI unchanged.
 The application exports remain `umpire_buffer_alloc`, `umpire_buffer_release` and
-`umpire_call`. The stock guest contains the trait Kettle; the reusable `umpire-wasm`
+`umpire_call`. The stock guest contains the trait Kettle; the reusable `umpire-runtime`
 library is export-free and separate guests select their Model and realization.
 Extraction does not make a guest a generic loader for arbitrary Models. Umpire ships no
 prebuilt wasm. Temporal commits only its reproducible guest beside its Go host module,
@@ -32,7 +32,7 @@ are relative to the new Umpire repository.
 
 | Source | Destination and treatment |
 | --- | --- |
-| `model/umpire/{dsl,checker,testing,tests,wasm,proto}/` | Same directories at repository root; preserve complete fixture groups |
+| `model/umpire/{dsl,checker,testing,fixtures,runtime,proto}/` | Same directories at repository root; preserve complete fixture groups |
 | `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
 | `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files containing only generic members/dependencies; remove their `umpire/` prefix and retain a separate Temporal consumer workspace |
 | `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
@@ -243,15 +243,15 @@ the source and destination map above.
 - `model/scripts/proto-go.sh:3` — The generation/freshness helper resolves the workspace and parent repository, uses parent `.bin/protoc-gen-go-v1.36.6`, enforces protoc 29.5, and compares generated Go bytes.
 - `model/scripts/time-gate.sh:27` — The timing helper measures the actual parent-repository `model-check` target and the checker’s edit/test loop, with 3-second and 30-second budgets.
 - `model/umpire/testing/src/discovery.rs:10` — `discover` validates fixture inputs and expected directories, then sorts fixtures deterministically. `generate` at line 43 builds their runner.
-- `model/umpire/checker/build.rs:5` — Build scripts include the shared discovery source by relative path; the wasm build script separately compiles the sibling protocol (`model/umpire/wasm/build.rs:4`).
+- `model/umpire/checker/build.rs:5` — Build scripts include the shared discovery source by relative path; the wasm build script separately compiles the sibling protocol (`model/umpire/runtime/build.rs:4`).
 
 ### Convention Anchors
 
 - Workspace ownership: `model/Cargo.toml:5` defines six members beneath `umpire/`; shared package metadata, dependencies and lint policies live above that subtree. `model/README.md:20` also identifies external formatting, Clippy, toolchain and dependency-policy files.
 - Tool provisioning: `mise.toml:3` pins protoc and line 6 pins Rust. `Makefile:306` provisions the Go protobuf generator, while `Makefile:1436` supplies the wasm artifact and disables CGO for host tests.
-- Fixture ownership: `model/README.md:77` assigns shared Models to `umpire/tests`, checker-specific fixtures to the checker, and spelling fixtures to the DSL.
+- Fixture ownership: `model/README.md:77` assigns shared Models to `umpire/fixtures`, checker-specific fixtures to the checker, and spelling fixtures to the DSL.
 - Golden integrity: `model/README.md` defines each expected output as snapshot metadata and its payload. Go parity tests read the payloads directly; there are no fixture symlink aliases.
-- Host coupling: `model/hosts/go/host_test.go:578` defaults to `../../target`; lines 604 and 621 read `../../umpire/tests` goldens. Moving the host changes these relative relationships.
+- Host coupling: `model/hosts/go/host_test.go:578` defaults to `../../target`; lines 604 and 621 read `../../umpire/fixtures` goldens. Moving the host changes these relative relationships.
 - Go identity: `model/hosts/go/go.mod:1`, `model/umpire/proto/umpire/oracle/v1/oracle.proto:4` and `model/hosts/go/host.go:14` share `umpire.local/oracle`; generated descriptors and imports therefore participate in any module-path change.
 - Archive boundary: `model/README.md:7` explicitly freezes Scala and excludes it from the Rust workspace and gate.
 

@@ -414,7 +414,7 @@ mod tests {
         let module = umpire_lift::Tla::safety(
             &umpire_lift::Lift::parse(
                 "control.rs",
-                include_str!("../../../tests/fixtures/sample_kettle/model.rs"),
+                include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
             )
             .map_err(|e| Refusal(e.to_string()))?,
         )
@@ -500,7 +500,7 @@ mod tests {
         let module = umpire_lift::Tla::safety(
             &umpire_lift::Lift::parse(
                 "kettle.rs",
-                include_str!("../../../tests/fixtures/sample_kettle/model.rs"),
+                include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
             )
             .map_err(|e| Refusal(e.to_string()))?,
         )

@@ -102,8 +102,8 @@ Task .3 is complete locally: strict typed ITF replay, selected property and arit
 
 Captured on 2026-10-20, after fn-227. Files the post-verdict obligations R33 to R40 as one spec under
 the owner's direction that Go is dumb and the Model holds the smarts, and retires the "Case slice"
-name. Names settled: `umpire-wasm` becomes `umpire-runtime`, `umpire-tests` becomes `umpire-fixtures`,
-Realization is the one word for a binding; new `Propose` on `umpire.model.v1`; Go package `runner`
+name. Names settled: the renamed crates are `umpire-runtime` and `umpire-fixtures`,
+a Realization connects a Model to a system; new `Propose` on `umpire.model.v1`; Go package `runner`
 with `Runner`, `Run`, `Driver` and `Shim`. The Model is the umpire; the Runtime hosts one Model; a
 Realization binds it to one system; the Runner drives a Driver, asks the Model to Propose, Judge
 and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, casefile, campaign
@@ -114,7 +114,7 @@ including Answer, and immutable publication by model/seed/content hash.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.1 | ⬜ todo | Renames alone: `umpire-runtime`, `umpire-fixtures`, Realization in prose (R1) |
+| fn-228.1 | 🔄 in progress | Renames alone: `umpire-runtime`, `umpire-fixtures`, Realization in prose (R1) |
 | fn-228.2 | ⬜ todo | After .1: `Propose` on protocol, Runtime, `Realize`, `Host`; activity Realization proposes (R2) |
 | fn-228.3 | ⬜ todo | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
 | fn-228.4 | ⬜ todo | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |

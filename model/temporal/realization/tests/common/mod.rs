@@ -1,3 +1,7 @@
+use umpire_runtime::{
+    google::protobuf::{Any, Duration},
+    realization::{Observation, observation::Result as ResultValue},
+};
 use umpire_temporal_api::temporal::api::{
     activity::v1::ActivityExecutionInfo,
     common::v1::{ActivityType, Link, RetryPolicy, link},
@@ -6,10 +10,6 @@ use umpire_temporal_api::temporal::api::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
         StartActivityExecutionRequest, StartActivityExecutionResponse,
     },
-};
-use umpire_wasm::{
-    google::protobuf::{Any, Duration},
-    realization::{Observation, observation::Result as ResultValue},
 };
 const START: &str = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution";
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";

@@ -8,7 +8,7 @@ use std::{
 };
 
 use prost::Message;
-use umpire_wasm::google::protobuf::FileDescriptorSet;
+use umpire_runtime::google::protobuf::FileDescriptorSet;
 
 #[path = "../codegen.rs"]
 mod codegen;

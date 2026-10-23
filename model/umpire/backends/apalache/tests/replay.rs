@@ -2,7 +2,7 @@
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
 #[allow(unreachable_pub, reason = "shared public fixture")]
-#[path = "../../../tests/fixtures/sample_kettle/model.rs"]
+#[path = "../../../fixtures/fixtures/sample_kettle/model.rs"]
 mod selected;
 #[test]
 fn replay_refuses_an_undeclared_property_before_reading_a_witness()
@@ -12,7 +12,7 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
     let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
     let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
         "kettle.rs",
-        include_str!("../../../tests/fixtures/sample_kettle/model.rs"),
+        include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
     )?)?;
     let negatives: Vec<Claim<_>> = Vec::new();
     let replay =
@@ -215,7 +215,7 @@ fn retained_pinned_kettle_witness_replays_deterministically()
         r#"{}
         umpire_testing::fixture!(kettle::world(),1000,Claim::new("never_beeps",|_,s:&kettle::Model|(!s.beeping).into()));
     "#,
-        include_str!("../../../tests/fixtures/sample_kettle/model.rs")
+        include_str!("../../../fixtures/fixtures/sample_kettle/model.rs")
     );
     let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse("kettle.rs", &source)?)?;
     let negatives =

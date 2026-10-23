@@ -1,0 +1,35 @@
+[package]
+name = "umpire-stock-guest"
+description = "Stock checker guest realization"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+umpire-runtime.workspace = true
+
+[lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+unused_qualifications = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+unwrap_used = "warn"
+expect_used = "warn"
+dbg_macro = "warn"
+todo = "warn"
+print_stdout = "warn"
+print_stderr = "warn"

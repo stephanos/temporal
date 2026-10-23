@@ -370,7 +370,7 @@ fn observation(
                 Err(code)
             } else {
                 let __response: #input = __observed.response()
-                    .map_err(|error| ::umpire_wasm::protocol::Refusal::malformed(error.message))?;
+                    .map_err(|error| ::umpire_runtime::protocol::Refusal::malformed(error.message))?;
                 #guards
                 Ok(__response)
             };
@@ -384,7 +384,7 @@ fn observation(
         Output::Step => quote!({
             let __step = #called?;
             let __action: <#model::World as ::umpire_dsl::Machine>::Action = __step.action.into();
-            ::umpire_wasm::Projection::Candidates(vec![::umpire_wasm::Candidate {
+            ::umpire_runtime::Projection::Candidates(vec![::umpire_runtime::Candidate {
                 path: vec![__action.into()], outcome: __step.expected,
             }])
         }),
@@ -469,7 +469,7 @@ fn answer(
         let mut __recognized = false;
         #(#outputs)*
         if !__recognized {
-            return Err(::umpire_wasm::protocol::Refusal::unsupported("unsupported reply request"));
+            return Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported reply request"));
         }
     });
     let called = call(handler, &quote!(__task));
@@ -481,14 +481,14 @@ fn answer(
             let __reply = #called?;
             #validate
             let __action: <#model::World as ::umpire_dsl::Machine>::Action = __reply.action.into();
-            let __delivery: Vec<::umpire_wasm::Transition<<#model::World as ::umpire_dsl::Machine>::Action>> =
+            let __delivery: Vec<::umpire_runtime::Transition<<#model::World as ::umpire_dsl::Machine>::Action>> =
                 __reply.delivery.into_iter().map(|action| {
                     let action: <#model::World as ::umpire_dsl::Machine>::Action = action.into();
                     action.into()
                 }).collect();
-            return Ok(::umpire_wasm::AnswerPlan::new(__delivery, __action,
-                ::umpire_wasm::google::protobuf::Any::pack(
-                    &::umpire_wasm::realization::Reply {
+            return Ok(::umpire_runtime::AnswerPlan::new(__delivery, __action,
+                ::umpire_runtime::google::protobuf::Any::pack(
+                    &::umpire_runtime::realization::Reply {
                         request: Some(__reply.request),
                     }
                 )
@@ -882,24 +882,24 @@ fn expand_scoped(
             /// Declared coverage in each incoming and outgoing protobuf context.
             pub const REALIZATION: &'static [::umpire_temporal::Context] = &[#(#contexts),*];
         }
-        impl ::umpire_wasm::Realize<#model::World> for #ty {
-            fn observe(&self, observation: &::umpire_wasm::google::protobuf::Any, state: &#model::Model)
-                -> Result<::umpire_wasm::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_wasm::protocol::Refusal> {
+        impl ::umpire_runtime::Realize<#model::World> for #ty {
+            fn observe(&self, observation: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
+                -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
                 let __observed = ::umpire_temporal::support::Observed::new(observation)?;
                 #(#observations)*
-                Err(::umpire_wasm::protocol::Refusal::unsupported("unsupported observation method"))
+                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
             }
-            fn answer(&self, value: &::umpire_wasm::google::protobuf::Any, state: &#model::Model)
-                -> Result<::umpire_wasm::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_wasm::protocol::Refusal> {
+            fn answer(&self, value: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
+                -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
-                let __callback: ::umpire_wasm::realization::Callback = value.unpack()?;
-                let __task_any = ::umpire_wasm::google::protobuf::Any::required(__callback.task)?;
+                let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
+                let __task_any = ::umpire_runtime::google::protobuf::Any::required(__callback.task)?;
                 if __task_any.type_url.is_empty() {
-                    return Err(::umpire_wasm::protocol::Refusal::malformed("Any type URL is missing"));
+                    return Err(::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"));
                 }
                 #(#answers)*
-                Err(::umpire_wasm::protocol::Refusal::unsupported("unsupported Any type URL"))
+                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported Any type URL"))
             }
         }
     })

@@ -10,8 +10,8 @@ use std::{
 };
 
 use prost::Message;
+use umpire_runtime::google::protobuf::FileDescriptorSet;
 use umpire_temporal_annotate_syntax::{descriptor::Coverage, services::classifications};
-use umpire_wasm::google::protobuf::FileDescriptorSet;
 
 #[path = "../services.rs"]
 mod services;

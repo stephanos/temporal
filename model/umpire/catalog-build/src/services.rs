@@ -5,7 +5,7 @@ use std::{collections::BTreeSet, fmt::Write};
 use prost::Message;
 use quote::ToTokens;
 use umpire_catalog_syntax::{descriptor::Coverage, services::Classification};
-use umpire_wasm::google::protobuf::FileDescriptorSet;
+use umpire_runtime::google::protobuf::FileDescriptorSet;
 
 /// Generated service identities and Rust surface names.
 pub struct Config<'a> {

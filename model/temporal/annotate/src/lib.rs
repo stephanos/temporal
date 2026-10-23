@@ -106,7 +106,7 @@ mod view_tests {
     #[test]
     fn time_views_preserve_raw_values_and_write_back()
     -> Result<(), umpire_annotations::GenerationError> {
-        use umpire_wasm::google::protobuf::Duration;
+        use umpire_runtime::google::protobuf::Duration;
         let mut value = Some(Duration { seconds: i64::MAX, nanos: 0 });
         let raw = <_ as View<kinds::RawDuration>>::view(&value);
         assert_eq!(raw.map(|v| v.seconds), Some(i64::MAX));

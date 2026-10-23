@@ -1,6 +1,12 @@
 use prost::Message;
 use umpire_annotations::{Catalog, validate};
 use umpire_dsl::Machine;
+use umpire_runtime::{
+    Dispatch, Runtime, Transaction,
+    google::protobuf::Any,
+    protocol::{self, Refusal, RefusalCode, response::Outcome},
+    realization::{Observation, observation::Result as ResultValue},
+};
 use umpire_temporal_api::temporal::api::{
     common::v1::link,
     workflowservice::v1::{
@@ -9,12 +15,6 @@ use umpire_temporal_api::temporal::api::{
         RequestCancelActivityExecutionResponse, StartActivityExecutionRequest,
         StartActivityExecutionResponse,
     },
-};
-use umpire_wasm::{
-    Dispatch, Runtime, Transaction,
-    google::protobuf::Any,
-    protocol::{self, Refusal, RefusalCode, response::Outcome},
-    realization::{Observation, observation::Result as ResultValue},
 };
 
 use crate::{Realization, activity, activity_api::catalog, foundation::dc::Limits, runtime};
@@ -36,7 +36,7 @@ struct Receipt {
     maximum_attempts: Option<u8>,
 }
 
-/// Temporal-owned live binding around an independently owned Model runtime.
+/// Temporal-owned live realization around an independently owned Model runtime.
 pub struct LiveRuntime {
     model: ModelRuntime,
     receipt: Option<Receipt>,
@@ -87,7 +87,7 @@ impl LiveRuntime {
         let request = protocol::JudgeRequest::decode(bytes)
             .map_err(|_| Refusal::malformed("malformed Judge request"))?;
         let value = Any::required(request.observation)?;
-        let observed = umpire_wasm::Observed::new(&value)?;
+        let observed = umpire_runtime::Observed::new(&value)?;
         if observed.method == START {
             return self.start(&value);
         }
@@ -148,7 +148,7 @@ impl LiveRuntime {
         let request = protocol::AnswerRequest::decode(bytes)
             .map_err(|_| Refusal::malformed("malformed Answer request"))?;
         let value = Any::required(request.callback)?;
-        let task: PollActivityTaskQueueResponse = umpire_wasm::callback(&value)?;
+        let task: PollActivityTaskQueueResponse = umpire_runtime::callback(&value)?;
         let receipt = self.receipt()?;
         receipt.matches(&task.workflow_namespace, &task.activity_id, &task.activity_run_id)?;
         if self.frozen.is_some() {

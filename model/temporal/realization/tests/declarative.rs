@@ -1,11 +1,16 @@
 //! Generated handler conversion and contextual reply controls.
 
-use umpire_wasm::realization::Callback;
-use umpire_wasm::realization::Observation;
-use umpire_wasm::realization::Reply;
-use umpire_wasm::realization::observation::Result as ObservationResult;
+use umpire_runtime::realization::Callback;
+use umpire_runtime::realization::Observation;
+use umpire_runtime::realization::Reply;
+use umpire_runtime::realization::observation::Result as ObservationResult;
 
 use umpire_dsl::{Machine, Outcome};
+use umpire_runtime::{
+    Projection, Realize,
+    google::protobuf::Any,
+    protocol::{Refusal, RefusalCode},
+};
 use umpire_temporal::{Realization, Step, activity, realization};
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
@@ -13,11 +18,6 @@ use umpire_temporal_api::temporal::api::{
     workflowservice::v1::{
         DescribeActivityExecutionResponse, RequestCancelActivityExecutionResponse,
     },
-};
-use umpire_wasm::{
-    Projection, Realize,
-    google::protobuf::Any,
-    protocol::{Refusal, RefusalCode},
 };
 
 struct StepBinding;

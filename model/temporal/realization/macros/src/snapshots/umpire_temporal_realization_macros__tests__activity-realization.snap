@@ -50,7 +50,7 @@ impl Realization {
         if state.attempt != attempt && !retry {
             return Err(
                 Refusal::new(
-                    umpire_wasm::protocol::RefusalCode::State,
+                    umpire_runtime::protocol::RefusalCode::State,
                     "Describe attempt does not match the current attempt",
                 ),
             );
@@ -163,7 +163,7 @@ impl Realization {
         if attempt != state.attempt {
             return Err(
                 Refusal::new(
-                    umpire_wasm::protocol::RefusalCode::State,
+                    umpire_runtime::protocol::RefusalCode::State,
                     "callback attempt does not match the current attempt",
                 ),
             );
@@ -677,14 +677,14 @@ impl Realization {
         },
     ];
 }
-impl ::umpire_wasm::Realize<activity::World> for Realization {
+impl ::umpire_runtime::Realize<activity::World> for Realization {
     fn observe(
         &self,
-        observation: &::umpire_wasm::google::protobuf::Any,
+        observation: &::umpire_runtime::google::protobuf::Any,
         state: &activity::Model,
     ) -> Result<
-        ::umpire_wasm::Projection<<activity::World as ::umpire_dsl::Machine>::Action>,
-        ::umpire_wasm::protocol::Refusal,
+        ::umpire_runtime::Projection<<activity::World as ::umpire_dsl::Machine>::Action>,
+        ::umpire_runtime::protocol::Refusal,
     > {
         let _ = state;
         let __observed = ::umpire_temporal::support::Observed::new(observation)?;
@@ -699,7 +699,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
             } else {
                 let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse = __observed
                     .response()
-                    .map_err(|error| ::umpire_wasm::protocol::Refusal::malformed(
+                    .map_err(|error| ::umpire_runtime::protocol::Refusal::malformed(
                         error.message,
                     ))?;
                 Ok(__response)
@@ -714,27 +714,27 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
             return Self::describe(__response, state);
         }
         Err(
-            ::umpire_wasm::protocol::Refusal::unsupported(
+            ::umpire_runtime::protocol::Refusal::unsupported(
                 "unsupported observation method",
             ),
         )
     }
     fn answer(
         &self,
-        value: &::umpire_wasm::google::protobuf::Any,
+        value: &::umpire_runtime::google::protobuf::Any,
         state: &activity::Model,
     ) -> Result<
-        ::umpire_wasm::AnswerPlan<<activity::World as ::umpire_dsl::Machine>::Action>,
-        ::umpire_wasm::protocol::Refusal,
+        ::umpire_runtime::AnswerPlan<<activity::World as ::umpire_dsl::Machine>::Action>,
+        ::umpire_runtime::protocol::Refusal,
     > {
         let _ = state;
-        let __callback: ::umpire_wasm::realization::Callback = value.unpack()?;
-        let __task_any = ::umpire_wasm::google::protobuf::Any::required(
+        let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
+        let __task_any = ::umpire_runtime::google::protobuf::Any::required(
             __callback.task,
         )?;
         if __task_any.type_url.is_empty() {
             return Err(
-                ::umpire_wasm::protocol::Refusal::malformed("Any type URL is missing"),
+                ::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"),
             );
         }
         if __task_any.type_url
@@ -770,7 +770,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
                     .unpack()?;
                 if ((__request).r#cause) != 0 {
                     return Err(
-                        ::umpire_wasm::protocol::Refusal::unsupported(
+                        ::umpire_runtime::protocol::Refusal::unsupported(
                             "unsupported realization field: temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.cause",
                         ),
                     );
@@ -779,7 +779,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
             }
             if !__recognized {
                 return Err(
-                    ::umpire_wasm::protocol::Refusal::unsupported(
+                    ::umpire_runtime::protocol::Refusal::unsupported(
                         "unsupported reply request",
                     ),
                 );
@@ -788,7 +788,7 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
                 .action
                 .into();
             let __delivery: Vec<
-                ::umpire_wasm::Transition<
+                ::umpire_runtime::Transition<
                     <activity::World as ::umpire_dsl::Machine>::Action,
                 >,
             > = __reply
@@ -801,17 +801,17 @@ impl ::umpire_wasm::Realize<activity::World> for Realization {
                 })
                 .collect();
             return Ok(
-                ::umpire_wasm::AnswerPlan::new(
+                ::umpire_runtime::AnswerPlan::new(
                     __delivery,
                     __action,
-                    ::umpire_wasm::google::protobuf::Any::pack(
-                        &::umpire_wasm::realization::Reply {
+                    ::umpire_runtime::google::protobuf::Any::pack(
+                        &::umpire_runtime::realization::Reply {
                             request: Some(__reply.request),
                         },
                     ),
                 ),
             );
         }
-        Err(::umpire_wasm::protocol::Refusal::unsupported("unsupported Any type URL"))
+        Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported Any type URL"))
     }
 }

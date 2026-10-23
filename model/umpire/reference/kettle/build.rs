@@ -13,8 +13,8 @@ fn main() -> io::Result<()> {
         .type_name_domain(["."], "type.googleapis.com")
         .compile_well_known_types()
         .btree_map(["."])
-        .extern_path(".google.protobuf", "::umpire_wasm::google::protobuf")
-        .extern_path(".umpire.annotations.v1", "::umpire_wasm::annotations")
+        .extern_path(".google.protobuf", "::umpire_runtime::google::protobuf")
+        .extern_path(".umpire.annotations.v1", "::umpire_runtime::annotations")
         .file_descriptor_set_path(&descriptor)
         .compile_protos(
             &["proto/kettle/v1/kettle.proto", "proto/kettle/v1/probe.proto"],

@@ -35,7 +35,8 @@ make model-fmt     # rustfmt the workspace
 make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60 s gate soft targets (R30)
 ```
 
-The gate also checks resolved core capability restrictions and their negative controls,
+The gate rejects retired crate names in active files, preserving archived source and historical
+evidence. It also checks resolved core capability restrictions and their negative controls,
 the generic source boundary, both protobuf modules' freshness, the wasm32-wasip1 core
 and guest builds, committed Temporal guest freshness, and CGO-disabled Go host parity for both modules.
 It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
@@ -372,7 +373,7 @@ comparison and capability boundaries.
 
 Author each feature's sidecar in `temporal/feature/<feature>/api.rs`, alongside its
 independent Model. Follow the [annotation guide](temporal/annotate/README.md) for
-derive mirrors, typed projections, constraints, roles and exhaustive bindings;
+derive mirrors, typed projections, constraints, roles and exhaustive mappings;
 [Annotation catalog](DESIGN.md#annotation-catalog) explains admission and the API bump workflow.
 Use the activity catalog as the concrete example. Request constraints need an expectation
 including intentional server acceptances. Keep ignored fields
@@ -417,10 +418,10 @@ phases, giving both laws terminal edges to check. The controls also enumerate ev
 terminal phase/action and prove that a hypothetical reopening, accepted closed step or
 wrong rejection refutes the corresponding law.
 
-The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
+The reusable `umpire-runtime` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
-binding proposes paths; the runtime validates those paths through actual Model steps.
-The activity binding uses Temporal-owned `#[realization]`, `#[observe]` and `#[answer]`
+realization proposes paths; the runtime validates those paths through actual Model steps.
+The activity realization uses Temporal-owned `#[realization]`, `#[observe]` and `#[answer]`
 attributes over typed handlers. Their declared field paths distinguish observed responses,
 incoming callbacks and produced partial SDK requests; omitted present fields refuse.
 See the [realization guide](temporal/realization/README.md) for explicit state projection,
@@ -428,7 +429,7 @@ See the [realization guide](temporal/realization/README.md) for explicit state p
 The registered Temporal fixture consumer checks `expected/realization.snap.txt` against
 the generated runtime metadata. It distinguishes observed, callback and produced contexts,
 lists every classified path and ignore reason, and derives unhandled Model-action RPCs from
-the admitted API bindings. [Declarative Realizations](DESIGN.md#declarative-realizations)
+the admitted API mappings. [Declarative Realizations](DESIGN.md#declarative-realizations)
 records the report contract and complete-file source counts. After committing a coverage
 checkpoint, run its real added-catalog-field control from `model/` with
 `mise exec -- cargo test -p umpire-temporal-tests --test fixtures added_catalog_field_fails_the_real_coverage_golden -- --ignored`.
@@ -436,10 +437,10 @@ It rebuilds in a disposable worktree and preserves the existing coverage baselin
 For public states without declared constants, `#[machine]` exports `World` and `Action`,
 and `world()` returns `World`. Non-public states retain the opaque interface with generated types following
 the state's visibility. The declared activity World uses `World::new(maximum_attempts)` and removes
-the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
+the realization's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
-Describe and cancel RPC method paths are binding constants. The policy parser and reply constructor
-keep the remaining binding specific to Temporal.
+Describe and cancel RPC method paths are realization constants. The policy parser and reply constructor
+keep the remaining realization specific to Temporal.
 
 The shared envelopes live under `umpire/proto`, in `umpire.realization.v1`: Observation carries a method,
 a response Any or error, and an optional actual-request Any at tag 4, Callback a task Any,
@@ -447,7 +448,7 @@ and Reply a request Any. Error retains the same code/message fields. The enclosi
 type URLs migrate to the shared package; protobuf payload encodings and tags remain fixed.
 The real upstream API descriptor
 closure is compiled natively and for WASM, with generated well-known types owned once
-by `umpire_wasm::google::protobuf`. The closure's file count is not a schema invariant.
+by `umpire_runtime::google::protobuf`. The closure's file count is not a schema invariant.
 No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker
 rebuilds can trigger generated-API compilation; a separate owner is a possible later
 build optimization, not a new dependency admitted here.
@@ -545,7 +546,7 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 shared fixture folder without `model.rs`, `tests.rs` or `expected/` fails the build naming it. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-tests` at `umpire/tests/` owns 12 shared fixtures in `fixtures/<name>/`, all
+`umpire-fixtures` at `umpire/fixtures/` owns 12 shared fixtures in `fixtures/<name>/`, all
 `#[machine]` Models or adapters of one. `sample_kettle` is the canonical authoring example;
 focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
@@ -665,7 +666,7 @@ explored graph and refuse `Refusal::Cut` when the state budget cuts it. Unbounde
 search only that finite graph; they do not enlarge its state budget.
 
 The real Kettle demonstration is runnable with
-`cd model && mise exec -- cargo test -p umpire-tests`:
+`cd model && mise exec -- cargo test -p umpire-fixtures`:
 
 ```rust,ignore
 let covered = cover(&Space::from([room()]), Cases((80 + 1) * 2),
@@ -705,7 +706,7 @@ To write a Model's tests, add `mod examples` and `mod explorations` to its `test
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
 fails the test with its message; `cargo test` and the gate run them, nothing registers them
 (`umpire-suite` is a dev-dependency of the crate that compiles the fixture). Kettle's
-`umpire/tests/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
+`umpire/fixtures/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
 `Kettle.test.scala` that the surface admits (the press/heat/depress table from the coldest and room
 starts, the 99-to-100 boundary and the `>=` failover guard refuting `fails_over_at_boiling` at 101,
 the 81 steps from switching on to the beep, every start from -40 to 40, `never_beeps` refuted by a
@@ -733,7 +734,7 @@ surface does not admit, and why:
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must
 contain `model.rs`, `expected/`, and at least one consumer-owned expected file; shared fixture
-roots (`umpire/tests/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
+roots (`umpire/fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
 control roots keep the hook in `model.rs`. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.

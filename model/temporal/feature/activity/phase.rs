@@ -1,8 +1,8 @@
+use umpire_runtime::protocol::Refusal;
 use umpire_temporal_api::temporal::api::{
     activity::v1::ActivityExecutionInfo,
     enums::v1::{ActivityExecutionStatus as Status, PendingActivityState as Run},
 };
-use umpire_wasm::protocol::Refusal;
 
 use super::activity::Phase;
 

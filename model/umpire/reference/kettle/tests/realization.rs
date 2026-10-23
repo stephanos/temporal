@@ -7,7 +7,7 @@ use umpire_reference_kettle::{
         RespondHeatingRequest, RespondHeatingResponse, State,
     },
 };
-use umpire_wasm::{
+use umpire_runtime::{
     google::protobuf::Any,
     protocol::{self, response::Outcome},
     realization::{Callback, Observation, observation::Result as ObservationResult},

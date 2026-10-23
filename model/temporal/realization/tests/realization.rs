@@ -1,14 +1,19 @@
 //! Native realization controls against the independently fixed activity Model.
 
-use umpire_wasm::realization::Callback;
-use umpire_wasm::realization::Error;
-use umpire_wasm::realization::Observation;
-use umpire_wasm::realization::observation::Result as ObservationResult;
+use umpire_runtime::realization::Callback;
+use umpire_runtime::realization::Error;
+use umpire_runtime::realization::Observation;
+use umpire_runtime::realization::observation::Result as ObservationResult;
 
 use std::collections::BTreeMap;
 
 use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
+use umpire_runtime::{
+    Dispatch, Guest, Projection, Realize,
+    google::protobuf::Any,
+    protocol::{self, response::Outcome},
+};
 use umpire_temporal::{Realization, activity, runtime};
 use umpire_temporal_api::temporal::api::{
     activity::v1::ActivityExecutionInfo,
@@ -17,11 +22,6 @@ use umpire_temporal_api::temporal::api::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
         PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
     },
-};
-use umpire_wasm::{
-    Dispatch, Guest, Projection, Realize,
-    google::protobuf::Any,
-    protocol::{self, response::Outcome},
 };
 
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
@@ -435,11 +435,11 @@ fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step
 
 #[test]
 fn complete_reply_drops_external_payload_references() {
+    use umpire_runtime::realization::Reply;
     use umpire_temporal_api::temporal::api::{
         common::v1::payload::ExternalPayloadDetails,
         workflowservice::v1::RespondActivityTaskCompletedRequest,
     };
-    use umpire_wasm::realization::Reply;
 
     let mut task: PollActivityTaskQueueResponse =
         umpire_temporal::support::callback(&callback(b"Complete"))

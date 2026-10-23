@@ -2,6 +2,12 @@
 
 use prost::Message;
 use std::{collections::BTreeMap, panic::AssertUnwindSafe};
+use umpire_runtime::{
+    Dispatch, Guest,
+    google::protobuf::Any,
+    protocol::{self, response::Outcome},
+    realization::{Callback, Observation, observation::Result as ResultValue},
+};
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::temporal::api::{
     common::v1::{Payload, Payloads},
@@ -10,12 +16,6 @@ use umpire_temporal_api::temporal::api::{
         PollActivityTaskQueueResponse, StartActivityExecutionRequest,
         StartActivityExecutionResponse,
     },
-};
-use umpire_wasm::{
-    Dispatch, Guest,
-    google::protobuf::Any,
-    protocol::{self, response::Outcome},
-    realization::{Callback, Observation, observation::Result as ResultValue},
 };
 
 mod common;
@@ -245,7 +245,7 @@ fn malformed_starts(
     value.result = None;
     malformed.push(value);
     let mut value = start(4);
-    value.result = Some(ResultValue::Error(umpire_wasm::realization::Error {
+    value.result = Some(ResultValue::Error(umpire_runtime::realization::Error {
         code: 3,
         message: "private-error".into(),
     }));
@@ -345,7 +345,7 @@ fn bound_rpc_and_callback_identities_are_required_before_projection() {
     }
     for field in 0..4 {
         let mut task: PollActivityTaskQueueResponse =
-            umpire_wasm::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
+            umpire_runtime::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
         match field {
             0 => task.workflow_namespace = "crossed".into(),
             1 => task.activity_id = "crossed".into(),
@@ -372,7 +372,7 @@ fn actual_retry_describe_advances_attempt_before_the_next_callback() {
     let mut guest = Guest::new(annotation_runtime());
     explained(judge(&mut guest, &start(2)));
     let mut task: PollActivityTaskQueueResponse =
-        umpire_wasm::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
+        umpire_runtime::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
     task.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0].data =
         b"RetryThenComplete".to_vec();
     assert!(matches!(
@@ -425,7 +425,7 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
         assert!(refusal.message.contains("maximum_attempts"));
         if attempts == Some(4) {
             let annotate = protocol::AnnotateRequest {
-                input: Some(Any::pack(&umpire_wasm::annotations::AnnotationRequest {
+                input: Some(Any::pack(&umpire_runtime::annotations::AnnotationRequest {
                     method: "PollActivityTaskQueue".into(),
                     response: true,
                     ..Default::default()
@@ -451,11 +451,11 @@ fn only_explicit_attempt_domain_is_admitted_while_timeouts_are_retained_exactly(
         .unwrap_or_else(|| panic!("request"))
         .unpack()
         .unwrap_or_else(|e| panic!("{e:?}"));
-    let duration = umpire_wasm::google::protobuf::Duration { seconds: 123, nanos: 456_789 };
+    let duration = umpire_runtime::google::protobuf::Duration { seconds: 123, nanos: 456_789 };
     request.schedule_to_start_timeout = Some(duration);
     request.schedule_to_close_timeout = Some(duration);
     request.heartbeat_timeout =
-        Some(umpire_wasm::google::protobuf::Duration { seconds: 1, nanos: 456_789 });
+        Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: 456_789 });
     captured.request = Some(Any::pack(&request));
     let mut guest = Guest::new(annotation_runtime());
     explained(judge(&mut guest, &captured));

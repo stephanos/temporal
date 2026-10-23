@@ -104,7 +104,7 @@ not an API-update admission check.
 The API build generates `WorkflowServiceMethod`, its name/type table and
 annotation dispatch from linked service descriptors. An ordinary exhaustive
 `classify(WorkflowServiceMethod) -> RpcRole` function binds each RPC to a Model
-action, observation or an OutOfScope reason. Reverse action bindings remain
+action, observation or an OutOfScope reason. Reverse action mappings remain
 exhaustive. A newly added field, enum value, oneof alternative, RPC or Model action
 therefore fails until classified; no wildcard silently admits it.
 The retained `annotate!` grammar supports reviewed enum inventories and compile

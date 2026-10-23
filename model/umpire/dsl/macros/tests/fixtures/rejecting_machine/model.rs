@@ -1,5 +1,5 @@
 pub(crate) fn run() -> umpire_testing::RunResult {
-    let file = syn::parse_file(include_str!("../../../../../tests/fixtures/rejecting_steps/model.rs"))?;
+    let file = syn::parse_file(include_str!("../../../../../fixtures/fixtures/rejecting_steps/model.rs"))?;
     let mut input = file.items.into_iter().find_map(|item| match item {
         syn::Item::Mod(input) if input.attrs.iter().any(|attr| attr.path().is_ident("machine")) => Some(input),
         _ => None,

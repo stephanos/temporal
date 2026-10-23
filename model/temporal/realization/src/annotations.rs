@@ -2,20 +2,22 @@ use crate::activity_api;
 
 #[path = "live.rs"]
 mod live;
-use umpire_temporal_api::umpire::temporal::v1::ProbeRequest;
-use umpire_wasm::{
+use umpire_runtime::{
     annotations::{AnnotationRequest, AnnotationResponse},
     google::protobuf::Any,
     protocol,
 };
+use umpire_temporal_api::umpire::temporal::v1::ProbeRequest;
 
 /// A Model runtime with independent, stateless transport annotation dispatch.
-pub type AnnotationRuntime =
-    umpire_wasm::AnnotationRuntime<live::LiveRuntime, fn(&Any) -> Result<Any, protocol::Refusal>>;
+pub type AnnotationRuntime = umpire_runtime::AnnotationRuntime<
+    live::LiveRuntime,
+    fn(&Any) -> Result<Any, protocol::Refusal>,
+>;
 
 /// Creates one independently owned run with typed transport annotation support.
 pub fn annotation_runtime() -> AnnotationRuntime {
-    umpire_wasm::AnnotationRuntime::new(live::LiveRuntime::new(), annotate)
+    umpire_runtime::AnnotationRuntime::new(live::LiveRuntime::new(), annotate)
 }
 
 fn annotate(input: &Any) -> Result<Any, protocol::Refusal> {

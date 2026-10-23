@@ -12,7 +12,7 @@ use umpire_annotations::{
     Expectation, GapReport, MutationApplicability, ProbeResult, Violation, WireCase,
     mutation_entries, wire_cases,
 };
-use umpire_wasm::annotations::{ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse};
+use umpire_runtime::annotations::{ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -223,7 +223,7 @@ fn baseline_bytes(method: Method) -> Vec<u8> {
                 source: Some(k::fill_request::fill_options::Source::Tap("tap".into())),
                 labels: [("origin".into(), "local".into())].into_iter().collect(),
                 tags: vec!["clean".into()],
-                timeout: Some(umpire_wasm::google::protobuf::Duration { seconds: 1, nanos: 0 }),
+                timeout: Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: 0 }),
                 ..Default::default()
             }),
         }

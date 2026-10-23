@@ -1,12 +1,12 @@
 //! Shared Temporal envelope, payload and RPC helpers.
 
 use umpire_dsl::Rejection;
+use umpire_runtime::protocol::Refusal;
+pub use umpire_runtime::{Observed, callback, reply};
 use umpire_temporal_api::temporal::api::{
     common::v1::Payload,
     failure::v1::{ApplicationFailureInfo, Failure, failure::FailureInfo},
 };
-use umpire_wasm::protocol::Refusal;
-pub use umpire_wasm::{Observed, callback, reply};
 
 /// Translate the supported gRPC statuses into Model rejections.
 pub fn rejection(code: i32) -> Option<Rejection> {

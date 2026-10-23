@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prost::Message;
-use umpire_wasm::google::protobuf::{DescriptorProto, FileDescriptorSet};
+use umpire_runtime::google::protobuf::{DescriptorProto, FileDescriptorSet};
 
 /// Descriptor obligations projected from the executable annotation declarations.
 #[derive(Clone, Debug, Default)]
@@ -179,7 +179,7 @@ fn collect_messages<'a>(
     parent: &str,
     descriptors: &'a [DescriptorProto],
     messages: &mut BTreeMap<String, &'a DescriptorProto>,
-    enums: &mut BTreeMap<String, &'a umpire_wasm::google::protobuf::EnumDescriptorProto>,
+    enums: &mut BTreeMap<String, &'a umpire_runtime::google::protobuf::EnumDescriptorProto>,
 ) {
     for message in descriptors {
         let name = qualified(parent, message.name.as_deref());

@@ -12,7 +12,7 @@ prost.workspace = true
 prost-build.workspace = true
 quote.workspace = true
 umpire-catalog-syntax.workspace = true
-umpire-wasm.workspace = true
+umpire-runtime.workspace = true
 
 [lints]
 workspace = true

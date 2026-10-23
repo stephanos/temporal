@@ -1,8 +1,8 @@
 //! Stateless typed witnesses and value-free classification for activity RPCs.
 
-use umpire_wasm::annotations::ProbeCase;
-use umpire_wasm::annotations::ProbeResponse;
-use umpire_wasm::probe_recipe as recipe;
+use umpire_runtime::annotations::ProbeCase;
+use umpire_runtime::annotations::ProbeResponse;
+use umpire_runtime::probe_recipe as recipe;
 
 use crate::foundation::dc::Limits;
 
@@ -15,6 +15,7 @@ use umpire_annotations::{
     Catalog, Expectation, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation,
     validate,
 };
+use umpire_runtime::google::protobuf::Duration;
 use umpire_temporal_api::{
     temporal::api::{
         common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
@@ -32,7 +33,6 @@ use umpire_temporal_api::{
     },
     umpire::temporal::v1::{ProbeRequest, probe_request::Operation},
 };
-use umpire_wasm::google::protobuf::Duration;
 
 mod dispositions;
 mod generic;
