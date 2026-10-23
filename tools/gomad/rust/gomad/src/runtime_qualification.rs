@@ -59,6 +59,12 @@ pub fn produce(
     std::fs::create_dir(output).map_err(|error| error.to_string())?;
     let options = options(installation, source)?;
     let prepared = crate::campaign::prepare::prepare_runtime_qualification(&options)?;
+    let preparation = output.join("preparation");
+    std::fs::create_dir(&preparation).map_err(|error| error.to_string())?;
+    let mut plan = serde_json::json!({});
+    crate::campaign::retain_prepared(&preparation, &prepared, &mut plan)?;
+    std::fs::write(preparation.join("plan.json"), canonical::encode(&plan)?)
+        .map_err(|error| error.to_string())?;
     let mut artifacts = Vec::new();
     let mut baseline = None;
     for instance in 0..25 {

@@ -157,10 +157,10 @@ fn common_identity(recipe: &Recipe) -> Result<Vec<u8>, String> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
-    fn recipe(package: &str) -> Recipe {
+    pub(crate) fn recipe(package: &str) -> Recipe {
         let mut ignored = false;
         let options = crate::cli::explore::parse(
             &[

@@ -200,6 +200,11 @@ def option(argv, name):
 
 
 def from_command(config, command_pid, argv, stdout):
+    if len(argv) == 6 and argv[1] == 'produce':
+        require(any(entry.get('harness') == argv[0] for entry in config['stages'].values())
+                and config['files'].get(argv[0]) == snapshot(argv[0], MODULE_LIMIT)['sha256'],
+                'private runtime capture is not the frozen release harness')
+        return capture(config, command_pid, [Path(argv[5]) / 'preparation'])
     require(argv[0] == config['binary'], 'private capture is not the admitted native executable')
     index = 3 if len(argv) > 1 and argv[1] == '--installation' else 1
     require(index < len(argv) and argv[index] in ('plan', 'qualify', 'explore'), 'unsupported private native selector')

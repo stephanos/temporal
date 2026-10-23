@@ -209,6 +209,48 @@ fixtures invoke no compiler or cache operations. Both review findings are now
 covered by66 driver and17 workload/control passing portable tests. Retained
 RED/GREEN logs: `fn232-cache-alias-{producer,reader}-{red,green}.log`.
 
+### Runtime preparation binding follow-up
+
+The receiving runtime loop now independently reopens every raw artifact and its
+`target/provenance.json` before authenticating its campaign journal. It checks the
+frozen installation's release/helper/compiler admission and original model and
+namespace bounds, then recomputes the native preparation configuration for the
+original runtime probe, literal argument, target environment, choice/diagnostic
+profiles, sixty-second execution limit and original output/evidence limits.
+Raw Go version, collector setting, source/compiler inventories, module metadata,
+choice implementation/build key, role/platform identity and each seed are bound
+to the record. All source inventory entries must be present in frozen config
+pins, and compiler entries must match the admitted inventory; absent pins refuse.
+
+Three portable test functions exercise a valid bounded fixture, self-consistently
+resealed foreign inputs/configuration, and raw record/module/seed tampering.
+Focused RED: `.flow/tmp/fn232-runtime-binding-red.log`, exit 1; focused GREEN:
+`.flow/tmp/fn232-runtime-binding-green.log`, exit 0. The committed scope's 69
+portable driver tests pass (`fn232-runtime-binding-checkpoint-green.log`, exit 0).
+The separate uncommitted support-list unit is excluded from that count. Source
+map spans were refreshed without changing its 72 UNEXECUTED roots or 41 gaps.
+No actual runtime/guest/Go/qualification run occurred. Actual final runtime proof
+and complete frozen transitive source/compiler pins remain required.
+
+### Review: native compiler controls
+
+Review of runtime checkpoint 1574 found two remaining inventory-membership and
+compiler-environment gaps. The environment repair now binds all sixteen native
+forced compiler controls, including offline module controls and the required
+empty GOFLAGS, GOCACHEPROG, GOWASM and GODEBUG values. A production-shaped bounded
+fixture self-consistently reseals every missing or changed control. RED log
+`fn232-runtime-env-red.log` has exit 1 and 18 failing subcases; GREEN log
+`fn232-runtime-env-green.log` has exit 0. All 70 committed-scope portable driver
+tests pass (`fn232-runtime-env-suite.log`, exit 0).
+
+The exact full source/compiler inventory membership finding remains OPEN.
+Admitted subsets are not completeness proof. Root authorized a separate native
+auxiliary observation retention repair for the already-executed compiler commands
+and independent complete projection, without changing public CLI/Result/provenance
+or canonical execution identities. That repair is not implemented or tested by
+this checkpoint. Snapshot optimization remains a separate saved patch and is
+not included. Actual runtime/qualification remain UNRUN.
+
 ### Exact inspection workload-intent observation
 
 The existing producer command witness now always observes the eighth field
@@ -225,3 +267,44 @@ driver and 17 workload tests pass (`fn232-inspection-intent-suite.log` and
 `fn232-inspection-intent-workloads.log`, both exit 0). Separate support and native
 auxiliary/cache drafts are excluded. All actual guest/runtime/qualification
 lanes remain UNRUN, and the full inventory-membership review finding stays OPEN.
+
+### Complete preparation inventories and native compiler cache (source only)
+
+The runtime reader independently reconstructs complete compiler membership (SDK
+VERSION, compiler/assembler/linker, every include header, fixed native compiler
+sources, and admitted overlay replacements) and transitive selected package
+sources from retained raw compiler environment, overlay, pre/post Go-list and
+assembly include observations. The original eight omitted-member attacks were
+causally RED against the pinned def18 reader (exit 1) and GREEN against this
+reader. Forced compiler controls remain exact; observations contain only the
+explicit controlled environment and approved compiler path context.
+
+Native source adds an isolated compilation-v1 output cache beneath the required
+installed cache root, distinct from the optional Wasmtime compiled-module cache.
+Its key excludes execution-only changes and includes complete compilation inputs;
+hits reuse raw module/compilation observations and freshly admit execution
+provenance. Typed receipts, raw hashes, checked sizes, private staging, receipt-last
+publication, corruption refusal, eight publication fault stages and cancellation
+are covered by newly authored native tests. These native changes and tests are
+UNCOMPILED/UNEXECUTED; no native or original cache behavior is credited yet.
+
+Volatile observations remain outside canonical Store payloads, Record, Result,
+plan and provenance identities. Each campaign has a private authenticated
+preparation-observations sidecar, whose complete explicit file table is sealed by
+the external producer witness. The receiving reader binds its actual owner PID,
+current candidate, prepared record/module/provenance/build key, and exact campaign
+set. Every successful final endpoint flushes pending full preparation proofs;
+historical artifacts without the new auxiliary proof retain replay compatibility
+but cannot qualify. Native tests include two Store publications of the same
+canonical record with different observation IDs and separate sidecars; not run.
+
+Portable evidence: `.flow/tmp/fn232-complete-inventory-causal-red.log` retains the
+actual old-reader eight-omission failure; `fn232-preparation-complete-green.log`
+retains seven dedicated preparation tests. The final owned suite and workload
+suite logs use `fn232-complete-preparation-owned-suite.log` and
+`fn232-complete-preparation-workload-green.log`. One incorrect discovery directory
+failed with ImportError and is retained separately in
+`fn232-complete-preparation-workload-suite.log`; corrected discovery passed 17.
+The unrelated support producer/tests remain a separate uncommitted work unit.
+The original 72-root map still has 41 gaps, all evidence remains UNEXECUTED, and
+actual runtime/mandatory/SQLite/Temporal qualification remains open.

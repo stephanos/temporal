@@ -220,7 +220,7 @@ fn prepared_publication(prepared: &prepare::Prepared) -> Result<Publication, Str
     Ok(publication)
 }
 
-fn retain_prepared(
+pub(crate) fn retain_prepared(
     path: &Path,
     prepared: &prepare::Prepared,
     plan: &mut Value,
@@ -237,6 +237,7 @@ fn retain_prepared(
                 .ok_or("prepared payload capacity overflow")
         })?;
     let published = store(path.join("prepared"), maximum).publish(publication)?;
+    prepare::retain_observations(path, prepared, &published.record_sha256)?;
     plan["prepared_artifact"] = published
         .path
         .strip_prefix(path)
@@ -257,7 +258,10 @@ fn restore(journal: &Journal) -> Result<prepare::Prepared, String> {
             .as_str()
             .ok_or("missing campaign prepared artifact")?,
     )?;
-    restore_from_plan(plan, &opened)
+    let mut prepared = restore_from_plan(plan, &opened)?;
+    prepared.auxiliary =
+        prepare::open_observations(journal.path(), &prepared, &opened.manifest().record_sha256)?;
+    Ok(prepared)
 }
 
 fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared, String> {
@@ -297,6 +301,7 @@ fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared,
     let choice_identity = serde_json::from_value(plan["choice_identity"].clone())
         .map_err(|error| error.to_string())?;
     Ok(prepare::Prepared {
+        auxiliary: Default::default(),
         module,
         configuration,
         toolchain: inputs.toolchain_sha256,

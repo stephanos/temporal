@@ -66,6 +66,7 @@ fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>
     }))
     .unwrap();
     let mut prepared = Prepared {
+        auxiliary: Default::default(),
         module,
         configuration,
         toolchain,

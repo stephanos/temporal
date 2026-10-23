@@ -19,13 +19,23 @@ pub(crate) struct Recipe {
     pub sources: BTreeMap<PathBuf, String>,
     pub configuration: Configuration,
     pub inputs: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub observations: Option<observations::Observations>,
+}
+
+pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Recipe, String> {
+    prepare_with_compiler_controls(options, &CompilerControls::default(), deadline)
 }
 
 #[expect(
     clippy::too_many_lines,
     reason = "Recipe generation inventories the compiler, overlay and sources in the existing ordered admission"
 )]
-pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Recipe, String> {
+pub(crate) fn prepare_with_compiler_controls(
+    options: &ExploreOptions,
+    controls: &CompilerControls,
+    deadline: Instant,
+) -> Result<Recipe, String> {
     process::check_deadline(deadline)?;
     let installed = installation(options)?;
     if options.soft_assertion_report_only && options.target_kind != "go-test" {
@@ -49,8 +59,10 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
     }
     let directory = fs::canonicalize(&options.working_dir).map_err(failure)?;
     let temporary = process::Temporary::new(&installed.cache_root)?;
+    let mut observations = observations::Observations::default();
     let mut environment = process::environment()?;
-    let version = process::command(
+    controls.apply(&mut environment)?;
+    let version = process::observed_command(
         &installed.compiler_path,
         &["version".into()],
         &directory,
@@ -59,21 +71,33 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
         64 << 10,
         deadline,
     )?;
+    let version = observations.record("compiler-version", version, &installed.cache_root)?;
     if !String::from_utf8_lossy(&version).contains(&format!("{} ", installed.go_version)) {
         return Err(failure("compiler version does not match installation"));
     }
-    let (mut compiler, root) = inventory::compiler(
+    let inventory = inventory::observed_compiler(
         &installed.compiler_path,
         &directory,
         &environment,
         &temporary.0,
         deadline,
     )?;
+    observations.record(
+        "compiler-environment",
+        inventory.command,
+        &installed.cache_root,
+    )?;
+    observations.snapshot(
+        "compiler-base-paths",
+        &canonical::encode(&inventory.inputs.keys().collect::<Vec<_>>())?,
+        &installed.cache_root,
+    )?;
+    let (mut compiler, root) = (inventory.inputs, inventory.root);
     let mut replacements = BTreeMap::new();
     let mut runtime = None;
     let mut overlay = None;
     if cooperative {
-        let cache = process::command(
+        let cache = process::observed_command(
             &installed.compiler_path,
             &["env".into(), "GOMODCACHE".into()],
             &directory,
@@ -82,6 +106,7 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
             64 << 10,
             deadline,
         )?;
+        let cache = observations.record("compiler-module-cache", cache, &installed.cache_root)?;
         let cache = PathBuf::from(String::from_utf8_lossy(&cache).trim());
         if root.starts_with(fs::canonicalize(&cache).unwrap_or(cache)) {
             return Err(failure("cooperative compiler must be outside module cache"));
@@ -101,15 +126,17 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
         if !module_root.is_absolute() {
             return Err(failure("absolute overlay module owner is required"));
         }
-        let generated = crate::install::toolchain::overlay(
+        let (generated, command) = crate::install::toolchain::observed_overlay(
             &installed,
             &root,
             &environment,
             &temporary.0,
             deadline,
         )?;
-        let value: Value =
-            serde_json::from_slice(&read(&generated.path, 16 << 20)?).map_err(failure)?;
+        observations.record("runtime-overlay", command, &installed.cache_root)?;
+        let overlay_raw = read(&generated.path, 16 << 20)?;
+        observations.snapshot("overlay-replacements", &overlay_raw, &installed.cache_root)?;
+        let value: Value = serde_json::from_slice(&overlay_raw).map_err(failure)?;
         replacements = serde_json::from_value(
             value
                 .get("Replace")
@@ -158,6 +185,9 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
     tags.sort();
     tags.dedup();
     let mut flags = vec!["-mod=readonly".into(), "-pgo=off".into()];
+    if controls.parallelism == Some(1) {
+        flags.push("-p=1".into());
+    }
     if let Some(path) = &overlay {
         flags.extend(["-overlay".into(), path.to_string_lossy().into_owned()]);
     }
@@ -174,7 +204,7 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
     let mut package_arguments = vec!["list".into()];
     package_arguments.extend(flags.iter().cloned());
     package_arguments.push(options.source.clone());
-    let package = process::command(
+    let package = process::observed_command(
         &installed.compiler_path,
         &package_arguments,
         &directory,
@@ -183,6 +213,7 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
         1 << 20,
         deadline,
     )?;
+    let package = observations.record("selected-package", package, &installed.cache_root)?;
     let import_path = String::from_utf8(package)
         .map_err(failure)?
         .trim()
@@ -190,19 +221,17 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
     if import_path.is_empty() || import_path.contains(char::is_whitespace) {
         return Err(failure("driver recipe requires one concrete package"));
     }
-    let sources = inventory::sources(
-        &process::command(
-            &installed.compiler_path,
-            &list,
-            &directory,
-            &environment,
-            &temporary.0,
-            128 << 20,
-            deadline,
-        )?,
-        &root.join("pkg/include"),
-        &replacements,
+    let listed = process::observed_command(
+        &installed.compiler_path,
+        &list,
+        &directory,
+        &environment,
+        &temporary.0,
+        128 << 20,
+        deadline,
     )?;
+    let listed = observations.record("selected-source-closure", listed, &installed.cache_root)?;
+    let sources = inventory::sources(&listed, &root.join("pkg/include"), &replacements)?;
     let configuration = configuration(options, &installed)?;
     let build_environment = environment
         .iter()
@@ -228,11 +257,17 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
             )
         })
         .collect::<BTreeMap<_, _>>();
-    let inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
+    let mut inputs = json!({"schema":"gomad.rust-wasm-build-inputs/v1", "compiler":compiler,"compiler_path":installed.compiler_path,"compiler_sha256":installed.compiler_sha256,
         "go_version":installed.go_version,"sources":sources,"runtime":runtime,"runtime_implementation":installed.runtime_implementation_sha256,
         "helper":linked::IMPLEMENTATION_SHA256,"host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),"kind":options.target_kind,"source":options.source,
         "directory":directory,"arguments":options.target_args,"tags":tags,"configuration":configuration,"scenario":scenario,"network":installed.network,
         "build_flags":["-mod=readonly","-trimpath","-buildvcs=false","-pgo=off"],"environment":build_environment,"soft_assertion_report_only":options.soft_assertion_report_only});
+    if controls.parallelism == Some(1) {
+        inputs["build_flags"]
+            .as_array_mut()
+            .ok_or("compiler build flags missing")?
+            .push(json!("-p=1"));
+    }
     Ok(Recipe {
         schema: "gomad.driver-recipe/v1".into(),
         import_path,
@@ -248,10 +283,36 @@ pub(crate) fn prepare(options: &ExploreOptions, deadline: Instant) -> Result<Rec
         sources,
         configuration,
         inputs,
+        observations: Some(observations),
     })
 }
 
 impl Recipe {
+    pub(crate) fn compilation_inputs(&self) -> Value {
+        let fields = [
+            "compiler",
+            "compiler_path",
+            "compiler_sha256",
+            "go_version",
+            "sources",
+            "runtime",
+            "runtime_implementation",
+            "kind",
+            "source",
+            "directory",
+            "tags",
+            "build_flags",
+            "environment",
+        ];
+        let mut values = serde_json::Map::new();
+        values.insert("schema".into(), json!("gomad.native-compilation-inputs/v1"));
+        values.insert("profile".into(), json!(self.installed.profile));
+        for field in fields {
+            values.insert(field.into(), self.inputs[field].clone());
+        }
+        Value::Object(values)
+    }
+
     #[expect(
         clippy::too_many_lines,
         reason = "Actual-module admission keeps post-build inventory and provenance commitments together"
@@ -274,6 +335,7 @@ impl Recipe {
             sources,
             mut configuration,
             mut inputs,
+            observations,
             ..
         } = self;
         options.target_args = arguments;
@@ -297,19 +359,18 @@ impl Recipe {
         let module_metadata = linked::module_metadata(&module).map_err(failure)?;
         inputs["module_metadata"] = serde_json::to_value(&module_metadata).map_err(failure)?;
         let toolchain = canonical::digest(&canonical::encode(&inputs)?);
-        let after = inventory::sources(
-            &process::command(
-                &installed.compiler_path,
-                &list,
-                &directory,
-                &environment,
-                &temporary.0,
-                128 << 20,
-                deadline,
-            )?,
-            &root.join("pkg/include"),
-            &replacements,
+        let mut admission = super::observations::Observations::default();
+        let listed = process::observed_command(
+            &installed.compiler_path,
+            &list,
+            &directory,
+            &environment,
+            &temporary.0,
+            128 << 20,
+            deadline,
         )?;
+        let listed = admission.record("selected-source-closure", listed, &installed.cache_root)?;
+        let after = inventory::sources(&listed, &root.join("pkg/include"), &replacements)?;
         if sources != after {
             return Err(failure(
                 "selected source inventory changed during compilation",
@@ -318,13 +379,24 @@ impl Recipe {
         inventory::verify(&compiler)?;
         inventory::verify(&sources)?;
         crate::install::manifest::executable(&installed.compiler_path, &installed.compiler_sha256)?;
-        let (after_compiler, after_root) = inventory::compiler(
+        let after_inventory = inventory::observed_compiler(
             &installed.compiler_path,
             &directory,
             &environment,
             &temporary.0,
             deadline,
         )?;
+        admission.record(
+            "compiler-environment",
+            after_inventory.command,
+            &installed.cache_root,
+        )?;
+        admission.snapshot(
+            "compiler-base-paths",
+            &canonical::encode(&after_inventory.inputs.keys().collect::<Vec<_>>())?,
+            &installed.cache_root,
+        )?;
+        let (after_compiler, after_root) = (after_inventory.inputs, after_inventory.root);
         if after_root != root
             || after_compiler
                 .iter()
@@ -360,7 +432,12 @@ impl Recipe {
             network: installed.network,
         })?;
         let decoded: Provenance = serde_json::from_slice(&provenance).map_err(failure)?;
+        let mut auxiliary = admission.payloads("admission")?;
+        if let Some(observations) = observations {
+            auxiliary.extend(observations.payloads("compile")?);
+        }
         Ok(Prepared {
+            auxiliary,
             module,
             configuration: decoded.configuration,
             toolchain,

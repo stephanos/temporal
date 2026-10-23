@@ -187,7 +187,7 @@ def runtime(config, root, label, entry, api):
         '--config', str(policy), '--output', runtime_installation], timeout=remaining())
     api['command'](config, root, 'producer', [executable, 'produce', runtime_installation,
         str(api['REPO'] / 'tools/gomad/internal/backends/wasm/testdata/runtime_probes'), str(index),
-        str(root / 'recordings')], timeout=remaining())
+        str(root / 'recordings')], timeout=remaining(), private_observations=config)
     paths = read(root / 'recordings/artifacts.json')
     require(len(paths) == len(set(paths)) == 25, 'runtime requires 25 distinct fresh retained stores')
     baseline = None
