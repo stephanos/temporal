@@ -470,3 +470,22 @@ experiment and all frozen-cycle qualification remain outstanding. Native scratch
 is below the12GiB admission floor; source preparation uses checkout storage and
 an owner-controlled verified cache offload is underway. Full milestone work stays
 active, including broad original receiving and remaining legacy contracts.
+
+## Native scratch restored and remaining references revalidated
+
+The exact current evidence resolver still fails with15 unresolved legacy
+references. A preceding zero-selected filter earns no credit. Both numeric exits
+and raw logs remain in the companion JSON.
+
+The measurement owner copied its released idle target to checkout storage and
+verified all6749 entries; an independent auditor compared every mode, file hash,
+size and symlink literal. The old path remains a historical read alias, retired
+for builds. This recovered17.14GiB of allocation and restored native scratch to
+27.12GiB free, above the12GiB floor. Active targets and open evidence remain intact.
+The fresh genuine release build is running on checkout storage. Its runtime
+experiment still needs an exact original-recipe preparation binding repair and
+actual execution; no runtime or final qualification pass is claimed.
+
+The interception audit identified a missing fresh auto-derived Frontend execution
+route beyond existing compile-only auto cases. That receiving automation and the
+broad native preservation batch continue without changing frozen96 labels.
