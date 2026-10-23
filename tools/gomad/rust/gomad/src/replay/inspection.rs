@@ -444,6 +444,7 @@ fn evaluate(
     control: helper::Request,
     request: &InspectionRequest,
     timeout: Option<Duration>,
+    compile_cache: Option<&str>,
 ) -> Result<helper::Diagnostics, cli::Error> {
     let target = control.target.clone();
     let expected = control.expected.clone();
@@ -454,9 +455,12 @@ fn evaluate(
         .ok_or_else(|| preflight_error("unknown inspection target"))?
         .registry
         .clone();
-    let prepared =
+    let mut prepared =
         preflight::prepare_with_inspection(opened.try_clone().map_err(preflight_error)?, control)
             .map_err(preflight_error)?;
+    prepared
+        .compile_cache(compile_cache)
+        .map_err(preflight_error)?;
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started()?;
     let observed = preflight::execute_inspection(prepared, &target, request.conditions, timeout)
@@ -562,8 +566,9 @@ pub fn run(
     let mut report = json!({"status":"", "artifact_id":prepared.opened.manifest().record_sha256,"requested":request,
         "resolved":{"instance":control.target.node,"incarnation":control.target.incarnation,"choice":at.decision,"trace":at.trace,"order":at.order,"time_nanos":at.time_nanos},
         "prefix_verified":false,"witness_match":false,"prefix_cuts":null,"output_path":"","truncated":false});
+    let cache = prepared.compile_cache_directory();
     if let Some(search) = &request.search {
-        let result = search_run(&prepared.opened, &evidence, request, search)?;
+        let result = search_run(&prepared.opened, &evidence, request, search, cache)?;
         let status = i32::from(result["status"] != "no_failure");
         report["status"] = "invariant_search".into();
         report["search"] = result;
@@ -574,7 +579,7 @@ pub fn run(
     let cuts: Vec<_> = at.cuts.iter().map(|cut| json!({"instance":cut.handle.node,"incarnation":cut.handle.incarnation,
         "choice_records":cut.choice_records,"choice_bytes":cut.choice_bytes,"wasi_bytes":cut.wasi_bytes,
         "network_bytes":cut.network_bytes,"storage_bytes":cut.storage_bytes,"stdout_bytes":cut.stdout_bytes,"stderr_bytes":cut.stderr_bytes})).collect();
-    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None)?;
+    let diagnostics = evaluate(&prepared.opened, &evidence, control, request, None, cache)?;
     let (debug, heap, truncated) = diagnostics
         .bound(request.maximum_bytes)
         .map_err(execution_error)?;
@@ -655,6 +660,7 @@ fn search_run(
     evidence: &helper::Evidence,
     request: &InspectionRequest,
     search: &Search,
+    compile_cache: Option<&str>,
 ) -> Result<Value, cli::Error> {
     let started = Instant::now();
     let first = resolve(evidence, request, Some(search.first))?;
@@ -704,6 +710,7 @@ fn search_run(
                 control,
                 request,
                 Some(wall.saturating_sub(elapsed)),
+                compile_cache,
             )
         });
         let (outcome, detail, verified) = match evaluation {

@@ -93,16 +93,18 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        self.execute.compile_cache.as_deref()
+    }
+
     /// # Errors
     /// Refuses an invalid host compile-cache selection.
-    pub fn compile_cache(&mut self, directory: Option<String>) -> wasmtime::Result<()> {
-        if directory
-            .as_ref()
-            .is_some_and(|directory| !std::path::Path::new(directory).is_absolute())
-        {
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> wasmtime::Result<()> {
+        if directory.is_some_and(|directory| !std::path::Path::new(directory).is_absolute()) {
             return Err(Error::msg("invalid compile cache directory"));
         }
-        self.execute.compile_cache = directory;
+        self.execute.compile_cache = directory.map(str::to_owned);
         Ok(())
     }
 

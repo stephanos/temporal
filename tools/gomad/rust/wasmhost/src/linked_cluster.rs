@@ -151,11 +151,19 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        self.incarnations
+            .values()
+            .next()
+            .and_then(|sealed| sealed.execution.compile_cache_directory())
+    }
+
     /// # Errors
     /// Refuses an invalid host compile-cache selection.
-    pub fn compile_cache(&mut self, directory: Option<String>) -> Result<()> {
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> Result<()> {
         for sealed in self.incarnations.values_mut() {
-            sealed.execution.compile_cache(directory.clone())?;
+            sealed.execution.compile_cache(directory)?;
         }
         Ok(())
     }

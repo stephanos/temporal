@@ -66,7 +66,7 @@ fn prepared() -> linked::Prepared {
 fn execute(root: &Path) -> linked::Execution {
     let mut prepared = prepared();
     prepared
-        .compile_cache(Some(root.to_str().unwrap().into()))
+        .compile_cache(Some(root.to_str().unwrap()))
         .unwrap();
     linked::execute_prepared(prepared).unwrap()
 }
@@ -126,7 +126,7 @@ fn linked_cache_defaults_disabled_and_rejects_relative_configuration() {
     assert!(!metrics.cache_hit);
     assert_eq!(metrics.cache_load_nanos, 0);
     assert_eq!(metrics.cache_write_nanos, 0);
-    assert!(prepared().compile_cache(Some("relative".into())).is_err());
+    assert!(prepared().compile_cache(Some("relative")).is_err());
 }
 
 fn cluster_prepared() -> cluster::Prepared {
@@ -199,7 +199,7 @@ fn cluster_cache_uses_same_private_store_and_poison_is_host_failure() {
     for _ in 0..2 {
         let mut prepared = cluster_prepared();
         prepared
-            .compile_cache(Some(root.0.to_str().unwrap().into()))
+            .compile_cache(Some(root.0.to_str().unwrap()))
             .unwrap();
         let result = cluster::execute_prepared(prepared).unwrap();
         assert_eq!(result.outcome.termination, "exit");
@@ -211,7 +211,7 @@ fn cluster_cache_uses_same_private_store_and_poison_is_host_failure() {
     fs::write(&entry, poison).unwrap();
     let mut prepared = cluster_prepared();
     prepared
-        .compile_cache(Some(root.0.to_str().unwrap().into()))
+        .compile_cache(Some(root.0.to_str().unwrap()))
         .unwrap();
     let error = cluster::execute_prepared(prepared)
         .err()

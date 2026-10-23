@@ -21,16 +21,19 @@ impl Drop for Retained {
 }
 
 pub(crate) fn retained(cluster: bool) -> Retained {
+    retained_module(cluster, b"\0asm\x01\0\0\0".to_vec(), 1000)
+}
+
+fn retained_module(cluster: bool, module: Vec<u8>, wall_millis: u64) -> Retained {
     let root = std::env::temp_dir().join(format!(
         "gomad installed ' lifecycle-{}",
         crate::campaign::origin::identity().unwrap()
     ));
     std::fs::create_dir(&root).unwrap();
-    let module = b"\0asm\x01\0\0\0".to_vec();
     let limits = Limits {
         fuel: 1_000_000,
         memory_bytes: 64 << 20,
-        wall_millis: 1000,
+        wall_millis,
         output_bytes: 1 << 20,
         evidence_bytes: 16 << 20,
     };
@@ -279,4 +282,91 @@ fn installed_lifecycle_replay_selected_context_works_without_compiler_and_refuse
             .err()
             .unwrap();
     assert_eq!(error.status, 3);
+}
+
+#[test]
+fn installed_lifecycle_selected_cache_is_used_without_old_build_inputs() {
+    let fixture = retained_module(
+        false,
+        br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec(),
+        10_000,
+    );
+    let path = installation(&fixture, false);
+    let mut installed: crate::install::manifest::Installation =
+        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    let configured = crate::install::config::build(&installed.profile, None, None).unwrap();
+    let compiler_inputs = BTreeMap::from([(
+        installed.compiler_path.clone(),
+        installed.compiler_sha256.clone(),
+    )]);
+    let cache = fixture.root.join("engine-cache");
+    installed.admission = Some(crate::install::manifest::Admission {
+        inputs_sha256: canonical::digest(&canonical::encode(&compiler_inputs).unwrap()),
+        compiler_inputs,
+        configuration_sha256: canonical::digest(&canonical::encode(&configured.original).unwrap()),
+        guest_configuration: configured.original,
+        host_executable_sha256: canonical::digest(
+            &std::fs::read(std::env::current_exe().unwrap()).unwrap(),
+        ),
+        explicit_helper: None,
+        environment: configured.environment,
+        arguments: configured.arguments,
+        compile_cache_root: Some(cache.clone()),
+    });
+    installed.model = configured.model;
+    installed.namespace = configured.namespace;
+    installed.storage = configured.storage;
+    installed.network = configured.network;
+    std::fs::write(&path, canonical::encode(&installed).unwrap()).unwrap();
+    let arguments = vec![fixture.published.path.to_str().unwrap().to_owned()];
+    assert_eq!(
+        crate::cli::replay::run_with_installation(&arguments, &mut Vec::new(), Some(&path))
+            .unwrap_or_else(|error| panic!("{}", error.message)),
+        1
+    );
+    let entries: Vec<_> = std::fs::read_dir(&cache)
+        .expect("selected installation cache was ignored")
+        .map(|entry| entry.unwrap().path())
+        .filter(|entry| {
+            entry
+                .extension()
+                .is_some_and(|extension| extension == "gomad-cache-v3")
+        })
+        .collect();
+    assert_eq!(entries.len(), 1);
+    let entry = &entries[0];
+    let mut bytes = std::fs::read(entry).unwrap();
+    *bytes.last_mut().unwrap() ^= 1;
+    std::fs::write(entry, bytes).unwrap();
+    let error = crate::cli::replay::run_with_installation(&arguments, &mut Vec::new(), Some(&path))
+        .err()
+        .expect("poisoned installed cache was ignored");
+    assert_eq!(error.status, 3);
+    assert!(
+        error.message.contains("compile cache: corrupt entry"),
+        "{}",
+        error.message
+    );
+}
+
+#[test]
+fn installed_lifecycle_noncache_capacity_remains_a_replay_mismatch() {
+    let module = format!(
+        "(module (memory (export \"memory\") 1) {} (func (export \"_start\")))",
+        "(table 1 funcref)".repeat(9)
+    )
+    .into_bytes();
+    let fixture = retained_module(false, module, 1000);
+    let arguments = vec![fixture.published.path.to_str().unwrap().to_owned()];
+    let mut output = Vec::new();
+    assert_eq!(
+        crate::cli::replay::run(&arguments, &mut output)
+            .unwrap_or_else(|error| panic!("{}", error.message)),
+        1
+    );
+    assert!(
+        String::from_utf8(output)
+            .unwrap()
+            .contains("reproduced=false")
+    );
 }

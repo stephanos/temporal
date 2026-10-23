@@ -65,9 +65,17 @@ pub enum Execution {
 }
 
 impl Prepared {
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        match &self.execution {
+            Execution::Standalone(prepared) => prepared.compile_cache_directory(),
+            Execution::Cluster(prepared) => prepared.prepared.compile_cache_directory(),
+        }
+    }
+
     /// # Errors
     /// Refuses invalid host cache configuration before execution, without opening build inputs.
-    pub fn compile_cache(&mut self, directory: Option<String>) -> Result<(), String> {
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> Result<(), String> {
         match &mut self.execution {
             Execution::Standalone(prepared) => prepared.compile_cache(directory),
             Execution::Cluster(prepared) => prepared.prepared.compile_cache(directory),

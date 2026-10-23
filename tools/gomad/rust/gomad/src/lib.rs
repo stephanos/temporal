@@ -16,6 +16,8 @@ mod fixture_role;
 #[cfg(feature = "determinism-fixture")]
 mod fixture_storage;
 pub mod install;
+#[cfg(test)]
+pub(crate) mod installed_lifecycle_tests;
 #[cfg(feature = "determinism-fixture")]
 pub(crate) mod live_backend;
 #[cfg(feature = "determinism-fixture")]
@@ -29,5 +31,3 @@ pub(crate) mod qualify;
 pub mod replay;
 pub mod slots;
 pub(crate) mod stress;
-#[cfg(test)]
-pub(crate) mod installed_lifecycle_tests;

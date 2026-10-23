@@ -214,17 +214,7 @@ pub(crate) fn run_with_output(
     };
     #[cfg(feature = "determinism-fixture")]
     crate::fixture::execution_started().map_err(|error| error.message)?;
-    let mut admitted = linked::prepare(request)
-        .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
-    admitted
-        .compile_cache(prepared.compile_cache_root.clone())
-        .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
-    admitted.conditions(linked::Conditions::compiled());
-    if let Some(network) = &configuration.network {
-        admitted
-            .network(network.clone())
-            .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
-    }
+    let mut admitted = admit(prepared, request)?;
     admitted.cancellation(cancellation.clone());
     if let Some(output) = output {
         admitted.output(output);
@@ -235,6 +225,24 @@ pub(crate) fn run_with_output(
     let mut result = publication(prepared, job, observed)?;
     result.metrics = metrics;
     Ok(result)
+}
+
+fn admit(
+    prepared: &Prepared,
+    request: linked::Request,
+) -> std::result::Result<linked::Prepared, String> {
+    let mut admitted = linked::prepare(request)
+        .map_err(|error| format!("runner_failure: admit campaign target: {error}"))?;
+    admitted
+        .compile_cache(prepared.compile_cache_root.as_deref())
+        .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
+    admitted.conditions(linked::Conditions::compiled());
+    if let Some(network) = &configuration.network {
+        admitted
+            .network(network.clone())
+            .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
+    }
+    Ok(admitted)
 }
 
 /// Runs one admitted store inside the whole-process backstop and its

@@ -304,6 +304,15 @@ fn restore_from_plan(plan: &Value, opened: &Opened) -> Result<prepare::Prepared,
 }
 
 pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<i32, String> {
+    resume_with_cache(path, json, output, None)
+}
+
+pub(crate) fn resume_with_cache(
+    path: &Path,
+    json: bool,
+    output: &mut dyn Write,
+    compile_cache_root: Option<String>,
+) -> Result<i32, String> {
     let mut journal = Journal::open(path, true)?;
     if journal
         .events()
@@ -312,7 +321,8 @@ pub(crate) fn resume(path: &Path, json: bool, output: &mut dyn Write) -> Result<
     {
         return Err("campaign lifecycle published is not resumable".into());
     }
-    let prepared = restore(&journal)?;
+    let mut prepared = restore(&journal)?;
+    prepared.compile_cache_root = compile_cache_root;
     let duration = Duration::from_nanos(
         journal.plan()["overall_nanos"]
             .as_u64()

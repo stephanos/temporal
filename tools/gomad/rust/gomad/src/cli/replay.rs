@@ -35,7 +35,7 @@ pub fn run_with_installation(
     if arguments.stress_jitter && inspection.is_none() {
         return Err("--stress-jitter requires replay inspection with --stop".into());
     }
-    let prepared = preflight::open(arguments.path).map_err(|error| incompatible(&error))?;
+    let mut prepared = preflight::open(arguments.path).map_err(|error| incompatible(&error))?;
     if matches!(&prepared.execution, preflight::Execution::Cluster(_))
         && (arguments.verify || arguments.observed_directory.is_some())
     {
@@ -47,6 +47,13 @@ pub fn run_with_installation(
         let description = crate::install::manifest::resolve(Some(path))
             .map_err(|message| super::Error { status: 3, message })?;
         validate_installation(&description.manifest, &prepared.opened)
+            .map_err(|message| super::Error { status: 3, message })?;
+        prepared
+            .compile_cache(
+                crate::campaign::prepare::compile_cache_root(&description.manifest)
+                    .map_err(|message| super::Error { status: 3, message })?
+                    .as_deref(),
+            )
             .map_err(|message| super::Error { status: 3, message })?;
     }
     if let Some(mut request) = inspection {
@@ -206,6 +213,15 @@ pub(crate) fn run_prepared(
         },
         message: format!("execute replay target: {error}"),
     })?;
+    if observed.outcome.termination == "infrastructure"
+        || observed.outcome.termination == "capacity"
+            && observed.outcome.message == "compile cache artifact capacity"
+    {
+        return Err(super::Error {
+            status: 3,
+            message: format!("execute replay target: {}", observed.outcome.message),
+        });
+    }
     if let Some(directory) = observed_directory {
         std::fs::create_dir_all(directory).map_err(|error| write_error(&error))?;
         for name in ["stdout", "stderr"] {

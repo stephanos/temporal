@@ -1414,7 +1414,7 @@ pub(super) fn execute(
             .map_err(|error| error.to_string())?;
     }
     execution
-        .compile_cache(prepared.compile_cache_root.clone())
+        .compile_cache(prepared.compile_cache_root.as_deref())
         .map_err(|error| format!("runner_failure: admit compile cache: {error}"))?;
     execution.conditions(linked::Conditions::compiled());
     execution.cancellation(cancellation.clone());
