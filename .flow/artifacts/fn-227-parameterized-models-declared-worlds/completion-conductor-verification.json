@@ -1,0 +1,20 @@
+{
+  "spec_base": "3b841dc568b10934d87d491d3d0799ce23b90069",
+  "source": "tracked task-1-admission.md; .flow/tmp/fn-227-parent-base.json rationale",
+  "full_gate": {
+    "gate": "unittest",
+    "command": "UMPIRE_BACKENDS=require make model-time",
+    "outcome": "HONORED",
+    "receipt": "8e84f41c"
+  },
+  "classifier": {
+    "result": "FULL",
+    "reason": "unmatched MILESTONES.md",
+    "modified": false
+  },
+  "live_gaps": {
+    "gate_check": "RUN: no honorable receipt for HEAD",
+    "new_run": false,
+    "reason": "Exact 215 production hashes, guest bytes and full history unchanged since actual .5 live/gaps/privacy proof; independently verified task6-conductor-source-verification.json. Explicit artifact reuse, no synthetic gate receipt."
+  }
+}

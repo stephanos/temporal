@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-227-parameterized-models-declared-worlds",
   "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .5: DESIGN.md parameterized worlds write-up and readiness table closure",
   "updated_at": "2026-10-21T21:38:37.905385Z"
 }

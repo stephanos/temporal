@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-22.
+As of 2026-10-23.
 
 ## Keeping this page current
 
@@ -52,6 +52,10 @@ unchanged canonical Models and semantic goldens. Full gates passed; the warm gat
 364.531s against its 60s soft target and the inner loop took 6.066s against 10s.
 TLC checks its admitted source subset, including the Phased/reject activity Model
 with retries; unsupported source is explicitly refused.
+fn-227 is complete locally: all 13 tasks and the parent completion review passed. Declared
+Worlds, finite inputs, activity retries, retained-lifecycle refinement and actual SDK retry
+proof are delivered. Final required gate passed in 582.209s against its 60s soft target;
+inner loop 6.112s met 10s. Timeout and cooperative-cancellation work remains deferred in fn-237.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -70,84 +74,6 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 | After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved successor order remains fn-211, then fn-228, after their fn-227 prerequisites. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)
-
-Captured on 2026-10-20, after fn-218 and fn-217 and before fn-211. Closes the DSL gap DESIGN.md's
-readiness table leaves open: `#[derive(World)]` with `&World` access on handlers and claims, a
-`#[starts]` block for computed starts, `Finite` and action inputs with `#[domain]`, and lifting of
-worlds as `CONSTANT`s and inputs as finite choice. Delivered through the activity Model extended
-in place: `maximum_attempts` and `RespondFailed { retryable }`, then the four optional timeouts,
-`Heartbeat`, `Tick` and cooperative cancel with progress and bound claims; a one-attempt
-compatibility World proves lifecycle refinement against the retained six-phase graph.
-The realization reads the world from the observed start
-request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
-`reject!` so TLC checks the activity Model.
-The native World checkpoint is complete locally with SHIP review, all three final gates
-and unchanged original artifacts. Its final timing was 93.288s against the 30s soft target,
-with a 5.035s inner loop. The revised parent plan passed SHIP review.
-Source/TLC World binding (.7) is complete locally: one owned World and one start enumeration
-feed binding, native checking and same-World TLC replay across all five CFG families, with the
-new `parameterized_world` fixture and unchanged baseline goldens and guest. Its second review
-passed after World integers outside TLC's `.cfg` range became located refusals. Final timing
-was 52.327s against the 30s soft target, with a 7.362s inner loop.
-Native `Finite`, World-dependent `#[domain]` inputs and checked catalog admission (.2) are
-complete locally with SHIP review, required/timing gates and the refreshed guest's live slice
-and gap proof; timing 56.276s gate, 9.852s inner loop (just under its 10s target).
-On 2026-10-21 the owner paused fn-227 during .8's review. Execution has resumed under
-the active milestone-completion goal, after fn-233 and the approved IR-printer cleanup.
-Its successors fn-211 and fn-228 still await the remaining prerequisites. fn-233 no longer
-depends on fn-227 (owner, 2026-10-22).
-The same day the owner moved the timeout semantics (old R5: facts .9, optional values .10,
-deadlines/Tick/cooperative cancel .4, plus the cooperative-cancellation part of .5 and the final
-one-tick compatibility re-run) to fn-237. fn-227 keeps R3 in full, including .11, so TLC checks
-the real activity Model; the owner holds TLC and Apalache scaling as crucial.
-After a complexity audit and a simplification scout, the owner approved .13 and .14
-(about 1,200 source and 850 test lines removed, goldens and TLC unchanged), run before .8's
-review: [simplification report](.flow/artifacts/fn-227-parameterized-models-declared-worlds/simplify-report.md).
-.13 is complete locally with SHIP review and full gates: one machine generator, no module
-generics, method-level `#[starts]`; net -788 source and about -655 test lines, goldens and TLC
-unchanged; timing 51.337s gate, 8.868s inner loop.
-.14 is complete locally after a second review: derives export values to the lifter, replacing
-the augmented-copy binding route; net about -91 source and -70 test lines, goldens and TLC
-unchanged; timing 50.532s gate, 7.908s inner loop.
-.8 (source inputs and exact-payload fairness) is complete locally with SHIP review at HEAD after
-the .13/.14 migration; its minor follow-ups moved to fn-238.3.
-.12 (actual request at Observation tag 4, owned same-invocation capture) is complete locally,
-merged from its worktree with the guest rebuilt; timing 53.993s gate, 7.088s inner loop.
-.11 is complete locally: TLC checks the unchanged activity Model (6 states, both closure laws
-Verified), built once on the shared front end; timing 47.680s gate, 7.149s inner loop.
-.15 is complete locally: emitted TLA+ grows linearly with conditional returns (probe 706 MB ->
-6 KB at six returns), verdicts unchanged. .16 is complete locally: named IR intermediates keep
-admission and constructor data linear, and actual 32-return/64-update compilation replaces the
-10,000-node cap. Review and both quality audits passed after compatibility fixes; native semantic
-goldens are unchanged, with six justified TLA+ text changes. Final required gate took 611.465s
-against 60s, with external build overlap observed; inner loop 7.880s met its 10s target.
-.3 is complete locally with SHIP review, resolved correctness findings and full/live gates.
-The three-attempt World reaches 18 states with 48 emitted edges; both closure laws are Verified
-and all 21 retry/ending coverage cases have witnesses. The one-attempt projection exactly
-matches the retained six-state lifecycle, including direct deadlines and atomic cancellation.
-All 15 original artifacts remain hash-verified. Final required gate took 529.403s against 60s;
-inner loop 6.179s met its 10s target, and live gap/privacy controls passed in 358.223s.
-.5 is complete locally with SHIP review and all full/live gates passed. The actual captured
-Start selects a World with one through three attempts; immutable receipt replay, first refusal
-freeze and Reset publish transactionally. Native and actual Wasm allocation controls pass.
-The SDK retry proof synchronizes actual Poll RPCs and retains a delayed-observation red/green
-regression. All seven live slice scenarios and gap/privacy controls pass. The final required
-gate took 581.229s against 60s; inner loop 6.084s met 10s. Documentation/readiness remains in .6.
-On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
-in place of impossible old-byte equality; cooperative cancellation with explicit protocol
-evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
-pending request without closing, and completion/failure races remain. Preserve old lifecycle
-evidence and prove the stated projection, including the final one-tick compatibility World.
-The support tasks separate native/source inputs, facts, phase/rejection lifting and request
-capture from their activity/live consumers; optional ticks remain in fn-237.
-The review passed; each consumer still waits for its declared support dependencies.
-[Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-227.6 | 🔄 in progress | After .5: DESIGN.md parameterized worlds, inputs and retries write-up and readiness table closure (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 

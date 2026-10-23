@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-227-parameterized-models-declared-worlds",
   "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Simplify: derived value handoff replaces the augmented-copy binding route",
   "updated_at": "2026-10-21T21:48:19.391680Z"
 }

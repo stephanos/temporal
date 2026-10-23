@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-227-parameterized-models-declared-worlds",
   "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Activity retries and retained-lifecycle refinement checkpoint",
   "updated_at": "2026-10-22T22:07:44.659734Z"
 }

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-227-parameterized-models-declared-worlds",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-23T00:01:19.165064Z",
   "created_at": "2026-10-20T18:58:19.229711Z",
   "default_impl": null,
   "default_review": null,
@@ -855,6 +855,42 @@
       "task": "fn-227-parameterized-models-declared-worlds.6",
       "timestamp": "2026-10-22T23:50:58.140374Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bb564f91c4b2699d211c7919e617ac9f3e8bc63d2fb937d7c6c6e16ff4385502",
+      "backend": "codex",
+      "base_sha": "3b841dc568b10934d87d491d3d0799ce23b90069",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "546d431bffce3ea05963d782e351d4f23f5e18d9",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1086087,
+      "output_sha256": "43bc5f2215f8b0197293281d3d04d19d03e7317eb8ba104af67f96037253a7e1",
+      "reservation_id": "d7dd11c7115742cda0f05bff9628c6b0",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-23T00:01:19.146132Z",
+      "tool_calls": 40,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -864,11 +900,12 @@
     "impl:fn-227-parameterized-models-declared-worlds.5": 1,
     "impl:fn-227-parameterized-models-declared-worlds.6": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-227-parameterized-models-declared-worlds.1": 0,
     "impl:fn-227-parameterized-models-declared-worlds.16": 0,
     "impl:fn-227-parameterized-models-declared-worlds.3": 0,
@@ -877,7 +914,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-227-parameterized-models-declared-worlds.md",
-  "status": "open",
+  "status": "done",
   "title": "Parameterized Models: declared worlds, action inputs, and the activity Model with retries (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -890,5 +927,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T23:50:58.144667Z"
+  "updated_at": "2026-10-23T00:02:08.899562Z"
 }
