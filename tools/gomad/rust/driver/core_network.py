@@ -376,7 +376,7 @@ def observations(config, stdout):
     semantic = ('unknown_transition_kind', 'ordinal_gap', 'listener_port_zero', 'reset_retains_bytes', 'connection_byte_bound', 'total_byte_bound')
     required.update(('network_resealed_semantic_refusal', m, None) for m in semantic)
     cases = {key[0] for key in required}
-    rows = [native_roles.decode(line.split(MARKER, 1)[1]) for line in stdout.splitlines() if MARKER in line]
+    rows = [native_roles.decode(line.split(MARKER, 1)[1]) for line in stdout.split('\n') if MARKER in line]
     rows = [row for row in rows if row.get('case') in cases or row.get('case', '').startswith('network.')]
     seen, facts = set(), []
     fixture = read('cluster_network/b.gmnetev1')
