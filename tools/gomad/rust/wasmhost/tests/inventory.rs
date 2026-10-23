@@ -126,22 +126,47 @@ struct Entry {
     readme_anchor: String,
 }
 
+fn calendar_date(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    if bytes.len() != 10
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes
+            .iter()
+            .enumerate()
+            .any(|(index, byte)| index != 4 && index != 7 && !byte.is_ascii_digit())
+    {
+        return false;
+    }
+    let year: u32 = text[..4].parse().unwrap();
+    let month: usize = text[5..7].parse().unwrap();
+    let day: u32 = text[8..].parse().unwrap();
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    (1..=12).contains(&month) && day > 0 && day <= days[month - 1]
+}
+
 fn parse(text: &str) -> Result<Inventory, String> {
     let inventory: Inventory = serde_json::from_str(text).map_err(|error| error.to_string())?;
     if inventory.schema != SCHEMA {
         return Err(format!("inventory schema {:?}", inventory.schema));
     }
     let reviewed = &inventory.reviewed;
-    let date = reviewed.date.as_bytes();
-    if date.len() != 10
-        || date[4] != b'-'
-        || date[7] != b'-'
-        || date
-            .iter()
-            .enumerate()
-            .any(|(index, byte)| index != 4 && index != 7 && !byte.is_ascii_digit())
-    {
-        return Err("inventory reviewed date must be YYYY-MM-DD".into());
+    if !calendar_date(&reviewed.date) {
+        return Err("inventory reviewed date must be a valid YYYY-MM-DD calendar day".into());
     }
     if reviewed.go_toolchain.is_empty() || reviewed.wasmtime.is_empty() || reviewed.rust.is_empty()
     {
@@ -157,6 +182,8 @@ fn parse(text: &str) -> Result<Inventory, String> {
             return Err(format!("inventory site {:?} has two rows", entry.site));
         }
         let required = [
+            &entry.id,
+            &entry.site,
             &entry.layer,
             &entry.class,
             &entry.disposition,
@@ -207,15 +234,19 @@ fn parse(text: &str) -> Result<Inventory, String> {
             ));
         }
         if entry.evidence.iter().any(|reference| {
-            !["go:", "rust:", "corpus:"]
-                .iter()
-                .any(|kind| reference.starts_with(kind))
+            !["go:", "rust:", "corpus:"].iter().any(|kind| {
+                reference
+                    .strip_prefix(kind)
+                    .is_some_and(|tail| !tail.trim().is_empty())
+            })
         }) {
             return Err(format!("inventory row {:?} evidence kind", entry.id));
         }
-        if (entry.disposition == "escape")
-            != (!entry.justification.is_empty() && !entry.readme_anchor.is_empty())
-        {
+        if if entry.disposition == "escape" {
+            entry.justification.trim().is_empty() || entry.readme_anchor.trim().is_empty()
+        } else {
+            !entry.justification.is_empty() || !entry.readme_anchor.is_empty()
+        } {
             return Err(format!("inventory row {:?} escape justification", entry.id));
         }
     }
@@ -402,6 +433,112 @@ fn inventory_loader_rejects_unknown_fields_and_reused_ids() {
     let mut document = base;
     document["entries"][0]["disposition"] = "escape".into();
     assert!(parse(&document.to_string()).unwrap_err().contains("escape"));
+}
+
+#[test]
+fn inventory_review_date_requires_a_calendar_day() {
+    let base: serde_json::Value = serde_json::from_str(INVENTORY).unwrap();
+    for date in [
+        "",
+        "2026-02-30",
+        "20 October 2026",
+        "2026-02-29",
+        "1900-02-29",
+        "2026-00-01",
+        "2026-13-01",
+        "2026-01-00",
+        "2026-04-31",
+    ] {
+        let mut document = base.clone();
+        document["reviewed"]["date"] = date.into();
+        assert!(
+            parse(&document.to_string())
+                .unwrap_err()
+                .contains("reviewed date"),
+            "{date}"
+        );
+    }
+    for date in ["2024-02-29", "2000-02-29", "2026-02-28"] {
+        let mut document = base.clone();
+        document["reviewed"]["date"] = date.into();
+        assert!(parse(&document.to_string()).is_ok(), "{date}");
+    }
+}
+
+#[test]
+fn inventory_loader_rejects_every_malformed_row_variant() {
+    let base: serde_json::Value = serde_json::from_str(INVENTORY).unwrap();
+    for (name, field, value, expected) in [
+        ("empty id", "id", serde_json::json!(""), "incomplete"),
+        ("empty site", "site", serde_json::json!(""), "incomplete"),
+        (
+            "no evidence",
+            "evidence",
+            serde_json::json!([]),
+            "incomplete",
+        ),
+        (
+            "bad evidence",
+            "evidence",
+            serde_json::json!(["not-a-reference"]),
+            "evidence kind",
+        ),
+        (
+            "empty reference",
+            "evidence",
+            serde_json::json!(["rust:"]),
+            "evidence kind",
+        ),
+        (
+            "justification outside escape",
+            "justification",
+            serde_json::json!("unreviewed exception"),
+            "escape justification",
+        ),
+        (
+            "anchor outside escape",
+            "readme_anchor",
+            serde_json::json!("#escape"),
+            "escape justification",
+        ),
+        (
+            "unknown layer",
+            "layer",
+            serde_json::json!("unknown"),
+            "enum",
+        ),
+        (
+            "unknown disposition",
+            "disposition",
+            serde_json::json!("unknown"),
+            "enum",
+        ),
+    ] {
+        let mut document = base.clone();
+        document["entries"][0][field] = value;
+        assert!(
+            parse(&document.to_string()).unwrap_err().contains(expected),
+            "{name}"
+        );
+    }
+    let mut document = base.clone();
+    document["entries"][1]["site"] = document["entries"][0]["site"].clone();
+    assert!(
+        parse(&document.to_string())
+            .unwrap_err()
+            .contains("two rows")
+    );
+    let mut document = base.clone();
+    document["reviewed"]["unknown"] = true.into();
+    assert!(
+        parse(&document.to_string())
+            .unwrap_err()
+            .contains("unknown field")
+    );
+    let mut document = base;
+    document["schema"] = "unknown".into();
+    assert!(parse(&document.to_string()).unwrap_err().contains("schema"));
+    assert!(parse(&format!("{INVENTORY} {{}}")).is_err());
 }
 
 #[test]
