@@ -462,9 +462,31 @@ mod tests {
 
     #[test]
     fn nested_wrapper_refuses_without_spawning_child() {
+        nested_wrapper_case(false);
+    }
+
+    #[test]
+    fn nested_wrapper_with_distinct_binary_refuses_without_spawning_child() {
+        nested_wrapper_case(true);
+    }
+
+    fn nested_wrapper_case(copy_binary: bool) {
         use std::time::{Duration, Instant};
         let root =
             crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
+        if copy_binary {
+            let binary = std::env::current_exe().unwrap();
+            let before = fs::metadata(&binary).unwrap();
+            assert!(
+                before.len() <= 512 << 20,
+                "test executable exceeds existing installation executable bound"
+            );
+            let copy = root.0.join("nested-binary");
+            assert_eq!(fs::copy(&binary, &copy).unwrap(), before.len());
+            fs::set_permissions(&copy, fs::Permissions::from_mode(0o700)).unwrap();
+            let copied = fs::metadata(copy).unwrap();
+            assert_ne!((before.dev(), before.ino()), (copied.dev(), copied.ino()));
+        }
         let compiler_dir = root.0.join("compiler");
         fs::create_dir(&compiler_dir).unwrap();
         let compiler = compiler_dir.join("go");
@@ -543,9 +565,15 @@ mod tests {
             }
             assert!(!Path::new(&root).join("child-ran").exists());
         } else {
+            let nested_binary = Path::new(&root).join("nested-binary");
+            let binary = if nested_binary.is_file() {
+                nested_binary
+            } else {
+                std::env::current_exe().unwrap()
+            };
             let arguments = [
                 OsString::from("--"),
-                std::env::current_exe().unwrap().into_os_string(),
+                binary.into_os_string(),
                 OsString::from("--exact"),
                 OsString::from("cli::wrapper::tests::wrapper_nested_process_probe"),
                 OsString::from("--nocapture"),
