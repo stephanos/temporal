@@ -16,9 +16,9 @@ Pending R4 receiving cross-reference: fn-232 R12/task .13's final frozen Rust wi
 ## Acceptance
 Implement request-local diagnostic session and execute spans on the Rust linked execution path, with bounded sinks and current Rust collector/report owners. Go transport/wasmmeasure paths are semantic references only. Prove the linked diagnostic producer emits the required attribution, without losing the existing pending fn-232.13 receiving obligation for R4. **Touches additionally:** tools/gomad/rust/gomad/src/** and helper linked execution/diagnostic modules.
 
-- [ ] Every host import appears under an exact module.op and an owner; unattributed imports fail the collector
-- [ ] Reconciliation within the stated tolerance and zero overlap errors on the proof run
-- [ ] Choice witness of the profiled run equals the release run at the same seed
+- [x] Every host import appears under an exact module.op and an owner; unattributed imports fail the collector
+- [x] Reconciliation within the stated tolerance and zero overlap errors on the proof run
+- [x] Choice witness of the profiled run equals the release run at the same seed
 - [ ] Release helper behavior unchanged: moved runtime-cost producer passes (formerly TestHelperRuntimeCostProfile), no Cargo.lock change
 
 ## Done summary
@@ -28,3 +28,21 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Handover 2026-10-23 (worker B, branch fn185-attribution-v2)
+
+No source change was needed: the linked attribution source (request-local capture, Execute/Instantiate spans, bounded sinks, `profile::validate` collector, `gomad-profile`, measurement `host-owner-profile` producer) is already on `gomad` at 2fb6e7ceb4. The earlier branch `fn185-rust-attribution` (42a88eb607 received as a09fa72491; de94aaa91b and cac5b294eb are already present as `Sink::retained_bytes` without the 1 GiB cap and `Conditions::DiagnosticProfile`) has nothing left to port. Its uncommitted refactor only moves code around and is superseded by the measurement producer.
+
+Builds: rust 1.99.1, `--release --locked`, isolated target `/home/agent/.cache/codex-build/fn185-v2-target`, `nice -n 19`, 2 jobs.
+- Release (empty features) `gomad-measure` built, exit 0, sha256 `1e1910d7...e708f`. Diagnostic (`helper-diagnostic-profile`) `gomad-measure` built, exit 0, sha256 `0a1ffbb7...c219`.
+- `cargo test -p gomad --features helper-diagnostic-profile --test profile_corpus` exit 0 (1/1). Its mutations include unattributed, overlap and reconciliation, and the collector refuses all three. `--lib profile::` exit 0 (2/2). `cargo test -p gomad-wasmhost --features diagnostic-profile --lib diagnostic::` exit 0 (11/11).
+- `tools/gomad/rust/Cargo.lock` unchanged against `gomad`.
+
+Early proof (`gomad-measure host-owner-profile`, activity `^TestActivityTestSuite$`, seed 0, reference=release helper, warmup+rep0=diagnostic helper, fresh preparations): exit 0, report `accepted: true`. Rerun: `activity-seed0-rerun.json`. Raw root: `/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn185-v2/host-owner-activity-01`.
+- Both diagnostic runs: `unattributed_imports`, `unframed_imports`, `abi_overlap_errors`, `span_errors`, `threads_omitted` and `report_rows_dropped` are all 0. 32 exact ops over 12 owners. Reconciliation difference is 0 ns against a tolerance of 18.2 ms (rep0: execute 3.649 s = attributed host 1.140 s + guest residual 2.509 s). The collector validated each profile on read.
+- Witness: the choice stream sha256 `5db87066...f78d`, transcript `39f31382...`, stdout/stderr/network, fuel_remaining 1125879823799633 and module `4c913e06...7477` are identical across reference, warmup and rep0. The producer's role-variant comparison passed. Guest PASS, exit 0.
+- Host was not quiet (worker A builds); timings are not R3 measurements.
+
+Release helper: `gomad-measure runtime-cost-profile` on the release helper (reference/candidate seed 7) exit 0, `accepted: true` (`runtime-cost-profile.json`, `runtime-cost-rerun.json`). This is local evidence only. R4 stays OPEN pending fn-232.13's receiving proof on the frozen candidate.
+
+Retained: `.flow/artifacts/fn185-attribution-v2/`. Kept: worktree `/home/agent/wt/fn185-attribution-v2` (until merge), raw root above plus `.build-cache/fn185-v2/{bin,stock-go1.27.1,toolchain,gocache}` (rerun inputs, about 3 GiB on the host volume), Cargo target `/home/agent/.cache/codex-build/fn185-v2-target`. The old worktree `/home/agent/wt/fn185-rust-attribution` holds uncommitted superseded edits and validation files. It is left for the conductor to remove.
