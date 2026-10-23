@@ -438,6 +438,8 @@ def first_difference(expected, actual, path='$'):
 
 def typed_stress_spec(spec):
     result = copy.deepcopy(spec)
+    for key, value in (('only', ''), ('seed', ''), ('axis', ''), ('requested_output_root', None)):
+        result.setdefault(key, value)
     for workload in result['workloads']:
         workload.setdefault('scenario', None)
     return result
@@ -493,10 +495,6 @@ def read_cycle(config, root):
                 network_listeners=4096, network_connections=65536, network_bytes=1 << 30, network_connection_bytes=4 << 20,
                 network_stall_nanos=10_000_000_000, network_transitions=1 << 20, volume_operations=1 << 20, volume_transitions=1 << 20,
                 crash_states=65536, crash_depth=256, crash_bytes=128 << 20, crash_wall_nanos=60_000_000_000), 'stress original scenario bounds changed')
-    report_root = Path(spec['root'])
-    require(report_root.is_relative_to(root), 'matrix outside frozen final cycle')
-    retained_spec = read(within(root, report_root / 'spec.json'))
-    require(retained_spec == typed_stress_spec(spec), 'stress ran a different spec')
     name = binding['producer_name']
     require(re.fullmatch('[a-zA-Z0-9_-]+', name), 'unsafe stress producer name')
     journal_root = Path(binding['producer_root'])
@@ -512,7 +510,17 @@ def read_cycle(config, root):
             (config['sent_epoch'] + config['deadline_s']) * 1e9, 'stress process outside frozen cycle/bound')
     for stream in ('stdout', 'stderr'):
         within(root, journal_root / (name + '.' + stream))
-    report = read(within(root, report_root / 'report.json'))
+    producer_stdout = decode(within(root, journal_root / (name + '.stdout')).read_bytes())
+    require(set(producer_stdout) == {'report', 'passed'} and producer_stdout['passed'] is True, 'UNEXECUTED: nonpassing actual stress producer stdout')
+    report_path = within(root, Path(producer_stdout['report']))
+    declared_root = Path(spec['root'])
+    report_root = report_path.parent
+    require(report_path.name == 'report.json' and declared_root.is_relative_to(root) and
+        (report_root == declared_root or report_root.parent == declared_root / '.gomad-measure/stress' and report_root.name.startswith('run-')),
+        'matrix outside declared frozen stress output/retention root')
+    retained_spec = read(within(root, report_root / 'spec.json'))
+    require(retained_spec == typed_stress_spec(spec), 'stress ran a different spec')
+    report = read(report_path)
     require(type(report['host']) is dict and report['host']['description'] == spec['host_description'] and report['host']['quiet_admission'] ==
         'operator assertion; CPU axis intentionally loads the host', 'stress quiet host admission changed')
     expected_platform = hashlib.sha256((report['host']['os'] + '/' + report['host']['arch']).encode()).hexdigest()
@@ -620,11 +628,12 @@ def final_section(config_path, root, produce=False):
         driver.command(config, journal_root, binding['producer_name'],
             [binding['binary'], 'stress', '--spec', binding['spec']],
             timeout=remaining)
-    report, _ = read_cycle(plan, root)
+    report, raw_commands = read_cycle(plan, root)
+    actual_report = decode(regular(raw_commands[0]['stdout']).read_bytes())['report']
     driver.guard(config)
     return dict(schema='gomad.rust-driver-final-section/v1', source_sha256=config['source_sha256'],
         identity=config['identity'], subgates=[dict(id=GATE, status='PASS', executed=True, exit=0,
-            report=str(Path(read(config['stress']['spec'])['root']) / 'report.json'), matrix_sha256=hashlib.sha256(encode(report)).hexdigest())])
+            report=actual_report, matrix_sha256=hashlib.sha256(encode(report)).hexdigest())])
 
 
 def parity(args):

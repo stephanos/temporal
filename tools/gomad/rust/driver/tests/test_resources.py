@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
+import resource
 import signal
 import subprocess
 import sys
@@ -98,9 +99,11 @@ class ChildResourceContract(unittest.TestCase):
             self.assertEqual(wait.call_count, 1)
 
     def test_concurrent_children_and_unrelated_child_have_separate_usage(self):
-        heavy = "import os,time; data=bytearray(48<<20); print(os.getpid(),flush=True); end=time.process_time()+0.08\nwhile time.process_time()<end: pass\n"
+        # Linux child peaks include the forked parent's resident memory before exec.
+        allocation = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024 + (48 << 20)
+        heavy = f"import os,time; data=bytearray({allocation}); print(os.getpid(),flush=True); end=time.process_time()+0.08\nwhile time.process_time()<end: pass\n"
         light = 'import os,time; print(os.getpid(),flush=True); time.sleep(0.08)'
-        unrelated = 'import time; data=bytearray(96<<20); time.sleep(0.12)'
+        unrelated = f'import time; data=bytearray({allocation + (48 << 20)}); time.sleep(0.12)'
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             other = subprocess.Popen([sys.executable, '-c', unrelated])

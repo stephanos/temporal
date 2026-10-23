@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import struct
+import sys
 import time
 
 from driver import (HERE, REPO, Refusal, Unexecuted, bind_identity, check_files, command, coverage,
@@ -190,16 +191,29 @@ def private_capture(config, entry):
     return {'private_observations': config} if enabled else {}
 
 
+def prepare_cell_source(config, root, label, specification):
+    if CELLS[label]['workload'] != 'multi-instance':
+        return
+    directory = HERE.parent / 'workload_tools'
+    if str(directory) not in sys.path:
+        sys.path.insert(0, str(directory))
+    import source_custody
+    source, working, _ = source_custody.stage(root, REPO, config['files'], 'replication', config['source_manifest'])
+    target = specification['Campaign']['Target']
+    require(target['Source'] == source and target['WorkingDir'] == working, 'mandatory replication differs from closed source recipe')
+
+
 def qualify_cell(config, root, label, entry):
     wanted = CELLS[label]
     specification = read(entry['spec'])
     validate_cell_spec(specification, wanted)
     require(entry['spec'] in config['files'], 'unsealed qualification spec')
-    require(specification['Manifest']['IntegratedSourceSHA256'] == config['source_sha256'], 'wrong spec source')
+    require(specification['Manifest']['IntegratedSourceSHA256'] == 'sha256:' + config['source_sha256'], 'wrong spec source')
     installation = config['installations'][entry['installation']]
     validate_budget(specification, read(installation), wanted)
     if wanted['workload'] in ('sqlite', 'multi-instance') and not entry.get('checker'):
         raise Unexecuted(label + ': actual durable/history/catalogue reader required')
+    prepare_cell_source(config, root, label, specification)
     response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', entry['spec']],
                                   accepted=(0,) if wanted['cell'] == 'success' else (1,), **private_capture(config, entry)))
     result_path = Path(response['result_path'])
@@ -365,6 +379,16 @@ def runtime_aggregate(config, root, label):
 def execute_primary(config, root, label):
     entry = config['stages'][label]
     adapter = entry['adapter']
+    if adapter == 'primary':
+        import primary_stages
+        require(label in primary_stages.OWNED, 'unowned primary stage')
+        require(set(entry) <= {'adapter', 'live_families'}, 'caller controls cannot override a fixed primary recipe')
+        observed = primary_stages.execute(config, root, label)
+        if label == 'temporal-inspection' and config.get('fn222'):
+            from onebox_receiving import binding
+            argv, _, _ = binding(config)
+            command(config, root, 'fn222', argv, timeout=3600)
+        return observed
     expected = ('qualify' if label in CELLS else 'runtime' if re.fullmatch(r'runtime-\d+', label) else
                 'runtime-aggregate' if label == 'runtime-aggregate' else
                 'sqlite-selection' if re.fullmatch(r'sqlite-selection-[0-3]', label) else

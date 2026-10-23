@@ -449,7 +449,11 @@ def operator(config, root, reader=None):
     return result
 
 
-def ringpop_reference(config):
+def ringpop_reference(config, produce=False):
+    if 'ringpop_original' in config['final_retained']:
+        import original_ringpop
+        live.sealed_input(config, HERE / 'original_ringpop.py')
+        return original_ringpop.collect(config, Path(config['root']), read_only=not produce)
     reference = config['final_retained'].get('ringpop_preservation')
     require(isinstance(reference, dict), 'UNEXECUTED: missing original ringpop World/network/choice reference')
     require(set(reference) == {'receipt', 'world', 'network', 'choices'}
@@ -471,6 +475,9 @@ def ringpop_reference(config):
 
 def ringpop_preservation(config, artifact, inputs):
     reference = ringpop_reference(config)
+    if 'module_sha256' in reference:
+        require(read(artifact / 'manifest.json')['record']['identity']['target'] == reference['module_sha256'],
+                'ringpop changed original reference module bytes')
     for name in ('world', 'network'):
         require(bounded(artifact / ('evidence/' + name), 512 << 20) == bounded(reference[name], 512 << 20),
                 'ringpop changed original canonical ' + name + ' records')
@@ -528,7 +535,7 @@ def collect(config, root, section, read_only=False):
     require(root == Path(config['root']), 'wrong retained final attempt root')
     sealed(config)
     if section == 'inspection':
-        ringpop_reference(config)
+        ringpop_reference(config, produce=not read_only)
     work = root / ('final-' + section)
     if not work.exists():
         require(not read_only, 'UNEXECUTED: missing original final producer')

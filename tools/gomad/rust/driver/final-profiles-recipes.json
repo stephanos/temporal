@@ -2,7 +2,8 @@
   "schema": "gomad.final-profile-original-recipes/v1",
   "original_revision": "81660e841106a59ed26f7cb227462d1a85a93a9f",
   "original_sources": {
-    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0"
+    "tools/gomad/internal/backends/wasm/internal/measure/producers.go": "7209420f43185caae926c2f4ae3397e1107181eaac2bdce0e13cdfd54a8666d0",
+    "tools/gomad/internal/model/choice/session.go": "3d4a58acdcc704561ba3b96319bb818419f9cbb969133efcc3a1093a1a6f0a7c"
   },
   "recipes": {
     "terminal": {
@@ -63,7 +64,8 @@
         "time_advances",
         "environment_identity",
         "fuel_remaining"
-      ]
+      ],
+      "choice_bytes": 1073741824
     }
   },
   "pending_native_gaps": [
@@ -99,6 +101,54 @@
     "attribution": {
       "scope": "same-cycle mandatory ten-cell qualification Results, independently recomputed linked costs and publication tails",
       "native_terminal_scope": "separate native terminal/process timestamps; other Results do not substitute for the terminal process bound"
+    },
+    "canonical_streams": {
+      "schema": "gomad.native-canonical-streams/v1",
+      "native_catalogue": "streams.json unchanged",
+      "sources": [
+        "native:NAME",
+        "closed-sink-empty:NAME",
+        "binary-transcript-alias:transcript",
+        "outcome:local_model.terminal_base64"
+      ],
+      "required_actual_files": [
+        "stdout",
+        "stderr",
+        "wasi",
+        "choice",
+        "network",
+        "terminal"
+      ],
+      "transformation": "identity bytes; no content normalization",
+      "missing_old_receipt": "REFUSED; no post-execution upgrade"
     }
+  },
+  "original_wire_controls": {
+    "revision": "1d695061b6382009d0659238c652a5a765b1d5f5",
+    "source": "tools/gomad/internal/backends/wasm/wasi/process_test.go",
+    "source_sha256": "3f8a6bb4d5a5fbf435be1b6a41d83b601dca22ca0fa97d1ccbf688e53dce0514",
+    "argv": [
+      "test",
+      "-json",
+      "-v",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "-timeout=15m",
+      "-run",
+      "^TestTerminalExit",
+      "./wasi"
+    ],
+    "cwd": "tools/gomad/internal/backends/wasm",
+    "terminal_to_reap_nanos_maximum": 1000000000,
+    "captured_input_timeout_nanos": 500000000,
+    "post_terminal_watchdog_nanos": 200000000,
+    "slow_preparation_and_delayed_exit_nanos": 1100000000,
+    "observer_validation_delay_nanos": 20000000,
+    "required_root_tests": 5,
+    "required_subtests": 12,
+    "helper": "unchanged test-owned shell factories; helpers rehashed by original tests",
+    "scope": "original framed wire applicability; separate from native/full Temporal evidence",
+    "actual_execution": "UNEXECUTED"
   }
 }

@@ -79,7 +79,11 @@ artifacts. It independently compares the canonical records and complete ordered
 event diagnostics. Only the `evidence/event-order` stream commitment is excluded
 from canonical-record equality, matching the Rust comparator; the ordered events
 are compared separately. The typed spec comparison treats an omitted optional
-workload `scenario` as JSON null, exactly as the Rust producer serializes it.
+workload `scenario` and `requested_output_root` as JSON null, and omitted
+`only`, `seed` and `axis` selectors as empty strings, exactly as Rust serializes
+these typed defaults. The actual report path comes from authenticated producer
+stdout and must stay at the declared matrix root or its owned
+`.gomad-measure/stress/run-*` retention child.
 No execution artifact fields receive that projection. Go stress remains an actual unsupported-command probe,
 and ordinary Rust stress remains an actual compiled-role refusal probe.
 

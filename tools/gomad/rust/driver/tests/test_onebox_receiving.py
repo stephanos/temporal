@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import copy
 import base64
 from pathlib import Path
@@ -82,6 +83,24 @@ class OneboxReceiving(unittest.TestCase):
     def test_missing_support_binding_remains_unexecuted(self):
         with self.assertRaises(driver.Unexecuted):
             onebox.binding({})
+
+    def test_primary_inspection_uses_driver_candidate_before_mandatory_result(self):
+        class NativeReached(Exception):
+            pass
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            receipt = root / 'inspection-receipt.json'
+            receipt.write_text('{}')
+            reader = SimpleNamespace(owner=lambda _: None, root=root,
+                config=dict(_config_path='/sealed/config.json', _config_sha256='a' * 64,
+                            binary='/sealed/gomad', binary_sha256='b' * 64))
+            with patch.object(onebox, 'validate', side_effect=NativeReached) as validate:
+                with self.assertRaises(NativeReached):
+                    onebox.inspection(reader, root, standalone=True)
+                self.assertEqual(validate.call_args.args[1], ['validate-inspection-driver', receipt,
+                    onebox.sha(receipt), '/sealed/config.json', 'a' * 64, '/sealed/gomad', 'b' * 64])
+            with self.assertRaises(FileNotFoundError):
+                onebox.inspection(reader, root)
 
     def test_onebox_inspection_uses_new_reader_and_other_owners_remain_strict(self):
         reader = receiving.Retained(dict(root='/attempt'))

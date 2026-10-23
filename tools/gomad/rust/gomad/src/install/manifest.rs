@@ -162,6 +162,26 @@ pub fn resolve(explicit: Option<&Path>) -> Result<Description, String> {
 }
 
 pub(crate) fn validate(installed: &Installation) -> Result<(), String> {
+    validate_host(installed, || {
+        let current = std::env::current_exe().map_err(failure)?;
+        Ok(canonical::digest(&read(&current, MAXIMUM)?))
+    })
+}
+
+pub(crate) fn validate_for_executable(
+    installed: &Installation,
+    sha256: &str,
+) -> Result<(), String> {
+    if !canonical::valid_digest(sha256) {
+        return Err(failure("invalid bound host executable digest"));
+    }
+    validate_host(installed, || Ok(sha256.to_owned()))
+}
+
+fn validate_host(
+    installed: &Installation,
+    executable_digest: impl FnOnce() -> Result<String, String>,
+) -> Result<(), String> {
     super::tags::validate(&installed.build_tags, &installed.excluded_build_tags)?;
     if installed.schema != SCHEMA
         || installed.helper_sha256 != linked::IMPLEMENTATION_SHA256
@@ -189,8 +209,7 @@ pub(crate) fn validate(installed: &Installation) -> Result<(), String> {
         _ => return Err(failure("unsupported runtime profile or implementation")),
     }
     if let Some(admission) = &installed.admission {
-        let current = std::env::current_exe().map_err(failure)?;
-        if canonical::digest(&read(&current, MAXIMUM)?) != admission.host_executable_sha256 {
+        if executable_digest()? != admission.host_executable_sha256 {
             return Err(failure("installed host executable identity mismatch"));
         }
         let derived =
