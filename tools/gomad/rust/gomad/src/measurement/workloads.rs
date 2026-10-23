@@ -1119,8 +1119,17 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                         .join("guest-profile.json"),
                     64 << 20,
                 )?;
-                let attribution = guest::decode(&profile)?;
-                if attribution.guest_sample_weight == 0 {
+                let options = &input["guest"]["guest_profile"];
+                let attribution = guest::decode_sampled(
+                    &profile,
+                    options["interval_micros"]
+                        .as_u64()
+                        .ok_or("requested guest sampling interval absent")?,
+                    options["max_samples"]
+                        .as_u64()
+                        .ok_or("requested guest sampling bound absent")?,
+                )?;
+                if attribution.attribution.guest_sample_weight == 0 {
                     return Err("guest profile contains no weighted guest samples".into());
                 }
                 write(
@@ -1233,6 +1242,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
 }
 fn variant_recommendations(root: &Path, samples: &[Value]) -> Result<(), String> {
     let mut rows = Vec::new();
+    let mut decisions = BTreeMap::<(&str, &str), Vec<&str>>::new();
     for (selection, run) in selections() {
         for seed in SEEDS {
             let baseline: Vec<_> = samples
@@ -1283,11 +1293,28 @@ fn variant_recommendations(root: &Path, samples: &[Value]) -> Result<(), String>
                 } else {
                     statistics::recommendation(&before, &after, failed, !failed)
                 };
+                decisions
+                    .entry((selection, variant))
+                    .or_default()
+                    .push(decision);
                 rows.push(json!({"selection":selection,"seed":seed,"variant":variant,"execute_nanos":after,"baseline_execute_nanos":before,"recommendation":decision,"adoption_requires_separate_qualification":true}));
             }
         }
     }
-    write(&root.join("variant-recommendations.json"), &rows)
+    write(&root.join("variant-recommendations.json"), &rows)?;
+    let summary: Vec<_> = decisions.into_iter().map(|((selection, variant), per_seed)| {
+        let decision = if variant == "baseline" {
+            "control"
+        } else if per_seed.contains(&"reject") {
+            "reject"
+        } else if per_seed.iter().all(|decision| *decision == "adopt") {
+            "adopt"
+        } else {
+            "investigate"
+        };
+        json!({"selection":selection,"variant":variant,"recommendation":decision,"adoption_requires_separate_qualification":true})
+    }).collect();
+    write(&root.join("variant-recommendations-summary.json"), &summary)
 }
 
 #[derive(Deserialize)]
