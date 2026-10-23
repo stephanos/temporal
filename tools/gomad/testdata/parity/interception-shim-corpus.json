@@ -496,7 +496,7 @@
       ],
       "env": {},
       "status": 2,
-      "diagnostic": "coverprofile"
+      "diagnostic": "cover"
     },
     {
       "name": "refuse-coverprofile-goflags",
@@ -509,7 +509,7 @@
         "GOFLAGS": "-coverprofile=out"
       },
       "status": 2,
-      "diagnostic": "coverprofile"
+      "diagnostic": "cover"
     },
     {
       "name": "refuse-coverpkg-argv",
@@ -521,7 +521,7 @@
       ],
       "env": {},
       "status": 2,
-      "diagnostic": "coverpkg"
+      "diagnostic": "cover"
     },
     {
       "name": "refuse-coverpkg-goflags",
@@ -534,7 +534,7 @@
         "GOFLAGS": "-coverpkg=./..."
       },
       "status": 2,
-      "diagnostic": "coverpkg"
+      "diagnostic": "cover"
     },
     {
       "name": "refuse-CGO_ENABLED",
