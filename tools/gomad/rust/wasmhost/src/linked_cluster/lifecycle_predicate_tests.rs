@@ -110,6 +110,10 @@ fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() 
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The original cleanup matrix keeps authored actions, joined ownership and raw mode observations together"
+)]
 fn mandatory_cleanup_keeps_only_authored_start_actions() {
     for mode in [
         "shutdown",
@@ -482,6 +486,10 @@ fn synchronous_observer_cancellation_preserves_before_and_after_refusals() {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The bounded original refusal matrix keeps each failed admission and same-owner retry in one scope"
+)]
 fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
     for variant in [
         "missing-storage-image",
@@ -576,7 +584,7 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
             .unwrap()
             .reference_image(1 << 20)
             .unwrap();
-        assert!(!recovered.is_empty());
+        assert_ne!(recovered.as_slice(), []);
         assert_eq!(
             serde_json::to_value(&sealed.execution.request.storage).unwrap()["image"],
             serde_json::to_value(&images["a"]).unwrap()
@@ -696,6 +704,10 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The real five-second regression keeps store setup, timing, joined ownership and raw observations together"
+)]
 fn live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace() {
     assert_eq!(CLUSTER_STOP_GRACE, Duration::from_secs(5));
     let mut input = request(
@@ -1056,6 +1068,10 @@ fn storage_state_sections(bytes: &[u8]) -> BTreeMap<u32, Vec<u8>> {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The bounded original baseline, selected-state and divergence matrix shares actual native enumerations"
+)]
 fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumeration() {
     let model: crate::volume::StorageModel = serde_json::from_value(json!({
         "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
@@ -1075,7 +1091,10 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
         assert!(result.outcome.peak_memory_bytes > 0);
         let sections = storage_state_sections(&result.evidence["storage_state"]);
         let context: Value = serde_json::from_slice(&sections[&6]).unwrap();
-        assert!(!context["data"]["Operations"].as_array().unwrap().is_empty());
+        assert_ne!(
+            context["data"]["Operations"].as_array().unwrap().as_slice(),
+            []
+        );
         let enumerations: Value = serde_json::from_slice(&sections[&3]).unwrap();
         assert_eq!(enumerations["data"]["Complete"], true);
         assert!(enumerations["data"]["States"].as_array().unwrap().len() >= 2);
