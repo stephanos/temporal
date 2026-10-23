@@ -56,18 +56,17 @@ fn original_config() -> Value {
     json!({"Profile":"gomad.wasi-cooperative/v1","Args":["service","server"],
         "Environment":["PWD=/workspace","TZ=UTC"],"WorkingDirectory":"/workspace",
         "WritableDirectories":["/workspace","/tmp"],"EntropyKey":entropy,
-        "Clock":{"EpochNanos":946684800000000000_u64},
-        "Limits":{"OutputBytes":1<<20,"TranscriptBytes":32<<20,"Calls":100000,"Descriptors":128,
+        "Clock":{"EpochNanos":946_684_800_000_000_000_u64},
+        "Limits":{"OutputBytes":1<<20,"TranscriptBytes":32<<20,"Calls":100_000,"Descriptors":128,
             "Files":1024,"FilesystemBytes":8<<20,"PendingEvents":4096},
         "network_v2":{"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":128,
             "bytes":8<<20,"connection_bytes":4<<20,"stall_nanos":10_000_000_000_u64,"transitions":10000}}})
 }
 
 fn producer(name: &str, soft: bool, test_binary: bool) -> Producer {
-    assert!(
-        !cfg!(debug_assertions),
-        "actual Go receiving roots require a release fixture build"
-    );
+    if cfg!(debug_assertions) {
+        panic!("actual Go receiving roots require a release fixture build");
+    }
     let root = PathBuf::from(
         std::env::var_os("GOMAD_TEST_BROAD_GUEST_ROOT").expect("explicit retained root"),
     )
@@ -156,6 +155,15 @@ fn producer(name: &str, soft: bool, test_binary: bool) -> Producer {
         prepared.configuration.model.as_ref().unwrap()["limit"],
         8 << 20
     );
+    retain_preparation(&root, &prepared);
+    Producer {
+        root,
+        prepared,
+        sources,
+    }
+}
+
+fn retain_preparation(root: &Path, prepared: &prepare::Prepared) {
     fs::write(root.join("prepared-provenance.json"), &prepared.provenance).unwrap();
     fs::write(root.join("prepared-module.wasm"), &prepared.module).unwrap();
     fs::rename(
@@ -173,11 +181,6 @@ fn producer(name: &str, soft: bool, test_binary: bool) -> Producer {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(path, raw).unwrap();
     }
-    Producer {
-        root,
-        prepared,
-        sources,
-    }
 }
 
 fn original_limits() -> Value {
@@ -192,13 +195,23 @@ fn original_limits() -> Value {
 }
 
 fn scenario(nodes: Value, boots: Value, actions: Value, links: Value) -> Value {
-    json!({"schema":"gomad-wasm.scenario/v1","spec":{"schema":"gomad.simulation-spec/v8",
-        "backend":"wasm","fidelity":"simulation_model","seed":7,"limits":original_limits(),"nodes":nodes,"links":links},
-        "boots":boots,"actions":actions,"incarnation_boots":[],"network_faults":[]})
+    let mut spec = json!({"schema":"gomad.simulation-spec/v8", "backend":"wasm",
+        "fidelity":"simulation_model", "seed":7, "limits":original_limits()});
+    let spec_fields = spec.as_object_mut().unwrap();
+    spec_fields.insert("nodes".into(), nodes);
+    spec_fields.insert("links".into(), links);
+    Value::Object(serde_json::Map::from_iter([
+        ("schema".into(), json!("gomad-wasm.scenario/v1")),
+        ("spec".into(), spec),
+        ("boots".into(), boots),
+        ("actions".into(), actions),
+        ("incarnation_boots".into(), json!([])),
+        ("network_faults".into(), json!([])),
+    ]))
 }
 
-fn bind(producer: &Producer, scenario: Value, seed: u64) -> Configuration {
-    let normalized = scenario::normalize(&canonical::encode(&scenario).unwrap()).unwrap();
+fn bind(producer: &Producer, scenario: &Value, seed: u64) -> Configuration {
+    let normalized = scenario::normalize(&canonical::encode(scenario).unwrap()).unwrap();
     let mut configuration = scenario::bind(
         &normalized,
         &producer.prepared.configuration,
@@ -245,10 +258,13 @@ fn observation(
     configuration: &Configuration,
     value: Value,
 ) {
-    let row = json!({"schema":"gomad.retained-reader-observation/v1","original_root":root,"case":case,
+    let mut row = json!({"schema":"gomad.retained-reader-observation/v1","original_root":root,"case":case,
         "inputs":{"original_commit":"1d695061b6382009d0659238c652a5a765b1d5f5","sources":producer.sources,
             "module_sha256":canonical::digest(&producer.prepared.module),"toolchain_sha256":producer.prepared.toolchain,
-            "prepared_provenance_sha256":canonical::digest(&producer.prepared.provenance),"configuration":configuration},"observed":value});
+            "prepared_provenance_sha256":canonical::digest(&producer.prepared.provenance),"configuration":configuration}});
+    row.as_object_mut()
+        .unwrap()
+        .insert("observed".into(), value);
     fs::write(
         producer
             .root
@@ -339,7 +355,7 @@ fn actual_soft_assertion_cluster_original_seeds_policies_and_retained_replay() {
                 {"action":"start","handle":{"node":"b","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
             json!([]),
         );
-        let mut configuration = bind(&producer, scenario, seed);
+        let mut configuration = bind(&producer, &scenario, seed);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "soft-assertion".into();
         }
@@ -412,7 +428,7 @@ fn actual_output_capacity_guest_preserves_original_three_policies() {
             json!([{"action":"start","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"a","incarnation":1}}]),
             json!([]),
         );
-        let mut configuration = bind(&producer, scenario, 7);
+        let mut configuration = bind(&producer, &scenario, 7);
         configuration.limits.output_bytes = 4;
         for item in &mut configuration.incarnations {
             item.arguments[0] = "capacity".into();
@@ -451,7 +467,7 @@ fn actual_output_capacity_guest_preserves_original_three_policies() {
                 })
         );
         if maximum == 1 {
-            assert!(!assessment["oracle_error"].as_str().unwrap().is_empty());
+            assert_ne!(assessment["oracle_error"].as_str().unwrap(), "");
             assert_eq!(assessment["oracles"], json!([]));
         } else {
             assert_eq!(assessment["oracles"].as_array().unwrap().len(), 1);
@@ -517,7 +533,7 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
                 {"action":"wait","handle":{"node":"b","incarnation":2}},{"action":"wait","handle":{"node":"a","incarnation":2}}]),
             json!([{"from":"a","to":"b","enabled":true},{"from":"b","to":"a","enabled":true}]),
         );
-        let mut configuration = bind(&producer, scenario, 7);
+        let mut configuration = bind(&producer, &scenario, 7);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "service".into();
         }
@@ -534,7 +550,7 @@ fn actual_independent_go_guests_preserve_plain_and_compressed_lifecycle_replay()
             configuration.broker.limits = helper::WorldLimits {
                 max_requests: 2 << 20,
                 max_events: 2 << 20,
-                max_queued_events: 250000,
+                max_queued_events: 250_000,
                 max_transitions: 8 << 20,
                 max_payload_bytes: 64 << 20,
                 max_string_bytes: u32::MAX,
@@ -588,7 +604,7 @@ fn actual_go_history_oracle_canary_preserves_detached_retained_replay() {
                 {"action":"wait","handle":{"node":"a","incarnation":1}},{"action":"wait","handle":{"node":"b","incarnation":1}}]),
             json!([]),
         );
-        let mut configuration = bind(&producer, scenario, 7);
+        let mut configuration = bind(&producer, &scenario, 7);
         for item in &mut configuration.incarnations {
             item.arguments[0] = "service".into();
         }
@@ -638,7 +654,7 @@ fn actual_go_grouped_acknowledgment_crash_preserves_independent_durable_recovery
         "args":[if phase=="commit" {"durable"} else {"recover"}],"storage":{"volumes":[{"ID":node,"Path":"/workspace","CapacityBytes":8<<20}],
             "limits":{"PendingOperations":1024,"Transitions":10000}}}))).collect::<Vec<_>>());
     spec["incarnation_boots"] = json!([{"handle":{"node":"a","incarnation":2},"boot":"a-recover"},{"handle":{"node":"b","incarnation":2},"boot":"b-recover"}]);
-    let mut configuration = bind(&producer, spec, 7);
+    let mut configuration = bind(&producer, &spec, 7);
     for item in &mut configuration.incarnations {
         item.arguments[0] = "service".into();
     }
