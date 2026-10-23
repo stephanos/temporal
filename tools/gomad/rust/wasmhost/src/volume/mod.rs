@@ -22,3 +22,6 @@ pub(crate) use image::RecoveryImage;
 #[cfg(not(feature = "conformance"))]
 pub(crate) use state::Operation;
 pub(crate) use state::{Error, Handle, Kind, OpenFlags};
+
+#[cfg(not(feature = "conformance"))]
+pub(crate) use state::{VolumeSnapshot, volume_snapshot_identity};

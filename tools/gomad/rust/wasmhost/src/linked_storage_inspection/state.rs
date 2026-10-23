@@ -1,22 +1,16 @@
 use crate::{linked::StorageInput, storage_transport::StorageCrashContext, volume::Operation};
-use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
-struct Snapshot {
-    #[serde(rename = "ID")]
-    id: String,
-    mount: String,
-    capacity_bytes: u64,
-    persisted: serde_json::Value,
-    volatile: serde_json::Value,
-    pending_operations: u64,
-    #[serde(rename = "PendingSHA256")]
-    pending_sha256: String,
-    next_operation: u64,
-    identity: String,
+mod strict;
+
+fn native_digest(value: &str) -> bool {
+    value.strip_prefix("sha256:").is_some_and(|digest| {
+        digest.len() == 64
+            && digest
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    })
 }
 
 fn sections(raw: &[u8], maximum: u64) -> Result<(u32, Vec<&[u8]>), String> {
@@ -88,10 +82,8 @@ pub(super) fn validate(
     } else if (version == 3) != descriptor.crash_limits.is_some() {
         return Err("retained storage evidence: crash context".into());
     }
-    let snapshots: Vec<Snapshot> =
-        serde_json::from_slice(sections[0]).map_err(|error| error.to_string())?;
-    let history: BTreeMap<String, Vec<Operation>> =
-        serde_json::from_slice(sections[1]).map_err(|error| error.to_string())?;
+    let snapshots: Vec<crate::volume::VolumeSnapshot> = strict::decode(sections[0])?;
+    let history: BTreeMap<String, Vec<Operation>> = strict::decode(sections[1])?;
     let configured = descriptor.model.volumes();
     if snapshots.len() != configured.len() || history.len() != configured.len() {
         return Err("retained storage volume inventory".into());
@@ -105,22 +97,89 @@ pub(super) fn validate(
         if prior.is_some_and(|id| id >= snapshot.id.as_str())
             || snapshot.mount != config.mount
             || snapshot.capacity_bytes != config.capacity_bytes
-            || !snapshot.persisted.is_array()
-            || !snapshot.volatile.is_array()
             || snapshot.next_operation == 0
-            || snapshot.identity.is_empty()
+            || snapshot.identity != crate::volume::volume_snapshot_identity(snapshot)
             || snapshot.pending_operations > descriptor.model.limits.pending_operations
             || !history.contains_key(&snapshot.id)
         {
             return Err("retained storage snapshot inventory".into());
         }
+        for entries in [&snapshot.persisted, &snapshot.volatile] {
+            let mut previous = None;
+            for entry in entries {
+                if entry.path.is_empty()
+                    || previous.is_some_and(|path| path >= entry.path.as_str())
+                    || !matches!(entry.kind.as_str(), "file" | "directory")
+                    || if entry.kind == "file" {
+                        !native_digest(&entry.data_sha256)
+                    } else {
+                        entry.size != 0 || !entry.data_sha256.is_empty()
+                    }
+                {
+                    return Err("retained storage snapshot entry".into());
+                }
+                previous = Some(entry.path.as_str());
+            }
+        }
         prior = Some(snapshot.id.as_str());
+    }
+    let enumerations: Option<BTreeMap<String, crate::volume::CrashEnumeration>> =
+        strict::decode(sections[2])?;
+    if version != 2 {
+        if !std::str::from_utf8(sections[3]).is_ok_and(|digest| {
+            digest.len() == 64
+                && digest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        }) {
+            return Err("retained storage image identity".into());
+        }
+        if enumerations.is_some() != descriptor.crash_limits.is_some() {
+            return Err("retained storage enumeration presence".into());
+        }
+    }
+    if let Some(pages) = &enumerations {
+        if version != 2 && pages.len() != configured.len() {
+            return Err("retained storage enumeration inventory".into());
+        }
+        for (id, page) in pages {
+            let snapshot = snapshots
+                .iter()
+                .find(|snapshot| &snapshot.id == id)
+                .ok_or("retained storage enumeration inventory")?;
+            if page.complete != page.capacity.is_empty()
+                || !matches!(
+                    page.capacity.as_str(),
+                    "" | "states" | "work" | "operations" | "depth" | "bytes"
+                )
+            {
+                return Err("retained storage enumeration capacity".into());
+            }
+            for state in page.states.as_deref().unwrap_or_default() {
+                if state.volume != *id
+                    || state.pending_sha256 != snapshot.pending_sha256
+                    || state.identity != state.identity()
+                {
+                    return Err("retained storage crash state identity".into());
+                }
+            }
+            if let Some(exploration) = &page.choice_exploration {
+                exploration
+                    .validate(
+                        id,
+                        &snapshot.pending_sha256,
+                        usize::try_from(snapshot.pending_operations)
+                            .map_err(|_| "retained pending count")?,
+                    )
+                    .map_err(|error| format!("retained storage exploration: {error:?}"))?;
+            }
+        }
     }
     if version != 3 {
         return Ok(());
     }
-    let contexts: BTreeMap<String, StorageCrashContext> =
-        serde_json::from_slice(sections[5]).map_err(|error| error.to_string())?;
+
+    let contexts: BTreeMap<String, StorageCrashContext> = strict::decode(sections[5])?;
     if contexts.len() != configured.len() {
         return Err("retained storage evidence: crash context".into());
     }
@@ -134,15 +193,7 @@ pub(super) fn validate(
             .ok_or("retained storage evidence: crash context")?;
         if context.pending_sha256 != snapshot.pending_sha256
             || operations.len() as u64 != snapshot.pending_operations
-            || !context
-                .pending_sha256
-                .strip_prefix("sha256:")
-                .is_some_and(|digest| {
-                    digest.len() == 64
-                        && digest
-                            .bytes()
-                            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-                })
+            || !native_digest(&context.pending_sha256)
         {
             return Err("retained storage evidence: crash context".into());
         }
@@ -153,6 +204,40 @@ pub(super) fn validate(
                 return Err("retained storage evidence: crash context".into());
             }
             previous = operation.id;
+        }
+        if let Some(page) = enumerations
+            .as_ref()
+            .and_then(|pages| pages.get(&snapshot.id))
+        {
+            for state in page.states.as_deref().unwrap_or_default() {
+                let selected: std::collections::BTreeSet<_> =
+                    state.selected_operations.iter().copied().collect();
+                if selected.len() != state.selected_operations.len()
+                    || state
+                        .selected_operations
+                        .windows(2)
+                        .any(|pair| pair[0] >= pair[1])
+                    || selected
+                        .iter()
+                        .any(|id| !operations.iter().any(|operation| operation.id == *id))
+                    || operations
+                        .iter()
+                        .filter(|operation| selected.contains(&operation.id))
+                        .any(|operation| {
+                            operation
+                                .dependencies
+                                .as_deref()
+                                .unwrap_or_default()
+                                .iter()
+                                .any(|dependency| {
+                                    operations.iter().any(|pending| pending.id == *dependency)
+                                        && !selected.contains(dependency)
+                                })
+                        })
+                {
+                    return Err("retained storage crash selection".into());
+                }
+            }
         }
     }
     Ok(())
@@ -201,6 +286,92 @@ mod tests {
         let evidence = storage_transport::evidence(&mut namespace, &descriptor);
         assert_eq!(evidence.failure, None);
         (input, evidence)
+    }
+
+    #[test]
+    fn coherently_resealed_native_storage_sections_reach_typed_semantic_guards() {
+        let (input, evidence) = actual();
+        let (_, original) = sections(&evidence.state, 8 << 20).unwrap();
+        for mutation in [
+            "snapshot-null-entry",
+            "snapshot-identity",
+            "snapshot-unknown-field",
+            "snapshot-duplicate-field",
+            "history-duplicate-key",
+            "history-unknown-field",
+            "enumeration-json",
+            "enumeration-identity",
+            "enumeration-unknown-field",
+            "enumeration-duplicate-key",
+            "image-identity",
+            "image-uppercase",
+            "context-duplicate-key",
+        ] {
+            let mut parts: Vec<Vec<u8>> = original.iter().map(|bytes| bytes.to_vec()).collect();
+            match mutation {
+                "snapshot-null-entry" | "snapshot-identity" | "snapshot-unknown-field" => {
+                    let mut snapshots: Value = serde_json::from_slice(&parts[0]).unwrap();
+                    match mutation {
+                        "snapshot-null-entry" => snapshots[0]["Persisted"] = json!([null]),
+                        "snapshot-identity" => snapshots[0]["Identity"] = json!("x"),
+                        _ => snapshots[0]["unexpected"] = json!(1),
+                    }
+                    parts[0] = serde_json::to_vec(&snapshots).unwrap();
+                }
+                "snapshot-duplicate-field" => {
+                    parts[0] = String::from_utf8(parts[0].clone())
+                        .unwrap()
+                        .replacen("\"ID\":\"data\"", "\"ID\":\"data\",\"ID\":\"data\"", 1)
+                        .into_bytes();
+                }
+                "history-unknown-field" => {
+                    let mut history: Value = serde_json::from_slice(&parts[1]).unwrap();
+                    history["data"][0]["unexpected"] = json!(1);
+                    parts[1] = serde_json::to_vec(&history).unwrap();
+                }
+                "enumeration-json" => parts[2] = b"{".to_vec(),
+                "enumeration-identity" | "enumeration-unknown-field" => {
+                    let mut pages: Value = serde_json::from_slice(&parts[2]).unwrap();
+                    if mutation == "enumeration-identity" {
+                        pages["data"]["States"][0]["Identity"] = json!("x");
+                    } else {
+                        pages["data"]["unexpected"] = json!(1);
+                    }
+                    parts[2] = serde_json::to_vec(&pages).unwrap();
+                }
+                "image-identity" => parts[3] = b"garbage".to_vec(),
+                "image-uppercase" => parts[3] = vec![b'A'; 64],
+                _ => {
+                    let section = match mutation {
+                        "history-duplicate-key" => 1,
+                        "enumeration-duplicate-key" => 2,
+                        _ => 5,
+                    };
+                    let value: Value = serde_json::from_slice(&parts[section]).unwrap();
+                    let payload = serde_json::to_string(&value["data"]).unwrap();
+                    parts[section] =
+                        format!("{{\"data\":{payload},\"data\":{payload}}}").into_bytes();
+                }
+            }
+            let raw = storage_transport::encode_state_sections(
+                &parts[0],
+                &parts[1],
+                &parts[2],
+                std::str::from_utf8(&parts[3]).unwrap(),
+                &evidence.log,
+                None,
+                Some(&parts[5]),
+            );
+            let error = validate(&input, &raw, &evidence.log, 8 << 20).unwrap_err();
+            assert!(
+                !error.contains("integrity"),
+                "{mutation}: guard not reached"
+            );
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.native-resealed-section","inputs":{"mutation":mutation,"state_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&raw),"log_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&evidence.log),"storage":input},"observed":{"error":error}})
+            );
+        }
     }
 
     #[test]
