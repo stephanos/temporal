@@ -45,6 +45,15 @@ class WorkloadTests(unittest.TestCase):
             self.assertNotIn("network_v2",workloads.support_policy(row,{"schema":"authenticated-test-input"}))
             self.assertEqual(spec["Campaign"]["ChoiceTraceLimit"],64<<20)
 
+    def test_staged_source_working_directory_is_explicit_and_other_defaults_stay_original(self):
+        for factory, row in [(workloads.qualification_spec, "recovery"), (workloads.support_spec, "retry")]:
+            value = factory("/candidate", "/producer/cell", row, source="./.tmp/wrapper",
+                            source_working_dir="/producer/source-module")
+            self.assertEqual(value["Campaign"]["Target"]["WorkingDir"], "/producer/source-module")
+            self.assertEqual(value["Campaign"]["Target"]["Source"], "./.tmp/wrapper")
+            default = factory("/candidate", "/producer/cell", row, source="./.tmp/wrapper")
+            self.assertEqual(default["Campaign"]["Target"]["WorkingDir"], "/candidate")
+
     def test_support_requires_actual_selected_leaf_pass(self):
         sys.path.insert(0, str(Path(__file__).parent))
         module_spec = importlib.util.spec_from_file_location("temporal_support", Path(__file__).with_name("temporal-support.py"))
