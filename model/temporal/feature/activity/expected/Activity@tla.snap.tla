@@ -1,43 +1,85 @@
 ---- MODULE Activity ----
 EXTENDS Integers, TLC, Sequences
-CONSTANTS __umpire_world_maximum_attempts
+CONSTANT \* @type: Int;
+__umpire_world_maximum_attempts
+\* @type: (Int, Int) => Int;
 __umpire_Div(__umpire_a, __umpire_b) ==
     IF Assert(__umpire_b # 0, "Rust integer division by zero") /\ Assert(~(__umpire_a = (-2147483647 - 1) /\ __umpire_b = -1), "Rust integer division overflow")
     THEN IF __umpire_b = (-2147483647 - 1)
          THEN IF __umpire_a = (-2147483647 - 1) THEN 1 ELSE 0
          ELSE IF __umpire_a < 0
-              THEN LET __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
-                       __umpire_n == -(__umpire_a + 1)
-                       __umpire_q == __umpire_n \div __umpire_d
-                       __umpire_r == __umpire_n - __umpire_q * __umpire_d
-                       __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
+              THEN LET (* @type: Int; *) __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
+                       (* @type: Int; *) __umpire_n == -(__umpire_a + 1)
+                       (* @type: Int; *) __umpire_q == __umpire_n \div __umpire_d
+                       (* @type: Int; *) __umpire_r == __umpire_n - __umpire_q * __umpire_d
+                       (* @type: Int; *) __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
                    IN IF __umpire_b < 0 THEN -__umpire_negative ELSE __umpire_negative
               ELSE IF __umpire_b < 0 THEN -(__umpire_a \div (-__umpire_b)) ELSE __umpire_a \div __umpire_b
     ELSE 0
 
-VARIABLES phase, attempt, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts, __umpire_input
+VARIABLE \* @type: Str;
+phase
+VARIABLE \* @type: Int;
+attempt
+VARIABLE \* @type: Bool;
+__umpire_edge_tick
+VARIABLE \* @type: Int;
+__umpire_pending
+VARIABLE \* @type: Int;
+__umpire_steps
+VARIABLE \* @type: Str;
+__umpire_action
+VARIABLE \* @type: Int;
+__umpire_choice
+VARIABLE \* @type: Str;
+__umpire_outcome
+VARIABLE \* @type: Seq(Seq(Int));
+__umpire_facts
+VARIABLE \* @type: Int;
+__umpire_input
+\* @type: <<Str, Int, Bool, Int, Int, Str, Int, Str, Seq(Seq(Int)), Int>>;
 vars == <<phase, attempt, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts, __umpire_input>>
+\* @type: <<Str, Int>>;
 ModelVars == <<phase, attempt>>
 
+\* @type: Bool;
 Init == (((phase = "Phase::Scheduled") /\ (attempt = 1))) /\ (__umpire_edge_tick = FALSE) /\ (__umpire_pending = 0) /\ (__umpire_steps = 0) /\ (__umpire_action = "") /\ (__umpire_choice = 0) /\ (__umpire_outcome = "Outcome::Accepted") /\ (__umpire_facts = <<>>) /\ (__umpire_input = 0)
 
+\* @type: Bool;
 Client_Cancel == ((((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut"))))) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Client::Cancel") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(NotFound)") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 0)) \/ ((((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (TRUE))) /\ (("Phase::Canceled") = ("Phase::Canceled")) /\ (("Phase::Canceled" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::Canceled") /\ (attempt' = attempt) /\ (__umpire_action' = "Client::Cancel") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 0))
+\* @type: Seq(<<Int, Int>>);
 Worker_Poll_Inputs == <<<<1, 1>>, <<2, 2>>, <<3, 3>>>>
-Worker_Poll_At(__umpire_i) == LET __umpire_input_0 == Worker_Poll_Inputs[__umpire_i][2] IN ((((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt))))) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(FailedPrecondition)") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt)))))) /\ (((phase) = ("Phase::Scheduled"))))) /\ (("Phase::Started") = ("Phase::Started")) /\ (("Phase::Started" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::Started") /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt))))) \/ (((phase) = ("Phase::Scheduled")))))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1]))
+\* @type: Int => Bool;
+Worker_Poll_At(__umpire_i) == LET (* @type: Int; *) __umpire_input_0 == Worker_Poll_Inputs[__umpire_i][2] IN ((((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt))))) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(FailedPrecondition)") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt)))))) /\ (((phase) = ("Phase::Scheduled"))))) /\ (("Phase::Started") = ("Phase::Started")) /\ (("Phase::Started" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::Started") /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) /\ (((__umpire_input_0) # (attempt))))) \/ (((phase) = ("Phase::Scheduled")))))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1]))
+\* @type: Bool;
 Worker_Poll == \E __umpire_i \in DOMAIN Worker_Poll_Inputs : Worker_Poll_At(__umpire_i)
+\* @type: Bool;
 Worker_RespondCompleted == ((((phase) = ("Phase::Started"))) /\ (("Phase::Completed") = ("Phase::Completed")) /\ (("Phase::Completed" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::Completed") /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::RespondCompleted") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 4)) \/ ((((~(((phase) = ("Phase::Started")))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::RespondCompleted") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 4))
+\* @type: Seq(<<Int, Bool>>);
 Worker_RespondFailed_Inputs == <<<<5, FALSE>>, <<6, TRUE>>>>
-Worker_RespondFailed_At(__umpire_i) == LET __umpire_input_retryable == Worker_RespondFailed_Inputs[__umpire_i][2] IN (LET __umpire_l1 == ((__umpire_input_retryable) /\ (((attempt) < (__umpire_world_maximum_attempts)))) IN LET __umpire_l2 == (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) IN LET __umpire_l3 == (IF __umpire_l1 THEN __umpire_l2 ELSE attempt) IN LET __umpire_l4 == (IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed") IN (((phase) = ("Phase::Started"))) /\ (((IF __umpire_l1 THEN (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) ELSE 0)) = ((IF __umpire_l1 THEN (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) ELSE 0))) /\ (((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Scheduled")) = ((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Scheduled"))) /\ (((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed")) = ((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed"))) /\ ((__umpire_l4 # phase) \/ (__umpire_l3 # attempt)) /\ (phase' = __umpire_l4) /\ (attempt' = __umpire_l3) /\ (__umpire_action' = "Worker::RespondFailed") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_RespondFailed_Inputs[__umpire_i][1])) \/ ((((~(((phase) = ("Phase::Started")))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::RespondFailed") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_RespondFailed_Inputs[__umpire_i][1]))
+\* @type: Int => Bool;
+Worker_RespondFailed_At(__umpire_i) == LET (* @type: Bool; *) __umpire_input_retryable == Worker_RespondFailed_Inputs[__umpire_i][2] IN (LET (* @type: Bool; *) __umpire_l1 == ((__umpire_input_retryable) /\ (((attempt) < (__umpire_world_maximum_attempts)))) IN LET (* @type: Int; *) __umpire_l2 == (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) IN LET (* @type: Int; *) __umpire_l3 == (IF __umpire_l1 THEN __umpire_l2 ELSE attempt) IN LET (* @type: Str; *) __umpire_l4 == (IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed") IN (((phase) = ("Phase::Started"))) /\ (((IF __umpire_l1 THEN (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) ELSE 0)) = ((IF __umpire_l1 THEN (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) ELSE 0))) /\ (((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Scheduled")) = ((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Scheduled"))) /\ (((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed")) = ((IF __umpire_l1 THEN "Phase::Scheduled" ELSE "Phase::Failed"))) /\ ((__umpire_l4 # phase) \/ (__umpire_l3 # attempt)) /\ (phase' = __umpire_l4) /\ (attempt' = __umpire_l3) /\ (__umpire_action' = "Worker::RespondFailed") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_RespondFailed_Inputs[__umpire_i][1])) \/ ((((~(((phase) = ("Phase::Started")))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Worker::RespondFailed") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_RespondFailed_Inputs[__umpire_i][1]))
+\* @type: Bool;
 Worker_RespondFailed == \E __umpire_i \in DOMAIN Worker_RespondFailed_Inputs : Worker_RespondFailed_At(__umpire_i)
+\* @type: Bool;
 Deadline_ScheduleToStart == ((((phase) = ("Phase::Scheduled"))) /\ (("Phase::TimedOut") = ("Phase::TimedOut")) /\ (("Phase::TimedOut" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::TimedOut") /\ (attempt' = attempt) /\ (__umpire_action' = "Deadline::ScheduleToStart") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 7)) \/ ((((~(((phase) = ("Phase::Scheduled")))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Deadline::ScheduleToStart") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 7))
+\* @type: Bool;
 Deadline_StartToClose == ((((phase) = ("Phase::Started"))) /\ (("Phase::TimedOut") = ("Phase::TimedOut")) /\ (("Phase::TimedOut" # phase) \/ (attempt # attempt)) /\ (phase' = "Phase::TimedOut") /\ (attempt' = attempt) /\ (__umpire_action' = "Deadline::StartToClose") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 8)) \/ ((((~(((phase) = ("Phase::Started")))) /\ (TRUE))) /\ ((phase # phase) \/ (attempt # attempt)) /\ (phase' = phase) /\ (attempt' = attempt) /\ (__umpire_action' = "Deadline::StartToClose") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 8))
+\* @type: Bool;
 ModelNext == (Client_Cancel) \/ (Worker_Poll) \/ (Worker_RespondCompleted) \/ (Worker_RespondFailed) \/ (Deadline_ScheduleToStart) \/ (Deadline_StartToClose)
+\* @type: Bool;
 ModelEdge == __umpire_edge_tick' # __umpire_edge_tick
+\* @type: Bool;
 Edge == ModelNext /\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\ UNCHANGED <<__umpire_pending, __umpire_steps>>
+\* @type: Bool;
 Complete == ~ENABLED ModelNext /\ UNCHANGED vars
+\* @type: Bool;
 Next == Edge \/ Complete
+\* @type: Bool;
 Spec == Init /\ [][Next]_vars
 
+\* @type: Bool;
 Post_terminal_remains == [][~(ModelEdge) \/ ((<<(<<((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) \/ ((<<((phase') = (phase))>> = <<TRUE>>)))>> = <<TRUE>>)>> = <<TRUE>>))]_vars
+\* @type: Bool;
 Post_closed_rejects == [][~(ModelEdge) \/ ((<<(<<((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) \/ ((<<((((phase') = (phase))) /\ (((attempt') = (attempt)))), ((__umpire_outcome') = ("Outcome::Rejected(NotFound)"))>> = <<TRUE, TRUE>>)))>> = <<TRUE>>)>> = <<TRUE>>))]_vars
 ====

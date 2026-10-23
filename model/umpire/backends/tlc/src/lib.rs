@@ -2,6 +2,8 @@
 
 mod decode;
 mod module;
+#[doc(hidden)]
+pub mod process;
 mod runner;
 
 pub use decode::*;

@@ -180,9 +180,9 @@ fn shared_definitions_never_take_an_authored_name() -> Result<(), Box<dyn std::e
         "if self.count == 2 { reject!(Rejection::NotFound); } let __umpire_l_1_1 = self.count + 1; self.count = __umpire_l_1_1; self.__umpire_l1 = true;",
     );
     let step = step(&source)?;
-    assert!(step.contains("LET __umpire_l_2_1 == "), "{step}");
-    assert!(!step.contains("LET __umpire_l1 =="), "{step}");
-    assert!(!step.contains("LET __umpire_l_1_1 =="), "{step}");
+    assert!(step.contains("__umpire_l_2_1 == "), "{step}");
+    assert!(!step.contains("__umpire_l1 =="), "{step}");
+    assert!(!step.contains("__umpire_l_1_1 =="), "{step}");
     if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
         use umpire_tlc::{State, Value};
         let module = umpire_lift::Tla::emit(&Lift::parse("collision.rs", &source)?)?;

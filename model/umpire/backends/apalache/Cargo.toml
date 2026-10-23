@@ -1,0 +1,19 @@
+[package]
+name = "umpire-apalache"
+description = "Pinned bounded safety checks for source-lifted Umpire Models"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+umpire-tlc.workspace = true
+umpire-lift.workspace = true
+
+[dev-dependencies]
+umpire-dsl.workspace = true
+umpire-checker.workspace = true

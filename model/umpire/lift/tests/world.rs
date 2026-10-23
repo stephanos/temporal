@@ -331,7 +331,8 @@ fn generated_world_constants_avoid_synthesized_action_names()
         .replace("requested: User", "requested: __umpire");
     let selected = Binding { actions: unit("__umpire::world_value"), ..binding(1, 3) };
     let module = Tla::emit(&Lift::parse("counter/model.rs", &source)?.bind(&selected)?)?;
-    assert!(module.tla.contains("CONSTANTS __umpire_world_value_1, __umpire_world_limit"));
+    assert!(module.tla.contains("CONSTANT \\* @type: Int;\n__umpire_world_value_1"));
+    assert!(module.tla.contains("CONSTANT \\* @type: Int;\n__umpire_world_limit"));
     assert!(module.tla.contains("__umpire_world_value =="));
     Ok(())
 }

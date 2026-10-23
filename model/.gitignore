@@ -1,4 +1,5 @@
 /target
 /build/tlc/
+/build/apalache/
 
 __pycache__/

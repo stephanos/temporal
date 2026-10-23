@@ -7,7 +7,7 @@ satisfies: [R1]
 Implement R1 and the parent Backend implementation contracts for emitter compatibility, checked arithmetic and postcondition history. The approved task is a source-derived Apalache safety projection with Snowcat types, not comments alone. Preserve the existing TLC relation and answers. No source transition may be inferred from a native explored graph.
 
 **Size:** L. **Dependencies:** fn-210, fn-212 and fn-227 must be closed and integrated on umpire before admission; no worktree is needed for the single writer.
-**Touches:** [model/umpire/lift/**, model/umpire/testing/**, model/umpire/backends/**, model/umpire/tests/**, model/temporal/feature/activity/expected/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, Makefile]
+**Touches:** [model/umpire/lift/**, model/umpire/testing/**, model/umpire/backends/**, model/umpire/tests/**, model/temporal/feature/activity/expected/**, model/scripts/**, model/Cargo.toml, model/Cargo.lock, model/.gitignore, Makefile]
 These are the existing emitter/proof surfaces plus narrowly necessary pinned-tool admission and shared process support. Do not change authored production Models, Go runtime/protocol, guest policy or third-party dependencies. Source/front/IR extensions beyond existing admitted expressions are not expected here; report a concrete need before widening implementation scope. Task .2 finalizes reusable runner lifecycle, .3 owns general typed ITF replay, .4 owns the fixture consumer, and .5 owns symbolic Worlds.
 
 ### Approach

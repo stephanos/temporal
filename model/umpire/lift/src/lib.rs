@@ -7,6 +7,8 @@ use syn::spanned::Spanned;
 mod bind;
 mod emit;
 mod names;
+mod safety;
+mod snowcat;
 use umpire_front::Source;
 pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
 
@@ -175,6 +177,8 @@ pub struct Metadata {
     pub invariants: Vec<Property>,
     /// Registered action claims.
     pub postconditions: Vec<Property>,
+    /// Dedicated safety checks for evaluated arithmetic faults.
+    pub arithmetic: Vec<Property>,
     /// Progress claims.
     pub progress: Vec<Progress>,
     /// Supplemental negative fixture claims.
@@ -310,6 +314,10 @@ fn hooks(ast: &syn::File) -> Vec<&syn::ItemMacro> {
 /// TLA+ emission from the internal typed tree.
 pub struct Tla;
 impl Tla {
+    /// Emit the source-derived bounded safety relation for Apalache.
+    pub fn safety(lifted: &Lifted) -> Result<Module, Diagnostic> {
+        safety::emit(lifted)
+    }
     /// Emit a module with isolated property configurations.
     pub fn emit(lifted: &Lifted) -> Result<Module, Diagnostic> {
         emit::emit(lifted)

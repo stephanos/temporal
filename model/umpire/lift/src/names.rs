@@ -84,6 +84,8 @@ pub(crate) struct Names {
     pub(crate) index: String,
     /// The prefix of a step operator's numbered shared definitions.
     pub(crate) shared: String,
+    pub(crate) safety_claims: String,
+    pub(crate) safety_posts: String,
     /// Module constants under a declared World.
     pub(crate) constants: BTreeMap<String, String>,
 }
@@ -117,6 +119,8 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         .collect();
     let index = allocate(taken, "__umpire_i", &mut generated);
     let shared = numbered(taken, "__umpire_s", &mut generated);
+    let safety_claims = numbered(taken, "__umpire_c", &mut generated);
+    let safety_posts = numbered(taken, "__umpire_p", &mut generated);
     let local = numbered(taken, "__umpire_l", &mut generated);
     let constants = if model.declared_world {
         model
@@ -188,7 +192,7 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
         rename_world(&mut claim.trigger);
         rename_world(&mut claim.target);
     }
-    Names { world, inputs, index, shared, constants }
+    Names { world, inputs, index, shared, safety_claims, safety_posts, constants }
 }
 
 fn local_names(

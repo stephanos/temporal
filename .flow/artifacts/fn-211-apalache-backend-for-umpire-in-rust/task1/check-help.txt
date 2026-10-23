@@ -1,0 +1,122 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[4mUsage[24m
+
+ [1mapalache-mc[22m [33m[options][39m [1mcommand[22m [33m[command options][39m
+
+[4mOptions[24m
+
+   [33m--config-file[39m        : strict JSON configuration to read. Overrides local .apalache.json files, default: none (overrides envvar CONFIG_FILE)
+   [33m--debug[39m              : extensive logging in detailed.log and log.smt, default: false
+   [33m--features[39m           : a comma-separated list of experimental features, default: none:
+                            * rows: enable row typing as explained in ADR-014 (default in versions after 0.29.0)
+                            * no-rows: disable row types, make records imprecise (default in versions prior to 0.29.0)
+   [33m--out-dir[39m            : where all output files will be written, default: ./_apalache-out (overrides envvar OUT_DIR)
+   [33m--profiling[39m          : write general profiling data to profile-rules.txt in the run directory, default: false (overrides envvar PROFILING)
+   [33m--run-dir[39m            : additional directory wherein output files for this run will be written directly, default: none (overrides envvar RUN_DIR)
+   [33m--smtprof[39m            : profile SMT constraints in profile.csv, default: false
+   [33m--write-intermediate[39m : write intermediate output files to `out-dir`, default: false (overrides envvar WRITE_INTERMEDIATE)
+
+[4mCommands[24m
+
+   [1mcheck[22m [33m[command options][39m <file> : Check a TLA+ specification
+      [33m--algo[39m                : the search algorithm: incremental, offline, remote (used by explorer), default: incremental
+      [33m--cinit[39m               : the name of an operator that initializes CONSTANTS, default: none
+      [33m--config[39m              : configuration file in TLC format, default: none
+      [33m--discard-disabled[39m    : pre-check, whether a transition is disabled, and discard it, to make SMT queries smaller, default: true
+      [33m--init[39m                : the name of an operator that initializes VARIABLES, default: Init
+      [33m--inv[39m                 : the names of invariant operators, e.g., 'Inv' or 'InvA,InvB', default: none
+      [33m--length[39m              : maximal number of Next steps, default: 10
+      [33m--max-error[39m           : do not stop on first error, but produce at most the given number of errors (requires --view when greater than 1), default: 1
+      [33m--next[39m                : the name of a transition operator, default: Next
+      [33m--no-deadlock[39m         : do not check for deadlocks, default: false
+      [33m--output-traces[39m       : save an example trace for each symbolic run, default: false
+      [33m--smt-encoding[39m        : the SMT encoding: oopsla19, arrays (experimental), funArrays (experimental), default: oopsla19 (overrides envvar SMT_ENCODING)
+      [33m--smt-solver[39m          : the SMT solver backend: z3, cvc5 (experimental), default: z3 (overrides envvar SMT_SOLVER)
+      [33m--temporal[39m            : the names of temporal properties, e.g. 'Property' or 'PropertyA,PropertyB', default: none
+      [33m--timeout-smt[39m         : limit the duration of a single SMT check query with `n` seconds, default: 0 (unlimited)
+      [33m--tuning-options[39m      : tuning options as arguments in the format key1=val1:key2=val2:key3=val3 (priority over --tuning-options-file), default: none
+      [33m--tuning-options-file[39m : filename of the tuning options, see docs/tuning.md, default: none
+      [33m--view[39m                : the state view to use with --max-error=n, default: none
+      <file> : a file containing a TLA+ specification (.tla or .json)
+
+   [1mconfig[22m [33m[command options][39m : Configure Apalache options
+      [33m--enable-stats[39m : Let Apalache submit usage statistics to tlapl.us
+                       (shared with TLC and TLA+ Toolbox), default: unchanged
+                       See: https://apalache-mc.org/docs/apalache/statistics.html
+
+   [1mparse[22m [33m[command options][39m <file> : Parse a TLA+ specification and quit
+      [33m--output[39m : file to which the parsed source is written (.tla or .json), default: none
+      <file> : a file containing a TLA+ specification (.tla or .json)
+
+   [1mserver[22m [33m[command options][39m : Run in server mode
+      [33m--port[39m        : the port served by the RPC server, default: 8822 (overrides envvar PORT)
+      [33m--server-type[39m : the type of server to run: 'checker' (shai-grpc), 'explorer' (json-rpc), default: checker
+
+   [1msimulate[22m [33m[command options][39m <file> : Symbolically simulate a TLA+ specification
+      [33m--algo[39m                : the search algorithm: incremental, offline, remote (used by explorer), default: incremental
+      [33m--cinit[39m               : the name of an operator that initializes CONSTANTS, default: none
+      [33m--config[39m              : configuration file in TLC format, default: none
+      [33m--discard-disabled[39m    : pre-check, whether a transition is disabled, and discard it, to make SMT queries smaller, default: true
+      [33m--init[39m                : the name of an operator that initializes VARIABLES, default: Init
+      [33m--inv[39m                 : the names of invariant operators, e.g., 'Inv' or 'InvA,InvB', default: none
+      [33m--length[39m              : maximal number of Next steps, default: 10
+      [33m--max-error[39m           : do not stop on first error, but produce at most the given number of errors (requires --view when greater than 1), default: 1
+      [33m--max-run[39m             : do not stop after a first simulation run, but produce up to a given number of runs (unless reached --max-error), default: 100
+      [33m--next[39m                : the name of a transition operator, default: Next
+      [33m--no-deadlock[39m         : do not check for deadlocks, default: false
+      [33m--output-traces[39m       : save an example trace for each symbolic run, default: false
+      [33m--smt-encoding[39m        : the SMT encoding: oopsla19, arrays (experimental), funArrays (experimental), default: oopsla19 (overrides envvar SMT_ENCODING)
+      [33m--smt-solver[39m          : the SMT solver backend: z3, cvc5 (experimental), default: z3 (overrides envvar SMT_SOLVER)
+      [33m--temporal[39m            : the names of temporal properties, e.g. 'Property' or 'PropertyA,PropertyB', default: none
+      [33m--timeout-smt[39m         : limit the duration of a single SMT check query with `n` seconds, default: 0 (unlimited)
+      [33m--tuning-options[39m      : tuning options as arguments in the format key1=val1:key2=val2:key3=val3 (priority over --tuning-options-file), default: none
+      [33m--tuning-options-file[39m : filename of the tuning options, see docs/tuning.md, default: none
+      [33m--view[39m                : the state view to use with --max-error=n, default: none
+      <file> : a file containing a TLA+ specification (.tla or .json)
+
+   [1mtest[22m [33m[command options][39m <file> <before> <action> <assertion> : Quickly test a TLA+ specification
+      [33m--cinit[39m : the name of an operator that initializes CONSTANTS, default: none
+      <file>    : a file containing a TLA+ specification (.tla or .json)
+      <before>  : the name of an operator to prepare the test, similar to Init
+      <action>  : the name of an action to execute, similar to Next
+      <assertion> : the name of an operator that should evaluate to true after executing `action`
+
+   [1mtracee[22m [33m[command options][39m <file> <trace> <expressions> : Evaluate expressions over a trace.
+      [33m--algo[39m                : the search algorithm: incremental, offline, remote (used by explorer), default: incremental
+      [33m--cinit[39m               : the name of an operator that initializes CONSTANTS, default: none
+      [33m--config[39m              : configuration file in TLC format, default: none
+      [33m--discard-disabled[39m    : pre-check, whether a transition is disabled, and discard it, to make SMT queries smaller, default: true
+      [33m--init[39m                : the name of an operator that initializes VARIABLES, default: Init
+      [33m--inv[39m                 : the names of invariant operators, e.g., 'Inv' or 'InvA,InvB', default: none
+      [33m--length[39m              : maximal number of Next steps, default: 10
+      [33m--max-error[39m           : do not stop on first error, but produce at most the given number of errors (requires --view when greater than 1), default: 1
+      [33m--next[39m                : the name of a transition operator, default: Next
+      [33m--no-deadlock[39m         : do not check for deadlocks, default: false
+      [33m--output-traces[39m       : save an example trace for each symbolic run, default: false
+      [33m--smt-encoding[39m        : the SMT encoding: oopsla19, arrays (experimental), funArrays (experimental), default: oopsla19 (overrides envvar SMT_ENCODING)
+      [33m--smt-solver[39m          : the SMT solver backend: z3, cvc5 (experimental), default: z3 (overrides envvar SMT_SOLVER)
+      [33m--temporal[39m            : the names of temporal properties, e.g. 'Property' or 'PropertyA,PropertyB', default: none
+      [33m--timeout-smt[39m         : limit the duration of a single SMT check query with `n` seconds, default: 0 (unlimited)
+      [33m--tuning-options[39m      : tuning options as arguments in the format key1=val1:key2=val2:key3=val3 (priority over --tuning-options-file), default: none
+      [33m--tuning-options-file[39m : filename of the tuning options, see docs/tuning.md, default: none
+      [33m--view[39m                : the state view to use with --max-error=n, default: none
+      <file>      : a file containing a TLA+ specification (.tla or .json)
+      <trace>     : a file containing an ITF trace. Must also define --expressions.
+      <expressions> : TLA+ expressions to be evaluated over a given trace. Must also define --trace.
+
+   [1mtranspile[22m [33m[command options][39m <file> : Transpile and quit
+      [33m--cinit[39m    : the name of an operator that initializes CONSTANTS, default: none
+      [33m--config[39m   : configuration file in TLC format, default: none
+      [33m--init[39m     : the name of an operator that initializes VARIABLES, default: Init
+      [33m--inv[39m      : the names of invariant operators, e.g., 'Inv' or 'InvA,InvB', default: none
+      [33m--length[39m   : maximal number of Next steps, default: 10
+      [33m--next[39m     : the name of a transition operator, default: Next
+      [33m--temporal[39m : the names of temporal properties, e.g. 'Property' or 'PropertyA,PropertyB', default: none
+      <file> : a file containing a TLA+ specification (.tla or .json)
+
+   [1mtypecheck[22m [33m[command options][39m <file> : Check types in a TLA+ specification
+      [33m--infer-poly[39m : allow the type checker to infer polymorphic types, default: true
+      [33m--output[39m     : file to which the typechecked source is written (.tla or .json), default: none
+      <file> : a TLA+ specification (.tla or .json)
+
+Failed to parse command [1mcheck[22m: No option found for --help

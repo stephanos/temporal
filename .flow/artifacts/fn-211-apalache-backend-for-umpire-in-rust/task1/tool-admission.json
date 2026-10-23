@@ -1,0 +1,16 @@
+{
+  "version": "0.62.4",
+  "release_url": "https://github.com/apalache-mc/apalache/releases/tag/v0.62.4",
+  "release_archive": "apalache-0.62.4.tgz",
+  "official_asset_digest": "b781b53bba32fac14ac2e02b0332e1dc2edc64cb7b850c0608d8142cc7aa2ef4",
+  "download_sha256": "b781b53bba32fac14ac2e02b0332e1dc2edc64cb7b850c0608d8142cc7aa2ef4",
+  "jar_sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+  "actual_version_output": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\n0.62.4\n",
+  "versioned_sources": [
+    "docs/src/HOWTOs/howto-write-type-annotations.md",
+    "docs/src/apalache/types-and-annotations.md",
+    "mod-tool/src/main/scala/at/forsyte/apalache/tla/tooling/opt/CheckCmd.scala"
+  ],
+  "length_convention": "--length is the maximum number of Next steps; actual controls pin length0 initial claims and length1 outgoing arithmetic faults.",
+  "scope": "Task1 admission and source controls; reusable lifecycle is task2 and general typed ITF replay is task3. Writer and required reviewer use the same model family."
+}

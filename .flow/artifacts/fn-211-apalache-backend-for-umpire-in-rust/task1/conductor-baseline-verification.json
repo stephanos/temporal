@@ -1,0 +1,10 @@
+{
+  "baseline_commit": "3101551995ac6877ccdc6d8739dd4025373f70dd",
+  "groups": {
+    "source": 2225,
+    "artifacts": 558
+  },
+  "missing": [],
+  "mismatches": [],
+  "method": "Every retained baseline hash independently matched exact Git blob bytes at task admission, using git cat-file --batch."
+}

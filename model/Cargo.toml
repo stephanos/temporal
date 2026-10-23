@@ -19,6 +19,7 @@ members = [
     "umpire/front",
     "umpire/lift",
     "umpire/backends/tlc",
+    "umpire/backends/apalache",
     "umpire/reference/kettle",
     "umpire/reference/kettle/guest",
     "umpire/wasm",
@@ -59,6 +60,7 @@ umpire-ir-derive = { version = "0.0.1", path = "umpire/ir-derive" }
 umpire-ir = { version = "0.0.1", path = "umpire/ir" }
 umpire-front = { version = "0.0.1", path = "umpire/front" }
 umpire-lift = { version = "0.0.1", path = "umpire/lift" }
+umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
 umpire-wasm = { version = "0.0.1", path = "umpire/wasm" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }

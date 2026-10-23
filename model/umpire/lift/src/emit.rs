@@ -56,11 +56,11 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     THEN IF __umpire_b = (-2147483647 - 1)
          THEN IF __umpire_a = (-2147483647 - 1) THEN 1 ELSE 0
          ELSE IF __umpire_a < 0
-              THEN LET __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
-                       __umpire_n == -(__umpire_a + 1)
-                       __umpire_q == __umpire_n \div __umpire_d
-                       __umpire_r == __umpire_n - __umpire_q * __umpire_d
-                       __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
+              THEN LET (* @type: Int; *) __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
+                       (* @type: Int; *) __umpire_n == -(__umpire_a + 1)
+                       (* @type: Int; *) __umpire_q == __umpire_n \div __umpire_d
+                       (* @type: Int; *) __umpire_r == __umpire_n - __umpire_q * __umpire_d
+                       (* @type: Int; *) __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
                    IN IF __umpire_b < 0 THEN -__umpire_negative ELSE __umpire_negative
               ELSE IF __umpire_b < 0 THEN -(__umpire_a \div (-__umpire_b)) ELSE __umpire_a \div __umpire_b
     ELSE 0"#,
@@ -154,7 +154,12 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                 }));
                 let mut definitions = String::new();
                 for (name, value) in &branch.definitions {
-                    let _ = write!(definitions, "LET {name} == {} IN ", expr(value));
+                    let _ = write!(
+                        definitions,
+                        "LET (* @type: {}; *) {name} == {} IN ",
+                        crate::snowcat::ty(&value.ty),
+                        expr(value)
+                    );
                 }
                 format!("{definitions}{}{terms}", shared.definitions.concat())
             })
@@ -374,7 +379,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     }
     Ok(Module {
         name: model.name.clone(),
-        tla: out,
+        tla: crate::snowcat::annotate(model, &out),
         cfg,
         metadata: Metadata {
             state_name: model.state_name.clone(),
@@ -401,6 +406,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             catalog: if inputs { model.concrete() } else { Vec::new() },
             invariants,
             postconditions,
+            arithmetic: Vec::new(),
             progress,
             negative,
             observer_fields: observers.iter().map(|s| (*s).into()).collect(),
@@ -505,7 +511,11 @@ fn input_relation(
     line(out, format!("{operator}_Inputs == <<{}>>", rows.join(", ")));
     let mut body = branches;
     for (position, symbol) in symbols.iter().enumerate().rev() {
-        body = format!("LET {symbol} == {operator}_Inputs[{index}][{}] IN {body}", position + 2);
+        body = format!(
+            "LET (* @type: {}; *) {symbol} == {operator}_Inputs[{index}][{}] IN {body}",
+            crate::snowcat::ty(&model.actions[action].fields[position].ty),
+            position + 2
+        );
     }
     line(out, format!("{operator}_At({index}) == {body}"));
     line(
@@ -605,22 +615,22 @@ pub(crate) fn rendered(value: &Expr) -> String {
     expr(value)
 }
 
-fn line(out: &mut String, value: impl AsRef<str>) {
+pub(super) fn line(out: &mut String, value: impl AsRef<str>) {
     out.push_str(value.as_ref());
     out.push('\n');
 }
-fn conjoin(terms: impl IntoIterator<Item = String>) -> String {
+pub(super) fn conjoin(terms: impl IntoIterator<Item = String>) -> String {
     let terms: Vec<_> = terms.into_iter().map(|s| format!("({s})")).collect();
     if terms.is_empty() { "TRUE".into() } else { terms.join(" /\\ ") }
 }
-fn disjoin(terms: Vec<String>) -> String {
+pub(super) fn disjoin(terms: Vec<String>) -> String {
     if terms.is_empty() {
         "FALSE".into()
     } else {
         terms.into_iter().map(|s| format!("({s})")).collect::<Vec<_>>().join(" \\/ ")
     }
 }
-fn text(value: &str) -> String {
+pub(super) fn text(value: &str) -> String {
     format!(
         "\"{}\"",
         value
@@ -631,7 +641,7 @@ fn text(value: &str) -> String {
             .replace('\t', "\\t")
     )
 }
-fn default(ty: &Type) -> String {
+pub(super) fn default(ty: &Type) -> String {
     match ty {
         Type::Bool => "FALSE".into(),
         Type::Int { .. } => "0".into(),
@@ -823,7 +833,10 @@ impl<'a> Shared<'a> {
         }
         let body = render(value, &mut |child| self.emit(child));
         let name = format!("{}{}", self.prefix, self.definitions.len() + 1);
-        self.definitions.push(format!("LET {name} == {body} IN "));
+        self.definitions.push(format!(
+            "LET (* @type: {}; *) {name} == {body} IN ",
+            crate::snowcat::ty(&value.ty)
+        ));
         if let Some(node) = self.nodes.get_mut(value) {
             node.name = Some(name.clone());
         }
@@ -831,6 +844,6 @@ impl<'a> Shared<'a> {
     }
 }
 
-fn integer(value: i128) -> String {
+pub(super) fn integer(value: i128) -> String {
     if value == i128::from(i32::MIN) { "(-2147483647 - 1)".into() } else { value.to_string() }
 }

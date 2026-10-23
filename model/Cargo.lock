@@ -846,6 +846,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-apalache"
+version = "0.0.1"
+dependencies = [
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-lift",
+ "umpire-tlc",
+]
+
+[[package]]
 name = "umpire-catalog"
 version = "0.0.1"
 dependencies = [

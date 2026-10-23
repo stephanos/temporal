@@ -464,6 +464,7 @@ mod tests {
             tla: String::new(),
             cfg: String::new(),
             metadata: umpire_lift::Metadata {
+                arithmetic: Vec::new(),
                 state_name: "Model".into(),
                 world_path: String::new(),
                 fields: vec![umpire_lift::Field { name: "value".into(), ty: Type::Bool }],
