@@ -347,7 +347,8 @@
    "evidence": [
     "rust/gomad/campaign::sweep_backend_failure_tests::native_failure_retains_typed_termination_without_reason_inference",
     "rust/helper_corpus/helper_transcript_corpus_reproduces_expected_outcomes"
-   ]
+   ],
+   "reason": "Joined Go errors and the Go termination enum have no Rust analogue: the linked helper reports one typed termination, kept unchanged by backend_failure; divergence terminations run in the helper corpus."
   },
   "tools/gomad/internal/backends/wasm/backend/operator_marker_test.go#TestScenarioPreservesChoiceCapacityBeforeDeclaredMarker": {
    "evidence": [
@@ -1319,13 +1320,13 @@
   },
   "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#TestInstalledOperatorKillResume": {
    "evidence": [
-    "rust/gomad/installed_lifecycle_tests::installed_lifecycle_resume_missing_installation_keeps_committed_journal_unchanged"
+    "rust/gomad/installed_lifecycle_tests::installed_lifecycle_resume_missing_installation_keeps_committed_journal_unchanged",
+    "stage/artifact/TestInstalledOperatorKillResume"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#TestInstalledOperatorTypedScenarioKillResume": {
-   "basis": "weak name correlation within the owning domain; confirm in review",
    "evidence": [
-    "rust/gomad/campaign::scenario::preservation_tests::operator_strict_preflight_preserves_every_original_refusal"
+    "stage/artifact/TestInstalledOperatorTypedScenarioKillResume"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorAsymmetricGuestFailureEndsPromptly": {
@@ -1340,7 +1341,8 @@
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorTypedScenarioDetachedReplay": {
    "evidence": [
-    "rust/gomad/campaign::scenario::preservation_tests::operator_strict_preflight_preserves_every_original_refusal"
+    "rust/gomad/campaign::scenario::preservation_tests::operator_strict_preflight_preserves_every_original_refusal",
+    "stage/artifact/TestInstalledOperatorTypedScenarioDetachedReplay"
    ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestOperatorRingpopScenarioPreflight": {
@@ -2396,7 +2398,8 @@
     "rust/gomad/sweep::run::lifecycle_tests::changed_source_and_candidate_refuse_before_additional_test_execution",
     "rust/gomad/sweep::run::lifecycle_tests::guest_excluded_and_dirty_sources_do_not_execute_tests",
     "rust/gomad/sweep::run::lifecycle_tests::warmup_admission_observes_the_exact_preparation_threshold"
-   ]
+   ],
+   "reason": "Behaviour change: a changed candidate is now refused before further execution instead of rerunning the whole sweep."
   },
   "tools/gomad/internal/backends/wasm/internal/sweep/sweep_test.go#TestSweepRecordsBudgetCutoffAsNotRunAndResumesIt": {
    "evidence": [
@@ -4077,7 +4080,10 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestGuestTransportAuthorizesIdentityBeforeStart": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "evidence": [
+    "rust/engine/cache_miss_verifies_module_before_compilation_or_publication"
+   ],
+   "reason": "Engine version and configuration are compiled into the linked helper and cannot be requested; module identity is authorized before any guest start."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestGuestTransportClassifiesCapacityMalformedAndUnsupported": {
    "evidence": [
@@ -4112,7 +4118,7 @@
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestStorageSplitOutputBudgetAfterClose": {
-   "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
+   "retired": "Split stdout budget of the deleted subprocess storage helper; the linked helper charges offered output in one owner (retained TestOfferedOutputChargesRejectedWritesAndEntropyBufferReservation)."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTerminalExitAuthorizationMismatchAfterStarted": {
    "evidence": [
@@ -4142,7 +4148,8 @@
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportClassifiesHelperDeathWatchdogCancellationAndMalformedFrames": {
    "evidence": [
     "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::native_host_termination_preserves_watchdog_and_parent_cancellation_status"
-   ]
+   ],
+   "reason": "Helper death and malformed frames belong to the deleted subprocess transport; the linked helper keeps the watchdog and parent-cancellation classifications."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportDirectInputHandlesLargeBootstrapBeforeFirstRead": {
    "retired": "Go-to-helper subprocess transport and frame pumping were deleted with the Go host; the Rust host links the helper in-process."
@@ -4156,7 +4163,8 @@
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportPreservesCancellationMetadataWhileReplyIsBlocked": {
    "evidence": [
     "rust/gomad_wasmhost/linked_cluster::live_controller_tests::lifecycle_predicate_tests::native_host_termination_preserves_watchdog_and_parent_cancellation_status"
-   ]
+   ],
+   "reason": "A reply blocked on the deleted subprocess pipe has no linked analogue; cancellation versus watchdog status is kept."
   },
   "tools/gomad/internal/backends/wasm/wasi/process_test.go#TestTransportRejectsChangedFilesOnCacheMiss": {
    "evidence": [
