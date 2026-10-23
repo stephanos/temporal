@@ -1,0 +1,246 @@
+{
+  "schema": "gomad.installed-lifecycle-corpus/v1",
+  "original_commit": "1d695061b6382009d0659238c652a5a765b1d5f5",
+  "original_audit_sha256": "6560d83e77f635757ca2d8abb0cb4d341da0382ee461e22623d232e2afad62e8",
+  "qualification_credit": false,
+  "roots": [
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#TestInstalledOperatorKillResume",
+      "original_blob": "e044cad906bde98e849578afbab07fa27e298fef",
+      "source_span_sha256": "017232c5bf4e2b0fa637a0a16eabfef65d237a9306b5973906c7e4345694aa8c",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCLIProcesses": "9d17347b5f76a0c340ef0ad0f578f5c84a88870b7b2d1200d6433eddcc87698c",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCampaignPath": "f5543335c0d1f32baf75039e57eb6654861df06ba88a55d61ba97ae6978fabdb",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCampaignSemantics": "7d6e5055056cf076174b1d7c19c719a3ef7854f2f98e6de444ae8daa0cd7004a",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmClusterRecordIdentities": "23da53402436a7bde36f7bf7381e2300ba3b95c1f7db5e4e5822987a64fb31e1",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmDiscoverOwnedProcesses": "ea7a3daaaadad9eab843a42e042cf3228612a9ae7c92f4574924e7a1e7c1e189",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmExploreArguments": "37231e95ca844392c835baed0ca879531e876c0484e93b4f93661f0bf160f940",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmInspectCampaign": "871346bc0260c924e11df4c3175f9ab47e546c3b6d49539a1a8621266cafaa91",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmInspectLiveCampaign": "ffff5094a3b6ef10e0c92cdaccee86e36ef8350fcb8d934697870041665507bc",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmPoll": "5b95a60524b5d99abd91d9622b294e48ede2529ceb9b10047de23bfde8881fc9",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmRetainedArtifactHashes": "1b42eacc588ab502e1149d6c9b19a3baf50b0dc6d26c21efbd789dd65790e7ed",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmRunKillResume": "8dc10d21f3a478fb50a53cdcb5fac911570220aa8f7085503fe13b5a130d153c",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#copyOperatorTree": "44863f4a55bada1abab87dbbaae8ee89b2404fb2fb41bdc37b33f77c08578aa6",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedArtifactPaths": "395319792d6beca6ba065fd48b8f08666aadaca2a20c5d71c041802d3c1bed88",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#writeTypedJSON": "9cf34c980b980fb18b583066b415710ce2a9d73751fc460982fa1d32ecb9943b"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#TestInstalledOperatorTypedScenarioKillResume",
+      "original_blob": "e044cad906bde98e849578afbab07fa27e298fef",
+      "source_span_sha256": "f63e37f5201474104f4733f43dcb467e196c9e280702ba7fb8db17d22ac64e4d",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCLIProcesses": "9d17347b5f76a0c340ef0ad0f578f5c84a88870b7b2d1200d6433eddcc87698c",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCampaignPath": "f5543335c0d1f32baf75039e57eb6654861df06ba88a55d61ba97ae6978fabdb",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmCampaignSemantics": "7d6e5055056cf076174b1d7c19c719a3ef7854f2f98e6de444ae8daa0cd7004a",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmClusterRecordIdentities": "23da53402436a7bde36f7bf7381e2300ba3b95c1f7db5e4e5822987a64fb31e1",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmDiscoverOwnedProcesses": "ea7a3daaaadad9eab843a42e042cf3228612a9ae7c92f4574924e7a1e7c1e189",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmInspectCampaign": "871346bc0260c924e11df4c3175f9ab47e546c3b6d49539a1a8621266cafaa91",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmInspectLiveCampaign": "ffff5094a3b6ef10e0c92cdaccee86e36ef8350fcb8d934697870041665507bc",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmPoll": "5b95a60524b5d99abd91d9622b294e48ede2529ceb9b10047de23bfde8881fc9",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmRetainedArtifactHashes": "1b42eacc588ab502e1149d6c9b19a3baf50b0dc6d26c21efbd789dd65790e7ed",
+        "tools/gomad/internal/backends/wasm/command/kill_resume_linux_test.go#wasmRunKillResume": "8dc10d21f3a478fb50a53cdcb5fac911570220aa8f7085503fe13b5a130d153c",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#copyOperatorTree": "44863f4a55bada1abab87dbbaae8ee89b2404fb2fb41bdc37b33f77c08578aa6",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#newTypedOperator": "7f52f8c47fea6296304d66443d81b14a8f77d8b6b5ab704f478aead082d726ff",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedArtifactPaths": "395319792d6beca6ba065fd48b8f08666aadaca2a20c5d71c041802d3c1bed88",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedScenario": "169e1c9ac02a39410bab3b865352a1701a44e99e1b20b209f3f6e7487bfc4b68",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#writeTypedJSON": "9cf34c980b980fb18b583066b415710ce2a9d73751fc460982fa1d32ecb9943b"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorAsymmetricGuestFailureEndsPromptly",
+      "original_blob": "b7a96d711fc59a0be1282639a3f72842de7473b9",
+      "source_span_sha256": "637cd48b86858150334ad99ad1edf4b491ac2ed74dff9084f5e545f3fd5f30f8",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#newTypedOperator": "7f52f8c47fea6296304d66443d81b14a8f77d8b6b5ab704f478aead082d726ff",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedArtifactPaths": "395319792d6beca6ba065fd48b8f08666aadaca2a20c5d71c041802d3c1bed88",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedScenario": "169e1c9ac02a39410bab3b865352a1701a44e99e1b20b209f3f6e7487bfc4b68",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#writeTypedJSON": "9cf34c980b980fb18b583066b415710ce2a9d73751fc460982fa1d32ecb9943b"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorClusterFailureEndsPromptly",
+      "original_blob": "b7a96d711fc59a0be1282639a3f72842de7473b9",
+      "source_span_sha256": "f2da41b93ba59bbee2f78c0b51cae6740f510054e79341a63eb725b7b77e06f7",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#newTypedOperator": "7f52f8c47fea6296304d66443d81b14a8f77d8b6b5ab704f478aead082d726ff",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedArtifactPaths": "395319792d6beca6ba065fd48b8f08666aadaca2a20c5d71c041802d3c1bed88",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedScenario": "169e1c9ac02a39410bab3b865352a1701a44e99e1b20b209f3f6e7487bfc4b68",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#writeTypedJSON": "9cf34c980b980fb18b583066b415710ce2a9d73751fc460982fa1d32ecb9943b"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorTypedScenarioDetachedReplay",
+      "original_blob": "b7a96d711fc59a0be1282639a3f72842de7473b9",
+      "source_span_sha256": "cfad56fbcddeea4ec8e10100b96336adbea4bec2f719948ed99f8c287626a028",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#copyOperatorTree": "44863f4a55bada1abab87dbbaae8ee89b2404fb2fb41bdc37b33f77c08578aa6",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#newTypedOperator": "7f52f8c47fea6296304d66443d81b14a8f77d8b6b5ab704f478aead082d726ff",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedArtifactPaths": "395319792d6beca6ba065fd48b8f08666aadaca2a20c5d71c041802d3c1bed88",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#typedScenario": "169e1c9ac02a39410bab3b865352a1701a44e99e1b20b209f3f6e7487bfc4b68",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#writeTypedJSON": "9cf34c980b980fb18b583066b415710ce2a9d73751fc460982fa1d32ecb9943b"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/command_test.go#TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs",
+      "original_blob": "3a77d816210ba29d6af40415c56ed297eb2aeb59",
+      "source_span_sha256": "eeba7c59f40e23a59f8584ab7a7c603b1bc6fd7abeb1ca9bd5f4a262ca15cf29",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db"
+      }
+    },
+    {
+      "original_root": "tools/gomad/internal/backends/wasm/command/command_test.go#TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper",
+      "original_blob": "3a77d816210ba29d6af40415c56ed297eb2aeb59",
+      "source_span_sha256": "0b46f2dd8426753066f1e976eae6842ca3c2cddcdba108cb3047a45c23e2d29e",
+      "helpers": {
+        "tools/gomad/internal/backends/wasm/command/command_test.go#invokeOperator": "4949bc928a2f91517146386ec2b1f27f545f9c9afc59d93d80f2304a334ff97d",
+        "tools/gomad/internal/backends/wasm/command/command_test.go#operatorEnvironment": "aad4661078f102b58cbdd7eb748e8d8e342b75fbd2e11fef25595ed61d7d83db",
+        "tools/gomad/internal/backends/wasm/command/scenario_test.go#copyOperatorTree": "44863f4a55bada1abab87dbbaae8ee89b2404fb2fb41bdc37b33f77c08578aa6"
+      }
+    }
+  ],
+  "fixtures": {
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/main.go": {
+      "bytes": 5343,
+      "sha256": "a7eacd2b1baeec04ec0ccfc7cc85450eaf4f98bc38a9bd3a629a611f22385049"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/config.json": {
+      "bytes": 615,
+      "sha256": "ff016cf6fb3565c66bc949c4459b1a3b6994f143b53a56d0b40682fa0aa3a429"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/durable.json": {
+      "bytes": 2118,
+      "sha256": "d11680a9df1dc9535610c852992e91aef803927432948d24c912d574b82d30a6"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/network.json": {
+      "bytes": 2202,
+      "sha256": "d2cc21875935e0f572344bd02c4533eb061eea96ec4ba1ca2e90b392dfd77c45"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/deadlock.json": {
+      "bytes": 1450,
+      "sha256": "559acdfc09ef7ec3c2362c989c38e8e8a60648d31b8c22d2ddb1ef854236d70a"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/scenario/capacity.json": {
+      "bytes": 1452,
+      "sha256": "8b3f94743a0c8fbe253dd034de134ed8b8a207dc7844bd9b1ad987a6d14f6d3b"
+    },
+    "tools/gomad/internal/backends/wasm/command/testdata/captured_test.go": {
+      "bytes": 752,
+      "sha256": "097f77ccf41d01105bbf386d87a1057aa8d7c9edc5679c9dc74e0020bcde1fa7"
+    },
+    "tools/gomad/internal/backends/wasm/testdata/io_failure_module/io_failure/io_failure_test.go": {
+      "bytes": 499,
+      "sha256": "28f9ea5f31fa073209210bf05079bb9de4f13409e4b31bed9829b8f0a8034513"
+    }
+  },
+  "cases": [
+    {
+      "family": "kill-12",
+      "root": "TestInstalledOperatorKillResume",
+      "seeds": "1-12",
+      "timeout_seconds": 180,
+      "poll_seconds": 120,
+      "execution_timeout": "30s",
+      "overall_timeout": "2m",
+      "signals": [
+        "SIGSTOP",
+        "SIGKILL"
+      ],
+      "status": 0
+    },
+    {
+      "family": "kill-24",
+      "root": "TestInstalledOperatorTypedScenarioKillResume",
+      "seeds": "1-24",
+      "timeout_seconds": 180,
+      "poll_seconds": 120,
+      "execution_timeout": "30s",
+      "overall_timeout": "3m",
+      "success_limit": 32,
+      "success_bytes": 536870912,
+      "signals": [
+        "SIGSTOP",
+        "SIGKILL"
+      ],
+      "status": 1
+    },
+    {
+      "family": "prompt",
+      "roots": [
+        "TestInstalledOperatorAsymmetricGuestFailureEndsPromptly",
+        "TestInstalledOperatorClusterFailureEndsPromptly"
+      ],
+      "variants": [
+        "two",
+        "three",
+        "deadlock",
+        "capacity"
+      ],
+      "seeds": "7",
+      "wall_limit_nanos": 10000000000,
+      "execution_timeout": "3m",
+      "overall_timeout": {
+        "two": "3m",
+        "three": "3m",
+        "deadlock": "4m",
+        "capacity": "4m"
+      },
+      "retained_payload_limit": 134217728,
+      "stderr_limit": 65536
+    },
+    {
+      "family": "typed-detached",
+      "root": "TestInstalledOperatorTypedScenarioDetachedReplay",
+      "variants": [
+        "recover",
+        "canary",
+        "network"
+      ],
+      "seeds": "7",
+      "transitions": [
+        6,
+        5,
+        8
+      ],
+      "retained_payload_limit": 134217728
+    },
+    {
+      "family": "operator",
+      "root": "TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs",
+      "profiles": [
+        "gomad.wasi-stock-exploratory/v1",
+        "gomad.wasi-cooperative/v1"
+      ],
+      "seeds": "7",
+      "guest_stdout_limit": 8388608,
+      "cache_suffix": ".gomad-cache-v3",
+      "cache_mode": "0600",
+      "qualification_conditional": "mandatory frozen-source public qualify; existing raw Result/receipt/campaign authenticator, detached public report"
+    },
+    {
+      "family": "external-cluster",
+      "root": "TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper",
+      "forbidden_flags": [
+        "--verify-only",
+        "--observed",
+        "--toolchain-root"
+      ]
+    }
+  ],
+  "kill_fixture": {
+    "go.mod": "module gomad.wasm.killresume.fixture\n\ngo 1.27.1\n",
+    "work_test.go": "package fixture\n\nimport \"testing\"\n\nfunc TestWASMKillResumeWork(t *testing.T) {}\n"
+  }
+}

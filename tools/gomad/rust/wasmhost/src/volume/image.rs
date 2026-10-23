@@ -24,6 +24,10 @@ pub(crate) struct RecoveryImage {
 }
 
 impl RecoveryImage {
+    pub(crate) fn volume_ids(&self) -> Vec<String> {
+        self.fs.volumes.keys().cloned().collect()
+    }
+
     pub(crate) fn encode(
         fs: &Fs,
         model: &str,
@@ -628,6 +632,83 @@ impl<'a> Reader<'a> {
 mod tests {
     use super::*;
     use base64::{Engine, engine::general_purpose::STANDARD};
+
+    #[test]
+    fn installed_lifecycle_readonly_volume_inventory_uses_actual_decoded_images() {
+        for count in 0..=2 {
+            let configs = (0..count)
+                .map(|index| VolumeConfig {
+                    id: format!("volume-{index}"),
+                    mount: format!("/volume-{index}"),
+                    capacity_bytes: 4096,
+                })
+                .collect::<Vec<_>>();
+            let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+                "volumes":configs,"limits":{"PendingOperations":16,"Transitions":1024}
+            }))
+            .unwrap();
+            let input: crate::linked::StorageInput = serde_json::from_value(serde_json::json!({
+                "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true},
+                "image":null,"context":null
+            }))
+            .unwrap();
+            let mut fs = Fs::new(0);
+            fs.configure_volumes(&configs, model.limits, 0).unwrap();
+            let raw =
+                RecoveryImage::encode(&fs, &model.identity(), &BTreeMap::new(), 1 << 20).unwrap();
+            let digest = image_digest(&raw);
+            let expected = (0..count)
+                .map(|index| format!("volume-{index}"))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                crate::linked_storage_inspection::recovery_volumes(&input, &raw, &digest, 1 << 20)
+                    .unwrap(),
+                expected
+            );
+            for length in [0, 7, raw.len() - 1] {
+                assert!(
+                    crate::linked_storage_inspection::recovery_volumes(
+                        &input,
+                        &raw[..length],
+                        &image_digest(&raw[..length]),
+                        1 << 20
+                    )
+                    .is_err()
+                );
+            }
+            let mut corrupt = raw.clone();
+            corrupt[0] ^= 1;
+            assert!(
+                crate::linked_storage_inspection::recovery_volumes(
+                    &input,
+                    &corrupt,
+                    &digest,
+                    1 << 20
+                )
+                .is_err()
+            );
+            let mut wrong_version = raw.clone();
+            wrong_version[8] = 2;
+            assert!(
+                crate::linked_storage_inspection::recovery_volumes(
+                    &input,
+                    &wrong_version,
+                    &image_digest(&wrong_version),
+                    1 << 20
+                )
+                .is_err()
+            );
+            assert!(
+                crate::linked_storage_inspection::recovery_volumes(
+                    &input,
+                    &raw,
+                    &digest,
+                    raw.len() as u64 - 1
+                )
+                .is_err()
+            );
+        }
+    }
 
     fn configs() -> Vec<VolumeConfig> {
         vec![VolumeConfig {

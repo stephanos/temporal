@@ -1,3 +1,5 @@
+mod storage;
+
 use crate::evidence::inspection::{Choices, Details, Output, Simulation, World};
 use crate::evidence::symbolize::{
     self,
@@ -31,6 +33,8 @@ struct Artifact<'a> {
     world: Option<&'a World>,
     simulation: Option<&'a Simulation>,
     minimization: Option<crate::minimize::report::Report<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    storage: Option<storage::Storage>,
 }
 
 fn artifact_path(operand: &Path) -> Result<PathBuf, String> {
@@ -158,6 +162,7 @@ pub fn run(arguments: &[String], output: &mut dyn Write) -> Result<(), super::Er
                 .as_ref()
                 .and_then(|details| details.simulation.as_ref()),
             minimization,
+            storage: storage::read(&opened)?,
         },
     };
     let bytes = if json {
