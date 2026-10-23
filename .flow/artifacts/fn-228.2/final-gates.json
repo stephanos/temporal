@@ -1,0 +1,102 @@
+{
+  "verified_head": "9e30e3602d312d908d2ccef0d058fcd4f96f732f",
+  "gates": [
+    {
+      "command": "UMPIRE_BACKENDS=require make model-time",
+      "exit_code": 0,
+      "elapsed_seconds": 877,
+      "stage_timings": [
+        {
+          "stage": "temporal-guest-freshness",
+          "seconds": 31.251
+        },
+        {
+          "stage": "retired-names",
+          "seconds": 0.497
+        },
+        {
+          "stage": "timing-controls",
+          "seconds": 0.034
+        },
+        {
+          "stage": "guest-build-controls",
+          "seconds": 3.63
+        },
+        {
+          "stage": "capability-controls",
+          "seconds": 0.08
+        },
+        {
+          "stage": "source-boundary",
+          "seconds": 9.96
+        },
+        {
+          "stage": "protobuf-freshness",
+          "seconds": 0.085
+        },
+        {
+          "stage": "kettle-protobuf-freshness",
+          "seconds": 0.069
+        },
+        {
+          "stage": "temporal-protobuf-freshness",
+          "seconds": 0.047
+        },
+        {
+          "stage": "fmt",
+          "seconds": 0.544
+        },
+        {
+          "stage": "clippy",
+          "seconds": 8.359
+        },
+        {
+          "stage": "docs",
+          "seconds": 11.32
+        },
+        {
+          "stage": "tests",
+          "seconds": 707.905
+        },
+        {
+          "stage": "wasm32-wasip1",
+          "seconds": 0.294
+        },
+        {
+          "stage": "core-wasm-clippy",
+          "seconds": 0.093
+        },
+        {
+          "stage": "wasm-guest",
+          "seconds": 43.89
+        },
+        {
+          "stage": "go-host",
+          "seconds": 39.999
+        },
+        {
+          "stage": "temporal-go-host",
+          "seconds": 12.098
+        }
+      ],
+      "timed_gate_seconds": 870.575,
+      "soft_gate_target_seconds": 60,
+      "gate_over_soft_target": true,
+      "inner_loop_seconds": 6.109,
+      "soft_inner_target_seconds": 10,
+      "inner_over_soft_target": false,
+      "log": ".flow/tmp/fn-228.2/required-gate.log"
+    },
+    {
+      "command": "env -u UMPIRE_BACKENDS make model-check",
+      "exit_code": 0,
+      "elapsed_seconds": 392,
+      "log": ".flow/tmp/fn-228.2/default-gate.log"
+    }
+  ],
+  "stock_guest_propose": {
+    "result": "Unsupported",
+    "exit_code": 0
+  },
+  "note": "Each final full command ran once after source/review settlement. Gate receipts recorded successfully. Gate soft-target overrun is reported, not waived or hidden."
+}
