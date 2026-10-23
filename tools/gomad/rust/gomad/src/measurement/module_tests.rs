@@ -440,7 +440,7 @@ fn terminal_binding_fixture(repo: &Path) -> (preparation::Installation, Value) {
     .unwrap();
     let normalized =
         serde_json::to_value(preparation::configuration(&options, &installed).unwrap()).unwrap();
-    let provenance = json!({"inputs":{"kind":"go-test","source":"./tests","directory":repo,"tags":original.module.build_tags,"arguments":[],"configuration":normalized},"configuration":normalized});
+    let provenance = json!({"inputs":{"kind":"go-test","source":"./tests","directory":repo,"tags":preparation::driver::effective_tags(&options,&installed),"arguments":[],"configuration":normalized},"configuration":normalized});
     (installed, provenance)
 }
 #[test]

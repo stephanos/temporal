@@ -114,3 +114,13 @@ fixtures repeatedly hashing the approximately 400 MB test executable. Its Cargo
 exit is 101 after SIGTERM, and it receives no passing credit. The explicit record
 is `/home/agent/measurement-terminal-binding-full-native-interruption.json`.
 The root integrator owns the final optimized broad suite on the combined source.
+
+The final tag binding uses the production driver's shared `effective_tags` function:
+original descriptor order remains explicit, while the actual compilation provenance
+is sorted and deduplicated as the existing native driver requires. The positive
+fixture uses that same production normalization; all twelve mutations still fail.
+`measurement-terminal-binding-effective-tags-v2.log` reports 18 passed, exit 0;
+`measurement-terminal-binding-effective-tags-clippy-v2.log` reports strict
+all-target Clippy exit 0. Four additional all-target feature gates on `30b92d3b43`
+(diagnostic profile, guest profile, fuel-off, determinism fixture) each exited 0;
+logs are `measurement-final-helper-*-clippy.log`.

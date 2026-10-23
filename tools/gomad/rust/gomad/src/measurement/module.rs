@@ -182,7 +182,7 @@ pub(crate) fn validate_terminal_binding(
     if inputs["kind"] != recipe.kind
         || inputs["source"] != recipe.source
         || inputs["directory"] != json!(recipe.directory)
-        || inputs["tags"] != json!(recipe.build_tags)
+        || inputs["tags"] != json!(preparation::driver::effective_tags(&options, installed))
         || inputs["arguments"] != json!(recipe.target_arguments)
         || inputs["configuration"] != expected
         || observed != expected
