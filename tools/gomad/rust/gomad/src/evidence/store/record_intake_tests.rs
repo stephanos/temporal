@@ -10,7 +10,10 @@ use gomad_wasmhost::linked;
 use serde_json::json;
 use std::{collections::BTreeMap, path::Path, time::Duration};
 
-fn publish(root: &Path, body: &str) -> Published {
+fn native_publication(
+    body: &str,
+    change: impl FnOnce(&mut linked::Execution),
+) -> Result<super::Publication, String> {
     let module = format!(
         r#"(module
         (import "wasi_snapshot_preview1" "proc_exit" (func $exit (param i32)))
@@ -52,8 +55,9 @@ fn publish(root: &Path, body: &str) -> Published {
     })
     .unwrap();
     native.conditions(linked::Conditions::compiled());
-    let observed = linked::execute_prepared(native).unwrap();
-    let publication = execution::publication(
+    let mut observed = linked::execute_prepared(native).unwrap();
+    change(&mut observed);
+    execution::publication(
         &prepared,
         &ledger::Job {
             ordinal: 0,
@@ -61,8 +65,11 @@ fn publish(root: &Path, body: &str) -> Published {
         },
         observed,
     )
-    .unwrap()
-    .publication;
+    .map(|result| result.publication)
+}
+
+fn publish(root: &Path, body: &str) -> Published {
+    let publication = native_publication(body, |_| {}).unwrap();
     Store {
         root: root.to_path_buf(),
         maximum_bytes: 1 << 24,
@@ -404,4 +411,233 @@ fn resealed_backend_invented_output_refuses_public_intake() {
             .contains("backend outcome output")
     );
     assert_eq!(output, Vec::<u8>::new());
+}
+
+#[test]
+fn publication_rejects_mutated_native_output_claim_before_writing_an_artifact() {
+    let error = native_publication("", |execution| execution.outcome.output_bytes = 1)
+        .err()
+        .expect("publication accepted a claim contradicting the native store snapshot");
+    assert!(error.contains("backend outcome output"), "{error}");
+}
+
+#[test]
+fn native_publication_versions_and_binds_the_independent_output_snapshot() {
+    let publication = native_publication("", |_| {}).unwrap();
+    let raw = &publication.payloads["evidence/native-output-accounting"];
+    let backend: serde_json::Value =
+        serde_json::from_slice(&publication.payloads["evidence/backend-outcome.json"]).unwrap();
+    assert_eq!(backend["schema"], "gomad.backend-outcome/v2");
+    assert_eq!(backend["output_accounting_sha256"], canonical::digest(raw));
+    let accounting: serde_json::Value = serde_json::from_slice(raw).unwrap();
+    assert_eq!(accounting["offered_output_bytes"], backend["output_bytes"]);
+}
+
+#[test]
+fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let mut publication = native_publication("", |_| {}).unwrap();
+    let name = "evidence/native-output-accounting";
+    publication.payloads.remove(name);
+    publication.record.streams.remove(name);
+    let name = "evidence/backend-outcome.json";
+    let mut backend: serde_json::Value =
+        serde_json::from_slice(&publication.payloads[name]).unwrap();
+    backend["schema"] = "gomad.backend-outcome/v1".into();
+    backend
+        .as_object_mut()
+        .unwrap()
+        .remove("output_accounting_sha256");
+    let legacy_bytes = canonical::encode(&backend).unwrap();
+    publication
+        .payloads
+        .insert(name.into(), legacy_bytes.clone());
+    let legacy_record = publication.record.bytes().unwrap();
+    publication
+        .payloads
+        .insert("record.json".into(), legacy_record.clone());
+    let published = Store {
+        root: root.0.join("legacy-store"),
+        maximum_bytes: 1 << 24,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    }
+    .publish(publication)
+    .unwrap();
+    assert_genuine(&published.path);
+    assert_eq!(
+        std::fs::read(published.path.join(name)).unwrap(),
+        legacy_bytes
+    );
+    assert_eq!(
+        std::fs::read(published.path.join("record.json")).unwrap(),
+        legacy_record
+    );
+}
+
+fn offered_output_fixture(evidence_bytes: u64) -> (Prepared, linked::Prepared) {
+    let profile = "gomad.wasi-stock-exploratory/v1";
+    let converted = crate::install::config::convert(
+        json!({
+            "Profile":profile,"Args":["guest"],"Environment":["PWD=/workspace"],
+            "WorkingDirectory":"/workspace","WritableDirectories":["/workspace","/tmp"],
+            "Clock":{"EpochNanos":946684800000000000_u64,"ReadStepNanos":1000},
+            "Limits":{"OutputBytes":1024,"TranscriptBytes":65536,"Calls":10000,"Descriptors":64,
+                "Files":1000,"FilesystemBytes":1048576,"PendingEvents":4096}
+        }),
+        profile,
+    )
+    .unwrap();
+    let module = br#"(module
+        (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "fd_close" (func $close (param i32) (result i32)))
+        (memory (export "memory") 1) (data (i32.const 32) "x")
+        (func (export "_start")
+            (i32.store (i32.const 0) (i32.const 32))
+            (i32.store (i32.const 4) (i32.const 1))
+            (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))
+            (if (call $close (i32.const 1)) (then unreachable))
+            (if (i32.ne (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (i32.const 8)) (then unreachable))
+            (if (call $write (i32.const 2) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))))"#.to_vec();
+    let configuration = serde_json::from_value(json!({
+        "engine":linked::Conditions::compiled().configuration(),"profile":profile,
+        "limits":{"fuel":10000,"memory_bytes":65536,"wall_millis":5000,"output_bytes":1024,"evidence_bytes":evidence_bytes},
+        "arguments":converted.arguments,"environment":converted.environment,"runtime_sha256":null,
+        "model":converted.model,"namespace":converted.namespace
+    })).unwrap();
+    let prepared = Prepared {
+        module: module.clone(),
+        configuration,
+        toolchain: "a".repeat(64),
+        choice_identity: None,
+        scenario: None,
+        provenance: b"{}".to_vec(),
+        network: None,
+        soft_assertion_report_only: false,
+        compile_cache_root: None,
+        auxiliary: BTreeMap::new(),
+    };
+    let native = linked::prepare(linked::Request {
+        module_sha256: canonical::digest(&module),
+        module,
+        limits: linked::Limits {
+            fuel: 10000,
+            memory_bytes: 65536,
+            wall_timeout: Duration::from_secs(5),
+            output_bytes: 1024,
+            evidence_bytes,
+        },
+        model: Some(linked::ModelInput {
+            configuration: serde_json::from_value(converted.model).unwrap(),
+            arguments: converted.arguments,
+            environment: converted
+                .environment
+                .into_iter()
+                .map(|(k, v)| format!("{k}={v}"))
+                .collect(),
+            replay_trace: None,
+        }),
+        namespace: Some(converted.namespace),
+        storage: None,
+    })
+    .unwrap();
+    (prepared, native)
+}
+
+struct CancelAfterOutput(linked::Cancellation);
+impl linked::OutputConsumer for CancelAfterOutput {
+    fn write(&self, _: linked::OutputStream, _: &[u8]) -> std::io::Result<()> {
+        self.0.cancel();
+        Ok(())
+    }
+}
+
+fn offered_output_publication(evidence_bytes: u64, cancel: bool) -> (super::Publication, u64, u64) {
+    let (prepared, mut native) = offered_output_fixture(evidence_bytes);
+    native.conditions(linked::Conditions::compiled());
+    if cancel {
+        let cancellation = linked::Cancellation::default();
+        native.cancellation(cancellation.clone());
+        native.output(std::sync::Arc::new(CancelAfterOutput(cancellation)));
+    }
+    let observed = std::thread::scope(|scope| {
+        scope
+            .spawn(move || linked::execute_prepared(native))
+            .join()
+            .unwrap()
+            .unwrap()
+    });
+    if cancel {
+        assert!(observed.outcome.peak_memory_bytes > 0);
+        assert!(observed.outcome.local_model.is_some());
+        assert!(observed.outcome.metrics.is_some());
+    }
+    let offered = observed.outcome.output_bytes;
+    let retained = ["stdout", "stderr"]
+        .into_iter()
+        .map(|name| {
+            observed
+                .evidence
+                .get(name)
+                .map_or(0, |bytes| bytes.len() as u64)
+        })
+        .sum();
+    let publication = execution::publication(
+        &prepared,
+        &ledger::Job {
+            ordinal: 0,
+            seed: 7,
+        },
+        observed,
+    )
+    .unwrap()
+    .publication;
+    (publication, offered, retained)
+}
+
+#[test]
+fn closed_descriptor_attempts_and_capacity_prefixes_keep_distinct_offered_output_counts() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    for (name, evidence_bytes, termination) in [
+        ("closed", 1 << 20, "exit"),
+        ("capacity", 1, "capacity"),
+        ("cancelled", 1 << 20, "cancelled"),
+    ] {
+        let (publication, offered, retained) =
+            offered_output_publication(evidence_bytes, name == "cancelled");
+        assert_eq!(
+            publication.record.outcome.termination, termination,
+            "{name}"
+        );
+        if name == "cancelled" {
+            assert!(
+                offered >= retained && retained > 0,
+                "offered={offered} retained={retained}"
+            );
+        } else {
+            assert_eq!(offered, 3, "{name}");
+            assert!(
+                offered > retained,
+                "{name}: offered={offered} retained={retained}"
+            );
+        }
+        if name == "closed" {
+            assert_eq!(retained, 2);
+        }
+        let published = Store {
+            root: root.0.join(name),
+            maximum_bytes: 1 << 24,
+            target_pool: None,
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        }
+        .publish(publication)
+        .unwrap();
+        assert_genuine(&published.path);
+    }
 }
