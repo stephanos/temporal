@@ -111,23 +111,31 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             FINISH,
         );
         input.steps.retain(|step| step.action == Action::Start);
+        input.nodes.push("dormant".into());
         let declared = input.steps.clone();
         let broker = input.broker.clone();
         let mut prepared = prepare(input).unwrap();
         let activity = prepared.activity();
-        match mode {
-            "shutdown" => prepared
-                .cleanup_after_starts(CleanupMode::Shutdown)
-                .unwrap(),
-            "scenario-error" => prepared
-                .cleanup_after_starts(CleanupMode::Error("scenario broke".into()))
-                .unwrap(),
-            "context-cancel" => prepared
-                .cleanup_after_starts(CleanupMode::ContextCancellation)
-                .unwrap(),
-            "action-limit" => prepared.action_limit(2).unwrap(),
+        let cleanup = match mode {
+            "shutdown" => CleanupMode::Shutdown,
+            "scenario-error" => CleanupMode::Error("scenario broke".into()),
+            "context-cancel" => CleanupMode::ContextCancellation,
+            "action-limit" => {
+                prepared.action_limit(2).unwrap();
+                CleanupMode::Shutdown
+            }
             _ => unreachable!(),
-        }
+        };
+        prepared
+            .cleanup_after_output(
+                Handle {
+                    node: "a".into(),
+                    incarnation: 1,
+                },
+                b"mark".to_vec(),
+                cleanup,
+            )
+            .unwrap();
         let execution = execute_prepared(prepared).unwrap();
         let expected = if mode == "action-limit" {
             &declared[..2]
@@ -142,6 +150,25 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
                 .all(|step| step.action == Action::Start)
         );
         assert_eq!(execution.incarnations.len(), expected.len());
+        assert_eq!(activity.snapshot().launched_stores, expected.len() as u64);
+        let acknowledged = execution
+            .incarnations
+            .iter()
+            .find(|item| item.handle.node == "a")
+            .unwrap();
+        assert_eq!(acknowledged.execution.evidence["stdout"], b"mark");
+        assert!(
+            execution
+                .incarnations
+                .iter()
+                .all(|item| item.execution.authorization_to_terminal_nanos.is_some())
+        );
+        assert!(
+            execution
+                .incarnations
+                .iter()
+                .all(|item| item.handle.node != "dormant" && item.handle.node != "c")
+        );
         assert_eq!(activity.snapshot().remote_callback_attempts, 0);
         if mode == "context-cancel" {
             assert_eq!(execution.outcome.termination, "cancelled");
@@ -178,7 +205,11 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
             json!({
                 "terminal":execution.outcome.termination,"message":execution.outcome.message,
                 "steps":execution.executed_steps,"joined_incarnations":execution.incarnations.len(),
-                "activity":activity.snapshot()
+                "acknowledged_handle":acknowledged.handle,
+                "acknowledged_stdout":acknowledged.execution.evidence["stdout"],
+                "all_stores_dropped_before_return":execution.incarnations.iter().all(|item|
+                    item.execution.authorization_to_terminal_nanos.is_some()),
+                "dormant_started":false,"activity":activity.snapshot()
             }),
         );
     }
@@ -424,5 +455,209 @@ fn synchronous_observer_cancellation_preserves_before_and_after_refusals() {
             assert_eq!(*observer.calls.lock().unwrap(), expected[..through]);
             assert_eq!(observer.activity.snapshot().remote_callback_attempts, 0);
         }
+    }
+}
+
+#[test]
+fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
+    for variant in [
+        "missing-storage-image",
+        "stale-incarnation",
+        "live-incarnation",
+    ] {
+        let mut input = request(&["a", "b"], FINISH);
+        let model: crate::volume::StorageModel = serde_json::from_value(json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":4096}],
+            "limits":{"PendingOperations":100,"Transitions":1000}
+        }))
+        .unwrap();
+        input.incarnations[0].request.storage = Some(
+            serde_json::from_value(json!({
+                "descriptor":{"model":model,"model_identity":model.identity(),"return_image":true}
+            }))
+            .unwrap(),
+        );
+        let mut prepared = prepare(input).unwrap();
+        let activity = prepared.activity();
+        let mut sealed = prepared
+            .incarnations
+            .remove(&Handle {
+                node: "a".into(),
+                incarnation: 1,
+            })
+            .unwrap();
+        let original_storage = serde_json::to_value(&sealed.execution.request.storage).unwrap();
+        let image = sealed
+            .execution
+            .namespace
+            .as_ref()
+            .unwrap()
+            .storage()
+            .unwrap()
+            .reference_image(1 << 20)
+            .unwrap();
+        let broker = Broker::new(&prepared.broker, &prepared.ids, None, None).unwrap();
+        broker.defer_starts();
+        if variant != "live-incarnation" {
+            broker.finish(0);
+        }
+        let mut images = BTreeMap::new();
+        if variant != "missing-storage-image" {
+            images.insert("a".into(), image.clone());
+        }
+        let mut handle = Handle {
+            node: "a".into(),
+            incarnation: if variant == "stale-incarnation" { 3 } else { 2 },
+        };
+        let error = sealed
+            .restart(&broker, 0, &handle, &images, None, false)
+            .unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            if variant == "missing-storage-image" {
+                "cluster restart lacks recovery image"
+            } else {
+                "WASI invalid: broker restart lifecycle"
+            }
+        );
+        assert_eq!(broker.incarnation_slot(0), (1, 1));
+        assert_eq!(broker.finished(0), variant != "live-incarnation");
+        assert_eq!(broker.incarnation_slot(1), (1, 2));
+        assert_eq!(
+            serde_json::to_value(&sealed.execution.request.storage).unwrap(),
+            original_storage
+        );
+        assert!(sealed.recovery_source.is_none());
+        assert!(broker.failure().is_none());
+        assert_eq!(activity.snapshot().launched_stores, 0);
+        if variant == "live-incarnation" {
+            broker.finish(0);
+        }
+        handle.incarnation = 2;
+        images.insert("a".into(), image);
+        let slot = sealed
+            .restart(&broker, 0, &handle, &images, None, false)
+            .unwrap();
+        assert_eq!(slot, 3);
+        assert_eq!(broker.incarnation_slot(0), (2, 3));
+        assert!(!broker.finished(0));
+        assert_eq!(broker.incarnation_slot(1), (1, 2));
+        assert!(broker.failure().is_none());
+        let recovered = sealed
+            .execution
+            .namespace
+            .as_ref()
+            .unwrap()
+            .storage()
+            .unwrap()
+            .reference_image(1 << 20)
+            .unwrap();
+        assert_eq!(recovered, images["a"]);
+        assert_eq!(activity.snapshot().launched_stores, 0);
+        raw(
+            "TestRejectedRestartLeavesNoUnownedBrokerSession",
+            variant,
+            json!({
+                "refusal":error.to_string(),"before_incarnation":1,"before_slot":1,
+                "after_refusal_incarnation":1,"after_refusal_slot":1,
+                "refused_storage_unchanged":true,"retry_incarnation":2,"retry_slot":slot,
+                "peer_incarnation":1,"peer_slot":2,"recovery_image_unchanged":true,
+                "activity":activity.snapshot()
+            }),
+        );
+        if variant == "missing-storage-image" {
+            raw(
+                "TestClusterRefusedRestartLeavesIncarnationRetryable",
+                "recovery-image-refusal-and-retry",
+                json!({
+                    "refusal":error.to_string(),"refused_incarnation_owned":false,
+                    "current_after_refusal":1,"retry_incarnation":2,"retry_slot":slot,
+                    "recovery_image_unchanged":true,"activity":activity.snapshot()
+                }),
+            );
+        }
+    }
+}
+
+#[test]
+fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
+    for variant in [
+        "watchdog",
+        "cancelled",
+        "parent deadline",
+        "internal deadline",
+    ] {
+        let mut input = request(
+            &["a"],
+            "i32.const 512 i32.const 16 call $config drop (loop $forever br $forever)",
+        );
+        input.incarnations[0].request.limits.fuel = u64::MAX;
+        let watchdog = matches!(variant, "watchdog" | "internal deadline");
+        input.wall_timeout = if variant == "watchdog" {
+            Duration::from_millis(20)
+        } else {
+            Duration::from_secs(1)
+        };
+        let mut prepared = prepare(input).unwrap();
+        if variant == "internal deadline" {
+            prepared
+                .bound_wall_timeout(Duration::from_millis(20))
+                .unwrap();
+        }
+        let activity = prepared.activity();
+        let cancellation = prepared.cancellation.clone();
+        let execution = thread::scope(|scope| {
+            let (done, receive) = mpsc::sync_channel::<()>(0);
+            if !watchdog {
+                scope.spawn(move || {
+                    if receive.recv_timeout(Duration::from_millis(20))
+                        == Err(mpsc::RecvTimeoutError::Timeout)
+                    {
+                        cancellation.cancel();
+                    }
+                });
+            }
+            let execution = execute_prepared(prepared).unwrap();
+            drop(done);
+            execution
+        });
+        assert_eq!(
+            execution.outcome.termination,
+            if watchdog {
+                "watchdog_timeout"
+            } else {
+                "cancelled"
+            }
+        );
+        assert_eq!(execution.outcome.exit_code, None);
+        assert_eq!(activity.snapshot().remote_callback_attempts, 0);
+        assert_eq!(
+            activity.snapshot().launched_stores,
+            execution.incarnations.len() as u64
+        );
+        assert!(
+            execution
+                .incarnations
+                .iter()
+                .all(|item| item.execution.authorization_to_terminal_nanos.is_some())
+        );
+        raw(
+            if variant == "internal deadline" {
+                "TestClusterInternalDeadlineIsWatchdog"
+            } else {
+                "TestClusterHostTerminationStatus"
+            },
+            variant,
+            json!({
+                "terminal":execution.outcome.termination,"exit_code":execution.outcome.exit_code,
+                "watchdog_timeout":watchdog,"cancelled":!watchdog,
+                "bound_millis":if watchdog { 20 } else { 1000 },
+                "parent_cancel_after_millis":if watchdog { None } else { Some(20) },
+                "joined_incarnations":execution.incarnations.len(),
+                "all_stores_dropped_before_return":execution.incarnations.iter().all(|item|
+                    item.execution.authorization_to_terminal_nanos.is_some()),
+                "activity":activity.snapshot()
+            }),
+        );
     }
 }

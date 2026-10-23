@@ -1026,38 +1026,15 @@ fn execute_inner(
                     .incarnations
                     .remove(&step.handle)
                     .ok_or_else(|| Error::msg("missing cluster incarnation"))?;
-                if step.action == Action::Restart
-                    && let Some(storage) = &sealed.execution.request.storage
-                {
-                    let image = restart_image(
+                let slot = if step.action == Action::Restart {
+                    sealed.restart(
+                        broker,
+                        index,
+                        &step.handle,
                         &images,
                         committed_image.as_ref(),
                         prepared.committed_temporal_reopens,
-                        &step.handle.node,
-                    )?;
-                    if prepared.committed_temporal_reopens {
-                        use sha2::Digest as _;
-                        sealed.recovery_source = Some((
-                            Handle {
-                                node: "temporal".into(),
-                                incarnation: 1,
-                            },
-                            format!("{:x}", sha2::Sha256::digest(image)),
-                            image.len() as u64,
-                        ));
-                    }
-                    let mut storage = storage.with_recovery_image(image.clone())?;
-                    let mut namespace = namespace::Namespace::new(sealed.initial_namespace.clone())
-                        .map_err(Error::new)?;
-                    storage.attach(&mut namespace, sealed.transcript_limit)?;
-                    sealed.execution.namespace = Some(namespace);
-                    sealed.execution.request.storage = Some(storage);
-                }
-                let slot = if step.action == Action::Restart {
-                    broker
-                        .restart(index, step.handle.incarnation)
-                        .map_err(|failure| Error::msg(failure.message()))?
-                        .1
+                    )?
                 } else {
                     broker
                         .activate(index)
@@ -1716,6 +1693,51 @@ pub fn validate_encoded_world(
             validate_world(&crate::world::retained::expand(bytes)?, broker)
         }
         _ => Err("unknown retained World encoding".into()),
+    }
+}
+
+impl Sealed {
+    fn restart(
+        &mut self,
+        broker: &Broker,
+        index: usize,
+        handle: &Handle,
+        images: &BTreeMap<String, Vec<u8>>,
+        committed: Option<&Vec<u8>>,
+        original: bool,
+    ) -> Result<u64> {
+        let recovery = if let Some(storage) = &self.execution.request.storage {
+            let image = restart_image(images, committed, original, &handle.node)?;
+            let source = if original {
+                use sha2::Digest as _;
+                Some((
+                    Handle {
+                        node: "temporal".into(),
+                        incarnation: 1,
+                    },
+                    format!("{:x}", sha2::Sha256::digest(image)),
+                    image.len() as u64,
+                ))
+            } else {
+                None
+            };
+            let mut storage = storage.with_recovery_image(image.clone())?;
+            let mut namespace =
+                namespace::Namespace::new(self.initial_namespace.clone()).map_err(Error::new)?;
+            storage.attach(&mut namespace, self.transcript_limit)?;
+            Some((storage, namespace, source))
+        } else {
+            None
+        };
+        let (_, slot) = broker
+            .restart(index, handle.incarnation)
+            .map_err(|failure| Error::msg(failure.message()))?;
+        if let Some((storage, namespace, source)) = recovery {
+            self.execution.namespace = Some(namespace);
+            self.execution.request.storage = Some(storage);
+            self.recovery_source = source;
+        }
+        Ok(slot)
     }
 }
 
