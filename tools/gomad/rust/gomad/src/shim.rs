@@ -182,7 +182,9 @@ fn classify_request_with_environment<'a>(
             crate::install::tags::admit(&selected.manifest.excluded_build_tags, &parsed.tags)?;
         }
     }
-    let required_tags = if let Some(installation) = &contract.installation {
+    let required_tags = if command != "test" {
+        Vec::new()
+    } else if let Some(installation) = &contract.installation {
         manifest::resolve(Some(installation))?.manifest.build_tags
     } else if repo
         .as_ref()
@@ -267,7 +269,13 @@ fn prepare_guest(
                     relative.to_str().ok_or("guest package path is not UTF-8")?
                 )
             };
-            crate::install::derive_cache::derive(&contract.compiler, repo, &source, &cache_root()?)?
+            crate::install::derive_cache::derive(
+                &contract.compiler,
+                repo,
+                &source,
+                &cache_root()?,
+                deadline,
+            )?
         };
         let selected = manifest::resolve(Some(&installation))?;
         if selected.manifest.compiler_path != contract.compiler {
@@ -315,36 +323,35 @@ fn guest_options(
     cwd: &Path,
     command: &str,
     package: &Package,
-    _profile: &str,
+    profile: &str,
 ) -> Result<crate::cli::explore::ExploreOptions, String> {
     let mut ignored = false;
-    let options = crate::cli::explore::parse(
-        &[
-            "--choices".into(),
-            "--seeds".into(),
-            contract.seeds.clone(),
-            "--execution-timeout".into(),
-            "5m".into(),
-            "--overall-timeout".into(),
-            "10m".into(),
-            "--artifacts".into(),
-            contract
-                .artifacts
-                .to_str()
-                .ok_or("artifact path is not UTF-8")?
-                .into(),
-            "--working-dir".into(),
-            cwd.to_str().ok_or("working directory is not UTF-8")?.into(),
-            if command == "test" {
-                "go-test".into()
-            } else {
-                "go-run".into()
-            },
-            package.import_path.clone(),
-        ],
-        &mut ignored,
-    )?;
-    Ok(options)
+    let mut arguments = vec![
+        "--seeds".into(),
+        contract.seeds.clone(),
+        "--execution-timeout".into(),
+        "5m".into(),
+        "--overall-timeout".into(),
+        "10m".into(),
+        "--artifacts".into(),
+        contract
+            .artifacts
+            .to_str()
+            .ok_or("artifact path is not UTF-8")?
+            .into(),
+        "--working-dir".into(),
+        cwd.to_str().ok_or("working directory is not UTF-8")?.into(),
+        if command == "test" {
+            "go-test".into()
+        } else {
+            "go-run".into()
+        },
+        package.import_path.clone(),
+    ];
+    if profile == "gomad.wasi-cooperative/v1" {
+        arguments.insert(0, "--choices".into());
+    }
+    crate::cli::explore::parse(&arguments, &mut ignored)
 }
 
 fn command_location(arguments: &[OsString], cwd: &Path) -> Option<(usize, PathBuf)> {
@@ -433,13 +440,29 @@ fn packages(
 }
 
 fn packages_environment(
-    _inherited: &std::collections::BTreeMap<OsString, OsString>,
-    _guest: bool,
+    inherited: &std::collections::BTreeMap<OsString, OsString>,
+    guest: bool,
 ) -> Result<std::collections::BTreeMap<OsString, OsString>, String> {
-    Ok(process::environment()?
-        .into_iter()
-        .map(|(name, value)| (name.into(), value.into()))
-        .collect())
+    if guest {
+        return Ok(process::environment()?
+            .into_iter()
+            .map(|(name, value)| (name.into(), value.into()))
+            .collect());
+    }
+    let mut environment = inherited.clone();
+    for (name, value) in [
+        ("GOENV", "off"),
+        ("GOFLAGS", ""),
+        ("GOTOOLCHAIN", "local"),
+        ("GOPROXY", "off"),
+        ("GOSUMDB", "off"),
+        ("GOPRIVATE", ""),
+        ("GONOPROXY", "none"),
+        ("GOVCS", "*:off"),
+    ] {
+        environment.insert(name.into(), value.into());
+    }
+    Ok(environment)
 }
 
 fn cache_root() -> Result<PathBuf, String> {
