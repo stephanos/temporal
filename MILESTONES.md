@@ -110,15 +110,16 @@ and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, 
 and replay; one `umpire` command with five modes. The reviewed contract includes Start bootstrap,
 incremental correlated Driver events, Model-owned polling completion, ordered protocol replay
 including Answer, and immutable publication by model/seed/content hash.
-The rename checkpoint is complete locally, with implementation review, both audits, live
-slice/gaps and default/required model gates passed. Required gate991.181s exceeds the60s
-soft target; inner8.588s meets10s. Propose is next.
+The rename checkpoint (.1) and Propose (.2) are complete locally. Propose is on the protocol,
+Runtime, `Realize` and Go `Host`; configured bootstrap admission and operation-correlated polling
+commit atomically with publication. .2 passed review, both audits, fresh live slice/gaps proof and
+default/required model gates; required gate 870.575s exceeds the 60s soft target, inner loop 6.109s
+meets 10s. The Go `runner` package (.3) is next.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.2 | 🔄 in progress | After .1: `Propose` on protocol, Runtime, `Realize`, `Host`; activity Realization proposes (R2) |
-| fn-228.3 | ⬜ todo | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
+| fn-228.3 | 🔄 in progress | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
 | fn-228.4 | ⬜ todo | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
 | fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
 | fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
