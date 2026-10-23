@@ -250,9 +250,13 @@ impl Model {
         crate::event_order::emit(&self.event_context(), kind, ordinal, value);
     }
     fn witness_event(&self, witness: &inspection::Witness) {
-        let state = &witness.runtime_state;
+        let Ok(state) = <&[u8; 128]>::try_from(witness.runtime_state.as_slice()) else {
+            crate::event_order::incomplete("invalid runtime-witness diagnostic length");
+            return;
+        };
+        let virtual_time = i64::from_be_bytes(state[8..16].try_into().unwrap());
         self.event("draw-counter",self.records,serde_json::json!({"runq_draws":get64(state,40),"scheduler_draws":get64(state,48),"select_draws":get64(state,56),"runtime_rand_draws":get64(state,64),"runtime_cheaprand_draws":get64(state,72),"timer_draws":get64(state,80),"clock_tick_draws":get64(state,88)}));
-        self.event("model-transition",self.records,serde_json::json!({"model":"runtime-witness","state":crate::event_order::bytes_value(state)}));
+        self.event("model-transition",self.records,serde_json::json!({"model":"runtime-witness","virtual_time":virtual_time,"state":crate::event_order::bytes_value(state)}));
     }
 }
 fn get32(data: &[u8], at: usize) -> u32 {
@@ -1220,5 +1224,38 @@ mod tests {
         m.queue("transcript", &vec![5; CHUNK + 1]);
         m.flush(&mut Vec::new(), false).unwrap();
         assert_eq!(m.pending["transcript"].len(), 1);
+    }
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    #[test]
+    fn witness_event_preserves_signed_virtual_time_without_changing_canonical_bytes() {
+        let model = model();
+        let session = crate::event_order::LinkedSession::new();
+        crate::event_order::start_linked(&session).unwrap();
+        let mut state = [0u8; 128];
+        state[8..16].copy_from_slice(&(-7i64).to_be_bytes());
+        state[112..120].copy_from_slice(&1u64.to_be_bytes());
+        let witness = inspection::Witness::decode(&state).unwrap();
+        model.witness_event(&witness);
+        assert!(model.pending.is_empty());
+        assert_eq!(model.records, 0);
+        assert_eq!(witness.runtime_state, state);
+        let raw = crate::event_order::finish_linked(true).unwrap();
+        let frames: Vec<Value> = std::str::from_utf8(&raw)
+            .unwrap()
+            .lines()
+            .map(|line| {
+                serde_json::from_str(line.strip_prefix("gomad-wasm-event-order-v1 ").unwrap())
+                    .unwrap()
+            })
+            .collect();
+        let event = frames
+            .iter()
+            .find(|frame| frame["value"]["model"] == "runtime-witness")
+            .unwrap();
+        assert_eq!(event["value"]["virtual_time"], -7);
+        assert_eq!(
+            event["value"]["state"],
+            crate::event_order::bytes_value(&state)
+        );
     }
 }

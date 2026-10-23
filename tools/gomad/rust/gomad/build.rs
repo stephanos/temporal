@@ -27,7 +27,13 @@ fn main() {
     let root = Path::new(&directory);
     let mut files = BTreeMap::new();
     sources(root, &root.join("src"), &mut files);
-    for name in ["build.rs", "Cargo.toml", "../Cargo.toml", "../Cargo.lock"] {
+    for name in [
+        "build.rs",
+        "Cargo.toml",
+        "../Cargo.toml",
+        "../Cargo.lock",
+        "../rust-toolchain.toml",
+    ] {
         files.insert(
             name.into(),
             fs::read(root.join(name)).expect("host build identity input"),

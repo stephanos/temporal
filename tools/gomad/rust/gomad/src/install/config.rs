@@ -27,7 +27,7 @@ pub(crate) fn build(
     let original = if let Some(path) = config_path {
         read_config(&crate::qualify::spec::read_bounded(path, 16 << 20)?)?
     } else if let Some((root, package)) = temporal {
-        temporal_value(root, package)?
+        temporal_policy(root, package, TemporalPolicy::Installation)?
     } else {
         default_value(profile)
     };
@@ -427,11 +427,24 @@ fn open_relative(
     Ok(file)
 }
 
+#[derive(Clone, Copy)]
+pub enum TemporalPolicy {
+    Installation,
+    Qualification,
+    Inspection,
+}
+
+/// # Errors
+/// Refuses unsafe or oversized schema captures and packages outside the checkout.
 #[expect(
     clippy::too_many_lines,
     reason = "Temporal policy capture binds its source tree and complete guest configuration in one transaction"
 )]
-fn temporal_value(root: &Path, package: &str) -> Result<Value, String> {
+pub fn temporal_policy(
+    root: &Path,
+    package: &str,
+    policy: TemporalPolicy,
+) -> Result<Value, String> {
     use std::os::unix::fs::PermissionsExt as _;
     if root.as_os_str().is_empty()
         || package.is_empty()
@@ -558,7 +571,27 @@ fn temporal_value(root: &Path, package: &str) -> Result<Value, String> {
     config["EntropyKey"] =
         serde_json::json!(sha2::Sha256::digest(b"gomad-wasm-prototype/v1").to_vec());
     config["Limits"] = serde_json::json!({"OutputBytes":256<<20,"TranscriptBytes":1<<30,"Calls":1<<28,"Descriptors":4096,"Files":100_000,"FilesystemBytes":512<<20,"PendingEvents":4096});
-    config["network_v2"] = serde_json::json!({"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":4096,"bytes":128<<20,"connection_bytes":4<<20,"stall_nanos":10_000_000_000_u64,"transitions":1<<20}});
+    if matches!(
+        policy,
+        TemporalPolicy::Installation | TemporalPolicy::Inspection
+    ) {
+        config["network_v2"] = serde_json::json!({"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":4096,"bytes":128<<20,"connection_bytes":4<<20,"stall_nanos":10_000_000_000_u64,"transitions":1<<20}});
+    }
+    match policy {
+        TemporalPolicy::Installation => {}
+        TemporalPolicy::Qualification => config["Args"] = Value::Null,
+        TemporalPolicy::Inspection => {
+            config["Args"] = Value::Null;
+            config["Environment"]
+                .as_array_mut()
+                .ok_or("Temporal environment missing")?
+                .insert(1, serde_json::json!("GOMAD_DEBUG_CANARY=1"));
+            config["WritableDirectories"] = serde_json::json!(["/workspace", "/tmp"]);
+            config["EntropyKey"] = serde_json::json!(vec![0_u8; 32]);
+            config["Limits"]["OutputBytes"] = serde_json::json!(16 << 20);
+            config["Limits"]["TranscriptBytes"] = serde_json::json!(256 << 20);
+        }
+    }
     Ok(config)
 }
 
@@ -835,5 +868,66 @@ mod receiving_config_tests {
             assert!(error.contains(expected), "{error}");
             assert!(!error.contains("trailing"), "{error}");
         }
+    }
+}
+
+#[cfg(test)]
+mod temporal_policy_tests {
+    use super::*;
+
+    #[test]
+    fn inspection_policy_has_its_complete_distinct_limits_and_environment() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+        let value = temporal_policy(&root, ".", TemporalPolicy::Inspection).unwrap();
+        assert!(value["Args"].is_null());
+        assert_eq!(
+            value["WritableDirectories"],
+            serde_json::json!(["/workspace", "/tmp"])
+        );
+        assert_eq!(value["EntropyKey"], serde_json::json!(vec![0; 32]));
+        assert_eq!(value["Limits"]["OutputBytes"], 16 << 20);
+        assert_eq!(value["Limits"]["TranscriptBytes"], 256 << 20);
+        assert!(
+            value["Environment"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!("GOMAD_DEBUG_CANARY=1"))
+        );
+        assert!(convert(value, COOPERATIVE).unwrap().network.is_some());
+    }
+
+    #[test]
+    fn qualification_policy_preserves_schema_and_has_no_network_or_arguments() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+        let value = temporal_policy(&root, "./tests", TemporalPolicy::Qualification).unwrap();
+        let installed = build(COOPERATIVE, None, Some((&root, "./tests"))).unwrap();
+        assert!(installed.network.is_some());
+        assert_eq!(
+            installed.arguments,
+            [
+                "temporal.test",
+                "-test.v",
+                "-test.count=1",
+                "-test.timeout=72h"
+            ]
+        );
+        assert!(value["network_v2"].is_null());
+        assert!(value["Args"].is_null());
+        assert_eq!(value["WorkingDirectory"], "/workspace/tests");
+        assert_eq!(
+            value["WritableDirectories"],
+            serde_json::json!(["/workspace", "/tmp", "/workspace/tests"])
+        );
+        assert_eq!(value["Clock"]["EpochNanos"], 946_684_800_000_000_000_u64);
+        assert_eq!(value["Clock"]["ReadStepNanos"], 0);
+        assert_eq!(value["Limits"]["TranscriptBytes"], 1 << 30);
+        assert!(
+            value["CapturedInputs"]["Manifest"]["Entries"]
+                .as_u64()
+                .unwrap()
+                > 0
+        );
+        let configured = convert(value, COOPERATIVE).unwrap();
+        assert!(configured.network.is_none());
     }
 }

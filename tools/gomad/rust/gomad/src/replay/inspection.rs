@@ -601,7 +601,10 @@ pub fn run(
     Ok(0)
 }
 
-fn authenticate_streams(opened: &Opened, evidence: &helper::Evidence) -> Result<(), cli::Error> {
+pub(crate) fn authenticate_streams(
+    opened: &Opened,
+    evidence: &helper::Evidence,
+) -> Result<(), cli::Error> {
     if opened.manifest().files.contains_key(super::cluster::FILE) {
         return super::cluster::authenticate_inspection(opened, evidence).map_err(preflight_error);
     }

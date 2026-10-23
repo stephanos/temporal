@@ -22,7 +22,7 @@ fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>
             evidence_bytes: 16 << 20,
         },
         wall_nanos: None,
-        arguments: vec![label.into()],
+        arguments: vec!["gomad-target".into(), label.into()],
         environment: BTreeMap::from([("PWD".into(), "/".into())]),
         derive_seed_environment: true,
         network: None,
@@ -51,6 +51,8 @@ fn prepared_module(label: &str, invocation: &origin::Invocation, module: Vec<u8>
     };
     let inputs = json!({
         "schema":"gomad.rust-wasm-build-inputs/v1", "compiler_path":"/fixture/go",
+        "kind":"go-run", "source":"fixture", "directory":"/fixture", "tags":[],
+        "arguments":[label], "scenario":null, "network":null,"soft_assertion_report_only":false,
         "compiler_sha256":"2".repeat(64), "go_version":"go1.27.1", "configuration":configuration,
         "runtime_implementation":null, "host":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),
         "helper":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,

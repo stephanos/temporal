@@ -248,3 +248,131 @@ Latestprofilingfreshpreparation0 in62.89s: PID2391905/session34442 terminal; ful
 Stress focusedtests5/5passed; linkedjitterRED101→GREEN3/3passed; strictClippyactiveagent-local51284atreporttime. .11alllib74green/grammar40twice0, finalrecoverylockrefusal/pubicreceiptcorpusstillpending. Alladditionalheavyguestwavesremainhelduntilrootrelease; releasefixturecompileronlyallowed.
 
 Livebackendroot9exposescontradiction: originalcompletedchoice-resumerefuses, newerRustsite-scope regressionexpectsreportoncompletedresume. Rootsearchedfn230spec/tasksand232.8 andfoundnoexplicitidempotentcompletionexception; initialrulingoriginalrefusalwinsunlessexplicitnewerowner/specauthorization, notmerelytestexpectation. Requestedexacttestline; holdbehaviorchangependingconfirmation. Originalrootassertionsmustnotweaken. BackendalsofixesactualPrepared.provenance missingfrompublicartifacts and record/module/config consistency; notifyinstallowner/don'tfabricateprovenance. No fullrootpassclaimed.
+
+## Continuation after scoped minimizer closure (2026-10-23 UTC)
+Fn231 is CLOSED with both tasks done, independent formal completion review SHIP R1–R8 at5fc1290c3d, closurecommit4e1a90755e. Full original acceptance retained: four terminal0 actual phases55/119/55/119 commands; two identical38237B semantic goldens3095bc85 and938B display golden4d50ea6b; integrated display16PASS and two-output authentication0. Same-family review of canonical JSON type fixSHIP. Formal reviewer ran portable tests/authentication; its Cargo attempt was denied read-only lock, so Rust evidence remains the earlier actual integrated156/158 suites, not a claimed rerun.
+Prospective retirement source3ea21a8ed9 clean: main5fc plus all reviewed live/final source throughaafbcad938;70 driver+16display tests and static guards0. No final qualification or main Go deletion accepted. Reader partitions remain incomplete;45 standalone sweep command/internal contracts now have a source implementation owner,69 command/install/determinism/architecture/accounting contracts have a separate source audit owner. All source maps are UNEXECUTED; coverage is not a pass.
+Interception owner has actively resumed seven confirmed review repairs; current meaningful nested-wrapper RED session18408 under exclusive fn232-retained-validation target/jobs2. No other Cargo grant. Receiving reader coherent5fd9d161f0 reports51driver+6workload Python tests0 and all51 raw accounting corpus comparisons exact; same independent re-review attempt was refused by harness thread capacity, to retry after slots free. Its publisher tests and Rust provenance/depth production repairs remain separate/uncompiled. Do not claim those green.
+Root safe cleanup reclaimed605 rlib/rmeta files2107627875B from root-owned inactive fn232-live-corpus target after /proc cwd/exe/maps/env/fd checks. Also removed23 exact Go GOCACHE objects directories7457563203B under fn232-qualify/d cache entries, after validating backend/provider.go cache-hit contract and every retained receipt/module pair; receipt/module hashes unchanged afterward. Raw Results/artifacts/commands/guests preserved. Receipts /home/agent/evidence/fn232-root-cache-cleanup-20261023.json and fn232-qualification-go-cache-cleanup-{candidates,complete}.json. Last native free8.3GiB, host99GiB; final12GiB host admission still not met. External shared cargo-target/incremental and tmp remain untouched.
+Closed fn231 cleanup delegated to same owner: preserve dirty incorporated source snapshots and original detached review-range commits on explicit open fn232-minimizer-source-custody branch before removing five worktrees. Transfer accepted two-run roots and exact causal inputs to fn232 custody at existing path identities, no duplicate evidence copies; obsolete evidence removal waits conclusive dependency audit. No source worktree was deleted by root in this continuation.
+Current registered worktrees (retain until the owning open gate or explicit closed-owner cleanup resolves):
+- /Users/stephan/Workspace/skunkworks/gomad/temporal — active root integration checkout; unrelated tools/gomad/.turbo remains untouched
+- /home/agent/wt/fn185-attribution-fix — open fn185 attribution/profile source and evidence obligations
+- /home/agent/wt/fn185-rust-attribution — open fn185 attribution/profile source and evidence obligations
+- /home/agent/wt/fn188-rust-stress — open fn188 full stress and enforcement obligations
+- /home/agent/wt/fn221 — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn221-matrix — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn221-rerun-src — open fn221 original frozen journal/source/candidate custody; never reseed or replace
+- /home/agent/wt/fn230-sites — closed source currently referenced by open fn232; explicit custody/reference transfer required before removal
+- /home/agent/wt/fn232-broker-observe — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v3 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v4 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v5 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-broker-observe-v6 — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-foundation — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-install — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-live-corpus — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-mandatory-workloads — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-minimize — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-native-import — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-receiving-reader — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-retirement — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-rust-driver — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-simulation — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-sweep-receiver — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn232-world-codec — open fn232 rewrite source, reference, reviewed integration or final qualification custody
+- /home/agent/wt/fn233-corpus — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-derive-config — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-docs-make — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-execution-fixes — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-interception — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-shim-classify — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-tag-policy — active fn233 coherent repair worker/delegate ownership; do not remove
+- /home/agent/wt/fn233-wrapper — active fn233 coherent repair worker/delegate ownership; do not remove
+
+Scratch/evidence roots retained: /home/agent/wt/evidence (open fn185/188/221/222/232/233 proofs and pending fn231 custody cleanup); /home/agent/evidence (raw regressions/review/source maps and cleanup receipts); /home/agent/.cache/codex-build (leases and pinned binaries, regenerate only explicitly inactive intermediates); repository .flow/tmp (root receipts/review sessions) and tools/gomad/.turbo (unrelated user state, untouched). No blanket cleanup authorized.
+
+### Post-close custody and receiving progress
+
+All five fn231 worktrees removed after dirty snapshots and original review commits were preserved on openfn232-minimizer-source-custody (source archiveaa322850d0; custody7eb6b3e6b9, rootdocs1bf4aef972). No fn231 registered worktrees remain; required accepted/causal proofs transferred in place to explicit fn232 ownership. Root subsequently removed five conclusively unreferenced obsolete evidence roots324828124B after complete2.545GB dependency scan and /proc check, recorded in custody doc/receipt. Remaining obsolete historical reference rootpublic-00a97c42 kept in explicit causal custody.
+
+Receiving Python5fd9 independent same-family reviewSHIP allfourP1; retirement owner integrating its13real endpoints, preserving exact145partition and8UNBOUND. Separate native publisher/auth/depth batch has exclusive fn232-qualify-closure target/jobs1 after root process-reference audit; source50f02auth remains uncompiled until parent reports actual exits. Interception owner remains exclusive on distinct retained-validation/jobs2; meaningful wrapper/cache/race REDs established, no guest/fullgeneration. Sweep inventory granted only standalone std-only pinned rustc --test in private evidence directory, not Cargo/Go/runtime permission. Final12GiB host admission still unmet at last9.5GiB native; no qualification attempt yet.
+
+### Current preservation batches and resource leases (2026-10-23 UTC)
+
+This section supersedes earlier provisional source revisions, lease assignments and free-space snapshots above. Main remains on the Go layout until final qualification; no retirement or qualification completion is claimed.
+
+Prospective retirement candidate is 9d54dfc9dc. Native publisher/preparation/JSON precedence fixes through 164443d3a0 passed 22 focused tests, strict Clippy and formatting, then independent same-family review SHIP. Retirement integrated the reviewed source without dependency upgrades; no integrated Cargo run has yet qualified that candidate. Receiving wiring cfbe9e39ed is independently SHIP: 137/145 source endpoints require actual proof; eight remain unbound. Private Python controls f85f17bae2 through d174b3f3cd passed 66 driver and 17 workload tests; independent re-review SHIP resolves exact seven-field receipt and canonical cache-path binding without historical alias/source reopening. Retirement owner is integrating that exact chain separately from its new resource hook.
+
+Retirement owner now owns driver.command's exactly-once wait4 capture of actual child PID, user/system CPU and peak RSS, preserving output, timeout, process-group cleanup and status semantics. Qualification reader owns independent aggregate verification against original mandatory corpus/SQLite CPU/RSS predicates. No RUSAGE_CHILDREN differences or elapsed-time CPU approximation are authorized. Qualification owner also identified and is repairing missing independent raw runtime provenance/toolchain/compiler/config/profile/collector/source bindings; no whole-root runtime credit yet. The 72-root source map remains UNEXECUTED, with explicit gaps.
+
+Interception 348c109b62 passed 229 default and 231 fixture tests (one existing ignored each), both strict checks/formatting, and 20+4+14 portable tests. Admission re-review SHIP authenticates executable separately from production toolchain component inventory. Execution re-review NEEDS_WORK: identity-only WASI query still forwards native-valid -buildmode=pie and rejects before host classification. Same owner is repairing metadata-only flag normalization, preserving actual caller flags/admission/execution. Its retained-validation Cargo lease is RELEASED; no actual new public Go/shim corpus, Make or repeated goldens acceptance has run.
+
+Linked-cache source chain 79b018aafa, lifecycle dependency 68bcc7c69f, ca2f6d0a66, 450471f913, e1a8bc8a02 is complete. Selected installation cache now reaches execution, cluster, replay, resume and inspection without entering canonical identities. Earlier helper3/cache7/host2/lifecycle7 tests passed. Final strict Clippy passed after test-only correction. Current exclusive compile window is its same DEBUG/jobs1 mandatory-workloads target; final affected reruns and clean 10-second-fixture poison classification RED/GREEN remain in progress. Earlier one-second poison RED may be confounded by debug executable hashing, and is not isolated proof.
+
+Installed lifecycle source 494da1b79b is clean, with 24 portable tests, seven native tests and actual RecoveryImage 0/1/2-volume decoder test passed. It includes explicit-installation retained replay/resume guards, authenticated replay advertisements, capacity/per-incarnation text, readonly latest-incarnation storage metadata, and original conditional qualification command/receipt checks. Later test-only truncated/version tightening still needs final native rerun. Install DEBUG/jobs1 target is leased but compilation HELD until Cache finishes. Actual 12/24 signal campaigns, bounded failures, detached/cache/operator qualification remain UNRUN.
+
+Sweep initial 2a261424cd passed 71 focused tests and strict Clippy. Independent review found actual soft_assertion progress/capacity report handling and missing independent AST suite registration/declaration coverage. Source repairs are frozen and 12 standalone parser tests pass; integrated repair tests are pending. Fresh native sweep schema v2 with explicit provisional v1 refusal is authorized; frozen Go lineage/journal stays unchanged. Sweep has NO Cargo lease; mandatory-workloads target belongs to Cache until explicit release.
+
+Determinism owner retains live-corpus release/jobs1 target but all new compiles are HELD for Cache. Inventory20 and comparison6 focused tests passed; signed virtual_time=-7 helper test preserves original canonical witness bytes. Final consumer virtual-time comparison and role matrix checks await compile window. Append-only native inventory/trust-prefix263->276 and exact host-effect reconciliation require fresh independent review. Retained compiler-overlay runtimeinventory utility stays pure source analysis; no Go host orchestration. All 30 original roots and unresolved cross-owner evidence references remain unaccepted until actual proof.
+
+Core preservation owner now works in fn232-core-reach plus two source-only children, covering backend60/cluster61/WASI129 original roots. Minimal private bounded search extraction and exact original tables are authorized; source exposes unverified search outcomes incorrectly accepted instead of replay_divergence, repair tests not yet run. Retired malicious peer-frame guarantees must map to concrete native public admission negatives and linked Outcome invariants; reference-only tests cannot earn ordinary native reach. Measurement preservation owner is assigned full internal/measure119 plus six CLI measurement roots in a separate source-only worktree. It must implement missing preservation rather than record coverage alone. No Cargo/Go/guest grant for either batch.
+
+Root reclaimed inactive regenerable outputs only, retaining binaries and raw proof: qualify-closure 315 rlib/rmeta (973357983 bytes); historical fn185/fn188 647 rlib/rmeta (1681169218 bytes); released retained-validation 414 rlib/rmeta (1155964328 bytes). Receipts are /home/agent/evidence/fn232-qualification-intermediates-cleanup-20261023.json, fn232-historical-native-intermediates-cleanup.json, fn232-retained-intermediates-cleanup-20261023.json. Additional 13 authenticated Go compilation-cache objects directories reclaimed 3167415288 bytes; every module and receipt hash is unchanged before/after, no process references, receipt fn232-additional-go-objects-cleanup-20261023.json. Cache owner separately hashed/reclaimed only two own new test executables (531672352 bytes), receipt fn232-linked-cache-own-test-exe-cleanup.json. Latest native free about5.4GiB; host97GiB. Final12GiB admission is still unmet, not waived. Shared external cargo-target (~83GiB) and tmp are untouched.
+
+Required raw evidence remains in /home/agent/wt/evidence and /home/agent/evidence under open owners, including transferred fn231 acceptance/causal chains. Full Rust96-stage/145-proof qualification, mandatory workloads, retained replays, original stress matrix, fn221 frozen sweep, fn222 support and fn185 measurement remain pending. fn232.13 owns eventual Go deletion and reproducible Go/Rust size comparison. fn240 remains user tracking only.
+
+Current registered worktrees (all retained for open source, integration, acceptance or reference custody):
+
+- /Users/stephan/Workspace/skunkworks/gomad/temporal
+- /home/agent/wt/fn185-attribution-fix
+- /home/agent/wt/fn185-rust-attribution
+- /home/agent/wt/fn188-rust-stress
+- /home/agent/wt/fn221
+- /home/agent/wt/fn221-matrix
+- /home/agent/wt/fn221-rerun-src
+- /home/agent/wt/fn230-sites
+- /home/agent/wt/fn232-broker-observe
+- /home/agent/wt/fn232-broker-observe-v3
+- /home/agent/wt/fn232-broker-observe-v4
+- /home/agent/wt/fn232-broker-observe-v5
+- /home/agent/wt/fn232-broker-observe-v6
+- /home/agent/wt/fn232-core-host-reach
+- /home/agent/wt/fn232-core-model-reach
+- /home/agent/wt/fn232-core-reach
+- /home/agent/wt/fn232-determinism-reach
+- /home/agent/wt/fn232-foundation
+- /home/agent/wt/fn232-install
+- /home/agent/wt/fn232-installed-lifecycle
+- /home/agent/wt/fn232-linked-cache
+- /home/agent/wt/fn232-live-corpus
+- /home/agent/wt/fn232-mandatory-workloads
+- /home/agent/wt/fn232-measurement-reach
+- /home/agent/wt/fn232-minimize
+- /home/agent/wt/fn232-native-import
+- /home/agent/wt/fn232-receiving-reader
+- /home/agent/wt/fn232-retirement
+- /home/agent/wt/fn232-rust-driver
+- /home/agent/wt/fn232-simulation
+- /home/agent/wt/fn232-sweep-receiver
+- /home/agent/wt/fn232-world-codec
+- /home/agent/wt/fn233-interception
+### Latest integration frontier and confidence gates
+
+User asked for completion confidence and correctly identified fn221/fn222 as the breadth/end-to-end milestones. Root prioritizes actual fn222 run readiness while preserving the complete MILESTONES objective; this is no replacement of full final qualification. Retirement owner now owns the existing fn222 runner's prepare-only stop, mandatory intent capture, exact named-PASS handling and coordination with the native support builder. Both mandatory workflow-type smoke and supplementary frontend, their success/canary receipts and shared onebox storage/transport inspection remain required. No current Rust candidate has earned those gates. fn221's original frozen Go journal remains4/344 and must not be replaced by native Sweep v2.
+
+Prospective source is now5bc0eb323b5a56795ff89e896ce049cc0c16be8b. Resource hook31c3c4c539 independently SHIP with six actual process tests rerun0. Private Python controls throughd174 are integrated byte-exactly. Reviewed native Sweep2781104200 is integrated:14 Rust files exact, no helper-path rewrite needed;113 driver portable tests pass, default binary/lock/helper/workspace checks unchanged. Sweep actual79 focused tests, strict Clippy and formatting passed; same independent reviewer SHIP both repaired findings. Integration is source-only, not an integrated Cargo or qualification pass.
+
+Formal cache review used codex:gpt-6.1-sol:high read-only three-axis fan-out, same writer/reviewer family per AGENTS. All three returned NEEDS_WORK; merge retained four findings and collapsed duplicates, receipt /home/agent/evidence/fn232-linked-cache-review.json, rid3cd31db417ee6f69758cd565629debbc. True gaps: poisoned cache diagnostics enter canonical launcher publication; sparse cluster output inspection requires omitted streams; retained run-guest receipts drop selected cache; scan/bisect maps cache errors to status1. Cache owner source8c93175ea0 fixes all four (including Lifecycle2048a06928), coordinates Core's private search extraction/generic errors and will receive exact96aec9dd3f unverified-prefix predicate fix after causal RED. Current isolated review-gate tests are ongoing; setup/compiler failures are retained but never counted as causal. Re-review must be SINGLE same-session dispatch using that receipt after green committed fixes, not another fan-out.
+
+Lifecycle source874f6fc62d plus docs51e23c9e2d is clean:25 portable tests; pre-sparse native7/helper decoder1/strict both crates/binarycheck passed. Actual sparse native tests2/2 and strict Gomad lib/tests passed on the host development build target with actual native-filesystem fixtures. Independent-publication300e145bd7 executes real Make recipes under original controlled Cargo publisher: three portable tests/six recipe cases preserve bytes0755/inode independence and explicit feature routing. Whole lifecycle batch still requires independent review and genuine campaigns/signals/qualification; no such runtime credit.
+
+Development build storage moved to /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-native-checks after regular-write/flock/exec probes passed, initially98.4GB free, nowabout90GB. Compiler/link TMPDIR is its own tmp child. CARGO_INCREMENTAL=0/jobs1/default DEBUG; cache owner currently has the exclusive compile window, then Det/Core/Interception queue. Unit fixture scratch stays native. Initially256MiB native fixture reserve was conservatively chosen; after actual cache-test peak659456B, root permits ONLY bounded <=16MiB development unit tests with >=64MiB preflight and serial test execution. This changes no production, guest, measurement or final qualification limit. Final evidence/scratch native12GiB gate remains binding. Latest native free230MiB and external Umpire Cargo process confirmed using shared cargo-target; root leaves its target/tmp untouched. No measured qualification may start.
+
+Additional cleanup after explicit releases: mandatory target343 rlib/rmeta1828167380B (receipt on host .build-cache/fn232-mandatory-intermediates-cleanup-20261023.json); mandatory inactive incremental3804files4700175213B (native receipt fn232-mandatory-incremental-cleanup-20261023.json); inactive install release296 rlib/rmeta plus two disposable private Go object caches1132865771B (fn232-released-caches-cleanup-20261023.json). Every cleanup checked process refs and kept actual module/provenance/receipt/Result/evidence/source and other targets. External shared cargo-target grew from83GB to93GB or more, consuming recovered native headroom.
+
+Qualification runtime binding1574bcf582 was independently NEEDS_WORK: incomplete exact compiler/source inventory membership and missing forced compiler environment controls. Env repairdef18d6f0a passed70 portable tests with18 meaningful resealed-negative failures in RED; inventory remains open. Native sole prepare owner is now porting the actual missing Go compiler-output cache (distinct from Wasmtime compiled cache), complete original reuse/invalidation/key/corruption/eight publication-fault/cancellation predicates, and raw command observations needed for independent inventory projection. Volatile PID/timestamps MUST remain outside canonical Record/Store payloads: root caught concrete identical-record manifest collision. Native observations use separate private sidecars; Retirement owns opt-in outer producer-witness sealing, exact owning campaign/PID/full receipt-set binding, and Qualification owns independent projection. Old retained replay stays usable; missing sidecars cannot earn qualification. No new Go or guest run yet.
+
+Core latest source includes full250-root original-source binding and meaningful pending native tests, actual storage stream caps, World/unfinished-runtime/search/soft-report gaps and typed nonpublishable Completion failure migration. All new roots remain UNEXECUTED. It also owns explicit feature-only typed four-fault producers: no ambient environment unguarding, default/public grammar/ordinary role widening or fake publications. Det owns actual diagnostic/comparison consumers. Determinism frozen9eabcd37c7 maps30+six architecture roots/344 predicates, with trust-prefix advancement and26 exact cross-owner evidence refs still pending. Its focused native checks and fresh trust review remain queued; no global gate waiver.
+
+Measurement owner is porting full119 measurement roots plus six CLI and exact measurement flags/sqlite input contracts. It received existing native profile commits42a88/de94/cac5 and separately hashed preserved fn185 worktree WIP (not merely HEAD); current source also implements retention, warm collection, actual native dispatch and guest profiling/fuel controls. Large actual25-producer work is still underway, not reduced to parser/source coverage. Original fd/RSS/CPU/time bounds and measurement evidence requirements stay unchanged. No measured profile, full stress matrix, full native sweep, final96-stage/145-proof cycle, Go deletion or source-size comparison is complete.
