@@ -248,29 +248,18 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 
 func Within(path, root string) bool { return within(path, root) }
 
-// retiredHostRoots are the Go host packages the Rust host replaced (fn-232.13)
-// and the native backend fn-223 removed. Their retained Go neighbors, such as
-// internal/backends/wasm/toolchain, stay importable.
-var retiredHostRoots = []string{
-	"cmd/gomad",
-	"internal/runner",
-	"internal/evidence/artifact", "internal/evidence/record",
-	"internal/host",
-	"internal/backends/native", "internal/backends/target", "internal/backends/testfixture",
-	"internal/backends/wasm/backend", "internal/backends/wasm/cmd", "internal/backends/wasm/command",
-	"internal/backends/wasm/installation", "internal/backends/wasm/qualification", "internal/backends/wasm/wasi",
-	"internal/backends/wasm/internal/measure", "internal/backends/wasm/internal/measurement",
-	"internal/backends/wasm/internal/moduleinfo", "internal/backends/wasm/internal/sweep",
-	"internal/backends/wasm/internal/temporalinput",
-}
+// retiredHostRoots are the Go host packages the Rust host replaced (fn-232.13) and the native
+// backend fn-223 removed; retained neighbors such as internal/backends/wasm/toolchain stay importable.
+var retiredHostRoots = []string{"cmd/gomad", "internal/runner", "internal/evidence/artifact", "internal/evidence/record", "internal/host",
+	"internal/backends/native", "internal/backends/target", "internal/backends/testfixture", "internal/backends/wasm/backend",
+	"internal/backends/wasm/cmd", "internal/backends/wasm/command", "internal/backends/wasm/installation", "internal/backends/wasm/qualification",
+	"internal/backends/wasm/wasi", "internal/backends/wasm/internal/measure", "internal/backends/wasm/internal/measurement",
+	"internal/backends/wasm/internal/moduleinfo", "internal/backends/wasm/internal/sweep", "internal/backends/wasm/internal/temporalinput"}
 
-// RetiredHostPackage reports whether a module-relative import path names a
-// retired Go host package. The former package roots internal/backends,
-// internal/backends/wasm and internal/evidence/qualification match exactly;
-// only the qualification corpus module remains below the latter.
+// RetiredHostPackage reports whether a module-relative import path names a retired Go host package.
+// Former roots match exactly; only the qualification corpus module remains below internal/evidence/qualification.
 func RetiredHostPackage(relative string) bool {
-	switch relative {
-	case "internal/backends", "internal/backends/wasm", "internal/evidence/qualification":
+	if relative == "internal/backends" || relative == "internal/backends/wasm" || relative == "internal/evidence/qualification" {
 		return true
 	}
 	return slices.ContainsFunc(retiredHostRoots, func(root string) bool { return Within(relative, root) })
