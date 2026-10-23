@@ -299,15 +299,24 @@ def backend(config, work, family):
     common = load('live-backend-common')
     campaigns = list(work.glob('**/campaigns/campaign-*'))
     require(campaigns, 'root declarations have no raw campaigns')
+    shared_role = len(campaigns) > 2
+    if shared_role:
+        guard(config)
+        built = read(role(config, config['live_corpus']['families'][family]['role'])['build_receipt'])
     for path in campaigns:
+        guard(config)
         plan = common.seed['canonical_file'](path / 'plan.json')
         if 'strategy' in plan: common.rounds['authenticate'](path)
         else: common.seed['authenticate_campaign'](path, complete=False)
         prepared = plan.get('prepared', plan)
-        built = read(role(config, config['live_corpus']['families'][family]['role'])['build_receipt'])
+        if not shared_role:
+            built = read(role(config, config['live_corpus']['families'][family]['role'])['build_receipt'])
         require(prepared['helper_sha256'] == config['identity']['helper'] and prepared['host_sha256'] == built['host_sha256'],
                 'retained campaign implementation differs from frozen live role')
         for manifest in path.rglob('manifest.json'): common.seed['authenticate_artifact'](manifest.parent)
+    if shared_role:
+        guard(config)
+        role(config, config['live_corpus']['families'][family]['role'])
 
 
 def admissions(work, commands):
@@ -538,6 +547,7 @@ def execute_families(config, stage_root, label):
         observed['environment'] = dict(config.get('environment', {}), **entry.get('environment', {}))
         name = 'live-' + family
         if family in AUXILIARY: work.mkdir(mode=0o700)
+        guard(config)
         raw = command(observed, base, name, entry['argv'])
         if family in AUXILIARY: (work / 'unit.stdout').write_bytes(raw)
         read_family(config, family, work, raw.decode())
