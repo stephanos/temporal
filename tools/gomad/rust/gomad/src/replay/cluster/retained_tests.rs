@@ -305,7 +305,17 @@ struct ReaderFixture {
 }
 
 impl ReaderFixture {
-    fn new(publication: crate::evidence::store::Publication) -> Self {
+    fn new(mut publication: crate::evidence::store::Publication) -> Self {
+        if let Some(raw) = publication.payloads.get(FILE) {
+            publication.record.streams.insert(
+                FILE.into(),
+                crate::evidence::record::Stream {
+                    bytes: raw.len() as u64,
+                    sha256: canonical::digest(raw),
+                    records: 0,
+                },
+            );
+        }
         let root = std::env::temp_dir().join(format!(
             "gomad-retained-reader-{}",
             crate::campaign::origin::identity().unwrap()
@@ -476,6 +486,31 @@ fn retained_native_decoder_is_closed_and_preserves_the_existing_lineage() {
         let opened = fixture.open();
         opened.authenticate_all().unwrap();
         let error = super::inputs(&opened).err().expect(case);
+        let expected = match case {
+            "ordinary-spelling" | "foreign-schema" | "legacy-schema" => {
+                "unsupported or noncanonical retained cluster replay inputs"
+            }
+            "duplicate-top" => "duplicate field `schema`",
+            "duplicate-nested" => "duplicate field `engine`",
+            "unknown-top" | "unknown-nested" => "unknown field `unknown`",
+            "missing-module" => "missing field `module`",
+            "wrong-module-type" => "invalid type: integer",
+            "trailing-value" => "trailing characters",
+            "truncated" => "EOF while parsing",
+            "invalid-utf8" => "unicode",
+            "host-faults" => "unknown field `faults`",
+            "host-scenarios" => "unknown field `scenarios`",
+            "host-history" => "unknown field `history`",
+            "host-observations" => "unknown field `observations`",
+            "host-oracles" => "unknown field `oracles`",
+            "go-served-calls" => "unknown field `go_filesystem_calls`",
+            "guest-callbacks" => "unknown field `guest_callbacks`",
+            _ => unreachable!(),
+        };
+        assert!(
+            error.contains(expected),
+            "{case}: expected {expected:?}, got {error:?}"
+        );
         observation(
             &format!("decode/{case}"),
             json!({"payload_base64":crate::campaign::exploration::base64(&changed)}),
@@ -542,6 +577,18 @@ fn retained_implementation_and_primary_binding_reject_before_preparing_helpers()
         let opened = fixture.open();
         let before = std::fs::read_dir(&fixture.path).unwrap().count();
         let error = super::bind(&opened, &inputs).unwrap_err();
+        assert_eq!(
+            error,
+            match case {
+                "primary-path" | "primary-digest" =>
+                    "retained cluster primary module identity mismatch",
+                "missing-incarnations" | "missing-retained" | "duplicate-incarnation" =>
+                    "retained cluster incarnation count mismatch",
+                "foreign-retained" => "retained cluster handle mismatch",
+                _ => "WASM retained cluster implementation/configuration identity mismatch",
+            },
+            "{case}"
+        );
         let prepare_error = super::prepare(opened.try_clone().unwrap(), None)
             .err()
             .unwrap();
