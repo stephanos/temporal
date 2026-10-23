@@ -144,8 +144,7 @@ impl Spec {
         }
         Ok(spec)
     }
-    fn verify(&self) -> Result<(), String> {
-        let proof = inputs::authenticate_checkout(&self.repo)?;
+    fn verify(&self, proof: &inputs::CheckoutProof) -> Result<(), String> {
         module::verify_inputs(&self.files)?;
         workloads::Executable {
             path: self.helper.clone(),
@@ -153,7 +152,7 @@ impl Spec {
             role: self.role.clone(),
             receipt: self.receipt.clone(),
         }
-        .verify(&proof)
+        .verify(proof)
     }
 }
 
@@ -207,9 +206,33 @@ impl Observer {
     }
     fn observe(&self, phase: &LifecyclePhase, before: bool) -> Result<(), String> {
         let label = phase_label(phase, self.spec.replay)?;
+        let proof = inputs::authenticate_checkout(&self.spec.repo)?;
+        let identity = self.root.join(format!(
+            "{label}-{}-identity",
+            if before { "before" } else { "after" }
+        ));
+        std::fs::DirBuilder::new()
+            .mode(0o700)
+            .create(&identity)
+            .map_err(|error| error.to_string())?;
+        let host = host::current(&identity, &self.environment)?;
+        let source = host::source_snapshot(&proof, &identity, &self.environment)?;
+        let mut receipts = BTreeMap::new();
+        for (name, value) in [
+            ("host.json", serde_json::to_value(&host)),
+            ("source.json", serde_json::to_value(&source)),
+        ] {
+            let bytes = canonical::encode(&value.map_err(|error| error.to_string())?)?;
+            super::write(&identity.join(name), &bytes)?;
+            receipts.insert(name.to_owned(), canonical::digest(&bytes));
+        }
+        // Retain refused observations too, without publishing a passing phase receipt.
+        self.spec
+            .baseline
+            .matches(&host, SourceIdentity::captured(&source)?)?;
         boundary(
             before,
-            || self.spec.verify(),
+            || self.spec.verify(&proof),
             || {
                 host::admit_preparation(
                     &self.root,
@@ -226,7 +249,7 @@ impl Observer {
                     )),
                     &canonical::encode(
                         &json!({"schema":"gomad.cluster-phase-observation/v1","phase":label,"before":before,
-                    "handles":phase.handles,"process_id":std::process::id(),"unix_nanos":std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|error|error.to_string())?.as_nanos(),"passed":true}),
+                    "handles":phase.handles,"process_id":std::process::id(),"unix_nanos":std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|error|error.to_string())?.as_nanos(),"passed":true,"identity_receipts":receipts}),
                     )?,
                 )
             },
@@ -258,10 +281,10 @@ fn boundary(
     memory: impl FnOnce() -> Result<(), String>,
     observe: impl FnOnce() -> Result<(), String>,
 ) -> Result<(), String> {
-    verify()?;
     if before {
         memory()?;
     }
+    verify()?;
     observe()
 }
 impl LifecycleObserver for Observer {
@@ -297,6 +320,16 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
     let expected_pid = command["pid"]
         .as_u64()
         .ok_or("cluster command process absent")?;
+    let spec = Spec::read(
+        &root
+            .parent()
+            .ok_or("cluster evidence parent absent")?
+            .join(format!("{name}-phase-inputs.json")),
+    )?;
+    if spec.replay != replay {
+        return Err("cluster admission replay identity differs".into());
+    }
+    module::verify_inputs(&spec.files)?;
     let mut last = 0;
     for (index, phase) in phases.into_iter().enumerate() {
         for before in [true, false] {
@@ -327,7 +360,57 @@ pub(super) fn check_observations(root: &Path, replay: bool) -> Result<(), String
             {
                 return Err("cluster phase observation identity/order differs".into());
             }
+            let identity = root.join("phase-admission").join(format!(
+                "{phase}-{}-identity",
+                if before { "before" } else { "after" }
+            ));
+            check_identity(&spec.baseline, &identity, &value["identity_receipts"])?;
             last = time;
+        }
+    }
+    Ok(())
+}
+
+fn check_identity(baseline: &Baseline, root: &Path, receipts: &Value) -> Result<(), String> {
+    let receipts: BTreeMap<String, String> =
+        serde_json::from_value(receipts.clone()).map_err(|error| error.to_string())?;
+    if receipts.len() != 2 {
+        return Err("cluster phase host/source receipts absent".into());
+    }
+    let mut documents = BTreeMap::new();
+    for name in ["host.json", "source.json"] {
+        let bytes = super::read(&root.join(name), 16 << 20)?;
+        if receipts.get(name) != Some(&canonical::digest(&bytes)) {
+            return Err("cluster phase host/source receipt changed".into());
+        }
+        documents.insert(name, crate::qualify::spec::strict(&bytes)?);
+    }
+    let host: host::HostEvidence = serde_json::from_value(documents["host.json"].clone())
+        .map_err(|error| error.to_string())?;
+    let source: SourceIdentity = serde_json::from_value(documents["source.json"].clone())
+        .map_err(|error| error.to_string())?;
+    baseline.matches(&host, source)?;
+    if host.inputs.keys().any(|path| path.parent() != Some(root)) {
+        return Err("cluster phase raw host witness path differs".into());
+    }
+    module::verify_inputs(&host.inputs)?;
+    let witness: host::HostWitness = serde_json::from_value(crate::qualify::spec::strict(
+        &super::read(&root.join("host-witness.json"), 2 << 20)?,
+    )?)
+    .map_err(|error| error.to_string())?;
+    if witness != host.witness {
+        return Err("cluster phase raw host witness differs".into());
+    }
+    if host.host_os == "linux" {
+        let cpu = super::read(&root.join("host-cpuinfo.txt"), host::CPUINFO_LIMIT)?;
+        let boot = super::read(&root.join("host-boot-id.txt"), 128)?;
+        if cpu != host.witness.cpuinfo.as_bytes()
+            || std::str::from_utf8(&boot)
+                .map_err(|error| error.to_string())?
+                .trim()
+                != host.boot_id
+        {
+            return Err("cluster phase raw CPU/boot witness differs".into());
         }
     }
     Ok(())
