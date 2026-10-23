@@ -1206,3 +1206,18 @@ fn heap_profile(samples: &[HeapSample], rate: u64) -> Result<Vec<u8>> {
     gzip.extend_from_slice(&length.to_le_bytes());
     Ok(gzip)
 }
+
+/// Checks the complete retained gzip heap payload without executing a guest.
+///
+/// # Errors
+/// Refuses corrupt, empty, truncated, trailing or over-capacity payloads.
+pub fn validate_heap_profile(bytes: &[u8], maximum_expanded: usize) -> Result<()> {
+    let (raw, consumed) =
+        crate::world::gzip::decode(bytes, maximum_expanded).map_err(Error::msg)?;
+    if raw.is_empty() || consumed != bytes.len() {
+        return Err(Error::msg(
+            "heap gzip payload is empty or has trailing bytes",
+        ));
+    }
+    Ok(())
+}
