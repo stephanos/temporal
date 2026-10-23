@@ -433,12 +433,7 @@ fn native_publication_versions_and_binds_the_independent_output_snapshot() {
     assert_eq!(accounting["offered_output_bytes"], backend["output_bytes"]);
 }
 
-#[test]
-fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
-    let mut publication = native_publication("", |_| {}).unwrap();
+fn legacy_publication(mut publication: super::Publication) -> super::Publication {
     let name = "evidence/native-output-accounting";
     publication.payloads.remove(name);
     publication.record.streams.remove(name);
@@ -450,16 +445,105 @@ fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes()
         .as_object_mut()
         .unwrap()
         .remove("output_accounting_sha256");
-    let legacy_bytes = canonical::encode(&backend).unwrap();
+    replace_publication_backend(&mut publication, &backend);
+    publication
+}
+
+fn replace_publication_backend(publication: &mut super::Publication, backend: &serde_json::Value) {
+    let name = "evidence/backend-outcome.json";
+    let bytes = canonical::encode(backend).unwrap();
+    if let Some(stream) = publication.record.streams.get_mut(name) {
+        stream.bytes = bytes.len().try_into().unwrap();
+        stream.sha256 = canonical::digest(&bytes);
+    }
+    publication.payloads.insert(name.into(), bytes);
     publication
         .payloads
-        .insert(name.into(), legacy_bytes.clone());
+        .insert("record.json".into(), publication.record.bytes().unwrap());
+}
+
+#[test]
+fn store_publication_rejects_contradictory_native_backend_counters() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    for (field, value, diagnostic) in [
+        ("fuel_remaining", 10001, "backend outcome fuel"),
+        ("output_bytes", 1, "backend outcome output"),
+    ] {
+        let mut publication = native_publication("", |_| {}).unwrap();
+        let mut backend: serde_json::Value =
+            serde_json::from_slice(&publication.payloads["evidence/backend-outcome.json"]).unwrap();
+        backend[field] = value.into();
+        replace_publication_backend(&mut publication, &backend);
+        let store = Store {
+            root: root.0.join(field),
+            maximum_bytes: 1 << 24,
+            target_pool: None,
+            #[cfg(feature = "determinism-fixture")]
+            fault: None,
+        };
+        let error = store
+            .publish(publication)
+            .err()
+            .expect("invalid counters were committed");
+        assert!(error.contains(diagnostic), "{error}");
+        let committed = std::fs::read_dir(&store.root)
+            .unwrap()
+            .map(Result::unwrap)
+            .filter(|entry| super::artifact_name(&entry.file_name().to_string_lossy()))
+            .count();
+        assert_eq!(committed, 0);
+    }
+}
+
+#[test]
+fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let publication = legacy_publication(native_publication("", |_| {}).unwrap());
+    let name = "evidence/backend-outcome.json";
+    let legacy_bytes = publication.payloads[name].clone();
     let legacy_record = publication.record.bytes().unwrap();
-    publication
-        .payloads
-        .insert("record.json".into(), legacy_record.clone());
     let published = Store {
         root: root.0.join("legacy-store"),
+        maximum_bytes: 1 << 24,
+        target_pool: None,
+        #[cfg(feature = "determinism-fixture")]
+        fault: None,
+    }
+    .publish(publication)
+    .unwrap();
+    assert_genuine(&published.path);
+    assert_eq!(
+        std::fs::read(published.path.join(name)).unwrap(),
+        legacy_bytes
+    );
+    assert_eq!(
+        std::fs::read(published.path.join("record.json")).unwrap(),
+        legacy_record
+    );
+}
+
+#[test]
+fn legacy_v1_cancelled_output_remains_readable_with_the_historical_zero_counter() {
+    let root =
+        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
+            .unwrap();
+    let (publication, _, retained) = offered_output_publication(1 << 20, true);
+    assert!(retained > 0);
+    let mut publication = legacy_publication(publication);
+    let name = "evidence/backend-outcome.json";
+    let mut backend: serde_json::Value =
+        serde_json::from_slice(&publication.payloads[name]).unwrap();
+    backend["output_bytes"] = 0.into();
+    replace_publication_backend(&mut publication, &backend);
+    let legacy_bytes = publication.payloads[name].clone();
+    let legacy_record = publication.record.bytes().unwrap();
+    assert_eq!(publication.record.outcome.termination, "cancelled");
+    let published = Store {
+        root: root.0.join("legacy-cancelled"),
         maximum_bytes: 1 << 24,
         target_pool: None,
         #[cfg(feature = "determinism-fixture")]
