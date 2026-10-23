@@ -431,3 +431,63 @@ and source donor `/home/agent/wt/fn232-installed-lifecycle` remain open-owned fo
 root integration. The dedicated assigned target is
 `/home/agent/.cache/codex-build/fn232-cache-lifecycle-new`; no other target or
 source worktree was cleaned or modified.
+
+
+### Final source GREEN and independent review
+
+Final implementation checkpoint is
+`187c1774fe4d54c0ed804c5615407d09a4a14f98` on `fn232-linked-cache`, composed
+through root `0fd7ae7b6e`. Independent same-family reviewer `cache_lifecycle_review`
+(gpt-6.1-sol, high, fresh read-only context) returned **SHIP** for that exact
+checkpoint, with no remaining concrete blocking source finding. This is a source
+verdict; it supplies no actual Go lifecycle or frozen qualification pass.
+
+The final extra-owner regression publishes an actual native Store artifact with
+configured a/2 and b/2 but retained/summary only a/2, and no b payload prefix.
+Before the count check it fails with `configured but unretained owner was
+accepted: ()` (`owner-red.log`, exit 101). The repair requires configured and
+retained counts to agree, in addition to existing membership, uniqueness and
+summary-map equality. The shared actual-volume fixture proves the same input's
+valid ownership/image path; no orphan-prefix refusal masks the causal negative.
+
+All raw logs and numeric exits below are under
+`/home/agent/evidence/fn232-cache-lifecycle-integration`. Commands use explicit
+Rust 1.99.1, the locked offline workspace, default debug features, assigned target
+`fn232-cache-lifecycle-new`, Cargo jobs 2 and native test threads 1.
+
+| Gate | Actual retained result |
+| --- | --- |
+| Full `gomad --lib` suite immediately before the final owner guard | `lib-final-confirmed.log`, exit 0: 292 passed, 1 ignored at `9f017ab700` |
+| Final `gomad --lib installed_lifecycle` | `lifecycle-owner-final.log`, exit 0: all 17 pass, including raw integrity 3, authenticated foreign implementation 2, lineage 2, catalogue/budgets in JSON and text, exact owner completeness and actual volume image ownership |
+| Both crates `clippy --lib --tests -- -D warnings` | `clippy-owner-final.log`, exit 0 on final source |
+| Helper `--test linked_compile_cache` | `helper-cache.log`, exit 0: 3 actual small-WAT tests, cold/warm zero-compile cache reuse, poison/link refusal, restored reuse and cluster host failure |
+| Actual retained small-WAT selected-cache resume | `resume.log`, exit 0; also included in the full library GREEN, with absent compiler/preparation/source paths and a published private engine-cache entry |
+| Portable installed lifecycle predicates | `portable-lifecycle-final.log`, exit 0: 27 pass |
+| Independent executable publication predicates | `portable-publication.log`, exit 0: 3 pass |
+| Workspace formatting and Git whitespace | Both exit 0 |
+
+`final-summary.json` binds the source checkpoint, exact test executables and
+SHA-256 digests, all retained exits (including setup failures and causal REDs),
+source-review verdict, runtime gaps and worktree custody. Final host unit test
+executable SHA-256 is
+`9d36ca098cecff89303a683270398b7f39dc6161908125ca521e011e56746b62`;
+helper cache integration test executable is
+`7f5e1fab2622594cf1d4114d64f3a00bc23232ae6d6323aba5444735ea15a54a`.
+Every assigned-target executable/process is terminal. Target usage is 2.0 GiB;
+last free shared space is 67 GiB. No cache cleanup, guest-bound change, Go run,
+full qualification, Flow lifecycle change, push or history rewrite occurred.
+
+The root's subsequent determinism/stress source at `d71c795a8a` was not imported
+or tested by this worker; root owns that combined source integration. Preserve
+cache refusal before **every** canonical publication when adapting the separate
+Completion interface. The actual two-profile installed Go cache/operator matrix,
+SIGSTOP/SIGKILL recovery, changed-candidate detached replay/resume/inspection,
+fresh raw/golden lanes and final frozen cycle remain pending. The concurrently
+running immutable fn233 Make/Go acceptance branch and target were untouched,
+and this cache implementation supplies no cache-effect claim for that binary.
+
+Kept worktrees: `/home/agent/wt/fn232-linked-cache` for root integration and
+`/home/agent/wt/fn232-installed-lifecycle` as the unchanged clean source donor;
+both belong to open fn232. `worktrees-final.txt` captures the complete registry.
+No additional scratch checkout is retained. Assigned target and all evidence
+remain available; the exclusive cache/lifecycle build lease is released.
