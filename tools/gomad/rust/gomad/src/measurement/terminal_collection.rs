@@ -10,7 +10,7 @@ pub(crate) struct Attempt {
     pub(crate) native_root: PathBuf,
 }
 #[derive(Serialize)]
-pub(crate) struct Observation {
+pub(crate) struct Record {
     pub(crate) attempt: Attempt,
     pub(crate) retained_paths: Vec<PathBuf>,
     pub(crate) observation: Option<Value>,
@@ -57,7 +57,7 @@ pub(crate) fn collect<T>(
     attempts: &[Attempt],
     mut execute: impl FnMut(&Attempt) -> Result<Value, String>,
     mut verify: impl FnMut(&Attempt) -> Result<(), String>,
-    publish: impl FnOnce(&[Observation], Option<&str>) -> Result<T, String>,
+    publish: impl FnOnce(&[Record], Option<&str>) -> Result<T, String>,
 ) -> Result<T, String> {
     let mut failures = FailureReasons::default();
     let mut observations = Vec::new();
@@ -82,7 +82,7 @@ pub(crate) fn collect<T>(
         };
         let execution_failure = executed.as_ref().err().cloned();
         let verification_failure = verified.as_ref().err().cloned();
-        observations.push(Observation {
+        observations.push(Record {
             attempt: attempt.clone(),
             retained_paths: paths,
             observation: executed.ok().filter(|_| verified.is_ok()),

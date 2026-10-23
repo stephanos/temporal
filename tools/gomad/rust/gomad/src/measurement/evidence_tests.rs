@@ -744,3 +744,76 @@ fn diagnostic_and_sampling_comparisons_retain_original_exact_fuel_predicate() {
     after.root.outcome["fuel_remaining"] = before.root.outcome["fuel_remaining"].clone();
     compare(&before, &after, sampling()).unwrap();
 }
+
+#[test]
+fn native_json_projection_retains_all_original_public_fields_and_private_terminal() {
+    let root = fixture();
+    let mut before = with_environment(&root.read().unwrap(), "100");
+    before.root.outcome["local_model"] =
+        json!({"calls":7,"advances":2,"elapsed":17,"terminal_base64":"AAAAAQAAAAAAAAAAAAAAAA=="});
+    before.root.streams.extend([
+        ("stderr".into(), b"stderr".to_vec()),
+        ("network".into(), b"network".to_vec()),
+        ("choice".into(), b"choices".to_vec()),
+        ("transcript".into(), b"GMWT\x01\0\0\0".to_vec()),
+    ]);
+    let mut round_trip = before.clone();
+    round_trip.root.outcome =
+        serde_json::from_slice(&serde_json::to_vec_pretty(&before.root.outcome).unwrap()).unwrap();
+    compare(&before, &round_trip, ComparisonMask::Exact).unwrap();
+    assert_eq!(
+        round_trip.root.outcome["local_model"]["terminal_base64"],
+        before.root.outcome["local_model"]["terminal_base64"]
+    );
+    for mutation in 0..13 {
+        let mut changed = round_trip.clone();
+        match mutation {
+            0..=4 => {
+                let name = ["stdout", "stderr", "transcript", "choice", "network"][mutation];
+                changed.root.streams.get_mut(name).unwrap().push(1);
+            }
+            5 => changed.root.outcome["termination"] = "invalid".into(),
+            6 => changed.root.outcome["exit_code"] = 1.into(),
+            7 => changed.root.outcome["local_model"]["calls"] = 8.into(),
+            8 => changed.root.outcome["local_model"]["advances"] = 3.into(),
+            9 => changed.request["guest"]["model"]["environment"][0] = "PATH=/other".into(),
+            10 => changed.root.outcome["fuel_remaining"] = 51.into(),
+            11 => changed.root.outcome["local_model"]["elapsed"] = 18.into(),
+            _ => {
+                changed.root.outcome["local_model"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("terminal_base64");
+            }
+        }
+        assert!(
+            compare(&before, &changed, ComparisonMask::Exact).is_err(),
+            "original projection mutation {mutation}"
+        );
+    }
+}
+
+#[test]
+fn native_shape_preserves_empty_arrays_empty_strings_and_absent_evidence() {
+    let root = fixture();
+    let mut empty = root.read().unwrap();
+    empty.request["guest"]["model"] = json!({"arguments":[],"environment":[]});
+    compare(&empty, &empty, ComparisonMask::Exact).unwrap();
+    for changed_arguments in [Value::Null, json!([""]), json!([Value::Null])] {
+        let mut changed = empty.clone();
+        changed.request["guest"]["model"]["arguments"] = changed_arguments;
+        assert!(compare(&empty, &changed, ComparisonMask::Exact).is_err());
+    }
+    let mut absent = empty.clone();
+    absent.request["guest"]["model"]
+        .as_object_mut()
+        .unwrap()
+        .remove("arguments");
+    assert!(compare(&empty, &absent, ComparisonMask::Exact).is_err());
+    let mut explicit_empty = empty.clone();
+    explicit_empty
+        .root
+        .streams
+        .insert("stderr".into(), Vec::new());
+    assert!(compare(&empty, &explicit_empty, ComparisonMask::Exact).is_err());
+}
