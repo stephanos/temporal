@@ -76,6 +76,10 @@ impl Failure {
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
 pub(crate) fn world_failure(error: world::Error) -> Failure {
     match error {
         world::Error::Capacity {

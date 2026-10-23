@@ -454,6 +454,10 @@ pub fn execute(request: Request) -> wasmtime::Result<Execution> {
 
 /// # Errors
 /// Executes previously authenticated inputs with a fresh engine and store.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Execution keeps admission, cancellation, scoped engine ownership and final evidence collection in one lifetime"
+)]
 pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let Prepared {
         request,

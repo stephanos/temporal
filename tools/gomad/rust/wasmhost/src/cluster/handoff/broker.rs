@@ -16,7 +16,7 @@
 //! is simply not idle; settling needs every live participant idle, as the
 //! credits enforce in Go, and idles carry no arrivals.
 use crate::clock::{self, Clock, Quiesced, TimeRequest, TimeResponse};
-use crate::cluster::network::{Endpoint, Failure, Shared};
+use crate::cluster::network::{Endpoint, Failure, Shared, world_failure};
 use crate::cluster::transport::{SharedInput, SharedOutput, lock};
 use crate::world;
 use serde::{Deserialize, Serialize};
@@ -1434,17 +1434,6 @@ impl Broker {
         world::wire_generated::write_snapshot(world, &mut wire).map_err(world_wire_failure)?;
         Ok(wire.bytes)
     }
-}
-
-/// A broker World refusal: exhausting a World limit is the run's capacity
-/// outcome naming that dimension and its accounting, as instance-level World
-/// limits are (fn-235).
-#[expect(
-    clippy::needless_pass_by_value,
-    reason = "Error classification is passed directly to Result::map_err"
-)]
-fn world_failure(error: world::Error) -> Failure {
-    crate::cluster::network::world_failure(error)
 }
 
 #[expect(

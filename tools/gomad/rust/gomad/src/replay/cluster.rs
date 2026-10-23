@@ -930,11 +930,11 @@ mod projection_tests {
         for terminal in ["cancelled", "infrastructure"] {
             let mut early = observe(&[], false, false);
             early.outcome.termination = terminal;
-            assert!(
+            assert_eq!(
                 project_encoded(early, "", &configuration.broker)
                     .unwrap()
-                    .evidence["world"]
-                    .is_empty()
+                    .evidence["world"],
+                [] as [u8; 0]
             );
         }
     }

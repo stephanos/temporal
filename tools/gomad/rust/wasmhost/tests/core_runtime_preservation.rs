@@ -14,7 +14,7 @@ use std::time::Duration;
 mod input;
 use input::request;
 
-const CONFIGURE_AND_DECIDE: &str = r#"
+const CONFIGURE_AND_DECIDE: &str = r"
     (drop (call $config (i32.const 0) (i32.const 16)))
     (i32.store (i32.const 32) (i32.const 16777216))
     (i32.store (i32.const 36) (i32.const 16777216))
@@ -23,7 +23,7 @@ const CONFIGURE_AND_DECIDE: &str = r#"
     (i32.store8 (i32.const 64) (i32.const 1))
     (i32.store8 (i32.const 96) (i32.const 2))
     (drop (call $decision (i32.const 32) (i32.const 96)))
-"#;
+";
 
 #[test]
 fn ordinary_linked_exit_requires_the_configured_runtime_finish() {

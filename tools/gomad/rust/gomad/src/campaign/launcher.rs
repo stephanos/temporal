@@ -167,6 +167,10 @@ impl Drop for Forwarder {
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Launcher execution preserves scoped output ownership, cancellation and final typed failure reporting in one lifetime"
+)]
 pub(crate) fn run(
     options: &ExploreOptions,
     prepared: &Prepared,

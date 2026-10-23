@@ -301,12 +301,12 @@ fn report_only_never_treats_a_missing_incarnation_as_complete() {
 
 #[test]
 fn retained_world_profile_authenticates_seed_capacities_and_binary_owner_bytes() {
+    const PROFILE: &str = "gomad/world/compressed-snapshot/v2";
     let raw = crate::qualify::cells::base64("R01XU05BUDEAAAABAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAAD0JAAAAAAAIAAAAAAAAAEAAAA/////w0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFVkPwAshKEN5wBwZmobp69AiLehiWr2Xs5nRltJYTzTVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==").unwrap();
     let broker: helper::BrokerConfig = serde_json::from_value(json!({"seed":0,"limits":{
         "max_requests":2_097_152,"max_events":2_097_152,"max_queued_events":250_000,
         "max_transitions":8_388_608,"max_payload_bytes":67_108_864,"max_string_bytes":u32::MAX}}))
     .unwrap();
-    const PROFILE: &str = "gomad/world/compressed-snapshot/v2";
     let compressed = helper::encode_world(&raw, PROFILE).unwrap();
     helper::validate_encoded_world(&compressed, PROFILE, &broker).unwrap();
     helper::validate_encoded_world(&raw, "", &broker).unwrap();
@@ -390,13 +390,13 @@ fn operator_strict_preflight_preserves_every_original_refusal() {
             "unknown-restart-boot" => {
                 scenario["incarnation_boots"] = json!([
                     {"handle":{"node":"a","incarnation":2},"boot":"missing"}
-                ])
+                ]);
             }
             "duplicate-boot" => scenario["boots"] = json!([{"id":"main"},{"id":"main"}]),
             "active-restart" => {
                 scenario["actions"][2] = json!(
                     {"action":"restart","handle":{"node":"a","incarnation":2}}
-                )
+                );
             }
             "incomplete" => {
                 scenario["actions"].as_array_mut().unwrap().truncate(2);
@@ -553,6 +553,7 @@ fn capacity_finalization_case(
     }))
     .unwrap();
     let prepared = super::super::prepare::Prepared {
+        auxiliary: BTreeMap::new(),
         module: b"\0asm\x01\0\0\0".to_vec(),
         configuration: base,
         toolchain: "1".repeat(64),

@@ -16,9 +16,9 @@ fn partial_metadata_scalar_and_escaped_path_bounds_preserve_original_extremes() 
         path: String::new(),
         destination: String::new(),
     };
-    assert!(serde_json::to_vec(&operation).unwrap().len() + 1 <= 361);
+    assert!(serde_json::to_vec(&operation).unwrap().len() < 361);
     let model: StorageModel = serde_json::from_value(json!({
-        "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1048576}],
+        "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1_048_576}],
         "limits":{"PendingOperations":1000,"Transitions":1000}
     }))
     .unwrap();
@@ -31,25 +31,28 @@ fn partial_metadata_scalar_and_escaped_path_bounds_preserve_original_extremes() 
     entry.mod_time = i64::MIN;
     entry.size = u64::MAX;
     entry.data_sha256 = hash;
-    assert!(serde_json::to_vec(&entry).unwrap().len() + 1 <= 195);
+    assert!(serde_json::to_vec(&entry).unwrap().len() < 195);
     operation.path = "\x01".repeat(4 * 4096);
     operation.destination.clone_from(&operation.path);
     operation.dependencies = Some(vec![u64::MAX; 2 * 4 + 3]);
     assert!(
-        serde_json::to_vec(&operation).unwrap().len() + 1
-            <= 361 + 2 * 6 * 4 * 4096 + 21 * (2 * 4 + 3)
+        serde_json::to_vec(&operation).unwrap().len() < 361 + 2 * 6 * 4 * 4096 + 21 * (2 * 4 + 3)
     );
     entry.path = operation.path;
-    assert!(serde_json::to_vec(&entry).unwrap().len() + 1 <= 195 + 6 * 4 * 4096);
+    assert!(serde_json::to_vec(&entry).unwrap().len() < 195 + 6 * 4 * 4096);
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The original large-history script verifies the complete retained prefix and rejected operation state"
+)]
 fn refused_large_history_retains_original_hundred_thousand_write_prefix() {
     use crate::namespace::{Image, Limits, Namespace, Open, Operation as N, Output, RIGHTS_ALL};
     use crate::storage_transport::{StorageDescriptor, evidence};
     let model: StorageModel = serde_json::from_value(json!({
         "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":65536}],
-        "limits":{"PendingOperations":200000,"Transitions":200000}
+        "limits":{"PendingOperations":200_000,"Transitions":200_000}
     }))
     .unwrap();
     let descriptor: StorageDescriptor = serde_json::from_value(json!({

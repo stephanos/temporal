@@ -784,6 +784,6 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
             );
         }
         validate_world(&observed.world, &broker).unwrap();
-        assert!(!observed.world.is_empty());
+        assert_ne!(observed.world, [] as [u8; 0]);
     }
 }

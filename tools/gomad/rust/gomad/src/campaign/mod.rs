@@ -679,10 +679,10 @@ fn run_observed(
             free.insert(slot);
             running.remove(&job.ordinal);
             match result {
-                Ok(execution::Completion::Failed(observed)) => {
+                Ok(execution::Completion::Failed(failed_result)) => {
                     if failure.is_none() {
-                        failure = Some(observed.message());
-                        failed_completion = Some(observed);
+                        failure = Some(failed_result.message());
+                        failed_completion = Some(failed_result);
                     }
                     cancel();
                 }

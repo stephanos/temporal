@@ -810,6 +810,7 @@ fn retained_rust_without_world_byte_field_keeps_canonical_identity_and_actual_re
     })
     .unwrap();
     let prepared = crate::campaign::prepare::Prepared {
+        auxiliary: BTreeMap::new(),
         module,
         configuration: inputs.configuration,
         toolchain: fixture.record.identity.toolchain.clone(),

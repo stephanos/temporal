@@ -16,7 +16,7 @@ fn config() -> Config {
         "arguments":{"bytes":0,"count":0,"chunks":0},
         "environment":{"bytes":0,"count":0,"chunks":0},
         "epoch_nanos":EPOCH,"read_step_nanos":1000,"now":0,
-        "limits":{"calls":10000,"transcript_bytes":8388608,"pending_events":4096}
+        "limits":{"calls":10000,"transcript_bytes":8_388_608,"pending_events":4096}
     }))
     .unwrap();
     config
@@ -267,6 +267,10 @@ fn exploratory_clock_and_mixed_poll_preserve_original_virtual_time_and_event_ord
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The original ordered namespace scenario retains every intermediate rights, offset and closure assertion"
+)]
 fn namespace_rights_offsets_cookies_containment_and_closure_preserve_original_sequence() {
     let mut namespace = Namespace::new(image()).unwrap();
     assert_eq!(output(&mut namespace, N::PrestatGet(3)), Output::Prestat(4));
@@ -498,8 +502,8 @@ fn captured_namespace_owns_payload_and_infers_absence_without_host_access() {
 fn network_v2_rejects_original_retired_profile_before_state_construction() {
     let mut config: crate::cluster::network::ModelV2 = serde_json::from_value(json!({
         "profile":"gomad.simulation-network-stream/v3",
-        "limits":{"listeners":128,"connections":4096,"bytes":134217728,
-            "connection_bytes":4194304,"stall_nanos":10000000000_u64,"transitions":1048576},
+        "limits":{"listeners":128,"connections":4096,"bytes":134_217_728,
+            "connection_bytes":4_194_304,"stall_nanos":10_000_000_000_u64,"transitions":1_048_576},
         "faults":[]
     }))
     .unwrap();
@@ -523,7 +527,7 @@ fn transcript_clock_run_retains_original_51_52_byte_capacity_boundary() {
         if limit == 51 {
             assert!(result.is_err());
             assert_eq!((model.now, model.transcript_bytes), (0, 0));
-            assert!(transcript(&mut model).is_empty());
+            assert_eq!(transcript(&mut model), [] as [u8; 0]);
         } else {
             result.unwrap();
             model.clock_read(2, 1, 0).unwrap();

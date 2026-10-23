@@ -416,7 +416,7 @@ fn transition_byte_limit_refuses_before_mutation_at_the_exact_native_record_boun
                 })
             ));
             assert_eq!(model.state_digest(), before);
-            assert!(model.transitions().is_empty());
+            assert_eq!(model.transitions(), []);
         }
     }
 }

@@ -260,15 +260,30 @@ fn go_standalone_network_adapter_corpus() {
 
 #[test]
 fn standalone_network_world_byte_bound_is_typed_and_preserves_the_rejected_world() {
-    let fixture: Value = serde_json::from_str(include_str!("../../../../tests/testdata/network_adapter_cases/pending-dial-timeout-0.json")).unwrap();
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../../../../tests/testdata/network_adapter_cases/pending-dial-timeout-0.json"
+    ))
+    .unwrap();
     for limit in [1, 1 << 20] {
-        let mut endpoint = Endpoint::standalone(serde_json::from_value(fixture["network"].clone()).unwrap(), 0, 8 << 20).unwrap();
+        let mut endpoint = Endpoint::standalone(
+            serde_json::from_value(fixture["network"].clone()).unwrap(),
+            0,
+            8 << 20,
+        )
+        .unwrap();
         endpoint.limit_transition_bytes(Some(limit)).unwrap();
         let mut refusal = false;
         for step in &fixture["steps"].as_array().unwrap()[..3] {
             let input = &step["input"];
             if input["action"] == "link" {
-                lock(&endpoint.shared).owner.partition(&endpoint.client.node, &endpoint.server.node, input["symmetric"].as_bool().unwrap_or_default()).unwrap();
+                lock(&endpoint.shared)
+                    .owner
+                    .partition(
+                        &endpoint.client.node,
+                        &endpoint.server.node,
+                        input["symmetric"].as_bool().unwrap_or_default(),
+                    )
+                    .unwrap();
                 continue;
             }
             let mut data = bytes(&input["data"]);
@@ -276,7 +291,14 @@ fn standalone_network_world_byte_bound_is_typed_and_preserves_the_rejected_world
             let observed = endpoint.serve(&mut data, input["nanos"].as_u64().unwrap_or(1), true);
             if let Err(failure) = observed {
                 assert_eq!(limit, 1);
-                assert!(matches!(failure, Failure::Exhausted { dimension:"transition-bytes",limit:1,.. }));
+                assert!(matches!(
+                    failure,
+                    Failure::Exhausted {
+                        dimension: "transition-bytes",
+                        limit: 1,
+                        ..
+                    }
+                ));
                 assert_eq!(endpoint.world.state_digest(), before);
                 assert_eq!(failure.termination(), "capacity");
                 refusal = true;
