@@ -141,3 +141,42 @@ exit is 0. Re-admission is `helper-admission-v3.exit` 0. Nine focused tests pass
 in `unit-helper-custody-final2.log`; fresh independent reviewer found no remaining
 source blockers. The final reader must retain/seal the actual artifact path as
 well as the independent copy and all declared receipt/source/compiler files.
+
+## Actual original runtime-cost ownership pair (development)
+
+The actual `Selection::Runtime` module prepared by the measurement producer at
+`/home/agent/wt/evidence/fn232-measurement-runtime-custody-20261023-01/module`
+was run through both unchanged original Go-owned execution and the framed helper.
+The retained exact prepared request is `runtime-cost-native-input.json`; its
+source/provenance/installation custody is `runtime-cost-source-custody.json` under
+`/home/agent/evidence/fn232-profile-reference`. The pair is retained in
+`runtime-cost-pair-v1`, with raw results, streams and command/process receipts.
+`original-predicate.json` records both exit 0, 200037 WASI calls, 100000 select
+polls, stdout `runtime-cost 100000`, and exact original sameEvidence equality
+(stdout/stderr, WASI digest, choice/network/terminal, outcome and exit).
+The wrapper command exit is 0. Observed authorization-to-terminal intervals are
+16.024227924s Go and 4.655754044s helper; these are development observations,
+with no qualification or performance conclusion. The helper source remains the
+explicit development 4fcf/fa175 binding above. Current native ordinary execution
+and final frozen three-way admission remain separate owner obligations.
+
+The independent reader subsequently found that Python's tar data filter had
+normalized an original `./versioned/...` symlink target in `derived-v2`. All old
+derived files and the refusal are retained. New derivations restore each exact
+original archive link target after safe extraction and containment validation;
+a regression checks exact `readlink` bytes, and ten focused tests pass. This
+corrects source export custody without changing frozen original source or Go
+runtime algorithms. Existing v2 ownership observations do not establish exact
+full-tree source equality; a newly derived, independently authenticated tree is
+required for final original-source admission.
+
+The profile owner retained a fresh exact export at
+`/home/agent/evidence/fn232-original-terminal-derived-v3`, with source manifest
+SHA-256 `5ee95882d18f8637b182cd451cd3a2e6d454fd1524a5502f34522ab7bbc6ecdb`.
+Their `fn232-original-terminal-controls-v3/original-tree.stdout` authenticates all
+9690 original Git/archive members before and after the five actual original wire
+controls; `reader-result.json` independently records those five PASS/exit 0.
+These are the unchanged original shell-helper transport controls, including all
+seven timing subcases, and remain distinct from native lifecycle evidence and
+final candidate qualification. `derive-exact.json` retains the one literal-link
+repair from the old v2 export without mutating it.
