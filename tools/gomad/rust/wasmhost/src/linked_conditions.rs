@@ -10,6 +10,9 @@ pub enum Conditions {
     #[default]
     Ordinary,
     DiagnosticProfile,
+    GuestProfile,
+    DiagnosticFuelOff,
+    GuestProfileFuelOff,
     StressReplay,
     DeterminismFixtureReplay,
 }
@@ -21,7 +24,13 @@ thread_local! {
 impl Conditions {
     #[must_use]
     pub fn compiled() -> Self {
-        if cfg!(feature = "diagnostic-profile") {
+        if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
+            Self::GuestProfileFuelOff
+        } else if cfg!(feature = "guest-profile") {
+            Self::GuestProfile
+        } else if cfg!(feature = "diagnostic-fuel-off") {
+            Self::DiagnosticFuelOff
+        } else if cfg!(feature = "diagnostic-profile") {
             Self::DiagnosticProfile
         } else if cfg!(feature = "stress-jitter") {
             Self::StressReplay
@@ -47,6 +56,9 @@ impl Conditions {
         let suffix = match self {
             Self::Ordinary => "",
             Self::DiagnosticProfile => "-diagnostic-profile",
+            Self::GuestProfile => "-guest-profile",
+            Self::DiagnosticFuelOff => "-diagnostic-fuel-off",
+            Self::GuestProfileFuelOff => "-guest-profile-fuel-off",
             Self::StressReplay => "-stress-jitter",
             Self::DeterminismFixtureReplay => "-determinism-fixture",
         };
@@ -72,6 +84,8 @@ impl Conditions {
     fn new_session(self) -> Session {
         Session {
             conditions: self,
+            #[cfg(feature = "diagnostic-profile")]
+            profile: crate::diagnostic::LinkedSink::current(),
             closed: Arc::new(AtomicBool::new(false)),
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             events: crate::event_order::LinkedSession::new(),
@@ -127,12 +141,28 @@ impl Conditions {
 
 #[derive(Clone)]
 pub(crate) struct Session {
+    #[cfg(feature = "diagnostic-profile")]
+    profile: Option<crate::diagnostic::LinkedSink>,
     conditions: Conditions,
     closed: Arc<AtomicBool>,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     events: crate::event_order::LinkedSession,
     #[cfg(feature = "determinism-fixture")]
     fixture: Option<Arc<crate::determinism_fixture::control::Control>>,
+}
+
+#[cfg(feature = "diagnostic-profile")]
+impl Session {
+    pub(crate) fn profile(
+        &self,
+        slot: u64,
+        incarnation: u64,
+    ) -> Result<Option<crate::diagnostic::LinkedThread>> {
+        self.profile
+            .as_ref()
+            .map(|sink| sink.enter(slot, incarnation).map_err(Error::msg))
+            .transpose()
+    }
 }
 
 pub(crate) struct Scope {
@@ -317,11 +347,24 @@ mod role_tests {
         assert!(Conditions::Ordinary.enter().is_err());
         assert!(super::current().is_none());
         assert!(Conditions::compiled().validate().is_ok());
-        assert!(
-            Conditions::compiled()
-                .configuration()
-                .ends_with("-diagnostic-profile")
-        );
+        let expected = if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
+            "-guest-profile-fuel-off"
+        } else if cfg!(feature = "guest-profile") {
+            "-guest-profile"
+        } else if cfg!(feature = "diagnostic-fuel-off") {
+            "-diagnostic-fuel-off"
+        } else {
+            "-diagnostic-profile"
+        };
+        assert!(Conditions::compiled().configuration().ends_with(expected));
+        for role in [
+            Conditions::DiagnosticProfile,
+            Conditions::GuestProfile,
+            Conditions::DiagnosticFuelOff,
+            Conditions::GuestProfileFuelOff,
+        ] {
+            assert_eq!(role.validate().is_ok(), role == Conditions::compiled());
+        }
     }
 
     #[cfg(not(any(

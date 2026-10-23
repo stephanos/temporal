@@ -90,7 +90,10 @@ fn short_markers_are_forwarded_before_guest_waits_for_controller_release() {
                 &engine,
                 engine::new_state(
                     Box::new(Cursor::new(Vec::<u8>::new())),
-                    Box::new(NoRemote),
+                    Box::new(NoRemote {
+                        #[cfg(feature = "diagnostic-profile")]
+                        attempts: Arc::new(std::sync::atomic::AtomicU64::new(0)),
+                    }),
                     65536,
                     4096,
                     Some(model),

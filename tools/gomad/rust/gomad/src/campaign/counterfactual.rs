@@ -36,12 +36,12 @@ const WIRE_SHA256: &str = "bc11cf9093eac65c5a54e29494c35bb2ec23c8a93a1a88a33ec2a
 const MAIN_SHA256: &str = "b1f66edccd8a9f0b2dcb714e12edf043fa71ded378b932068937b92430771998";
 const FIXTURE_SHA256: &str = "1b3ad687b44742555d9b9b66e73ac1c30cc621c6d5cd2b95f4afbbe41a95ea18";
 
-const INSERTION: &str = r#"
+const INSERTION: &str = r"
 	gomadDeterminismFixturePending = gomadDeterminismFixturePending || gomadSeed&(1<<63) != 0
 	gomadDeterminismFixtureOutputPending = gomadDeterminismFixtureOutputPending || gomadSeed&(1<<62) != 0
 	gomadSeed &= ^uint64((1<<63)|(1<<62))
-"#;
-const APPENDIX: &str = r#"
+";
+const APPENDIX: &str = r"
 var gomadDeterminismFixturePending bool
 var gomadDeterminismFixtureOutputPending bool
 
@@ -55,7 +55,7 @@ func gomadDeterminismFixtureDraw() {
 		gomadChoiceRunqSeeded(2)
 	}
 }
-"#;
+";
 
 fn runtime_sources(semantics: &[u8], wire: &[u8]) -> Result<(Vec<u8>, Vec<u8>), String> {
     if canonical::digest(semantics) != SEMANTICS_SHA256 || canonical::digest(wire) != WIRE_SHA256 {
@@ -257,7 +257,7 @@ fn produce_pair(
     let mut pair = Vec::new();
     for fault in [linked::FixtureFault::None, kind] {
         let result = run(
-            &prepared,
+            prepared,
             &ledger::Job {
                 ordinal: 0,
                 seed: 7,

@@ -1,9 +1,5 @@
 fn main() {
-    #[cfg(not(feature = "determinism-fixture"))]
-    if std::env::vars_os().any(|(name, _)| name.to_string_lossy().starts_with("GOMAD_FIXTURE_")) {
-        eprintln!("gomad: unsupported fixture control");
-        std::process::exit(2);
-    }
+    validate_role();
     let mut arguments = std::env::args_os().skip(1).collect::<Vec<_>>();
     if let Some(status) = convenience(&arguments) {
         std::process::exit(status);
@@ -95,6 +91,20 @@ fn main() {
     }
     eprintln!("gomad: unsupported command; use gomad -- COMMAND [ARG ...] to run a child");
     std::process::exit(2);
+}
+
+fn validate_role() {
+    if cfg!(feature = "helper-diagnostic-profile") {
+        eprintln!(
+            "gomad: diagnostic builds only support the gomad-profile producer; qualification is refused"
+        );
+        std::process::exit(2);
+    }
+    #[cfg(not(feature = "determinism-fixture"))]
+    if std::env::vars_os().any(|(name, _)| name.to_string_lossy().starts_with("GOMAD_FIXTURE_")) {
+        eprintln!("gomad: unsupported fixture control");
+        std::process::exit(2);
+    }
 }
 
 fn convenience(arguments: &[std::ffi::OsString]) -> Option<i32> {
