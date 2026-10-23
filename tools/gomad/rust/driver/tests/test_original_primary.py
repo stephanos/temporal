@@ -109,8 +109,9 @@ class OriginalClusterReplay(unittest.TestCase):
             with self.assertRaisesRegex(Refusal,'command output differs'):clusters.compare(artifact,summary,output)
 
     def test_ordinary_lists_exact_selectors_and_preserves_recursive_skip(self):
-        config = dict(repo='/repo')
+        config = dict(repo='/repo',python='/python')
         with patch.object(ordinary,'plan',return_value=dict(tools=dict(go='/go'))), \
+             patch.object(ordinary.live,'sealed_input') as sealed, \
              patch.object(ordinary.static,'command_environment',return_value={}), \
              patch.object(ordinary.static,'reference_environment',return_value={}), \
              patch.object(ordinary.live,'role',side_effect=lambda _config,name:dict(binary='/' + name)):
@@ -125,6 +126,18 @@ class OriginalClusterReplay(unittest.TestCase):
             self.assertEqual(argv[argv.index('-skip')+1],'^TestNamespaceConformance')
         self.assertEqual(by_name['ordinary-namespace-run']['timeout_s'],600)
         self.assertEqual(by_name['ordinary-builder-run']['timeout_s'],900)
+        sealed.assert_called_once_with(config,'/python')
+        self.assertEqual(by_name[ordinary.WORKLOAD_TOOLS]['argv'],
+                         ['/python','-m','unittest','discover','-v','-s','/repo/tools/gomad/rust/workload_tools','-p','test_*.py'])
+
+    def test_ordinary_workload_tool_cases_require_every_listed_pass(self):
+        ok = (b'test_a (test_x.Case.test_a) ... ok\ntest_b (test_x.Case.test_b) ... ok\n\n'
+              b'----------------------------------------------------------------------\nRan 2 tests in 0.010s\n\nOK\n')
+        self.assertEqual(ordinary.python_cases(ok),['test_x.Case.test_a','test_x.Case.test_b'])
+        for bad in (ok.replace(b'Ran 2',b'Ran 3'), ok.replace(b'test_b) ... ok',b'test_b) ... FAIL'),
+                    ok.replace(b'\nOK\n',b'\nFAILED (failures=1)\n'), ok.replace(b'test_b (test_x.Case.test_b) ... ok\n',b''),
+                    ok.replace(b'test_b (test_x.Case.test_b)',b'test_a (test_x.Case.test_a)'), b''):
+            with self.subTest(bad=bad[-40:]),self.assertRaises(Refusal):ordinary.python_cases(bad)
 
     def test_original_mode_changes_only_repeat_and_rejects_canary_or_other_workload(self):
         workloads = receiving.workloads

@@ -584,3 +584,27 @@ fn retained_specification_authenticates_raw_bytes_selection_and_source() {
         );
     }
 }
+
+/// Original `TestHostMemoryPublicationErrorRetainsValidationStagePair`: a
+/// Result that fails validation publishes nothing and returns no path. The
+/// Go-only stage-observer pair has no Rust counterpart.
+#[test]
+fn invalid_result_publication_fabricates_nothing() {
+    let mut result = policy_fixture(SELECTIONS[0]);
+    result.manifest.fuel = 0;
+    assert!(result::validate(&result).is_err());
+    let root = std::env::temp_dir().join(format!(
+        "gomad-invalid-result-publication-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir(&root).unwrap();
+    std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700)).unwrap();
+    assert!(result::publish(&root, &result).is_err());
+    assert_eq!(
+        std::fs::read_dir(&root).unwrap().count(),
+        0,
+        "publication fabricated"
+    );
+    std::fs::remove_dir(&root).unwrap();
+}

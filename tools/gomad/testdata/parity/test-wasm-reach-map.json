@@ -135,8 +135,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/inspection_test.go#TestInspectionOutputBoundsIncludeJSONAndHeap": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad_wasmhost/linked_inspection::predicate_tests::inspection_output_bound_includes_json_and_heap"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/inspection_test.go#TestInspectionProviderRefusesMissingArtifactBeforeExecution": {
    "evidence": [
@@ -257,8 +258,9 @@
    "reason": "Named subtest variant runs inside the root receiver mapped for its owner."
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestSlimGuestClosureCutsOnlyOptionalProviderSeams": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/campaign::prepare::stock_reach_tests::slim_guest_closure_cuts_only_optional_provider_seams"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestStockPreparationClearsAmbientCompilerSettings": {
    "evidence": [
@@ -266,8 +268,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestStockPreparationDisablesAmbientPGO": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/campaign::prepare::stock_reach_tests::stock_preparation_disables_ambient_pgo"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/integration_test.go#TestTestSourceChangesInvalidateCompilationCache": {
    "evidence": [
@@ -338,8 +341,11 @@
    "retired": "Go provider lifecycle adapter deleted; the Rust campaign runner has no provider object."
   },
   "tools/gomad/internal/backends/wasm/backend/model_evidence_test.go#TestModelEvidencePreservesRawDefaultAndBindsEffects": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "assertion_applicability": "Rust publishes transcript, storage and network as separate bounded streams; the oversize refusal is the producer transcript_limit (fault-decision corpus case limit 10).",
+   "evidence": [
+    "rust/gomad/campaign::execution::backend_evidence_tests::model_evidence_preserves_raw_default_and_binds_effects",
+    "rust/gomad_wasmhost/volume::faults::tests::go_generated_fault_decision_corpus"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_marker_test.go#TestScenarioMarkerClassificationsPreserveReplayPrecedence": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -384,12 +390,13 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_test.go#TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "assertion_applicability": "Execute subtests drove the deleted subprocess helper frame protocol; Rust executes in process.",
+   "evidence": [
+    "rust/gomad/shim::tests::scenario_preparation_normalizes_and_rejects_before_compiler"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/operator_test.go#TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler@7327/protocol failure precedes cleanup watchdog": {
-   "evidence": [],
-   "gap": "named subtest of unmapped root"
+   "retired": "Asserts the deleted Go-host subprocess helper frame protocol (malformed JSON frame before cleanup watchdog); the Rust helper is linked in process and has no frame protocol."
   },
   "tools/gomad/internal/backends/wasm/backend/operator_test.go#TestScenarioPreservesChoiceCapacityBeforeRetention": {
    "evidence": [
@@ -458,8 +465,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestStockPreparationRejectsChoiceProfilesBeforeExecution": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/shim::tests::stock_preparation_refuses_choice_and_diagnostic_profiles_before_compiler"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/provider_test.go#TestStockProvenanceRoundTripKeepsNilAndEmpty": {
    "retired": "Go encoding/json spellings and nil/empty round trips of deleted Go provenance types."
@@ -512,8 +520,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressReplayRequiresExplicitCooperativeProvider": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/replay::conditions::tests::stress_replay_requires_cooperative_profile_and_the_jitter_revision"
+   ]
   },
   "tools/gomad/internal/backends/wasm/backend/stress_test.go#TestStressScenarioBindingsAllowOnlyAuthenticatedBootInputs": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -1275,8 +1284,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseBoundsAbsolutePathAndEncodedBytes": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/cli::qualify::receiving_response_tests::response_bounds_absolute_path_and_encoded_bytes"
+   ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestQualificationResponseBoundsPublicationErrorOutput": {
    "evidence": [
@@ -1301,8 +1311,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestReportRejectsInvalidResultWithoutResolvingInstallation": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/cli::qualify::receiving_response_tests::report_rejects_invalid_results_without_an_installation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/command/command_test.go#TestRetainedV1ReplayIsRefusedBeforeResolvingInstallation": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -1530,16 +1541,19 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestInstallationAdmitsCooperativeStorageAndNetwork": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::installation_admits_cooperative_storage_and_network"
+   ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestInstallationAndConfigRejectReferenceSelection": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::installation_and_config_reject_reference_selection"
+   ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestInstallationRejectsStockModelsBeforePreparation": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::installation_rejects_stock_models_before_preparation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestReadConfigPreservesFirstValueErrorsBeforeTrailingData": {
    "evidence": [
@@ -1559,12 +1573,14 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestResolveRejectsChangedIdentityAndUnsafeManifest": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::resolve_rejects_changed_identity_and_unsafe_manifest"
+   ]
   },
   "tools/gomad/internal/backends/wasm/installation/installation_test.go#TestWritePreservesExistingInstallation": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::write_preserves_existing_installation"
+   ]
   },
   "tools/gomad/internal/backends/wasm/installation/temporal_test.go#TestTemporalConfigRefusesPackageEscape": {
    "evidence": [
@@ -1685,8 +1701,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticReportRejectsMalformedOrUnattributedMeasurements": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/measurement::cluster_driver::profile_pair::tests::diagnostic_report_rejects_malformed_or_unattributed_measurements"
+   ]
   },
   "tools/gomad/internal/backends/wasm/internal/measure/regression_more_test.go#TestDiagnosticVariantArtifactSuffixes": {
    "evidence": [
@@ -2527,8 +2544,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestRetainedTargetModuleIsBoundedBeforeCopy": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "evidence": [
+    "rust/gomad/replay::cluster::retained_tests::retained_target_module_is_bounded_before_read"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/cluster_test.go#TestRetainedV1ArtifactIsRefusedBeforeItsPayloadIsRead": {
    "evidence": [
@@ -2563,12 +2581,12 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/guest_profile_test.go#TestQualificationGuestProfilesBindOnlySlimSelection": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "evidence": [
+    "py/workload_tools/test_qualification_controls.QualificationControls.test_original_guest_default_slim_full_unknown_and_fresh_return"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryDiagnosticInvalidLabelsNeverCopyInput": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "retired": "Tests temporalHostMemoryObserver, a helper defined in the Go test file itself for the deleted Go qualification stage-observer diagnostic; Rust qualify has no stage observer."
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryDiagnosticIsExplicitBoundedAndHostOnly": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -2577,12 +2595,16 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryPublicationErrorRetainsValidationStagePair": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "assertion_applicability": "No-fabrication half ported; the Go-only stage-observer pair (result.validate.before/after) has no Rust counterpart.",
+   "evidence": [
+    "rust/gomad/qualify::support::tests::invalid_result_publication_fabricates_nothing"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/host_memory_test.go#TestHostMemoryReplayErrorRetainsStagePairWithoutDispatch": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "assertion_applicability": "Open-failure-without-dispatch half ported; the Go-only stage-observer pair (replay.open.before/after) has no Rust counterpart.",
+   "evidence": [
+    "rust/gomad/qualify::cells::replay_reach_tests::missing_retained_artifact_fails_at_open_without_dispatch"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/integration_test.go#TestActualMatchedFixtureQualification": {
    "evidence": [
@@ -2632,8 +2654,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestComparisonRejectsUnmatchedLimits": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "assertion_applicability": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only.",
+   "evidence": [
+    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestCostRequiresRealExecutionMeasurementsAndSeparatesReplay": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -2647,8 +2671,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorBaselineIsDetachedAndHostOnly": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "assertion_applicability": "Caller-JSON refusal ported; detachment is by ownership: Rust freeze takes the operator Snapshot by value.",
+   "evidence": [
+    "rust/gomad/qualify::spec::operator_reach_tests::operator_observation_is_refused_from_caller_json"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime": {
    "basis": "manual mapping by worker A; confirm in review",
@@ -2672,8 +2698,10 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestRetainedClusterFreezeRejectsUnobservedPreparation": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "assertion_applicability": "Rust freeze always performs its own preparation, so no caller-supplied unobserved preparation or empty frozen target can be passed; the unobserved operator baseline refusal is ported.",
+   "evidence": [
+    "rust/gomad/qualify::cells::replay_reach_tests::final_freeze_refuses_unobserved_operator_baseline"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestRunRejectsOptionsOutsideFrozenManifest": {
    "evidence": [
@@ -2825,8 +2853,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_cluster_test.go#TestTemporalQualificationBuildCacheRemainsExplicitAndPrivate": {
-   "evidence": [],
-   "gap": "port: qualification root without a receiving test"
+   "evidence": [
+    "py/workload_tools/test_qualification_controls.QualificationControls.test_original_private_default_and_explicit_shared_cache"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/temporal_cluster_test.go#TestTemporalQualificationSealsStrictBidirectionalTopology": {
    "evidence": [
@@ -3724,8 +3753,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestStockGoGuestRepeatsIn100FreshInstances": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/campaign::prepare::stock_reach_tests::stock_go_guest_repeats_in_100_fresh_instances"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestStorageHelperRefusesInvalidRecoveryBeforeStart": {
    "basis": "weak name correlation within the owning domain; confirm in review",
@@ -3749,8 +3779,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalClockConfigurationIdentity": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "rust/gomad/install::config::reach_port_tests::temporal_clock_selection_binds_configuration_identity"
+   ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalClockPolicy": {
    "evidence": [
@@ -3796,8 +3827,7 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalHostDiagnosticInputs": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "retired": "Tests temporalPairBudget and temporalCompileCachePath, helpers defined in the deleted Go measure_integration_test.go; no retained surface parses those inputs."
   },
   "tools/gomad/internal/backends/wasm/wasi/integration_test.go#TestTemporalIndependentClustersPartitionHealWholeClusterCrash": {
    "evidence": [

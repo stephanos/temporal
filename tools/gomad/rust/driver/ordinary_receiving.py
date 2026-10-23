@@ -4,6 +4,7 @@ Complete original callable/subtest equivalence remains the final reach reader's
 obligation. A namespace result alone never supplies that coverage.
 """
 import json
+import re
 from pathlib import Path
 
 from driver import HERE, read, require, sha
@@ -13,6 +14,7 @@ import static_stages as static
 
 ROLES = {'host': ('ordinary-host-test', 'gomad'), 'helper': ('ordinary-helper-test', 'gomad_wasmhost')}
 NAMESPACE = 'go/go.temporal.io/server/tools/gomad/internal/model/wasi/TestNamespaceConformanceCorpus'
+WORKLOAD_TOOLS = 'ordinary-workload-tools-run'
 
 
 def plan(config):
@@ -68,7 +70,23 @@ def recipes(config):
             skip = ['-skip', '^TestNamespaceConformance'] if name == 'recursive' else []
             rows.append(dict(name='ordinary-' + name + '-' + suffix, argv=[*prefix, *flags, *skip, *packages],
                              environment=env, timeout_s=timeout))
+    # The receiving Python tests of the qualification controls (guest
+    # profiles, build cache, memory admission) have no other executing owner.
+    live.sealed_input(config, config['python'])
+    rows.append(dict(name=WORKLOAD_TOOLS, argv=[config['python'], '-m', 'unittest', 'discover', '-v', '-s',
+                     str(Path(config['repo']) / 'tools/gomad/rust/workload_tools'), '-p', 'test_*.py'],
+                     environment=dict(environment, PYTHONDONTWRITEBYTECODE='1'), timeout_s=300))
     return rows
+
+
+def python_cases(raw):
+    lines = raw.decode().splitlines()
+    passed = [match.group(1) for line in lines
+              if (match := re.fullmatch(r'\w+ \(([\w.]+)\) \.\.\. ok', line))]
+    ran = [int(match.group(1)) for line in lines if (match := re.fullmatch(r'Ran (\d+) tests? in [0-9.]+s', line))]
+    require(passed and len(set(passed)) == len(passed) and ran == [len(passed)] and lines[-1] == 'OK',
+            'ordinary workload-tool tests did not all pass')
+    return passed
 
 
 def collect(config, root):
@@ -84,6 +102,9 @@ def collect(config, root):
             identity = 'rust/' + target + '/' + case
             actual.update((identity, identity + '@stage/ordinary@run/' + prefix + '-run'))
         deferred.extend(dict(target=target, test=case, executed=False) for case in sorted(ignored))
+    for case in python_cases((root / (WORKLOAD_TOOLS + '.stderr')).read_bytes()):
+        identity = 'py/workload_tools/' + case
+        actual.update((identity, identity + '@stage/ordinary@run/' + WORKLOAD_TOOLS))
     selections = {}
     for name in ('namespace', 'builder', 'recursive', 'recursive-builder', 'slim'):
         prefix = 'ordinary-' + name

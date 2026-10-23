@@ -913,6 +913,112 @@ mod tests {
         assert!(!calls.exists(), "stock profile reached the compiler");
     }
 
+    /// Scenario declaration of the original operator fixture: one node, one
+    /// boot, start then wait, under the original model limits.
+    fn operator_scenario(args: &[&str]) -> serde_json::Value {
+        let limits = serde_json::json!({"nodes":64,"directional_links":4096,"volumes":64,"scenario_actions":4096,
+            "scenario_decisions":4096,"fault_actions":4096,"history_operations":65536,"observations":65536,
+            "oracle_results":4096,"scenario_evidence_bytes":64<<20,"boot_config_bytes":1<<20,
+            "volume_capacity_bytes":1<<30,"observation_bytes":64<<20,"network_listeners":4096,
+            "network_connections":65536,"network_bytes":1<<30,"network_connection_bytes":4<<20,
+            "network_stall_nanos":10_000_000_000_u64,"network_transitions":1<<20,"volume_operations":1<<20,
+            "volume_transitions":1<<20,"crash_states":65536,"crash_depth":256,"crash_bytes":128<<20,
+            "crash_wall_nanos":60_000_000_000_u64});
+        serde_json::json!({"schema":"gomad-wasm.scenario/v1",
+            "spec":{"schema":"gomad.simulation-spec/v8","backend":"wasm","fidelity":"simulation_model","seed":0,
+                "limits":limits,"nodes":[{"id":"a","boot":"main","address":"10.0.0.1"}],"links":[]},
+            "boots":[{"id":"main","args":args}],
+            "actions":[{"action":"start","handle":{"node":"a","incarnation":1}},
+                {"action":"wait","handle":{"node":"a","incarnation":1}}],
+            "incarnation_boots":[],"network_faults":[]})
+    }
+
+    /// Original `TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler`
+    /// (refusal half): an indented declaration normalizes to its canonical
+    /// encoding; an unsupported schema and a stock-profile scenario are refused
+    /// before the compiler is reached.
+    #[test]
+    fn scenario_preparation_normalizes_and_rejects_before_compiler() {
+        let scenario = operator_scenario(&[]);
+        let normalized =
+            crate::campaign::scenario::normalize(&serde_json::to_vec_pretty(&scenario).unwrap())
+                .unwrap();
+        assert_eq!(
+            normalized,
+            crate::campaign::scenario::normalize(&canonical::encode(&scenario).unwrap()).unwrap()
+        );
+        assert_eq!(
+            crate::campaign::scenario::normalize(&normalized).unwrap(),
+            normalized,
+            "scenario was not normalized"
+        );
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        fs::write(root.0.join("go.mod"), "module example.test/fixture\n").unwrap();
+        let compiler = root.0.join("go");
+        let calls = root.0.join("compiler-calls");
+        fs::write(
+            &compiler,
+            format!("#!/bin/sh\nprintf x >> '{}'\nexit 1\n", calls.display()),
+        )
+        .unwrap();
+        fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
+        let contract = fixture_contract(&root.0, compiler.clone());
+        let package = Package {
+            import_path: "example.test/fixture".into(),
+            directory: root.0.clone(),
+            name: "main".into(),
+        };
+        // The preparation build key is the digest of its inputs, which bind the
+        // normalized scenario (`driver::prepare` inputs, admission re-checks).
+        let key = |args: &[&str]| {
+            let normalized = crate::campaign::scenario::normalize(
+                &canonical::encode(&operator_scenario(args)).unwrap(),
+            )
+            .unwrap();
+            canonical::digest(
+                &canonical::encode(&serde_json::json!({ "scenario": normalized })).unwrap(),
+            )
+        };
+        assert_ne!(
+            key(&[]),
+            key(&["different"]),
+            "scenario did not bind build identity"
+        );
+        let mut installations = std::collections::BTreeMap::new();
+        let mut unsupported = scenario;
+        unsupported["schema"] = "unsupported".into();
+        for (profile, raw, expected) in [
+            (
+                "gomad.wasi-cooperative/v1",
+                br#"{"schema":"unsupported"}"#.to_vec(),
+                "missing field `spec`",
+            ),
+            (
+                "gomad.wasi-cooperative/v1",
+                canonical::encode(&unsupported).unwrap(),
+                "unsupported WASM scenario schema",
+            ),
+            (
+                "gomad.wasi-stock-exploratory/v1",
+                normalized,
+                "choices/scenario do not match installed profile",
+            ),
+        ] {
+            let installation = installations
+                .entry(profile)
+                .or_insert_with(|| fixture_installation(&root.0, &compiler, profile));
+            let mut options = guest_options(&contract, &root.0, "test", &package, profile).unwrap();
+            options.installation = Some(installation.clone());
+            options.choices = false;
+            options.scenario = Some(raw);
+            let error = driver::prepare(&options, Instant::now() + Duration::from_secs(10))
+                .err()
+                .unwrap();
+            assert!(error.contains(expected), "{profile}: {error}");
+        }
+        assert!(!calls.exists(), "scenario preflight reached the compiler");
+    }
+
     #[test]
     fn shim_options_match_stock_and_cooperative_driver_profile_admission() {
         let root = process::Temporary::new(&std::env::temp_dir()).unwrap();

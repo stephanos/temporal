@@ -23,6 +23,8 @@ pub(crate) mod inventory;
 mod observation_sidecar;
 pub(crate) mod observations;
 pub(crate) mod process;
+#[cfg(test)]
+mod stock_reach_tests;
 
 const MAXIMUM: u64 = 512 << 20;
 pub(crate) const OBSERVATION_DIRECTORY: &str = "preparation-observations";

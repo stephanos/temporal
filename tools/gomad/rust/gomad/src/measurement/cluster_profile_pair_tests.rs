@@ -312,3 +312,80 @@ fn actual_reaped_capture_failure_retains_availability_without_fabricated_aggrega
     }
     std::fs::remove_dir_all(root).unwrap();
 }
+
+/// Original `TestDiagnosticReportRejectsMalformedOrUnattributedMeasurements`
+/// on its literal phase-profile fixture.
+#[test]
+fn diagnostic_report_rejects_malformed_or_unattributed_measurements() {
+    let valid = serde_json::to_string(&fixture()).unwrap();
+    let report = crate::profile::decode(valid.as_bytes()).unwrap();
+    assert_eq!(report["phases"]["execute"]["user_nanos"], 70);
+    assert_eq!(report["abi"]["clock"]["execute_wall_nanos"], 30);
+    assert_eq!(report["residual"]["execute_wall_nanos"], 70);
+    let replace = |old: &str, new: &str| {
+        let changed = valid.replacen(old, new, 1);
+        assert_ne!(changed, valid, "{old} absent from fixture");
+        changed
+    };
+    for (name, data) in [
+        ("missing", String::new()),
+        ("oversized", "x".repeat((48 << 10) + 1)),
+        ("duplicate-report", format!("{valid}{valid}")),
+        ("trailing", format!("{valid}unexpected\n")),
+        ("null", "null".into()),
+        (
+            "wrong-schema",
+            replace("gomad.wasm-profile/v2", "gomad.wasm-profile/v3"),
+        ),
+        (
+            "unknown-top",
+            replace("\"schema\":", "\"extra\":0,\"schema\":"),
+        ),
+        (
+            "nested-duplicate",
+            replace("\"user_nanos\":70", "\"user_nanos\":1,\"user_nanos\":70"),
+        ),
+        (
+            "escaped-duplicate",
+            replace(
+                "\"user_nanos\":70",
+                "\"\\u0075ser_nanos\":1,\"user_nanos\":70",
+            ),
+        ),
+        ("missing-phase", replace("\"module_read\":", "\"absent\":")),
+        ("missing-measurement", replace("\"user_nanos\":70,", "")),
+        (
+            "unknown-measurement",
+            replace("\"user_nanos\":70", "\"user_nanos\":70,\"invented\":0"),
+        ),
+        (
+            "not-diagnostic",
+            replace("\"diagnostic_only\":true", "\"diagnostic_only\":false"),
+        ),
+        ("not-jit", replace("cranelift-jit", "interpreter")),
+        (
+            "negative",
+            replace("\"user_nanos\":70", "\"user_nanos\":-1"),
+        ),
+        (
+            "too-many-cpu-samples",
+            replace("\"cpu_samples\":1", "\"cpu_samples\":2"),
+        ),
+        (
+            "overlapping-abi",
+            replace("\"abi_overlap_errors\":0", "\"abi_overlap_errors\":1"),
+        ),
+        (
+            "wrong-residual",
+            replace(
+                "\"residual\":{\"execute_wall_nanos\":70",
+                "\"residual\":{\"execute_wall_nanos\":71",
+            ),
+        ),
+    ] {
+        assert!(
+            crate::profile::decode(data.as_bytes()).is_err(),
+            "accepted {name} diagnostic"
+        );
+    }
+}

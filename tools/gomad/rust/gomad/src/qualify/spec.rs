@@ -329,3 +329,31 @@ mod tighter_nesting_tests {
         assert!(strict_with_nesting::<Value>(b"{}", 129).is_err());
     }
 }
+
+#[cfg(test)]
+mod operator_reach_tests {
+    use super::*;
+
+    /// Original `TestOperatorBaselineIsDetachedAndHostOnly`: an operator
+    /// observation is never accepted from caller JSON. The Rust baseline is an
+    /// owned `Snapshot` moved into `freeze`, so caller aliasing cannot occur.
+    #[test]
+    fn operator_observation_is_refused_from_caller_json() {
+        let root = std::env::temp_dir().join(format!("gomad-operator-spec-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir(&root).unwrap();
+        let path = root.join("spec.json");
+        std::fs::write(&path, br#"{"Manifest":{},"Campaign":{}}"#).unwrap();
+        read(&path).unwrap();
+        std::fs::write(
+            &path,
+            br#"{"Manifest":{},"Campaign":{},"OperatorStart":{"UserNanos":7}}"#,
+        )
+        .unwrap();
+        assert!(
+            read(&path).is_err(),
+            "JSON caller forged an operator observation"
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}

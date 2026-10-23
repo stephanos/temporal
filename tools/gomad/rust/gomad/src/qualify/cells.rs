@@ -797,3 +797,41 @@ pub(crate) fn publish(frozen: &Frozen, result: QualificationResult) -> Result<Qu
         publication_error,
     })
 }
+
+#[cfg(test)]
+mod replay_reach_tests {
+    /// Original `TestHostMemoryReplayErrorRetainsStagePairWithoutDispatch`: a
+    /// missing retained artifact fails at open, before any store is dispatched.
+    /// The Go-only stage-observer pair has no Rust counterpart.
+    #[test]
+    fn missing_retained_artifact_fails_at_open_without_dispatch() {
+        let missing = std::env::temp_dir().join(format!(
+            "gomad-missing-retained-artifact-{}/missing",
+            std::process::id()
+        ));
+        let Err(error) = super::replay(&missing, 0, None) else {
+            panic!("missing retained artifact replayed");
+        };
+        assert!(error.starts_with("runner_failure: "), "{error}");
+        assert!(!error.contains("execute replay target"), "{error}");
+    }
+
+    /// Original `TestRetainedClusterFreezeRejectsUnobservedPreparation`: a
+    /// final freeze without the operator's own observed baseline is refused
+    /// before any preparation; Rust freeze always prepares itself, so a
+    /// detached caller-supplied preparation cannot be passed.
+    #[test]
+    fn final_freeze_refuses_unobserved_operator_baseline() {
+        let spec: crate::qualify::spec::Spec = serde_json::from_value(
+            serde_json::json!({"Manifest":{"Provisional":false},"Campaign":{},"ArtifactRoot":"/retained"}),
+        )
+        .unwrap();
+        let Err(error) = super::freeze(&spec, None, Vec::new(), None) else {
+            panic!("unobserved preparation accepted");
+        };
+        assert_eq!(
+            error,
+            "final qualification requires operator baseline before setup"
+        );
+    }
+}

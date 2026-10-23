@@ -49,10 +49,11 @@ mod tests {
         };
         assert_eq!(error.status, 2);
         assert!(error.message.contains("cooperative"), "{}", error.message);
-        assert!(matches!(
-            select("gomad.wasi-cooperative/v1", false, false),
-            Ok(conditions) if conditions == Conditions::default()
-        ));
+        let jitter = cfg!(feature = "helper-stress-jitter");
+        match select("gomad.wasi-cooperative/v1", false, false) {
+            Ok(conditions) => assert!(!jitter && conditions == Conditions::default()),
+            Err(error) => assert_eq!((jitter, error.status), (true, 3), "{}", error.message),
+        }
         assert_eq!(
             Conditions::stress_replay().configuration(),
             format!("{}-stress-jitter", gomad_wasmhost::linked::CONFIGURATION)
@@ -60,8 +61,7 @@ mod tests {
         match select("gomad.wasi-cooperative/v1", true, false) {
             Ok(conditions) => assert!(conditions == Conditions::stress_replay()),
             Err(error) => {
-                assert!(!cfg!(feature = "helper-stress-jitter"), "{}", error.message);
-                assert_eq!(error.status, 3);
+                assert_eq!((jitter, error.status), (false, 3), "{}", error.message);
             }
         }
     }
