@@ -206,6 +206,106 @@ pub(super) fn from_alias(
             .as_str()
             .ok_or("candidate compiler path missing")?,
     );
+    let overlay = alias_overlay(&raw, &compiler, alias, alias_compiler_root)?;
+    from_provenance(provenance, Some(overlay))
+}
+
+pub(super) fn from_frozen_inputs(
+    raw: BTreeMap<PathBuf, String>,
+    compiler_path: PathBuf,
+    observed_alias: &Inventory,
+    alias_compiler_root: &Path,
+) -> Result<Inventory, String> {
+    if observed_alias.compiler_path != alias_compiler_root.join("bin/go")
+        || observed_alias.raw.get(&observed_alias.compiler_path) != raw.get(&compiler_path)
+        || !raw.contains_key(&compiler_path)
+    {
+        return Err(
+            "inspection actual compiler executable differs from frozen installation".into(),
+        );
+    }
+    let overlay = alias_overlay(
+        &raw,
+        &compiler_path,
+        &observed_alias.overlay,
+        alias_compiler_root,
+    )?;
+    let runtime_identity = overlay
+        .path
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|name| name.to_str())
+        .filter(|name| canonical::valid_digest(name))
+        .ok_or("frozen installation runtime identity missing")?
+        .to_owned();
+    let mut inventory = Inventory {
+        runtime_root: runtime_root(&raw)?,
+        raw,
+        compiler_path,
+        runtime_identity,
+        overlay,
+    };
+    let full = view(&inventory)?;
+    let observed = view(observed_alias)?;
+    if full.runtime_identity != observed.runtime_identity
+        || full.replacements != observed.replacements
+        || observed
+            .entries
+            .iter()
+            .any(|(name, sha)| full.entries.get(name) != Some(sha))
+    {
+        return Err(
+            "inspection actual compiler closure is not a subset of frozen installation inputs"
+                .into(),
+        );
+    }
+    let compiler_root = inventory
+        .compiler_path
+        .parent()
+        .and_then(Path::parent)
+        .ok_or("frozen compiler distribution missing")?;
+    let overlay_root = inventory
+        .overlay
+        .path
+        .parent()
+        .ok_or("frozen overlay root missing")?;
+    let mut selected = BTreeMap::from([(
+        inventory.overlay.path.clone(),
+        inventory.overlay.sha256.clone(),
+    )]);
+    for (path, sha256) in &inventory.raw {
+        if path == &inventory.overlay.path {
+            continue;
+        }
+        let name = if let Ok(relative) = path.strip_prefix(overlay_root) {
+            format!("overlay/{}", relative.display())
+        } else if let Ok(relative) = path.strip_prefix(compiler_root) {
+            format!("compiler/{}", relative.display())
+        } else if let Ok(relative) = path.strip_prefix(&inventory.runtime_root) {
+            format!("runtime/{}", relative.display())
+        } else {
+            format!("shared/{}", path.display())
+        };
+        if observed.entries.contains_key(&name) {
+            selected.insert(path.clone(), sha256.clone());
+        }
+    }
+    inventory.raw = selected;
+    if view(&inventory)? != observed {
+        return Err(
+            "inspection selected original inventory differs from actual alias closure".into(),
+        );
+    }
+    Ok(inventory)
+}
+
+fn alias_overlay(
+    raw: &BTreeMap<PathBuf, String>,
+    compiler: &Path,
+    alias: &Overlay,
+    alias_compiler_root: &Path,
+) -> Result<Overlay, String> {
+    absolute(alias_compiler_root)?;
     let compiler_root = compiler
         .parent()
         .and_then(Path::parent)
@@ -254,12 +354,9 @@ pub(super) fn from_alias(
             "reconstructed original overlay bytes differ from candidate raw inventory".into(),
         );
     }
-    from_provenance(
-        provenance,
-        Some(Overlay {
-            path,
-            sha256,
-            bytes_base64: crate::campaign::exploration::base64(&bytes),
-        }),
-    )
+    Ok(Overlay {
+        path,
+        sha256,
+        bytes_base64: crate::campaign::exploration::base64(&bytes),
+    })
 }

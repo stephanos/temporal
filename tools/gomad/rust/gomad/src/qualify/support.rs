@@ -3,6 +3,7 @@
 //! runtime identity that authenticated provenance derives from those argv.
 
 mod inspection;
+mod inspection_driver;
 mod inventory;
 mod source;
 
@@ -1471,6 +1472,28 @@ pub fn run(arguments: &[String], output: &mut dyn std::io::Write) -> Result<(), 
             inspection::validate(Path::new(receipt), receipt_sha, &candidate)?;
             json!({"validated":true,"receipt_sha256":receipt_sha,"candidate_source_sha256":candidate.integrated_source_sha256})
         }
+        [
+            command,
+            receipt,
+            receipt_sha,
+            driver,
+            driver_sha,
+            executable,
+            executable_sha,
+        ] if command == "validate-inspection-driver" => inspection_driver::validate(
+            &FileBinding {
+                path: PathBuf::from(receipt),
+                sha256: receipt_sha.clone(),
+            },
+            &FileBinding {
+                path: PathBuf::from(driver),
+                sha256: driver_sha.clone(),
+            },
+            &FileBinding {
+                path: PathBuf::from(executable),
+                sha256: executable_sha.clone(),
+            },
+        )?,
         [command, root, package, policy, path] if command == "temporal-policy" => {
             let policy = match policy.as_str() {
                 "qualification" => crate::install::config::TemporalPolicy::Qualification,
