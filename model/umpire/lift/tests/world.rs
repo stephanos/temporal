@@ -79,6 +79,13 @@ fn declared_world_computed_starts_admit_before_value_binding()
     assert!(missing.message.contains("binding"));
     let module = Tla::emit(&lifted.bind(&binding(1, 3))?)?;
     assert_eq!(module.metadata.world_path, "counter::World");
+    assert_eq!(module.metadata.parameters[0].field, "value");
+    assert_eq!(module.metadata.parameters[0].symbol, "__umpire_world_value");
+    assert_eq!(module.metadata.parameters[0].ty, Type::Int { min: 0, max: 255 });
+    assert_eq!(
+        module.metadata.binding.as_ref().ok_or("missing binding")?.world,
+        binding(1, 3).world
+    );
     assert_eq!(module.metadata.postconditions.len(), 6);
     assert!(!module.tla.contains("__umpire_world_limit'"));
     assert!(module.tla.contains("__umpire_outcome'"));
@@ -334,6 +341,7 @@ fn generated_world_constants_avoid_synthesized_action_names()
     assert!(module.tla.contains("CONSTANT \\* @type: Int;\n__umpire_world_value_1"));
     assert!(module.tla.contains("CONSTANT \\* @type: Int;\n__umpire_world_limit"));
     assert!(module.tla.contains("__umpire_world_value =="));
+    assert_eq!(module.metadata.parameters[0].symbol, "__umpire_world_value_1");
     Ok(())
 }
 

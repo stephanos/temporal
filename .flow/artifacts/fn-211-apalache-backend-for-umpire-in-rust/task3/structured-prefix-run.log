@@ -1,0 +1,25 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.79s
+     Running tests/decode.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/decode-4417e8c0ee8f6569)
+
+running 4 tests
+test observer_only_safety_assignment_keeps_legacy_tlc_empty_state_refusal ... ok
+test declared_wire_types_must_match_the_source_schema ... ok
+test typed_itf_preserves_composites_and_refuses_duplicate_set_members ... ok
+test typed_itf_checks_declarations_shapes_and_limits ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/replay.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/replay-a921429caeb9aa74)
+
+running 5 tests
+test arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test retained_pinned_kettle_witness_replays_deterministically ... ok
+test exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Checking umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s

@@ -78,8 +78,25 @@ impl Schema {
         Ok(())
     }
 
-    fn project(&self, mut assignment: State) -> Result<TraceState, Refusal> {
+    /// Validate typed assignments, including safety modules with only declared observers.
+    pub fn validate_assignment(&self) -> Result<(), Refusal> {
+        if self.fields.keys().any(|name| self.observers.contains_key(name)) {
+            return Err(Refusal("authored field collides with a declared observer".into()));
+        }
+        if self.fields.is_empty() && self.observers.is_empty() {
+            return Err(Refusal("empty assignment schema".into()));
+        }
+        Ok(())
+    }
+
+    fn project(&self, assignment: State) -> Result<TraceState, Refusal> {
         self.validate()?;
+        self.project_assignment(assignment)
+    }
+
+    /// Validate and split a complete typed assignment, independent of its wire format.
+    pub fn project_assignment(&self, mut assignment: State) -> Result<TraceState, Refusal> {
+        self.validate_assignment()?;
         let mut state = State::new();
         let mut observers = State::new();
         for (fields, target) in [(&self.fields, &mut state), (&self.observers, &mut observers)] {
@@ -103,7 +120,8 @@ impl Schema {
 }
 
 impl Type {
-    fn accepts(&self, value: &Value) -> bool {
+    /// Whether a structurally decoded value inhabits this exact declared type.
+    pub fn accepts(&self, value: &Value) -> bool {
         match (self, value) {
             (Self::Bool, Value::Bool(_)) | (Self::Text, Value::Text(_)) => true,
             (Self::Int { min, max }, Value::Int(number)) => (*min..=*max).contains(number),

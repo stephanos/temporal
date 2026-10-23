@@ -79,6 +79,9 @@ fixedbitset = "0.5"
 enum-iterator = "2.3"
 imbl = "7.0"
 thiserror = "2.0"
+# Already resolved by trybuild; strict backend wire decoding uses its duplicate-key visitor.
+serde = "1.0"
+serde_json = "1.0"
 # the host interface (fn-210 R31): protobuf messages, generated from umpire/proto with the mise protoc
 prost = "0.14"
 prost-build = "0.14"

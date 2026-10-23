@@ -1,0 +1,168 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.94s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-c083a3f11f19f895)
+
+running 1 test
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+Apalache Arithmetic property=ArithmeticSafe bound=0 start
+Apalache Arithmetic property=ArithmeticSafe bound=0 finish bound=0 NoViolation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:37:25:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:40:38:
+attempt to add with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with a divisor of zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:43:38:
+attempt to divide with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:46:38:
+attempt to calculate the remainder with overflow
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=0 start
+Apalache Arithmetic property=ArithmeticSafe bound=0 finish bound=0 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:63:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 Violation
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+
+thread 'real_arithmetic_faults_are_reachable_and_guards_remain_total' (3636201) panicked at umpire/backends/apalache/tests/fixtures/arithmetic.rs:72:24:
+attempt to divide by zero
+Apalache Arithmetic property=ArithmeticSafe bound=1 start
+Apalache Arithmetic property=ArithmeticSafe bound=1 finish bound=1 NoViolation
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 29.15s
+

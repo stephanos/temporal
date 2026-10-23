@@ -72,6 +72,8 @@ The supported-feature boundary was checked against the official Apalache feature
 
 ## Decision Context
 
+2026-10-23, task .3 JSON dependency reuse (R18): admit direct host-backend use of the already resolved `serde` 1.0.229 and `serde_json` 1.0.154 for strict bounded ITF decoding with duplicate-key detection. Their official releases were published [2026-07-18](https://github.com/serde-rs/serde/releases/tag/v1.0.229) and [2026-10-11](https://github.com/serde-rs/json/releases/tag/v1.0.154), both within twelve months. All 135 lockfile packages and versions remain unchanged; only existing dependency edges are promoted. These dependencies belong to the optional development backend, outside the guest and runtime dependency closure; retain the closure check in task evidence. No new third-party package or version upgrade is authorized.
+
 Apalache was kept out of fn-210 because R24 decides fn-210 on the wasm slice alone, the TLC slice already proves lifting and emission, and Apalache adds type annotations and bounded agreement rules that TLC does not need. Filed on 2026-10-18 at the owner's request so the emitter is shaped with annotations in mind. It reuses fn-210's lifted tree, emitter, typed decoding and fixture runner, and selects fixtures by the presence of `apalache.txt`, so no Model is defined twice. The Scala-side Apalache spec (fn-206, deferred) explored an in-process route through Apalache's Scala libraries; from Rust the CLI or JSON-RPC server is the route, and a pinned release in the build directory replaces the earlier `~/.quint` download and port-kill lifecycle.
 
 2026-10-18, placement (owner): `umpire-apalache` lives at `model/umpire/backends/apalache/`, beside `umpire/backends/tlc/`.

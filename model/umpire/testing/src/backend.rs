@@ -467,6 +467,8 @@ mod tests {
                 arithmetic: Vec::new(),
                 state_name: "Model".into(),
                 world_path: String::new(),
+                parameters: Vec::new(),
+                binding: None,
                 fields: vec![umpire_lift::Field { name: "value".into(), ty: Type::Bool }],
                 actions,
                 catalog,

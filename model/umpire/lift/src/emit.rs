@@ -391,6 +391,40 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         metadata: Metadata {
             state_name: model.state_name.clone(),
             world_path: model.world_path.clone(),
+            parameters: model
+                .world_fields
+                .iter()
+                .zip(&model.names.world)
+                .map(|(field, symbol)| crate::Parameter {
+                    field: field.name.clone(),
+                    symbol: symbol.clone(),
+                    ty: field.ty.clone(),
+                })
+                .collect(),
+            binding: model.world_values.as_ref().zip(model.complete_starts.as_ref()).map(
+                |(world, starts)| crate::Binding {
+                    world: model
+                        .world_fields
+                        .iter()
+                        .zip(world)
+                        .map(|(field, value)| (field.name.clone(), crate::bind::to_literal(value)))
+                        .collect(),
+                    starts: starts
+                        .iter()
+                        .map(|row| {
+                            model
+                                .fields
+                                .iter()
+                                .zip(row)
+                                .map(|(field, value)| {
+                                    (field.name.clone(), crate::bind::to_literal(value))
+                                })
+                                .collect()
+                        })
+                        .collect(),
+                    actions: model.concrete(),
+                },
+            ),
             fields: model
                 .fields
                 .iter()

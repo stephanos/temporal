@@ -1,0 +1,25 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.54s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-c083a3f11f19f895)
+
+running 1 test
+Apalache Inputs property=Negative_never_two bound=1 start
+Apalache Inputs property=Negative_never_two bound=1 finish bound=1 Violation
+Apalache Inputs property=Post_no_reset bound=1 start
+Apalache Inputs property=Post_no_reset bound=1 finish bound=1 Violation
+Apalache Inputs property=Post_no_rejection bound=1 start
+Apalache Inputs property=Post_no_rejection bound=1 finish bound=1 Violation
+test real_typed_payload_rejection_and_after_claims_replay ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 7.12s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running tests/controls.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/controls-c083a3f11f19f895)
+
+running 1 test
+Apalache Kettle property=Negative_never_beeps bound=63 start
+Apalache Kettle property=Negative_never_beeps bound=63 finish bound=63 Violation
+test real_kettle_negative_is_replayed_and_tampering_fails ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 50.01s
+

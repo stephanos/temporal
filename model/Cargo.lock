@@ -849,6 +849,8 @@ dependencies = [
 name = "umpire-apalache"
 version = "0.0.1"
 dependencies = [
+ "serde",
+ "serde_json",
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",

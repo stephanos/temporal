@@ -1,0 +1,70 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/testing)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dsl)
+warning: unused import: `Outcome`
+ --> umpire/dsl/tests/replay_values.rs:5:37
+  |
+5 |     use umpire_dsl::{Action, State, Outcome, Rejection, reject};
+  |                                     ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0599]: no method named `values` found for opaque type `impl Machine<State = Model, Outcome = _, Fact = ()> + From<User> + ActorProjection<User>` in the current scope
+  --> umpire/dsl/tests/replay_values.rs:21:19
+   |
+21 |     assert!(world.values().is_empty());
+   |                   ^^^^^^ method not found in `impl Machine<State = Model, Outcome = _, Fact = ()> + From<User> + ActorProjection<User>`
+   |
+   = note: the full name for the type has been written to '/home/agent/.cache/codex-build/cargo-target/debug/deps/replay_values-b65bd726b6a39787.long-type-9646380224989279930.txt'
+   = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: no method named `values` found for reference `&Model` in the current scope
+  --> umpire/dsl/tests/replay_values.rs:23:22
+   |
+23 |     assert_eq!(state.values(), [("done", Value::Bool(false))]);
+   |                      ^^^^^^ method not found in `&Model`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `values`, perhaps you need to implement it:
+           candidate #1: `umpire_dsl::Values`
+
+error[E0277]: the trait bound `<_ as Machine>::Action: ActionValues<World>` is not satisfied
+  --> umpire/dsl/tests/replay_values.rs:25:60
+   |
+25 |     assert_eq!(ActionValues::<legacy::World>::action_value(&actions[0]), ("User::Set", vec![("0", Value::Bool(false))]));
+   |                ------------------------------------------- ^^^^^^^^^^^ the trait `ActionValues<World>` is not implemented for `<_ as Machine>::Action`
+   |                |
+   |                required by a bound introduced by this call
+   |
+   = note: the full name for the type has been written to '/home/agent/.cache/codex-build/cargo-target/debug/deps/replay_values-b65bd726b6a39787.long-type-17717141095062150084.txt'
+   = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: no method named `value` found for enum `Outcome` in the current scope
+  --> umpire/dsl/tests/replay_values.rs:27:26
+   |
+27 |     assert_eq!(step[0].0.value(), Value::Enum("Outcome::Rejected(NotFound)"));
+   |                          ^^^^^ method not found in `Outcome`
+
+error[E0599]: no method named `value` found for unit type `()` in the current scope
+  --> umpire/dsl/tests/replay_values.rs:28:19
+   |
+28 |     assert_eq!(().value(), Value::Sequence(vec![]));
+   |                   ^^^^^
+   |
+help: there is a method `value_sep` with a similar name, but with different arguments
+  --> /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_parser-1.1.5+spec-1.1.0/src/parser/event.rs:28:5
+   |
+28 |     fn value_sep(&mut self, _span: Span, _error: &mut dyn ErrorSink) {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0433]: cannot find module or crate `imbl` in this scope
+  --> umpire/dsl/tests/replay_values.rs:29:17
+   |
+29 |     let vector: imbl::Vector<_> = [true, false].into_iter().collect();
+   |                 ^^^^ use of unresolved module or unlinked crate `imbl`
+   |
+   = help: if you wanted to use a crate named `imbl`, use `cargo add imbl` to add it to your `Cargo.toml`
+
+Some errors have detailed explanations: E0277, E0433, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: `umpire-dsl` (test "replay_values") generated 1 warning
+error: could not compile `umpire-dsl` (test "replay_values") due to 6 previous errors; 1 warning emitted

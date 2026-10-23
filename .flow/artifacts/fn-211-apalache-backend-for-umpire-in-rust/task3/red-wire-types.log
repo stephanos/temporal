@@ -1,0 +1,23 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.69s
+     Running tests/decode.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/decode-4417e8c0ee8f6569)
+
+running 1 test
+test declared_wire_types_must_match_the_source_schema ... FAILED
+
+failures:
+
+---- declared_wire_types_must_match_the_source_schema stdout ----
+
+thread 'declared_wire_types_must_match_the_source_schema' (3642806) panicked at umpire/backends/apalache/tests/decode.rs:81:5:
+assertion failed: decode_itf(&raw.replace("\"Int\"", "\"Bool\""), &schema, &BTreeMap::new(),
+        0).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    declared_wire_types_must_match_the_source_schema
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-apalache --test decode`

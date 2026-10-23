@@ -6,7 +6,7 @@ satisfies: [R3]
 ## Description
 Complete parent R3 by decoding the actual pinned Apalache ITF wire format into the existing source Schema/Value kinds and replaying every selected violation through the compiler-checked Model. Reanchor task .2's committed API and evidence before choosing interfaces; do not preserve provisional task .1 result shapes by adding a parallel route.
 
-**Size:** L. **Dependencies:** task .2 done with its closure committed on umpire before admission. **Touches:** [model/umpire/backends/apalache/**, model/umpire/backends/tlc/src/decode.rs, model/umpire/lift/**, model/umpire/testing/**, model/umpire/dsl/src/value.rs, model/umpire/dsl/macros/src/**, model/umpire/dsl/tests/**, model/umpire/tests/fixtures/**/tests.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/Cargo.toml, model/Cargo.lock]
+**Size:** L. **Dependencies:** task .2 done with its closure committed on umpire before admission. **Touches:** [model/umpire/backends/apalache/**, model/umpire/backends/tlc/src/decode.rs, model/umpire/lift/**, model/umpire/testing/**, model/umpire/dsl/src/value.rs, model/umpire/dsl/macros/src/**, model/umpire/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs, model/umpire/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs, model/umpire/dsl/tests/**, model/umpire/tests/fixtures/**/tests.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/Cargo.toml, model/Cargo.lock]
 No new Model authoring syntax, canonical production Model changes, Go/protocol changes, third-party libraries, default Apalache launches or publication. Existing narrow typed projection support may be extended only where required to expose compiler-checked values to replay; do not introduce interpreted checking. Task .4 owns the selected fixture consumer and its shared expected/apalache ownership patterns, and .5 owns symbolic World construction/emission. Preserve TLC semantics and its current goldens.
 
 ### Approach
@@ -22,6 +22,10 @@ No new Model authoring syntax, canonical production Model changes, Go/protocol c
 ### Verification
 
 Fresh focused decoder/replay baseline and tests; strict changed-crate clippy. Actual pinned-tool controls must include Kettle's declared negative claim with typed replay and deliberate tampered-witness rejection. Reuse task .2's native-derived completed bound rather than a shorter smoke proof for any claimed complete Kettle bounded agreement. Coordinate root's periodic correctness/standards audit and implementation review before the final full gate. Final command once after corrections settle: timeout 3600 env UMPIRE_BACKENDS=require make model-time. Relevant DSL/macros production changes require the canonical embedded guest rebuild and refreshed slice/gaps proof even if optimized guest bytes stay equal. Retain actual stage timings/soft misses and source-scoped guest/live proof; do not invent receipts or rerun full gates for evidence-only commits.
+
+### Authorized projection snapshot update
+
+Legacy machine typed projections necessarily extend the two declared macro expansion snapshots. Refresh only projection implementations and their required generated bounds in those files; retain an exact old/new diff and verify executable handlers, authored Models, native/TLC semantic outputs and unrelated snapshots remain unchanged. This is an explicit exception for generated interface coverage, not permission to accept semantic output changes.
 ## Acceptance
 - [ ] Strict bounded ITF conversion validates complete source Schema/Value assignments, including duplicate/missing/extra keys, exact declared observers, explicit typed World parameters and supported composite values; malformed witnesses fail.
 - [ ] Replay uses the same concrete World, retained complete starts/catalog, typed structural identities and checked_step; exact payload/choice/state/outcome/facts/history are verified without formatting lookup or native edge substitution.

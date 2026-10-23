@@ -1,0 +1,18 @@
+{
+  "task_base": "218901134e4fa84c2a3d3812d0ab61138a6f8da2",
+  "no_added_removed_or_upgraded_packages": true,
+  "package_count": 135,
+  "only_dependency_edge_change": "umpire-apalache adds existing serde and serde_json; local umpire-dsl promoted from dev dependency",
+  "official_releases": [
+    {
+      "tag_name": "v1.0.229",
+      "html_url": "https://github.com/serde-rs/serde/releases/tag/v1.0.229",
+      "published_at": "2026-07-18T23:05:36Z"
+    },
+    {
+      "tag_name": "v1.0.154",
+      "html_url": "https://github.com/serde-rs/json/releases/tag/v1.0.154",
+      "published_at": "2026-10-11T15:32:13Z"
+    }
+  ]
+}

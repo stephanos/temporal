@@ -1,0 +1,22 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.88s
+     Running tests/replay.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/replay-a921429caeb9aa74)
+
+running 1 test
+test exact_payload_outcome_history_and_specific_claim_are_replayed ... FAILED
+
+failures:
+
+---- exact_payload_outcome_history_and_specific_claim_are_replayed stdout ----
+
+thread 'exact_payload_outcome_history_and_specific_claim_are_replayed' (3656227) panicked at umpire/backends/apalache/tests/replay.rs:136:5:
+accepted a noncanonical duplicate ordinal
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    exact_payload_outcome_history_and_specific_claim_are_replayed
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-apalache --test replay`

@@ -159,6 +159,16 @@ pub struct Progress {
     /// Optional Model-transition bound.
     pub bound: Option<u64>,
 }
+/// A typed World field and its collision-free emitted constant name.
+#[derive(Clone, Debug)]
+pub struct Parameter {
+    /// Authored World field.
+    pub field: String,
+    /// Exact emitted parameter name.
+    pub symbol: String,
+    /// Independently admitted source type.
+    pub ty: Type,
+}
 /// Exact decoding and property metadata.
 #[derive(Clone, Debug)]
 pub struct Metadata {
@@ -166,6 +176,10 @@ pub struct Metadata {
     pub state_name: String,
     /// Unit World constructor or declared World type path.
     pub world_path: String,
+    /// Explicit typed World parameters; no naming convention is needed by consumers.
+    pub parameters: Vec<Parameter>,
+    /// The admitted selected World, complete starts and concrete catalog, when bound.
+    pub binding: Option<Binding>,
     /// State fields in declaration order.
     pub fields: Vec<Field>,
     /// Actions in catalog order.

@@ -61,3 +61,26 @@ pub trait ActionValues<W> {
     /// rather than truncated.
     fn domains(world: &W) -> Vec<(&'static str, &'static str, Vec<Value>)>;
 }
+
+impl IntoValue for () {
+    fn value(&self) -> Value {
+        Value::Sequence(Vec::new())
+    }
+}
+
+impl IntoValue for crate::Outcome {
+    fn value(&self) -> Value {
+        use crate::{Outcome, Rejection};
+        Value::Enum(match self {
+            Outcome::Accepted => "Outcome::Accepted",
+            Outcome::Rejected(Rejection::NotFound) => "Outcome::Rejected(NotFound)",
+            Outcome::Rejected(Rejection::AlreadyExists) => "Outcome::Rejected(AlreadyExists)",
+            Outcome::Rejected(Rejection::FailedPrecondition) => {
+                "Outcome::Rejected(FailedPrecondition)"
+            }
+            Outcome::Rejected(Rejection::InvalidArgument) => "Outcome::Rejected(InvalidArgument)",
+            Outcome::Rejected(Rejection::PermissionDenied) => "Outcome::Rejected(PermissionDenied)",
+            Outcome::Rejected(Rejection::Unavailable) => "Outcome::Rejected(Unavailable)",
+        })
+    }
+}

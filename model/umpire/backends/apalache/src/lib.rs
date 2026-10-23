@@ -1,4 +1,9 @@
 //! Pinned Apalache admission and bounded source-projection controls.
+mod decode;
+mod replay;
+pub use decode::{Itf, decode_itf};
+pub use replay::{Confirmation, Replay, Replayed, ReplayedStep};
+
 use std::{
     fs,
     path::{Path, PathBuf},

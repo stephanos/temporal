@@ -152,7 +152,7 @@ impl Lifted {
     }
 }
 
-fn to_literal(value: &Expr) -> Literal {
+pub(crate) fn to_literal(value: &Expr) -> Literal {
     match &value.kind {
         ExprKind::Bool(value) => Literal::Bool(*value),
         ExprKind::Int(value) => Literal::Int(*value),

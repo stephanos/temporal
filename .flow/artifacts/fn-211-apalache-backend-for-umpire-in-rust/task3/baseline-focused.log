@@ -1,0 +1,53 @@
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/testing)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.05s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-72236881ac6fd1a5)
+
+running 8 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::missing_changed_and_symlinked_installations_refuse_before_model_execution ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_testing-b1e5eb7ca2829d6f)
+
+running 6 tests
+test backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge ... ok
+test backend::tests::agreement_compares_complete_sets_and_every_verdict ... ok
+test backend::tests::replay_uses_checked_steps_without_panicking ... ok
+test backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop ... ok
+test backend::tests::replay_uses_retained_starts_without_enumerating_again ... ok
+test backend::tests::typed_replay_identifies_the_exact_catalog_payload ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-bc63fc652fe8d782)
+
+running 17 tests
+test module::tests::enum_variants_admit_one_fieldless_payload_only ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test process::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test process::tests::substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test process::tests::java_environment_is_clean_and_supervisor_group_is_private ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test process::tests::substituted_log_symlink_cannot_modify_an_external_file ... ok
+test process::tests::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test process::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+test process::tests::timeout_cleans_descendants_before_return ... ok
+test process::tests::direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+

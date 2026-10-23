@@ -1,0 +1,11 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+error[E0432]: unresolved import `umpire_apalache::decode_itf`
+ --> umpire/backends/apalache/tests/decode.rs:3:5
+  |
+3 | use umpire_apalache::decode_itf;
+  |     ^^^^^^^^^^^^^^^^^----------
+  |                      |
+  |                      no `decode_itf` in the root
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `umpire-apalache` (test "decode") due to 1 previous error

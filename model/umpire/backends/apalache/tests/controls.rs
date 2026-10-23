@@ -3,7 +3,8 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use umpire_apalache::{Apalache, native_bound};
+use umpire_apalache::{Apalache, Confirmation, Replay, native_bound};
+use umpire_dsl::Machine;
 #[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
 #[path = "../../../tests/fixtures/sample_kettle/model.rs"]
 mod selected_kettle;
@@ -133,6 +134,24 @@ fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
                 "mode={mode} length={length}: {}",
                 result.output()
             );
+            if expected {
+                let starts = world.starts();
+                let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+                let replay = Replay {
+                    world: &world,
+                    starts: &starts,
+                    actions: catalog.actions(),
+                    negative: &[],
+                };
+                for raw in result.traces() {
+                    let confirmed = replay.violation(&module, "ArithmeticSafe", length, raw)?;
+                    assert!(matches!(confirmed.confirmation, Confirmation::Arithmetic { .. }));
+                    fs::write(
+                        evidence_root().join(format!("arithmetic-{mode}-{length}/replay.txt")),
+                        confirmed.to_string(),
+                    )?;
+                }
+            }
         }
         fs::create_dir_all(root.join(".flow/tmp/apalache-controls"))?;
         fs::write(root.join(format!(".flow/tmp/apalache-controls/native-{mode}.txt")), native)?;
@@ -345,6 +364,120 @@ fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn s
         let result = tool.check(&module, "ArithmeticSafe", 1)?;
         retain(&format!("discarded-condition-{enabled}"), &module, &result)?;
         assert_eq!(result.violated()?, enabled, "{}", result.output());
+        if enabled {
+            let starts = world.starts();
+            let actions = world.actions();
+            let replay =
+                Replay { world: &world, starts: &starts, actions: &actions, negative: &[] };
+            for raw in result.traces() {
+                let confirmed = replay.violation(&module, "ArithmeticSafe", 1, raw)?;
+                assert!(matches!(
+                    confirmed.confirmation,
+                    Confirmation::Arithmetic { index: 1, .. }
+                ));
+                fs::write(
+                    evidence_root().join("discarded-condition-true/replay.txt"),
+                    confirmed.to_string(),
+                )?;
+            }
+        }
+    }
+    Ok(())
+}
+
+#[path = "fixtures/arithmetic_prefix.rs"]
+mod prefix_fixture;
+#[test]
+fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
+-> Result<(), Box<dyn std::error::Error>> {
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let world = prefix_fixture::prefix::World::new();
+    let starts = world.starts();
+    let actions = world.actions();
+    let module = Tla::safety(
+        &Lift::parse("prefix.rs", include_str!("fixtures/arithmetic_prefix.rs"))?.bind(
+            &umpire_lift::Binding {
+                world: vec![],
+                starts: vec![vec![("value".into(), umpire_lift::Literal::Int(254))]],
+                actions: vec![umpire_lift::Concrete {
+                    action: "User::Advance".into(),
+                    fields: vec![],
+                }],
+            },
+        )?,
+    )?;
+    let result = tool.check(&module, "ArithmeticSafe", 2)?;
+    retain("arithmetic-prefix", &module, &result)?;
+    assert!(result.violated()?, "{}", result.output());
+    let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &[] };
+    for raw in result.traces() {
+        let confirmed = replay.violation(&module, "ArithmeticSafe", 2, raw)?;
+        assert!(matches!(confirmed.confirmation, Confirmation::Arithmetic { index: 2, .. }));
+        fs::write(evidence_root().join("arithmetic-prefix/replay.txt"), confirmed.to_string())?;
+    }
+    Ok(())
+}
+
+#[path = "fixtures/replay.rs"]
+mod replay_fixture;
+#[test]
+fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn std::error::Error>>
+{
+    use umpire_lift::{Binding, Concrete, Literal};
+    if !required() {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tool = Apalache::discover(&root)?;
+    let world = replay_fixture::inputs::World::new(2);
+    let starts = world.starts();
+    let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
+    let source = format!(
+        r#"{}
+        umpire_testing::fixture!(inputs::World::new(2),100,Claim::new("never_two",|_,s:&inputs::Model|(s.value!=2).into()));
+    "#,
+        include_str!("fixtures/replay.rs")
+    );
+    let binding = Binding {
+        world: vec![("limit".into(), Literal::Int(2))],
+        starts: vec![
+            vec![("value".into(), Literal::Int(0))],
+            vec![("value".into(), Literal::Int(1))],
+        ],
+        actions: vec![
+            Concrete { action: "User::Set".into(), fields: vec![("0".into(), Literal::Int(1))] },
+            Concrete { action: "User::Set".into(), fields: vec![("0".into(), Literal::Int(1))] },
+            Concrete { action: "User::Set".into(), fields: vec![("0".into(), Literal::Int(2))] },
+            Concrete { action: "User::Reset".into(), fields: vec![] },
+        ],
+    };
+    let module = Tla::safety(&Lift::parse("inputs.rs", &source)?.bind(&binding)?)?;
+    let negatives =
+        [umpire_dsl::Claim::new("never_two", |_, s: &replay_fixture::inputs::Model| {
+            (s.value != 2).into()
+        })];
+    let replay =
+        Replay { world: &world, starts: &starts, actions: catalog.actions(), negative: &negatives };
+    for property in ["Negative_never_two", "Post_no_reset", "Post_no_rejection"] {
+        let result = tool.check(&module, property, 1)?;
+        retain(&format!("replay-{property}"), &module, &result)?;
+        assert!(result.violated()?, "{}", result.output());
+        for raw in result.traces() {
+            let confirmed = replay.violation(&module, property, 1, raw)?;
+            assert_eq!(confirmed.confirmation, Confirmation::Violation);
+            fs::write(
+                evidence_root().join(format!("replay-{property}/replay.txt")),
+                confirmed.to_string(),
+            )?;
+            let mut tampered: serde_json::Value = serde_json::from_str(raw)?;
+            tampered["states"][1]["__umpire_outcome"] =
+                serde_json::json!("Outcome::Rejected(Unavailable)");
+            assert!(replay.violation(&module, property, 1, &tampered.to_string()).is_err());
+        }
     }
     Ok(())
 }
