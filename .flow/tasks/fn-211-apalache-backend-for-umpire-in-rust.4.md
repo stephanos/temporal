@@ -24,6 +24,10 @@ Checker changes are restricted to reusing its existing exploration with an alrea
 ### Verification
 
 Focused registry/ownership/replay suites in default and required modes, strict changed-crate clippy and actual selected fixture checks. One final timeout3600 env UMPIRE_BACKENDS=require make model-time after implementation review and root's correctness/standards audits settle; it subsumes duplicate default/required full checks and timing. Retain all existing gate stages, actual timings/soft misses and source-scoped guest/live proof. Relevant checker/DSL/runtime production-source changes require a canonical guest rebuild and fresh actual slice/gaps proof. Exact unchanged runtime/guest closure permits explicit proof reuse; no synthetic execution/receipt or new cross-OS claim.
+
+### Gate note (2026-10-23)
+
+At the owner's request, commit 12f5645a68 took the Apalache real-tool controls out of `UMPIRE_BACKENDS=require`; they run only under `UMPIRE_APALACHE=require`. When fn-211 resumes, this task puts them back in the required gate, or records the owner's choice to keep them separate.
 ## Acceptance
 - [ ] Apalache owns logical apalache.txt and apalache/paths/*.txt exclusively; native checker paths remain separate. Ownership is registered and validated before either execution or skip, and orphan/duplicate/stale/unowned outputs fail.
 - [ ] Default mode preserves committed Apalache artifacts with zero tool download/launch and explicit skip semantics; required mode executes and compares every selected main/path output.
