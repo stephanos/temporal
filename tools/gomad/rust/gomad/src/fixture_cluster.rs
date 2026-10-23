@@ -558,11 +558,7 @@ mod world_limit_tests {
                     .unwrap_or_else(|error| panic!("{}", error.message));
             assert_eq!(
                 status,
-                if opened.manifest().record.outcome.class == "success" {
-                    0
-                } else {
-                    1
-                }
+                i32::from(opened.manifest().record.outcome.class != "success")
             );
             assert!(
                 String::from_utf8(output)
@@ -574,3 +570,13 @@ mod world_limit_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 }
+
+#[cfg(all(
+    test,
+    not(any(
+        feature = "helper-determinism-fixture",
+        feature = "helper-stress-jitter"
+    ))
+))]
+#[path = "fixture_cluster_lifecycle_tests.rs"]
+mod lifecycle_preservation_tests;
