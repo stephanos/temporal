@@ -5799,13 +5799,15 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|2",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/measurement/build.rs observe_command",
-   "rule": "Kernel CLOCK_MONOTONIC samples bind actual terminal/refusal classification and parent reaping in one clock domain. They bound cleanup and preserve raw phase timing only; they never supply guest model time or enter canonical execution streams. Missing or invalid terminal observations fail measurement admission.",
+   "rule": "Retired exact two-call source coordinate after adding the actual command-start CLOCK_MONOTONIC sample. The replacement inventories three source calls in observe_command: command start and alternate ordinary/cleanup reaping paths. This is an exact multiplicity migration, not a relocation; those host custody observations remain outside guest virtual time and canonical execution streams.",
    "evidence": [
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
     "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound",
-    "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup"
+    "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
+    "rust:gomad/src/measurement/build_tests.rs:actual_child_records_ancestry_and_enclosed_monotonic_spawn_to_reap"
    ]
   },
   {
@@ -5900,13 +5902,15 @@
    "layer": "host-process",
    "class": "clock",
    "site": "host-rust:gomad/src/measurement/retention.rs|reclaim|Instant::now|2",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "gomad/src/measurement/retention.rs reclaim",
-   "rule": "Retention locks, polling and wall-derived private names control bounded host custody. They do not choose guest inputs or replace immutable artifact identities; owned processes and descriptors enforce cleanup and publication boundaries.",
+   "rule": "Retired exact production reclaim coordinate after its two Instant::now calls moved to reclaim_cancellable. The remaining reclaim wrapper is test-only and has no clock calls. This same-count relocation preserves bounded retention lock waiting while adding cancellation checks; private host custody never selects guest inputs or rewrites immutable artifact identities.",
    "evidence": [
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
     "rust:gomad/src/measurement/retention_tests.rs:cancelled_store_lock_wait_returns_while_lock_remains_owned",
-    "rust:gomad/src/measurement/retention_tests.rs:failed_and_cancelled_runs_do_not_advance_latest"
+    "rust:gomad/src/measurement/retention_tests.rs:failed_and_cancelled_runs_do_not_advance_latest",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
+    "rust:gomad/src/measurement/retention_process_tests.rs:reclaim_permission_failure_keeps_new_latest_and_next_publication_recovers"
    ]
   },
   {
@@ -6375,6 +6379,38 @@
    "evidence": [
     "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
     "rust:gomad/src/fixture_cluster_lifecycle_tests.rs:failed_wait_keeps_declared_ordered_join_recipe_without_inventing_actions"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.build.rs.observe.command.linked.monotonic.nanos.3",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/build.rs|observe_command|linked::monotonic_nanos(|3",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/build.rs observe_command",
+   "rule": "Three explicit CLOCK_MONOTONIC source calls bind command start and the alternate ordinary/cleanup reaping paths. Each executed command retains its actual parent/PID and enclosed start-to-reap interval; these host custody observations do not supply guest model time or enter canonical execution streams.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/measurement/terminal_controls.rs:terminal_controls_actual_child_publication_uses_original_terminal_to_reap_bound",
+    "rust:gomad/tests/measurement_profile_corpus.rs:actual_native_admission_refusals_retain_error_phase_counts_and_cleanup",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
+    "rust:gomad/src/measurement/build_tests.rs:actual_child_records_ancestry_and_enclosed_monotonic_spawn_to_reap"
+   ]
+  },
+  {
+   "id": "host.rust.gomad.src.measurement.retention.rs.reclaim.cancellable.instant.now.2",
+   "layer": "host-process",
+   "class": "clock",
+   "site": "host-rust:gomad/src/measurement/retention.rs|reclaim_cancellable|Instant::now|2",
+   "disposition": "controlled",
+   "owner": "gomad/src/measurement/retention.rs reclaim_cancellable",
+   "rule": "The two Instant::now calls in reclaim_cancellable bound retention traversal and lock acquisition under explicit cancellation. They control host cleanup and publication custody only; they do not choose guest inputs, advance modeled clocks, or replace immutable artifact identities.",
+   "evidence": [
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:gomad/src/measurement/retention_tests.rs:cancelled_store_lock_wait_returns_while_lock_remains_owned",
+    "rust:gomad/src/measurement/retention_tests.rs:failed_and_cancelled_runs_do_not_advance_latest",
+    "rust:tests/inventory/host.rs:host_migrations_preserve_exact_identity_and_active_receiving_sites",
+    "rust:gomad/src/measurement/retention_process_tests.rs:reclaim_permission_failure_keeps_new_latest_and_next_publication_recovers"
    ]
   }
  ]
