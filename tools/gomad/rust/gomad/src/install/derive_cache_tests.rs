@@ -32,45 +32,50 @@ fn repository() -> (Temporary, Repo) {
     (root, repo)
 }
 
-// These unit artifacts exercise cache authentication without launching a compiler.
-// Pinned-Go derivation and guest acceptance are separate integration gates.
-fn publish_candidate(root: &Path, repo: &Repo) -> (PathBuf, PathBuf) {
-    let compiler = std::env::current_exe().unwrap();
-    let (directory, _handle) = directory(root).unwrap();
-    let mut candidate = candidate(&compiler, repo, "pkg", &directory).unwrap();
-    candidate.admission.compiler_inputs = fixture_inventory(&candidate.installed);
-    candidate.admission.inputs_sha256 =
-        canonical::digest(&canonical::encode(&candidate.admission.compiler_inputs).unwrap());
-    candidate.installed.admission = Some(candidate.admission);
-    let path = directory.join(format!("{}.json", candidate.key));
-    manifest::write(&path, &candidate.installed).unwrap();
-    (compiler, path)
-}
-
-fn fixture_inventory(installed: &Installation) -> BTreeMap<PathBuf, String> {
+// Only compiler process discovery is replaced: every invocation rewalks real files
+// through the production inventory walker and uses the real cache/authentication path.
+fn fixture_inventory(installed: &Installation) -> Result<BTreeMap<PathBuf, String>, String> {
     let mut inputs = BTreeMap::from([(
         installed.compiler_path.clone(),
         installed.compiler_sha256.clone(),
     )]);
-    let mut pending = vec![
-        installed.runtime_root.clone(),
-        installed.runtime_root.parent().unwrap().join("toolchain"),
-    ];
-    while let Some(path) = pending.pop() {
-        if path.is_dir() {
-            pending.extend(
-                fs::read_dir(path)
-                    .unwrap()
-                    .map(|entry| entry.unwrap().path()),
-            );
-        } else {
-            inputs.insert(
-                path.clone(),
-                canonical::digest(&manifest::read(&path, 512 << 20).unwrap()),
-            );
-        }
-    }
-    inputs
+    toolchain::tree(&installed.runtime_root, &mut inputs)?;
+    toolchain::tree(
+        &installed.runtime_root.parent().unwrap().join("toolchain"),
+        &mut inputs,
+    )?;
+    Ok(inputs)
+}
+
+fn fixture_candidate(
+    compiler: &Path,
+    repo: &Repo,
+    package: &str,
+    root: &Path,
+) -> Result<Candidate, String> {
+    candidate(compiler, repo, package, root, &fixture_inventory)
+}
+
+fn fixture_derive(
+    compiler: &Path,
+    repo: &Repo,
+    package: &str,
+    root: &Path,
+) -> Result<PathBuf, String> {
+    derive_with_pin(
+        compiler,
+        repo,
+        package,
+        root,
+        Instant::now() + Duration::from_secs(600),
+        &fixture_inventory,
+    )
+}
+
+fn publish_candidate(root: &Path, repo: &Repo) -> (PathBuf, PathBuf) {
+    let compiler = std::env::current_exe().unwrap();
+    let path = fixture_derive(&compiler, repo, "pkg", root).unwrap();
+    (compiler, path)
 }
 
 #[test]
@@ -87,7 +92,7 @@ fn derive_cache_refuses_self_consistent_incomplete_inventory() {
         canonical::digest(&canonical::encode(&admission.compiler_inputs).unwrap());
     fs::write(&path, canonical::encode(&installed).unwrap()).unwrap();
     manifest::admit_build(&manifest::resolve(Some(&path)).unwrap().manifest).unwrap();
-    assert!(derive(&compiler, &repo, "pkg", &cache).is_err());
+    assert!(fixture_derive(&compiler, &repo, "pkg", &cache).is_err());
 }
 
 #[test]
@@ -96,16 +101,111 @@ fn derive_cache_rekeys_new_toolchain_file_without_rewriting_existing_entry() {
     let cache = root.0.join("cache");
     let (compiler, path) = publish_candidate(&cache, &repo);
     let original = manifest::read(&path, 16 << 20).unwrap();
-    let before = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    let before = fixture_candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
     fs::write(
         root.0.join("toolchain/generator/added.go"),
         "package overlay\n",
     )
     .unwrap();
-    let after = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    let after = fixture_candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
     assert_ne!(before.key, after.key);
     assert!(admit(&path, &after).is_err());
+    let replacement = fixture_derive(&compiler, &repo, "pkg", &cache).unwrap();
+    assert_ne!(path, replacement);
     assert_eq!(manifest::read(&path, 16 << 20).unwrap(), original);
+}
+
+#[test]
+fn derive_cache_publication_syncs_stage_and_cleans_failure_without_replacing_winner() {
+    let (root, repo) = repository();
+    let (owner, directory) = directory(&root.0.join("cache")).unwrap();
+    let compiler = std::env::current_exe().unwrap();
+    let candidate = fixture_candidate(&compiler, &repo, "pkg", &owner).unwrap();
+    let _lock = lock(
+        &directory,
+        &candidate.key,
+        Instant::now() + Duration::from_secs(600),
+    )
+    .unwrap();
+    let path = owner.join(format!("{}.json", candidate.key));
+    let stage = owner.join(format!(".{}.staged", candidate.key));
+    let result = publication::publish_with(&owner, &directory, &path, &candidate, |_, _, _| {
+        assert!(!path.exists());
+        admit(&stage, &candidate).unwrap();
+        Err(rustix::io::Errno::IO)
+    });
+    assert!(result.is_err());
+    assert!(!path.exists());
+    assert!(!stage.exists());
+    publication::publish(&owner, &directory, &path, &candidate).unwrap();
+    let original = manifest::read(&path, 16 << 20).unwrap();
+    let inode = fs::metadata(&path).unwrap().ino();
+    publication::publish(&owner, &directory, &path, &candidate).unwrap();
+    assert_eq!(fs::metadata(&path).unwrap().ino(), inode);
+    assert_eq!(manifest::read(&path, 16 << 20).unwrap(), original);
+    fs::write(&path, b"invalid winner").unwrap();
+    assert!(publication::publish(&owner, &directory, &path, &candidate).is_err());
+    assert_eq!(fs::read(&path).unwrap(), b"invalid winner");
+    assert!(!stage.exists());
+}
+
+#[test]
+fn derive_cache_recovers_only_interrupted_staging_under_the_key_lock() {
+    use std::io::Write as _;
+    let (root, repo) = repository();
+    let cache = root.0.join("cache");
+    let (owner, directory) = directory(&cache).unwrap();
+    let compiler = std::env::current_exe().unwrap();
+    let candidate = fixture_candidate(&compiler, &repo, "pkg", &owner).unwrap();
+    let stage = owner.join(format!(".{}.staged", candidate.key));
+    let mut partial = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(&stage)
+        .unwrap();
+    partial.write_all(b"{\"schema\":").unwrap();
+    partial.sync_all().unwrap();
+    directory.sync_all().unwrap();
+    drop(partial);
+    let path = fixture_derive(&compiler, &repo, "pkg", &cache).unwrap();
+    admit(&path, &candidate).unwrap();
+    assert!(!stage.exists());
+    let inode = fs::metadata(&path).unwrap().ino();
+    fs::hard_link(&path, &stage).unwrap();
+    assert_eq!(
+        fixture_derive(&compiler, &repo, "pkg", &cache).unwrap(),
+        path
+    );
+    assert!(!stage.exists());
+    assert_eq!(fs::metadata(path).unwrap().ino(), inode);
+}
+
+#[test]
+fn derive_cache_keeps_the_callers_deadline_for_pinning_and_lock_admission() {
+    let (root, repo) = repository();
+    let (owner, directory) = directory(&root.0.join("cache")).unwrap();
+    let compiler = std::env::current_exe().unwrap();
+    let candidate = fixture_candidate(&compiler, &repo, "pkg", &owner).unwrap();
+    assert!(
+        derive_with_pin(
+            &compiler,
+            &repo,
+            "pkg",
+            &root.0.join("cache"),
+            Instant::now(),
+            &|_| panic!("expired request must not pin")
+        )
+        .is_err()
+    );
+    assert!(toolchain::pin_before(&candidate.installed, Instant::now()).is_err());
+    let _lock = lock(
+        &directory,
+        &candidate.key,
+        Instant::now() + Duration::from_secs(600),
+    )
+    .unwrap();
+    assert!(lock(&directory, &candidate.key, Instant::now()).is_err());
 }
 
 #[test]
@@ -116,7 +216,10 @@ fn derive_cache_reuses_authenticated_unchanged_configuration_and_isolates_packag
     let before = fs::metadata(&path).unwrap();
     let original = manifest::read(&path, 16 << 20).unwrap();
     for _ in 0..2 {
-        assert_eq!(derive(&compiler, &repo, "pkg", &cache).unwrap(), path);
+        assert_eq!(
+            fixture_derive(&compiler, &repo, "pkg", &cache).unwrap(),
+            path
+        );
     }
     assert_eq!(manifest::read(&path, 16 << 20).unwrap(), original);
     assert_eq!(fs::metadata(&path).unwrap().ino(), before.ino());
@@ -128,10 +231,14 @@ fn derive_cache_reuses_authenticated_unchanged_configuration_and_isolates_packag
     );
     let owner = path.parent().unwrap();
     assert_ne!(
-        candidate(&compiler, &repo, "pkg", owner).unwrap().key,
-        candidate(&compiler, &repo, "pkg2", owner).unwrap().key
+        fixture_candidate(&compiler, &repo, "pkg", owner)
+            .unwrap()
+            .key,
+        fixture_candidate(&compiler, &repo, "pkg2", owner)
+            .unwrap()
+            .key
     );
-    assert!(candidate(&compiler, &repo, ".", owner).is_err());
+    assert!(fixture_candidate(&compiler, &repo, ".", owner).is_err());
 }
 
 #[test]
@@ -139,17 +246,27 @@ fn derive_cache_captures_schema_before_lookup_and_refuses_absent_schema() {
     let (root, repo) = repository();
     let cache = root.0.join("cache");
     let (compiler, path) = publish_candidate(&cache, &repo);
-    let first = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    let first = fixture_candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
     fs::write(
         root.0.join("schema/sqlite/schema.sql"),
         "CREATE TABLE changed(id INTEGER);\n",
     )
     .unwrap();
-    let changed = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    let changed = fixture_candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
     assert_ne!(first.key, changed.key);
     assert_ne!(
-        first.admission.configuration_sha256,
-        changed.admission.configuration_sha256
+        first
+            .installed
+            .admission
+            .as_ref()
+            .unwrap()
+            .configuration_sha256,
+        changed
+            .installed
+            .admission
+            .as_ref()
+            .unwrap()
+            .configuration_sha256
     );
     assert!(
         !path
@@ -160,7 +277,7 @@ fn derive_cache_captures_schema_before_lookup_and_refuses_absent_schema() {
     );
     assert!(admit(&path, &changed).is_err());
     fs::remove_dir_all(root.0.join("schema/sqlite")).unwrap();
-    assert!(derive(&compiler, &repo, "pkg", &cache).is_err());
+    assert!(fixture_derive(&compiler, &repo, "pkg", &cache).is_err());
     assert!(path.is_file());
 }
 
@@ -194,7 +311,7 @@ fn derive_cache_refuses_changed_implementation_executable_and_unpinned_inputs() 
         }
         fs::write(&path, canonical::encode(&value).unwrap()).unwrap();
         assert!(
-            derive(&compiler, &repo, "pkg", &cache).is_err(),
+            fixture_derive(&compiler, &repo, "pkg", &cache).is_err(),
             "accepted changed {field}"
         );
         assert_eq!(
@@ -211,7 +328,7 @@ fn derive_cache_serializes_concurrent_hits_and_refuses_unsafe_owners() {
     let (compiler, path) = publish_candidate(&cache, &repo);
     std::thread::scope(|scope| {
         let handles = (0..4)
-            .map(|_| scope.spawn(|| derive(&compiler, &repo, "pkg", &cache).unwrap()))
+            .map(|_| scope.spawn(|| fixture_derive(&compiler, &repo, "pkg", &cache).unwrap()))
             .collect::<Vec<_>>();
         for handle in handles {
             assert_eq!(handle.join().unwrap(), path);
@@ -219,11 +336,11 @@ fn derive_cache_serializes_concurrent_hits_and_refuses_unsafe_owners() {
     });
     let changed = root.0.join("runtime/changed.go");
     fs::write(&changed, "package runtime\n").unwrap();
-    let new = candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
+    let new = fixture_candidate(&compiler, &repo, "pkg", path.parent().unwrap()).unwrap();
     assert_ne!(path.file_stem().unwrap(), new.key.as_str());
     fs::remove_file(changed).unwrap();
     fs::set_permissions(path.parent().unwrap(), fs::Permissions::from_mode(0o755)).unwrap();
-    assert!(derive(&compiler, &repo, "pkg", &cache).is_err());
+    assert!(fixture_derive(&compiler, &repo, "pkg", &cache).is_err());
 }
 
 #[test]

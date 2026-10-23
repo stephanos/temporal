@@ -14,7 +14,11 @@ use std::{
     fs::{self, File},
     os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt},
     path::{Path, PathBuf},
+    time::{Duration, Instant},
 };
+
+#[path = "derive_cache_publish.rs"]
+mod publication;
 
 const PROFILE: &str = "gomad.wasi-cooperative/v1";
 
@@ -24,7 +28,6 @@ mod tests;
 
 struct Candidate {
     installed: Installation,
-    admission: Admission,
     key: String,
 }
 
@@ -70,6 +73,7 @@ fn candidate(
     repo: &Repo,
     package: &str,
     root: &Path,
+    pin: &impl Fn(&Installation) -> Result<BTreeMap<PathBuf, String>, String>,
 ) -> Result<Candidate, String> {
     let package = crate::config::repo::relative(package)?;
     crate::config::repo::contained(&repo.module_root, &package)?;
@@ -88,19 +92,8 @@ fn candidate(
     let runtime = runtime_inputs(&repo.runtime_root)?;
     let overlay_module_root = fs::canonicalize(Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .map_err(|e| e.to_string())?;
-    let key = canonical::digest(&canonical::encode(&serde_json::json!({
-        "schema": "gomad.derived-installation-key/v1",
-        "compiler": compiler, "compiler_sha256": compiler_sha256,
-        "runtime_root": repo.runtime_root, "runtime_inputs": runtime,
-        "module_root": repo.module_root, "derivation": repo.derive, "package": package,
-        "configuration_sha256": configuration_sha256, "executable_sha256": executable_sha256,
-        "host_sha256": env!("GOMAD_HOST_IMPLEMENTATION_SHA256"),
-        "helper_sha256": linked::IMPLEMENTATION_SHA256,
-        "runtime_implementation_sha256": env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256"),
-        "overlay_module_root": overlay_module_root,
-    }))?);
     let temporal = repo.derive == Derivation::Temporal;
-    let installed = Installation {
+    let mut installed = Installation {
         schema: manifest::SCHEMA.into(),
         admission: None,
         compiler_path: compiler,
@@ -122,9 +115,22 @@ fn candidate(
         build_tags: config.build_tags,
         excluded_build_tags: Vec::new(),
     };
+    manifest::validate(&installed)?;
+    let compiler_inputs = pin(&installed)?;
+    let inputs_sha256 = canonical::digest(&canonical::encode(&compiler_inputs)?);
+    let key = canonical::digest(&canonical::encode(&serde_json::json!({
+        "schema": "gomad.derived-installation-key/v1",
+        "compiler": installed.compiler_path, "compiler_sha256": installed.compiler_sha256,
+        "runtime_root": repo.runtime_root, "runtime_inputs": runtime,
+        "module_root": repo.module_root, "derivation": repo.derive, "package": package,
+        "configuration_sha256": configuration_sha256, "executable_sha256": executable_sha256,
+        "host_sha256": installed.host_sha256, "helper_sha256": installed.helper_sha256,
+        "runtime_implementation_sha256": installed.runtime_implementation_sha256,
+        "overlay_module_root": installed.overlay_module_root, "inputs_sha256": inputs_sha256,
+    }))?);
     let admission = Admission {
-        compiler_inputs: BTreeMap::new(),
-        inputs_sha256: String::new(),
+        compiler_inputs,
+        inputs_sha256,
         guest_configuration: config.original,
         configuration_sha256,
         host_executable_sha256: executable_sha256,
@@ -133,11 +139,8 @@ fn candidate(
         arguments: config.arguments,
         compile_cache_root: None,
     };
-    Ok(Candidate {
-        installed,
-        admission,
-        key,
-    })
+    installed.admission = Some(admission);
+    Ok(Candidate { installed, key })
 }
 
 fn same_directory(path: &Path, file: &File) -> Result<(), String> {
@@ -180,7 +183,14 @@ fn directory(cache_root: &Path) -> Result<(PathBuf, File), String> {
     Ok((root, file))
 }
 
-fn lock(directory: &File, key: &str) -> Result<File, String> {
+fn before_deadline(deadline: Instant) -> Result<(), String> {
+    if Instant::now() >= deadline {
+        return Err("derived installation deadline exceeded".into());
+    }
+    Ok(())
+}
+
+fn lock(directory: &File, key: &str, deadline: Instant) -> Result<File, String> {
     let file = File::from(
         rustix::fs::openat(
             directory,
@@ -190,7 +200,19 @@ fn lock(directory: &File, key: &str) -> Result<File, String> {
         )
         .map_err(|e| e.to_string())?,
     );
-    rustix::fs::flock(&file, FlockOperation::LockExclusive).map_err(|e| e.to_string())?;
+    loop {
+        before_deadline(deadline)?;
+        match rustix::fs::flock(&file, FlockOperation::NonBlockingLockExclusive) {
+            Ok(()) => break,
+            Err(rustix::io::Errno::WOULDBLOCK) => {
+                std::thread::sleep(
+                    Duration::from_millis(1)
+                        .min(deadline.saturating_duration_since(Instant::now())),
+                );
+            }
+            Err(error) => return Err(error.to_string()),
+        }
+    }
     let metadata = file.metadata().map_err(|e| e.to_string())?;
     let named = rustix::fs::statat(
         directory,
@@ -213,26 +235,8 @@ fn lock(directory: &File, key: &str) -> Result<File, String> {
 fn admit(path: &Path, candidate: &Candidate) -> Result<(), String> {
     let selected = manifest::resolve(Some(path))?.manifest;
     manifest::admit_build(&selected)?;
-    let mut actual = serde_json::to_value(&selected).map_err(|e| e.to_string())?;
-    actual
-        .as_object_mut()
-        .ok_or("cached installation is not an object")?
-        .remove("admission");
-    if actual != serde_json::to_value(&candidate.installed).map_err(|e| e.to_string())? {
-        return Err("cached installation does not match current derivation".into());
-    }
-    let admission = selected
-        .admission
-        .ok_or("cached installation lacks build admission")?;
-    if admission.configuration_sha256 != candidate.admission.configuration_sha256
-        || admission.guest_configuration != candidate.admission.guest_configuration
-        || admission.host_executable_sha256 != candidate.admission.host_executable_sha256
-        || admission.explicit_helper.is_some()
-        || admission.compile_cache_root.is_some()
-    {
-        return Err(
-            "cached installation does not match current configuration or executable".into(),
-        );
+    if canonical::encode(&selected)? != canonical::encode(&candidate.installed)? {
+        return Err("cached installation does not match current derivation and complete toolchain inventory".into());
     }
     Ok(())
 }
@@ -242,43 +246,59 @@ pub(crate) fn derive(
     repo: &Repo,
     concrete_package: &str,
     cache_root: &Path,
+    deadline: Instant,
 ) -> Result<PathBuf, String> {
+    derive_with_pin(
+        compiler,
+        repo,
+        concrete_package,
+        cache_root,
+        deadline,
+        &|installed| toolchain::pin_before(installed, deadline),
+    )
+}
+
+fn derive_with_pin(
+    compiler: &Path,
+    repo: &Repo,
+    concrete_package: &str,
+    cache_root: &Path,
+    deadline: Instant,
+    pin: &impl Fn(&Installation) -> Result<BTreeMap<PathBuf, String>, String>,
+) -> Result<PathBuf, String> {
+    before_deadline(deadline)?;
     let (root, directory) = directory(cache_root)?;
     // Schema capture and identity derivation must precede lookup, including cache hits.
-    let mut candidate = candidate(compiler, repo, concrete_package, &root)?;
-    let _lock = lock(&directory, &candidate.key)?;
+    let candidate = candidate(compiler, repo, concrete_package, &root, pin)?;
+    before_deadline(deadline)?;
+    let _lock = lock(&directory, &candidate.key, deadline)?;
+    before_deadline(deadline)?;
     same_directory(&root, &directory)?;
-    if candidate.key != self::candidate(compiler, repo, concrete_package, &root)?.key {
+    if candidate.key != self::candidate(compiler, repo, concrete_package, &root, pin)?.key {
         return Err("installation inputs changed while awaiting cache admission".into());
     }
     let path = root.join(format!("{}.json", candidate.key));
+    before_deadline(deadline)?;
+    publication::discard_stage(&directory, &format!(".{}.staged", candidate.key))?;
     match fs::symlink_metadata(&path) {
         Ok(_) => admit(&path, &candidate)?,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            manifest::validate(&candidate.installed)?;
-            let inputs = toolchain::pin(&candidate.installed)?;
-            let refreshed = self::candidate(compiler, repo, concrete_package, &root)?;
-            if candidate.key != refreshed.key {
-                return Err("installation inputs changed while deriving".into());
-            }
-            candidate.admission.inputs_sha256 = canonical::digest(&canonical::encode(&inputs)?);
-            candidate.admission.compiler_inputs = inputs;
-            candidate.installed.admission = Some(candidate.admission);
             same_directory(&root, &directory)?;
-            manifest::write(&path, &candidate.installed)?;
-            manifest::admit_build(&manifest::resolve(Some(&path))?.manifest)?;
+            publication::publish(&root, &directory, &path, &candidate)?;
         }
         Err(error) => return Err(error.to_string()),
     }
     same_directory(&root, &directory)?;
+    before_deadline(deadline)?;
     if path.file_stem().and_then(|value| value.to_str())
         != Some(
-            self::candidate(compiler, repo, concrete_package, &root)?
+            self::candidate(compiler, repo, concrete_package, &root, pin)?
                 .key
                 .as_str(),
         )
     {
         return Err("installation inputs changed during cache admission".into());
     }
+    before_deadline(deadline)?;
     Ok(path)
 }

@@ -77,7 +77,7 @@ pub(crate) fn overlay(
     Ok(generated)
 }
 
-fn tree(path: &Path, inputs: &mut BTreeMap<PathBuf, String>) -> Result<(), String> {
+pub(super) fn tree(path: &Path, inputs: &mut BTreeMap<PathBuf, String>) -> Result<(), String> {
     let metadata = fs::symlink_metadata(path).map_err(|e| e.to_string())?;
     if metadata.is_dir() {
         for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
@@ -128,15 +128,24 @@ fn generator_inputs(
     inventory::sources(&listed, &root.join("pkg/include"), &BTreeMap::new())
 }
 
+pub(crate) fn pin(installed: &Installation) -> Result<BTreeMap<PathBuf, String>, String> {
+    pin_before(installed, Instant::now() + Duration::from_secs(600))
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Toolchain pinning verifies the complete compiler and generator inventory before and after overlay generation"
 )]
-pub(crate) fn pin(installed: &Installation) -> Result<BTreeMap<PathBuf, String>, String> {
+pub(crate) fn pin_before(
+    installed: &Installation,
+    deadline: Instant,
+) -> Result<BTreeMap<PathBuf, String>, String> {
+    if Instant::now() >= deadline {
+        return Err("runner_failure: toolchain pin deadline exceeded".into());
+    }
     manifest::executable(&installed.compiler_path, &installed.compiler_sha256)?;
     let temporary = process::Temporary::new(&installed.cache_root)?;
     let directory = std::env::current_dir().map_err(|e| e.to_string())?;
-    let deadline = Instant::now() + Duration::from_secs(600);
     let environment = process::environment()?;
     let version = process::command(
         &installed.compiler_path,
@@ -237,5 +246,8 @@ pub(crate) fn pin(installed: &Installation) -> Result<BTreeMap<PathBuf, String>,
     }
     inventory::verify(&inputs)?;
     manifest::executable(&installed.compiler_path, &installed.compiler_sha256)?;
+    if Instant::now() >= deadline {
+        return Err("runner_failure: toolchain pin deadline exceeded".into());
+    }
     Ok(inputs)
 }
