@@ -1026,17 +1026,22 @@ esac
 race=0
 needed=0
 race_tag=0
+buildmode=default
+linkshared=false
 for arg do
-    case "$arg" in -race=true) race=1;; esac
+    case "$arg" in -race=true) race=1;; -buildmode=*) buildmode="${{arg#*=}}";; -linkshared=*) linkshared="${{arg#*=}}";; esac
     case ",$arg," in *,needed,*) needed=1;; esac
     case ",$arg," in *,race,*) race_tag=1;; esac
     last="$arg"
 done
 printf '%s:%s:%s\n' "$GOOS" "$race" "$last" >> '{queries}'
+printf '%s:%s:%s:%s\n' "$GOOS" "$buildmode" "$linkshared" "$last" >> '{mode_queries}'
 [ -z "$GOFLAGS" ] || exit 91
 if [ "$GOOS" = wasip1 ]; then
     [ "$GOARCH/$CGO_ENABLED" = wasm/0 ] || exit 92
     [ "$race" = 0 ] || {{ printf 'go: -race is not supported on wasip1/wasm' >&2; exit 2; }}
+    case "$buildmode" in pie|c-archive|plugin|shared) printf 'go: -buildmode=%s not supported on wasip1/wasm' "$buildmode" >&2; exit 2;; esac
+    [ "$linkshared" = false ] || {{ printf 'go: -linkshared is not supported on wasip1/wasm' >&2; exit 2; }}
     [ "$needed" = 1 ] || exit 93
     case "$last" in
         ./declared|./drift) printf '%s' '{declared_guest}';;
@@ -1059,7 +1064,7 @@ else
         *) exit 96;;
     esac
 fi
-"#, queries=queries.display())).unwrap();
+"#, queries=queries.display(), mode_queries=root.0.join("mode-queries").display())).unwrap();
         fs::set_permissions(&compiler, fs::Permissions::from_mode(0o700)).unwrap();
         let mut contract = fixture_contract(&root.0, compiler);
         let installation = fixture_installation(
@@ -1249,5 +1254,124 @@ fi
         let queries = fs::read_to_string(queries).unwrap();
         assert!(queries.lines().any(|line| line == "wasip1:0:./native-main"));
         assert!(!queries.lines().any(|line| line.starts_with("wasip1:1:")));
+    }
+    #[test]
+    fn native_main_target_library_preserves_host_build_modes() {
+        let fixture = discovery_fixture();
+        for command in ["run", "build"] {
+            // c-shared is supported on WASI too; the remaining modes are native-only.
+            for mode in ["pie", "c-archive", "plugin", "shared", "c-shared"] {
+                let flag = format!("-buildmode={mode}");
+                for via_environment in [false, true] {
+                    let mut arguments = vec![
+                        "-C".into(),
+                        fixture.root.0.as_os_str().to_owned(),
+                        command.into(),
+                    ];
+                    if !via_environment {
+                        arguments.push(flag.clone().into());
+                    }
+                    arguments.push("./native-main".into());
+                    let original = arguments.clone();
+                    let goflags = if via_environment { flag.as_str() } else { "" };
+                    assert!(
+                        classify_request_with_environment(
+                            &fixture.contract,
+                            &arguments,
+                            OsStr::new(goflags),
+                            &fixture.inherited,
+                        )
+                        .unwrap()
+                        .is_none()
+                    );
+                    assert_eq!(arguments, original);
+                }
+            }
+        }
+        let queries = fs::read_to_string(fixture.root.0.join("mode-queries")).unwrap();
+        for mode in ["pie", "c-archive", "plugin", "shared", "c-shared"] {
+            assert!(
+                queries
+                    .lines()
+                    .any(|line| line == format!("linux:{mode}:false:./native-main"))
+            );
+        }
+        assert!(
+            queries
+                .lines()
+                .filter(|line| line.starts_with("wasip1:"))
+                .all(|line| line == "wasip1:default:false:./native-main")
+        );
+    }
+
+    #[test]
+    fn selected_target_main_retains_original_build_mode_policy() {
+        let fixture = discovery_fixture();
+        for command in ["run", "build"] {
+            for mode in ["pie", "c-archive", "plugin", "shared", "c-shared"] {
+                let arguments = vec![
+                    "-C".into(),
+                    fixture.root.0.as_os_str().to_owned(),
+                    command.into(),
+                    format!("-buildmode={mode}").into(),
+                    "./native-library".into(),
+                ];
+                let error = classify_request_with_environment(
+                    &fixture.contract,
+                    &arguments,
+                    OsStr::new(""),
+                    &fixture.inherited,
+                )
+                .err()
+                .unwrap();
+                assert_eq!(
+                    error,
+                    "gomad: guest option -buildmode conflicts with the authenticated build recipe"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn native_main_target_library_preserves_host_linkshared() {
+        let fixture = discovery_fixture();
+        for command in ["run", "build"] {
+            for via_environment in [false, true] {
+                let mut arguments = vec![
+                    "-C".into(),
+                    fixture.root.0.as_os_str().to_owned(),
+                    command.into(),
+                ];
+                if !via_environment {
+                    arguments.push("-linkshared".into());
+                }
+                arguments.push("./native-main".into());
+                let original = arguments.clone();
+                let goflags = if via_environment { "-linkshared" } else { "" };
+                assert!(
+                    classify_request_with_environment(
+                        &fixture.contract,
+                        &arguments,
+                        OsStr::new(goflags),
+                        &fixture.inherited,
+                    )
+                    .unwrap()
+                    .is_none()
+                );
+                assert_eq!(arguments, original);
+            }
+        }
+        let queries = fs::read_to_string(fixture.root.0.join("mode-queries")).unwrap();
+        assert!(
+            queries
+                .lines()
+                .any(|line| line == "linux:default:true:./native-main")
+        );
+        assert!(
+            queries
+                .lines()
+                .filter(|line| line.starts_with("wasip1:"))
+                .all(|line| line == "wasip1:default:false:./native-main")
+        );
     }
 }
