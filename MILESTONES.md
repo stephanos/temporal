@@ -279,7 +279,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⏸ Parked | Qualify the one-box cell on the current Rust candidate with full workflow smoke, inspection and per-test support gates |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 Running | Wire prepare-only, workload-intent and support-list validation, then run both one-box cells and every inspection/replay gate on the frozen Rust candidate |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
