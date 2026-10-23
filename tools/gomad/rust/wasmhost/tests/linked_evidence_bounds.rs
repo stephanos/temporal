@@ -39,7 +39,9 @@ fn request(evidence: u64) -> linked::Request {
 
 #[test]
 fn standalone_accepts_original_activity_aggregate_without_reserving_it() {
-    let execution = linked::execute(request(EVIDENCE)).unwrap();
+    let mut prepared = linked::prepare(request(EVIDENCE)).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
+    let execution = linked::execute_prepared(prepared).unwrap();
     assert_eq!(execution.outcome.termination, "exit");
     assert!(execution.evidence.values().map(Vec::len).sum::<usize>() < 65536);
 }
@@ -85,7 +87,9 @@ fn cluster_accepts_original_activity_aggregate_without_reserving_it() {
         wall_timeout: Duration::from_secs(5),
         evidence_bytes: EVIDENCE,
     };
-    let execution = cluster::execute_prepared(cluster::prepare(request).unwrap()).unwrap();
+    let mut prepared = cluster::prepare(request).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
+    let execution = cluster::execute_prepared(prepared).unwrap();
     assert_eq!(execution.outcome.termination, "exit");
     assert_eq!(execution.incarnations.len(), 1);
 }

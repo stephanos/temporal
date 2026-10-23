@@ -47,6 +47,16 @@ impl Session {
         module: &Module,
         config: &Config,
     ) -> Result<Self> {
+        Self::start_interruptible(store, module, config, || Ok(()))
+    }
+
+    pub fn start_interruptible<T: Send + 'static>(
+        store: &mut Store<T>,
+        module: &Module,
+        config: &Config,
+        interrupt: impl Fn() -> Result<()> + Send + Sync + 'static,
+    ) -> Result<Self> {
+        config.validate()?;
         let interval = Duration::from_micros(config.interval_micros);
         let profiler = GuestProfiler::new(
             store.engine(),
@@ -66,6 +76,7 @@ impl Session {
         let max_samples = config.max_samples;
         store.set_epoch_deadline(1);
         store.epoch_deadline_callback(move |store| {
+            interrupt()?;
             let mut guard = samples.lock().unwrap();
             let sample = guard.as_mut().unwrap();
             if sample.samples < max_samples {
@@ -163,3 +174,7 @@ impl Drop for Session {
         self.stop();
     }
 }
+
+#[cfg(test)]
+#[path = "guest_profile/preservation.rs"]
+mod preservation;

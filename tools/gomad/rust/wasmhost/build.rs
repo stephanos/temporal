@@ -39,6 +39,16 @@ fn main() {
             fs::read(root.join(name)).expect("read helper build identity input"),
         );
     }
+    let source_inputs: String = files
+        .iter()
+        .map(|(name, bytes)| format!("{:x}\t{name}\n", Sha256::digest(bytes)))
+        .collect();
+    fs::write(
+        Path::new(&env::var_os("OUT_DIR").expect("build output directory"))
+            .join("measurement-source-inputs.tsv"),
+        source_inputs,
+    )
+    .expect("measurement source closure");
     let mut hash = Sha256::new();
     hash.update(b"gomad.linked-implementation/v1\0");
     for (name, value) in env::vars()

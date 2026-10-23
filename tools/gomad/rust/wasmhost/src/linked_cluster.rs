@@ -152,6 +152,23 @@ pub struct Prepared {
 
 impl Prepared {
     #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        self.incarnations
+            .values()
+            .next()
+            .and_then(|sealed| sealed.execution.compile_cache_directory())
+    }
+
+    /// # Errors
+    /// Refuses an invalid host compile-cache selection.
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> Result<()> {
+        for sealed in self.incarnations.values_mut() {
+            sealed.execution.compile_cache(directory)?;
+        }
+        Ok(())
+    }
+
+    #[must_use]
     pub fn activity(&self) -> Activity {
         self.activity.clone()
     }
@@ -736,6 +753,11 @@ fn run_instance(
             handle,
             interrupted: interrupted(&outcome),
             execution: linked::Execution {
+                timing: None,
+                #[cfg(feature = "guest-profile")]
+                guest_profile_error: None,
+                #[cfg(feature = "diagnostic-profile")]
+                external_owner_attempts: 0,
                 authorization_to_terminal_nanos,
                 outcome,
                 evidence,
@@ -767,10 +789,14 @@ fn compile(
         if modules.contains_key(&request.module_sha256) {
             continue;
         }
-        let module = engine::compile(engine, &request.module, &mut Metrics::default())
-            .and_then(|module| engine::describe_module(&sealed.execution.execute, module))
-            .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
-            .0;
+        let module = linked::compile_module(
+            engine,
+            &sealed.execution.execute,
+            &request.module,
+            &mut Metrics::default(),
+        )
+        .map_err(|outcome| Error::msg(format!("{}: {}", outcome.termination, outcome.message)))?
+        .0;
         let pre = engine::linker(engine, &module)?.instantiate_pre(&module)?;
         modules.insert(request.module_sha256.clone(), Arc::new(pre));
     }
@@ -960,6 +986,11 @@ fn execute_inner(
                                     handle,
                                     interrupted: false,
                                     execution: linked::Execution {
+                                        timing: None,
+                                        #[cfg(feature = "guest-profile")]
+                                        guest_profile_error: None,
+                                        #[cfg(feature = "diagnostic-profile")]
+                                        external_owner_attempts: 0,
                                         authorization_to_terminal_nanos: None,
                                         outcome: protocol::Outcome::new(
                                             "inspection_aborted",

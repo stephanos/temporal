@@ -10,6 +10,9 @@ pub enum Conditions {
     #[default]
     Ordinary,
     DiagnosticProfile,
+    GuestProfile,
+    DiagnosticFuelOff,
+    GuestProfileFuelOff,
     StressReplay,
     DeterminismFixtureReplay,
 }
@@ -21,7 +24,13 @@ thread_local! {
 impl Conditions {
     #[must_use]
     pub fn compiled() -> Self {
-        if cfg!(feature = "diagnostic-profile") {
+        if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
+            Self::GuestProfileFuelOff
+        } else if cfg!(feature = "guest-profile") {
+            Self::GuestProfile
+        } else if cfg!(feature = "diagnostic-fuel-off") {
+            Self::DiagnosticFuelOff
+        } else if cfg!(feature = "diagnostic-profile") {
             Self::DiagnosticProfile
         } else if cfg!(feature = "stress-jitter") {
             Self::StressReplay
@@ -47,6 +56,9 @@ impl Conditions {
         let suffix = match self {
             Self::Ordinary => "",
             Self::DiagnosticProfile => "-diagnostic-profile",
+            Self::GuestProfile => "-guest-profile",
+            Self::DiagnosticFuelOff => "-diagnostic-fuel-off",
+            Self::GuestProfileFuelOff => "-guest-profile-fuel-off",
             Self::StressReplay => "-stress-jitter",
             Self::DeterminismFixtureReplay => "-determinism-fixture",
         };
@@ -308,11 +320,24 @@ mod role_tests {
         assert!(Conditions::Ordinary.enter().is_err());
         assert!(super::current().is_none());
         assert!(Conditions::compiled().validate().is_ok());
-        assert!(
-            Conditions::compiled()
-                .configuration()
-                .ends_with("-diagnostic-profile")
-        );
+        let expected = if cfg!(feature = "guest-profile") && cfg!(feature = "diagnostic-fuel-off") {
+            "-guest-profile-fuel-off"
+        } else if cfg!(feature = "guest-profile") {
+            "-guest-profile"
+        } else if cfg!(feature = "diagnostic-fuel-off") {
+            "-diagnostic-fuel-off"
+        } else {
+            "-diagnostic-profile"
+        };
+        assert!(Conditions::compiled().configuration().ends_with(expected));
+        for role in [
+            Conditions::DiagnosticProfile,
+            Conditions::GuestProfile,
+            Conditions::DiagnosticFuelOff,
+            Conditions::GuestProfileFuelOff,
+        ] {
+            assert_eq!(role.validate().is_ok(), role == Conditions::compiled());
+        }
     }
 
     #[cfg(not(any(

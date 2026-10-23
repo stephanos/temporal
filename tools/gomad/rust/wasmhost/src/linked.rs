@@ -13,6 +13,8 @@ use std::{
 };
 use wasmtime::{Engine, Error, Store};
 
+#[cfg(feature = "guest-profile")]
+pub use crate::guest_profile::Config as GuestProfileConfig;
 pub use crate::linked_cancellation::Cancellation;
 pub use crate::linked_cluster::NetworkModel;
 pub use crate::linked_conditions::Conditions;
@@ -32,6 +34,9 @@ pub use crate::protocol::Outcome;
 
 #[cfg(feature = "stress-jitter")]
 pub use crate::stress_jitter::statistics as stress_jitter_statistics;
+
+pub const SOURCE_INPUTS: &str =
+    include_str!(concat!(env!("OUT_DIR"), "/measurement-source-inputs.tsv"));
 
 pub const IMPLEMENTATION_SHA256: &str = env!("GOMAD_LINKED_IMPLEMENTATION_SHA256");
 pub const CONFIGURATION: &str = "cranelift-fuel-nan-canonical-nounwind-epoch-v1";
@@ -60,7 +65,38 @@ pub struct Request {
     pub storage: Option<StorageInput>,
 }
 
+pub struct ExecutionTiming {
+    pub authorization_started: std::time::Instant,
+    pub terminal_classified: std::time::Instant,
+    pub returned: std::time::Instant,
+}
+impl ExecutionTiming {
+    #[must_use]
+    pub fn authorization_to_terminal_nanos(&self) -> u64 {
+        u64::try_from(
+            self.terminal_classified
+                .duration_since(self.authorization_started)
+                .as_nanos(),
+        )
+        .unwrap_or(u64::MAX)
+    }
+    #[must_use]
+    pub fn terminal_to_return_nanos(&self) -> u64 {
+        u64::try_from(
+            self.returned
+                .duration_since(self.terminal_classified)
+                .as_nanos(),
+        )
+        .unwrap_or(u64::MAX)
+    }
+}
+
 pub struct Execution {
+    pub timing: Option<ExecutionTiming>,
+    #[cfg(feature = "guest-profile")]
+    pub guest_profile_error: Option<String>,
+    #[cfg(feature = "diagnostic-profile")]
+    pub external_owner_attempts: u64,
     pub authorization_to_terminal_nanos: Option<u64>,
     pub outcome: Outcome,
     pub evidence: BTreeMap<String, Vec<u8>>,
@@ -90,9 +126,38 @@ pub struct Prepared {
     cancellation: Cancellation,
     output: Option<Arc<dyn OutputConsumer>>,
     network: Option<crate::cluster::network::Endpoint>,
+    #[cfg(feature = "guest-profile")]
+    guest_profile: Option<GuestProfileConfig>,
 }
 
 impl Prepared {
+    /// # Errors
+    /// Admits request-local bounded guest sampling in a guest-profile role only.
+    #[cfg(feature = "guest-profile")]
+    pub fn guest_profile(&mut self, config: GuestProfileConfig) -> wasmtime::Result<()> {
+        config.validate()?;
+        if self.guest_profile.is_some() {
+            return Err(Error::msg("linked guest profile already configured"));
+        }
+        self.guest_profile = Some(config);
+        Ok(())
+    }
+
+    #[must_use]
+    pub fn compile_cache_directory(&self) -> Option<&str> {
+        self.execute.compile_cache.as_deref()
+    }
+
+    /// # Errors
+    /// Refuses an invalid host compile-cache selection.
+    pub fn compile_cache(&mut self, directory: Option<&str>) -> wasmtime::Result<()> {
+        if directory.is_some_and(|directory| !std::path::Path::new(directory).is_absolute()) {
+            return Err(Error::msg("invalid compile cache directory"));
+        }
+        self.execute.compile_cache = directory.map(str::to_owned);
+        Ok(())
+    }
+
     /// The execution wall bound the host's process-wide deadline backstop arms.
     #[must_use]
     pub fn wall_timeout(&self) -> Duration {
@@ -244,9 +309,18 @@ impl Sink {
     }
 }
 
-struct NoRemote;
+struct NoRemote {
+    #[cfg(feature = "diagnostic-profile")]
+    attempts: Arc<std::sync::atomic::AtomicU64>,
+}
 impl Write for NoRemote {
     fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+        #[cfg(feature = "diagnostic-profile")]
+        self.attempts
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+                value.checked_add(1)
+            })
+            .map_err(|_| io::Error::other("native external-owner counter overflow"))?;
         Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "linked execution requires helper-owned imports",
@@ -376,6 +450,8 @@ pub fn prepare(mut request: Request) -> wasmtime::Result<Prepared> {
         cancellation: Cancellation::default(),
         output: None,
         network: None,
+        #[cfg(feature = "guest-profile")]
+        guest_profile: None,
     })
 }
 
@@ -397,6 +473,8 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
         cancellation,
         output,
         network,
+        #[cfg(feature = "guest-profile")]
+        guest_profile,
     } = prepared;
     if cancellation.cancelled() {
         return Ok(Cancellation::execution());
@@ -409,17 +487,20 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let preparation = std::time::Instant::now();
     let engine = Engine::new(&engine::configuration(true))?;
     let registration = cancellation.attach(&engine, None)?;
-    let timed_out = AtomicBool::new(false);
+    let timed_out = Arc::new(AtomicBool::new(false));
+    #[cfg(feature = "diagnostic-profile")]
+    let external_owner_attempts = Arc::new(std::sync::atomic::AtomicU64::new(0));
     let mut authorization_started = None;
+    let mut terminal_classified = None;
+    #[cfg(feature = "guest-profile")]
+    let mut guest_profile_error = None;
     let mut outcome = thread::scope(|scope| -> wasmtime::Result<Outcome> {
         let (done, completed) = mpsc::sync_channel::<()>(0);
         let watcher =
             scope.spawn(|| watch(&engine, &timed_out, request.limits.wall_timeout, completed));
         let result = (|| -> wasmtime::Result<Outcome> {
             let mut metrics = Metrics::default();
-            let module = match engine::compile(&engine, &request.module, &mut metrics)
-                .and_then(|module| engine::describe_module(&execute, module))
-            {
+            let module = match compile_module(&engine, &execute, &request.module, &mut metrics) {
                 Ok((module, _)) => module,
                 Err(mut outcome) => {
                     metrics.prepare_nanos = crate::metrics::elapsed(preparation);
@@ -434,7 +515,10 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 &engine,
                 engine::new_state(
                     Box::new(Cursor::new(Vec::<u8>::new())),
-                    Box::new(NoRemote),
+                    Box::new(NoRemote {
+                        #[cfg(feature = "diagnostic-profile")]
+                        attempts: Arc::clone(&external_owner_attempts),
+                    }),
                     request.limits.memory_bytes,
                     request.limits.output_bytes,
                     model,
@@ -443,8 +527,31 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
             );
             store.limiter(|state| &mut state.limits);
             store.data_mut().network = network;
+            #[cfg(not(feature = "diagnostic-fuel-off"))]
             store.set_fuel(request.limits.fuel)?;
             store.set_epoch_deadline(1);
+            #[cfg(feature = "guest-profile")]
+            let guest_profile = guest_profile
+                .as_ref()
+                .map(|config| {
+                    let cancellation = cancellation.clone();
+                    let timed_out = Arc::clone(&timed_out);
+                    crate::guest_profile::Session::start_interruptible(
+                        &mut store,
+                        &module,
+                        config,
+                        move || {
+                            if cancellation.cancelled() {
+                                Err(Error::msg("seed execution was cancelled"))
+                            } else if timed_out.load(Ordering::Acquire) {
+                                Err(Error::msg("execution watchdog timeout"))
+                            } else {
+                                Ok(())
+                            }
+                        },
+                    )
+                })
+                .transpose()?;
             let linker = engine::linker(&engine, &module)?;
             let executed = if cancellation.cancelled() {
                 Err(Error::msg("seed execution was cancelled"))
@@ -454,6 +561,13 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
                 start_instance(&linker, &mut store, &module, &mut metrics)
             };
             let mut outcome = finish_outcome(&mut store, executed, &request, &timed_out)?;
+            terminal_classified = Some(std::time::Instant::now());
+            #[cfg(test)]
+            timing_tests::after_terminal();
+            #[cfg(feature = "guest-profile")]
+            if let Some(profile) = guest_profile {
+                guest_profile_error = profile.finish().err().map(|error| error.to_string());
+            }
             metrics.sample_process();
             outcome.metrics = Some(Box::new(metrics));
             Ok(outcome)
@@ -476,13 +590,47 @@ pub fn execute_prepared(prepared: Prepared) -> wasmtime::Result<Execution> {
     let event_order = conditions.finish();
     drop(registration);
     drop(engine);
-    let authorization_to_terminal_nanos = authorization_started.map(crate::metrics::elapsed);
+    let returned = std::time::Instant::now();
+    let timing = authorization_started.zip(terminal_classified).map(
+        |(authorization_started, terminal_classified)| ExecutionTiming {
+            authorization_started,
+            terminal_classified,
+            returned,
+        },
+    );
+    let authorization_to_terminal_nanos = timing
+        .as_ref()
+        .map(ExecutionTiming::authorization_to_terminal_nanos);
     Ok(Execution {
+        timing,
+        #[cfg(feature = "guest-profile")]
+        guest_profile_error,
+        #[cfg(feature = "diagnostic-profile")]
+        external_owner_attempts: external_owner_attempts.load(Ordering::Relaxed),
         authorization_to_terminal_nanos,
         outcome,
         evidence,
         event_order,
     })
+}
+
+pub(crate) fn compile_module(
+    engine: &Engine,
+    execute: &protocol::Execute,
+    bytes: &[u8],
+    metrics: &mut Metrics,
+) -> Result<(wasmtime::Module, serde_json::Value), Outcome> {
+    let module = match &execute.compile_cache {
+        Some(directory) => crate::cache::module(
+            engine,
+            || Ok(bytes),
+            directory,
+            &execute.module_sha256,
+            metrics,
+        )?,
+        None => engine::compile(engine, bytes, metrics)?,
+    };
+    engine::describe_module(execute, module)
 }
 
 fn start_instance(
@@ -569,7 +717,7 @@ mod live_metrics_tests {
     #[test]
     fn linked_terminal_retains_actual_phase_and_process_metrics() {
         let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
-        let result = execute(Request {
+        let mut prepared = prepare(Request {
             module_sha256: format!("{:x}", Sha256::digest(&module)),
             module,
             limits: Limits {
@@ -584,6 +732,8 @@ mod live_metrics_tests {
             storage: None,
         })
         .unwrap();
+        prepared.conditions(Conditions::compiled());
+        let result = execute_prepared(prepared).unwrap();
         assert_eq!(result.outcome.termination, "exit");
         assert!(
             result
@@ -632,3 +782,72 @@ mod evidence_bounds_tests {
 #[cfg(test)]
 #[path = "linked/streaming_tests.rs"]
 mod streaming_tests;
+
+#[cfg(test)]
+mod timing_tests {
+    use super::*;
+    use std::{
+        cell::RefCell,
+        time::{Duration, Instant},
+    };
+    thread_local! {
+        static WORK: RefCell<Option<Box<dyn FnOnce()>>> = RefCell::new(None);
+    }
+    pub(super) fn after_terminal() {
+        let work = WORK.with(|slot| slot.borrow_mut().take());
+        if let Some(work) = work {
+            work();
+        }
+    }
+    struct Reset;
+    impl Drop for Reset {
+        fn drop(&mut self) {
+            WORK.with(|slot| slot.borrow_mut().take());
+        }
+    }
+    #[test]
+    fn actual_native_terminal_excludes_postterminal_work_and_retains_separate_cleanup() {
+        let _reset = Reset;
+        WORK.with(|slot| {
+            *slot.borrow_mut() = Some(Box::new(|| {
+                let (_sender, receiver) = std::sync::mpsc::channel::<()>();
+                assert_eq!(
+                    receiver.recv_timeout(Duration::from_millis(20)),
+                    Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+                );
+            }))
+        });
+        let module = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))".to_vec();
+        let mut prepared = prepare(Request {
+            module_sha256: format!("{:x}", Sha256::digest(&module)),
+            module,
+            limits: Limits {
+                memory_bytes: 65536,
+                fuel: 1000,
+                output_bytes: 1024,
+                evidence_bytes: 4096,
+                wall_timeout: Duration::from_secs(5),
+            },
+            model: None,
+            namespace: None,
+            storage: None,
+        })
+        .unwrap();
+        prepared.conditions(Conditions::compiled());
+        let started = Instant::now();
+        let observed = execute_prepared(prepared).unwrap();
+        let wall = started.elapsed();
+        assert_eq!(observed.outcome.termination, "exit");
+        let timing = observed.timing.expect("native terminal timing absent");
+        assert!(timing.terminal_to_return_nanos() >= 20_000_000);
+        assert_eq!(
+            observed.authorization_to_terminal_nanos,
+            Some(timing.authorization_to_terminal_nanos())
+        );
+        assert!(
+            u128::from(timing.authorization_to_terminal_nanos())
+                + u128::from(timing.terminal_to_return_nanos())
+                <= wall.as_nanos()
+        );
+    }
+}
