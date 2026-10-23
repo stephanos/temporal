@@ -705,7 +705,8 @@ def test_wasm_reach(config, actual):
     mapping = read(entry['map'])
     require(mapping['schema'] == 'gomad.original-test-wasm-reach/v1', 'wrong original full test-wasm map')
     original = original_callables(config, mapping, actual)
-    reports = set(actual)
+    import ordinary_receiving
+    reports = set(actual) | set(ordinary_receiving.final_read(config)['actual_cases'])
     for endpoint in entry.get('reports', []): reports.update(receiving_report(config, endpoint))
     require(SLIM_IDS <= reports, 'three original slim-refusal executions are missing')
     import counterfactual_receiving

@@ -15,17 +15,14 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 BROAD = {'cluster-provider', 'cluster-functional', 'retained-cluster'}
-OWNED = BROAD | {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
+OWNED = BROAD | {'ordinary', 'clusters', 'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
          'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build', 'terminal-controls', 'wasmmeasure-build', 'helper-build', 'ordinary-helper-publication', 'terminal-module', 'terminal-host-admission', 'terminal-exit'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
-TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
+TIMEOUTS = {'ordinary': 3600, 'clusters': 5400, 'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
             'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900, 'terminal-module': 3600, 'terminal-host-admission': 900, 'terminal-exit': 3600}
 TIMEOUTS.update({label: 7200 for label in BROAD})
-MISSING = {
-    'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
-
-}
+MISSING = {}
 
 
 def native_bootstrap(config):
@@ -78,6 +75,9 @@ def native_build(config, root):
 
 
 def preflight(config, label, root):
+    if label == 'ordinary':
+        import ordinary_receiving
+        return ordinary_receiving.preflight(config)
     if label in BROAD:
         import broad_stages
         return broad_stages.preflight(config, label, root)
@@ -277,6 +277,9 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label == 'ordinary':
+        import ordinary_receiving
+        return ordinary_receiving.recipes(config)
     if label == 'terminal-module':
         import terminal_inputs
         spec = config['terminal_module_spec']
@@ -366,11 +369,14 @@ def recipes(config, label, root):
     if label == 'temporal-inspection':
         return [recipe('primary-final', WORKLOAD_TOOLS / 'temporal-inspection.py',
                        ['--owner', 'all', *common, '--root', str(work / 'inspection')])]
-    workload = 'recovery' if label == 'storage' else 'retry'
+    workload = 'replication' if label == 'clusters' else 'recovery' if label == 'storage' else 'retry'
     primary = work / workload
     first = recipe('primary-workload', WORKLOAD_TOOLS / 'producer.py',
                    [*common, '--root', str(primary), '--workload', workload, '--mode', 'success',
                     '--source-manifest', config['source_manifest']])
+    if label == 'clusters':
+        first['argv'].append('--original-clusters')
+        return [first, recipe('primary-final', HERE / 'clusters_receiving.py', ['--config', config['_config_path']])]
     if label == 'network':
         first['name'] = 'primary-final'
         return [first]
@@ -399,7 +405,7 @@ def run(config, label, root):
     with busy_host(label):
         for item in recipes(config, label, root):
             observed = dict(config, environment=dict(config.get('environment', {}), **item.get('environment', {})))
-            command(observed, root, item['name'], item['argv'], timeout=TIMEOUTS[label],
+            command(observed, root, item['name'], item['argv'], timeout=item.get('timeout_s', TIMEOUTS[label]),
                     private_observations=observed if item.get('private_observations') else None)
     guard(config)
 
@@ -415,7 +421,7 @@ def actual_commands(config, label, root):
         if label == 'ordinary-helper-publication' and item['name'] == 'primary-discover':
             published_discovery_command(config, reader, root, item)
         else:
-            reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
+            reader.command(config, root, item['name'], item['argv'], timeout=item.get('timeout_s', TIMEOUTS[label]))
         receipt = read(root / (item['name'] + '.command.json'))
         process = read(root / (item['name'] + '.process.json'))
         for field in ('clock', 'parent_pid', 'started_monotonic_nanos', 'reaped_monotonic_nanos'):
@@ -622,7 +628,14 @@ def read_stage(config, label, root):
         return dict(schema='gomad.rust-driver-check/v1', stage=label, source_sha256=config['source_sha256'], identity=config['identity'], subgates=rows)
     guard(config)
     reader = actual_commands(config, label, root)
-    if label == 'terminal-module':
+    extra = {}
+    if label == 'ordinary':
+        import ordinary_receiving
+        extra['ordinary_receiving'] = ordinary_receiving.collect(config, root)
+    elif label == 'clusters':
+        import clusters_receiving
+        extra['clusters_receiving'] = clusters_receiving.collect(config, root)
+    elif label == 'terminal-module':
         import terminal_module_receiving
         response = json.loads((root / 'primary-final.stdout').read_text())
         path = root / 'primary/module/terminal-module.json'
@@ -672,7 +685,7 @@ def read_stage(config, label, root):
     rows = [dict(id=name, status='PASS', executed=True, exit=0) for name in subgates(label)]
     coverage(subgates(label), rows)
     guard(config)
-    return dict(schema='gomad.rust-driver-check/v1', stage=label, source_sha256=config['source_sha256'], identity=config['identity'], subgates=rows)
+    return dict(schema='gomad.rust-driver-check/v1', stage=label, source_sha256=config['source_sha256'], identity=config['identity'], subgates=rows, **extra)
 
 
 def execute(config, root, label):

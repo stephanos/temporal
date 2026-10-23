@@ -13129,14 +13129,14 @@
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "producer",
       "start_line": 1168,
-      "end_line": 1231,
-      "sha256": "2d4e947f07a1315b45da6de6f6d481ed32cdcea8c4d2aa7985599a2ec3f873c8"
+      "end_line": 1235,
+      "sha256": "0475eeadb160ebb00ff848a7da59f1c21da674f368f8501a8793d69e4d6d1fec"
     },
     "tools/gomad/rust/driver/receiving.py#replication": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "replication",
-      "start_line": 1238,
-      "end_line": 1265,
+      "start_line": 1242,
+      "end_line": 1269,
       "sha256": "f6acf4c36f0a39f6e199c398ea4fbcd9ffc0751bf90c9a1f0a7e6749b38f50ef"
     },
     "tools/gomad/rust/driver/receiving.py#result": {
@@ -13163,8 +13163,8 @@
     "tools/gomad/rust/driver/receiving.py#smoke": {
       "path": "tools/gomad/rust/driver/receiving.py",
       "symbol": "smoke",
-      "start_line": 1233,
-      "end_line": 1236,
+      "start_line": 1237,
+      "end_line": 1240,
       "sha256": "9b6ffad7a170ad454b243a92bb738d1935bdeb69b92746dcdc49f5217a980734"
     },
     "tools/gomad/rust/driver/receiving.py#sources": {
@@ -13640,8 +13640,8 @@
       "path": "tools/gomad/rust/workload_tools/producer.py",
       "symbol": "main",
       "start_line": 207,
-      "end_line": 284,
-      "sha256": "d50888bc6b7cc3d21e65383c4e164894c565f15b661bdbc232e89d58c506bf84"
+      "end_line": 287,
+      "sha256": "0ab82ec9e4092f54ad63ab8e70a18332ff4a18b4805988ef8b588482d4841721"
     },
     "tools/gomad/rust/workload_tools/producer.py#memory_admission": {
       "path": "tools/gomad/rust/workload_tools/producer.py",
@@ -13766,8 +13766,8 @@
       "path": "tools/gomad/rust/workload_tools/workloads.py",
       "symbol": "qualification_spec",
       "start_line": 155,
-      "end_line": 179,
-      "sha256": "0e5bda12f44dae7447e2f1739cfea2633e627c09a98e1f6130b494333f8f0635"
+      "end_line": 181,
+      "sha256": "b0d4683489426b05ab5ebfafb8d647dbf1e8887c15ece6059ab8a07a5ec75bcf"
     },
     "tools/gomad/rust/workload_tools/workloads.py#sqlite_scenario": {
       "end_line": 67,
@@ -13784,17 +13784,17 @@
       "symbol": "stage_temporal"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_policy": {
-      "end_line": 269,
+      "end_line": 271,
       "path": "tools/gomad/rust/workload_tools/workloads.py",
       "sha256": "c8669949f39eeebcd85976a8157c59d462a023da85be61feb12cfbe1a175b08a",
-      "start_line": 257,
+      "start_line": 259,
       "symbol": "support_policy"
     },
     "tools/gomad/rust/workload_tools/workloads.py#support_spec": {
       "path": "tools/gomad/rust/workload_tools/workloads.py",
       "symbol": "support_spec",
-      "start_line": 272,
-      "end_line": 287,
+      "start_line": 274,
+      "end_line": 289,
       "sha256": "0eab417bc41630dbfd655e44a2b9482d44650269e7efedc8f7902b5d70507fe1"
     },
     "tools/gomad/rust/workload_tools/workloads.py#temporal_replication_scenario": {

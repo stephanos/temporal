@@ -217,7 +217,10 @@ def main():
     parser.add_argument("--source-manifest", type=Path)
     parser.add_argument("--captured-config", type=Path)
     parser.add_argument("--private-observation-config", type=Path)
+    parser.add_argument("--original-clusters", action="store_true")
     args = parser.parse_args()
+    if args.original_clusters and (args.workload != "replication" or args.mode != "success" or args.private_observation_config is None):
+        raise ValueError("original clusters requires successful replication and frozen private context")
     repo, root, binary = args.repo.resolve(), args.root.resolve(), args.binary.resolve()
     private = private_configuration(args.private_observation_config, binary, repo, root, args.source_manifest)
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
@@ -265,13 +268,13 @@ def main():
         "--cache", str(cache), "--output", str(installation), "--profile", "gomad.wasi-cooperative/v1", "--config", str(policy),
         "--fuel", str(1 << 50 if args.workload != "sqlite" else 4_000_000_000), "--memory-bytes", str(4 << 30 if args.workload != "sqlite" else 256 << 20)], 0, json_output=False)
     spec = root/"qualification-spec.json"
-    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile, source_working_dir=source_working_dir))
+    write(spec, (workloads.support_spec if args.workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(repo, root/"cell", args.workload, args.mode == "canary", source, args.source_manifest, guest_profile=guest_profile, source_working_dir=source_working_dir, **({"original_clusters": True} if args.original_clusters else {})))
     response = run(root, "qualify", [str(binary), "--installation", str(installation), "qualify", "--spec", str(spec)], 1 if args.mode == "canary" else 0, **({'private_observations': private} if private is not None else {}))
     result_path = Path(response["result_path"])
     report = run(root, "report", [str(binary), "report", "--result", str(result_path)], 0)
     retained = json.loads(result_path.read_bytes())
     actual = retained["report"]
-    if not actual["deterministic"] or actual["target_success"] != (args.mode == "success") or len(actual["executions"]) != 2:
+    if not actual["deterministic"] or actual["target_success"] != (args.mode == "success") or len(actual["executions"]) != (1 if args.original_clusters else 2):
         raise ValueError("actual mandatory workload result did not satisfy its original verdict")
     if any(not item["artifact_path"] or not item["replay"]["matched"] or not item["replay"]["attempted"] for item in actual["executions"]):
         raise ValueError("actual mandatory workload omitted retained exact replay")

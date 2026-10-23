@@ -1165,8 +1165,11 @@ class Retained:
                     'nested command private controls differ from frozen environment')
         return controls
 
-    def producer(self, root, workload, mode='success'):
+    def producer(self, root, workload, mode='success', *, original_clusters=False):
         owner = self.owner(root)
+        require(owner['argv'].count('--original-clusters') == int(original_clusters)
+                and (not original_clusters or workload == 'replication' and mode == 'success'),
+                'original clusters mode differs from actual producer command')
         controls = self.private_controls(root,owner) if workload != 'sqlite' else None
         receipt = read(regular(root/'producer.json'))
         require(receipt['schema'] == 'gomad.rust-mandatory-workload-producer/v1'
@@ -1177,7 +1180,8 @@ class Retained:
         expected = (workloads.support_spec if workload in workloads.SUPPORT_ROWS else workloads.qualification_spec)(
             Path(self.config['repo']),root/'cell',workload,mode=='canary',target['Source'],Path(source_manifest),
             guest_profile=controls['guest_profile'] if controls else '',
-            **(dict(source_working_dir=target['WorkingDir']) if workload in ('replication','recovery','retry') else {}))
+            **(dict(source_working_dir=target['WorkingDir']) if workload in ('replication','recovery','retry') else {}),
+            **(dict(original_clusters=True) if original_clusters else {}))
         require(spec == expected, 'actual producer changed original request, target, seed, repetition or bounds')
         policy = read(regular(root/'policy.json'))
         capture = policy.get('CapturedInputs')

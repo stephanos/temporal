@@ -152,10 +152,12 @@ def guest_build_tags(profile=""):
     return [tag for tag in TAGS if profile != "full" or tag != "gomad_wasm_slim"]
 
 
-def qualification_spec(repo, root, workload, canary=False, source=None, source_manifest=None, guest_profile="", *, source_working_dir=None):
+def qualification_spec(repo, root, workload, canary=False, source=None, source_manifest=None, guest_profile="", *, source_working_dir=None, original_clusters=False):
     """Each caller invokes qualify in its own measured process and fresh root."""
     root = Path(root).resolve()
     temporal = workload != "sqlite"
+    if original_clusters and (workload != "replication" or canary):
+        raise ValueError("original clusters requires one successful replication run")
     if workload not in ("sqlite", "replication", "recovery"):
         raise ValueError("unknown mandatory workload")
     if temporal and not source:
@@ -164,7 +166,7 @@ def qualification_spec(repo, root, workload, canary=False, source=None, source_m
         raise ValueError("recovery catalogue is an original success gate")
     scenario = temporal_recovery_scenario() if workload == "recovery" else temporal_replication_scenario(canary) if temporal else sqlite_scenario(canary)
     manifest = dict(Provisional=source_manifest is None, ID={"replication":"independent-temporal-replication-durable-restart","recovery":"temporal-committed-workflow-crash-reopen","sqlite":"sqlite-durable-recovery"}[workload],
-                    Workload="multi-instance" if temporal else "sqlite", Cell="canary" if canary else "success", Seed=7, Repeat=2,
+                    Workload="multi-instance" if temporal else "sqlite", Cell="canary" if canary else "success", Seed=7, Repeat=1 if original_clusters else 2,
                     IntegratedSourceSHA256="sha256:"+hashlib.sha256(Path(source_manifest).read_bytes() if source_manifest else canonical(scenario)).hexdigest())
     if source_manifest:
         manifest["IntegratedSourceManifestPath"] = str(Path(source_manifest).resolve())

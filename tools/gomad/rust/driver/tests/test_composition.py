@@ -42,8 +42,23 @@ class CompositionTests(unittest.TestCase):
     def test_live_exit_only_reader_refused(self):
         config = self.base()
         config['stages']['ordinary'] = dict(adapter='checked-command', reader='static-exit')
-        with self.assertRaisesRegex(Refusal, 'actual semantic reader'):
+        with self.assertRaisesRegex(Refusal, 'fixed primary adapter required: ordinary'):
             compose.validate_stages(config)
+
+    def test_ordinary_and_clusters_use_real_primary_routes_without_new_labels(self):
+        config = self.base()
+        for label in ('ordinary', 'clusters'):config['stages'][label] = dict(adapter='primary')
+        with self.assertRaisesRegex(Refusal, 'unbound original stage endpoints') as error:
+            compose.validate_stages(config)
+        pending = str(error.exception).split(': ',1)[1].split(', ')
+        self.assertNotIn('ordinary',pending)
+        self.assertNotIn('clusters',pending)
+        self.assertEqual(len(config['stages']),96)
+        for label in ('ordinary','clusters'):
+            changed = self.base()
+            changed['stages'][label] = dict(adapter='primary',argv=['fake'])
+            with self.assertRaisesRegex(Refusal,'fixed primary adapter required'):
+                compose.validate_stages(changed)
 
     def test_typed_runtime_and_cells_replace_stale_manual_bindings(self):
         config = self.base()
