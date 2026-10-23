@@ -276,5 +276,25 @@ class LifecycleTests(unittest.TestCase):
             self.check.operator_qualification_measurements(result)
 
 
+    def test_sparse_native_streams_require_matching_descriptor_and_payload_presence(self):
+        with tempfile.TemporaryDirectory() as private:
+            root = Path(private)
+            file = root / 'evidence/cluster/a/1/stdout'
+            file.parent.mkdir(parents=True)
+            raw = b'only stdout'
+            file.write_bytes(raw)
+            row = {'handle': {'node': 'a', 'incarnation': 1}, 'streams': {
+                'stdout': {'bytes': len(raw), 'sha256': self.check.check.parity.digest(raw)}}}
+            self.assertEqual(self.check.instance_stream(root, row, 'stdout'), raw)
+            self.assertEqual(self.check.instance_stream(root, row, 'stderr'), b'')
+            missing = copy.deepcopy(row)
+            missing['streams'].clear()
+            with self.assertRaisesRegex(ValueError, 'descriptor/payload'):
+                self.check.instance_stream(root, missing, 'stdout')
+            file.unlink()
+            with self.assertRaisesRegex(ValueError, 'descriptor/payload'):
+                self.check.instance_stream(root, row, 'stdout')
+
+
 if __name__ == '__main__':
     unittest.main()

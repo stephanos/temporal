@@ -24,6 +24,7 @@ pub(crate) struct RecoveryImage {
 }
 
 impl RecoveryImage {
+    #[cfg(not(feature = "conformance"))]
     pub(crate) fn volume_ids(&self) -> Vec<String> {
         self.fs.volumes.keys().cloned().collect()
     }
@@ -634,6 +635,7 @@ mod tests {
     use base64::{Engine, engine::general_purpose::STANDARD};
 
     #[test]
+    #[cfg(not(feature = "conformance"))]
     fn installed_lifecycle_readonly_volume_inventory_uses_actual_decoded_images() {
         for count in 0..=2 {
             let configs = (0..count)

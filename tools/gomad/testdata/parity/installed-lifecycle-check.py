@@ -159,6 +159,25 @@ def tree(root):
     return result
 
 
+
+def instance_stream(artifact, row, name):
+    descriptors = row['streams']
+    require(isinstance(descriptors, dict) and set(descriptors) <= {'stdout', 'stderr'},
+            'unsupported native instance streams')
+    handle = row['handle']
+    file = artifact / f"evidence/cluster/{handle['node']}/{handle['incarnation']}/{name}"
+    descriptor = descriptors.get(name)
+    require(not file.is_symlink() and (name in descriptors) == file.exists(),
+            'native instance stream descriptor/payload mismatch')
+    if name not in descriptors:
+        return b''
+    require(isinstance(descriptor, dict), 'missing native instance stream descriptor')
+    raw = file.read_bytes()
+    require((len(raw), check.parity.digest(raw)) == (descriptor['bytes'], descriptor['sha256']),
+            'per-instance stream identity changed')
+    return raw
+
+
 def cluster(artifact, declared=None):
     record = check.authenticate_artifact(artifact)
     inputs = check.canonical_file(artifact / 'evidence/cluster-replay.json')
@@ -173,11 +192,7 @@ def cluster(artifact, declared=None):
         key = row['handle']['node'], row['handle']['incarnation']
         require(key in retained, 'summary not bound to retained incarnation')
         for name in ('stdout', 'stderr'):
-            raw = (artifact / f'evidence/cluster/{key[0]}/{key[1]}/{name}').read_bytes()
-            descriptor = row['streams'][name]
-            require((len(raw), check.parity.digest(raw)) == (descriptor['bytes'], descriptor['sha256']),
-                    'per-instance stream identity changed')
-            streams[*key, name] = raw
+            streams[*key, name] = instance_stream(artifact, row, name)
         for descriptor in retained[key]['evidence'].values():
             require(0 <= descriptor['bytes'] <= descriptor['limit'], 'unbounded incarnation payload')
             raw = check.parity.contained(artifact, descriptor['file']).read_bytes()

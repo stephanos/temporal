@@ -79,7 +79,7 @@ journal chains, outcomes, receipts, prepared identity and execution bounds.
 
 ## Source/portable verification and remaining execution
 
-All 24 portable tests pass. They exercise malformed/incomplete/public-prefix rejection, exact wall
+All 25 portable tests pass. They exercise malformed/incomplete/public-prefix rejection, exact wall
 and capacity limits, discovery command omissions, asymmetric node ordering,
 source-byte changes, evidence mutation/symlinks, transitive process ownership,
 record/step semantics, advertisement/path/hash/argv/command mismatches and guest
@@ -92,13 +92,15 @@ compatible source-less selected replay, incompatible profile/helper rejection,
 corrupt retained output refusal and shell-sensitive artifact paths. The current
 native suite has seven passing tests. The helper's actual 0/1/2-volume recovery
 image test also passes and rejects malformed/truncated/corrupt/bounded input;
-a subsequent test-only tightening recomputes digest bindings for truncated and
+the final test tightening recomputes digest bindings for truncated and
 unsupported-version inputs so those cases reach structural decoding directly.
-That tightening awaits the final focused native test gate.
+The final helper test passes with that tightening. The readonly accessor and its
+linked-facade test are explicitly excluded from conformance, where the linked
+modules are unavailable; no feature was enabled implicitly.
 
 Evidence is retained under `/home/agent/evidence/fn232-installed-lifecycle-*`:
 `native-red2.log` (causal RED), `native-final.log` (seven native tests),
-`volume-final.log` (helper volume test), `portable-final.log` (24 tests),
+`volume-final.log` (helper volume test), `portable-final.log` (25 tests),
 `qualification-red.log`, `volume-red.log`, `volume-owner-red.log`,
 `volume-inspect-red.log`, `clippy3.log` and `main-check.log` (before the final
 storage additions), the portable RED logs and help output. The initial
@@ -111,12 +113,17 @@ The root granted only focused pinned Rust 1.99.1 debug tests/checks on the
 exclusive `/home/agent/.cache/codex-build/fn232-install` target, offline/locked,
 jobs 1, `CARGO_INCREMENTAL=0`, preserving existing outputs. Initial target was
 1.7 GiB; after the focused checks it was approximately 2.8 GiB. No cleaning or
-release build was performed. At the source freeze, free disk briefly fell below
-2 GiB; new compiles were held. Root reclaimed space and assigned the next compile
-window to the cache worker. Remaining strict gates on this branch are the updated
-helper test, host `installed_lifecycle` tests, host library/tests clippy with
-`-D warnings`, and binary check, all using the same pinned offline debug target
-only after root grants the next exclusive window. Current worktree, target and raw logs stay under
+release build was performed. Root reclaimed released intermediate space and
+explicitly granted the final exclusive window. With `CARGO_INCREMENTAL=0` on
+every command, both crates' library/test strict Clippy (`-D warnings`) and the
+Gomad binary check passed. The final affected native host suite passed seven
+tests and the helper decoder passed its actual 0/1/2-volume table. Logs are
+`clippy-final.log`, `helper-clippy-final.log`, `main-check-final.log`,
+`native-frozen.log`, and `volume-frozen.log` under the evidence prefix above.
+All sessions are terminal and the compile window was explicitly released. The
+install target is approximately 3.5 GiB; final observed global free space was
+1.3 GiB, so no further Cargo commands were started. Root owns space reclamation.
+These GREEN receipts precede the sparse-stream review follow-up below. Current worktree, target and raw logs stay under
 open fn-232.13 ownership for integration and the pending frozen execution.
 
 ### Actual command plan after integration and explicit runtime grant
@@ -213,3 +220,24 @@ six complete public-recipe table executions. Raw logs are
 `/home/agent/evidence/fn232-installed-publication-red.log` and `-green.log`.
 The architecture receiver owner may bind this exact test pointer; frozen actual
 Cargo build-role receipts remain the static build owner's separate obligation.
+
+
+## Sparse cluster streams review follow-up
+
+Native-only checkpoint `2048a06928` repairs text inspection of native clusters
+whose helper legitimately omitted empty stdout/stderr streams. Every declared
+stream still requires a matching manifest payload and exact byte count/hash;
+unknown names or either one-sided presence are refused. Only jointly absent
+descriptor and payload produce empty output. Added tests publish real native
+artifacts for silent, stdout-only and stderr-only incarnations, plus missing
+payload, undeclared payload, unsupported name and mismatched digest negatives.
+These new native tests are **source pending**, not covered by the earlier
+seven-test GREEN receipt. The checker independently applies the same presence
+invariant; its portable causal RED and 25-test GREEN are retained. Cache owner
+received the native-only cherry pointer; no cache code was changed here.
+
+After the next explicit compile grant and >=2 GiB free-space check, first run
+these new tests against the preceding inspector implementation for causal RED,
+restore the repair, then run the affected `installed_lifecycle` host tests and
+strict host library/test Clippy. Preserve all raw logs and the earlier GREEN
+receipts. No Go, guest, installed CLI, signal or qualification launch is implied.
