@@ -6,7 +6,7 @@ use std::{
 use umpire_catalog_syntax::{
     catalogs,
     descriptor::{self, Coverage},
-    services::{Classification, classifications},
+    services::{Classification, Declarations, declarations},
 };
 
 /// Catalog source and directory inputs in deterministic traversal order.
@@ -38,7 +38,8 @@ fn collect(root: &Path, inputs: &mut Inputs) -> io::Result<()> {
             collect(&path, inputs)?;
         } else if path
             .file_name()
-            .is_some_and(|name| name == "api.rs" || name == "enum_inventory.rs")
+            .and_then(std::ffi::OsStr::to_str)
+            .is_some_and(|name| ["api.rs", "enum_inventory.rs", "service.rs"].contains(&name))
         {
             inputs.files.push(path);
         }
@@ -56,7 +57,7 @@ pub fn check(
 ) -> io::Result<(Coverage, Vec<Classification>)> {
     println!("cargo:rerun-if-changed={}", descriptor_path.display());
     let mut coverage = Coverage::default();
-    let mut service_classifications = Vec::new();
+    let mut services = Declarations::default();
     let inputs = inputs(root)?;
     for directory in inputs.directories {
         println!("cargo:rerun-if-changed={}", directory.display());
@@ -71,11 +72,12 @@ pub fn check(
             coverage.enums.extend(projected.enums);
             coverage.services.extend(projected.services);
         }
-        for classification in classifications(&source, service, method_enum).map_err(error)? {
-            coverage.services.push(classification.coverage.clone());
-            service_classifications.push(classification);
-        }
+        services.extend(declarations(&source, service, method_enum).map_err(error)?);
     }
+    let service_classifications = services.resolve(service).map_err(io::Error::other)?;
+    coverage.services.extend(
+        service_classifications.iter().map(|classification| classification.coverage.clone()),
+    );
     descriptor::check(&fs::read(descriptor_path)?, &coverage).map_err(io::Error::other)?;
     Ok((coverage, service_classifications))
 }

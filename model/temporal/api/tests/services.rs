@@ -11,7 +11,10 @@ use std::{
 
 use prost::Message;
 use umpire_runtime::google::protobuf::FileDescriptorSet;
-use umpire_temporal_annotate_syntax::{descriptor::Coverage, services::classifications};
+use umpire_temporal_annotate_syntax::{
+    descriptor::{self, Coverage},
+    services::{classifications, declarations, resolve},
+};
 
 #[path = "../services.rs"]
 mod services;
@@ -96,11 +99,16 @@ fn dispatch_selects_the_actual_annotated_type_and_direction() {
 #[test]
 fn generation_uses_annotations_for_dispatch_and_source_match_for_bindings()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = r"fn classify(method: WorkflowServiceMethod) -> RpcRole { match method {
+    let source = r#"fn family(method: WorkflowServiceMethod) -> &'static str { match method {
+        WorkflowServiceMethod::PollActivityTaskQueue => "Activity tasks and executions",
+        WorkflowServiceMethod::GetSystemInfo => "Cluster and service information",
+    }}
+    fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> { match method {
         WorkflowServiceMethod::PollActivityTaskQueue => RpcRole::Action(ModelAction::Worker(Worker::Poll)),
-    }}";
+        _ => RpcRole::OutOfScope(service::family(method)),
+    }}"#;
     let coverage = Coverage {
-        messages: vec![umpire_temporal_annotate_syntax::descriptor::MessageCoverage {
+        messages: vec![descriptor::MessageCoverage {
             name: "temporal.api.workflowservice.v1.PollActivityTaskQueueRequest".into(),
             fields: vec![],
             opaque_fields: vec![],
@@ -115,35 +123,37 @@ fn generation_uses_annotations_for_dispatch_and_source_match_for_bindings()
     assert!(generated.contains("ModelAction :: Worker (Worker :: Poll) => Binding::Rpc(\"temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue\")"));
     assert!(generated.contains("($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { type $ty = $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest; $body }"));
     assert!(!generated.contains("($crate::WorkflowServiceMethod::PollActivityTaskQueue, true) =>"));
+    assert!(generated.contains("(\"temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo\", \"OutOfScope\", \"Cluster and service information\")"));
     let source_bindings: BTreeSet<_> =
         classifications(source)?[0].bindings.iter().map(|binding| binding.0.clone()).collect();
-    assert_eq!(source_bindings.len(), 1);
+    assert_eq!(source_bindings.len(), 2);
     Ok(())
 }
 
 #[test]
-fn generated_matches_refuse_new_rpc_and_model_action() -> Result<(), Box<dyn std::error::Error>> {
+fn service_table_and_bindings_refuse_new_rpc_and_model_action()
+-> Result<(), Box<dyn std::error::Error>> {
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
     let mut descriptors = FileDescriptorSet::decode(bytes.as_slice())?;
-    let source = "fn classify(method: WorkflowServiceMethod) -> RpcRole { match method { WorkflowServiceMethod::PollActivityTaskQueue => RpcRole::Action(ModelAction::Worker(Worker::Poll)) }}";
-    let classifications = classifications(source)?;
-    let mut generated = services::generate(bytes, &Coverage::default(), &classifications)?;
-    let mut classify =
-        String::from("fn classify(method: WorkflowServiceMethod) { match method {\n");
     let service = descriptors
         .file
         .iter_mut()
         .flat_map(|file| &mut file.service)
         .find(|service| service.name.as_deref() == Some("WorkflowService"))
         .ok_or("missing service")?;
+    let mut table =
+        String::from("fn family(method: WorkflowServiceMethod) -> &'static str { match method {\n");
     for method in &service.method {
         writeln!(
-            classify,
-            "WorkflowServiceMethod::{} => (),",
+            table,
+            "WorkflowServiceMethod::{} => \"family\",",
             method.name.as_deref().ok_or("unnamed method")?
         )?;
     }
-    classify.push_str("}}\n");
+    table.push_str("}}\n");
+    let claim = "fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> { match method { WorkflowServiceMethod::PollActivityTaskQueue => RpcRole::Action(ModelAction::Worker(Worker::Poll)), _ => RpcRole::OutOfScope(family(method)) }}";
+    let classifications = classifications(&format!("{table}{claim}"))?;
+    let mut generated = services::generate(bytes, &Coverage::default(), &classifications)?;
     let model = r#"
         mod model {
         enum Worker { Poll }
@@ -160,11 +170,11 @@ fn generated_matches_refuse_new_rpc_and_model_action() -> Result<(), Box<dyn std
         SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
     ));
     fs::create_dir(&scratch)?;
-    compile_control(&scratch, &format!("{generated}{classify}{model}"), None)?;
+    compile_control(&scratch, &format!("{generated}{table}{model}"), None)?;
     compile_control(
         &scratch,
         &format!(
-            "{generated}{classify}{}",
+            "{generated}{table}{}",
             model.replace("enum Worker { Poll }", "enum Worker { Poll, AddedAction }")
         ),
         Some("AddedAction"),
@@ -174,12 +184,104 @@ fn generated_matches_refuse_new_rpc_and_model_action() -> Result<(), Box<dyn std
     service.method.push(added);
     generated =
         services::generate(&descriptors.encode_to_vec(), &Coverage::default(), &classifications)?;
-    compile_control(
-        &scratch,
-        &format!("{generated}{classify}{model}"),
-        Some("AddedWorkflowMethod"),
-    )?;
+    compile_control(&scratch, &format!("{generated}{table}{model}"), Some("AddedWorkflowMethod"))?;
     fs::remove_dir_all(scratch)?;
+    Ok(())
+}
+
+/// The reviewed service table and the activity feature's claims, as the API build reads them.
+fn reviewed()
+-> Result<umpire_temporal_annotate_syntax::services::Declarations, Box<dyn std::error::Error>> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let mut reviewed = declarations(&fs::read_to_string(root.join("foundation/service.rs"))?)?;
+    reviewed.extend(declarations(&fs::read_to_string(root.join("feature/activity/api.rs"))?)?);
+    Ok(reviewed)
+}
+
+#[test]
+fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight()
+-> Result<(), Box<dyn std::error::Error>> {
+    let reviewed = reviewed()?;
+    assert_eq!(reviewed.tables.len(), 1);
+    assert!(reviewed.classifications.is_empty());
+    let claimed: Vec<_> = reviewed
+        .claims
+        .iter()
+        .flat_map(|claim| &claim.coverage.methods)
+        .map(|method| method.name.as_str())
+        .collect();
+    assert_eq!(
+        claimed,
+        [
+            "PollActivityTaskQueue",
+            "RespondActivityTaskCompleted",
+            "RespondActivityTaskFailed",
+            "RespondActivityTaskCanceled",
+            "StartActivityExecution",
+            "DescribeActivityExecution",
+            "PollActivityExecution",
+            "RequestCancelActivityExecution",
+        ]
+    );
+    let resolved = resolve(reviewed)?;
+    let coverage = Coverage {
+        services: resolved.iter().map(|classification| classification.coverage.clone()).collect(),
+        ..Coverage::default()
+    };
+    descriptor::check(
+        include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb")),
+        &coverage,
+    )?;
+    for (rpc, role, target) in resolved.iter().flat_map(|classification| &classification.bindings) {
+        assert!(
+            role != "OutOfScope" || !target.contains("Model"),
+            "{rpc} names a Model in its out-of-scope reason: {target}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn duplicate_claims_and_unclassified_rpcs_are_named() -> Result<(), Box<dyn std::error::Error>> {
+    let mut duplicate = reviewed()?;
+    duplicate.extend(declarations(
+        "fn classify(method: WorkflowServiceMethod) -> RpcRole<NexusAction> { match method {
+            WorkflowServiceMethod::PollActivityTaskQueue => RpcRole::Observed(\"second feature\"),
+            _ => RpcRole::OutOfScope(service::family(method)),
+        }}",
+    )?);
+    assert_eq!(
+        resolve(duplicate).err().as_deref(),
+        Some(
+            "duplicate feature claim: temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue"
+        )
+    );
+    let mut claimed = reviewed()?;
+    claimed.tables[0].families.retain(|(method, _)| method != "PollActivityTaskQueue");
+    assert!(resolve(claimed).is_err_and(|error| error.starts_with(
+        "unclassified RPC: temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue"
+    )));
+    let mut unclaimed = reviewed()?;
+    unclaimed.tables[0]
+        .families
+        .retain(|(method, _)| method != "PollWorkflowExecutionTimeSkipping");
+    let coverage = Coverage {
+        services: resolve(unclaimed)?
+            .iter()
+            .map(|classification| classification.coverage.clone())
+            .collect(),
+        ..Coverage::default()
+    };
+    let error = descriptor::check(
+        include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb")),
+        &coverage,
+    )
+    .err()
+    .ok_or("an RPC missing from the service table passed admission")?;
+    assert_eq!(
+        error,
+        "uncovered protobuf symbol: temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionTimeSkipping"
+    );
     Ok(())
 }
 

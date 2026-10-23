@@ -1,8 +1,12 @@
 //! Workflow service classification shared by descriptor admission and code generation.
 
+use std::collections::BTreeMap;
+
+use proc_macro2::Span;
 use quote::{ToTokens, quote};
 use syn::{
-    Expr, ExprCall, FnArg, ItemFn, Pat, Stmt, Type, parse::Parser, spanned::Spanned, visit::Visit,
+    Expr, ExprCall, FnArg, ItemFn, Pat, PatIdent, Stmt, Type, parse::Parser, spanned::Spanned,
+    visit::Visit,
 };
 
 use crate::descriptor::{Disposition, MethodCoverage, ServiceCoverage};
@@ -31,26 +35,145 @@ pub struct ActionBinding {
     pub identity: String,
 }
 
-/// Read ordinary `classify` functions over the generated example method enum.
+/// Every RPC of a service and its resource family, in match-arm order.
+#[derive(Clone, Debug)]
+pub struct ServiceTable {
+    /// Original protobuf method names and their family reasons.
+    pub families: Vec<(String, String)>,
+}
+
+/// Service declarations read from catalog sources.
+#[derive(Clone, Debug, Default)]
+pub struct Declarations {
+    /// Exhaustive `classify` matches that classify the whole service by themselves.
+    pub classifications: Vec<Classification>,
+    /// Exhaustive `family` matches giving every RPC its resource family.
+    pub tables: Vec<ServiceTable>,
+    /// `classify` matches that claim some RPCs and defer the rest to `family`.
+    pub claims: Vec<Classification>,
+}
+
+impl Declarations {
+    /// Add the declarations of another source.
+    pub fn extend(&mut self, other: Self) {
+        self.classifications.extend(other.classifications);
+        self.tables.extend(other.tables);
+        self.claims.extend(other.claims);
+    }
+
+    /// Combine the service table with every feature's claims, in table order.
+    ///
+    /// # Errors
+    /// Refuses claims without a table, a second table or complete classification beside a
+    /// table, a duplicate feature claim and a claimed RPC the table does not classify.
+    pub fn resolve(self, service: &str) -> Result<Vec<Classification>, String> {
+        let Self { mut classifications, tables, claims } = self;
+        let table = match tables.as_slice() {
+            [] if claims.is_empty() => return Ok(classifications),
+            [] => return Err(format!("feature claims without a service table: {service}")),
+            [table] if classifications.is_empty() => table,
+            [_] => {
+                return Err(format!(
+                    "complete classification duplicates the service table: {service}"
+                ));
+            }
+            _ => return Err(format!("duplicate service table: {service}")),
+        };
+        let mut claimed = BTreeMap::new();
+        for claim in &claims {
+            for (index, method) in claim.coverage.methods.iter().enumerate() {
+                if claimed.insert(method.name.as_str(), (claim, index)).is_some() {
+                    return Err(format!("duplicate feature claim: {service}.{}", method.name));
+                }
+                if !table.families.iter().any(|(name, _)| *name == method.name) {
+                    return Err(format!(
+                        "unclassified RPC: {service}.{} is claimed but absent from the service \
+                         table",
+                        method.name
+                    ));
+                }
+            }
+        }
+        let mut result = Classification {
+            coverage: ServiceCoverage { name: service.into(), methods: Vec::new() },
+            actions: Vec::new(),
+            bindings: Vec::new(),
+        };
+        for (method, family) in &table.families {
+            if let Some((claim, index)) = claimed.get(method.as_str()) {
+                result.coverage.methods.push(claim.coverage.methods[*index].clone());
+                result.bindings.push(claim.bindings[*index].clone());
+                result.actions.extend(
+                    claim.actions.iter().filter(|action| action.method == *method).cloned(),
+                );
+            } else {
+                result.coverage.methods.push(MethodCoverage {
+                    name: method.clone(),
+                    disposition: Disposition::OutOfScope(family.clone()),
+                });
+                result.bindings.push((
+                    format!("{service}.{method}"),
+                    "OutOfScope".into(),
+                    family.clone(),
+                ));
+            }
+        }
+        classifications.push(result);
+        Ok(classifications)
+    }
+}
+
+/// Read and resolve the service declarations of one source.
+///
+/// # Errors
+/// Refuses malformed declarations and any [`Declarations::resolve`] refusal.
 pub fn classifications(
     source: &str,
     service: &str,
     method_enum: &str,
 ) -> syn::Result<Vec<Classification>> {
-    struct Classifications<'a> {
+    declarations(source, service, method_enum)?
+        .resolve(service)
+        .map_err(|error| syn::Error::new(Span::call_site(), error))
+}
+
+/// Read ordinary `classify` and `family` functions over the generated method enum.
+///
+/// # Errors
+/// Refuses unparsable sources and malformed declarations.
+pub fn declarations(source: &str, service: &str, method_enum: &str) -> syn::Result<Declarations> {
+    struct Visitor<'a> {
         service: &'a str,
         method_enum: &'a str,
-        result: syn::Result<Vec<Classification>>,
+        result: syn::Result<Declarations>,
     }
-    impl<'ast> Visit<'ast> for Classifications<'_> {
+    impl Visitor<'_> {
+        fn declaration(&self, function: &ItemFn) -> syn::Result<Declarations> {
+            let mut declarations = Declarations::default();
+            if function.sig.ident == "family" {
+                declarations.tables.push(table(function, self.method_enum)?);
+            } else {
+                let (classification, claims) =
+                    classification(function, self.service, self.method_enum)?;
+                if claims {
+                    declarations.claims.push(classification);
+                } else {
+                    declarations.classifications.push(classification);
+                }
+            }
+            Ok(declarations)
+        }
+    }
+    impl<'ast> Visit<'ast> for Visitor<'_> {
         fn visit_item_fn(&mut self, function: &'ast ItemFn) {
-            if function.sig.ident == "classify"
+            if (function.sig.ident == "classify" || function.sig.ident == "family")
                 && function.sig.inputs.iter().any(|argument| matches!(argument,
                     FnArg::Typed(argument) if matches!(argument.ty.as_ref(), Type::Path(ty)
                         if ty.path.segments.last().is_some_and(|segment| segment.ident == self.method_enum))))
             {
-                match (&mut self.result, classification(function, self.service, self.method_enum)) {
-                    (Ok(classifications), Ok(classification)) => classifications.push(classification),
+                let declaration = self.declaration(function);
+                match (&mut self.result, declaration) {
+                    (Ok(declarations), Ok(declaration)) => declarations.extend(declaration),
                     (result @ Ok(_), Err(error)) => *result = Err(error),
                     _ => {}
                 }
@@ -59,16 +182,12 @@ pub fn classifications(
         }
     }
     let file = syn::parse_file(source)?;
-    let mut visitor = Classifications { service, method_enum, result: Ok(Vec::new()) };
+    let mut visitor = Visitor { service, method_enum, result: Ok(Declarations::default()) };
     visitor.visit_file(&file);
     visitor.result
 }
 
-fn classification(
-    function: &ItemFn,
-    service: &str,
-    method_enum: &str,
-) -> syn::Result<Classification> {
+fn method_match(function: &ItemFn) -> syn::Result<(&PatIdent, &syn::ExprMatch)> {
     let [FnArg::Typed(argument)] = function.sig.inputs.iter().collect::<Vec<_>>().as_slice() else {
         return Err(syn::Error::new(
             function.sig.span(),
@@ -94,17 +213,70 @@ fn classification(
             "classification must match its method argument",
         ));
     }
-    let mut result = Classification {
-        coverage: ServiceCoverage { name: service.into(), methods: Vec::new() },
-        actions: Vec::new(),
-        bindings: Vec::new(),
-    };
     for arm in &expression.arms {
         if !arm.attrs.is_empty() {
             return Err(syn::Error::new(
                 arm.span(),
                 "classification arms cannot have guards or attributes",
             ));
+        }
+    }
+    Ok((parameter, expression))
+}
+
+fn table(function: &ItemFn, method_enum: &str) -> syn::Result<ServiceTable> {
+    let (_, expression) = method_match(function)?;
+    let mut families = Vec::new();
+    for arm in &expression.arms {
+        let family = reason(classification_expression(&arm.body)?)?;
+        for method in method_names(&arm.pat, method_enum)? {
+            families.push((method, family.clone()));
+        }
+    }
+    Ok(ServiceTable { families })
+}
+
+/// Whether `body` is `RpcRole::OutOfScope(family(method))`, deferring to the service table.
+fn defers_to_table(body: &Expr, parameter: &PatIdent) -> bool {
+    let Ok(Expr::Call(role)) = classification_expression(body) else {
+        return false;
+    };
+    let Ok(kind) = constructor(role, "RpcRole") else {
+        return false;
+    };
+    let Expr::Call(family) = &role.args[0] else {
+        return false;
+    };
+    kind == "OutOfScope"
+        && matches!(family.func.as_ref(), Expr::Path(path)
+            if path.path.segments.last().is_some_and(|segment| segment.ident == "family"))
+        && matches!(family.args.iter().collect::<Vec<_>>().as_slice(),
+            [Expr::Path(argument)] if argument.path.is_ident(&parameter.ident))
+}
+
+/// Read one `classify` match and whether it claims RPCs for a service table.
+fn classification(
+    function: &ItemFn,
+    service: &str,
+    method_enum: &str,
+) -> syn::Result<(Classification, bool)> {
+    let (parameter, expression) = method_match(function)?;
+    let mut claims = false;
+    let mut result = Classification {
+        coverage: ServiceCoverage { name: service.into(), methods: Vec::new() },
+        actions: Vec::new(),
+        bindings: Vec::new(),
+    };
+    for (index, arm) in expression.arms.iter().enumerate() {
+        if matches!(arm.pat, Pat::Wild(_)) && index + 1 == expression.arms.len() {
+            if !defers_to_table(&arm.body, parameter) {
+                return Err(syn::Error::new(
+                    arm.span(),
+                    "a claim's wildcard arm must be `_ => RpcRole::OutOfScope(family(method))`",
+                ));
+            }
+            claims = true;
+            continue;
         }
         let methods = method_names(&arm.pat, method_enum)?;
         let Expr::Call(role) = classification_expression(&arm.body)? else {
@@ -155,7 +327,7 @@ fn classification(
             result.coverage.methods.push(MethodCoverage { name, disposition: disposition.clone() });
         }
     }
-    Ok(result)
+    Ok((result, claims))
 }
 
 fn actor_variant(expression: &Expr) -> syn::Result<(&syn::Path, proc_macro2::TokenStream)> {
@@ -299,6 +471,88 @@ mod tests {
         assert_eq!(parsed[0].actions[0].method, "Poll");
         assert_eq!(parsed[0].bindings[2].2, "example");
         Ok(())
+    }
+
+    const TABLE: &str = r#"fn family(method: ExampleServiceMethod) -> &'static str {
+        match method {
+            ExampleServiceMethod::Poll | ExampleServiceMethod::Describe => "worker tasks",
+            ExampleServiceMethod::Other => { "administration" }
+        }
+    }"#;
+
+    fn declarations(source: &str) -> syn::Result<super::Declarations> {
+        super::declarations(source, "example.v1.ExampleService", "ExampleServiceMethod")
+    }
+
+    #[test]
+    fn claims_resolve_against_the_service_table_in_table_order() -> syn::Result<()> {
+        let claim = r#"fn classify(method: ExampleServiceMethod) -> RpcRole {
+            match method {
+                ExampleServiceMethod::Describe => RpcRole::Observed("observation"),
+                ExampleServiceMethod::Poll => RpcRole::Action(ModelAction::Worker(Worker::Poll)),
+                _ => RpcRole::OutOfScope(service::family(method)),
+            }
+        }"#;
+        let parsed = classifications(&format!("{TABLE}{claim}"))?;
+        assert_eq!(parsed.len(), 1);
+        assert_eq!(
+            parsed[0]
+                .bindings
+                .iter()
+                .map(|(rpc, role, target)| format!("{rpc} {role} {target}"))
+                .collect::<Vec<_>>(),
+            [
+                "example.v1.ExampleService.Poll Action Worker::Poll",
+                "example.v1.ExampleService.Describe Observed observation",
+                "example.v1.ExampleService.Other OutOfScope administration",
+            ]
+        );
+        assert_eq!(parsed[0].actions[0].method, "Poll");
+        Ok(())
+    }
+
+    #[test]
+    fn duplicate_or_unclassified_claims_are_named() -> syn::Result<()> {
+        let claim = |method: &str| {
+            format!(
+                "fn classify(method: ExampleServiceMethod) -> RpcRole {{ match method {{
+                    ExampleServiceMethod::{method} => RpcRole::Observed(\"observation\"),
+                    _ => RpcRole::OutOfScope(family(method)),
+                }} }}"
+            )
+        };
+        let mut duplicate = declarations(TABLE)?;
+        duplicate.extend(declarations(&claim("Poll"))?);
+        duplicate.extend(declarations(&claim("Poll"))?);
+        assert_eq!(
+            duplicate.resolve("example.v1.ExampleService").err().as_deref(),
+            Some("duplicate feature claim: example.v1.ExampleService.Poll")
+        );
+        let mut unclassified = declarations(TABLE)?;
+        unclassified.extend(declarations(&claim("Added"))?);
+        assert!(unclassified.resolve("example.v1.ExampleService").is_err_and(|error| {
+            error.starts_with("unclassified RPC: example.v1.ExampleService.Added")
+        }));
+        assert!(declarations(&claim("Poll"))?.resolve("example.v1.ExampleService").is_err());
+        let mut tables = declarations(TABLE)?;
+        tables.extend(declarations(TABLE)?);
+        assert!(tables.resolve("example.v1.ExampleService").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn tables_and_claim_fallbacks_are_declarative() {
+        for source in [
+            "fn family(method: ExampleServiceMethod) -> &'static str { match method { _ => \"all\" } }",
+            "fn family(method: ExampleServiceMethod) -> &'static str { match method { ExampleServiceMethod::Poll => \"\" } }",
+            "fn family(method: ExampleServiceMethod) -> &'static str { match method { ExampleServiceMethod::Poll => name() } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(\"all\") } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::Observed(family(method)) } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(family(other)) } }",
+            "fn classify(method: ExampleServiceMethod) -> RpcRole { match method { _ => RpcRole::OutOfScope(family(method)), ExampleServiceMethod::Poll => RpcRole::Observed(\"x\") } }",
+        ] {
+            assert!(declarations(source).is_err(), "accepted {source}");
+        }
     }
 
     #[test]

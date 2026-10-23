@@ -207,6 +207,38 @@ fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
 }
 
 #[test]
+fn coverage_build_resolves_feature_claims_against_one_service_table()
+-> Result<(), Box<dyn std::error::Error>> {
+    use std::fs;
+    use umpire_catalog_build::coverage;
+    let root = std::env::temp_dir().join(format!("catalog-build-claims-{}", std::process::id()));
+    let (first, second) = (root.join("first"), root.join("second"));
+    fs::create_dir_all(&first)?;
+    fs::create_dir_all(&second)?;
+    fs::write(
+        root.join("service.rs"),
+        "fn family(method: DeviceMethod) -> &'static str { match method { DeviceMethod::Set => \"device settings\" }}",
+    )?;
+    let claim = "fn classify(method: DeviceMethod) -> RpcRole<ModelAction> { match method { DeviceMethod::Set => RpcRole::Action(ModelAction::Device(Device::Set)), _ => RpcRole::OutOfScope(service::family(method)) }}";
+    fs::write(first.join("api.rs"), claim)?;
+    let descriptor = root.join("selected.binpb");
+    fs::write(&descriptor, fixture().encode_to_vec())?;
+    let result = (|| -> Result<(), Box<dyn std::error::Error>> {
+        let (_, classifications) =
+            coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")?;
+        assert_eq!(classifications[0].bindings[0].1, "Action");
+        fs::write(second.join("api.rs"), claim)?;
+        let error = coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")
+            .err()
+            .ok_or("a duplicate feature claim passed the build")?;
+        assert_eq!(error.to_string(), "duplicate feature claim: example.v1.Device.Set");
+        Ok(())
+    })();
+    fs::remove_dir_all(root)?;
+    result
+}
+
+#[test]
 fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
 -> Result<(), Box<dyn std::error::Error>> {
     use std::{fs, process::Command};

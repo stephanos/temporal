@@ -439,246 +439,38 @@ pub struct RequestCancelActivityExecutionRequest {
 #[mirror(response = "temporal.api.workflowservice.v1.RequestCancelActivityExecutionResponse")]
 pub struct RequestCancelActivityExecutionResponse {}
 
+use crate::foundation::service::{self, RpcRole};
 use umpire_temporal_annotate::Binding;
 use umpire_temporal_api::WorkflowServiceMethod;
 
-enum RpcRole {
-    Action(ModelAction),
-    Observed(&'static str),
-    OutOfScope(&'static str),
-}
-
-#[allow(
-    clippy::match_same_arms,
-    clippy::too_many_lines,
-    reason = "Descriptor admission requires RPC declaration order, including separated role groups"
-)]
-fn classify(method: WorkflowServiceMethod) -> RpcRole {
+/// The RPCs this feature claims; every other RPC is out of scope with its resource family.
+fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
     match method {
-        WorkflowServiceMethod::RegisterNamespace => RpcRole::OutOfScope(
-            "Namespace administration is outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::DescribeNamespace => RpcRole::OutOfScope(
-            "SDK namespace discovery is infrastructure outside activity lifecycle validation",
-        ),
-        WorkflowServiceMethod::ListNamespaces
-        | WorkflowServiceMethod::UpdateNamespace
-        | WorkflowServiceMethod::DeprecateNamespace => RpcRole::OutOfScope(
-            "Namespace administration is outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::StartWorkflowExecution => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::ExecuteMultiOperation => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::GetWorkflowExecutionHistory
-        | WorkflowServiceMethod::GetWorkflowExecutionHistoryReverse
-        | WorkflowServiceMethod::PollWorkflowTaskQueue
-        | WorkflowServiceMethod::RespondWorkflowTaskCompleted
-        | WorkflowServiceMethod::RespondWorkflowTaskFailed => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
         WorkflowServiceMethod::PollActivityTaskQueue => {
             RpcRole::Action(ModelAction::Worker(Worker::Poll(1)))
         }
-        WorkflowServiceMethod::RecordActivityTaskHeartbeat
-        | WorkflowServiceMethod::RecordActivityTaskHeartbeatById => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
         WorkflowServiceMethod::RespondActivityTaskCompleted => {
             RpcRole::Action(ModelAction::Worker(Worker::RespondCompleted))
         }
-        WorkflowServiceMethod::RespondActivityTaskCompletedById => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
         WorkflowServiceMethod::RespondActivityTaskFailed => {
             RpcRole::Action(ModelAction::Worker(Worker::RespondFailed { retryable: false }))
         }
-        WorkflowServiceMethod::RespondActivityTaskFailedById => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
         WorkflowServiceMethod::RespondActivityTaskCanceled => {
             RpcRole::Observed("worker acknowledges client cancellation")
         }
-        WorkflowServiceMethod::RespondActivityTaskCanceledById => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::RequestCancelWorkflowExecution
-        | WorkflowServiceMethod::SignalWorkflowExecution
-        | WorkflowServiceMethod::SignalWithStartWorkflowExecution
-        | WorkflowServiceMethod::ResetWorkflowExecution
-        | WorkflowServiceMethod::TerminateWorkflowExecution
-        | WorkflowServiceMethod::DeleteWorkflowExecution
-        | WorkflowServiceMethod::ListOpenWorkflowExecutions
-        | WorkflowServiceMethod::ListClosedWorkflowExecutions
-        | WorkflowServiceMethod::ListWorkflowExecutions
-        | WorkflowServiceMethod::ListArchivedWorkflowExecutions
-        | WorkflowServiceMethod::ScanWorkflowExecutions
-        | WorkflowServiceMethod::CountWorkflowExecutions => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::GetSearchAttributes
-        | WorkflowServiceMethod::RespondQueryTaskCompleted
-        | WorkflowServiceMethod::ResetStickyTaskQueue => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::ShutdownWorker => RpcRole::OutOfScope(
-            "SDK worker shutdown bookkeeping does not change this activity Model",
-        ),
-        WorkflowServiceMethod::QueryWorkflow | WorkflowServiceMethod::DescribeWorkflowExecution => {
-            RpcRole::OutOfScope(
-                "Workflow execution operations are outside this standalone activity Model",
-            )
-        }
-        WorkflowServiceMethod::DescribeTaskQueue | WorkflowServiceMethod::GetClusterInfo => {
-            RpcRole::OutOfScope(
-                "Service administration and other resource lifecycles are outside this \
-                    activity Model",
-            )
-        }
-        WorkflowServiceMethod::GetSystemInfo => RpcRole::OutOfScope(
-            "SDK server capability negotiation does not observe an activity lifecycle",
-        ),
-        WorkflowServiceMethod::ListTaskQueuePartitions
-        | WorkflowServiceMethod::CreateSchedule
-        | WorkflowServiceMethod::DescribeSchedule
-        | WorkflowServiceMethod::UpdateSchedule
-        | WorkflowServiceMethod::PatchSchedule
-        | WorkflowServiceMethod::ListScheduleMatchingTimes
-        | WorkflowServiceMethod::DeleteSchedule
-        | WorkflowServiceMethod::ListSchedules
-        | WorkflowServiceMethod::CountSchedules
-        | WorkflowServiceMethod::UpdateWorkerBuildIdCompatibility
-        | WorkflowServiceMethod::GetWorkerBuildIdCompatibility
-        | WorkflowServiceMethod::UpdateWorkerVersioningRules
-        | WorkflowServiceMethod::GetWorkerVersioningRules
-        | WorkflowServiceMethod::GetWorkerTaskReachability
-        | WorkflowServiceMethod::DescribeDeployment
-        | WorkflowServiceMethod::DescribeWorkerDeploymentVersion
-        | WorkflowServiceMethod::ListDeployments
-        | WorkflowServiceMethod::GetDeploymentReachability
-        | WorkflowServiceMethod::GetCurrentDeployment
-        | WorkflowServiceMethod::SetCurrentDeployment
-        | WorkflowServiceMethod::SetWorkerDeploymentCurrentVersion
-        | WorkflowServiceMethod::DescribeWorkerDeployment
-        | WorkflowServiceMethod::DeleteWorkerDeployment
-        | WorkflowServiceMethod::DeleteWorkerDeploymentVersion
-        | WorkflowServiceMethod::SetWorkerDeploymentRampingVersion
-        | WorkflowServiceMethod::ListWorkerDeployments
-        | WorkflowServiceMethod::CreateWorkerDeployment
-        | WorkflowServiceMethod::CreateWorkerDeploymentVersion
-        | WorkflowServiceMethod::UpdateWorkerDeploymentVersionComputeConfig
-        | WorkflowServiceMethod::ValidateWorkerDeploymentVersionComputeConfig
-        | WorkflowServiceMethod::UpdateWorkerDeploymentVersionMetadata
-        | WorkflowServiceMethod::SetWorkerDeploymentManager => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::UpdateWorkflowExecution
-        | WorkflowServiceMethod::PollWorkflowExecutionUpdate => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::StartBatchOperation
-        | WorkflowServiceMethod::StopBatchOperation
-        | WorkflowServiceMethod::DescribeBatchOperation
-        | WorkflowServiceMethod::ListBatchOperations => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::PollNexusTaskQueue => RpcRole::OutOfScope(
-            "SDK worker control commands use Nexus polling; their contents are outside \
-                this activity Model",
-        ),
-        WorkflowServiceMethod::RespondNexusTaskCompleted => RpcRole::OutOfScope(
-            "SDK Nexus worker control completion is outside this activity Model",
-        ),
-        WorkflowServiceMethod::RespondNexusTaskFailed => {
-            RpcRole::OutOfScope("SDK Nexus worker control failure is outside this activity Model")
-        }
-        WorkflowServiceMethod::UpdateActivityOptions => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::UpdateWorkflowExecutionOptions => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::PauseActivity
-        | WorkflowServiceMethod::UnpauseActivity
-        | WorkflowServiceMethod::ResetActivity => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::CreateWorkflowRule
-        | WorkflowServiceMethod::DescribeWorkflowRule
-        | WorkflowServiceMethod::DeleteWorkflowRule
-        | WorkflowServiceMethod::ListWorkflowRules
-        | WorkflowServiceMethod::TriggerWorkflowRule => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
-        WorkflowServiceMethod::RecordWorkerHeartbeat => RpcRole::OutOfScope(
-            "SDK worker health and configuration heartbeat is infrastructure outside \
-                activity lifecycle validation",
-        ),
-        WorkflowServiceMethod::ListWorkers
-        | WorkflowServiceMethod::CountWorkers
-        | WorkflowServiceMethod::UpdateTaskQueueConfig
-        | WorkflowServiceMethod::FetchWorkerConfig
-        | WorkflowServiceMethod::UpdateWorkerConfig
-        | WorkflowServiceMethod::DescribeWorker => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::PauseWorkflowExecution
-        | WorkflowServiceMethod::UnpauseWorkflowExecution => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
         WorkflowServiceMethod::StartActivityExecution => {
             RpcRole::Observed("successful start establishes the Model initial state")
         }
-        WorkflowServiceMethod::StartNexusOperationExecution => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
         WorkflowServiceMethod::DescribeActivityExecution => {
             RpcRole::Observed("activity lifecycle phase")
         }
-        WorkflowServiceMethod::DescribeNexusOperationExecution => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
         WorkflowServiceMethod::PollActivityExecution => {
             RpcRole::Observed("SDK activity handle outcome")
         }
-        WorkflowServiceMethod::PollNexusOperationExecution => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::ListActivityExecutions => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::ListNexusOperationExecutions => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::CountActivityExecutions => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::CountNexusOperationExecutions => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
         WorkflowServiceMethod::RequestCancelActivityExecution => {
             RpcRole::Action(ModelAction::Client(Client::Cancel))
         }
-        WorkflowServiceMethod::RequestCancelNexusOperationExecution => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::TerminateActivityExecution
-        | WorkflowServiceMethod::DeleteActivityExecution
-        | WorkflowServiceMethod::PauseActivityExecution
-        | WorkflowServiceMethod::ResetActivityExecution
-        | WorkflowServiceMethod::UnpauseActivityExecution
-        | WorkflowServiceMethod::UpdateActivityExecutionOptions => RpcRole::OutOfScope(
-            "This activity operation is not represented by the mini activity lifecycle",
-        ),
-        WorkflowServiceMethod::TerminateNexusOperationExecution
-        | WorkflowServiceMethod::DeleteNexusOperationExecution => RpcRole::OutOfScope(
-            "Service administration and other resource lifecycles are outside this activity Model",
-        ),
-        WorkflowServiceMethod::PollWorkflowExecutionTimeSkipping => RpcRole::OutOfScope(
-            "Workflow execution operations are outside this standalone activity Model",
-        ),
+        _ => RpcRole::OutOfScope(service::family(method)),
     }
 }
 
