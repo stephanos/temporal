@@ -1,0 +1,129 @@
+{
+  "schema": "gomad.core-broad-development-check/v1",
+  "source_commit": "2ca4174196a635e058578d0efcab3bfcb13f6bd1",
+  "composed_root": "82cb6755c8",
+  "qualification": false,
+  "broad_stage_pass": false,
+  "checks": [
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-native-committed-final.log",
+      "sha256": "6734f1bf625329c7f5d7735b4e1164d04aea6845a93f2200c1ea22473cb2554a",
+      "bytes": 26655,
+      "exit": 0,
+      "result": "test result: ok. 247 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 58.69s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-identity-final.log",
+      "sha256": "7ffa118fede58afc75c66c132d444254e7c0253d12dfcc71facef74d36811b8f",
+      "bytes": 463257,
+      "exit": 0,
+      "result": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-replay-final.log",
+      "sha256": "6211b90cce492bfddc4ca8898b436280a1a0fe49332fd7ab888aa2dce844247e",
+      "bytes": 4043,
+      "exit": 0,
+      "result": "test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 600 filtered out; finished in 15.22s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-scenario-final.log",
+      "sha256": "d2247a122b1650073a81ac039fdaa934463ddda1872c10cf97cdc29e9139ce00",
+      "bytes": 2278,
+      "exit": 0,
+      "result": "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 616 filtered out; finished in 0.01s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-cluster-final.log",
+      "sha256": "3c0ad5e13909bf4a722df9fbef4343a06454f83c5b0767288b6de26c5e7d790e",
+      "bytes": 693,
+      "exit": 0,
+      "result": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 629 filtered out; finished in 0.10s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-writer-final.log",
+      "sha256": "b0f7438f4b6b7430ef4f1e860ed93830e8ba69c8f4076a38b8f36c1bc7823c83",
+      "bytes": 456238,
+      "exit": 0,
+      "result": "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 630 filtered out; finished in 0.15s"
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-helper-clippy-final-v4.log",
+      "sha256": "b41d4a2d36b565881123f9ce9178925d718e813b85cdba16b05b114ce8cc98cb",
+      "bytes": 167,
+      "exit": 0,
+      "result": null
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-host-clippy-final.log",
+      "sha256": "6977b0fb464ee0ef3463563b53a7126fe9b0035b70604a1cfd494cf7bece7c0a",
+      "bytes": 251,
+      "exit": 0,
+      "result": null
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-conformance-clippy-final.log",
+      "sha256": "942328ccaf2759f8296949cc8461740201bf4f24e5014b35556ee01867532b14",
+      "bytes": 167,
+      "exit": 0,
+      "result": null
+    },
+    {
+      "path": "/home/agent/evidence/fn232-core-counterfactual/broad-fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exit": 0,
+      "result": null
+    }
+  ],
+  "counts": {
+    "helper_passed": 247,
+    "helper_ignored": 12,
+    "identity_tests_passed": 5,
+    "identity_observation_cases": 18,
+    "host_replay_passed": 32,
+    "host_scenario_passed": 16,
+    "host_cluster_passed": 3,
+    "host_writer_passed": 2,
+    "writer_actual_failure_cases": 16,
+    "writer_raw_payload_sizes": 14,
+    "strict_configurations_passed": 3
+  },
+  "writer": {
+    "encoding": "Native artifact manifest v2 and raw record payloads; raw record tail receives retired Go Base64-close failure boundary. No Go byte-equivalence claim.",
+    "total_written": 3299,
+    "record_tail": 1473,
+    "budgets_each_zero_and_error": [
+      0,
+      1,
+      19,
+      100,
+      1024,
+      1473,
+      3297,
+      3298
+    ],
+    "retry": "Each real failed publication stops at first failure, exposes no committed artifact, and authenticates an unmodified retry."
+  },
+  "review": {
+    "observer_final_review": "No actionable findings in two final fixture repairs; read-only independent high review.",
+    "broad_source_review": "No findings in eight-file mechanical cleanup; read-only independent high review."
+  },
+  "source_maps": [
+    ".flow/artifacts/fn232-provider-lifecycle-predicate-checkpoint.json",
+    ".flow/artifacts/fn232-inspection-search-predicate-checkpoint.json",
+    "tools/gomad/rust/gomad/src/replay/cluster/retained_root_mapping.json"
+  ],
+  "remaining_obligations": [
+    "Final frozen-source build/process custody and distinct stage invocations are still required. Development observations do not earn whole original-root or stage PASS.",
+    "Original unchanged handoff and native v11 handoff all-exit predicate remain FAIL; preserve fail-fast and raw artifacts. Other three v11 original counterfactual predicates pass.",
+    "Broad cluster-provider78, cluster-functional46 and retained-cluster24 require explicit complete original per-root/subvariant mappings and closed stage readers; this batch is partial native behavioral receiving.",
+    "Actual Go guest/soft assertion family and original allocation-ceiling obligations remain outside these typed WAT/native reader tests.",
+    "Retained standalone scenario oracle policy authentication remains explicit where no sealed OraclePlan exists.",
+    "Retained Record outcome class/termination/exit combination validation is a separate root-owned followup; no credit from raw field round-trips."
+  ],
+  "previous_actual_run": {
+    "full_host_fixture": "broad-host-all.log:625PASS1FAIL3ignored, sole actual producer output fixture repaired and rerun PASS in actual-producer-bounds-fixed.log; final focused host replay32 also covers authentic producer controls.",
+    "initial_final_helper": "broad-helper-native-final.log:245PASS2FAIL12ignored; fixture-only causal repairs now all247PASS."
+  }
+}
