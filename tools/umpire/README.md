@@ -39,8 +39,26 @@ Each command is `tools/umpire/cmd/<name>`. The Make targets build into `.build/`
 | --- | --- | --- |
 | `umpire-gen-cases` | Lowers every Query of `model/ir` and checks or rewrites a managed Case tree: `--kind model` (`model/cases`), `functional` (`tests/testcore/testpilot/testdata/generated`) or `canary` (`tools/canary/casebinding/testdata`) | `umpire-check-cases`, `umpire-gen-cases`, `umpire-check-fixtures`, `umpire-gen-fixtures`, `canary-check-case`, `canary-gen-case` |
 | `umpire-lint` | Lints every IR file of `model/ir`, or the files named, and prints each file's findings and coverage summary; `--tables` adds the per-operation modality tables, `--must-not-pinned` the H5 kind. It fails on a finding no acceptance matches and on a stale acceptance, never on a count. The model gate runs it | `umpire-check-lint` |
-| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see `model/umpire/hosts/go/README.md`) | `umpire` |
+| `umpire` | The one host loop over a Model guest: `question`, `explore`, `reduce`, `replay` or `repeat`; it records and publishes Runs (see `model/umpire/hosts/go/README.md`), acting through the Temporal Driver configured below | `umpire` |
 | `umpire-ir-bridge` | Serves exploration candidates and replay reductions from `model/ir` | `umpire-ir-bridge` |
+
+### The `umpire` command's Temporal Driver
+
+Explore, reduce and repeat act through `common/testing/testpilot/temporal/act`, configured by the
+environment; question and replay need none of it:
+
+| Variable | Meaning |
+| --- | --- |
+| `UMPIRE_TEMPORAL_ADDRESS` | The frontend's `host:port` (required) |
+| `UMPIRE_TEMPORAL_NAMESPACE` | The namespace the worker polls; the World's Start request must name it (required) |
+| `UMPIRE_TEMPORAL_TASK_QUEUE` | The task queue the worker polls; the World's Start request must name it (required) |
+| `UMPIRE_TEMPORAL_CREATE` | `true` registers the namespace before the first Run and deletes it after the last |
+| `UMPIRE_TEMPORAL_RPC_TIMEOUT` | Bound of each call that is not a read (default 10s) |
+| `UMPIRE_TEMPORAL_WORKER_POLL_TIMEOUT` | Bound of each worker poll the Driver admits (default 5s, at least the frontend's 2s) |
+| `UMPIRE_TEMPORAL_REDACT` | Comma-separated fields removed from the Run once judged, each a message's full name and a field path |
+
+An invalid configuration exits 3 before any Run. `make umpire-check-model-slice` runs the live
+activity slice through the command.
 
 ## Checks
 
