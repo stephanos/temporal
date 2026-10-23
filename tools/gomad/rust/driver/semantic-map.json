@@ -820,7 +820,9 @@
     "original_function": "step_operator",
     "original_body": "  cd \"$wasm\"; env_after_runtime\n  named_test operator TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs 30m ./command\n",
     "required_subgates": [
-      "TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs"
+      "TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs",
+      "TestInstalledOperatorClusterFailureEndsPromptly",
+      "TestInstalledOperatorAsymmetricGuestFailureEndsPromptly"
     ],
     "repetitions": 1
   },

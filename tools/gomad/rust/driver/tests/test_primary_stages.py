@@ -110,11 +110,18 @@ class PrimaryRecipes(unittest.TestCase):
             root = Path(temporary)
             config = self.config(root, root / 'unused')
             with patch.object(primary.live, 'sealed_input'):
+                with self.assertRaises(Refusal):
+                    primary.recipes(config, 'operator', root / 'stages/operator')
+                config.update(build_receipt='/release/main-build.json', final_retained=dict(compiler_root='/go'),
+                              installed_cluster_failure=dict(guest_config='/typed.json', module_cache='/modules'))
                 for label, section in [('artifact', 'retained'), ('operator', 'operator')]:
                     rows = primary.recipes(config, label, root / 'stages' / label)
-                    self.assertEqual(len(rows), 1)
-                    self.assertEqual(rows[0]['argv'][-4:], ['--section', section, '--root', str(root)])
-                    self.assertNotIn('--read-only', rows[0]['argv'])
+                    self.assertEqual(len(rows), 1 if label == 'artifact' else 2)
+                    self.assertEqual(rows[-1]['argv'][-4:], ['--section', section, '--root', str(root)])
+                    self.assertNotIn('--read-only', rows[-1]['argv'])
+                failure = rows[0]['argv']
+                self.assertEqual(failure[1:3], [str(primary.HERE / 'installed_cluster_failure.py'), 'produce'])
+                self.assertEqual(failure[-2:], ['--root', str(root / 'stages/operator/primary/installed-cluster-failure')])
 
     def test_conformance_reader_rejects_wrong_features_profile_and_missing_binary(self):
         with tempfile.TemporaryDirectory() as temporary:

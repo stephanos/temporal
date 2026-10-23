@@ -268,6 +268,15 @@ def canonical_argv(config, label, root, mode):
             '--stage', label, '--root', str(root)]
 
 
+def installed_failure_inputs(config):
+    entry = config.get('installed_cluster_failure')
+    require(isinstance(entry, dict) and set(entry) == {'guest_config', 'module_cache'},
+            'operator stage requires its installed cluster-failure guest configuration and dependency cache')
+    live.sealed_input(config, entry['guest_config'])
+    live.sealed_input(config, entry['module_cache'])
+    return entry
+
+
 def recipes(config, label, root):
     require(label in OWNED, 'unknown primary stage: ' + label)
     require(root == Path(config['root']) / 'stages' / label, 'foreign primary stage root')
@@ -333,8 +342,16 @@ def recipes(config, label, root):
             environment=dict(RUSTC=rustc, CARGO_HOME=plan['caches']['cargo_home'], CARGO_TARGET_DIR=str(target),
                              CARGO_BUILD_JOBS='1'))]
     if label in ('artifact', 'operator'):
-        return [recipe('primary-final', HERE / 'final_retained.py', ['--config', config['_config_path'],
-                       '--section', 'retained' if label == 'artifact' else 'operator', '--root', config['root']])]
+        recipes_ = [recipe('primary-final', HERE / 'final_retained.py', ['--config', config['_config_path'],
+                           '--section', 'retained' if label == 'artifact' else 'operator', '--root', config['root']])]
+        if label == 'operator':
+            # Original installed cluster-failure roots (deadlock/capacity and the asymmetric two/three cells).
+            failure = installed_failure_inputs(config)
+            recipes_.insert(0, recipe('installed-cluster-failure', HERE / 'installed_cluster_failure.py', [
+                'produce', '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
+                '--guest-config', failure['guest_config'], '--module-cache', failure['module_cache'],
+                '--root', str(work / 'installed-cluster-failure')]))
+        return recipes_
     if label in ('retained-durable-restart', 'busy-grouped'):
         entry = config['live_corpus']['families']['cluster']
         binary = live.role(config, entry['role'])['binary']
@@ -675,6 +692,10 @@ def read_stage(config, label, root):
                 and report['source_sha256'] == config['source_sha256'] and report['identity'] == config['identity'],
                 'foreign retained/operator primary proof')
         coverage([final_retained.IDS[section]], report['subgates'])
+        if label == 'operator':
+            import installed_cluster_failure
+            installed_failure_inputs(config)
+            installed_cluster_failure.read_result(root / 'primary/installed-cluster-failure/result.json', Path(config['build_receipt']))
     elif label in ('retained-durable-restart', 'busy-grouped'):
         cluster(config, label, root)
     elif label in ('busy-boundaries', 'network-streams'):
