@@ -1153,9 +1153,9 @@ fn assert_cluster_producer(
     report_only: bool,
 ) {
     let publication = crate::fixture_cluster::execute_configuration(
-        (*configuration).clone(),
+        configuration.clone(),
         toolchain.to_owned(),
-        (*modules).clone(),
+        modules.clone(),
     )
     .unwrap();
     let fixture = ReaderFixture::new(publication);
@@ -1296,7 +1296,7 @@ fn assert_scenario_producer(
             ordinal: 0,
             seed: 7,
         },
-        (*configuration).clone(),
+        configuration.clone(),
         execution,
         false,
     )
