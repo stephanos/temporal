@@ -1330,28 +1330,138 @@ struct MigrationGuest {
     provenance_sha256: String,
     runs: BTreeMap<String, PathBuf>,
 }
+fn migration_baseline_cost(root: &Path, seed: u64) -> Result<Value, String> {
+    use crate::evidence::store::open;
+    let parent = root
+        .parent()
+        .ok_or("native migration baseline registry root has no parent")?;
+    let label = root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("native migration baseline registry root has no UTF-8 name")?;
+    let files = open::pin(root)?;
+    let siblings = open::pin(parent)?;
+    let request_raw = open::read(&files, "request.json", 8 << 20, false)?;
+    let report_raw = open::read(&files, "report.json", 8 << 20, false)?;
+    let command_raw = open::read(&siblings, &format!("{label}-driver.json"), 8 << 20, false)?;
+    let command_value = crate::qualify::spec::strict(&command_raw)?;
+    let wall_nanos = command_value["duration_nanos"]
+        .as_i64()
+        .filter(|wall| *wall > 0)
+        .ok_or_else(|| {
+            format!(
+                "baseline wall time must be positive: root={} seed={seed}",
+                root.display()
+            )
+        })?;
+    let command: build::CommandObservation = serde_json::from_value(command_value.clone())
+        .map_err(|error| format!("native migration baseline cost provenance: {error}"))?;
+    let report = crate::qualify::spec::strict(&report_raw)?;
+    let request = crate::qualify::spec::strict(&request_raw)?;
+    let input = parent.join(format!("{label}.input.json"));
+    if command.schema != "gomad.native-process-observation/v1"
+        || command.command.len() != 4
+        || !Path::new(&command.command[0]).is_absolute()
+        || command.command[1] != "--linked-run"
+        || command.command[2] != input.to_string_lossy()
+        || command.command[3] != root.to_string_lossy()
+        || command_value["command"] != report["invocation"]
+        || command.pid.is_none_or(|pid| pid == 0)
+        || report["fresh_store_id"].as_u64() != command.pid.map(u64::from)
+        || command
+            .reaped_monotonic_nanos
+            .is_none_or(|stamp| stamp == 0)
+        || command.termination != "exit"
+        || command.exit_code != Some(0)
+        || command.signal.is_some()
+        || command.error.is_some()
+        || !command.cleanup_errors.is_empty()
+        || report["schema"] != "gomad.linked-profile-run/v1"
+        || report["execution"]["Ok"]["termination"] != "exit"
+        || !report["host_sha256"]
+            .as_str()
+            .is_some_and(canonical::valid_digest)
+        || report["request_sha256"] != canonical::digest(&request_raw)
+        || request["kind"] != "standalone"
+        || request["guest"]["model"]["configuration"]["seed"] != seed
+        || open::read(&siblings, &format!("{label}.input.json"), 8 << 20, false)? != request_raw
+    {
+        return Err("native migration baseline cost provenance mismatch".into());
+    }
+    Ok(json!({"seed":seed,"raw_root":root,"wall_nanos":wall_nanos,
+        "request_sha256":canonical::digest(&request_raw),"report_sha256":canonical::digest(&report_raw),
+        "command_sha256":canonical::digest(&command_raw),"report":report,"command":command_value}))
+}
+
+fn migration_baseline_preflight(base: &Path) -> Result<(MigrationBaseline, Vec<Value>), String> {
+    use crate::evidence::store::open;
+    if !base.is_absolute() {
+        return Err("absolute native migration baseline root required".into());
+    }
+    let baseline: MigrationBaseline =
+        serde_json::from_value(crate::qualify::spec::strict(&open::read(
+            &open::pin(base)?,
+            "native-migration-baseline.json",
+            8 << 20,
+            false,
+        )?)?)
+        .map_err(|error| {
+            format!("native migration baseline required; Go-lineage reports are refused: {error}")
+        })?;
+    let names = ["choices", "runtime_probes", "time_probes"];
+    if baseline.schema != "gomad.native-migration-baseline/v1"
+        || baseline.guests.len() != names.len()
+        || names
+            .iter()
+            .any(|name| !baseline.guests.contains_key(*name))
+    {
+        return Err("native migration baseline registry requires exact choices/runtime_probes/time_probes guests".into());
+    }
+    let mut roots = std::collections::BTreeSet::new();
+    for guest in baseline.guests.values() {
+        if guest.runs.len() != 2 {
+            return Err(
+                "native migration baseline registry requires exactly seeds 0 and 1000003".into(),
+            );
+        }
+        for seed in ["0", "1000003"] {
+            let root = guest
+                .runs
+                .get(seed)
+                .filter(|root| root.is_absolute())
+                .ok_or(
+                    "native migration baseline registry requires absolute selected seed roots",
+                )?;
+            let root = fs::canonicalize(root)
+                .map_err(|error| format!("native migration baseline registry: {error}"))?;
+            if !roots.insert(root) {
+                return Err(
+                    "native migration baseline registry requires six distinct selected roots"
+                        .into(),
+                );
+            }
+        }
+    }
+    let mut costs = Vec::new();
+    for name in names {
+        for seed in [0, 1_000_003] {
+            let mut cost =
+                migration_baseline_cost(&baseline.guests[name].runs[&seed.to_string()], seed)?;
+            cost["guest"] = json!(name);
+            costs.push(cost);
+        }
+    }
+    Ok((baseline, costs))
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Keep the complete workload matrix and evidence transaction in execution order."
 )]
 fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<PathBuf, String> {
-    let base = Path::new(value(call, "GOMAD_WASM_MIGRATION_BASELINE"));
-    if !base.is_absolute() {
-        return Err("absolute native migration baseline root required".into());
-    }
-    let baseline: MigrationBaseline = serde_json::from_slice(&read(
-        &base.join("native-migration-baseline.json"),
-        8 << 20,
-    )?)
-    .map_err(|error| {
-        format!("native migration baseline required; Go-lineage reports are refused: {error}")
-    })?;
-    if baseline.schema != "gomad.native-migration-baseline/v1" || baseline.guests.len() != 3 {
-        return Err(
-            "native migration baseline requires exact choices/runtime_probes/time_probes registry"
-                .into(),
-        );
-    }
+    let (baseline, costs) =
+        migration_baseline_preflight(Path::new(value(call, "GOMAD_WASM_MIGRATION_BASELINE")))?;
+    write(&root.join("baseline-costs.json"), &costs)?;
     let executable = admit(call, proof, root, "ordinary")?;
     let mut samples = Vec::new();
     let cache = if value(call, "GOMAD_WASM_MIGRATION_CACHE").is_empty() {
@@ -1423,6 +1533,15 @@ fn migration(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 .filter(|path| path.is_absolute())
                 .ok_or("missing native migration baseline seed root")?;
             let old = evidence::read_profile_run(original_root, evidence::ReadLimits::default())?;
+            if costs
+                .iter()
+                .find(|cost| cost["guest"] == name && cost["seed"] == seed)
+                .is_none_or(|cost| cost["report"] != old.report)
+            {
+                return Err(
+                    "native migration baseline cost provenance changed after preflight".into(),
+                );
+            }
             if old.request["kind"] != "standalone"
                 || old.request["guest"]["module_sha256"] != hex(&identity.target_sha256)
                 || old.request["guest"]["model"]["configuration"]["seed"] != seed
@@ -1510,3 +1629,7 @@ mod tests;
 #[cfg(test)]
 #[path = "workloads_witness_tests.rs"]
 mod witness_tests;
+
+#[cfg(test)]
+#[path = "workloads_migration_tests.rs"]
+mod migration_tests;
