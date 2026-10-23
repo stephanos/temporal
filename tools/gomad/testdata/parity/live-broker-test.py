@@ -258,8 +258,11 @@ func TestPreClearNetworkCaptureOwnsValidatedBytes(t *testing.T) {
 class NetworkCapturePlacement(unittest.TestCase):
     def test_capture_occurs_only_after_successful_collect_before_clear(self):
         self.assertTrue(hasattr(observe, 'instrument_cluster'), 'missing pre-clear capture instrumentation')
-        path = Path(__file__).resolve().parents[2] / 'internal/backends/wasm/wasi/cluster.go'
-        source = path.read_bytes()
+        # This tests instrumentation of the original Go collect boundary, not native behavior.
+        # The exact original Git blob remains available after Go host source retirement.
+        source = subprocess.check_output(['git', '-C', str(Path(__file__).resolve().parents[4]), 'show',
+            '1d695061b6382009d0659238c652a5a765b1d5f5:tools/gomad/internal/backends/wasm/wasi/cluster.go'])
+        self.assertEqual(observe.sha(source), '6820058471b7d9d054a5ea80c71253f5db798823ec4103e2b454d45e3bc4c67c')
         observed = observe.instrument_cluster(source)
         call = b'if err := brokerObserveNetwork(state); err != nil { return err }\n'
         self.assertEqual(observed.count(call), 1)
