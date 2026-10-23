@@ -779,7 +779,7 @@ fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
         let mut prepared = prepared_module_with_wall(name, &invocation(), module, 10_000);
         let cache = root.join(name);
         prepared.compile_cache_root = Some(cache.to_str().unwrap().into());
-        execution::run(
+        execution::run_with_replay(
             &prepared,
             &Job {
                 ordinal: 0,
@@ -787,6 +787,8 @@ fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
             },
             Duration::from_secs(10),
             &linked::Cancellation::default(),
+            None,
+            None,
         )
         .unwrap();
         let entries: Vec<_> = fs::read_dir(&cache)
@@ -808,6 +810,8 @@ fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
                 .unwrap();
         options.artifacts = root.join(format!("artifacts-{name}"));
         options.seeds = "1".into();
+        options.parallel = 1;
+        options.on_failure = "first".into();
         options.execution_timeout = Duration::from_secs(10);
         options.json = true;
         let error = launcher::run(
