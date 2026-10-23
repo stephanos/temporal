@@ -1,4 +1,5 @@
 """Fixed recipe negatives only; no guest or original qualification is executed."""
+import copy
 import json
 from pathlib import Path
 import sys
@@ -50,6 +51,35 @@ class PrimaryRecipes(unittest.TestCase):
                     self.assertEqual(len(rows), 1)
                     self.assertEqual(rows[0]['argv'][-4:], ['--section', section, '--root', str(root)])
                     self.assertNotIn('--read-only', rows[0]['argv'])
+
+    def test_conformance_reader_rejects_wrong_features_profile_and_missing_binary(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binary = root / 'primary/target/release/gomad-wasmhost'
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b'synthetic artifact')
+            artifact = dict(reason='compiler-artifact', executable=str(binary),
+                target=dict(name='gomad-wasmhost', kind=['bin'], src_path='/repo/tools/gomad/rust/wasmhost/src/main.rs'),
+                features=['conformance', 'reference-helper'], profile=dict(opt_level='3', debug_assertions=False, test=False))
+            recipe = [dict(argv=['/cargo', '--features', 'conformance'])]
+            output = root / 'primary-final.stdout'
+            with patch.object(primary, 'recipes', return_value=recipe):
+                for mutation in ('feature', 'profile', 'source', 'duplicate', 'unfinished', 'missing-binary'):
+                    changed = copy.deepcopy(artifact)
+                    if mutation == 'feature':
+                        changed['features'] = ['reference-helper']
+                    if mutation == 'profile':
+                        changed['profile']['debug_assertions'] = True
+                    if mutation == 'source':
+                        changed['target']['src_path'] = '/other/main.rs'
+                    rows = [changed, dict(reason='build-finished', success=mutation != 'unfinished')]
+                    if mutation == 'duplicate':
+                        rows.insert(0, changed)
+                    if mutation == 'missing-binary':
+                        binary.unlink()
+                    output.write_text('\n'.join(json.dumps(row) for row in rows))
+                    with self.subTest(mutation=mutation), self.assertRaises(Refusal):
+                        primary.conformance(dict(repo='/repo'), root)
 
     def test_foreign_stage_root_refused(self):
         with self.assertRaisesRegex(Refusal, 'foreign primary'):

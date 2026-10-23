@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Closed primary recipes and independent raw readers for original live stage labels."""
 import argparse
+import copy
 import json
 from pathlib import Path
 import re
@@ -11,11 +12,11 @@ from driver import (HERE, Refusal, busy_host, command, configured, coverage,
 import live
 
 OWNED = {'retained-durable-restart', 'busy-grouped', 'busy-boundaries', 'network-streams',
-         'storage', 'network', 'temporal-inspection', 'artifact', 'operator'}
+         'storage', 'network', 'temporal-inspection', 'artifact', 'operator', 'conformance-helper-build'}
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
-            'artifact': 900, 'operator': 1800}
+            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600}
 MISSING = {
     'ordinary': 'complete original make test-wasm callable/subtest map, including duplicate selections',
     'cluster-provider': 'complete original 78 selected roots; decoder/writer/preflight/search/cleanup/model predicates beyond transferred roots18..28',
@@ -39,6 +40,22 @@ def recipes(config, label, root):
     def recipe(name, script, flags):
         live.sealed_input(config, str(script))
         return dict(name=name, argv=[python, str(script), *flags])
+    if label == 'conformance-helper-build':
+        plan_path = live.option(config['stages']['validate']['argv'], '--plan')
+        require(plan_path, 'reviewed static tool plan required for conformance build')
+        live.sealed_input(config, plan_path)
+        plan = read(plan_path)
+        require(plan['schema'] == 'gomad.driver-static-plan/v1' and plan['repo'] == config['repo']
+                and plan['driver_config'] == config['_config_path'], 'foreign conformance tool plan')
+        cargo, rustc = plan['tools']['cargo'], plan['tools']['rustc']
+        live.sealed_input(config, cargo)
+        live.sealed_input(config, rustc)
+        target = work / 'target'
+        return [dict(name='primary-final', argv=[cargo, 'build', '--manifest-path',
+            str(Path(config['repo']) / 'tools/gomad/rust/wasmhost/Cargo.toml'), '--release', '--locked', '--offline',
+            '--no-default-features', '--features', 'conformance', '--target-dir', str(target), '--message-format=json'],
+            environment=dict(RUSTC=rustc, CARGO_HOME=plan['caches']['cargo_home'], CARGO_TARGET_DIR=str(target),
+                             CARGO_BUILD_JOBS='1'))]
     if label in ('artifact', 'operator'):
         return [recipe('primary-final', HERE / 'final_retained.py', ['--config', config['_config_path'],
                        '--section', 'retained' if label == 'artifact' else 'operator', '--root', config['root']])]
@@ -103,7 +120,8 @@ def run(config, label, root):
     (root / 'primary').mkdir(mode=0o700)
     with busy_host(label):
         for item in recipes(config, label, root):
-            command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
+            observed = dict(config, environment=dict(config.get('environment', {}), **item.get('environment', {})))
+            command(observed, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
     guard(config)
 
 
@@ -114,9 +132,41 @@ def actual_commands(config, label, root):
     pids = []
     for item in recipes(config, label, root):
         reader.command(config, root, item['name'], item['argv'], timeout=TIMEOUTS[label])
-        pids.append(read(root / (item['name'] + '.command.json'))['pid'])
+        receipt = read(root / (item['name'] + '.command.json'))
+        require(receipt['environment'] == dict(config.get('environment', {}), **item.get('environment', {})),
+                'changed primary command environment')
+        pids.append(receipt['pid'])
     require(len(pids) == len(set(pids)), 'primary repetitions borrowed producer PID')
     return reader
+
+
+def retained_configuration(expected):
+    """Apply the exact serde defaults of the retained Configuration and StorageDescriptor."""
+    result = copy.deepcopy(expected)
+    if result.get('world_encoding') == '':
+        result.pop('world_encoding')
+    for key in ('original_limits', 'oracle_plan', 'workload', 'simulation_original', 'world_profile', 'wall_nanos'):
+        if key in result and result[key] is None:
+            result.pop(key)
+    for incarnation in result['incarnations']:
+        if incarnation.get('workload_kind') == '':
+            incarnation.pop('workload_kind')
+        for key in ('imports', 'storage_crash_selection', 'wall_nanos'):
+            if key in incarnation and incarnation[key] is None:
+                incarnation.pop(key)
+        storage = incarnation.get('storage')
+        if storage:
+            for key in ('image', 'context'):
+                storage.setdefault(key, None)
+            descriptor = storage['descriptor']
+            for key in ('crash_limits', 'crash_selection', 'crash_context', 'image'):
+                descriptor.setdefault(key, None)
+            for key in ('faults', 'sqlite_lock_databases'):
+                descriptor['model'].setdefault(key, None)
+    if result.get('network'):
+        for link in result['network']['links']:
+            link.setdefault('delay_nanos', 0)
+    return result
 
 
 def cluster(config, label, root):
@@ -141,7 +191,7 @@ def cluster(config, label, root):
         record = check.check_artifact(artifact, cell, expected)
         retained = read(artifact / 'evidence/cluster-replay.json')
         require(retained['helper_sha256'] == config['identity']['helper'], 'foreign ordinary primary cluster helper')
-        require(all(retained['configuration'].get(key) == value for key, value in expected.items()),
+        require(retained['configuration'] == retained_configuration(expected),
                 'primary cluster changed original configuration or resource bounds')
         commands = read(work / 'commands.json')
         require([row['name'] for row in commands] == [cell + '-record', cell + '-detached-replay'], 'missing/duplicate source-less cluster execution')
@@ -242,10 +292,32 @@ def broker(config, label, root):
                     'original stream seeds lack actual choice/order variation')
 
 
+def conformance(config, root):
+    argv = recipes(config, 'conformance-helper-build', root)[0]['argv']
+    rows = [json.loads(line) for line in (root / 'primary-final.stdout').read_bytes().splitlines()]
+    require(rows and rows[-1].get('reason') == 'build-finished' and rows[-1].get('success') is True,
+            'missing actual conformance build completion')
+    executable = root / 'primary/target/release/gomad-wasmhost'
+    artifacts = [row for row in rows if row.get('reason') == 'compiler-artifact' and row.get('executable') == str(executable)]
+    require(len(artifacts) == 1, 'missing/duplicate actual conformance executable artifact')
+    artifact = artifacts[0]
+    require(artifact['target']['name'] == 'gomad-wasmhost' and artifact['target']['kind'] == ['bin']
+            and artifact['target']['src_path'] == str(Path(config['repo']) / 'tools/gomad/rust/wasmhost/src/main.rs')
+            and set(artifact['features']) == {'conformance', 'reference-helper'}
+            and artifact['profile']['opt_level'] == '3' and artifact['profile']['debug_assertions'] is False
+            and artifact['profile']['test'] is False, 'foreign conformance source/feature/profile artifact')
+    require(executable.is_file() and not executable.is_symlink() and executable.stat().st_size > 0,
+            'missing actual conformance executable bytes')
+    require(argv[argv.index('--features') + 1] == 'conformance', 'unexpected conformance feature combination')
+    return str(executable), sha(executable)
+
+
 def read_stage(config, label, root):
     guard(config)
     reader = actual_commands(config, label, root)
-    if label in ('artifact', 'operator'):
+    if label == 'conformance-helper-build':
+        conformance(config, root)
+    elif label in ('artifact', 'operator'):
         import final_retained
         section = 'retained' if label == 'artifact' else 'operator'
         report = final_retained.collect(config, Path(config['root']), section, read_only=True)

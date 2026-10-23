@@ -195,7 +195,7 @@ def qualify_cell(config, root, label, entry):
     specification = read(entry['spec'])
     validate_cell_spec(specification, wanted)
     require(entry['spec'] in config['files'], 'unsealed qualification spec')
-    require(specification['Manifest']['IntegratedSourceSHA256'] == config['source_sha256'], 'wrong spec source')
+    require(specification['Manifest']['IntegratedSourceSHA256'] == 'sha256:' + config['source_sha256'], 'wrong spec source')
     installation = config['installations'][entry['installation']]
     validate_budget(specification, read(installation), wanted)
     if wanted['workload'] in ('sqlite', 'multi-instance') and not entry.get('checker'):

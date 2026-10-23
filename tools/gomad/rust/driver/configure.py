@@ -68,6 +68,13 @@ def freeze(bindings, output, source_manifest):
     inputs.update((str(FROZEN / 'dag.tsv'), str(FROZEN.parent / 'q1-serial/run-qualification.sh')))
     inputs.update(config['installations'].values())
     inputs.update(read(path)['compiler_path'] for path in config['installations'].values())
+    for installation in config['installations'].values():
+        inventory = read(installation)['admission']['compiler_inputs']
+        require(isinstance(inventory, dict) and inventory, 'actual installation compiler inventory required')
+        for path, expected in inventory.items():
+            require(Path(path).is_absolute() and Path(path).is_file() and not Path(path).is_symlink()
+                    and sha(path) == expected, 'changed installation compiler input: ' + path)
+            inputs.add(path)
     inputs.update((config['binary'], config['build_receipt']))
     for index in range(32):
         entry = config['stages'][f'runtime-{index}']
