@@ -235,7 +235,19 @@ fn external_search_cancellation_joins_active_evaluator_store_before_return() {
             let mut execution = linked::prepare(linked::Request {
                 module_sha256: crate::evidence::canonical::digest(&module), module,
                 limits: linked::Limits {memory_bytes:64<<20,fuel:1_000_000,output_bytes:4096,evidence_bytes:4096,wall_timeout:remaining},
-                model:None,namespace:None,storage:None,
+                model:Some(linked::ModelInput {
+                    configuration:serde_json::from_value(json!({
+                        "entropy_key":vec![0_u8;32],"working_directory_sha256":crate::evidence::canonical::digest(b"/"),
+                        "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
+                        "seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":0,"read_step_nanos":0,"now":1,
+                        "limits":{"calls":100,"transcript_bytes":4096,"pending_events":16}
+                    })).unwrap(),
+                    arguments:Vec::new(),environment:Vec::new(),replay_trace:None,
+                }),
+                namespace:Some(linked::NamespaceImage {
+                    entries:Vec::new(),writable_directories:Vec::new(),preopens:vec![b"/".to_vec()],working_directory:b"/".to_vec(),stdin:Vec::new(),epoch_nanos:0,
+                    limits:linked::NamespaceLimits {files:16,descriptors:16,filesystem_bytes:4096,output_bytes:4096},
+                }),storage:None,
             }).unwrap();
             let (entered, entered_receiver) = mpsc::channel();
             let (release, released) = mpsc::channel();
@@ -244,7 +256,15 @@ fn external_search_cancellation_joins_active_evaluator_store_before_return() {
             let worker_cancellation = cancellation.clone();
             let worker = std::thread::spawn(move || preflight::execute_inspection_with_cancellation(
                 prepared,&helper::Handle::default(),linked::Conditions::default(),Some(remaining),Some(&worker_cancellation)));
-            entered_receiver.recv_timeout(remaining).unwrap();
+            if let Err(error) = entered_receiver.recv_timeout(remaining) {
+                cancellation.cancel();
+                drop(release);
+                let observed = worker.join().expect("evaluator worker panicked before output");
+                match observed {
+                    Ok(execution) => panic!("evaluator exited before output: {error}; {}: {}",execution.outcome.termination,execution.outcome.message),
+                    Err(message) => panic!("evaluator failed before output: {error}; {message}"),
+                }
+            }
             cancellation.cancel();
             release.send(()).unwrap();
             let execution = worker.join().unwrap().unwrap();
