@@ -510,7 +510,10 @@ pub(crate) fn validate_source_manifest(encoded: &[u8], check_files: bool) -> Res
     Ok(())
 }
 
-fn authenticate_provenance_module(provenance: &serde_json::Value, module: &[u8]) -> Result<(), String> {
+fn authenticate_provenance_module(
+    provenance: &serde_json::Value,
+    module: &[u8],
+) -> Result<(), String> {
     let metadata: gomad_wasmhost::linked::ModuleMetadata =
         serde_json::from_value(provenance["module_metadata"].clone())
             .map_err(|error| format!("qualification module metadata: {error}"))?;
@@ -519,6 +522,25 @@ fn authenticate_provenance_module(provenance: &serde_json::Value, module: &[u8])
         &provenance["inputs"],
         module,
     )
+}
+
+fn authenticate_artifacts(result: &QualificationResult) -> Result<(), String> {
+    for execution in &result.report.executions {
+        if let Some(path) = &execution.artifact_path {
+            let opened = crate::evidence::store::Opened::open(Path::new(path))?;
+            opened.authenticate_all()?;
+            if opened.manifest().record != execution.record {
+                return Err("qualification raw artifact record differs from Result".into());
+            }
+            authenticate_provenance_module(
+                &result.provenance,
+                &opened.payload("target/module.wasm", 512 << 20)?,
+            )?;
+        } else if result.report.failure.is_none() {
+            return Err("qualification module authentication requires retained artifact".into());
+        }
+    }
+    Ok(())
 }
 
 /// Installation-free validation: recomputes report verdicts, costs and budget
@@ -557,20 +579,8 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     let platform =
         canonical::digest(format!("{}/{}", manifest.host_os, manifest.host_arch).as_bytes());
     bind_provenance(manifest, &result.provenance)?;
+    authenticate_artifacts(result)?;
     for execution in &result.report.executions {
-        if let Some(path) = &execution.artifact_path {
-            let opened = crate::evidence::store::Opened::open(Path::new(path))?;
-            opened.authenticate_all()?;
-            if opened.manifest().record != execution.record {
-                return Err("qualification raw artifact record differs from Result".into());
-            }
-            authenticate_provenance_module(
-                &result.provenance,
-                &opened.payload("target/module.wasm", 512 << 20)?,
-            )?;
-        } else if result.report.failure.is_none() {
-            return Err("qualification module authentication requires retained artifact".into());
-        }
         let identity = &execution.record.identity;
         if identity.target != manifest.module_sha256
             || identity.toolchain != manifest.toolchain_sha256
@@ -733,11 +743,13 @@ fn publish_bytes(root: &File, name: &str, bytes: &[u8], limit: u64) -> Result<()
     let outcome = match staged {
         Ok(()) => Ok(()),
         Err(error) if error == rustix::io::Errno::EXIST.to_string() => {
-            if open::read(root, name, limit, false)? == bytes {
-                Ok(())
-            } else {
-                Err("immutable WASM qualification result collision".into())
-            }
+            open::read(root, name, limit, false).and_then(|existing| {
+                if existing == bytes {
+                    Ok(())
+                } else {
+                    Err("immutable WASM qualification result collision".into())
+                }
+            })
         }
         Err(error) => Err(error),
     };
