@@ -48,6 +48,8 @@ class StoreOwnership(unittest.TestCase):
         for steps in ([gate.step('wait','a'),gate.step('start','a')],good['steps']+[gate.step('start','b')],[gate.step('start','a'),gate.step('stop','a')]):
             bad=copy.deepcopy(good);bad['steps']=steps
             with self.assertRaises(Refusal):gate.validate_case(gate.OPERATOR,'exit',bad)
+        bad=copy.deepcopy(good);bad['steps'][0]['handle']['incarnation']=True
+        with self.assertRaises(Refusal):gate.validate_case(gate.OPERATOR,'exit',bad)
         bad=copy.deepcopy(good);bad['exit_code']=0
         with self.assertRaises(Refusal):gate.validate_case(gate.OPERATOR,'exit',bad)
 
@@ -152,7 +154,7 @@ class ClosedCatalog(unittest.TestCase):
         with self.assertRaises(Refusal):gate.validate_case(gate.SQLITE,'nonnumeric-event',dict(error='invalid SQLite history'),inputs)
 
     def test_network_limits_are_checked_for_all_actual_owners(self):
-        network=dict(profile='gomad.simulation-network-stream/v3',limits=dict(connection_bytes=123,stall_nanos=456))
+        network=dict(profile='gomad.simulation-network-stream/v3',faults=[],limits=dict(listeners=8,connections=8,bytes=1024,connection_bytes=123,stall_nanos=456,transitions=128))
         scenario=dict(spec=dict(nodes=[dict(id='a',boot='main',address='10.0.0.1'),dict(id='b',boot='main',address='10.0.0.2')],
             limits=dict(network_connection_bytes=123,network_stall_nanos=456)),
             actions=[gate.step('start','a'),gate.step('start','b'),gate.step('wait','a'),gate.step('wait','b'),

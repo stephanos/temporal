@@ -288,7 +288,9 @@ def validate_case(root, variant, observed, inputs=None):
         network = inputs['network']
         require(isinstance(network, dict) and network['profile'] == 'gomad.simulation-network-stream/v3', 'foreign selected network profile')
         expected = {'matching': (123, 456), 'byte-mismatch': (124, 456), 'stall-mismatch': (123, 457)}[variant]
-        require((network['limits']['connection_bytes'], network['limits']['stall_nanos']) == expected, 'original boot network mutation changed')
+        expected_network = dict(profile='gomad.simulation-network-stream/v3', faults=[],
+            limits=dict(listeners=8, connections=8, bytes=1024, connection_bytes=expected[0], stall_nanos=expected[1], transitions=128))
+        require(network == expected_network, 'original boot network mutation or unrelated limits changed')
         fields(o, ('configuration', 'request_incarnations', 'error', 'accepted'))
         matching = expected == (limits['network_connection_bytes'], limits['network_stall_nanos'])
         require(o['accepted'] is matching, 'mismatched selected boot network accepted')
