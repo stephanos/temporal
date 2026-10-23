@@ -379,3 +379,27 @@ fn child_lease_outlives_parent_and_defers_reclamation_without_reopening_inputs()
     assert!(!path.exists());
     assert!(ChildLease::for_path(&scratch.0).unwrap().is_none());
 }
+
+#[test]
+fn hardlinked_publication_pointer_preserves_previous_result_and_recovers() {
+    let scratch = Scratch::new();
+    let produce = || -> Result<(), String> {
+        let run = RetainedRun::begin(&scratch.0, "prototype", &BTreeMap::new(), false, &|| false)?;
+        std::fs::write(run.path().join("result"), b"complete").map_err(|e| e.to_string())?;
+        run.finish(true, &|| false)
+    };
+    produce().unwrap();
+    let previous = scratch.latest("prototype");
+    let pointer = previous.parent().unwrap().join("latest.json");
+    let linked = scratch.0.join("linked-pointer");
+    std::fs::hard_link(&pointer, &linked).unwrap();
+    assert!(
+        produce().is_err(),
+        "hardlinked publication pointer was replaced"
+    );
+    assert_eq!(scratch.latest("prototype"), previous);
+    assert_eq!(std::fs::read(previous.join("result")).unwrap(), b"complete");
+    std::fs::remove_file(linked).unwrap();
+    produce().unwrap();
+    assert_ne!(scratch.latest("prototype"), previous);
+}

@@ -327,7 +327,9 @@ fn open(root: &File, name: &OsStr, directory: bool) -> Result<File, String> {
     let opened = fs::fstat(&file).map_err(|error| error.to_string())?;
     let after =
         fs::statat(root, name, AtFlags::SYMLINK_NOFOLLOW).map_err(|error| error.to_string())?;
-    if before.st_ino != opened.st_ino
+    if (name == OsStr::new("latest.json")
+        && (before.st_nlink != 1 || opened.st_nlink != 1 || after.st_nlink != 1))
+        || before.st_ino != opened.st_ino
         || before.st_dev != opened.st_dev
         || after.st_ino != opened.st_ino
         || after.st_dev != opened.st_dev

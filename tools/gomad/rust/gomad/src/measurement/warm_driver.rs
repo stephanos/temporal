@@ -254,6 +254,7 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
             workloads::execute(call, proof, root, &row, &executable, &input)
         })?
     };
+    workloads::success(&prime, &row)?;
     if prime.root.outcome["termination"] != "exit" || prime.root.outcome["exit_code"] != 0 {
         return Err("native priming workload did not exit successfully".into());
     }
@@ -283,6 +284,13 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
                         .into(),
                 );
             }
+            workloads::selected_workload_witness(
+                run.root
+                    .streams
+                    .get("stdout")
+                    .ok_or("native terminal stdout absent")?,
+                WORKFLOW,
+            )?;
             evidence::compare(&observations[0], run, evidence::ComparisonMask::Exact)?;
             let label = if index == 0 {
                 "prime".into()
@@ -400,7 +408,9 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
         }
         row.name = format!("warm-{index}");
         host::with_warm_preparation(&root.join("host"), &row.name, &call.environ, || {
-            workloads::execute(call, proof, root, &row, &executable, &input)
+            let observed = workloads::execute(call, proof, root, &row, &executable, &input)?;
+            workloads::success(&observed, &row)?;
+            Ok(observed)
         })
     })?;
     let path = root.join(if call.name == "warm-preparation-prime" {

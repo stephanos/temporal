@@ -699,6 +699,33 @@ pub(super) fn execute(
         )),
     }
 }
+pub(super) fn selected_workload_witness(stdout: &[u8], selection: &str) -> Result<(), String> {
+    if selection == "runtime" {
+        return Ok(());
+    }
+    let test = selection
+        .split('/')
+        .next()
+        .unwrap_or("")
+        .trim_matches(['^', '$']);
+    let text = String::from_utf8_lossy(stdout);
+    for witness in [format!("=== RUN   {test}"), format!("--- PASS: {test}")] {
+        if !text.contains(&witness) {
+            return Err(format!(
+                "actual selected suite success witness absent: {witness}"
+            ));
+        }
+    }
+    if selection == "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"
+        && !text.contains("TestPlainASCII/Succeeds")
+    {
+        return Err(
+            "actual selected workflow success witness absent: TestPlainASCII/Succeeds".into(),
+        );
+    }
+    Ok(())
+}
+
 pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     if run.root.outcome["termination"] != "exit" || run.root.outcome["exit_code"] != 0 {
         return Err(format!(
@@ -723,28 +750,14 @@ pub(super) fn success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
     {
         return Err("validated native authorization-to-terminal boundary unavailable".into());
     }
-    if !row.prepare && row.selection != "runtime" {
-        let test = row
-            .selection
-            .split('/')
-            .next()
-            .unwrap_or("")
-            .trim_matches(['^', '$']);
-        let witness = format!("=== RUN   {test}");
-        let stdout = run
-            .root
-            .streams
-            .get("stdout")
-            .ok_or("native guest stdout absent")?;
-        if !stdout
-            .windows(witness.len())
-            .any(|part| part == witness.as_bytes())
-        {
-            return Err(format!(
-                "{}: actual selected suite did not execute: {witness}",
-                row.name
-            ));
-        }
+    if !row.prepare {
+        selected_workload_witness(
+            run.root
+                .streams
+                .get("stdout")
+                .ok_or("native guest stdout absent")?,
+            &row.selection,
+        )?;
     }
     Ok(())
 }
@@ -1466,3 +1479,7 @@ fn migration_success(run: &NativeRun, row: &RunSpec) -> Result<(), String> {
 #[cfg(test)]
 #[path = "workloads_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "workloads_witness_tests.rs"]
+mod witness_tests;
