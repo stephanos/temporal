@@ -847,3 +847,103 @@ fn poisoned_selected_cache_never_publishes_launcher_records_in_either_root() {
     }
     fs::remove_dir_all(root).unwrap();
 }
+
+fn cache_installation(root: &Path, cache: &Path) -> PathBuf {
+    let profile = "gomad.wasi-stock-exploratory/v1";
+    let configured = crate::install::config::build(profile, None, None).unwrap();
+    let compiler = root.join("unavailable-go/bin/go");
+    let compiler_inputs = BTreeMap::from([(compiler.clone(), "3".repeat(64))]);
+    let value = json!({
+        "schema":"gomad.rust-wasm-installation/v1", "compiler_path":compiler,
+        "compiler_sha256":"3".repeat(64), "go_version":"go1.27.1", "runtime_root":"",
+        "cache_root":root.join("unavailable-preparation"), "profile":profile,
+        "fuel":1000, "memory_bytes":1<<20, "helper_sha256":gomad_wasmhost::linked::IMPLEMENTATION_SHA256,
+        "host_sha256":env!("GOMAD_HOST_IMPLEMENTATION_SHA256"), "runtime_implementation_sha256":null,
+        "model":configured.model, "namespace":configured.namespace, "storage":configured.storage,
+        "network":configured.network, "build_tags":[],
+        "admission":{
+            "compiler_inputs":compiler_inputs, "inputs_sha256":canonical::digest(&canonical::encode(&compiler_inputs).unwrap()),
+            "guest_configuration":configured.original, "configuration_sha256":canonical::digest(&canonical::encode(&configured.original).unwrap()),
+            "host_executable_sha256":canonical::digest(&fs::read(std::env::current_exe().unwrap()).unwrap()),
+            "explicit_helper":null, "environment":configured.environment, "arguments":configured.arguments,
+            "compile_cache_root":cache
+        }
+    });
+    let path = root.join("installation.json");
+    fs::write(&path, canonical::encode(&value).unwrap()).unwrap();
+    path
+}
+
+#[test]
+fn receipt_admission_restores_authenticated_selected_cache_and_detached_receipt_does_not() {
+    let root = std::env::temp_dir().join(format!(
+        "gomad-receipt-cache-{}",
+        origin::identity().unwrap()
+    ));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    let cache = root.join("engine-cache");
+    let installation = cache_installation(&root, &cache);
+    let selected = crate::install::manifest::resolve(Some(&installation)).unwrap();
+    let mut invocation = invocation();
+    invocation.installation_sha256 = selected.sha256;
+    let module = br#"(module (memory (export "memory") 1) (func (export "_start")))"#.to_vec();
+    let prepared = prepared_module_with_wall("receipt", &invocation, module.clone(), 10_000);
+    let mut ignored = false;
+    let mut options =
+        super::super::explore::parse(&["go-run".into(), "fixture".into()], &mut ignored).unwrap();
+    options.artifacts = root.join("original");
+    let retained = preparation::retain_admitted(&options, prepared).unwrap();
+    let (receipt, _, digest) = retained
+        .publish(&root.join("plan.json"), vec!["run-guest".into()])
+        .unwrap();
+    assert!(
+        preparation::open_receipt(&receipt, &digest)
+            .unwrap()
+            .1
+            .compile_cache_root
+            .is_none()
+    );
+    let arguments = Arguments {
+        module: root.join("retained.wasm"),
+        argv: Vec::new(),
+        seeds: Some("1".into()),
+        artifacts: Some(root.join("admitted")),
+        json: true,
+    };
+    let mut deadline = Deadline::new();
+    let admitted = admit_receipt(
+        &arguments,
+        Some(&installation),
+        &module,
+        receipt.as_os_str(),
+        &digest,
+        &mut deadline,
+    )
+    .unwrap();
+    assert_eq!(
+        admitted.prepared.compile_cache_root.as_deref(),
+        cache.to_str()
+    );
+    assert!(
+        preparation::open_receipt(&receipt, &digest)
+            .unwrap()
+            .1
+            .compile_cache_root
+            .is_none()
+    );
+    let mut changed = arguments;
+    changed.argv.push("changed".into());
+    assert!(
+        admit_receipt(
+            &changed,
+            Some(&installation),
+            &module,
+            receipt.as_os_str(),
+            &digest,
+            &mut deadline
+        )
+        .is_err()
+    );
+    fs::remove_dir_all(root).unwrap();
+}

@@ -309,7 +309,25 @@ fn admit_retained(
 ) -> Result<Admitted, String> {
     let digest = std::env::var("GOMAD_PREPARATION_RECEIPT_SHA256")
         .map_err(|_| "run-guest requires prepared receipt digest")?;
-    let (_, mut prepared) = preparation::open_receipt(Path::new(receipt_path), &digest)?;
+    admit_receipt(
+        arguments,
+        installation,
+        module,
+        receipt_path,
+        &digest,
+        deadline,
+    )
+}
+
+fn admit_receipt(
+    arguments: &Arguments,
+    installation: Option<&Path>,
+    module: &[u8],
+    receipt_path: &OsStr,
+    digest: &str,
+    deadline: &mut Deadline,
+) -> Result<Admitted, String> {
+    let (_, mut prepared) = preparation::open_receipt(Path::new(receipt_path), digest)?;
     let origin = origin::from_preparation(&prepared)?
         .ok_or("run-guest requires intercepted preparation origin")?;
     let selected = crate::install::manifest::resolve(installation)?;
@@ -321,7 +339,8 @@ fn admit_retained(
             "standalone module, arguments or installation differ from the prepared receipt".into(),
         );
     }
-    origin::renew_launch(&mut prepared, digest)?;
+    prepared.compile_cache_root = crate::campaign::prepare::compile_cache_root(&selected.manifest)?;
+    origin::renew_launch(&mut prepared, digest.to_owned())?;
     let mut ignored = false;
     let mut options = super::explore::parse(
         &[
