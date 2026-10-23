@@ -235,7 +235,13 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
     let module_sha = canonical::digest(&prepared.guest.module);
     let mut row = RunSpec::new("prime", WORKFLOW, 0, "diagnostic");
     row.warm = false;
-    let prime = workloads::execute(call, proof, root, &row, &executable, &input)?;
+    let prime = if terminal {
+        workloads::execute(call, proof, root, &row, &executable, &input)?
+    } else {
+        host::with_warm_preparation(&root.join("host"), &row.name, &call.environ, || {
+            workloads::execute(call, proof, root, &row, &executable, &input)
+        })?
+    };
     if prime.root.outcome["termination"] != "exit" || prime.root.outcome["exit_code"] != 0 {
         return Err("native priming workload did not exit successfully".into());
     }
@@ -370,7 +376,9 @@ pub fn run(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Path
             return primed.take().ok_or_else(|| "warmup consumed twice".into());
         }
         row.name = format!("warm-{index}");
-        workloads::execute(call, proof, root, &row, &executable, &input)
+        host::with_warm_preparation(&root.join("host"), &row.name, &call.environ, || {
+            workloads::execute(call, proof, root, &row, &executable, &input)
+        })
     })?;
     let path = root.join(if call.name == "warm-preparation-prime" {
         "warm-prime.json"

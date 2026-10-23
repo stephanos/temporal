@@ -12,6 +12,7 @@ use std::{
     time::Duration,
 };
 pub const CPUINFO_LIMIT: u64 = 1 << 20;
+const MEMINFO_LIMIT: u64 = 8 << 10;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct HostWitness {
@@ -344,33 +345,40 @@ fn memory_decimal(value: &str) -> Result<u64, String> {
 /// # Errors
 /// Refuses missing, malformed, duplicate or overflowing available-memory values.
 pub fn linux_available_memory(raw: &str) -> Result<u64, String> {
+    if raw.len() as u64 > MEMINFO_LIMIT {
+        return Err("MemAvailable host witness exceeds byte bound".into());
+    }
     let mut available = None;
-    for line in raw.lines() {
-        if let Some((key, value)) = line.split_once(':')
-            && key == "MemAvailable"
-        {
-            if available.is_some() {
-                return Err("unique MemAvailable host witness required".into());
-            }
-            let fields = value.split_whitespace().collect::<Vec<_>>();
-            if fields.len() != 2
-                || fields[1] != "kB"
-                || !fields[0].bytes().all(|byte| byte.is_ascii_digit())
-            {
-                return Err("MemAvailable kB host witness required".into());
-            }
-            available = Some(
-                memory_decimal(fields[0])?
-                    .checked_mul(1024)
-                    .ok_or("MemAvailable byte overflow")?,
-            );
+    for line in raw.split('\n') {
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        let Some(first) = fields.first() else {
+            continue;
+        };
+        let key = first.split_once(':').map_or(*first, |(key, _)| key);
+        if !key.eq_ignore_ascii_case("MemAvailable") {
+            continue;
         }
+        if available.is_some()
+            || *first != "MemAvailable:"
+            || fields.len() != 3
+            || fields[2] != "kB"
+        {
+            return Err("unique exact MemAvailable field in kB required".into());
+        }
+        available = Some(
+            memory_decimal(fields[1])?
+                .checked_mul(1024)
+                .ok_or("MemAvailable byte overflow")?,
+        );
     }
     available.ok_or_else(|| "MemAvailable host witness required".into())
 }
 /// # Errors
 /// Refuses missing, malformed, duplicate or overflowing available-page values.
 pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
+    if raw.len() as u64 > CPUINFO_LIMIT {
+        return Err("vm_stat host witness exceeds byte bound".into());
+    }
     let (header, rest) = raw.split_once('\n').ok_or("vm_stat header required")?;
     let page_size = memory_decimal(
         header
@@ -382,16 +390,13 @@ pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
         return Err("vm_stat positive page size required".into());
     }
     let mut values = BTreeMap::new();
-    for line in rest.lines() {
-        if let Some((key, value)) = line.split_once(':')
-            && matches!(key, "Pages free" | "Pages inactive")
-            && values
-                .insert(
-                    key,
-                    memory_decimal(value.trim().strip_suffix('.').unwrap_or(value.trim()))?,
-                )
-                .is_some()
-        {
+    for line in rest.split('\n') {
+        let (key, value) = line.split_once(':').unwrap_or((line, ""));
+        if !matches!(key, "Pages free" | "Pages inactive") {
+            continue;
+        }
+        let count = memory_decimal(value.trim().strip_suffix('.').unwrap_or(value.trim()))?;
+        if values.insert(key, count).is_some() {
             return Err("unique vm_stat available page counts required".into());
         }
     }
@@ -403,33 +408,37 @@ pub fn darwin_available_memory(raw: &str) -> Result<u64, String> {
         .and_then(|pages| pages.checked_mul(page_size))
         .ok_or_else(|| "vm_stat available memory overflow".into())
 }
-/// # Errors
-/// Refuses unsupported preparation modes, insufficient memory or unavailable host evidence.
-pub fn admit_preparation(
+fn memory_witness(
     root: &Path,
     label: &str,
-    mode: &str,
+    platform: &str,
     environ: &[String],
-) -> Result<(), String> {
-    if mode.is_empty() {
-        return Ok(());
-    }
-    if mode != "1" {
-        return Err("cold-memory guard must be explicitly enabled with 1".into());
-    }
-    let available = match std::env::consts::OS {
+) -> Result<String, String> {
+    match os(platform) {
         "linux" => {
-            let bytes = read(Path::new("/proc/meminfo"), CPUINFO_LIMIT)?;
+            let bytes = read(Path::new("/proc/meminfo"), MEMINFO_LIMIT)?;
             let mut inputs = BTreeMap::new();
             save(root, &format!("{label}-meminfo.txt"), &bytes, &mut inputs)?;
-            linux_available_memory(std::str::from_utf8(&bytes).map_err(|error| error.to_string())?)?
+            String::from_utf8(bytes).map_err(|error| error.to_string())
         }
-        "macos" => darwin_available_memory(&probe(
+        "macos" => probe(
             root,
             &format!("{label}-vm-stat"),
             &environment(environ),
             &["vm_stat"],
-        )?)?,
+        ),
+        _ => Err("cold-memory guard requires actual procfs or Darwin vm_stat witness".into()),
+    }
+}
+
+fn preparation_admitted<T>(
+    platform: &str,
+    witness: impl FnOnce() -> Result<String, String>,
+    dispatch: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    let available = match os(platform) {
+        "linux" => linux_available_memory(&witness()?)?,
+        "macos" => darwin_available_memory(&witness()?)?,
         _ => {
             return Err(
                 "cold-memory guard requires actual procfs or Darwin vm_stat witness".into(),
@@ -441,5 +450,49 @@ pub fn admit_preparation(
             "at least 8GiB available memory required before matched preparation dispatch".into(),
         );
     }
-    Ok(())
+    dispatch()
+}
+
+fn matched_preparation_admitted<T>(
+    platform: &str,
+    mode: &str,
+    witness: impl FnOnce() -> Result<String, String>,
+    dispatch: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    if mode.is_empty() {
+        return dispatch();
+    }
+    if mode != "1" || platform != "linux" {
+        return Err("explicit matched memory admission requires mode 1 on Linux".into());
+    }
+    preparation_admitted(platform, witness, dispatch)
+}
+
+/// # Errors
+/// Refuses unsupported preparation modes, insufficient memory or unavailable host evidence.
+pub fn admit_preparation(
+    root: &Path,
+    label: &str,
+    mode: &str,
+    environ: &[String],
+) -> Result<(), String> {
+    matched_preparation_admitted(
+        std::env::consts::OS,
+        mode,
+        || memory_witness(root, label, std::env::consts::OS, environ),
+        || Ok(()),
+    )
+}
+
+pub(super) fn with_warm_preparation<T>(
+    root: &Path,
+    label: &str,
+    environ: &[String],
+    dispatch: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    preparation_admitted(
+        std::env::consts::OS,
+        || memory_witness(root, label, std::env::consts::OS, environ),
+        dispatch,
+    )
 }
