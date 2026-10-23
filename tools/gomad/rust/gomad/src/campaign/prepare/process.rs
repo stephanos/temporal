@@ -36,41 +36,35 @@ impl Drop for Temporary {
 }
 
 pub(crate) fn environment() -> Result<BTreeMap<String, String>, String> {
+    controlled_environment(std::env::vars_os())
+}
+
+fn controlled_environment(
+    entries: impl IntoIterator<Item = (std::ffi::OsString, std::ffi::OsString)>,
+) -> Result<BTreeMap<String, String>, String> {
     let mut values = BTreeMap::new();
-    for (name, value) in std::env::vars_os() {
+    for (name, value) in entries {
         let name = name
             .into_string()
             .map_err(|_| failure("compiler environment name is not UTF-8"))?;
-        if matches!(
+        let value = value
+            .into_string()
+            .map_err(|_| failure("compiler environment value is not UTF-8"))?;
+        // Only explicitly controlled compiler inputs reach the child or its observations.
+        if !matches!(
             name.as_str(),
-            "GOROOT"
-                | "GOENV"
-                | "GOFLAGS"
-                | "GOTOOLCHAIN"
-                | "GOWORK"
-                | "GOOS"
-                | "GOARCH"
-                | "CGO_ENABLED"
-                | "GOEXPERIMENT"
-                | "GOMADSEED"
-                | "GOMAD_CHILD_SEED"
-                | "GOCACHE"
-                | "GOCACHEPROG"
-                | "GOWASM"
-                | "GODEBUG"
+            "PATH"
+                | "TMPDIR"
+                | "HOME"
+                | "GOPATH"
+                | "GOMODCACHE"
+                | "XDG_CACHE_HOME"
+                | "GOMAXPROCS"
+                | "GOTMPDIR"
         ) {
             continue;
         }
-        #[cfg(feature = "determinism-fixture")]
-        if name.starts_with("GOMAD_FIXTURE_") {
-            continue;
-        }
-        values.insert(
-            name,
-            value
-                .into_string()
-                .map_err(|_| failure("compiler environment value is not UTF-8"))?,
-        );
+        values.insert(name, value);
     }
     for (name, value) in [
         ("GOENV", "off"),
@@ -102,6 +96,30 @@ pub(crate) fn check_deadline(deadline: Instant) -> Result<(), String> {
     Ok(())
 }
 
+pub(crate) struct ObservedCommand {
+    pub argv: Vec<String>,
+    pub cwd: PathBuf,
+    pub environment: BTreeMap<String, String>,
+    pub owner_pid: u32,
+    pub pid: u32,
+    pub start_ns: u64,
+    pub end_ns: u64,
+    pub exit: i32,
+    pub output_limit: u64,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+}
+
+fn observed_time() -> Result<u64, String> {
+    u64::try_from(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(failure)?
+            .as_nanos(),
+    )
+    .map_err(failure)
+}
+
 pub(crate) fn command(
     compiler: &Path,
     args: &[String],
@@ -111,6 +129,27 @@ pub(crate) fn command(
     limit: u64,
     deadline: Instant,
 ) -> Result<Vec<u8>, String> {
+    observed_command(
+        compiler,
+        args,
+        directory,
+        environment,
+        scratch,
+        limit,
+        deadline,
+    )
+    .map(|command| command.stdout)
+}
+
+pub(crate) fn observed_command(
+    compiler: &Path,
+    args: &[String],
+    directory: &Path,
+    environment: &BTreeMap<String, String>,
+    scratch: &Path,
+    limit: u64,
+    deadline: Instant,
+) -> Result<ObservedCommand, String> {
     use std::os::unix::process::CommandExt as _;
     check_deadline(deadline)?;
     let stdout = scratch.join("command.stdout");
@@ -123,6 +162,7 @@ pub(crate) fn command(
             .open(path)
             .map_err(failure)
     };
+    let start_ns = observed_time()?;
     let child = Command::new(compiler)
         .args(args)
         .current_dir(directory)
@@ -146,9 +186,27 @@ pub(crate) fn command(
                     String::from_utf8_lossy(&super::read(&stderr, limit)?)
                 )));
             }
-            let output = super::read(&stdout, limit);
+            let output = super::read(&stdout, limit)?;
+            let errors = super::read(&stderr, limit)?;
+            let end_ns = observed_time()?;
             check_deadline(deadline)?;
-            return output;
+            return Ok(ObservedCommand {
+                argv: std::iter::once(compiler.to_string_lossy().into_owned())
+                    .chain(args.iter().cloned())
+                    .collect(),
+                cwd: directory.into(),
+                environment: environment.clone(),
+                owner_pid: std::process::id(),
+                pid: child.id(),
+                start_ns,
+                end_ns,
+                exit: status
+                    .code()
+                    .ok_or_else(|| failure("successful compiler command lacks exit code"))?,
+                output_limit: limit,
+                stdout: output,
+                stderr: errors,
+            });
         }
         let overflow = fs::metadata(&stdout).map_err(failure)?.len() > limit
             || fs::metadata(&stderr).map_err(failure)?.len() > limit;
@@ -179,5 +237,47 @@ impl Drop for Child {
         }
         let _ = self.0.kill();
         let _ = self.0.wait();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn receiving_compiler_environment_is_exact_controlled_map_without_unrelated_host_values() {
+        let raw = [
+            ("PATH", "/compiler/bin"),
+            ("HOME", "/compiler/home"),
+            ("GOMODCACHE", "/frozen/modules"),
+            ("TMPDIR", "/private/tmp"),
+            ("GOFLAGS", "-race"),
+            ("GOWASM", "satconv,signext"),
+            ("GODEBUG", "foreign"),
+            ("SECRET_TOKEN", "must-never-reach-compiler-or-receipt"),
+        ];
+        let actual =
+            controlled_environment(raw.map(|(key, value)| (key.into(), value.into()))).unwrap();
+        assert_eq!(actual["PATH"], "/compiler/bin");
+        assert_eq!(actual["HOME"], "/compiler/home");
+        assert_eq!(actual["GOMODCACHE"], "/frozen/modules");
+        assert_eq!(actual["TMPDIR"], "/private/tmp");
+        for key in ["GOFLAGS", "GOWASM", "GODEBUG", "GOCACHEPROG"] {
+            assert_eq!(actual[key], "");
+        }
+        assert_eq!(actual["GOOS"], "wasip1");
+        assert_eq!(actual["GOARCH"], "wasm");
+        assert!(!actual.contains_key("SECRET_TOKEN"));
+        assert_eq!(actual.len(), 20);
+    }
+    #[test]
+    fn receiving_compiler_environment_preserves_inherited_utf8_refusal_without_logging_value() {
+        use std::os::unix::ffi::OsStringExt as _;
+        let error = controlled_environment([(
+            std::ffi::OsString::from("SECRET_TOKEN"),
+            std::ffi::OsString::from_vec(vec![255]),
+        )])
+        .unwrap_err();
+        assert!(error.contains("not UTF-8"));
+        assert!(!error.contains("SECRET_TOKEN"));
     }
 }

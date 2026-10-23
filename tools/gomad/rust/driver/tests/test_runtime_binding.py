@@ -54,6 +54,8 @@ class RuntimePreparationBinding(unittest.TestCase):
         self.provenance = dict(schema='gomad.rust-wasm-provenance/v1',inputs=inputs,configuration=configuration,network=None,scenario=None,
             module_metadata=inputs['module_metadata'],module_sha256=receiving.digest(self.module))
         self.reseal()
+        from preparation_fixture import complete
+        self.sidecar = complete(self)
 
     def reseal(self):
         p = self.provenance
@@ -67,13 +69,13 @@ class RuntimePreparationBinding(unittest.TestCase):
             seed=3*1000003,profile=p['configuration']['profile'],arguments=p['configuration']['arguments'],environment=p['configuration']['environment'],limits=p['configuration']['limits'])
 
     def validate(self):
-        receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module,3)
+        receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module,3,self.sidecar,1234)
 
     def test_genuine_preparation_and_all_seed_bounds(self):
         self.validate()
         for index in (-1,32,True):
             with self.subTest(index=index), self.assertRaises(driver.Refusal):
-                receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module,index)
+                receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module,index,self.sidecar,1234)
 
     def test_self_consistent_foreign_source_compiler_or_configuration_refuses(self):
         original = copy.deepcopy(self.provenance)
@@ -98,7 +100,7 @@ class RuntimePreparationBinding(unittest.TestCase):
             with self.subTest(identity=field), self.assertRaises(driver.Refusal): self.validate()
         self.record = original
         with self.assertRaises(driver.Refusal):
-            receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module+b'\0',3)
+            receiving.Retained(self.config).runtime_preparation(self.installation,self.provenance,self.record,self.module+b'\0',3,self.sidecar,1234)
 
     def test_all_native_forced_build_environment_controls_are_bound(self):
         original = copy.deepcopy(self.provenance)

@@ -14,6 +14,7 @@ import sys
 import adapters
 import sqlite
 import receiving_cost
+import preparation
 from driver import Refusal, Unexecuted, configured, guard, load_module, read, require, sha
 
 
@@ -411,6 +412,9 @@ class Retained:
         self.config = config
         self.root = Path(config['root'])
         self.commands = {}
+        self.preparations = {}
+        self.pending_preparations = []
+        self.source_pins = {}
         self.adapter = cloned(adapters, dict(command=self.command, write=self.write))
 
     def contained(self, path):
@@ -423,8 +427,9 @@ class Retained:
         self.contained(path)
         require(read(regular(path)) == value, 'retained recomputation differs: ' + str(path))
 
-    def command(self, config, root, name, argv, accepted=(0,), timeout=None):
+    def command(self, config, root, name, argv, accepted=(0,), timeout=None, private_observations=None):
         require(config == self.config, 'foreign receiving configuration')
+        require(private_observations is None or private_observations == config,'foreign native observation capture context')
         root = self.contained(root)
         row = read(regular(root/(name+'.command.json')))
         process = read(regular(root/(name+'.process.json')))
@@ -457,6 +462,9 @@ class Retained:
                     'raw nested command streams/argv changed')
         key = str(root/(name+'.command.json'))
         self.commands[key] = row
+        if private_observations is not None:
+            require('private_observations' in row,'native command lacks required actual preparation capture')
+        self.capture_preparations(row)
         if 'report' in argv and '--result' in argv:
             self.result(Path(argv[argv.index('--result')+1]), decoded(stdout))
         if 'inspect' in argv and '--json' in argv:
@@ -488,6 +496,115 @@ class Retained:
             require(name in manifest['files'] and all(stream[field] == manifest['files'][name][field]
                     for field in ('bytes','sha256')), 'record stream/payload mismatch: '+name)
         return manifest
+
+    def capture_preparations(self, row):
+        seal = row.get('private_observations')
+        if seal is None:
+            return
+        require(set(seal) == {'source_sha256','binary_sha256','campaigns'} and seal['source_sha256'] == self.config['source_sha256']
+                and seal['binary_sha256'] == self.config['binary_sha256'] and row['argv'][0] == self.config['binary'],
+                'native preparation outer seal belongs to foreign candidate/source')
+        require(row['argv'].count('--installation') == 1,'native preparation actual installation lookup is not explicit')
+        installation_path = argument(row['argv'],'--installation')
+        campaign_set = frozenset(item['path'] for item in seal['campaigns'])
+        seen = set()
+        for campaign in seal['campaigns']:
+            require(set(campaign) == {'path','receipt_path','receipt_sha256','files'} and campaign['path'] not in seen,
+                    'native preparation outer campaign duplicate/shape mismatch')
+            seen.add(campaign['path'])
+            path = self.contained(Path(campaign['path']))
+            sidecar = path/'preparation-observations'
+            require(campaign['receipt_path'] == str(sidecar/'receipt.json'), 'native preparation receipt belongs to another campaign')
+            receipt_path = regular(sidecar/'receipt.json')
+            require(receipt_path.stat().st_size <= 16<<20 and sha(receipt_path) == campaign['receipt_sha256'],
+                    'native preparation receipt differs from actual command observation')
+            raw = receipt_path.read_bytes();receipt = decoded(raw,object_pairs_hook=unique)
+            fields = {'schema','owner_pid','host_sha256','helper_sha256','prepared_record_sha256','module_sha256','provenance_sha256','build_key','compiler_sha256','sources_sha256','files'}
+            require(raw == canonical(receipt) and set(receipt) == fields and receipt['schema'] == 'gomad.native-preparation-observation-receipt/v1'
+                    and type(receipt['owner_pid']) is int and receipt['owner_pid'] == row['pid']
+                    and all(receipt[key+'_sha256'] == value for key,value in self.config['identity'].items()),
+                    'native preparation receipt/current actual command owner mismatch')
+            require(0 < len(receipt['files']) <= 32,'native preparation exact bounded raw file table missing')
+            files = {}
+            directories = {sidecar:{'receipt.json'}}
+            for name,entry in receipt['files'].items():
+                require(name.startswith('target/preparation-inputs/') and not Path(name).is_absolute() and '..' not in Path(name).parts
+                        and set(entry) == {'bytes','sha256'} and type(entry['bytes']) is int and 0 <= entry['bytes'] <= 128<<20,
+                        'native preparation unsafe/oversized raw file table')
+                target = regular(sidecar/name)
+                require(target.stat().st_nlink == 1 and target.stat().st_mode & 0o077 == 0 and target.stat().st_size == entry['bytes']
+                        and sha(target) == entry['sha256'],'native preparation raw sidecar file changed')
+                files[str(target)] = entry['sha256']
+                for child in (target,*target.parents):
+                    if child == sidecar: break
+                    directories.setdefault(child.parent,set()).add(child.name)
+            require(files == campaign['files'],'native preparation exact outer-sealed raw file set differs')
+            for directory,children in directories.items():
+                require({child.name for child in directory.iterdir()} == children,'native preparation sidecar has unsealed extra/missing entries')
+            plan = read(regular(path/'plan.json'))
+            prepared_plan = plan.get('prepared',plan)
+            reference = prepared_plan['prepared_artifact']
+            require(not Path(reference).is_absolute() and '..' not in Path(reference).parts,'unsafe native prepared artifact reference')
+            prepared_path = path/reference
+            prepared = self.artifact(prepared_path)
+            provenance_path = regular(prepared_path/'target/provenance.json')
+            provenance = read(provenance_path)
+            expected = self.provenance(dict(provenance=provenance))
+            configuration = provenance['configuration']
+            identity = dict(target=expected['module_sha256'],toolchain=expected['toolchain_sha256'],configuration=expected['host_config_sha256'],
+                            implementation=digest(canonical(self.config['identity'])),platform=runtime_platform())
+            record = prepared['record']
+            require(record['identity'] == identity and record['execution_identity'] == digest(canonical(identity))
+                    and record['schema'] == 'gomad.execution-record/v2' and record['seed'] == 0 and record['virtual_time_nanos'] == 0
+                    and record['outcome'] == dict(termination='prepared',exit_code=None,reason='',**{'class':'prepared'})
+                    and all(record[key] == configuration[key] for key in ('profile','arguments','environment','limits')),
+                    'native prepared canonical record role/configuration/outcome changed')
+            replay = read(regular(prepared_path/'evidence/replay.json'))
+            require(replay == dict(schema='gomad.replay-inputs/v1',helper_sha256=self.config['identity']['helper'],host_sha256=self.config['identity']['host'],
+                    toolchain_sha256=provenance['build_key'],runtime_implementation_sha256=provenance['inputs']['runtime_implementation'],configuration=configuration),
+                    'native prepared replay preimage differs from actual provenance')
+            require(prepared['record_sha256'] == receipt['prepared_record_sha256']
+                    and sha(regular(prepared_path/'target/module.wasm')) == receipt['module_sha256'] == provenance['module_sha256']
+                    and sha(provenance_path) == receipt['provenance_sha256'] and provenance['build_key'] == receipt['build_key']
+                    and digest(canonical(provenance['inputs']['compiler'])) == receipt['compiler_sha256']
+                    and digest(canonical(provenance['inputs']['sources'])) == receipt['sources_sha256'],
+                    'native preparation receipt stable prepared input commitments changed')
+            value = dict(sidecar=sidecar,receipt=receipt,provenance=provenance,installation_path=installation_path,campaigns=campaign_set)
+            previous = self.preparations.get(str(path))
+            require(previous is None or previous == value,'native preparation campaign borrowed conflicting observed producers')
+            self.preparations[str(path)] = value
+
+    def prepared_observation(self, campaign, provenance):
+        value = self.preparations.get(str(campaign))
+        if value is None: raise Unexecuted('native preparation lacks actual outer command observation seal')
+        require(value['provenance'] == provenance,'native execution borrowed different prepared provenance')
+        return value['sidecar'],value['receipt']['owner_pid']
+
+    def verify_pending_preparations(self):
+        # Called for every successful public final endpoint; historical raw-report
+        # validation alone cannot qualify a source whose preparation is unobserved.
+        pins = dict(self.config['files'])
+        for path,value in self.source_pins.items():
+            require(path not in pins or pins[path] == value,'materialized source conflicts with frozen source')
+            pins[path] = value
+        inventory = preparation.Inventory(dict(self.config,files=pins))
+        for campaign,provenance,owner,campaigns in self.pending_preparations:
+            sidecar,observed_owner = self.prepared_observation(campaign,provenance)
+            observed = self.preparations[str(campaign)]
+            require(observed_owner == owner and observed['campaigns'] == campaigns,
+                    'native qualification complete producer/campaign set differs from Result')
+            installation = read(regular(observed['installation_path']))
+            inputs = provenance['inputs']
+            require(installation['profile'] == provenance['configuration']['profile']
+                    and installation['compiler_path'] == inputs['compiler_path'] and installation['compiler_sha256'] == inputs['compiler_sha256']
+                    and installation['runtime_implementation_sha256'] == inputs['runtime_implementation']
+                    and installation['admission']['host_executable_sha256'] == self.config['binary_sha256']
+                    and all(installation[key+'_sha256'] == value for key,value in self.config['identity'].items())
+                    and all(self.config['files'].get(path) == value for path,value in installation['admission']['compiler_inputs'].items())
+                    and all(installation['admission']['compiler_inputs'].get(path) == value for path,value in inputs['compiler'].items()),
+                    'native qualification actual installation/complete compiler inventory differs')
+            inventory.project(sidecar,installation,inputs,owner_pid=owner)
+        self.pending_preparations.clear()
 
     def provenance(self, result):
         provenance = result['provenance']
@@ -643,9 +760,12 @@ class Retained:
             replay = execution['replay']
             require(replay and replay['attempted'] is True and replay['matched'] is True
                     and replay['divergence'] is None and replay['choice_replay'] == ('exact' if manifest['profile'] == 'cooperative' else 'none'), 'incomplete full-tape Result replay')
+        campaigns = frozenset(execution['campaign_path'] for execution in executions)
+        self.pending_preparations.extend((Path(execution['campaign_path']),result['provenance'],
+            result['observations']['operator_process_id'],campaigns) for execution in executions)
         return result
 
-    def runtime_preparation(self, installation, provenance, record, module, index):
+    def runtime_preparation(self, installation, provenance, record, module, index, sidecar=None, owner_pid=None):
         require(type(index) is int and 0 <= index < 32,'runtime original seed index outside exact coverage')
         self.installed(installation,installation['admission']['guest_configuration'],4_000_000_000,256<<20)
         adapters.runtime_installation(installation)
@@ -677,6 +797,8 @@ class Retained:
                 and all(self.config['files'].get(path) == value for path,value in inputs['sources'].items())
                 and all(installation['admission']['compiler_inputs'].get(path) == value for path,value in inputs['compiler'].items()),
                 'runtime raw source/compiler inventory is not frozen')
+        if sidecar is None: raise Unexecuted('runtime requires sealed raw native preparation observations')
+        preparation.Inventory(self.config).project(sidecar,installation,inputs,owner_pid=owner_pid)
         require(digest(module) == provenance['module_sha256'] and module_metadata(module) == provenance['module_metadata'],
                 'runtime raw module differs from preparation')
         identity = dict(target=expected['module_sha256'],toolchain=expected['toolchain_sha256'],
@@ -695,13 +817,16 @@ class Retained:
             report = read(root/'runtime.json')
             require(not paths.intersection(report['artifacts']), 'runtime shards borrowed artifacts')
             paths.update(report['artifacts'])
-            for artifact in report['artifacts']:
+            for number,artifact in enumerate(report['artifacts']):
                 campaign = next((path for path in Path(artifact).parents if path.parent.name == 'campaigns'),None)
                 require(campaign is not None,'runtime campaign root missing')
                 manifest = self.artifact(Path(artifact))
+                provenance = read(regular(Path(artifact)/'target/provenance.json'))
+                sidecar,owner_pid = self.prepared_observation(campaign,provenance)
+                require(owner_pid == read(root/(f'record-{number:02}.command.json'))['pid'],'runtime preparation borrowed another original command')
+                require(self.preparations[str(campaign)]['campaigns'] == frozenset([str(campaign)]),'runtime producer preparation campaign set is incomplete or extra')
                 self.runtime_preparation(read(self.config['installations'][self.config['stages'][label]['installation']]),
-                    read(regular(Path(artifact)/'target/provenance.json')),manifest['record'],
-                    regular(Path(artifact)/'target/module.wasm').read_bytes(),index)
+                    provenance,manifest['record'],regular(Path(artifact)/'target/module.wasm').read_bytes(),index,sidecar,owner_pid)
                 self.journal(campaign,manifest['record_sha256'])
             rows = [read(root/(f'record-{number:02}.command.json')) for number in range(25)]
             require(len({row['pid'] for row in rows}) == 25 and not pids.intersection(row['pid'] for row in rows),
@@ -888,6 +1013,7 @@ class Retained:
         require({path.name for path in stage.iterdir()} == {Path(name).name for name in names}, 'Temporal staged source inventory changed')
         for name in names:
             require(regular(stage/Path(name).name).read_bytes() == regular(base/name).read_bytes(), 'Temporal staged source changed original bytes')
+            self.source_pins[str(stage/Path(name).name)] = self.config['files'][str(base/name)]
 
     def private_controls(self, root, owner):
         flags = ('GOMAD_WASM_QUALIFICATION_GUEST_PROFILE','GOMAD_WASM_TEMPORAL_BUILD_CACHE',
@@ -1233,6 +1359,7 @@ class Retained:
         for name,path in sources.items():
             require(self.config['files'].get(str(path)) == sha(regular(path)) and regular(detached/name).read_bytes() == path.read_bytes(),
                     'inspection staged source differs from frozen original bytes')
+            self.source_pins[str(stage/name)] = self.config['files'][str(path)]
         selection,dump,probe,snapshot = workloads.INSPECTION[owner]
         arguments = ['-test.run=^'+selection+'$','-test.v']
         explore = [self.config['binary'],'--installation',str(root/'installation.json'),'explore','--json','--seeds','7','--parallel','1',
@@ -1306,6 +1433,7 @@ class Retained:
             require(replay_inputs['configuration'] == prepared,'inspection actual standalone replay policy differs')
         campaign = next((path for path in artifact.parents if path.parent.name == 'campaigns'),None)
         require(campaign is not None,'inspection actual campaign root absent')
+        self.pending_preparations.append((campaign,provenance,read(root/'explore.command.json')['pid'],frozenset([str(campaign)])))
         self.journal(campaign,actual['record_sha256'])
         replay = self.nested(root,'detached-replay',[self.config['binary'],'replay',str(artifact)],accepted=(1,))
         require(b'reproduced=true' in replay and b'choice-replay=exact' in replay,'inspection full replay mismatch')
@@ -1355,7 +1483,9 @@ def read_receiving(config):
     rows = []
     for name, check in zip(OWNED,checks):
         try:
+            reader.pending_preparations.clear()
             check()
+            reader.verify_pending_preparations()
             rows.append(dict(id=name,status='PASS',executed=True,exit=0))
         except (Refusal, OSError, KeyError, TypeError, ValueError, IndexError, struct.error) as error:
             rows.append(dict(id=name,status='UNEXECUTED' if isinstance(error,(Unexecuted,FileNotFoundError)) else 'FAIL',

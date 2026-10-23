@@ -267,3 +267,44 @@ driver and 17 workload tests pass (`fn232-inspection-intent-suite.log` and
 `fn232-inspection-intent-workloads.log`, both exit 0). Separate support and native
 auxiliary/cache drafts are excluded. All actual guest/runtime/qualification
 lanes remain UNRUN, and the full inventory-membership review finding stays OPEN.
+
+### Complete preparation inventories and native compiler cache (source only)
+
+The runtime reader independently reconstructs complete compiler membership (SDK
+VERSION, compiler/assembler/linker, every include header, fixed native compiler
+sources, and admitted overlay replacements) and transitive selected package
+sources from retained raw compiler environment, overlay, pre/post Go-list and
+assembly include observations. The original eight omitted-member attacks were
+causally RED against the pinned def18 reader (exit 1) and GREEN against this
+reader. Forced compiler controls remain exact; observations contain only the
+explicit controlled environment and approved compiler path context.
+
+Native source adds an isolated compilation-v1 output cache beneath the required
+installed cache root, distinct from the optional Wasmtime compiled-module cache.
+Its key excludes execution-only changes and includes complete compilation inputs;
+hits reuse raw module/compilation observations and freshly admit execution
+provenance. Typed receipts, raw hashes, checked sizes, private staging, receipt-last
+publication, corruption refusal, eight publication fault stages and cancellation
+are covered by newly authored native tests. These native changes and tests are
+UNCOMPILED/UNEXECUTED; no native or original cache behavior is credited yet.
+
+Volatile observations remain outside canonical Store payloads, Record, Result,
+plan and provenance identities. Each campaign has a private authenticated
+preparation-observations sidecar, whose complete explicit file table is sealed by
+the external producer witness. The receiving reader binds its actual owner PID,
+current candidate, prepared record/module/provenance/build key, and exact campaign
+set. Every successful final endpoint flushes pending full preparation proofs;
+historical artifacts without the new auxiliary proof retain replay compatibility
+but cannot qualify. Native tests include two Store publications of the same
+canonical record with different observation IDs and separate sidecars; not run.
+
+Portable evidence: `.flow/tmp/fn232-complete-inventory-causal-red.log` retains the
+actual old-reader eight-omission failure; `fn232-preparation-complete-green.log`
+retains seven dedicated preparation tests. The final owned suite and workload
+suite logs use `fn232-complete-preparation-owned-suite.log` and
+`fn232-complete-preparation-workload-green.log`. One incorrect discovery directory
+failed with ImportError and is retained separately in
+`fn232-complete-preparation-workload-suite.log`; corrected discovery passed 17.
+The unrelated support producer/tests remain a separate uncommitted work unit.
+The original 72-root map still has 41 gaps, all evidence remains UNEXECUTED, and
+actual runtime/mandatory/SQLite/Temporal qualification remains open.

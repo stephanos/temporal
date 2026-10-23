@@ -60,6 +60,7 @@ fn prepared() -> (Prepared, Publication) {
         .insert("target/module.wasm".into(), module.clone());
     publication.payloads.remove(search_context::FILE);
     let prepared = Prepared {
+        auxiliary: Default::default(),
         module,
         configuration,
         toolchain: identity.toolchain_build_key.clone(),

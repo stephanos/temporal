@@ -26,6 +26,16 @@ pub(crate) fn overlay(
     scratch: &Path,
     deadline: Instant,
 ) -> Result<Overlay, String> {
+    observed_overlay(installed, root, environment, scratch, deadline).map(|(overlay, _)| overlay)
+}
+
+pub(crate) fn observed_overlay(
+    installed: &Installation,
+    root: &Path,
+    environment: &BTreeMap<String, String>,
+    scratch: &Path,
+    deadline: Instant,
+) -> Result<(Overlay, process::ObservedCommand), String> {
     let module_root = installed
         .overlay_module_root
         .as_deref()
@@ -45,7 +55,7 @@ pub(crate) fn overlay(
         host_environment.remove(name);
     }
     host_environment.insert("GOROOT".into(), root.to_string_lossy().into_owned());
-    let result = process::command(
+    let command = process::observed_command(
         &installed.compiler_path,
         &[
             "run".into(),
@@ -65,7 +75,7 @@ pub(crate) fn overlay(
         4 << 20,
         deadline,
     )?;
-    let generated: Overlay = serde_json::from_slice(&result).map_err(|e| e.to_string())?;
+    let generated: Overlay = serde_json::from_slice(&command.stdout).map_err(|e| e.to_string())?;
     if !generated.path.is_absolute()
         || !canonical::valid_digest(&generated.identity)
         || generated.implementation_sha256 != env!("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")
@@ -74,7 +84,7 @@ pub(crate) fn overlay(
             "runner_failure: invalid overlay identity or runtime implementation changed".into(),
         );
     }
-    Ok(generated)
+    Ok((generated, command))
 }
 
 fn tree(path: &Path, inputs: &mut BTreeMap<PathBuf, String>) -> Result<(), String> {
