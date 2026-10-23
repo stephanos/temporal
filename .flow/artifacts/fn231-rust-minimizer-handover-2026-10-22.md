@@ -448,3 +448,38 @@ the exact forensic test is retained externally as
 and portable regressions await independent review and integrated strict gates.
 No Go, guest or new fixture ran for this fix, and no global instrumentation was
 committed.
+
+
+## Standalone helper strict-lint cleanup
+
+The conductor authorized fixing the standalone helper's 17 baseline Clippy
+diagnostics in this isolated checkout after the reviewed uint fix. Single-store
+execution now names its existing start and terminal-finishing blocks; cluster
+execution names its existing initial state/sink construction and borrows its
+Activity owner. Validation, watchdog, storage/model finishing, evidence and
+metrics operations retain their original order. Streaming unit setup names the
+existing model/namespace fixture. The remaining changes add numeric separators,
+use equally strict nonempty assertions with useful failure values, remove a
+redundant clone, spell imports explicitly and move retained-world imports/test
+module mechanically. No minimizer or runtime controller changed.
+
+After those library issues cleared, all-target checking exposed four preexisting
+`similar_names` warnings in `tests/linked_streaming.rs`. The conductor separately
+authorized renaming only the four receiver bindings; their channel actions,
+assertions and order are unchanged. No lint allowances, dependencies, feature
+changes, policy changes, guest changes or assertion weakening were introduced.
+
+All commands used exclusive `fn232-retained-validation`, jobs2, +1.99.1, locked
+release and standalone helper `--no-default-features`. Full helper library tests
+exited 0: 185 passed, ten existing ignored. The seven existing linked-streaming
+integration tests exited 0. Strict Clippy `--all-targets -- -D warnings` exited 0,
+as did standalone format and diff checks. Logs are
+`/home/agent/evidence/fn232-helper-cleanup-lib.log`,
+`fn232-helper-cleanup-streaming.log` and `fn232-helper-cleanup-clippy-4.log`.
+Earlier Clippy logs preserve the original baseline and intermediate extraction
+diagnostics, including one private type path and one needless borrow corrected
+before the passing gate. Library session 50748 and streaming session 96697 both
+completed with numeric exit 0; no owned target process remains. No Go, public
+guest, runtime controller or new fixture ran. Independent source review and
+integrated checks remain with the conductor, including its separate pending
+broker aggregate fix.

@@ -594,24 +594,17 @@ fn interrupted(outcome: &protocol::Outcome) -> bool {
             .is_some_and(|model| model["configured"] == true && model["finished"] == false)
 }
 
-#[expect(
-    clippy::too_many_arguments,
-    reason = "A fresh store binds its shared owners and exact incarnation identity"
-)]
-fn run_instance(
-    engine: &Engine,
-    pre: &InstancePre<engine::State>,
-    mut sealed: Sealed,
+fn instance_state(
+    sealed: &mut Sealed,
     broker: &Arc<Broker>,
     network: Option<&Arc<Mutex<Shared>>>,
-    handle: Handle,
+    handle: &Handle,
     index: usize,
     slot: u64,
-    activity: Activity,
-) -> Result<Completed> {
-    let authorization_started = std::time::Instant::now();
-    broker.wait_terminal(index);
-    let sink = linked::Sink::new(sealed.execution.request.limits.evidence_bytes);
+    activity: &Activity,
+) -> Result<(engine::State, linked::Sink)> {
+    let limits = &sealed.execution.request.limits;
+    let sink = linked::Sink::new(limits.evidence_bytes);
     let mut model = sealed
         .execution
         .model
@@ -639,7 +632,6 @@ fn run_instance(
         ),
         _ => None,
     };
-    let limits = &sealed.execution.request.limits;
     let mut state = engine::new_state(
         Box::new(Cursor::new(Vec::<u8>::new())),
         Box::new(NoRemote(activity.clone())),
@@ -654,6 +646,29 @@ fn run_instance(
         incarnation: handle.incarnation,
         network: endpoint,
     });
+    Ok((state, sink))
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "A fresh store binds its shared owners and exact incarnation identity"
+)]
+fn run_instance(
+    engine: &Engine,
+    pre: &InstancePre<engine::State>,
+    mut sealed: Sealed,
+    broker: &Arc<Broker>,
+    network: Option<&Arc<Mutex<Shared>>>,
+    handle: Handle,
+    index: usize,
+    slot: u64,
+    activity: &Activity,
+) -> Result<Completed> {
+    let authorization_started = std::time::Instant::now();
+    broker.wait_terminal(index);
+    let (state, sink) =
+        instance_state(&mut sealed, broker, network, &handle, index, slot, activity)?;
+    let limits = &sealed.execution.request.limits;
     let mut store = Store::new(engine, state);
     activity.launched_stores.fetch_add(1, Ordering::Release);
     store.limiter(|state| &mut state.limits);
@@ -961,7 +976,7 @@ fn execute_inner(
                                 handle,
                                 index,
                                 slot,
-                                activity,
+                                &activity,
                             )
                         }))
                         .map_err(|_| Error::msg("cluster store panicked"))

@@ -29,16 +29,16 @@ fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> 
                     "entropy_key":vec![0u8;32], "working_directory_sha256":format!("{:x}", Sha256::digest(b"/workspace")),
                     "arguments":{"bytes":0,"count":0,"chunks":0},
                     "environment":{"bytes":0,"count":0,"chunks":0},
-                    "seed":7,"mode":1,"limit":1048576,"diagnostics":false,
-                    "epoch_nanos":946684800000000000u64,"read_step_nanos":0,"now":1,
-                    "limits":{"calls":1048576,"transcript_bytes":1048576,"pending_events":1024}
+                    "seed":7,"mode":1,"limit":1_048_576,"diagnostics":false,
+                    "epoch_nanos":946_684_800_000_000_000_u64,"read_step_nanos":0,"now":1,
+                    "limits":{"calls":1_048_576,"transcript_bytes":1_048_576,"pending_events":1024}
                 })).unwrap(),
                 arguments: vec![], environment: vec!["PWD=/workspace".into()], replay_trace: None,
             }),
             namespace: Some(namespace::Image {
                 entries: vec![namespace::ImageEntry {path:b"/workspace".to_vec(), directory:true, readonly:false, data:vec![]}],
                 writable_directories: vec![b"/workspace".to_vec()], preopens: vec![b"/workspace".to_vec()],
-                working_directory: b"/workspace".to_vec(), stdin: vec![], epoch_nanos: 946684800000000000,
+                working_directory: b"/workspace".to_vec(), stdin: vec![], epoch_nanos: 946_684_800_000_000_000,
                 limits: namespace::Limits { files: 100, descriptors: 16, filesystem_bytes: 4096, output_bytes: 1024 },
             }),
             storage: None,
@@ -137,7 +137,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
         execution.outcome.message
     );
     assert_eq!(execution.outcome.exit_code, Some(0));
-    assert!(!execution.world.is_empty());
+    assert_ne!(execution.world, [0_u8; 0]);
     assert_eq!(execution.incarnations.len(), 2);
     assert!(
         execution
@@ -269,7 +269,7 @@ fn conditional_output_boundary_preserves_wait_lifecycle() {
             },
         ],
         boundaries: vec![Boundary {
-            handle: handle.clone(),
+            handle,
             action: Action::Crash,
             marker: b"committed durable-a".to_vec(),
         }],
@@ -550,7 +550,7 @@ fn shutdown_reinsertion_preserves_actual_live_guest_world() {
         );
         assert_eq!(observed.outcome.termination, "exit");
         assert_eq!(observed.outcome.exit_code, Some(0));
-        assert!(!observed.world.is_empty());
+        assert_ne!(observed.world, [0_u8; 0]);
         let actual = (observed.world, observed.network);
         if let Some(expected) = &baseline {
             assert_eq!(&actual, expected, "iteration {iteration}");
