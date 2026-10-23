@@ -1,0 +1,6 @@
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume	0.003s
+# go.temporal.io/server/tools/gomad/internal/model/wasi
+internal/model/wasi/transport.go:16:2: "sync" imported and not used
+FAIL	go.temporal.io/server/tools/gomad/internal/model/wasi [build failed]
+FAIL	go.temporal.io/server/tools/gomad/internal/model/cmd/sqlite-native [build failed]
+FAIL

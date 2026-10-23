@@ -28,7 +28,7 @@ func TestSharedSetStaysInTheParentModule(t *testing.T) {
 		if !strings.HasPrefix(target.Template, "internal/model/") {
 			t.Errorf("shared target %s reads a template outside internal/model: %s", target.Path, target.Template)
 		}
-		if !strings.HasPrefix(target.Path, "internal/model/") && !strings.HasPrefix(target.Path, "internal/backends/wasm/") {
+		if !strings.HasPrefix(target.Path, "internal/model/") && !strings.HasPrefix(target.Path, "internal/backends/wasm/") && !strings.HasPrefix(target.Path, "rust/wasmhost/") {
 			t.Errorf("shared target writes outside internal/model and the WASM backend: %s", target.Path)
 		}
 	}
@@ -173,7 +173,7 @@ func TestGenerateReportsSchemaAndTemplateErrors(t *testing.T) {
 // CLI execution cannot prove that regeneration owns the binary codec.
 func TestSharedSetIncludesLinkedChoiceCodec(t *testing.T) {
 	for _, target := range SharedTargets() {
-		if target.Path == "internal/backends/wasm/wasmhost/src/model/choice_wire_generated.rs" && target.Family == FamilyChoice && target.Unformatted {
+		if target.Path == "rust/wasmhost/src/model/choice_wire_generated.rs" && target.Family == FamilyChoice && target.Unformatted {
 			return
 		}
 	}

@@ -184,6 +184,12 @@ def result_report(config, root, name, result_path):
     return result
 
 
+def private_capture(config, entry):
+    enabled = entry.get('private_observations', False)
+    require(type(enabled) is bool, 'private observation opt-in must be boolean')
+    return {'private_observations': config} if enabled else {}
+
+
 def qualify_cell(config, root, label, entry):
     wanted = CELLS[label]
     specification = read(entry['spec'])
@@ -195,7 +201,7 @@ def qualify_cell(config, root, label, entry):
     if wanted['workload'] in ('sqlite', 'multi-instance') and not entry.get('checker'):
         raise Unexecuted(label + ': actual durable/history/catalogue reader required')
     response = json.loads(command(config, root, 'qualify', public(config, installation) + ['qualify', '--spec', entry['spec']],
-                                  accepted=(0,) if wanted['cell'] == 'success' else (1,)))
+                                  accepted=(0,) if wanted['cell'] == 'success' else (1,), **private_capture(config, entry)))
     result_path = Path(response['result_path'])
     result = result_report(config, root, 'report', result_path)
     manifest = result['manifest']
@@ -246,7 +252,7 @@ def corpus(config, root, label):
 def plan(config, root, label, entry):
     installation = config['installations'][entry['installation']]
     result = json.loads(command(config, root, 'plan', public(config, installation) + ['plan', '--json',
-            '--output', str(root / 'plan.json'), '--artifacts', str(root / 'artifacts'), *entry['arguments']]))
+            '--output', str(root / 'plan.json'), '--artifacts', str(root / 'artifacts'), *entry['arguments']], **private_capture(config, entry)))
     require(result['schema'] == 'gomad.plan-result/v1' and result['guest_executions'] == 0, 'wrong preparation response')
     require(sha(result['plan']) == result['plan_sha256'], 'changed plan')
     require(sha(result['preparation_receipt']) == result['preparation_receipt_sha256'], 'changed preparation receipt')
@@ -365,7 +371,7 @@ def runtime(config, root, label, entry):
                 '--keep-successes=all', '--success-limit=1', '--artifacts', str(destination),
                 '--env=EXTRA_ENTROPY=no_', '--env=ONLY=captured', '--choice-bytes=1MiB', '--output-limit=1MiB',
                 '--execution-timeout=60s', '--overall-timeout=600s', *entry['arguments'],
-                'go-run', entry['source'], '--', 'literal $arg'], accepted=(0, 1), timeout=remaining())
+                'go-run', entry['source'], '--', 'literal $arg'], accepted=(0, 1), timeout=remaining(), **private_capture(config, entry))
         campaigns = list((destination / 'campaigns').glob('campaign-*'))
         require(len(campaigns) == 1, 'runtime fresh campaign count')
         manifests = [path.parent for path in campaigns[0].rglob('manifest.json')
@@ -436,7 +442,7 @@ def runtime_aggregate(config, root, label):
     return passed(label)
 
 
-def execute(config, root, label):
+def execute_primary(config, root, label):
     entry = config['stages'][label]
     adapter = entry['adapter']
     expected = ('qualify' if label in CELLS else 'runtime' if re.fullmatch(r'runtime-\d+', label) else
@@ -463,3 +469,11 @@ def execute(config, root, label):
     if adapter == 'runtime': return runtime(config, root, label, entry)
     if adapter == 'runtime-aggregate': return runtime_aggregate(config, root, label)
     raise Unexecuted(label + ': unknown actual Rust adapter ' + adapter)
+
+
+def execute(config, root, label):
+    observed = execute_primary(config, root, label)
+    if config['stages'][label].get('live_families'):
+        import live
+        live.execute_families(config, root, label)
+    return observed

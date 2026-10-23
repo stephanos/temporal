@@ -41,6 +41,8 @@ def cell_spec(label, evidence, manifest, source_digest):
 def freeze(bindings, output, source_manifest):
     config = dict(bindings)
     deadline(config['deadline_s'])
+    from host_admission import STAT, bindings as scratch_bindings
+    scratch_bindings(config)
     require(set(config['stages']) == set(mapping()), 'all 96 stage mappings are required')
     output = output.resolve()
     source_manifest = source_manifest.resolve()
@@ -57,7 +59,7 @@ def freeze(bindings, output, source_manifest):
                   head=subprocess.check_output(['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip(),
                   source_manifest=str(source_manifest), source_sha256=sha(source_manifest),
                   symlinks={str(REPO / path): os.readlink(REPO / path) for path in paths if path and (REPO / path).is_symlink()})
-    inputs = set(config.pop('inputs')) | set(source_files) | {str(source_manifest)}
+    inputs = {str(STAT)} | set(config.pop('inputs')) | set(source_files) | {str(source_manifest)}
     inputs.update(str(path) for path in FROZEN.glob('*.py'))
     inputs.update(str(path) for path in FROZEN.glob('*.sh'))
     inputs.update((str(FROZEN / 'dag.tsv'), str(FROZEN.parent / 'q1-serial/run-qualification.sh')))

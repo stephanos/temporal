@@ -31,3 +31,4 @@ pub mod replay;
 pub mod shim;
 pub mod slots;
 pub(crate) mod stress;
+pub mod sweep;

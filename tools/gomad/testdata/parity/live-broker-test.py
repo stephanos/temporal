@@ -17,6 +17,16 @@ spec = importlib.util.spec_from_file_location('observe', path)
 observe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(observe)
 
+REFERENCE_SOURCE = {'integration': '5e2bfeff4dbd08e5ee9ae0ca6eda649802ab7cd64bca3e5b3c7c1a3f0002ab83', 'provider': 'bce7c6fe9e573eeea49be57d0882a8ad1da60bd23dbc7499d32c6253de7126c4'}
+
+
+def reference_source(name):
+    raw = (Path(__file__).with_name('reference') / ('live-broker-' + name + '.go.txt')).read_bytes()
+    if observe.sha(raw) != REFERENCE_SOURCE[name]:
+        raise ValueError('retained original source changed: ' + name)
+    return raw
+
+
 POINTER_PROBE = r'''
 type choiceControl struct { Mode uint8; Trace []byte; Identity map[string]string }
 type runtimeControl struct { Choice *choiceControl }
@@ -137,7 +147,7 @@ func brokerObserveRun(''' + function + POINTER_PROBE
         self.run_probe(source, 'TestCallTimeRequestSurvivesPointerMutation')
 
     def test_actual_go_observer_reuses_original_single_use_world_encoding(self):
-        original = (Path(__file__).resolve().parents[2] / 'internal/backends/wasm/wasi/integration_test.go').read_bytes()
+        original = reference_source('integration')
         observed = observe.instrument(original).decode()
         call = next(line.strip() for line in observed.splitlines() if 'wantWorld, err :=' in line)
         helper = observe.HELPER.split('func brokerObserveNew(', 1)[1].split('\ntype brokerObservedCluster', 1)[0]
@@ -332,7 +342,7 @@ class NetworkCapturePlacement(unittest.TestCase):
 class ExactSelection(unittest.TestCase):
     def test_provider_observer_preserves_exact_original_admission_paths(self):
         self.assertTrue(hasattr(observe, 'instrument_provider'), 'missing provider observer')
-        source = (Path(__file__).resolve().parents[2] / 'internal/backends/wasm/cluster/provider_test.go').read_bytes()
+        source = reference_source('provider')
         observed = observe.instrument_provider(source)
         self.assertEqual(observed.count(b'providerObserveOpen(t, '), 3)
         self.assertIn(b'providerObserveOpen(t, reference, t.Context(), hard)', observed)
@@ -355,7 +365,7 @@ class ExactSelection(unittest.TestCase):
         self.assertEqual(len(observe.validate_events(b'\n'.join(json.dumps(event).encode() for event in passed), [37])), 5)
 
     def test_observer_preserves_subtest_calls_and_assertions(self):
-        source = (Path(__file__).resolve().parents[2] / 'internal/backends/wasm/wasi/integration_test.go').read_bytes()
+        source = reference_source('integration')
         observed = observe.instrument(source)
         self.assertNotIn(b't.brokerObserveRun', observed)
         self.assertEqual(observed.count(b't.Fatal('), source.count(b't.Fatal('))

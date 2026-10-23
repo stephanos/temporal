@@ -122,8 +122,8 @@ func TestConfiguredEdgesAndOwners(t *testing.T) {
 }
 
 func TestSubtreeAndBuildTags(t *testing.T) {
-	root := fixture(t, map[string]string{"internal/backends/wasm/wasi/pure.go": "package wasi", "internal/backends/wasm/wasi/ignored.go": "//go:build windows\n\npackage wasi\nimport _ \"os\"", "internal/backends/wasm/wasi/tagged.go": "//go:build test_dep\n\npackage wasi\nimport _ \"os\""})
-	findings, err := Check(filepath.Join(root, "internal/backends/wasm"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
+	root := fixture(t, map[string]string{"internal/model/wasi/pure.go": "package wasi", "internal/model/wasi/ignored.go": "//go:build windows\n\npackage wasi\nimport _ \"os\"", "internal/model/wasi/tagged.go": "//go:build test_dep\n\npackage wasi\nimport _ \"os\""})
+	findings, err := Check(filepath.Join(root, "internal/model"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,10 +154,10 @@ func TestBackendNamespaceOwners(t *testing.T) {
 
 func TestCapturedMayUseOnlyTheHostFSOwner(t *testing.T) {
 	const module = "example.invalid/check"
-	if !OwnerMayImport(module, "captured", "hostfs", module+"/internal/evidence/artifact/capture", module+"/internal/host/fs") {
+	if !OwnerMayImport(module, "captured", "hostfs", module+"/internal/model/capture", module+"/internal/support/fs") {
 		t.Fatal("capture cannot use its host filesystem owner")
 	}
-	if OwnerMayImport(module, "captured", "hostfs", module+"/internal/evidence/artifact/capture", module+"/internal/host/fs/unchecked") {
+	if OwnerMayImport(module, "captured", "hostfs", module+"/internal/model/capture", module+"/internal/support/fs/unchecked") {
 		t.Fatal("capture may bypass the exact host filesystem owner")
 	}
 }

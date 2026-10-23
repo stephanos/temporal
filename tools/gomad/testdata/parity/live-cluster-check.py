@@ -32,6 +32,12 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def provider_source():
+    raw = (CORPUS / 'reference/live-broker-provider.go.txt').read_bytes()
+    assert digest(raw) == 'bce7c6fe9e573eeea49be57d0882a8ad1da60bd23dbc7499d32c6253de7126c4', 'retained original provider source changed'
+    return raw
+
+
 def provider_reference(root):
     root = root.resolve()
     index_raw = (root / 'observation-index.json').read_bytes()
@@ -42,8 +48,7 @@ def provider_reference(root):
     derivation = json.loads(derivation_raw)
     assert derivation['roots'] == [19]
     assert derivation['oracle_role'] == 'original-private-go-broker-reference-and-original-one-helper-provider'
-    source = CORPUS.parents[1] / 'internal/backends/wasm/cluster/provider_test.go'
-    assert digest(source.read_bytes()) == derivation['original_test_sha256']
+    assert digest(provider_source()) == derivation['original_test_sha256']
     for filename, key in (('test-only-helper.go', 'helper_sha256'), ('test-only.diff', 'diff_sha256')):
         assert digest((root / filename).read_bytes()) == derivation[key]
     events_raw = (root / 'go-test.jsonl').read_bytes()

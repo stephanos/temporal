@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import driver
@@ -115,6 +116,38 @@ class ProcessContract(unittest.TestCase):
                 self.assertFalse(driver.read(root/'held.process.json')['active'])
             finally:
                 self.stop(executor, proc)
+
+    def test_cleanup_waits_for_group_quiescence_before_marking_inactive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root/'held.process.json'
+            driver.write(path, dict(stage_pid=123, pid=456, active=True))
+            executor = driver.StageExecutor([], str(root/'scheduler'), {})
+            def live(pid):
+                self.assertEqual(pid, 456)
+                self.assertTrue(driver.read(path)['active'])
+                return live_calls.pop(0)
+            live_calls = [True, False]
+            with mock.patch.object(driver.os, 'killpg') as kill, \
+                 mock.patch.object(driver, 'process_group_live', live, create=True), \
+                 mock.patch.object(driver.time, 'sleep'):
+                self.assertTrue(executor.cleanup_commands(123))
+            self.assertEqual(live_calls, [])
+            kill.assert_called_once_with(456, signal.SIGKILL)
+            self.assertFalse(driver.read(path)['active'])
+
+    def test_cleanup_timeout_preserves_active_registration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root/'held.process.json'
+            driver.write(path, dict(stage_pid=123, pid=456, active=True))
+            executor = driver.StageExecutor([], str(root/'scheduler'), {})
+            with mock.patch.object(driver.os, 'killpg'), \
+                 mock.patch.object(driver, 'process_group_live', return_value=True, create=True), \
+                 mock.patch.object(driver.time, 'monotonic', side_effect=[0, 6]):
+                with self.assertRaisesRegex(driver.Refusal, 'process group.*quiesce'):
+                    executor.cleanup_commands(123)
+            self.assertTrue(driver.read(path)['active'])
 
     def test_killed_stage_cannot_leave_detached_command_running(self):
         with tempfile.TemporaryDirectory() as directory:

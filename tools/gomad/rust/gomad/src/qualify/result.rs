@@ -35,10 +35,11 @@ const MAXIMUM_RESULT_BYTES: u64 = 64 << 20;
 const MAXIMUM_RECEIPT_BYTES: u64 = 8 << 10;
 const COOPERATIVE_PROFILE: &str = "gomad.wasi-cooperative/v1";
 /// The build-input fields, in canonical (sorted) order.
-const INPUT_FIELDS: [&str; 20] = [
+const INPUT_FIELDS: [&str; 22] = [
     "arguments",
     "build_flags",
     "compiler",
+    "compiler_path",
     "compiler_sha256",
     "configuration",
     "directory",
@@ -47,6 +48,7 @@ const INPUT_FIELDS: [&str; 20] = [
     "helper",
     "host",
     "kind",
+    "module_metadata",
     "network",
     "runtime",
     "runtime_implementation",
@@ -58,11 +60,12 @@ const INPUT_FIELDS: [&str; 20] = [
     "tags",
 ];
 /// The provenance fields, in canonical (sorted) order.
-const PROVENANCE_FIELDS: [&str; 8] = [
+const PROVENANCE_FIELDS: [&str; 9] = [
     "build_key",
     "choice_identity",
     "configuration",
     "inputs",
+    "module_metadata",
     "module_sha256",
     "network",
     "scenario",
@@ -124,6 +127,11 @@ fn derive(provenance: &serde_json::Value) -> Result<Derived, String> {
     if !inputs
         .as_object()
         .is_some_and(|object| object.keys().map(String::as_str).eq(INPUT_FIELDS))
+    {
+        return Err(refuse());
+    }
+    if !Path::new(&text(&inputs["compiler_path"])?).is_absolute()
+        || inputs["module_metadata"] != provenance["module_metadata"]
     {
         return Err(refuse());
     }
@@ -502,6 +510,39 @@ pub(crate) fn validate_source_manifest(encoded: &[u8], check_files: bool) -> Res
     Ok(())
 }
 
+fn authenticate_provenance_module(
+    provenance: &serde_json::Value,
+    module: &[u8],
+) -> Result<(), String> {
+    let metadata: gomad_wasmhost::linked::ModuleMetadata =
+        serde_json::from_value(provenance["module_metadata"].clone())
+            .map_err(|error| format!("qualification module metadata: {error}"))?;
+    crate::campaign::prepare::authenticate_module_metadata(
+        Some(&metadata),
+        &provenance["inputs"],
+        module,
+    )
+}
+
+fn authenticate_artifacts(result: &QualificationResult) -> Result<(), String> {
+    for execution in &result.report.executions {
+        if let Some(path) = &execution.artifact_path {
+            let opened = crate::evidence::store::Opened::open(Path::new(path))?;
+            opened.authenticate_all()?;
+            if opened.manifest().record != execution.record {
+                return Err("qualification raw artifact record differs from Result".into());
+            }
+            authenticate_provenance_module(
+                &result.provenance,
+                &opened.payload("target/module.wasm", 512 << 20)?,
+            )?;
+        } else if result.report.failure.is_none() {
+            return Err("qualification module authentication requires retained artifact".into());
+        }
+    }
+    Ok(())
+}
+
 /// Installation-free validation: recomputes report verdicts, costs and budget
 /// from retained raw observations and refuses any claim that differs.
 pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
@@ -538,6 +579,7 @@ pub(crate) fn validate(result: &QualificationResult) -> Result<(), String> {
     let platform =
         canonical::digest(format!("{}/{}", manifest.host_os, manifest.host_arch).as_bytes());
     bind_provenance(manifest, &result.provenance)?;
+    authenticate_artifacts(result)?;
     for execution in &result.report.executions {
         let identity = &execution.record.identity;
         if identity.target != manifest.module_sha256
@@ -701,11 +743,13 @@ fn publish_bytes(root: &File, name: &str, bytes: &[u8], limit: u64) -> Result<()
     let outcome = match staged {
         Ok(()) => Ok(()),
         Err(error) if error == rustix::io::Errno::EXIST.to_string() => {
-            if open::read(root, name, limit, false)? == bytes {
-                Ok(())
-            } else {
-                Err("immutable WASM qualification result collision".into())
-            }
+            open::read(root, name, limit, false).and_then(|existing| {
+                if existing == bytes {
+                    Ok(())
+                } else {
+                    Err("immutable WASM qualification result collision".into())
+                }
+            })
         }
         Err(error) => Err(error),
     };
@@ -876,3 +920,11 @@ pub(crate) fn validate_receipt(
         .ok_or("missing or mismatched publication self observation")?;
     cost::terminal(&result.observations, after, receipt.operator_peak_rss_bytes)
 }
+
+#[cfg(test)]
+#[path = "receiving_publication_tests.rs"]
+mod receiving_publication_tests;
+
+#[cfg(test)]
+#[path = "receiving_provenance_tests.rs"]
+mod receiving_provenance_tests;

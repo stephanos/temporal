@@ -25,7 +25,7 @@ import (
 // BrokerClock API; blocking Quiesce calls run on goroutines and the driver waits
 // until each one either answered or is parked, so every step is deterministic.
 const (
-	clockConformanceDirectory = "../wasmhost/tests/testdata/clock_conformance"
+	clockConformanceDirectory = "../../../../rust/wasmhost/tests/testdata/clock_conformance"
 	clockConformancePin       = clockConformanceDirectory + "/PINNED_GO_CLOCK_SHA256"
 	clockConformanceSchema    = "gomad.clock-conformance/v1"
 )

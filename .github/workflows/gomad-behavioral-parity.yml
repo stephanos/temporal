@@ -1,13 +1,19 @@
-name: Gomad behavioral parity foundation
+name: Gomad behavioral parity
 
 on:
   pull_request:
     paths:
       - ".github/workflows/gomad-behavioral-parity.yml"
+      - "tools/gomad/**"
+      - "common/gomaddebug/**"
+      - "tests/gomadfunctional/**"
+      - "go.mod"
+      - "go.sum"
       - "tools/gomad/scripts/behavioral-parity"
+      - "tools/gomad/scripts/all-verb-parity"
       - "tools/gomad/testdata/parity/**"
       - "tools/gomad/rust/**"
-      - "tools/gomad/internal/backends/wasm/wasmhost/**"
+      - "tools/gomad/rust/wasmhost/**"
 
 permissions:
   contents: read
@@ -28,6 +34,7 @@ jobs:
           python3 tools/gomad/testdata/parity/plan-check.py --help
           python3 tools/gomad/testdata/parity/recover-check.py --help
           python3 tools/gomad/testdata/parity/semantic/selftest.py
+          python3 tools/gomad/testdata/parity/all-verb-selftest.py
   linked-foundation:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
@@ -52,14 +59,85 @@ jobs:
       - name: Verify controlled qualification accounting
         run: |
           python3 tools/gomad/testdata/parity/qualify-accounting-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/qualify-accounting"
-      # The fresh Go/Rust qualify lane (behavioral-parity --verb qualify) needs
-      # the same frozen Go launcher/helper/source/compiler provisioning as
-      # inspect; fn-232.13 wires it here. No CI pass is implied.
-      # Fresh Go/Rust inspect parity is the mandatory callable local gate in
-      # tools/gomad/CLI.md. fn-232.13 must provision its authenticated baseline,
-      # extracted source and Go compiler on this known runner before wiring
-      # that same command here. No baseline availability or CI pass is implied.
       - name: Prove fixture controls absent from release
         run: |
           cargo +1.99.1 build --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml
           python3 tools/gomad/testdata/parity/foundation-release-check.py "$CARGO_TARGET_DIR/release/gomad" "$RUNNER_TEMP/release-refusals"
+
+  full-parity:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Provision authenticated frozen reference and candidate inputs
+        env:
+          PARITY_PROVISION_URL: ${{ vars.GOMAD_PARITY_PROVISION_URL }}
+          PARITY_BUNDLE_SHA256: ${{ vars.GOMAD_PARITY_BUNDLE_SHA256 }}
+          PARITY_BINDINGS_SHA256: ${{ vars.GOMAD_PARITY_BINDINGS_SHA256 }}
+          PARITY_PROVISION_TOKEN: ${{ secrets.GOMAD_PARITY_PROVISION_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import re
+          import tarfile
+          import urllib.parse
+          import urllib.request
+
+          endpoint = os.environ['PARITY_PROVISION_URL']
+          token = os.environ['PARITY_PROVISION_TOKEN']
+          expected = os.environ['PARITY_BUNDLE_SHA256']
+          bindings_expected = os.environ['PARITY_BINDINGS_SHA256']
+          if not token or urllib.parse.urlsplit(endpoint).scheme != 'https':
+              raise SystemExit('UNEXECUTED: authenticated HTTPS parity provisioning is required')
+          if not all(re.fullmatch('[0-9a-f]{64}', value) for value in (expected, bindings_expected)):
+              raise SystemExit('UNEXECUTED: reviewed bundle and bindings SHA256 pins are required')
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          revision = os.environ['GITHUB_SHA']
+          separator = '&' if '?' in endpoint else '?'
+          request = urllib.request.Request(endpoint + separator + urllib.parse.urlencode({'revision': revision}),
+                                           headers={'Authorization': 'Bearer ' + token})
+          opener = urllib.request.build_opener(NoRedirect())
+          archive = Path(os.environ['RUNNER_TEMP']) / 'gomad-parity-inputs.tar'
+          checksum = hashlib.sha256()
+          with opener.open(request, timeout=120) as response, archive.open('xb') as output:
+              while chunk := response.read(1 << 20):
+                  checksum.update(chunk)
+                  output.write(chunk)
+          if checksum.hexdigest() != expected:
+              raise SystemExit('provisioned parity bundle SHA256 mismatch')
+          root = Path(os.environ['RUNNER_TEMP']) / 'gomad-parity-inputs'
+          root.mkdir(mode=0o700)
+          with tarfile.open(archive) as bundle:
+              seen = set()
+              for member in bundle.getmembers():
+                  name = Path(member.name)
+                  if (name.is_absolute() or '..' in name.parts or member.name in seen
+                          or not (member.isfile() or member.isdir())):
+                      raise SystemExit('unsafe parity bundle member')
+                  seen.add(member.name)
+              bundle.extractall(root, filter='data')
+          bindings = root / 'bindings.json'
+          if hashlib.sha256(bindings.read_bytes()).hexdigest() != bindings_expected:
+              raise SystemExit('provisioned bindings SHA256 mismatch')
+          PY
+      - name: Require every fresh public-verb parity and own-lineage golden lane
+        env:
+          PARITY_BINDINGS_SHA256: ${{ vars.GOMAD_PARITY_BINDINGS_SHA256 }}
+        run: |
+          python3 tools/gomad/scripts/all-verb-parity \
+            --bindings "$RUNNER_TEMP/gomad-parity-inputs/bindings.json" \
+            --bindings-sha256 "$PARITY_BINDINGS_SHA256" \
+            --work "$RUNNER_TEMP/gomad-all-verb-parity"
+      - name: Retain parity commands, raw evidence and result
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomad-all-verb-parity
+          path: ${{ runner.temp }}/gomad-all-verb-parity
+          if-no-files-found: error

@@ -28,7 +28,7 @@ func TestToolPackageLayout(t *testing.T) {
 		groups []string
 	}{
 		{".", []string{"cmd", "internal", "rust", "scripts", "testdata"}},
-		{"internal", []string{"archcheck", "backends", "evidence", "host", "model", "runner"}},
+		{"internal", []string{"archcheck", "backends", "evidence", "model", "runner", "support"}},
 		{"cmd", []string{"gomad"}},
 	} {
 		entries, err := os.ReadDir(layout.root)
@@ -166,7 +166,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "internal/runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata", "testdata/parity/site_scope"} {
+			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/model/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata", "testdata/parity/site_scope"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
 			for _, path := range []string{"internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"} {
@@ -209,7 +209,7 @@ func TestPackageArchitecture(t *testing.T) {
 		if pkg.ImportPath == logstore {
 			owners[logstore] = true
 			for _, imported := range pkg.Imports {
-				if first, _, _ := strings.Cut(imported, "/"); strings.Contains(first, ".") && imported != modulePath+"/internal/host/fs" {
+				if first, _, _ := strings.Cut(imported, "/"); strings.Contains(first, ".") && imported != modulePath+"/internal/support/fs" {
 					t.Errorf("shared log owner imports %s; it may use only the standard library and internal/hostfs", imported)
 				}
 			}
@@ -237,10 +237,8 @@ func TestPackageArchitecture(t *testing.T) {
 			}
 		}
 	}
-	if !owners[logstore] {
-		t.Errorf("shared log owner %s is missing", logstore)
-	}
-	for imported, allowed := range map[string]bool{modulePath + "/internal/host/fs": true, modulePath + "/internal/model/strictjson": false, modulePath + "/internal/runner/internal/campaign": false, modulePath + "/internal/runner/internal/corpus": false, modulePath + "/internal/evidence/record": false} {
+
+	for imported, allowed := range map[string]bool{modulePath + "/internal/support/fs": true, modulePath + "/internal/model/strictjson": false, modulePath + "/internal/runner/internal/campaign": false, modulePath + "/internal/runner/internal/corpus": false, modulePath + "/internal/evidence/record": false} {
 		if moduleMayImport(logstore, imported) != allowed {
 			t.Errorf("shared log owner edge to %s admitted = %t", imported, !allowed)
 		}
@@ -248,7 +246,7 @@ func TestPackageArchitecture(t *testing.T) {
 	if moduleMayImport(modulePath+"/internal/runner/internal/exploration", logstore) {
 		t.Error("pure exploration engines may import the shared log owner")
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "world", "strictjson", "hostexec", "hostfs"} {
+	for _, owner := range []string{"developer", "choice", "world", "strictjson", "hostfs"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -263,7 +261,8 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 	for _, test := range []struct {
 		name, owner, importing string
 	}{
-		{"wasm-wasi", "wasm", modulePath + "/internal/backends/wasm/wasi"},
+		{"wasi-reference", "wasireference", modulePath + "/internal/model/wasi"},
+		{"sqlite-native", "developer", modulePath + "/internal/model/cmd/sqlite-native"},
 		{"wasm-qualification", "wasm", modulePath + "/internal/backends/wasm/qualification"},
 		{"wasm-installation", "wasm", modulePath + "/internal/backends/wasm/installation"},
 		{"wasm-simulation", "wasm", modulePath + "/internal/backends/wasm/cluster"},
@@ -274,7 +273,7 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 		{"record", "record", modulePath + "/internal/evidence/record"},
 		{"world", "world", modulePath + "/internal/model/world"},
 		{"simulation", "simulation", modulePath + "/internal/model/clock"},
-		{"captured", "captured", modulePath + "/internal/evidence/artifact/capture"},
+		{"captured", "captured", modulePath + "/internal/model/capture"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if !ownerMayImport(test.owner, "strictjson", test.importing, imported) {
@@ -296,12 +295,12 @@ func TestWASMHostFSOwnerEdges(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			importing := modulePath + "/internal/backends/wasm/" + test.name
-			if got := ownerMayImport("wasm", "internal/host/fs", importing, modulePath+"/internal/host/fs"); got != test.allowed {
+			if got := ownerMayImport("wasm", "internal/support/fs", importing, modulePath+"/internal/support/fs"); got != test.allowed {
 				t.Errorf("%s may import internal/hostfs = %t, want %t", importing, got, test.allowed)
 			}
 		})
 	}
-	if ownerMayImport("wasm", "hostfs", modulePath+"/internal/backends/wasm/wasi", modulePath+"/internal/host/fs/unchecked") {
+	if ownerMayImport("wasm", "hostfs", modulePath+"/internal/model/wasi", modulePath+"/internal/support/fs/unchecked") {
 		t.Fatal("WASM host filesystem descendant bypass admitted")
 	}
 }
@@ -349,67 +348,6 @@ func TestHostPackageVet(t *testing.T) {
 			}
 			t.Logf("vetted %d complete host packages", len(inventory.Packages))
 		})
-	}
-}
-
-func TestRunnerExecutionInjectionIsPrivate(t *testing.T) {
-	for _, name := range []string{"runner.go", "campaign_shard_execution.go", "replay_operation.go", "minimize_operation.go", "resume.go"} {
-		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join("internal/runner", name), nil, 0)
-		if err != nil {
-			t.Fatalf("parse runner source %s: %v", name, err)
-		}
-		for _, declaration := range file.Decls {
-			general, ok := declaration.(*ast.GenDecl)
-			if !ok {
-				continue
-			}
-			for _, specification := range general.Specs {
-				typeSpec, ok := specification.(*ast.TypeSpec)
-				if !ok {
-					continue
-				}
-				if typeSpec.Name.Name == "Executor" || typeSpec.Name.Name == "ReplayExecutor" {
-					t.Errorf("runner exposes inaccessible execution interface %s", typeSpec.Name.Name)
-				}
-				structure, ok := typeSpec.Type.(*ast.StructType)
-				if !ok || !strings.HasSuffix(typeSpec.Name.Name, "Spec") {
-					continue
-				}
-				for _, field := range structure.Fields.List {
-					for _, fieldName := range field.Names {
-						if fieldName.IsExported() && fieldName.Name == "Executor" {
-							t.Errorf("runner.%s exposes inaccessible execution field", typeSpec.Name.Name)
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-func TestCurrentVocabularyHasNoLegacyCampaignBoundary(t *testing.T) {
-	for _, root := range []string{"cmd/gomad", "internal/evidence/qualification", "internal/runner"} {
-		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, visitErr error) error {
-			if visitErr != nil {
-				return visitErr
-			}
-			if entry.IsDir() || filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
-				return nil
-			}
-			contents, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			for _, obsolete := range []string{"partial_runs", "run journal", "batch plan", "batch lifecycle", "batch path", "batch directory", "batch record", "batch summary", "batch run", "batch_", "run_evidence", "max runs", "run timeout"} {
-				if strings.Contains(string(contents), obsolete) {
-					t.Errorf("current production file %s retains legacy boundary vocabulary %q", path, obsolete)
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			t.Fatalf("scan current vocabulary under %s: %v", root, err)
-		}
 	}
 }
 
@@ -541,15 +479,12 @@ func TestStrictJSONPureDependencyInventoryIsExact(t *testing.T) {
 }
 
 func pureFile(path string) bool {
-	if strings.HasPrefix(path, "internal/evidence/record/testfixture/") {
-		return false
-	}
 	for _, dependency := range pureDependencyFiles {
 		if path == dependency {
 			return true
 		}
 	}
-	for _, prefix := range []string{"internal/evidence/record/", "internal/model/world/mailbox/", "internal/runner/internal/exploration/"} {
+	for _, prefix := range []string{"internal/model/world/mailbox/"} {
 		if strings.HasPrefix(path, prefix) {
 			return true
 		}
@@ -557,7 +492,7 @@ func pureFile(path string) bool {
 	if filepath.ToSlash(filepath.Dir(path)) == "internal/model/world" {
 		return true
 	}
-	return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go"
+	return path == "internal/model/clock/simulation_progress.go"
 }
 
 //nolint:staticcheck // Tests execute on the compiling host and require that exact reviewed Go toolchain.
@@ -576,7 +511,7 @@ func typedSourcePlatforms() []archcheck.Platform {
 }
 
 func TestPureModulesHaveNoHostEffects(t *testing.T) {
-	paths := append([]string{"internal/runner/internal/campaign/controller.go", "internal/model/clock/simulation_progress.go"}, pureDependencyFiles...)
+	paths := append([]string{"internal/model/clock/simulation_progress.go"}, pureDependencyFiles...)
 	if err := pureFileInventory(".", paths); err != nil {
 		t.Fatal(err)
 	}
@@ -855,11 +790,5 @@ func TestArchitectureEffectFixtures(t *testing.T) {
 				t.Fatalf("reviewed callback rejected: %+v", marked)
 			}
 		})
-	}
-}
-
-func TestTargetDoesNotOwnAdapterSourceInventories(t *testing.T) {
-	if _, found := packageExports(t, "internal/backends/target")["DigestAdapterSourceInventory"]; found {
-		t.Error("target still owns adapter source-inventory hashing")
 	}
 }

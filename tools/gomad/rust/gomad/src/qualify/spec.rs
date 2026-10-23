@@ -131,28 +131,44 @@ pub(crate) struct Spec {
     pub artifact_root: PathBuf,
 }
 
-fn depth(value: &Value) -> usize {
-    match value {
-        Value::Array(values) => 1 + values.iter().map(depth).max().unwrap_or(0),
-        Value::Object(values) => 1 + values.values().map(depth).max().unwrap_or(0),
-        _ => 0,
-    }
-}
+mod preflight;
 
 /// Strictly decodes bounded qualification JSON; duplicate keys, trailing data
 /// and excessive nesting are refused before typed decoding.
 pub(crate) fn strict<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Result<T, String> {
-    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
-    let value = Unique::deserialize(&mut deserializer)
-        .map_err(|error| format!("qualification JSON: {error}"))?
-        .0;
-    deserializer
-        .end()
-        .map_err(|_| "qualification JSON has trailing data".to_owned())?;
-    if depth(&value) > MAXIMUM_NESTING {
-        return Err("qualification JSON nesting limit".into());
+    let end = preflight::first(bytes, MAXIMUM_NESTING)?;
+    if has_trailing(&bytes[end..]) {
+        return Err("qualification JSON has trailing data".into());
     }
-    serde_json::from_value(value).map_err(|error| format!("qualification JSON: {error}"))
+    serde_json::from_value(bounded_value(&bytes[..end])?)
+        .map_err(|error| format!("qualification JSON: {error}"))
+}
+
+/// Allows an owned typed decoder to preserve first-value errors before trailing
+/// input. Syntax and bounded nesting are still checked before that decoder.
+pub(crate) fn decode_first<T>(
+    bytes: &[u8],
+    decode: impl FnOnce(Value, bool) -> Result<T, String>,
+) -> Result<T, String> {
+    let end = preflight::first(bytes, MAXIMUM_NESTING)?;
+    decode(bounded_value(&bytes[..end])?, has_trailing(&bytes[end..]))
+}
+
+fn has_trailing(bytes: &[u8]) -> bool {
+    bytes
+        .iter()
+        .any(|byte| !matches!(byte, b' ' | b'\t' | b'\r' | b'\n'))
+}
+
+fn bounded_value(bytes: &[u8]) -> Result<Value, String> {
+    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
+    // Both callers first admit the entire slice with the lexical depth128
+    // guard, including the original empty-container edge. Other decoders
+    // keep serde's default recursion limit.
+    deserializer.disable_recursion_limit();
+    Unique::deserialize(&mut deserializer)
+        .map(|value| value.0)
+        .map_err(|error| format!("qualification JSON: {error}"))
 }
 
 /// A JSON value whose objects must not repeat a member name.
@@ -271,3 +287,7 @@ pub(crate) fn declared_digest(value: &str) -> Result<Option<String>, String> {
         .map(|digest| Some(digest.to_owned()))
         .ok_or_else(|| format!("invalid declared qualification digest {value:?}"))
 }
+
+#[cfg(test)]
+#[path = "receiving_depth_tests.rs"]
+mod receiving_depth_tests;

@@ -23,11 +23,29 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ["binary", "repo", "root", "compiler", "runtime-root", "cache"]:
         parser.add_argument("--"+name, type=Path, required=True)
-    parser.add_argument("--owner", choices=list(workloads.INSPECTION), required=True)
+    parser.add_argument("--owner", choices=[*workloads.INSPECTION, "all"], required=True)
     parser.add_argument("--captured-config", type=Path)
+    parser.add_argument("--private-observation-config", type=Path)
     args = parser.parse_args()
     binary, repo, root = args.binary.resolve(), args.repo.resolve(), args.root.resolve()
+    private = producer.private_configuration(args.private_observation_config, binary, repo, root)
     root.mkdir(parents=True, mode=0o700, exist_ok=False)
+    producer.owned_root(root)
+    producer.private_admission(private, root)
+    if args.owner == "all":
+        receipts = {}
+        for owner in workloads.INSPECTION:
+            command = [sys.executable, str(Path(__file__).resolve()), "--owner", owner]
+            for name in ["binary", "repo", "compiler", "runtime-root", "cache"]:
+                command += ["--"+name, str(getattr(args, name.replace("-", "_")).resolve())]
+            command += ["--root", str(root/owner)]
+            if args.captured_config:
+                command += ["--captured-config", str(args.captured_config.resolve())]
+            if args.private_observation_config:
+                command += ["--private-observation-config", str(args.private_observation_config.resolve())]
+            receipts[owner] = producer.run(root, owner, command, 0)
+        print(json.dumps(dict(receipts=receipts)))
+        return
     selection, dump, probe, snapshot = workloads.INSPECTION[args.owner]
     captured = producer.captured(repo, args.captured_config) if args.owner == "onebox" and args.captured_config else None
     policy = root/"policy.json"
@@ -54,7 +72,7 @@ def main():
     for tag in workloads.TAGS+["gomad"]:
         command += ["--build-tag",tag]
     command += ["--working-dir",str(repo),"go-test","./"+str(stage.relative_to(repo)),"--",*arguments]
-    response=producer.run(root,"explore",command,1)
+    response=producer.run(root,"explore",command,1,**({'private_observations': private} if private is not None else {}))
     if response["attempted"]!=1 or response["failures"]!=1 or response["retained_evidence"]!=1:
         raise ValueError("original inspection canary did not retain exactly one actual failure")
     artifacts=[]
@@ -104,7 +122,7 @@ def main():
     if before!=file_hashes(artifact):
         raise ValueError("stopped inspection modified original retained artifact")
     producer.write(root/"inspection-receipt.json",dict(schema="gomad.rust-temporal-inspection/v1",owner=args.owner,artifact=str(artifact),source_detached=str(detached),
-        report=report,artifact_sha256=before,subgates=[dict(id="TestTemporalInspectionRetainedFailure/"+args.owner,status="PASS",executed=True,exit=0)]))
+        report=report,artifact_sha256=before,inspection_sha256=file_hashes(root/"inspection"),subgates=[dict(id="TestTemporalInspectionRetainedFailure/"+args.owner,status="PASS",executed=True,exit=0)]))
     print(json.dumps(dict(receipt=str(root/"inspection-receipt.json"))))
 
 

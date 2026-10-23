@@ -10,7 +10,7 @@ import (
 	"path"
 	"path/filepath"
 
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad/internal/support/fs"
 )
 
 // Family selects the schema and template data an output is rendered from.
@@ -61,7 +61,7 @@ func SharedTargets() []Target {
 		{Family: FamilyVolume, Host: true, Template: "internal/model/schema/volumewire.go.tmpl", Path: "internal/model/cluster/internal/wire/volume.go"},
 		{Family: FamilyIO, Package: "wire", Template: "internal/model/schema/iowire.go.tmpl", Path: "internal/model/iowire/wire_generated.go"},
 		{Family: FamilyIO, Package: "wire", Template: "internal/model/schema/iowire_test.go.tmpl", Path: "internal/model/iowire/wire_generated_test.go"},
-		{Family: FamilyChoice, Unformatted: true, Template: "internal/model/choice/schema/choicewire.rs.tmpl", Path: "internal/backends/wasm/wasmhost/src/model/choice_wire_generated.rs"},
+		{Family: FamilyChoice, Unformatted: true, Template: "internal/model/choice/schema/choicewire.rs.tmpl", Path: "rust/wasmhost/src/model/choice_wire_generated.rs"},
 		{Family: FamilyChoice, Package: "wire", Template: "internal/model/choice/schema/choicewire.go.tmpl", Path: "internal/model/choice/internal/wire/wire_generated.go"},
 		{Family: FamilyChoice, Package: "wire", Template: "internal/model/choice/schema/choicewire_test.go.tmpl", Path: "internal/model/choice/internal/wire/wire_generated_test.go"},
 		{Family: FamilyChoice, Package: "runtime", Template: "internal/model/choice/schema/choicewire_runtime.go.tmpl", Path: "internal/model/runtimesource/gomad_choicewire_generated.go.txt"},
@@ -72,7 +72,7 @@ func SharedTargets() []Target {
 		{Family: FamilyWorld, Package: "world", Template: "internal/model/world/schema/snapshotwire.go.tmpl", Path: "internal/model/world/compressed_wire_generated.go"},
 		// The Rust cluster helper's World model writes the same expanded wire
 		// (fn-178.4); Go keeps the only decoder.
-		{Family: FamilyWorld, Package: "world", Unformatted: true, Template: "internal/model/world/schema/snapshotwire.rs.tmpl", Path: "internal/backends/wasm/wasmhost/src/world/wire_generated.rs"},
+		{Family: FamilyWorld, Package: "world", Unformatted: true, Template: "internal/model/world/schema/snapshotwire.rs.tmpl", Path: "rust/wasmhost/src/world/wire_generated.rs"},
 	}
 }
 

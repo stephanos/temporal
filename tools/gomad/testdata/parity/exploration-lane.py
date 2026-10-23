@@ -148,7 +148,7 @@ def main():
     run('current-model-owner-conformance', [args.go_compiler, 'test', '-p=1', '-tags', 'test_dep',
         '-count=1', '-timeout=10m', '-run',
         '^(TestNamespaceConformance|TestVolumeConformance|TestNetworkAdapterCorpus|TestNetworkClusterCorpus|TestBrokerLifecycleCorpus)',
-        './internal/backends/wasm/wasi'], cwd=MODULE, extra={
+        './internal/model/wasi'], cwd=MODULE, extra={
             'GOMAD_WASM_CONFORMANCE_HELPER': str(args.conformance_helper), 'GOMAD_WASM_CONFORMANCE_REQUIRED': '1'})
     result = dict(schema='gomad.exploration-semantic-parity/v1', requested_verb=args.verb,
         binary_sha256=digest(args.binary.read_bytes()), divergence_binary_sha256=digest(args.divergence_binary.read_bytes()),

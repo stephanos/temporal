@@ -142,3 +142,83 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/drive
 
 These synthetic negative fixtures establish receiver behavior only. They earn
 no actual runtime, workload, stress, terminal or qualification gate.
+
+The owned live receiver is `live.py`; `final.py --config CONFIG --root ROOT`
+composes it with the independent `receiving.py` raw-evidence reader and
+separately pinned `final_sections` readers. The live receiver
+owns 39 transferred roots, 84 admission cells and the distinct complete
+`test-wasm` reach obligation. These are 124 of the 145 final obligations. The integrated receiving reader owns
+13 more: runtime, the mandatory ten result/receipt pairs, SQLite primary/four
+selections/catalogue, and the five Temporal obligations. It must return all 13
+actual passing rows; missing, duplicate, failed or unexecuted evidence refuses.
+Its source and imported cost/workload modules are frozen inputs, never proof of
+execution. Eight obligations remain explicitly unbound: the two fn185-R4 checks,
+rotated ringpop inspection, detached operator, all-public-verb differential,
+20 retained replays, full stress matrix, and current terminal host admission.
+Missing separately owned readers, missing reach mapping or missing actual runs
+refuse completion. Existing historical receipts are not upgraded into a fresh
+candidate proof.
+
+A frozen `live_corpus` configuration names `roles`, all 15 `families` from
+`live.FAMILIES`, `original_reference_commit`, `root19_rust_admission` and
+`test_wasm_reach`. Each family binds an existing stage through `stage`, exact
+`argv` and `role`; that stage lists it in `live_families`. Its fresh output is
+`stages/STAGE/live-FAMILY`. Ordinary release/helper test roles require no helper
+features; the host fixture role permits only the existing host fixture feature.
+Each role seals the executable and successful release build receipt, including
+actual source, host/helper hashes and feature lists. Inputs and complete input
+directories must be in the frozen file inventory. No role is inferred from a
+binary's filename.
+
+The adapter runs each configured family and retains actual command/process
+journals before writing its raw-file proof. The reader reopens those journals,
+all raw files and the original pure comparators. Deliberate application failures
+use their original explicit expected dispositions; absent exits, zero selections,
+skips, duplicate cases and changed resource bounds cannot become PASS. Root19
+requires both the authenticated frozen Go isolated-reference observation and
+the actual Rust single-helper hard-isolation refusal. Root35 additionally needs
+the ordinary helper's exact private ignored test and all 16 real post-Start
+reinsertion comparisons; CLI shutdown rows alone cannot satisfy it.
+
+`test_wasm_reach.map` is an independently reviewed original-source map, not a
+39-root alias. Every original callable and expanded subtest must name actual
+receiving testcase/raw proof IDs. `reports` binds those IDs to owning static
+stages; the live reader re-executes the static reader's pure authentication.
+Known ignored source tests retain their receiving obligations: the two aggregate
+regressions map to root34 open-streams/seed7 and storage-crash/seed7, private
+reinsertion maps to root35, and codec/module-recipe tests require their separate
+actual test executions. Original opt-in nonqualification tests are not reported
+as executions. A complete reviewed map and fresh receiving reports remain
+required inputs; this source implementation creates neither.
+
+For the remaining eight nonowned obligations, `final_sections.NAME` specifies exact `required` IDs
+and pinned reader `argv`. `final.py` appends `--root ROOT`. A section returns
+`gomad.rust-driver-final-section/v1` with exact frozen `source_sha256`, `identity`
+and authenticated `subgates`; their disjoint union with the live and receiving sections must
+match all 145 required IDs. Missing owners remain UNEXECUTED.
+
+The original source inventory is
+`testdata/parity/original-test-wasm-reach.json` (relative to `tools/gomad`).
+Its `gomad.original-test-wasm-source-inventory/v1` schema deliberately differs
+from an executable final reach map. It fixes assignment-base revision
+`1d695061b6382009d0659238c652a5a765b1d5f5`, both original Makefiles and every
+selected/excluded test source blob. `reach.inventory()` reproduces lexical
+callable/helper spans, original command selections, fixture exclusions and
+subtest sites from those Git objects. Source reviews and receiving candidates
+add explicit predicates and gaps; they never fill `evidence` or export PASS.
+The initial regex count was invalid because guest source strings contain test
+functions. Current discovery finds 752 actual callables and 756 original root
+command selections. The four double-selected roots require distinct actual
+`@stage/STAGE@run/command-NNNN` proof references in the final map; one process
+cannot substitute for two original Make invocations. Dynamic subtest domains
+remain required and unresolved until an exact source-reviewed expansion or
+actual bounded receiving derivation is bound.
+
+For the single original all-decision inspection site, a final map may use
+`{"derive":"runtime-inspection-boundaries"}`. This closed derivation accepts only
+that original source expression. It derives each kind/decision from actual raw
+choice records and complete inspection metadata, then requires the exact stopped
+request, verified prefix, real stack/heap and one command for every decision.
+Missing cases and fixed-count declarations refuse. Expanded obligation IDs retain
+the original site byte coordinate, preventing equal labels at different source
+sites from collapsing into one obligation.

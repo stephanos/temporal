@@ -15,8 +15,8 @@ import (
 	"slices"
 	"strings"
 
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 	runtimesemantics "go.temporal.io/server/tools/gomad/internal/model/runtimesource"
+	hostfs "go.temporal.io/server/tools/gomad/internal/support/fs"
 )
 
 //go:embed runtime_wasm.go.txt

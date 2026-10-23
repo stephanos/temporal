@@ -1,0 +1,346 @@
+#!/usr/bin/env python3
+"""Run the fixed fresh Go/Rust public-verb parity and regression lanes."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+MODULE = Path(__file__).resolve().parents[1]
+CORPUS = MODULE / 'testdata/parity'
+PUBLIC_VERBS = ('inspect', 'replay', 'explore', 'resume', 'execute-shard', 'merge', 'minimize',
+                'qualify', 'report', 'qualify-set', 'merge-set', 'compare-support', 'install',
+                'doctor', 'discover', 'plan', 'recover', 'analyze', 'stress')
+FILES = {'release', 'fixture', 'stress', 'stress-release', 'determinism', 'divergence', 'reference-helper',
+         'compiler', 'rust-compiler', 'replay-input', 'go-base', 'build-receipts'}
+TREES = {'baseline', 'source', 'cluster-baseline', 'cluster-source', 'candidate-source', 'compiler-root'}
+ENDPOINTS = ('foundation-check.py', 'foundation-release-check.py', 'inspect-lane.py', 'replay-lane.py',
+             'exploration-lane.py', 'campaign-lane.py', 'minimize-reference-lane.py',
+             'qualify-accounting-check.py', 'qualify-lane.py', 'installation-lane.py',
+             'plan-check.py', 'recover-check.py', 'installation-numeric-check.py',
+             'stress-role-check.py', 'stress-parity-lane.py')
+
+
+def encode(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def decode(raw):
+    def members(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate JSON member: ' + key)
+            result[key] = value
+        return result
+    return json.loads(raw, object_pairs_hook=members,
+                      parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)))
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def require_fields(value, names, label):
+    require(type(value) is dict and set(value) == names, label + ': missing or unknown fields')
+
+
+def pinned_file(path, expected):
+    require(type(expected) is str and re.fullmatch('[0-9a-f]{64}', expected), 'invalid SHA256 pin')
+    require(path.is_file(), 'missing input: ' + str(path))
+    require(digest(path.read_bytes()) == expected, 'changed input: ' + str(path))
+    return path
+
+
+def absolute(value, base):
+    require(type(value) is str and bool(value), 'missing path')
+    path = Path(value)
+    return (path if path.is_absolute() else base / path).resolve(strict=True)
+
+
+def authenticate_tree(binding, base):
+    require_fields(binding, {'path', 'inventory', 'sha256'}, 'tree binding')
+    root = absolute(binding['path'], base)
+    require(root.is_dir(), 'missing source/custody directory: ' + str(root))
+    manifest = pinned_file(absolute(binding['inventory'], base), binding['sha256'])
+    paths = set()
+    for line in manifest.read_text().splitlines():
+        parts = line.split(maxsplit=1)
+        require(len(parts) == 2, 'malformed inventory')
+        expected, relative = parts[0], parts[1].lstrip(' *')
+        item = Path(relative)
+        require(not item.is_absolute() and '..' not in item.parts and relative not in paths,
+                'unsafe or duplicate inventory path: ' + relative)
+        target = (root / item).resolve(strict=True)
+        require(target.is_relative_to(root), 'inventory escapes root: ' + relative)
+        pinned_file(target, expected)
+        paths.add(relative)
+    require(bool(paths), 'empty inventory')
+    return root, paths
+
+
+def require_receipt(root, relative, schema):
+    path = root / relative
+    require(path.is_file(), 'UNEXECUTED: missing mandatory receipt: ' + str(path))
+    value = decode(path.read_bytes())
+    require(type(value) is dict and value.get('schema') == schema, 'wrong receipt schema: ' + str(path))
+    require(value.get('status') not in ('skipped', 'unexecuted', 'UNEXECUTED', 'pending') and
+            value.get('skipped') is not True, 'UNEXECUTED: skipped receipt: ' + str(path))
+    return value
+
+
+def authenticate_commands(root, *, checked_in_lane=False):
+    path = root / 'commands.json'
+    require(path.is_file(), 'UNEXECUTED: missing command receipts: ' + str(path))
+    rows = decode(path.read_bytes())
+    require(type(rows) is list and bool(rows), 'empty command receipts: ' + str(path))
+    for row in rows:
+        require(type(row) is dict and type(row.get('status')) is int, 'missing numeric subprocess status')
+        if 'expected_status' in row or 'expected' in row:
+            expected = row.get('expected_status', row.get('expected'))
+            require(expected is None or type(expected) is int, 'invalid expected status')
+            require(expected is None or row['status'] == expected, 'subprocess status mismatch')
+        else:
+            require(checked_in_lane, 'missing expected subprocess status')
+        for stream in ('stdout', 'stderr'):
+            relative = row.get(stream)
+            if relative is None:
+                require(type(row.get('name')) is str, 'missing command stream name')
+                relative = row['name'] + '.' + stream
+            require(type(relative) is str and not Path(relative).is_absolute() and '..' not in Path(relative).parts,
+                    'unsafe command stream path')
+            payload = root / relative
+            require(payload.is_file(), 'missing raw command stream: ' + str(payload))
+            if stream + '_sha256' in row:
+                pinned_file(payload, row[stream + '_sha256'])
+    return digest(path.read_bytes())
+
+
+def load_bindings(path, expected):
+    pinned_file(path, expected)
+    value = decode(path.read_bytes())
+    require_fields(value, {'schema', 'files', 'trees'}, 'bindings')
+    require(value['schema'] == 'gomad.all-verb-bindings/v1', 'unsupported bindings schema')
+    require_fields(value['files'], FILES, 'files')
+    require_fields(value['trees'], TREES, 'trees')
+    files, trees, inventories = {}, {}, {}
+    for name, binding in value['files'].items():
+        require_fields(binding, {'path', 'sha256'}, 'file binding')
+        files[name] = pinned_file(absolute(binding['path'], path.parent), binding['sha256'])
+    for name, binding in value['trees'].items():
+        trees[name], inventories[name] = authenticate_tree(binding, path.parent)
+    require(trees['candidate-source'] == MODULE.parents[1], 'candidate source must be this checkout')
+    for name in ('source', 'cluster-source', 'candidate-source', 'compiler-root'):
+        listed = inventories[name]
+        actual = {str(item.relative_to(trees[name])) for item in trees[name].rglob('*')
+                  if item.is_file() and not any(part in ('.git', '.flow', '__pycache__')
+                  for part in item.relative_to(trees[name]).parts)}
+        require(actual <= listed, name + ': source/distribution inventory is incomplete')
+    for name in ('source', 'cluster-source', 'candidate-source'):
+        require('tools/gomad/go.mod' in inventories[name], 'source inventory omits Go module')
+    for name in ('baseline', 'cluster-baseline'):
+        require({'bin/gomad', 'bin/gomad-wasmhost', 'inputs.sha256'} <= inventories[name],
+                'custody inventory omits launcher/helper/original inventory')
+    require(digest((trees['baseline'] / 'bin/gomad').read_bytes()) ==
+            '407263f9be007312375e77462cc38d92eac333f28d72d79312caf7d2a78c5239', 'wrong frozen Go launcher')
+    require(digest((trees['baseline'] / 'bin/gomad-wasmhost').read_bytes()) ==
+            'b25439140f0c850a82f99471c9fd48ac864569a75e407a76850873f6ece055a1', 'wrong frozen Go helper')
+    require(files['compiler'].is_relative_to(trees['compiler-root']), 'compiler outside pinned distribution')
+    require(str(files['compiler'].relative_to(trees['compiler-root'])) in inventories['compiler-root'],
+            'compiler absent from distribution inventory')
+    builds = decode(files['build-receipts'].read_bytes())
+    require_fields(builds, {'schema', 'source_inventory_sha256', 'roles'}, 'build receipts')
+    require(builds['schema'] == 'gomad.all-verb-builds/v1' and
+            builds['source_inventory_sha256'] == value['trees']['candidate-source']['sha256'],
+            'role builds do not bind candidate source')
+    expected_features = {'release': [], 'fixture': ['determinism-fixture'],
+                         'stress': ['determinism-fixture', 'helper-stress-jitter'],
+                         'stress-release': ['helper-stress-jitter'],
+                         'determinism': ['determinism-fixture', 'helper-determinism-fixture'],
+                         'divergence': ['determinism-fixture', 'helper-determinism-fixture'],
+                         'reference-helper': ['conformance']}
+    require_fields(builds['roles'], set(expected_features), 'build roles')
+    for role, features in expected_features.items():
+        row = builds['roles'][role]
+        require_fields(row, {'binary_sha256', 'features', 'profile', 'exit', 'compiler_sha256'}, 'role build')
+        require(row['binary_sha256'] == value['files'][role]['sha256'] and
+                row['features'] == features and row['profile'] == 'release' and
+                type(row['exit']) is int and row['exit'] == 0 and
+                row['compiler_sha256'] == value['files']['rust-compiler']['sha256'], 'unadmitted role build: ' + role)
+    for role in ('fixture', 'stress', 'stress-release', 'determinism'):
+        require(value['files'][role]['sha256'] != value['files']['release']['sha256'],
+                'release binary substituted for compiled fixture role')
+    for endpoint in ENDPOINTS:
+        require((CORPUS / endpoint).is_file(), 'UNEXECUTED: required endpoint missing: ' + endpoint)
+        require('tools/gomad/testdata/parity/' + endpoint in inventories['candidate-source'],
+                'candidate source inventory omits endpoint: ' + endpoint)
+    require('tools/gomad/scripts/all-verb-parity' in inventories['candidate-source'], 'unbound orchestrator')
+    return files, trees
+
+
+def source_snapshot(root):
+    rows = {}
+    for item in sorted(root.rglob('*')):
+        relative = item.relative_to(root)
+        if any(part in ('.git', '.flow', '__pycache__') for part in relative.parts):
+            continue
+        if item.is_file():
+            require(item.resolve(strict=True).is_relative_to(root), 'derived source symlink escapes root: ' + str(relative))
+            rows[str(relative)] = digest(item.read_bytes())
+    require(bool(rows), 'empty derived source')
+    return rows
+
+
+def derive_sources(trees, work):
+    # Reference lanes create Go wrappers inside their source module. Their frozen
+    # inputs stay read-only; retain an authenticated, independently copied origin.
+    result, origins = dict(trees), {}
+    for name in ('source', 'cluster-source'):
+        source = trees[name]
+        destination = work / 'derived-sources' / name
+        before = source_snapshot(source)
+        shutil.copytree(source, destination, symlinks=True,
+                        ignore=shutil.ignore_patterns('.git', '.flow', '__pycache__'))
+        require(source_snapshot(destination) == before, 'derived source copy changed bytes: ' + name)
+        require(source_snapshot(source) == before, 'source changed while deriving: ' + name)
+        origins[name] = dict(source=str(source), derived=str(destination), files=before)
+        result[name] = destination
+    (work / 'derived-source-inputs.json').write_bytes(encode(dict(
+        schema='gomad.parity-derived-source-inputs/v1', origins=origins)) + b'\n')
+    return result
+
+
+def run_all(bindings, binding_sha256, work):
+    require(not sys.flags.optimize, 'Python optimization disables required lane assertions')
+    require(not os.environ.get('GOMAD_GOLDEN_REGENERATE'), 'golden regeneration forbidden in all-verb gate')
+    files, trees = load_bindings(bindings, binding_sha256)
+    require(not any(work.is_relative_to(root) for root in trees.values()),
+            'work root must be outside authenticated input trees')
+    work.mkdir(mode=0o700, parents=True, exist_ok=False)
+    trees = derive_sources(trees, work)
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.startswith('GOMAD_') and key not in ('PYTHONOPTIMIZE', 'BASH_ENV', 'SANDBOX_START_DIR', 'GOROOT')}
+    environment.update(PYTHONDONTWRITEBYTECODE='1', GOENV='off', GOWORK='off', GOTOOLCHAIN='local')
+    commands, coverage = [], {}
+
+    def run(name, argv):
+        command = list(map(str, argv))
+        try:
+            result = subprocess.run(command, capture_output=True, env=environment, timeout=14400)
+        except subprocess.TimeoutExpired as error:
+            result = subprocess.CompletedProcess(command, 124, error.stdout or b'', (error.stderr or b'') + b'\ncommand timeout\n')
+        except OSError as error:
+            result = subprocess.CompletedProcess(command, 127, b'', str(error).encode())
+        (work / (name + '.stdout')).write_bytes(result.stdout)
+        (work / (name + '.stderr')).write_bytes(result.stderr)
+        row = dict(name=name, argv=command, status=result.returncode, expected=0,
+                   stdout_sha256=digest(result.stdout), stderr_sha256=digest(result.stderr))
+        commands.append(row)
+        (work / 'commands.json').write_bytes(encode(commands) + b'\n')
+        require(result.returncode == 0, name + ': mandatory lane failed, status ' + str(result.returncode))
+
+    def lane(name, endpoint, flags, verbs=(), receipt=None, command_root=None, checked_in_lane=False):
+        root = work / name
+        run(name, [sys.executable, CORPUS / endpoint, *flags])
+        if command_root is not None:
+            authenticate_commands(root / command_root, checked_in_lane=checked_in_lane)
+        if receipt:
+            require_receipt(root, *receipt)
+        for verb in verbs:
+            coverage.setdefault(verb, []).append(name)
+
+    def flags(values):
+        return [part for name, value in values.items() for part in ('--' + name, value)]
+
+    common = dict(binary=files['fixture'], baseline=trees['baseline'], source=trees['source'],
+                  **{'go-compiler': files['compiler']})
+    lane('foundation', 'foundation-check.py', flags(dict(binary=files['fixture'], work=work / 'foundation')))
+    lane('release-exclusion', 'foundation-release-check.py', [files['release'], work / 'release-exclusion'])
+    lane('inspect', 'inspect-lane.py', flags(dict(common, work=work / 'inspect')), ('inspect',),
+         ('fresh-parity/inspect-result.json', 'gomad.inspect-parity/v1'), 'fresh-parity')
+    lane('replay', 'replay-lane.py', flags(dict(common, work=work / 'replay', **{
+         'stress-binary': files['stress'], 'determinism-binary': files['determinism'], 'release-binary': files['release'],
+         'preparation-root': work / 'preparation/replay', 'cluster-baseline': trees['cluster-baseline'],
+         'cluster-source': trees['cluster-source']})), ('replay',),
+         ('fresh-parity/replay-reference-result.json', 'gomad.replay-reference-parity/v1'), 'fresh-parity')
+    for verb in ('explore', 'resume'):
+        lane(verb, 'exploration-lane.py', flags(dict(common, verb=verb, input=files['replay-input'],
+             work=work / verb, **{'preparation-root': work / ('preparation/' + verb),
+             'divergence-binary': files['divergence'], 'conformance-helper': files['reference-helper'],
+             'go-base': files['go-base']})), (verb,),
+             ('exploration-semantic-parity.json', 'gomad.exploration-semantic-parity/v1'), '')
+    for verb in ('execute-shard', 'merge'):
+        lane(verb, 'campaign-lane.py', flags(dict(common, verb=verb, input=files['replay-input'], work=work / verb,
+             **{'preparation-root': work / ('preparation/' + verb)})), (verb,),
+             ('campaign-semantic-parity.json', 'gomad.campaign-semantic-parity/v1'), '')
+    lane('minimize', 'minimize-reference-lane.py', flags(dict(baseline=trees['baseline'], source=trees['source'],
+         **{'go-compiler': files['compiler'], 'rust-binary': files['fixture'], 'output': work / 'minimize',
+         'preparation-root': work / 'preparation/minimize', 'golden': CORPUS / 'goldens-minimize/semantic.json'})),
+         ('minimize',), ('minimize-reference-result.json', 'gomad.minimize-reference-parity/v1'), '')
+    lane('qualify-accounting', 'qualify-accounting-check.py', flags(dict(binary=files['fixture'], work=work / 'qualify-accounting')))
+    go = {'go-binary': trees['baseline'] / 'bin/gomad', 'go-helper': trees['baseline'] / 'bin/gomad-wasmhost',
+          'go-source': trees['source'], 'go-compiler': files['compiler']}
+    lane('qualify-report', 'qualify-lane.py', flags(dict(go, binary=files['fixture'], input=files['replay-input'],
+         work=work / 'qualify-report', cells='fixture,fixture-canary,sqlite,onebox,cluster',
+         **{'preparation-root': work / 'preparation/qualify'})), ('qualify', 'report'), command_root='')
+    lane('installation', 'installation-lane.py', flags(dict(go, binary=files['release'], work=work / 'installation',
+         **{'preparation-root': work / 'preparation/installation', 'role-binary': files['stress-release']})),
+         ('install', 'discover', 'doctor', 'plan', 'recover', 'analyze'), command_root='', checked_in_lane=True)
+    for verb in ('qualify-set', 'merge-set', 'compare-support'):
+        observed = []
+        for lineage, binary in (('go', go['go-binary']), ('rust', files['release'])):
+            name = verb + '-' + lineage
+            result = subprocess.run([str(binary), verb], env=environment, capture_output=True, timeout=30)
+            (work / (name + '.stdout')).write_bytes(result.stdout)
+            (work / (name + '.stderr')).write_bytes(result.stderr)
+            row = dict(name=name, argv=[str(binary), verb], status=result.returncode, expected=2,
+                       stdout_sha256=digest(result.stdout), stderr_sha256=digest(result.stderr))
+            commands.append(row)
+            (work / 'commands.json').write_bytes(encode(commands) + b'\n')
+            require(result.returncode == 2 and not result.stdout and any(marker in result.stderr for marker in
+                    (b'unknown command', b'unknown gomad command', b'unsupported command')),
+                    verb + ': frozen WASM availability/refusal changed')
+            observed.append(dict(lineage=lineage, status=2, availability='unsupported'))
+        coverage[verb] = observed
+    lane('stress-roles', 'stress-role-check.py', flags(dict(ordinary=files['release'], stress=files['stress-release'],
+         diagnostic=files['determinism'])))
+    lane('stress', 'stress-parity-lane.py', flags(dict(go, binary=files['stress-release'], input=files['replay-input'],
+         **{'ordinary-binary': files['release'], 'work': work / 'stress'})), ('stress',),
+         ('stress-parity-result.json', 'gomad.stress-semantic-parity/v1'), '')
+    require(set(coverage) == set(PUBLIC_VERBS), 'incomplete public verb coverage')
+    load_bindings(bindings, binding_sha256)
+    authenticate_commands(work)
+    inventory = {str(path.relative_to(work)): digest(path.read_bytes()) for path in sorted(work.rglob('*')) if path.is_file()}
+    report = dict(schema='gomad.all-verb-parity/v1', status='passed', bindings_sha256=binding_sha256,
+                  coverage=coverage, retained_files=inventory,
+                  scope='R13 fresh parity and own-lineage regressions; R12 frozen qualification is separate')
+    (work / 'all-verb-result.json').write_bytes(encode(report) + b'\n')
+    print('all mandatory public-verb lanes passed; frozen R12 acceptance remains separate')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--bindings', type=Path, required=True)
+    parser.add_argument('--bindings-sha256', required=True)
+    parser.add_argument('--work', type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        run_all(args.bindings.resolve(strict=True), args.bindings_sha256, args.work.resolve())
+    except (ValueError, OSError, subprocess.TimeoutExpired) as error:
+        print('all-verb parity refused: ' + str(error), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

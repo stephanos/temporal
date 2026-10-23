@@ -25,7 +25,7 @@ pub(crate) fn build(
         return Err("--config cannot be combined with Temporal setup".into());
     }
     let original = if let Some(path) = config_path {
-        crate::qualify::spec::strict(&crate::qualify::spec::read_bounded(path, 16 << 20)?)?
+        read_config(&crate::qualify::spec::read_bounded(path, 16 << 20)?)?
     } else if let Some((root, package)) = temporal {
         temporal_value(root, package)?
     } else {
@@ -813,4 +813,31 @@ fn validate(config: &Configuration) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+fn read_config(bytes: &[u8]) -> Result<Value, String> {
+    crate::qualify::spec::decode_first(bytes, |value, trailing| {
+        let _: Guest = decode::typed(value.clone())?;
+        if trailing {
+            return Err("qualification JSON has trailing data".into());
+        }
+        Ok(value)
+    })
+}
+
+#[cfg(test)]
+mod receiving_config_tests {
+    use super::read_config;
+
+    #[test]
+    fn first_typed_value_errors_precede_trailing_data() {
+        for (input, expected) in [
+            (br#"{"Profile":1} {}"#.as_slice(), "string"),
+            (br#"{"UnknownOwned":true} {}"#.as_slice(), "unknown field"),
+        ] {
+            let error = read_config(input).unwrap_err();
+            assert!(error.contains(expected), "{error}");
+            assert!(!error.contains("trailing"), "{error}");
+        }
+    }
 }
