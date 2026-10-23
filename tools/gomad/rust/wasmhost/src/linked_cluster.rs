@@ -689,6 +689,7 @@ fn run_instance(
     let mut store = Store::new(engine, state);
     activity.launched_stores.fetch_add(1, Ordering::Release);
     store.limiter(|state| &mut state.limits);
+    #[cfg(not(feature = "diagnostic-fuel-off"))]
     store.set_fuel(limits.fuel)?;
     store.set_epoch_deadline(1);
     let mut metrics = Metrics::default();

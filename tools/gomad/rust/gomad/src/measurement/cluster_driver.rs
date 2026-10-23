@@ -405,7 +405,7 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 root,
                 &row,
                 &candidate,
-                request,
+                &request,
                 prepared
                     .guest
                     .choice_identity

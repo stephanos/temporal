@@ -460,6 +460,10 @@ fn cell(request: &Request, binary: &Path, command: &[String]) -> Result<Value, S
     Ok(observation)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Managed stress execution keeps source admission, parent retention and rerun lifecycle in one supervisor"
+)]
 pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, String> {
     if std::env::var("GOMAD_WASM_STRESS").as_deref() != Ok("1") {
         return Err("stress requires GOMAD_WASM_STRESS=1".into());
@@ -480,7 +484,7 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
             false,
             &|| false,
         )?;
-        request.requested_root = requested_root.to_owned();
+        requested_root.clone_into(&mut request.requested_root);
         let result = process::supervise(&binary, &request, &retained.path().join("cohort"))
             .and_then(|report| {
                 writeln!(output, "{report}").map_err(|error| error.to_string())?;
@@ -599,7 +603,7 @@ pub(crate) fn run(arguments: &[String], output: &mut dyn Write) -> Result<i32, S
     )?;
     let spec_write =
         canonical::encode(&spec).and_then(|raw| write(&retained.path().join("spec.json"), &raw));
-    spec.root = retained.path().to_owned();
+    retained.path().clone_into(&mut spec.root);
     let result = spec_write.and_then(|()| run_spec(&binary, &spec, &command, output));
     let finish = retained.finish(result.as_ref().is_ok_and(|status| *status == 0), &|| false);
     let status = result.as_ref().copied().unwrap_or(1);

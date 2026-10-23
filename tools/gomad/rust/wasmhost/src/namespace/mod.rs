@@ -627,7 +627,7 @@ impl Namespace {
     /// Go `initializeStorage` after validation: mounts the volumes on their
     /// empty writable directories, loads the durable tree (recovery) and
     /// opens a volume handle for every descriptor already on a volume.
-    pub fn attach_storage(&mut self, storage: Storage) -> std::result::Result<(), Stop> {
+    pub(crate) fn attach_storage(&mut self, storage: Storage) -> std::result::Result<(), Stop> {
         self.touch();
         let mounts: Vec<String> = storage
             .model
@@ -841,7 +841,7 @@ impl Namespace {
     pub fn filesystem_bytes(&self) -> u64 {
         self.limits.filesystem_bytes
     }
-    pub fn storage(&self) -> Option<&Storage> {
+    pub(crate) fn storage(&self) -> Option<&Storage> {
         self.storage.as_ref()
     }
     #[cfg(not(feature = "conformance"))]
@@ -851,7 +851,7 @@ impl Namespace {
     }
     /// Go `CrashStorage`: the image of the selected durable state. Descriptor
     /// numbers and open volume handles belong to the discarded incarnation.
-    pub fn crash_storage(
+    pub(crate) fn crash_storage(
         &mut self,
         selections: &BTreeMap<String, Vec<u64>>,
         maximum: u64,
