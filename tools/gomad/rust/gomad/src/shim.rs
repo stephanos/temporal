@@ -668,8 +668,8 @@ fn execute_registered(
     Err("registered Go exec unexpectedly returned".into())
 }
 
-/// The guest build environment is exact, so the wrapper's campaign selection must be
-/// restated for the `run-guest` launchers that Go starts through `-exec`.
+/// The guest build environment is exact, so the wrapper identity and campaign selection
+/// must be restated for the launchers that Go starts through `-exec`.
 fn driver_command(
     contract: &Contract,
     arguments: &[OsString],
@@ -683,6 +683,7 @@ fn driver_command(
         .env("GOTMPDIR", module_root)
         .env("GOMAD_SHIM_INVOCATION", invocation)
         .env("GOMAD_SHIM_INVOCATION_SHA256", invocation_sha256)
+        .env("GOMAD_SHIM_RUN", &contract.run)
         .env("GOMAD_SHIM_ARTIFACTS", &contract.artifacts)
         .env("GOMAD_SHIM_SEEDS", &contract.seeds);
     command
@@ -811,6 +812,10 @@ mod tests {
         assert_eq!(
             observed[OsStr::new("GOMAD_SHIM_SEEDS")].as_deref(),
             Some(OsStr::new("0,7"))
+        );
+        assert_eq!(
+            observed[OsStr::new("GOMAD_SHIM_RUN")].as_deref(),
+            Some(OsStr::new(&contract.run))
         );
         assert_eq!(
             observed[OsStr::new("GOFLAGS")].as_deref(),

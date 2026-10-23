@@ -195,7 +195,8 @@ fn output_arguments(
     goflags: &OsStr,
 ) -> Result<(Vec<OsString>, Option<PathBuf>), String> {
     let offset = build_index(argv)? + 1;
-    let parsed = super::classify::inspect(&argv[offset..], goflags, super::classify::Kind::Build)?;
+    let parsed =
+        super::classify::inspect_unchecked(&argv[offset..], goflags, super::classify::Kind::Build)?;
     let output = parsed
         .effective
         .get("o")
@@ -315,7 +316,8 @@ pub(super) fn run(
         .environment
         .get("GOFLAGS")
         .map_or(OsStr::new(""), |value| OsStr::new(value));
-    let dry_run = super::classify::inspect(
+    // The caller argv was admitted before the shim injected its own recipe flags.
+    let dry_run = super::classify::inspect_unchecked(
         &argv[build_index(argv)? + 1..],
         goflags,
         super::classify::Kind::Build,
@@ -630,6 +632,38 @@ mod tests {
                 "-ldflags",
                 "-o=literal",
                 "./cmd"
+            ]
+            .map(OsString::from)
+        );
+    }
+
+    #[test]
+    fn private_output_rewrite_accepts_the_shim_injected_recipe_overlay() {
+        let argv = [
+            "/stock/go",
+            "build",
+            "-overlay=/private/overlay.json",
+            "-trimpath",
+            "-buildvcs=false",
+            "-o",
+            "caller",
+            ".",
+        ]
+        .map(OsString::from);
+        let (actual, selected) =
+            output_arguments(&argv, Path::new("/private/outputs"), OsStr::new("")).unwrap();
+        assert_eq!(selected, Some(PathBuf::from("caller")));
+        assert_eq!(
+            actual,
+            [
+                "/stock/go",
+                "build",
+                "-o",
+                "/private/outputs",
+                "-overlay=/private/overlay.json",
+                "-trimpath",
+                "-buildvcs=false",
+                "."
             ]
             .map(OsString::from)
         );
