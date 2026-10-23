@@ -1,0 +1,28 @@
+# Original runtime-cost request binding
+
+The thin immutable-Go invocation controller previously compared every native
+request with the native preparation configuration. That configuration includes
+campaign argv and environment normalization; the original direct `wasi.Run`
+request has separate, ordered argv/environment. The generic binding is retained.
+The runtime-cost pair now selects a separate closed binding for the original
+runtime request and the actual native preparation normalization.
+
+This path pins the unchanged 368-byte runtime source, empty compile arguments and
+tags, seed 7, original argv and ordered environment, entropy, clock, model limits,
+namespace and original execution bounds. It authenticates the same current module
+and provenance through the existing run custody checks. It adds no Go host logic.
+
+The positive corrected-request fixture fails against the historical controller
+from `cda65407c6` with `native request differs from exact prepared configuration`
+(exit 1): `/home/agent/measurement-original-runtime-binding-historical-red.log`.
+The new fixture and eleven mutations pass with the explicit runtime binding;
+existing generic-binding tests remain unchanged. Focused 11 tests and all 318
+Python driver tests pass, exit 0, in
+`measurement-original-runtime-binding-green.log` and
+`measurement-original-runtime-binding-driver.log` under `/home/agent`.
+
+Only `driver/reference_profile.py` and its test change executable/controller
+source. The separately admitted ordinary Rust Release build remains source
+`cda65407c6ab0d72d8c3061bca8b87b32def7b40`; this controller follow-up does not relabel
+that binary. These fixtures and its actual build do not establish original
+three-leg runtime acceptance or final frozen qualification.

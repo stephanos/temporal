@@ -113,6 +113,52 @@ class RequestMapping(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 mapped(native)
 
+    def test_original_runtime_request_has_a_distinct_closed_preparation_projection(self):
+        native = native_input()
+        native['guest']['model']['environment'] = ['PWD=/workspace', 'TZ=UTC', 'ONLY=captured']
+        native['guest']['model']['configuration']['digest_only'] = False
+        model = copy.deepcopy(native['guest']['model']['configuration'])
+        del model['seed']
+        del model['digest_only']
+        repo = HERE.parents[3]
+        directory = repo / 'tools/gomad'
+        source = directory / 'internal/model/wasi/testdata/runtime_cost/main.go'
+        proof = dict(configuration=dict(model=model, arguments=['gomad-target'],
+            environment=dict(ONLY='captured', PWD='/workspace', TZ='UTC',
+                GOMAD_IO_PROFILE='wasm', GOMAD_CHOICE_PROFILE='gomad-choice-trace/v4'),
+            derive_seed_environment=True, limits=native['guest']['limits'],
+            namespace=native['guest']['namespace'], storage=None, network=None),
+            inputs=dict(kind='go-run', source='./internal/model/wasi/testdata/runtime_cost',
+                directory=str(directory), arguments=[], tags=[],
+                sources={str(source): hashlib.sha256(source.read_bytes()).hexdigest()}))
+        reference.bind_preparation(native, proof, original_runtime=True)
+        for mutation in range(11):
+            changed, provenance = copy.deepcopy(native), copy.deepcopy(proof)
+            if mutation == 0:
+                changed['guest']['model']['environment'].append('GOMADSEED=7')
+            elif mutation == 1:
+                changed['guest']['model']['environment'].reverse()
+            elif mutation == 2:
+                changed['guest']['model']['arguments'][0] = 'gomad-target'
+            elif mutation == 3:
+                changed['guest']['model']['configuration']['seed'] = 8
+            elif mutation == 4:
+                provenance['inputs']['arguments'] = ['literal $arg']
+            elif mutation == 5:
+                provenance['inputs']['tags'] = ['gomad_wasm_slim']
+            elif mutation == 6:
+                provenance['inputs']['sources'][str(source)] = '0' * 64
+            elif mutation == 7:
+                provenance['inputs']['source'] = './another'
+            elif mutation == 8:
+                provenance['configuration']['arguments'].append('literal $arg')
+            elif mutation == 9:
+                provenance['configuration']['model']['entropy_key'] = [0] * 32
+            else:
+                changed['guest']['model']['configuration']['limit'] += 1
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                reference.bind_preparation(changed, provenance, original_runtime=True)
+
     def test_actual_request_must_match_prepared_configuration_except_derived_seed(self):
         native = native_input()
         guest = native['guest']
