@@ -49,7 +49,8 @@ def read_record(path, frozen=None, expected_role=None):
             and (expected_role is None or record['role'] == expected_role), 'foreign dry-run build role')
     require(Path(record['binary']).is_file() and sha(record['binary']) == record['binary_sha256'],
             'dry-run binary changed after its build')
-    receipt = dict(record, exit=0, profile='release', inputs={}, root=str(Path(path).parent))
+    receipt = dict(record, exit=0, profile='release', inputs={}, root=str(Path(path).parent), source_sha256=SCHEMA,
+                   head=SCHEMA, symlinks={}, tools_plan=None, gnu_plan=None)
     if frozen is not None:
         receipt.update(source_sha256=frozen['source_sha256'], head=frozen['head'], symlinks=frozen['symlinks'])
         if not record['helper_features']:

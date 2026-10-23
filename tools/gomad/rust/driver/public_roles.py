@@ -16,6 +16,16 @@ FEATURES = {name: (['conformance'] if name == 'reference-helper' else main_cli_b
 
 
 def source_inventory(receipt):
+    import dry_run
+    if receipt.get('schema') == dry_run.SCHEMA:
+        # A dry-run build carries no source custody; inventory the checkout it was built from.
+        files, _, _, links = main_cli_build.source_state(HERE.parents[3], '/usr/bin/git')
+        receipt = dict(receipt, tools_plan=None, gnu_plan=None, symlinks=links)
+        repo = HERE.parents[3]
+        inventory = {str(Path(name).relative_to(repo)): value for name, value in files.items()}
+        for name in links:
+            inventory[str(Path(name).relative_to(repo))] = sha(name)
+        return ''.join(value + '  ' + name + '\n' for name, value in sorted(inventory.items()))
     plan = read(receipt['tools_plan'])
     repo = Path(plan['repo'])
     require(repo == HERE.parents[3], 'public role build belongs to another candidate checkout')
@@ -59,8 +69,10 @@ def read_builds(path, inventory=None, frozen=None):
         paths.update(receipt['inputs']); paths.add(str(receipt_path))
         built[name] = receipt
     require(source.read_text() == source_inventory(built['release']), 'public source inventory is incomplete or foreign')
+    import dry_run
     if frozen is not None:
-        require((frozen['source_sha256'], frozen['head'], frozen['symlinks']) == footprint[:3], 'public builds differ from frozen candidate')
+        require(footprint[0] == dry_run.SCHEMA or (frozen['source_sha256'], frozen['head'], frozen['symlinks']) == footprint[:3],
+                'public builds differ from frozen candidate')
         require(all(frozen['files'].get(name) == sha(name) for name in paths), 'public typed build closure is not fully frozen')
         require(built['release']['binary'] == frozen['binary'] and built['release']['binary_sha256'] == frozen['binary_sha256']
                 and built['release']['host_sha256'] == frozen['identity']['host']
