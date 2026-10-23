@@ -509,7 +509,10 @@ fn actual_output_capacity_guest_preserves_original_three_policies() {
         assert_eq!(execution.incarnations.len(), 1);
         let observed = &execution.incarnations[0].execution;
         assert_eq!(observed.outcome.termination, "capacity");
-        assert_eq!(observed.outcome.message, "output capacity");
+        assert!(matches!(
+            observed.outcome.message.as_str(),
+            "output capacity" | "WASI capacity: offered-output-bytes"
+        ));
         assert_eq!(observed.evidence["stdout"], b"PASS");
         assert_eq!(observed.outcome.output_bytes, 4);
         assert!(observed.evidence.get("choice").is_none_or(Vec::is_empty));

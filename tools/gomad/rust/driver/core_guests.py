@@ -428,7 +428,7 @@ def validate_case(row, artifact=None):
     if root==CAPACITY:
         fields(o,('outcome','stdout_base64','choice_bytes','assessment','publication_error'))
         outcome=o['outcome'];stdout=b64(o['stdout_base64']);assessment=o['assessment']
-        require(outcome['termination']=='capacity' and outcome['message']=='output capacity' and stdout==b'PASS'
+        require(outcome['termination']=='capacity' and outcome['message'] in ('output capacity','WASI capacity: offered-output-bytes') and stdout==b'PASS'
                 and uint(outcome['output_bytes'])==4 and uint(o['choice_bytes'])==0, 'actual capacity guest did not exercise accepted PASS4/missing-choice')
         expected=report([soft_oracle('a/1',stdout,b'',policy,False)])
         failure=assessment['capacity_failure']

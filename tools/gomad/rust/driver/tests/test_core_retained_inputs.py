@@ -79,8 +79,8 @@ class RetainedAuthentication(unittest.TestCase):
         observed['directory_after']=copy.deepcopy(snapshot);observed['entries_after']=True
         with self.assertRaises(Refusal):gate.directory_unchanged(observed)
 
-    def test_all_eighty_seven_cases_are_required_even_when_unit_test_passes(self):
-        self.assertEqual(len(gate.expected_cases()),87)
+    def test_all_ninety_one_cases_are_required_even_when_unit_test_passes(self):
+        self.assertEqual(len(gate.expected_cases()),91)
         with self.assertRaises(Refusal):gate.observations({},'test all ... ok\n')
 
 
@@ -88,7 +88,7 @@ class LiteralCapacity(unittest.TestCase):
     def test_all_terminal_policy_budget_combinations_are_recomputed_from_raw_output(self):
         import base64
         handle=dict(node='sqlite',incarnation=2)
-        for termination,message in (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity')):
+        for termination,message in (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity'),('capacity','WASI capacity: offered-output-bytes')):
             for flag in (False,True):
                 for maximum in (1,4096):
                     case=f'{termination}/{message}/report-only={str(flag).lower()}/maximum={maximum}'
@@ -97,7 +97,7 @@ class LiteralCapacity(unittest.TestCase):
                         [('instance',b'sqlite/2'),('messages',gate.canonical(['invalid {state}'])),('status',b'observed' if complete else b'inconclusive')],
                         soft=True,report_only=flag,inconclusive=not complete)
                     observed=dict(oracles=[] if maximum==1 else [report],oracle_error='capacity: resource=oracle_evidence_bytes' if maximum==1 else '')
-                    if termination=='capacity' and message=='output capacity':observed['capacity_failure']=dict(termination='capacity',message='output capacity',
+                    if termination=='capacity' and message in ('output capacity','WASI capacity: offered-output-bytes'):observed['capacity_failure']=dict(termination='capacity',message='output capacity',
                         soft_assertions=dict(messages=['invalid {state}'],report_only=flag,inconclusive=True),detail=observed['oracle_error'] or 'choice trace is not complete')
                     row=dict(inputs=dict(handle=handle,stdout_base64=base64.b64encode(b'PASS').decode(),stderr_base64=base64.b64encode(b'failed assertion: invalid {state}').decode(),
                         termination=termination,message=message,offered_bytes=len(b'PASSfailed assertion: invalid {state}'),oracle_plan=dict(schema='gomad.wasm.soft-assertion-observation/v1',prefix='',maximum_bytes=maximum,histories=[],convergence=[],soft_assertions=[dict(handle=handle,report_only=flag)])),observed=observed)

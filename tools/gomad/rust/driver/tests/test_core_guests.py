@@ -132,7 +132,9 @@ class GuestReader(unittest.TestCase):
     def test_capacity_all_original_policies_and_budget(self):
         for case in gate.CASES:
             if case.startswith('capacity/'):
-                self.assertEqual(gate.validate_case(capacity(case))['original_root'],gate.CAPACITY)
+                for message in ('output capacity','WASI capacity: offered-output-bytes'):
+                    row=capacity(case);row['observed']['outcome']['message']=message
+                    self.assertEqual(gate.validate_case(row)['original_root'],gate.CAPACITY)
 
     def test_capacity_never_accepts_forged_counters_choice_policy_or_class(self):
         row=capacity('capacity/report-only=false/maximum=4096')

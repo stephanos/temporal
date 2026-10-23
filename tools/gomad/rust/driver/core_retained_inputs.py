@@ -209,7 +209,7 @@ def policy_row(case,row):
 def capacity_row(case,row):
     match=re.fullmatch(r'(infrastructure|capacity|exit)/(.*)/report-only=(false|true)/maximum=(1|4096)',case)
     require(match is not None,'unknown retained capacity case');termination,message,flag,maximum=match.groups();report_only=flag=='true';maximum=int(maximum)
-    require((termination,message) in (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity')),'unknown narrow capacity terminal/message')
+    require((termination,message) in (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity'),('capacity','WASI capacity: offered-output-bytes')),'unknown narrow capacity terminal/message')
     inputs=row['inputs'];fields(inputs,{'handle','stdout_base64','stderr_base64','termination','message','offered_bytes','oracle_plan'})
     stdout,stderr=b64(inputs['stdout_base64']),b64(inputs['stderr_base64'])
     handle=dict(node='sqlite',incarnation=2)
@@ -221,7 +221,7 @@ def capacity_row(case,row):
         [('instance',instance),('messages',canonical(['invalid {state}'])),('status',b'observed' if complete else b'inconclusive')],
         soft=True,report_only=report_only,inconclusive=not complete)
     expected=dict(oracles=[] if maximum==1 else [assessed],oracle_error='capacity: resource=oracle_evidence_bytes' if maximum==1 else '')
-    if termination=='capacity' and message=='output capacity':
+    if termination=='capacity' and message in ('output capacity','WASI capacity: offered-output-bytes'):
         expected['capacity_failure']=dict(termination='capacity',message='output capacity',soft_assertions=dict(messages=['invalid {state}'],report_only=report_only,inconclusive=True),
             detail='capacity: resource=oracle_evidence_bytes' if maximum==1 else 'choice trace is not complete')
     require(same(row['observed'],expected),'capacity annotation or oracle budget differs from raw observed literal message/completeness')
@@ -334,7 +334,7 @@ def expected_cases():
     result={'history/'+case for case in history_cases()}
     result|={'policy/'+case for case in ('','go-run','go-test','unknown','unknown-handle','duplicate-policy')}
     result|={f'capacity/{terminal}/{message}/report-only={str(flag).lower()}/maximum={maximum}' for terminal,message in
-        (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity')) for flag in (False,True) for maximum in (1,4096)}
+        (('infrastructure','output capacity'),('capacity','transcript capacity'),('exit',''),('capacity','output capacity'),('capacity','WASI capacity: offered-output-bytes')) for flag in (False,True) for maximum in (1,4096)}
     result|={'authentication/'+case for case in ('digest','bytes','path','limit','raw-bytes')}
     result|={'decode/'+case for case in (*DECODE_CASES,'native-valid')}
     result|={'binding/'+case for case in BIND_CASES}

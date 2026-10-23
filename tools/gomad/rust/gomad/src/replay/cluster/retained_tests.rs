@@ -226,6 +226,7 @@ fn output_capacity_annotation_is_narrow_and_preserves_oracle_budget_errors() {
                 ("capacity", "transcript capacity"),
                 ("exit", ""),
                 ("capacity", "output capacity"),
+                ("capacity", "WASI capacity: offered-output-bytes"),
             ] {
                 let mut execution = soft_execution(
                     &configuration,
@@ -235,7 +236,8 @@ fn output_capacity_annotation_is_narrow_and_preserves_oracle_budget_errors() {
                 execution.incarnations[0].execution.outcome.termination = termination;
                 execution.incarnations[0].execution.outcome.message = message.into();
                 let value = oracles::capacity_observation(&execution, &configuration);
-                let capacity = termination == "capacity" && message == "output capacity";
+                let capacity = termination == "capacity"
+                    && matches!(message, "output capacity" | "WASI capacity: offered-output-bytes");
                 assert_eq!(!value["capacity_failure"].is_null(), capacity);
                 if capacity {
                     assert_eq!(value["capacity_failure"]["termination"], "capacity");
