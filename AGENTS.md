@@ -125,6 +125,8 @@ proves a retained guarantee; source binding does not require recompiling a sourc
 for every predicate. Use representative high-risk source mutants and focused changed-scope
 checks, preserving direct failure attribution and valid controls.
 
+Owner throughput amendment, 2026-10-24: fill idle lanes with dependent source work against named provisional interfaces; formal admission, integration, final validation, review and completion still require actual dependency receipts. Accept larger coherent changes and fix interface mismatches at batch boundaries. Do not preserve legacy-only behavior or add compatibility layers merely to keep provisional code building. The execution manifest records this policy.
+
 The six source-writing lanes include nested implementation delegates. The conductor
 allocates those lanes across batches; a batch leader must reconcile all delegated work
 and remain its sole committer. Read-only support does not consume a writing lane.

@@ -341,3 +341,11 @@ The global two-attempt allowance remains policy/activity accounting. The fixed o
 B03/B04 have one explicit additive fixture overlap in cycle/custody/owner_fixture.rs: B03 owns its bindings family arm, B04 its command/RetainedSession arm. Each isolated branch preserves existing arms; the conductor integrates both. Production scopes remain disjoint; there is no new Cargo target or owner mechanism.
 
 B15 replaces ordinary-workload-tools-run Python unittest discovery with actual mapped Rust regression coverage before deleting workload_tools or cutover. B03 preserves its current leaf recipe temporarily; external testdata/parity lanes remain separately inventoried. No legacy comparison or current functional obligation receives an automatic pass.
+
+## Aggressive provisional execution (owner amendment, 2026-10-24)
+
+The owner requested more aggressive parallelization and greater implementation risk. Fill idle source lanes with dependent batches against explicitly named provisional interfaces. This supersedes the requirement above to wait for all external dependencies before source implementation starts. Preserve every dependency: formal Flow admission, integration, final validation, review and completion still wait for the actual predecessor receipts. Provisional source work earns no completion or qualification credit.
+
+Use larger coherent changes, shared fixtures, one source freeze and one whole-batch review. Resolve routine interface and integration issues at batch boundaries. Do not add temporary compatibility layers or maintain legacy-only behavior to make provisional code compile. Follow the existing compatibility retirement policy; retain current behavior, authentication, resource bounds, failure classification and same-candidate replay.
+
+Six source writers total, including delegates, and two heavy build slots remain the global limits. Reallocate completed helpers' lanes immediately. B03 currently has one writer, B04 two, and provisional B09/B10/B11 one each. New producer lanes may write source and tests now; they receive no heavy slot while B03/B04 own both. Conductor-owned shared-file integration avoids concurrent Cargo/fixture edits. No full qualification dispatch occurs before fn-246.

@@ -11517,5 +11517,21 @@
   "effective_obligation_policy": {
     "path": ".flow/artifacts/fn242-effective-obligation-policy.json",
     "sha256": "3cd9aac9ea1081095408fabe9401f697e3a77226ad3e1a4020183d544262784c"
+  },
+  "provisional_execution_amendment": {
+    "authority": "Owner requests more aggressive parallelization and greater implementation risk, 2026-10-24",
+    "supersedes": "External dependency wait applies to formal admission/integration/review/completion; source work may start provisionally against named interfaces. No dependency removed.",
+    "global_source_writers": 6,
+    "global_heavy_slots": 2,
+    "initial_allocation": {
+      "B03": 1,
+      "B04": 2,
+      "B09": 1,
+      "B10": 1,
+      "B11": 1
+    },
+    "proof": "No completion or qualification credit before actual dependency receipts and green integrated source.",
+    "risk_policy": "Larger coherent batches, provisional APIs, boundary integration fixes, shared fixture/build evidence, retire legacy-only work; preserve current behavior/custody/bounds/classification/replay.",
+    "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees."
   }
 }
