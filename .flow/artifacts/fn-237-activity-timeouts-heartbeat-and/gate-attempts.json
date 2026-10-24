@@ -9,5 +9,15 @@
     "command": "make model-check",
     "exit_code": 0,
     "elapsed_seconds": 401.5005584000028
+  },
+  {
+    "command": "UMPIRE_BACKENDS=require make model-check",
+    "exit_code": 0,
+    "elapsed_seconds": 561.2351434339944
+  },
+  {
+    "command": "make model-time",
+    "exit_code": 0,
+    "elapsed_seconds": 361.26998567300325
   }
 ]
