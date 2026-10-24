@@ -104,6 +104,12 @@ Leader dependency additions: none.
 
 Conductor integration extension. B03 owns `tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs` solely to expose read-only access to its existing endpoint map. Preserve catalog entries and all leaf recipes; define final partition descriptors in the owned composition module. Admission still waits for actual B01 completion. Original acceptance and proof ownership remain unchanged.
 
+B03 tokenizer dependency extension. Add the owner-required existing locked proc-macro2 =1.0.107 workspace pin and host dependency; preserve test targets and add no unrelated Cargo changes. Additional exact files:
+
+- `tools/gomad/rust/Cargo.toml`
+- `tools/gomad/rust/gomad/Cargo.toml`
+- `tools/gomad/rust/Cargo.lock`
+
 ### B04 reader-foundation
 
 Implement independent command/artifact custody and retained binary codecs as the common reader boundary.
