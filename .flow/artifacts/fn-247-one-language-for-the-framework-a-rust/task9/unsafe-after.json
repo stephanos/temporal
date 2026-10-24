@@ -1,0 +1,363 @@
+{
+  "algorithm": "lexical unsafe\\s*\\{ blocks; unsafe\\s+(?:extern\\s+\"[^\"]+\"\\s+)?fn\\s+[\\w$]+\\s*\\( definitions; all src/**/*.rs including cfg/tests; manually inspect matches",
+  "files": {
+    "model/umpire/backends/process/src/lib.rs": {
+      "sha256": "08d4412f777c7872fd50874ca53198a8f6691ccd76eee3b08755493207939d4b",
+      "sites": []
+    },
+    "model/umpire/backends/process/src/support.rs": {
+      "sha256": "4b9c4200417b9ee2877c3247133a7b66bf0360f4297398b4a2dbd66b93e35a2b",
+      "sites": []
+    },
+    "model/umpire/backends/process/src/syscall/calls.rs": {
+      "sha256": "1300cde9f479bd9a6c52e0b281b4091fe125bafa6e8615617a395f5735f418d7",
+      "sites": [
+        {
+          "kind": "block",
+          "line": 113,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 205,
+          "text": "unsafe { (ptr::read_volatile(&raw const self.$name))($($argument),*) }"
+        },
+        {
+          "kind": "block",
+          "line": 234,
+          "text": "unsafe { ptr::read_volatile(&raw const self.syscall) }"
+        },
+        {
+          "kind": "block",
+          "line": 238,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 283,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 287,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 300,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 304,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 311,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 315,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 328,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 334,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 341,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 353,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 362,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 375,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "function",
+          "line": 202,
+          "text": "unsafe fn $name(&self, $($argument: $kind),*) -> $result {"
+        },
+        {
+          "kind": "function",
+          "line": 233,
+          "text": "unsafe fn syscall(&self) -> RawSyscall {"
+        },
+        {
+          "kind": "function",
+          "line": 237,
+          "text": "unsafe fn subreaper(&self) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 281,
+          "text": "unsafe fn read(api: &Api, fd: RawFd, bytes: *mut libc::c_void, length: usize) -> isize {"
+        },
+        {
+          "kind": "function",
+          "line": 293,
+          "text": "unsafe fn write("
+        },
+        {
+          "kind": "function",
+          "line": 309,
+          "text": "unsafe fn close(api: &Api, fd: RawFd) {"
+        },
+        {
+          "kind": "function",
+          "line": 321,
+          "text": "unsafe fn waitpid("
+        },
+        {
+          "kind": "function",
+          "line": 339,
+          "text": "unsafe fn poll_owner(api: &Api, owner: *mut libc::pollfd) -> libc::c_long {"
+        },
+        {
+          "kind": "function",
+          "line": 360,
+          "text": "unsafe fn open_children(api: &Api) -> RawFd {"
+        },
+        {
+          "kind": "function",
+          "line": 374,
+          "text": "unsafe fn pause(api: &Api) {"
+        }
+      ]
+    },
+    "model/umpire/backends/process/src/syscall.rs": {
+      "sha256": "195b054420b14d273049aeb82f1e60501d876e36ebf07170c691ca0a818e8a90",
+      "sites": [
+        {
+          "kind": "block",
+          "line": 89,
+          "text": "unsafe { fork_without_handlers(&prepared.api) };"
+        },
+        {
+          "kind": "block",
+          "line": 93,
+          "text": "unsafe { child_main(&raw const context, &raw const mask.original) }"
+        },
+        {
+          "kind": "block",
+          "line": 198,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 207,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 218,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 346,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 362,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 372,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 409,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 500,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 538,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 590,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 608,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 634,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 654,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 665,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 692,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 712,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 718,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 733,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 759,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 802,
+          "text": "unsafe {"
+        },
+        {
+          "kind": "block",
+          "line": 822,
+          "text": "unsafe { *api.errno }"
+        },
+        {
+          "kind": "block",
+          "line": 830,
+          "text": "unsafe { prevent_descendants(&api) } { Ok(()) } else { Err(io::Error::last_os_error()) }"
+        },
+        {
+          "kind": "block",
+          "line": 864,
+          "text": "unsafe { libc::_exit(99) }"
+        },
+        {
+          "kind": "block",
+          "line": 868,
+          "text": "unsafe { libc::pthread_atfork(None, None, Some(poison)) };"
+        },
+        {
+          "kind": "function",
+          "line": 408,
+          "text": "unsafe fn child_main(context: *const ChildContext, original_mask: *const SignalSet) -> ! {"
+        },
+        {
+          "kind": "function",
+          "line": 496,
+          "text": "unsafe fn wait_for_target("
+        },
+        {
+          "kind": "function",
+          "line": 537,
+          "text": "unsafe fn target_main(context: &ChildContext, original_mask: *const SignalSet) -> ! {"
+        },
+        {
+          "kind": "function",
+          "line": 589,
+          "text": "unsafe fn reset_signals(context: &ChildContext) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 607,
+          "text": "unsafe fn reset_signal(context: &ChildContext, signal: libc::c_int) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 629,
+          "text": "unsafe fn replace_mask("
+        },
+        {
+          "kind": "function",
+          "line": 653,
+          "text": "unsafe fn prevent_descendants(api: &calls::Api) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 664,
+          "text": "unsafe fn install_signals(context: &ChildContext) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 690,
+          "text": "unsafe fn fork_without_handlers(api: &calls::Api) -> libc::pid_t {"
+        },
+        {
+          "kind": "function",
+          "line": 717,
+          "text": "unsafe fn close_descriptors(api: &calls::Api, first: RawFd, limit: RawFd) {"
+        },
+        {
+          "kind": "function",
+          "line": 732,
+          "text": "unsafe fn reap_descendants(api: &calls::Api, children: RawFd, buffer: *mut u8) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 758,
+          "text": "unsafe fn kill_adopted(api: &calls::Api, children: RawFd, buffer: *mut u8) -> bool {"
+        },
+        {
+          "kind": "function",
+          "line": 801,
+          "text": "unsafe fn child_error(api: &calls::Api, message: *const libc::c_char) -> ! {"
+        },
+        {
+          "kind": "function",
+          "line": 821,
+          "text": "unsafe fn errno(api: &calls::Api) -> libc::c_int {"
+        },
+        {
+          "kind": "function",
+          "line": 861,
+          "text": "unsafe extern \"C\" fn poison() {"
+        }
+      ]
+    },
+    "model/umpire/backends/process/src/tests.rs": {
+      "sha256": "b047a8f6b58b31abf17b9b8c8d2c6b612252cf856ab59c8419d6e7b4162084a9",
+      "sites": []
+    }
+  },
+  "total": 67
+}

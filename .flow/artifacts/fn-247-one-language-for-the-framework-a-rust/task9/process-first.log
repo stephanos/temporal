@@ -1,0 +1,46 @@
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling cfg-if v1.0.5
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+error[E0369]: binary operation `==` cannot be applied to type `Result<Option<(rustix::process::Pid, WaitStatus)>, Errno>`
+   --> umpire/backends/process/src/syscall.rs:130:21
+    |
+129 |                 while process::waitpid(Some(self.pid), WaitOptions::empty())
+    |                       ------------------------------------------------------ Result<Option<(rustix::process::Pid, WaitStatus)>, Errno>
+130 |                     == Err(rustix::io::Errno::INTR)
+    |                     ^^ ---------------------------- Result<Option<(rustix::process::Pid, WaitStatus)>, Errno>
+    |
+note: `WaitStatus` does not implement `PartialEq`
+   --> /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5/src/process/wait.rs:80:1
+    |
+ 80 | pub struct WaitStatus(i32);
+    | ^^^^^^^^^^^^^^^^^^^^^ `WaitStatus` is defined in another crate
+
+error[E0599]: no method named `as_raw` found for struct `rustix::process::Pid` in the current scope
+   --> umpire/backends/process/src/syscall.rs:835:21
+    |
+835 |             (parent.as_raw().cast_unsigned(), process::getpgid(Some(parent)) == Ok(parent))
+    |                     ^^^^^^ this is an associated function, not a method
+    |
+    = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
+    = note: the candidate is defined in an impl for the type `rustix::process::Pid`
+help: use associated function syntax instead
+    |
+835 -             (parent.as_raw().cast_unsigned(), process::getpgid(Some(parent)) == Ok(parent))
+835 +             (rustix::process::Pid::as_raw().cast_unsigned(), process::getpgid(Some(parent)) == Ok(parent))
+    |
+help: there is a method `as_raw_pid` with a similar name
+    |
+835 |             (parent.as_raw_pid().cast_unsigned(), process::getpgid(Some(parent)) == Ok(parent))
+    |                           ++++
+
+Some errors have detailed explanations: E0369, E0599.
+For more information about an error, try `rustc --explain E0369`.
+error: could not compile `umpire-backend-process` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-backend-process` (lib test) due to 2 previous errors

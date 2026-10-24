@@ -68,7 +68,7 @@ fn cold_native_execution_does_not_need_python_or_a_sibling_supervisor() -> Resul
     let mut command = fixture("echo");
     command.env("PATH", "");
     let (status, output) =
-        run_process(&mut command, &scratch.0, "native", Limits::default(), None)?;
+        run_process(&mut command, scratch.path(), "native", Limits::default(), None)?;
     assert!(status.success());
     assert_eq!(output, "native\n");
     scratch.finish(Ok(()))
@@ -79,7 +79,7 @@ fn direct_helper_timeout_retains_output_and_cleans_scratch() -> Result<(), Refus
     let scratch = Scratch::new(&root()?)?;
     let failure = run_process_cancelled(
         &mut fixture("started"),
-        &scratch.0,
+        scratch.path(),
         "direct",
         Limits { timeout: Duration::from_secs(1), ..Limits::default() },
         None,
@@ -89,7 +89,7 @@ fn direct_helper_timeout_retains_output_and_cleans_scratch() -> Result<(), Refus
     .ok_or_else(|| Refusal("direct helper exceeded timeout".into()))?;
     assert!(failure.refusal.0.contains("limit"));
     assert_eq!(failure.output, "started\n");
-    let path = scratch.0.clone();
+    let path = scratch.path().to_path_buf();
     scratch.finish::<_, Refusal>(Ok(()))?;
     assert!(!path.exists());
     Ok(())
@@ -99,12 +99,12 @@ fn direct_helper_timeout_retains_output_and_cleans_scratch() -> Result<(), Refus
 #[cfg(target_os = "linux")]
 fn timeout_cleans_descendants_before_return() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let pids = scratch.0.join("pids");
+    let pids = scratch.path().join("pids");
     let _cleanup = TreeCleanup(pids.clone());
     let mut command = fixture("tree");
-    command.arg(&pids).arg(scratch.0.join("supervisor"));
+    command.arg(&pids).arg(scratch.path().join("supervisor"));
     let limits = Limits { timeout: Duration::from_secs(1), ..Limits::default() };
-    assert!(run_process(&mut command, &scratch.0, "tree", limits, None).is_err());
+    assert!(run_process(&mut command, scratch.path(), "tree", limits, None).is_err());
     assert_reaped(&pids)?;
     scratch.finish(Ok(()))
 }
@@ -113,10 +113,10 @@ fn timeout_cleans_descendants_before_return() -> Result<(), Refusal> {
 #[cfg(target_os = "linux")]
 fn cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let pids = scratch.0.join("pids");
+    let pids = scratch.path().join("pids");
     let _cleanup = TreeCleanup(pids.clone());
     let mut command = fixture("tree");
-    command.arg(&pids).arg(scratch.0.join("supervisor"));
+    command.arg(&pids).arg(scratch.path().join("supervisor"));
     let cancelled = Arc::new(AtomicBool::new(false));
     let flag = cancelled.clone();
     let ready = pids.clone();
@@ -126,7 +126,7 @@ fn cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin() -> Res
     });
     let result = run_process_cancelled(
         &mut command,
-        &scratch.0,
+        scratch.path(),
         "cancel",
         Limits::default(),
         None,
@@ -135,7 +135,7 @@ fn cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin() -> Res
     join(cancel)?;
     assert!(result.is_err_and(|e| e.refusal.0.contains("cancelled")));
     assert_reaped(&pids)?;
-    let path = scratch.0.clone();
+    let path = scratch.path().to_path_buf();
     scratch.finish::<_, Refusal>(Ok(()))?;
     assert!(!path.exists());
     Ok(())
@@ -147,7 +147,7 @@ fn java_environment_is_clean_and_supervisor_group_is_private() -> Result<(), Ref
     let mut command = java_command(Path::new(FIXTURE));
     command.arg("policy");
     let (status, output) =
-        run_process(&mut command, &scratch.0, "policy", Limits::default(), None)?;
+        run_process(&mut command, scratch.path(), "policy", Limits::default(), None)?;
     assert!(status.success());
     assert_eq!(output, "None\nTrue\n");
     scratch.finish(Ok(()))
@@ -156,12 +156,12 @@ fn java_environment_is_clean_and_supervisor_group_is_private() -> Result<(), Ref
 #[test]
 fn substituted_log_symlink_cannot_modify_an_external_file() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let work = Scratch::new(&scratch.0)?;
-    let protected = scratch.0.join("protected");
+    let work = Scratch::new(scratch.path())?;
+    let protected = scratch.path().join("protected");
     fs::write(&protected, "unchanged")?;
     let mut command = fixture("symlink");
-    command.arg(&protected).current_dir(&work.0);
-    let result = run_process(&mut command, &work.0, "capture", Limits::default(), None);
+    command.arg(&protected).current_dir(work.path());
+    let result = run_process(&mut command, work.path(), "capture", Limits::default(), None);
     assert_eq!(fs::read_to_string(&protected)?, "unchanged");
     assert!(result.is_err());
     work.finish::<_, Refusal>(Ok(()))?;
@@ -171,8 +171,10 @@ fn substituted_log_symlink_cannot_modify_an_external_file() -> Result<(), Refusa
 #[test]
 fn substituted_log_fifo_returns_without_waiting_for_a_reader() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    assert!(Command::new("mkfifo").arg(scratch.0.join("replacement.fifo")).status()?.success());
-    let work = scratch.0.clone();
+    assert!(
+        Command::new("mkfifo").arg(scratch.path().join("replacement.fifo")).status()?.success()
+    );
+    let work = scratch.path().to_path_buf();
     let (send, receive) = std::sync::mpsc::channel();
     let worker = thread::spawn(move || {
         let mut command = fixture("fifo");
@@ -183,7 +185,12 @@ fn substituted_log_fifo_returns_without_waiting_for_a_reader() -> Result<(), Ref
     let result = receive.recv_timeout(Duration::from_secs(2));
     let blocked = result.is_err();
     let unblock = if blocked {
-        Some(fs::OpenOptions::new().read(true).write(true).open(scratch.0.join("capture.stdout"))?)
+        Some(
+            fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(scratch.path().join("capture.stdout"))?,
+        )
     } else {
         None
     };
@@ -204,7 +211,7 @@ fn failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8() -> Result<
         let limits = Limits { output_bytes: limit, ..Limits::default() };
         let failure = run_process_cancelled(
             &mut fixture(label),
-            &scratch.0,
+            scratch.path(),
             label,
             limits,
             None,
@@ -216,7 +223,7 @@ fn failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8() -> Result<
         assert_eq!(failure.output, expected);
         if label == "utf8" {
             assert!(failure.refusal.0.contains("non-UTF8"));
-            assert_eq!(fs::read(scratch.0.join("utf8.stdout"))?, [255]);
+            assert_eq!(fs::read(scratch.path().join("utf8.stdout"))?, [255]);
         }
     }
     scratch.finish(Ok(()))
@@ -256,7 +263,7 @@ fn parent_allocator_threads_do_not_deadlock_forked_supervisors() -> Result<(), R
                     for index in 0..12 {
                         let (status, output) = run_process(
                             &mut fixture("echo"),
-                            &scratch.0,
+                            scratch.path(),
                             &format!("stress-{index}"),
                             Limits { timeout: Duration::from_secs(5), ..Limits::default() },
                             None,
@@ -284,27 +291,27 @@ fn parent_allocator_threads_do_not_deadlock_forked_supervisors() -> Result<(), R
 #[test]
 fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let text = scratch.0.join("text");
+    let text = scratch.path().join("text");
     fs::write(&text, "abcd")?;
     assert_eq!(bounded_text(&text, 4)?, "abcd");
     assert!(bounded_text(&text, 3).is_err());
-    let link = scratch.0.join("link");
+    let link = scratch.path().join("link");
     std::os::unix::fs::symlink(&text, &link)?;
     assert!(bounded_text(&link, 4).is_err());
-    assert!(bounded_text(&scratch.0, 4).is_err());
-    let invalid = scratch.0.join("invalid");
+    assert!(bounded_text(scratch.path(), 4).is_err());
+    let invalid = scratch.path().join("invalid");
     fs::write(&invalid, [255])?;
     assert!(bounded_text(&invalid, 4).is_err());
-    let fifo = scratch.0.join("dump-fifo");
+    let fifo = scratch.path().join("dump-fifo");
     assert!(Command::new("mkfifo").arg(&fifo).status()?.success());
     assert!(bounded_text(&fifo, 4).is_err());
-    let deep = scratch.0.join("deep");
+    let deep = scratch.path().join("deep");
     let mut directory = deep.clone();
     for _ in 0..66 {
         fs::create_dir(&directory)?;
         directory.push("d");
     }
-    let wide = scratch.0.join("wide");
+    let wide = scratch.path().join("wide");
     fs::create_dir(&wide)?;
     for index in 0..4096 {
         fs::write(wide.join(index.to_string()), [])?;
@@ -319,7 +326,7 @@ fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
         assert!(
             run_process(
                 &mut fixture("echo"),
-                &scratch.0,
+                scratch.path(),
                 label,
                 Limits { dump_bytes: 3, ..Limits::default() },
                 Some(dump)
@@ -328,10 +335,10 @@ fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
         );
     }
     for relative in ["../escape", "/absolute", "link/child", "text/child"] {
-        assert!(Scratch::new_in(&scratch.0, relative).is_err());
+        assert!(Scratch::new_in(scratch.path(), relative).is_err());
     }
-    let removed = Scratch::new(&scratch.0)?;
-    fs::remove_dir(&removed.0)?;
+    let removed = Scratch::new(scratch.path())?;
+    fs::remove_dir(removed.path())?;
     let failure = removed
         .finish::<(), Refusal>(Err(Refusal("prior failure".into())))
         .err()
@@ -367,7 +374,8 @@ fn simulated_darwin_helper_cannot_start_an_escaped_descendant() -> Result<(), Re
     }
     let scratch = Scratch::new(&root()?)?;
     let mut command = fixture("descendant-attempt");
-    let (status, output) = run_process(&mut command, &scratch.0, "nproc", Limits::default(), None)?;
+    let (status, output) =
+        run_process(&mut command, scratch.path(), "nproc", Limits::default(), None)?;
     assert_eq!(status.code(), Some(75));
     assert_eq!(output, "descendant creation refused\n");
     scratch.finish(Ok(()))
@@ -380,17 +388,17 @@ fn installer_containment_preflight_requires_no_descendants() -> Result<(), Refus
         return Ok(());
     }
     let scratch = Scratch::new(&root()?)?;
-    let workspace = scratch.0.join("workspace");
+    let workspace = scratch.path().join("workspace");
     let scripts = workspace.join("model/scripts");
     fs::create_dir_all(&scripts)?;
     let script = scripts.join("fetch-tlc.sh");
     fs::copy(root()?.join("model/scripts/fetch-tlc.sh"), &script)?;
-    let outside = scratch.0.join("outside");
+    let outside = scratch.path().join("outside");
     fs::create_dir(&outside)?;
     std::os::unix::fs::symlink(&outside, workspace.join("model/build"))?;
     let (status, output) = run_process(
         &mut restricted(&script),
-        &scratch.0,
+        scratch.path(),
         "preflight",
         Limits { timeout: Duration::from_secs(2), ..Limits::default() },
         None,
@@ -408,11 +416,11 @@ fn diagnostic_text_cannot_make_a_hung_preflight_pass() -> Result<(), Refusal> {
         return Ok(());
     }
     let scratch = Scratch::new(&root()?)?;
-    let script = scratch.0.join("hang.sh");
+    let script = scratch.path().join("hang.sh");
     fs::write(&script, "printf 'TLC cache escapes repository\\n' >&2; while :; do :; done\n")?;
     let failure = run_process_cancelled(
         &mut restricted(&script),
-        &scratch.0,
+        scratch.path(),
         "hung",
         Limits { timeout: Duration::from_millis(100), ..Limits::default() },
         None,
@@ -430,9 +438,9 @@ fn diagnostic_text_cannot_make_a_hung_preflight_pass() -> Result<(), Refusal> {
 fn owner_group_and_direct_supervisor_termination_reap_owned_tree() -> Result<(), Refusal> {
     for mode in ["owner-group", "owner-group-kill", "supervisor"] {
         let scratch = Scratch::new(&root()?)?;
-        let output = fixture("lifecycle-harness").arg(mode).arg(&scratch.0).output()?;
+        let output = fixture("lifecycle-harness").arg(mode).arg(scratch.path()).output()?;
         assert!(output.status.success(), "{mode}: {}", String::from_utf8_lossy(&output.stderr));
-        assert_reaped(&scratch.0.join("pids"))?;
+        assert_reaped(&scratch.path().join("pids"))?;
         scratch.finish::<_, Refusal>(Ok(()))?;
     }
     Ok(())
@@ -442,10 +450,10 @@ fn owner_group_and_direct_supervisor_termination_reap_owned_tree() -> Result<(),
 #[cfg(target_os = "linux")]
 fn owner_death_terminates_and_reaps_separate_session_descendants() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let output = fixture("lifecycle-harness").arg("owner-eof").arg(&scratch.0).output()?;
+    let output = fixture("lifecycle-harness").arg("owner-eof").arg(scratch.path()).output()?;
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
     assert_eq!(output.stderr, b"");
-    assert_reaped(&scratch.0.join("pids"))?;
+    assert_reaped(&scratch.path().join("pids"))?;
     scratch.finish(Ok(()))
 }
 
@@ -453,34 +461,39 @@ fn owner_death_terminates_and_reaps_separate_session_descendants() -> Result<(),
 fn launch_status_and_prepared_command_contracts_are_preserved() -> Result<(), Refusal> {
     use std::os::unix::fs::PermissionsExt;
     let scratch = Scratch::new(&root()?)?;
-    let nonexec = scratch.0.join("not-executable");
+    let nonexec = scratch.path().join("not-executable");
     fs::write(&nonexec, "not executable")?;
     fs::set_permissions(&nonexec, fs::Permissions::from_mode(0o600))?;
-    let missing = scratch.0.join("missing-executable");
+    let missing = scratch.path().join("missing-executable");
     for (label, executable) in [("missing", &missing), ("nonexec", &nonexec)] {
-        let (status, _) =
-            run_process(&mut Command::new(executable), &scratch.0, label, Limits::default(), None)?;
+        let (status, _) = run_process(
+            &mut Command::new(executable),
+            scratch.path(),
+            label,
+            Limits::default(),
+            None,
+        )?;
         assert_eq!(status.code(), Some(1), "{label}");
     }
     let mut missing_cwd = fixture("echo");
-    missing_cwd.current_dir(scratch.0.join("missing-directory"));
-    let failure = run_process(&mut missing_cwd, &scratch.0, "cwd", Limits::default(), None)
+    missing_cwd.current_dir(scratch.path().join("missing-directory"));
+    let failure = run_process(&mut missing_cwd, scratch.path(), "cwd", Limits::default(), None)
         .err()
         .ok_or_else(|| Refusal("missing working directory was admitted".into()))?;
     assert!(failure.0.contains("cannot spawn cwd"), "{failure}");
-    std::os::unix::fs::symlink(FIXTURE, scratch.0.join("tool"))?;
+    std::os::unix::fs::symlink(FIXTURE, scratch.path().join("tool"))?;
     for (index, program) in ["tool", "./tool"].into_iter().enumerate() {
         let mut command = Command::new(program);
         command
             .args(["argv-env", "space ' \" unicode λ"])
-            .current_dir(&scratch.0)
+            .current_dir(scratch.path())
             .env("PATH", ".")
             .env("UMPIRE_PROCESS_VALUE", "prepared")
             .env("UMPIRE_PROCESS_REMOVED", "present")
             .env_remove("UMPIRE_PROCESS_REMOVED");
         let (status, output) = run_process(
             &mut command,
-            &scratch.0,
+            scratch.path(),
             &format!("prepare-{index}"),
             Limits::default(),
             None,
@@ -495,7 +508,7 @@ fn launch_status_and_prepared_command_contracts_are_preserved() -> Result<(), Re
 #[cfg(target_os = "linux")]
 fn pthread_atfork_handlers_do_not_run_in_supervisor_or_target() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
-    let output = fixture("poison-atfork").arg(&scratch.0).output()?;
+    let output = fixture("poison-atfork").arg(scratch.path()).output()?;
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
     scratch.finish(Ok(()))
 }
@@ -504,8 +517,8 @@ fn pthread_atfork_handlers_do_not_run_in_supervisor_or_target() -> Result<(), Re
 fn path_search_tries_candidates_after_exec_errors() -> Result<(), Refusal> {
     use std::os::unix::fs::PermissionsExt;
     let scratch = Scratch::new(&root()?)?;
-    let first = scratch.0.join("first");
-    let later = scratch.0.join("later");
+    let first = scratch.path().join("first");
+    let later = scratch.path().join("later");
     fs::create_dir(&first)?;
     fs::create_dir(&later)?;
     std::os::unix::fs::symlink(FIXTURE, later.join("fallback-tool"))?;
@@ -521,9 +534,52 @@ fn path_search_tries_candidates_after_exec_errors() -> Result<(), Refusal> {
         let mut command = Command::new("fallback-tool");
         command.arg("echo").env("PATH", &path);
         let (status, output) =
-            run_process(&mut command, &scratch.0, label, Limits::default(), None)?;
+            run_process(&mut command, scratch.path(), label, Limits::default(), None)?;
         results.push((status.code(), output));
     }
     assert_eq!(results, [(Some(0), "native\n".into()), (Some(0), "native\n".into())]);
+    scratch.finish(Ok(()))
+}
+
+#[test]
+fn scratch_owns_private_unique_directories_and_preserves_finish_results() -> Result<(), Refusal> {
+    use std::os::unix::fs::PermissionsExt;
+    let first = Scratch::new(&root()?)?;
+    let second = Scratch::new(&root()?)?;
+    let first_path = first.path().to_path_buf();
+    let second_path = second.path().to_path_buf();
+    assert_ne!(first_path, second_path);
+    assert!(
+        first_path.file_name().is_some_and(|name| name.as_encoded_bytes().starts_with(b"run-"))
+    );
+    assert_eq!(fs::metadata(&first_path)?.permissions().mode() & 0o777, 0o700);
+    fs::write(first_path.join("owned"), "content")?;
+    assert_eq!(first.finish::<_, Refusal>(Ok(42))?, 42);
+    assert!(!first_path.exists());
+    drop(second);
+    assert!(!second_path.exists());
+    let failed = Scratch::new(&root()?)?;
+    let failed_path = failed.path().to_path_buf();
+    let error = failed
+        .finish::<(), Refusal>(Err(Refusal("original result".into())))
+        .err()
+        .ok_or_else(|| Refusal("original failure was hidden".into()))?;
+    assert_eq!(error.0, "original result");
+    assert!(!failed_path.exists());
+    Ok(())
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn owned_child_reaping_includes_other_process_groups() -> Result<(), Refusal> {
+    let scratch = Scratch::new(&root()?)?;
+    let (status, output) = run_process(
+        &mut fixture("reap-all-groups"),
+        scratch.path(),
+        "reap-all-groups",
+        Limits { timeout: Duration::from_secs(5), ..Limits::default() },
+        None,
+    )?;
+    assert!(status.success(), "any-child wait failed: {status}: {output}");
     scratch.finish(Ok(()))
 }

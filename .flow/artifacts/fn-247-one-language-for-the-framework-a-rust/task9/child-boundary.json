@@ -1,0 +1,7 @@
+{
+  "scope": "syscall.rs from struct SignalMask through restrict_descendants, before parent_identity; calls.rs whole file",
+  "identical_child_region": true,
+  "child_region_sha256": "34a14e2f9af8fe6a830c9bce2af70e90fd7ae1449202fe4714d4550eaf4a78e6",
+  "calls_rs_identical": true,
+  "removed_parent_unsafe_blocks": 10
+}

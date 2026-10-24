@@ -61,6 +61,21 @@ mod fixture {
         Ok(())
     }
 
+    #[cfg(target_os = "linux")]
+    fn reap_all_groups() -> io::Result<()> {
+        let child = Command::new(env::current_exe()?)
+            .arg("echo")
+            .process_group(0)
+            .stdout(Stdio::null())
+            .spawn()?;
+        syscall::reap_owned_children()?;
+        assert!(
+            !Path::new("/proc").join(child.id().to_string()).exists(),
+            "owned child in another process group was not reaped"
+        );
+        Ok(())
+    }
+
     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
         let args: Vec<_> = env::args().collect();
         match args.get(1).map_or("", String::as_str) {
@@ -122,6 +137,8 @@ mod fixture {
                 assert!(status.success(), "pthread_atfork child handler ran: {status}");
                 assert_eq!(output, "native\n");
             }
+            #[cfg(target_os = "linux")]
+            "reap-all-groups" => reap_all_groups()?,
             "argv-env" => {
                 println!("arg:{}", args[2]);
                 println!("value:{}", env::var("UMPIRE_PROCESS_VALUE")?);

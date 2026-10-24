@@ -3,10 +3,10 @@
 use std::{
     fs::{self, File},
     io::{Read, Seek},
-    os::unix::fs::{DirBuilderExt, MetadataExt},
+    os::unix::fs::{MetadataExt, PermissionsExt},
     path::{Path, PathBuf},
     process::{Command, ExitStatus},
-    sync::atomic::{AtomicBool, AtomicU64, Ordering},
+    sync::atomic::{AtomicBool, Ordering},
     thread,
     time::{Duration, Instant},
 };
@@ -45,8 +45,7 @@ impl From<std::io::Error> for Refusal {
     }
 }
 
-static NEXT_RUN: AtomicU64 = AtomicU64::new(0);
-pub struct Scratch(pub PathBuf);
+pub struct Scratch(tempfile::TempDir);
 
 impl Scratch {
     pub fn new(root: &Path) -> Result<Self, Refusal> {
@@ -81,25 +80,22 @@ impl Scratch {
                 return Err(Refusal("scratch directory escapes the repository".into()));
             }
         }
-        loop {
-            let path = parent.join(format!(
-                "run-{}-{}",
-                std::process::id(),
-                NEXT_RUN.fetch_add(1, Ordering::Relaxed)
-            ));
-            match fs::DirBuilder::new().mode(0o700).create(&path) {
-                Ok(()) => return Ok(Self(path)),
-                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
-                Err(error) => return Err(error.into()),
-            }
-        }
+        let directory = tempfile::Builder::new()
+            .prefix("run-")
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir_in(&parent)?;
+        Ok(Self(directory))
+    }
+
+    pub fn path(&self) -> &Path {
+        self.0.path()
     }
 
     pub fn finish<T, E: std::fmt::Display + From<Refusal>>(
         self,
         result: Result<T, E>,
     ) -> Result<T, E> {
-        match fs::remove_dir_all(&self.0) {
+        match self.0.close() {
             Ok(()) => result,
             Err(error) => Err(Refusal(format!(
                 "TLC cleanup failed: {error}; result: {}",
@@ -107,12 +103,6 @@ impl Scratch {
             ))
             .into()),
         }
-    }
-}
-
-impl Drop for Scratch {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.0);
     }
 }
 
