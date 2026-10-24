@@ -1,5 +1,5 @@
 {
-  "source_revision": "c35e6787952119af53286006ee8e628ffaec9035",
+  "source_revision": "dc76222c8a3a6a9e67170e019b9f7f7eefd8cc87",
   "sources": {
     "tools/gomad/rust/gomad/src/cycle/plan/declarations.rs": "069f707292184aad4d0aeea8dd1286db026aa132c1a8c476e9faf435c62edba4",
     "tools/gomad/rust/gomad/src/cycle/plan/leaf/broad.rs": "73784592f349a97e7f7d554753366b7eaca786be245b27836b1648c0433e1018",

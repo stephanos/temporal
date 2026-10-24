@@ -15,9 +15,18 @@ result = subprocess.check_output(['rg','-n',r'^func Test\w+\(', 'tools/gomad/int
 actual = {(line.split(':',2)[0],re.search(r'func (Test\w+)\(',line)[1]) for line in result.splitlines()}
 covered = {(t['file'],t['test']) for t in x['tests'] if t['file'].endswith('.go')}
 assert actual == covered, (actual-covered, covered-actual)
+rust_files = set(subprocess.check_output(['rg', '--files', 'tools/gomad/rust/wasmhost', '-g', '*.rs'], cwd=root, text=True).splitlines())
+assert rust_files == {r['file'] for r in x['test_sources'] if r['file'].endswith('.rs')}, 'Missing Rust module/source outside selected inventory'
 index = (out/'tests.md').read_text()
+assert not index.endswith('\n\n')
 for t in x['tests']:
     assert t['test'] in index and t['named_failure'] and t['reason']
+    assert 'body_sha256' not in t and 'delegated_calls' not in t
+    assert t['source_span']['end_line'] == len((root/t['file']).read_text().splitlines())
+    if t['test'] == 'TestOutputCapacity':
+        assert t['disposition'] == 'kept-Go' and t['role'] == 'guest fixture'
+    if t['test'].endswith('corpus_headers_match_the_go_pin'):
+        assert t['disposition'] == 'convert-to-Rust-corpus'
 for src in x['test_sources']:
     text=(root/src['file']).read_text()
     assert hashlib.sha256((root/src['file']).read_bytes()).hexdigest()==src['sha256']
@@ -33,4 +42,4 @@ assert len(s['stages'])==len(labels)==96
 for r in s['stages']:
     assert set(r['dependencies'])<=labels
 assert all(p['disposition'] in {'kept-Go','convert-to-Rust-corpus','obsolete'} for p in x['packages'])
-print(f'Independent rg coverage: {len(packages)} packages; {len(actual)} Go tests; all Rust test attributes in selected sources; {len(x["fixtures"])} fixture hashes; 96 unique stages and valid dependency targets')
+print(f'Independent rg coverage: {len(packages)} packages; {len(actual)} Go tests; all wasmhost Rust sources and their test attributes; {len(x["fixtures"])} fixture hashes; 96 unique stages and valid dependency targets')

@@ -45,33 +45,34 @@ def collect():
         disposition = 'kept-Go' if package in KEPT else 'convert-to-Rust-corpus'
         rows.append(dict(package=package, disposition=disposition, files=files, direct_import_consumers=consumers, transitive_import_consumer_packages=sorted(transitive), same_package_tests=[p for p in files if p.endswith('_test.go')]))
     selected = [p for p in paths if (p.startswith(MODEL) or p.startswith('tools/gomad/internal/backends/wasm/cluster/')) and p.endswith('_test.go')]
-    selected += [p for p in paths if p.startswith('tools/gomad/rust/wasmhost/') and p.endswith('.rs') and ('corpus' in p or 'conformance' in p or re.search(r'(?:internal/model|go_pin|go_corpus|GOMAD_GO_GZIP_ORACLE|replay_plan)', (ROOT/p).read_text()))]
+    selected += [p for p in paths if p.startswith('tools/gomad/rust/wasmhost/') and p.endswith('.rs')]
     tests, sources = [], []
     for path in sorted(set(selected)):
         text = (ROOT/path).read_text()
         isgo = path.endswith('.go')
         pattern = r'(?m)^func (Test\w+)\(t \*testing\.T\)' if isgo else r'(?m)^\s*#\[test\](?:(?!\bfn\b)[\s\S])*?\bfn\s+(\w+)\s*\('
         matches = list(re.finditer(pattern, text))
-        sources.append({'file': path, 'sha256': digest(ROOT/path), 'tests': [m[1] for m in matches], 'role': 'test entrypoints' if matches else 'support/case construction; covered by caller entrypoints'})
+        sources.append({'file': path, 'sha256': digest(ROOT/path), 'tests': [m[1] for m in matches], 'role': 'test entrypoints' if matches else 'source context; no discovered test entrypoints'})
         for m in matches:
-            # Function termination at its opening indentation, avoids braces in string literals.
             fnpos = text.find('fn ', m.start()) if not isgo else m.start()
-            startline = text.rfind('\n', 0, fnpos)+1
-            indent = text[startline:fnpos]
-            end = re.search(r'(?m)^'+re.escape(indent)+r'}\s*$', text[m.end():])
-            finish = m.end()+end.end() if end else len(text)
-            body = text[m.end():finish]
-            evidence = []
-            for i, value in enumerate(body.splitlines()):
-                if re.search(r'\b(?:Fatalf?|Errorf?|Equal|NotEqual|NoError|ErrorContains|ErrorIs|True|False|Panics|NotPanics|Len|Empty|NotEmpty|Contains|assert\w*|panic)\s*[!(.]', value):
-                    evidence.append({'line': line(text,m.end())+i, 'source': value.strip()})
+            source_span = {'start_line': line(text, fnpos), 'end_line': len(text.splitlines()), 'scope': 'declaration-to-EOF source context; not an extracted function body'}
             pkg = str(Path(path).parent).removeprefix(MODEL)
             disposition = 'kept-Go' if isgo and pkg in KEPT else 'convert-to-Rust-corpus'
             reason = 'Retains production capture/codec/runtime/generator invariants.' if disposition == 'kept-Go' else 'Preserve these assertions against Rust models/linked outcomes and reviewed inputs; conversion is not yet implemented.'
-            if 'DriftPinIsCurrent' in m[1] or 'headers_match_the_go_pin' in m[1]:
+            if isgo and 'DriftPinIsCurrent' in m[1]:
                 disposition = 'obsolete'
                 reason = 'Live Go implementation fingerprint becomes obsolete after retirement; keep captured revision provenance and corpus integrity checks.'
-            tests.append(dict(file=path, line=line(text,fnpos), test=m[1], disposition=disposition, reason=reason, named_failure='Violation of '+re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', m[1].removeprefix('Test')).replace('_', ' '), assertion_sites=evidence, body_sha256=hashlib.sha256(body.encode()).hexdigest(), delegated_calls=sorted(set(re.findall(r'([A-Za-z_][A-Za-z_0-9:]*)\(', body))) if not evidence else [], subtest_literals=re.findall(r't\.Run\("([^"\n]+)"',body)))
+            if not isgo:
+                reason = 'Preserve existing Rust test and its assertions; replace Go/helper dependencies only where present. Conservative crate-wide discovery includes non-conformance tests.'
+            if m[1] == 'TestOutputCapacity':
+                disposition = 'kept-Go'
+                reason = 'Executable output-capacity Go guest, not a model assertion: Rust replay/cluster/broad_guest_tests.rs authenticates, compiles and runs this fixture.'
+            failure = 'Violation of '+re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', m[1].removeprefix('Test')).replace('_', ' ')
+            if m[1] in {'clock_corpus_headers_match_the_go_pin','world_corpus_headers_match_the_go_pin'}:
+                failure = 'Missing required named or scripted/generated/recorded cases, or invalid captured corpus header/pin'
+            if m[1] == 'TestOutputCapacity':
+                failure = 'Missing output-producing guest prevents Rust output-capacity policy checks'
+            tests.append(dict(file=path, line=line(text,fnpos), test=m[1], disposition=disposition, reason=reason, named_failure=failure, role='guest fixture' if m[1] == 'TestOutputCapacity' else 'existing Rust test to preserve' if not isgo else 'Go test', source_span=source_span, source_sha256=digest(ROOT/path)))
     fixture_paths = [p for p in paths if '/testdata/' in p and p.endswith('.json') and (p.startswith(MODEL) or p.startswith('tools/gomad/rust/wasmhost/') or p.startswith('tools/gomad/internal/backends/wasm/cluster/'))]
     fixtures=[]
     for path in fixture_paths:
@@ -85,7 +86,7 @@ def collect():
         if Path(path).suffix not in {'.rs','.py','.go','.toml','.md','.txt'} and Path(path).name != 'Makefile':
             continue
         for i,s in enumerate((ROOT/path).read_text(errors='replace').splitlines(),1):
-            if re.search(r'internal/model/|GOMAD_WASM_(?:TEST|CONFORMANCE)_HELPER|GOMAD_GO_GZIP_ORACLE',s):
+            if re.search(r'internal/model/|GOMAD_WASM_(?:TEST|CONFORMANCE)_HELPER|GOMAD_GO_GZIP_ORACLE|TestOutputCapacity|output_capacity_test\.go',s):
                 refs.append({'file':path,'line':i,'source':s.strip()})
     return {'source_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'scope':'Static lexical source census, all build tags; no execution or mutation proof. Transitive sets include test imports and are not production reach claims. Fixture rows include supporting inputs, not only oracle expectations.','packages':rows,'test_sources':sources,'tests':tests,'fixtures':fixtures,'path_and_helper_references':refs}
 
@@ -95,8 +96,6 @@ def main():
     args=parser.parse_args()
     result=collect()
     path=OUT/'coverage.json'
-    if path.exists():
-        result['source_revision']=json.loads(path.read_text())['source_revision']
     if args.check:
         old=json.loads(path.read_text())
         result['source_revision']=old['source_revision']
@@ -108,7 +107,7 @@ def main():
             encoded='[\n'+',\n'.join(json.dumps(row,separators=(',',':')) for row in value)+'\n]' if isinstance(value,list) else json.dumps(value)
             parts.append(json.dumps(key)+':'+encoded)
         path.write_text('{\n'+',\n'.join(parts)+'\n}\n')
-        lines=['# Test entrypoint disposition index', '', 'Part of [inventory.md](inventory.md). Source: `'+result['source_revision']+'`. Named contracts are source assertions, not executed mutations. See [coverage.json](coverage.json) for exact assertion sites, body hashes, delegated calls and disposition reasons. Conversion is a future obligation, not completed coverage.', '']
+        lines=['# Test entrypoint disposition index', '', 'Part of [inventory.md](inventory.md). Source: `'+result['source_revision']+'`. Named contracts are source assertions, not executed mutations. See [coverage.json](coverage.json) for whole-source hashes, declaration-to-EOF context spans and disposition reasons. Conversion is a future obligation, not completed coverage.', '']
         for src in result['test_sources']:
             lines += ['## '+src['file'], '']
             tests=[t for t in result['tests'] if t['file']==src['file']]
@@ -119,7 +118,7 @@ def main():
             for t in tests:
                 lines += ['| `'+t['test']+'`:'+str(t['line'])+' | '+t['disposition']+' | '+t['named_failure']+' |']
             lines += ['']
-        (OUT/'tests.md').write_text('\n'.join(lines)+'\n')
+        (OUT/'tests.md').write_text('\n'.join(lines).rstrip()+'\n')
         print('wrote',path)
 if __name__=='__main__':
     main()
