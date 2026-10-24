@@ -39,6 +39,9 @@ cd model && mise exec -- cargo test -p umpire-temporal --test program_history --
 ### Boundaries
 No change to frozen original compatibility artifacts or Model policy. No new program language, response kind or envelope work beyond what fn-237.4 already supplies. No reinterpretation of the original failing Run as passing.
 
+### Ordering note (2026-10-24)
+
+fn-246 (Realization as a checked refinement) is placed before fn-237.4 and rewrites the activity binding this task touches (`feature/activity/realization.rs` replaces `temporal.rs` and `phase.rs`; the entity lens and Reach replace the hand-written proposal correlation and projection). Write this task against that shape: the restored unheld admission is a proposal-policy change plus evidence predicates for the cooperative rows, not an edit to the retired hand projection. Reanchor the Files and Touches lists at execution.
 ## Acceptance
 - [ ] Committed fn-237.3/.4 independent semantics and binding justify restored unheld open-state admission; unsupported combinations remain explicitly refused before Cancel RPC.
 - [ ] Deterministic raw and SDK witnesses record actual Cancel requests/ACKs, pending state, completion/failure races, worker acknowledgment and repeated-request classification; judgments follow the independent contract and do not predict worker outcomes or remap code 9.
