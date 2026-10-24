@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-244-package-layout-of-modelumpire",
   "impl_review_rounds": {
-    "fn-244-package-layout-of-modelumpire.1": 1,
+    "fn-244-package-layout-of-modelumpire.1": 0,
     "fn-244-package-layout-of-modelumpire.2": 0
   },
   "next_task": 1,
@@ -148,9 +148,54 @@
       "task": "fn-244-package-layout-of-modelumpire.1",
       "timestamp": "2026-10-24T05:06:31.278759Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dc450733cff9e61582c17f59b0b0d11bfa6f65f97de6104166b2333818eb9afd",
+      "backend": "codex",
+      "base_sha": "9bb2ba62e6ecd05f5dedc326e7f8c579a6c06d9a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-08dfe16aff7bd26b75ba0dacd47bf728",
+            "classification": "introduced",
+            "findingId": "finding-08dfe16aff7bd26b75ba0dacd47bf728",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4dacc5bdcb91ac78703a0b6fd95d03589dda057c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 923,
+      "output_sha256": "f1293b24a69e148a993eb881a12d17b59a2725235afa7a0f6acfbfcb36498bbd",
+      "reservation_id": "e6fa319a8a4f44ebab7bbfbd1ba297d5",
+      "round_consumed": true,
+      "scope": "impl:fn-244-package-layout-of-modelumpire.1",
+      "superseded_by": null,
+      "task": "fn-244-package-layout-of-modelumpire.1",
+      "timestamp": "2026-10-24T05:18:23.940690Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-244-package-layout-of-modelumpire.1": 1,
     "impl:fn-244-package-layout-of-modelumpire.2": 1
   },
   "review_pending_rounds": {},
@@ -173,5 +218,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T05:06:31.283997Z"
+  "updated_at": "2026-10-24T05:18:23.987854Z"
 }
