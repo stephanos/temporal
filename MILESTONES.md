@@ -58,6 +58,14 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+### Opportunistic merge (owner decision, 2026-10-24)
+
+The owner noted that nobody uses Gomad yet and asked whether to "merge opportunistically and fix issues after". They approved the conductor's proposal. It supersedes the freeze requirements in the rulings below where they conflict:
+1. **Merging.** Branches merge into `gomad` once they build and the merge gate is green. Known load-sensitive flakes don't block a merge. The gate itself stays.
+2. **Closing fn-232.13.** fn-232.13 closes on one green run of the full 96-stage cycle on current `gomad`. There is no formal freeze, no 13-role receipt rebuild, and no re-freeze when the source moves. Evidence binds to the commit that ran it.
+3. **Reach-map gaps.** The remaining `gap:` and `partial:` entries move to fn-232.14. Until that task closes, the reach check reports them instead of refusing them. Bugs the cycle run finds are fixed, or filed as tasks.
+4. **Post-cycle work.** The fn-221 sweep, stress and the fn-233 rerun start on `gomad` as soon as the cycle is green. Support claims from that cycle (fn-222) are labeled provisional until fn-242's requalification.
+
 ### Performance deferred to the quiet-host window (owner decision, 2026-10-23)
 
 The owner asked, "can we merge the blocked work and address any perf issues later when we have the stress test?"
@@ -80,7 +88,7 @@ The owner's goal says to follow the conductor's own recommendations when in doub
    - A Go-host-only unit test that checks an implementation detail of deleted Go code is retired with that code. Each retirement gets a one-line reason in the reach map. An example is the helper's `wait4` telemetry.
    - Every user-visible behavior of a retained feature keeps a mapped Rust test with its original assertions and bounds.
    - The 752 original callables are not ported one by one.
-   - The reach gate refuses any map entry recorded as `partial:` or `gap:`, so a known gap can never pass as complete reach. Each such entry is either ported or converted to a mapped entry with an explicit Go-implementation-only reason.
+   - Once fn-232.14 closes, the reach gate refuses any map entry recorded as `partial:` or `gap:`, so a known gap can never pass as complete reach. Until then it reports them (opportunistic-merge decision). Each such entry is either ported or converted to a mapped entry with an explicit Go-implementation-only reason.
 2. **`TestDeterminismExecutedDivergenceArtifacts/handoff`.** Its "every incarnation exits" assertion also fails on the original Go baseline. It is superseded by the fn-235 fail-fast behavior the owner has already authorized. The original failure is kept as history.
 3. **One-hour limit.** First time the critical-path stages on the Rust binary. Raise the limit with the owner only if those stages measurably don't fit. Until then the limit stays unchanged.
 4. **Cache-path identity.** Compiled files located in the Go cache are recorded by content, not by absolute path. A guest's identity must not depend on the caller's cache location.
@@ -337,7 +345,8 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Rust workspace/default host integrated; final qualification, behavioral reach and retirement acceptance pending ([development checkpoint](.flow/artifacts/milestones-rust-integration-2026-10-23.md)) |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement merged; closes on one green full cycle on `gomad` |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | 🚧 Running | Close the remaining test-wasm reach-map gaps after closure |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 

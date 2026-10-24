@@ -185,3 +185,7 @@ Development evidence only; no frozen cycle.
   - Verified: Go build/vet exits 0 and `make build` exits 0.
   - Already on gomad before this branch: CI/Make on cargo and the single workspace.
 - Worktrees kept: `/home/agent/wt/fn232-corpus-fix` (merge source) and `/home/agent/wt/fn232-retirement-v2` (parked). Cargo target kept: `/home/agent/.cache/codex-build/fn232-corpus-target` (seeded from a copy of fn188-gates-target). Size evidence kept: `/home/agent/wt/evidence/fn232/source-size-2026-10-23/`.
+
+### Acceptance amended by owner (2026-10-24, opportunistic merge)
+
+This task closes on one green run of the full 96-stage cycle on current `gomad`. A formal freeze and the 13-role receipt rebuild are not required, and evidence binds to the commit that ran it. Remaining test-wasm reach-map `gap:`/`partial:` entries move to fn-232.14; the reach check reports them instead of refusing. Timing and performance results are recorded but not judged, per the performance-deferral decision. Everything else in this task's acceptance stands: the cycle's correctness, replay, determinism, memory and capacity results, the archcheck, the docs, and the identity and size ledger.
