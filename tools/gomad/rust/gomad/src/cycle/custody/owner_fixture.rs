@@ -8,6 +8,7 @@ fn main() {
     let owner = cycle::process::CycleOwner::initialize_exclusive().expect("exclusive cycle owner");
     let family = std::env::var("CUSTODY_FAMILY").unwrap_or_else(|_| "source".into());
     match family.as_str() {
+        "command" => cycle::readers::command::run_cases(&owner).expect("retained receiving cases"),
         "source" => cycle::custody::run_cases(&owner).expect("source custody cases"),
         "inputs" => cycle::preparation::inputs::run_cases(&owner).expect("preparation input cases"),
         "build" => cycle::build::run_cases(&owner).expect("build role cases"),

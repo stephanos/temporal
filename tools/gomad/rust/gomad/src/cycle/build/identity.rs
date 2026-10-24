@@ -31,7 +31,7 @@ const HOST_EXTRA: &[&str] = &[
     "../../internal/model/choice/tape.go",
 ];
 #[path = "../../../../wasmhost/build_identity.rs"]
-mod helper_identity;
+pub(crate) mod helper_identity;
 
 fn source_names(root: &Path, directory: &Path, names: &mut Vec<String>) -> Result<(), String> {
     require(names.len() < 200_000, "build source closure exceeds bound")?;
