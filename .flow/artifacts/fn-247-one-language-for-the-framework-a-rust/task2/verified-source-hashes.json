@@ -1,0 +1,22 @@
+{
+  "source_commit": "5a451ad9edf5bf0b2cd649af86d9b5f67fadd8b0",
+  "files": {
+    "model/.cargo/config.toml": "5d2ce595163d042c37cbd8baff63f9f88630af985a1704a1c543027547cf0625",
+    "model/Cargo.lock": "16df5a1698de3bfaf1430ce4c3574b5f1bf4bb7084368b90c5aa310315707da7",
+    "model/Cargo.toml": "47f697deb3aeec68606c0b3d0dc5401dbf9e685900e3a94f1c1ed5c6bb7bd0b5",
+    "model/dev/xtask/Cargo.toml": "9f4e2bda1a97fabe4f89c16ae0b5638026e389feb7b77f3d362830e8b18918f4",
+    "model/dev/xtask/README.md": "d5c1c81fdf9e124a15ceedbfd49be65695dab5a34fad32ec8318d6912d4f3ecb",
+    "model/dev/xtask/src/compiler.rs": "d6f236bb2954dd504f765126148b213540d6f9d4d35e212df878fbb5c97fa39b",
+    "model/dev/xtask/src/lib.rs": "caaae8f2826ba8c68bdba5c737e0cd86ce1aaa9efa9f44507784b00a5d7a85b4",
+    "model/dev/xtask/src/lock.rs": "3498f4a139e4b84382c8ef65581a810f8379491850ba399ac39aa9d2473439ca",
+    "model/dev/xtask/src/main.rs": "918d738d74bf13a68c014151f214c45ca5cc3f359d5bd731d2f9a39e15156bd3",
+    "model/dev/xtask/src/support.rs": "9b8fdc6151f750c2ee806bd704c8971c724c012729f9525f34e1624df7310819",
+    "model/dev/xtask/tests/guest_identity.rs": "147c8e39730afc7ce7598fca5d171d4c23209bc1ae6fdb0698b43dc51a7bf9d6",
+    "model/dev/xtask/tests/identity/compiler.rs": "8b198ad02c95fad742de7779849ef79638ab9050addce39c290fd1f5d723b12d",
+    "model/dev/xtask/tests/identity/compiler_fixture.rs": "bb3ad78b89dd9e18f7dc9e6b441fd379f26fe7c89f9b626a3f09c090a55a8ec6",
+    "model/dev/xtask/tests/identity/current_inputs.rs": "9664f778fe38efb7c3d4af94635661e5ebcea6d2ad2f164f6a50b983f68e20e5",
+    "model/dev/xtask/tests/identity/lock.rs": "93283a6c8d01ccd568efa72d5078bc40f4d2c11f46d1205a0d5e913da4ebd220",
+    "model/dev/xtask/tests/identity/support.rs": "47c89b178a46f15a931c88fa2f08e52649763c45ef26bb0df5ed12ac022ef08d",
+    "model/umpire/author/umpire/tests/consumer/Cargo.toml": "bc72428fb5665ce97ca945287aeee0ee8e73f493ab85522ece84eab36648db20"
+  }
+}
