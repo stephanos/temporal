@@ -33,6 +33,16 @@ def regular(path):
     return path
 
 
+def workflow_pair(repo):
+    workflows = repo / '.github/workflows'
+    expected = [workflows / name for name in ('gomad.yml', 'gomad-behavioral-parity.yml')]
+    inventory = [path for path in workflows.glob('*') if path.suffix in ('.yml', '.yaml')
+                 and (path.name.startswith('gomad') or path.is_file() and 'tools/gomad/' in path.read_text())]
+    require(set(inventory) == set(expected), 'missing/ambiguous current Gomad workflow inventory')
+    require(all('tools/gomad/' in regular(path).read_text() for path in expected), 'changed Gomad workflow module routing')
+    return expected
+
+
 def rust_code(text):
     """Keep token positions while excluding comments and string test fixtures."""
     result, at = list(text), 0
@@ -596,11 +606,7 @@ class Execution:
                     require(sha(receipt['binary']) == receipt['sha256'], 'built actionlint changed')
                     argv = [receipt['binary'], *argv[1:]]
                     if kind == 'workflow-lint':
-                        pairs = [[REPO / '.github/workflows' / (prefix + suffix) for suffix in ('.yml', '-smoke.yml')]
-                                 for prefix in ('gomad3', 'gomad')]
-                        pairs = [pair for pair in pairs if all(path.is_file() and 'tools/gomad/' in path.read_text() for path in pair)]
-                        require(len(pairs) == 1, 'ambiguous/missing original workflow pair')
-                        argv = [receipt['binary'], *map(str, pairs[0])]
+                        argv = [receipt['binary'], *map(str, workflow_pair(REPO))]
                 raw = self.call(argv, action['cwd'], env)
                 if kind == 'versions':require(raw.decode().startswith('go version go1.27.1 '), 'wrong pinned Go version')
                 if kind == 'rust-version':require(raw.decode().startswith('rustc 1.99.1 '), 'wrong pinned rustc version')
@@ -678,11 +684,7 @@ def authenticate_result(plan_path, label):
             require(sha(receipt['binary']) == receipt['sha256'], 'built actionlint changed before reader')
             expected = [receipt['binary'], '-version']
             if kind == 'workflow-lint':
-                pairs = [[REPO / '.github/workflows' / (prefix + suffix) for suffix in ('.yml', '-smoke.yml')]
-                         for prefix in ('gomad3', 'gomad')]
-                pairs = [pair for pair in pairs if all(path.is_file() and 'tools/gomad/' in path.read_text() for path in pair)]
-                require(len(pairs) == 1, 'ambiguous/missing original workflow pair')
-                expected = [receipt['binary'], *map(str, pairs[0])]
+                expected = [receipt['binary'], *map(str, workflow_pair(REPO))]
             consume(owned[0], owned, expected, recipe_row['cwd'], extra)
         for result_index, row in enumerate(results):
             if kind in ('go-tests', 'replay-regeneration'):

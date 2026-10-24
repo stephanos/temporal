@@ -173,6 +173,89 @@ class StaticStageContract(unittest.TestCase):
                 return static.authenticate_result(plan_path, label)
         return root, evidence, command, report, check
 
+    def workflow_fixture(self, root):
+        repo = root/'source'
+        workflows = repo/'.github/workflows'
+        workflows.mkdir(parents=True)
+        paths = [workflows/name for name in ('gomad.yml', 'gomad-behavioral-parity.yml')]
+        for path in paths:
+            path.write_text('name: Gomad\njobs: # tools/gomad/\n')
+        binary = root/'static-tools/actionlint'
+        binary.parent.mkdir()
+        binary.write_bytes(b'actionlint fixture')
+        driver.write(binary.with_suffix('.json'), dict(binary=str(binary), sha256=driver.sha(binary), version='v1.7.7'))
+        return repo, paths, binary
+
+    def workflow_mutations(self, paths):
+        return [
+            ('missing', paths[1], None),
+            ('foreign module', paths[1], 'name: Foreign\n# tools/other/\n'),
+            ('stale smoke', paths[0].with_name('gomad-smoke.yml'), '# tools/gomad/\n'),
+            ('legacy main', paths[0].with_name('gomad3.yml'), '# tools/gomad/\n'),
+            ('ambiguous', paths[0].with_name('gomad-extra.yml'), '# tools/gomad/\n'),
+            ('foreign name', paths[0].with_name('other.yml'), '# tools/gomad/\n'),
+            ('alternate extension', paths[0].with_name('gomad.yaml'), '# tools/gomad/\n'),
+        ]
+
+    def test_workflow_producer_lints_only_current_pair_and_refuses_other_inventory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo, paths, binary = self.workflow_fixture(root)
+            action = dict(kind='workflow-lint', argv=['@actionlint', '@workflows'], cwd=str(repo))
+            plan = dict(driver_config=str(root/'config.json'), stages={'workflow-lint':[action]})
+            config = dict(root=str(root), source_sha256='1'*64, identity={})
+            (root/'config.json').write_text('{}')
+            (root/'plan.json').write_text('{}')
+            producer = static.Execution(plan, config, 'workflow-lint')
+            producer.plan_path = root/'plan.json'
+            def call(argv, cwd, env):
+                self.assertEqual(argv, [str(binary), *map(str, paths)])
+                self.assertEqual(cwd, str(repo))
+                producer.rows.append(dict(name='command-0000'))
+                return b''
+            with patch.object(static, 'REPO', repo), patch.object(static, 'action_environment', return_value={}), patch.object(producer, 'call', side_effect=call):
+                self.assertEqual(producer.execute()['actions'][0]['results'][0]['kind'], 'workflow-lint')
+                for label, path, content in self.workflow_mutations(paths):
+                    original = path.read_text() if path.exists() else None
+                    if content is None: path.unlink()
+                    else: path.write_text(content)
+                    with self.subTest(mutation=label), patch.object(producer, 'call', side_effect=AssertionError('invalid inventory started actionlint')), self.assertRaises(driver.Refusal):
+                        producer.execute()
+                    if original is None: path.unlink()
+                    else: path.write_text(original)
+
+    def test_workflow_reader_binds_current_pair_and_refuses_inventory_or_receipt_changes(self):
+        action = dict(kind='workflow-lint', argv=['@actionlint', '@workflows'], cwd='/source')
+        root, evidence, command, report, check = self.reader_fixture('workflow-lint', action)
+        repo, paths, binary = self.workflow_fixture(root)
+        name = command([str(binary), *map(str, paths)], b'')
+        report['actions'][0]['results'] = [dict(kind='workflow-lint')]
+        with patch.object(static, 'REPO', repo), patch.object(static, 'ignored_inventory', return_value=[]):
+            self.assertEqual(check()['subgates'], [dict(id='workflow-lint', status='PASS', executed=True, exit=0)])
+            for label, path, content in self.workflow_mutations(paths):
+                original = path.read_text() if path.exists() else None
+                if content is None: path.unlink()
+                else: path.write_text(content)
+                with self.subTest(mutation=label), self.assertRaises(driver.Refusal):
+                    check()
+                if original is None: path.unlink()
+                else: path.write_text(original)
+            receipt_path = evidence/(name+'.command.json')
+            original = driver.read(receipt_path)
+            for field, value in [('argv', [str(binary), str(paths[0])]), ('exit', 1)]:
+                receipt = dict(original, **{field:value})
+                receipt_path.write_text(json.dumps(receipt))
+                report['commands'][0]['command_sha256'] = driver.sha(receipt_path)
+                report['commands'][0]['argv'] = receipt['argv']
+                with self.subTest(receipt=field), self.assertRaises(driver.Refusal):
+                    check()
+            receipt_path.write_text(json.dumps(original))
+            report['commands'][0]['command_sha256'] = driver.sha(receipt_path)
+            report['commands'][0]['argv'] = original['argv']
+            binary.write_bytes(b'changed actionlint')
+            with self.assertRaisesRegex(driver.Refusal, 'built actionlint changed'):
+                check()
+
     def test_rust_repeats_are_distinct_and_doctest_argv_is_real(self):
         action = dict(kind='cargo-tests', argv=['/pinned/cargo','test','-p','gomad-wasmhost','--lib'], cwd='/source', repeats=2)
         root, evidence, command, report, check = self.reader_fixture('validate', action)
