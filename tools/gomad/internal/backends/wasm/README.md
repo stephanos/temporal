@@ -76,7 +76,8 @@ establish live-runtime, replay or performance qualification.
 ## Determinism prototype
 
 The historical prototype and Go qualification attempts remain in Flow and Git
-history. Current acceptance belongs to fn-232 R12/task .13's frozen Rust cycle,
+history. Current acceptance remains open under fn-232, with final execution and receiving
+in fn-246 after fn-242's Rust driver cutover and the full fn-240 extraction,
 including the transferred live roots and complete behavioral reach of
 `make -C tools/gomad test-wasm`. The [qualification contract](QUALIFICATION.md),
 [delivery milestones](../../../../../MILESTONES.md) and

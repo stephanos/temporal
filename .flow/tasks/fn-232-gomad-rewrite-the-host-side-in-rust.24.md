@@ -6,16 +6,21 @@ satisfies: [R12, R14]
 Touches: .flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md, fn-232 R4 receiving evidence
 
 ## Description
-Size M. Reconcile fn185.1R4 using actual .13 outputs and final_profiles.py:711/:794/:932/:1106, receiving_cost.py and section20-profiles. R4 consumes same-cycle terminal/workload-corpus outputs and exact ten Results; it does not depend on finishing the broader runtime review or .13 being Flow-done. Review actual release/native/diagnostic and original-reference comparisons, including runtime-cost-equivalent release behavior and qualified workflow/activity choice/WASI/network/stdout/stderr preservation. Current helper admission and prewarming are preparation only. Root owns any needed implementation; this task owns receiving review and fn185 reconciliation, with exact evidence handed to the shared-ledger owner.
+### Current execution owner (2026-10-24, cleanup-first amendment)
 
+After the narrow fn-232.30 checkpoint, complete fn-242's Rust driver implementation/cutover, then the complete approved fn-240 extraction scope, then execute fn-246-gomad-final-qualification-after-driver, tasks 6 and 7. Those tasks own production and independent receiving of this task's remaining evidence. This task and fn-232 remain open; moving the work supplies no acceptance credit. All original requirements, behavioral assertions, bounds, custody and genuine current-candidate identity checks below remain required. Later paragraphs describing .13-first execution or cycle production are historical ordering and are superseded by this amendment. No full qualification dispatch occurs before both cleanup specs finish.
+
+Complete this original task only after fn-246.7 reconciles actual matching proof into its original acceptance; do not require the new spec to be closed first. Preserve historical failures and the frozen Go source/executable/helper/tool inputs until their actual public18 and R4 receiving comparisons pass. Re-anchor implementation paths to the crates that own them after fn-240.
+
+Size M. Reconcile fn185.1R4 using actual .13 outputs and final_profiles.py:711/:794/:932/:1106, receiving_cost.py and section20-profiles. R4 consumes same-cycle terminal/workload-corpus outputs and exact ten Results; it does not depend on finishing the broader runtime review or .13 being Flow-done. Review actual release/native/diagnostic and original-reference comparisons, including runtime-cost-equivalent release behavior and qualified workflow/activity choice/WASI/network/stdout/stderr preservation. Current helper admission and prewarming are preparation only. Root owns any needed implementation; this task owns receiving review and fn185 reconciliation, with exact evidence handed to the shared-ledger owner.
 ## Acceptance
 - [ ] Authenticate release/diagnostic/native/reference inputs and actual comparison outputs to current source/config and measured helper/model/module/compiler/runtime/host identities, preserving original provenance separately from current execution.
 - [ ] Verify runtime-cost-equivalent release behavior and both qualified workload comparisons retain original assertions, inputs, bounds, choices, WASI/network records, stdout and stderr; preserve raw commands and numeric exits. Missing, altered, mismatched or failed evidence refuses completion.
 - [ ] Reconcile actual receiving proof into fn185.1R4 through flowctl; it remains OPEN until that proof exists. Timing-only deferral does not waive correctness. No new Go-only profile run, digest normalization, artifact migration or second full cycle; parent .13 owns final composition.
 
 ## Done summary
-TBD
-
+Blocked:
+Execution transferred by the owner cleanup-first amendment to fn-246-gomad-final-qualification-after-driver, tasks 6 and 7, after fn-242 and the complete fn-240 scope. Original acceptance remains pending and unchanged in substance; no missing proof is credited. Unblock/reconcile this task from real receiving evidence in fn-246.7. This is an explicit sequencing dependency, not an external impasse.
 ## Evidence
 - Commits:
 - Tests:

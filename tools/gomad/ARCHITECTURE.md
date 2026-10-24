@@ -295,7 +295,8 @@ The glue removal changes shared-cluster source identity and its transitive
 WASM bindings; historical qualification cannot be relabeled for that candidate.
 Final runtime, mandatory workload and retained-replay qualification, including
 the complete behavioral reach of `make -C tools/gomad test-wasm`, remain
-pending under fn-232 R12/task .13's frozen Rust qualification cycle. Source
+pending under fn-232's original acceptance; fn-246 executes and reconciles them
+after fn-242's Rust driver cutover and the full fn-240 extraction. Source
 checks for the deletion supply no final qualification pass.
 
 The helper transcript corpus is the shared Rust/Go wire and evidence contract.

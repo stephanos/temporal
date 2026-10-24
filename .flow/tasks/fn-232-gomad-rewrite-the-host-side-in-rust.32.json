@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md",
   "status": "todo",
   "title": "Unify fixed payload read bounds with the authenticated artifact limits so a qualified artifact always replays",
-  "updated_at": "2026-10-24T16:11:13.059881Z"
+  "updated_at": "2026-10-24T16:44:01.905590Z"
 }

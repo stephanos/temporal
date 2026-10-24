@@ -1,0 +1,134 @@
+{
+  "branch_name": "fn-246-gomad-final-qualification-after-driver",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T16:38:02.968152Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-240-gomad-context-sized-rust-crates-with"
+  ],
+  "id": "fn-246-gomad-final-qualification-after-driver",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T16:53:21.044344Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "332ff9fa834e1ebcde690e34951bfd46cef29adf0e0004a224cb651be11fcd14",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-795a782ff4553c68c6959a7651504ade",
+            "classification": "introduced",
+            "findingId": "finding-795a782ff4553c68c6959a7651504ade",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fdda17f7e9d67907ca82b0b3a3d5682af64a5e55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 339805,
+      "output_sha256": "f779cfb54b3c19af6455af7d91462387f2ca9e9b4600d2bae9c456c022daab5d",
+      "reservation_id": "3353c39369c643b5a11bf30a0c091ae1",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T16:52:00.334756Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2b0c8d76454c54b98171e99f99f95957815ccf013f3b341fa9ec16d8115b9bad",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-795a782ff4553c68c6959a7651504ade",
+            "classification": "introduced",
+            "findingId": "finding-795a782ff4553c68c6959a7651504ade",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "fdda17f7e9d67907ca82b0b3a3d5682af64a5e55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 396,
+      "output_sha256": "7ba981179292062fa3447c6534ded04c7a34b84c5db90af5967de6c375202533",
+      "reservation_id": "420a2ee8fbbf4d208bc93c21a734b091",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T16:53:21.039419Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-246-gomad-final-qualification-after-driver.md",
+  "status": "open",
+  "title": "Gomad: final qualification after driver cleanup and crate extraction",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T16:53:21.045665Z"
+}

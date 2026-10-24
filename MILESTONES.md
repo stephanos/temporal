@@ -28,7 +28,8 @@ The native backend was subsequently removed by fn-223. The historical decisions 
 record its earlier ownership; they do not prescribe current native execution.
 Final changed-candidate runtime, mandatory workload and retained-replay qualification,
 including the complete behavioral reach of `make -C tools/gomad test-wasm`, remain
-pending under fn-232 R12/task .13's frozen Rust qualification cycle. Native deletion
+pending under fn-232's original acceptance, executed and reconciled by fn-246 after
+fn-242 and fn-240. Native deletion
 source checks supply no final qualification pass. `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed spec/task records remain in
 Flow and Git history. Delete closed-spec worktrees, branches and evidence under the cleanup
@@ -50,22 +51,31 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 
 ## Immediate delivery order
 
-### fn-232 first (owner decision, 2026-10-23)
+### Cleanup first (owner amendment, 2026-10-24)
 
-The owner asked, "why aren't we focused on fn-232 to get merged?" and approved the conductor's plan to focus on it. Until fn-232.13 closes, both worker slots serve it:
-- One drives the final frozen qualification cycle.
-- The other finishes inputs that must land before the freeze (fn-188.6 gate wiring, fn-233 shim fixes). It then prepares the .13 retirement change on a branch: Go host packages out of the default build, archcheck, Make/CI on the Rust binary, ARCHITECTURE.md/CLI.md and the size comparison. That branch merges as soon as the cycle passes.
+Finish the narrow fn-232.30 checkpoint, then complete fn-242's Rust driver implementation
+and cutover, then the complete approved fn-240 crate extraction scope.
+[fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md) owns the remaining
+qualification and independent receiving after both cleanup specs finish. Focused tests,
+conformance and review continue throughout implementation.
 
-No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
+fn-232 remains open as the original acceptance aggregate. Its .13/.14/.22–.25/.31/.32
+obligations transfer explicitly to fn-246, together with fn-242's actual full-cycle
+requalification. Local implementation handoff does not prove qualification. Preserve every
+original behavioral assertion, bound, identity, custody requirement and receiving obligation.
+The historical handovers below describe earlier attempts and ordering.
 
-Owner execution limit (2026-10-24): repair the current red head, then allow at most two new
-full qualification attempts. Each full96 driver dispatch counts even if it fails early;
-historical cycles and standalone repair/canary runs do not count. If neither attempt goes
-green, stop stage patching and cycle launches, reassess the architecture, and report a revised
-approach before resuming. Candidate changes do not reset the count.
+The global allowance remains two new full qualification dispatches, with zero used at this
+amendment. Each actual full driver start counts even if it fails early or aborts; standalone
+focused/canary/diagnostic runs and preparation without a driver start do not count. Candidate
+changes, output tags and process restarts never reset the allowance. Ambiguous starts remain
+charged; missing journal bindings cannot reset history. Recheck resource admission before
+dispatch. If both attempts fail, stop stage patching and cycle launches, reassess the
+architecture and report a revised approach before resuming.
 
-After .13, treat fn-242 as required finishing work for the remaining Python host driver and
-its proof machinery. Hold fn-240 until fn-242 has shrunk the implementation it would split.
+fn-245 retains its separate recorded scope and ordering; this amendment adds no third cleanup
+prerequisite. Existing later stress, sweep, shim and quiet-host measurement obligations remain
+pending and retain their original acceptance.
 
 ### Current handover (2026-10-24)
 
@@ -194,11 +204,12 @@ Other local inputs, using the rewritten refs:
 - `fn221-rust-sweep` (`911833fb481f8f51d3af6dd20699fc435032c78a`): sweep fixes and fn-221.2 launch plan. Before the full sweep, investigate the historical batch-test slowdown versus Go and exercise resume/verify.
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
-Next, in order:
-1. Complete and review fn-232.30 after the finished .27–.29 repairs/diagnosis, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
-2. Begin fn-242 as required finishing work; fn-240 remains on hold until that shrink is complete. Cycle support claims stay provisional until fn-242 requalification.
-3. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle.
-4. Finish fn-232.14 and restore strict reach completeness.
+Next, in order (cleanup-first owner amendment):
+1. Complete and review the narrow fn-232.30 checkpoint.
+2. Complete fn-242's Rust driver implementation/cutover and focused checks.
+3. Complete the full fn-240 crate extraction scope, preserving focused conformance.
+4. Execute fn-246: remaining reach and payload fixes, measured workload budgets, fresh final qualification and independent receiving. Reconcile actual proof into the original fn-232/fn-185/fn-235 owners; no missing obligation receives credit from transfer.
+5. Resume the remaining sweep, stress and shim windows in their recorded dependency order. fn-245 retains its separately recorded scope; it is not added as another prerequisite by this amendment.
 
 The owner-authorized history cleanup removed the oversized generated `.wire` blobs from all
 11 affected local refs. Main and composition file trees were unchanged by that cleanup, and
@@ -255,7 +266,7 @@ The owner's goal says to follow the conductor's own recommendations when in doub
 7. **Stress as a correctness check (owner, 2026-10-23).** The fn-188.5 41×4 stress matrix is not a one-hour cycle stage. It runs right after the freeze on the frozen candidate as a determinism check: every same-seed divergence is a finding, whatever the host load. Its wall time and other timing results are recorded but not judged until the quiet-host window. fn-242 does not wait for it.
 8. **Pre-freeze source.** fn-227.1's inventory rows cite the Rust map-order tests before the freeze. The pre-freeze dry run also runs the Rust sweep against a real guest and runs fn-233's launcher, shim and Make lanes.
 9. **Post-freeze runs.** On the frozen candidate, as correctness work under the current load: the fn-233 formal rerun (~1 h), stress (2–3 h) and the fn-221 full sweep (5–8 h). Load-only timeouts are classified as contention and rechecked later. fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal, because the Go host's helper link-count infrastructure rows and changed evidence bounds make that journal non-transferable. Only the fn-185.2/.3 profiles wait for a quiet-host window.
-10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities.
+10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities. The cleanup-first owner amendment supersedes the wait: complete fn-242, then all approved fn-240 tasks, then fn-246 qualification.
 11. **No new Python driver code.** Until fn-242 runs, `tools/gomad/rust/driver/` gets only the Python the fn-232.13 freeze and its post-freeze windows strictly need. New checks go into Rust tests or `gomad` verbs.
 12. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
 
@@ -497,19 +508,19 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle8 terminal23PASS/2FAIL/71unstarted; .27–.30 diagnosis and repair owners |
-| [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | 🚧 Running | Receive runtime and mandatory workload evidence |
-| [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | 🚧 Running | Receive retained/operator replay and ringpop proof; reconcile fn235 |
-| [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | 🚧 Running | Receive R4 preservation proof; reconcile fn185 |
-| [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | 🚧 Running | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⛔ Blocked | Original final acceptance; execution/receiving transferred to fn-246 after cleanup |
+| [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | ⛔ Blocked | Receive runtime and mandatory workload evidence |
+| [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | ⛔ Blocked | Receive retained/operator replay and ringpop proof; reconcile fn235 |
+| [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | ⛔ Blocked | Receive R4 preservation proof; reconcile fn185 |
+| [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | ⛔ Blocked | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
 | [fn-232.26](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.26.md) | Done | Bind profile-neutral execution fixtures to compiled conditions; preserve strict role admission |
 | [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | Done | Handle tracked Gitlinks in onebox source inventory; worker/conductor gates and SHIP review passed |
 | [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | Done | Compiled-role fixture repair; full five-profile matrix, worker/conductor gates and SHIP review passed |
 | [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | Done | Capacity diagnosis authenticated and independently reviewed; actual defect remains assigned to .30 |
 | [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | 🚧 Running | Repair polling and retained replay; prove the original full canary with its measured8MiB trace budget; follows .29 |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
-| [fn-232.31](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md) | ⬜ Todo | Measure sqlite/multi-instance World transition budgets under enforced recording before the cycle reaches them; .13 depends on it |
-| [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⬜ Todo | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | ⛔ Blocked | Original reach acceptance; fn-246.1 restores strict admission before final qualification |
+| [fn-232.31](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md) | ⛔ Blocked | Measure sqlite/multi-instance World transition budgets under enforced recording before the cycle reaches them; .13 depends on it |
+| [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⛔ Blocked | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
 
 Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
 launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish
@@ -553,7 +564,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribution, reconciliation and witness proven; R4 release-preservation proof pending fn-232.13's cycle |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⏸ Parked | Attribution, reconciliation and witness proven; R4 release-preservation proof pending fn-246 receiving |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
@@ -566,7 +577,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
-Owner request 2026-10-23. Starts after the fn-232.13 cycle, the fn-233 rerun and the fn-221 sweep have run on `gomad`; it does not wait for stress (ruling 7) or the quiet-host profiles. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Conductor ruling 2026-10-24: fn-242 runs before fn-240's extractions, and one fresh cycle under the Rust verb closes both. Task .1 is analysis only and may start now.
+Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 checkpoint, before the complete fn-240 extraction. Each retained check names a failure it catches; the Python cycle driver becomes a Rust `gomad` verb. Local completion proves implementation/cutover and focused handoff. Actual full-cycle qualification remains pending in fn-246 after both cleanup specs.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -574,10 +585,10 @@ Owner request 2026-10-23. Starts after the fn-232.13 cycle, the fn-233 rerun and
 | [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
-| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; retire the Go baseline |
+| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
 | [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
 | [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Cutover: delete the Python driver, repoint Make, CI, docs, inventory; sizes |
-| [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Requalification cycle under the verb with verdict parity |
+| [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
 
 ### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
 
@@ -589,6 +600,20 @@ Owner's 8–12 crate target stands (ruling 10). Survey landed 2026-10-23 (`.flow
 | [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
 | [fn-240.3](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md) | ⬜ Todo | Extract `wasm-sim` (clock, network, volume, event_order, sim controller) |
 | [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide next cuts |
+
+### Final qualification after cleanup — [fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md)
+
+Runs after fn-242 and the complete fn-240 scope. Original acceptance remains pending until actual final-candidate proof and receiving reconciliation.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-246.1](.flow/tasks/fn-246-gomad-final-qualification-after-driver.1.md) | ⬜ Todo | Close remaining behavioral reach and restore strict admission |
+| [fn-246.2](.flow/tasks/fn-246-gomad-final-qualification-after-driver.2.md) | ⬜ Todo | Audit every literal payload bound and prove boundary behavior |
+| [fn-246.3](.flow/tasks/fn-246-gomad-final-qualification-after-driver.3.md) | ⬜ Todo | Measure SQLite/multi-instance World budgets and pass standalones |
+| [fn-246.4](.flow/tasks/fn-246-gomad-final-qualification-after-driver.4.md) | ⬜ Todo | Prepare the final candidate and produce the complete qualification cycle |
+| [fn-246.5](.flow/tasks/fn-246-gomad-final-qualification-after-driver.5.md) | ⬜ Todo | Independently receive runtime, workloads, retained/operator and ringpop proof |
+| [fn-246.6](.flow/tasks/fn-246-gomad-final-qualification-after-driver.6.md) | ⬜ Todo | Independently receive R4, public18, retirement, custody and size proof |
+| [fn-246.7](.flow/tasks/fn-246-gomad-final-qualification-after-driver.7.md) | ⬜ Todo | Audit coverage and reconcile actual proof into original acceptance owners |
 
 ### Race profile for wasip1 — [fn-241](.flow/specs/fn-241-gomad-a-race-profile-for-wasip1-deferred.md)
 

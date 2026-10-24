@@ -865,7 +865,8 @@ and [milestones](../../MILESTONES.md) to identify required gates. Source checks
 for native deletion do not establish a runtime or workload qualification pass.
 Final changed-candidate runtime, mandatory workload and retained-replay gates,
 including the complete behavioral reach of `make -C tools/gomad test-wasm`,
-remain pending under fn-232 R12/task .13's frozen Rust qualification cycle.
+remain pending under fn-232's original acceptance; fn-246 executes and reconciles them
+after fn-242's Rust driver cutover and the full fn-240 extraction.
 
 ## Rust installation and discovery
 

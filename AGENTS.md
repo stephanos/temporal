@@ -99,8 +99,8 @@ Before starting the implementation or review of any request, you MUST REVIEW the
   2026-10-19; historical transfers and results remain in Flow and Git history.
   Final changed-candidate runtime, mandatory workload and retained-replay qualification,
   including the complete behavioral reach of `make -C tools/gomad test-wasm`, remain pending
-  under fn-232 R12/task .13's frozen Rust qualification cycle. Deletion source checks supply
-  no final qualification pass.
+  under fn-232's original acceptance, with final execution and receiving in fn-246
+  after fn-242 and fn-240. Deletion source checks supply no final qualification pass.
 - `MILESTONES.md` is the operative delivery order; `.plans/GOMAD_NEXT.md` is the
   capability roadmap it draws from. For task state and acceptance criteria, use `flowctl brief`
   and the open specs under `.flow/specs/`. Current contracts belong to `tools/gomad/SPEC.md`

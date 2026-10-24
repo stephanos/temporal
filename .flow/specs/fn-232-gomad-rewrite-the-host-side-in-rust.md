@@ -155,3 +155,42 @@ Memory findings: source-bound cache reuse and profile identity invalidation requ
 | R13 | The mandatory local behavioral differential harness runs both binaries on fresh executions of the corpus for every public verb, comparing each binary's own identity-matching artifacts, and reports the first semantic difference with its path. CI job source is wired until R12 completes; actual CI execution is not authorized or required by this source-only delivery. Errors: a missing corpus entry or semantic difference fails the local gate, never skips or becomes advisory. | fn-232-gomad-rewrite-the-host-side-in-rust.10, fn-232-gomad-rewrite-the-host-side-in-rust.11, fn-232-gomad-rewrite-the-host-side-in-rust.13, fn-232-gomad-rewrite-the-host-side-in-rust.21, fn-232-gomad-rewrite-the-host-side-in-rust.25, fn-232-gomad-rewrite-the-host-side-in-rust.4, fn-232-gomad-rewrite-the-host-side-in-rust.5, fn-232-gomad-rewrite-the-host-side-in-rust.6, fn-232-gomad-rewrite-the-host-side-in-rust.7, fn-232-gomad-rewrite-the-host-side-in-rust.8, fn-232-gomad-rewrite-the-host-side-in-rust.9 | — |
 | R15 | The behavioral reach of the retired `make -C tools/gomad test-wasm` is mapped: every original test root and named subtest maps onto a Rust suite, parity lane, transferred live root or qualification cell in `tools/gomad/testdata/parity/test-wasm-reach-map.json`, with its original assertions and bounds, or carries a one-line Go-implementation-only retirement reason. Errors: once task .14 closes, the reach reader refuses any `gap:` or `partial:` entry; until then it reports them (2026-10-24 opportunistic-merge decision). The 752 original callables are not ported one by one. | fn-232-gomad-rewrite-the-host-side-in-rust.14 | — |
 | R14 | Every verb uses the declared per-verb diagnostic-only projection and deterministic fixture controls above, with raw canonical-record/hash and ledger-integrity verification independent of golden comparison. Regeneration under an environment flag requires repeated agreement and a byte-identical second golden regeneration. Fault/fixture features are excluded from release and qualification binaries. Unit tests exist only for invariants the corpus cannot observe and each names that invariant. Errors: a golden or raw-integrity difference fails with its path; undeclared normalization or a differing second regeneration fails; a unit test without a stated invariant fails lint. | fn-232-gomad-rewrite-the-host-side-in-rust.1, fn-232-gomad-rewrite-the-host-side-in-rust.10, fn-232-gomad-rewrite-the-host-side-in-rust.11, fn-232-gomad-rewrite-the-host-side-in-rust.12, fn-232-gomad-rewrite-the-host-side-in-rust.13, fn-232-gomad-rewrite-the-host-side-in-rust.16, fn-232-gomad-rewrite-the-host-side-in-rust.2, fn-232-gomad-rewrite-the-host-side-in-rust.22, fn-232-gomad-rewrite-the-host-side-in-rust.23, fn-232-gomad-rewrite-the-host-side-in-rust.24, fn-232-gomad-rewrite-the-host-side-in-rust.25, fn-232-gomad-rewrite-the-host-side-in-rust.3, fn-232-gomad-rewrite-the-host-side-in-rust.4, fn-232-gomad-rewrite-the-host-side-in-rust.5, fn-232-gomad-rewrite-the-host-side-in-rust.6, fn-232-gomad-rewrite-the-host-side-in-rust.7, fn-232-gomad-rewrite-the-host-side-in-rust.8, fn-232-gomad-rewrite-the-host-side-in-rust.9 | — |
+
+
+## Cleanup-first execution amendment (owner, 2026-10-24)
+
+This amendment supersedes earlier .13-first and post-cycle cleanup ordering. Finish the
+narrow .30 checkpoint, complete fn-242's Rust driver implementation/cutover, complete all
+approved fn-240 tasks, then execute fn-246-gomad-final-qualification-after-driver. fn-232
+remains open with its original requirements. Transfer does not establish a qualification
+pass, behavioral equivalence, receiving acceptance or retirement permission for reference
+inputs still needed by public18 and R4. No green fn-232 closing-cycle baseline exists.
+
+| Original owner | Final execution / receiving owner |
+| --- | --- |
+| .13 R12/R13/R14 full cycle, composition and closeout | fn-246.4, .5, .6 and .7 |
+| .14 R15 remaining reach behavior and strict admission | fn-246.1, .4 and .7 |
+| .22 runtime32×25,32 forced replays and ten mandatory cells | fn-246.5 and .7 |
+| .23 twenty observed replays, detached operator and ringpop120s | fn-246.5 and .7 |
+| .24 fn-185.1/R4 release and qualified-workload preservation | fn-246.6 and .7 |
+| .25 public18, retirement, identity, custody and size ledger | fn-246.6 and .7 |
+| .31 measured SQLite/multi-instance World budgets and standalones | fn-246.3 and .7 |
+| .32 every literal payload-bound audit and boundary fixes | fn-246.2 and .7 |
+
+The fn-242 R6/.8 actual full-cycle obligation also transfers to fn-246.4–.7. fn-242's
+local completion proves implementation and focused handoff, with global qualification
+explicitly pending. Lane keep/fold/delete dispositions alone do not satisfy R13 or permit
+deleting the independently usable frozen Go executable/helper/source/tool custody.
+
+fn-246.1 restores strict reach refusal from actual gap-free mapping and focused behavioral
+proof before fn-246.4; it does not wait for old .14 to be Flow-done. Every mapped evidence
+ID must then actually execute. fn-246.7 reconciles actual evidence into these original
+tasks and their fn-185/fn-235 receiving owners before closing acceptance. It need not close
+fn-246 first. All original145 semantic obligations survive any approved stage deduplication.
+
+The two unused full-dispatch attempts carry forward globally across source changes and
+restarts. Actual starts, including ambiguous starts, stay charged; absent or mismatched
+journal bindings cannot reset history. After two failed attempts, stop stage patching and
+launches and reassess the architecture. Focused checks and standalone diagnostics continue
+during cleanup and are never represented as full qualification. The original3,600-second
+policy and timing-only deferral remain. No CI dispatch, push or PR is authorized.

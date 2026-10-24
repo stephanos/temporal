@@ -6,13 +6,13 @@ satisfies: [R12, R13, R14]
 **Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description
-### Current owner execution policy (2026-10-24)
+### Current execution owner (2026-10-24, cleanup-first amendment)
 
-Finish this task narrowly before starting any other milestone implementation: repair the current red head through .30, run the complete final96/final145 cycle, fix what it exposes and close .13 only on actual complete proof. Parallel workers serve this critical path. After .13, fn-242 is required finishing work for the remaining Python host/qualification driver, including removing checks that do not prove their claimed property. Hold fn-240 until fn-242 has shrunk the implementation it would split.
+After the narrow fn-232.30 checkpoint, complete fn-242's Rust driver implementation/cutover, then the complete approved fn-240 extraction scope, then execute fn-246-gomad-final-qualification-after-driver, tasks 4, 5, 6 and 7. Those tasks own production and independent receiving of this task's remaining evidence. This task and fn-232 remain open; moving the work supplies no acceptance credit. All original requirements, behavioral assertions, bounds, custody and genuine current-candidate identity checks below remain required. Later paragraphs describing .13-first execution or cycle production are historical ordering and are superseded by this amendment. No full qualification dispatch occurs before both cleanup specs finish.
 
-Bounded-effort exit: admit at most TWO NEW FULL qualification attempts after the current composition, counted from this owner instruction. Historical cycles and standalone .30 focused/canary/diagnostic runs do not consume these two attempts. Each genuine full96 driver dispatch consumes one attempt even when it fails early, aborts or leaves stages unstarted. Preparation that never dispatches the cycle does not consume an attempt. Record exact candidate/configuration/controller/driver identities, actual dispatch and terminal evidence under this task; never reset the count merely because a repair changes the candidate.
+Complete this original task only after fn-246.7 reconciles actual matching proof into its original acceptance; do not require the new spec to be closed first. Preserve historical failures and the frozen Go source/executable/helper/tool inputs until their actual public18 and R4 receiving comparisons pass. Re-anchor implementation paths to the crates that own them after fn-240.
 
-If both new attempts fail to produce the required green cycle, stop stage-by-stage patching and further cycle launches. Reassess the architecture and report a concrete revised approach before resuming implementation; do not silently launch a third cycle or redefine qualification success. A failed cycle never closes this task. Existing correctness, replay, identity, resource and receiving requirements remain intact; the measured onebox8MiB budget decision is explicit in .30.
+The globally shared allowance remains TWO NEW FULL qualification dispatches, with zero used at this amendment. Carry the allowance into fn-246 across candidate changes, output tags and process restarts; each actual full driver start counts even if it fails early or aborts. An ambiguous spawn remains charged, and a missing/mismatched journal binding cannot reset the allowance. Standalone focused/canary/diagnostic runs and preparation without a driver start do not count. Recheck45GiBHOST/20GiBoverlay outer admission and existing12GiB inner admission immediately before dispatch. Retain actual candidate/configuration/controller/driver identities, dispatch and numeric terminal evidence. If both attempts fail, stop stage patching and further cycle launches, reassess the architecture and report a revised approach before resuming. The existing3,600-second policy and timing-only deferral remain intact.
 
 Current implementation and verification map:
 [Rust qualification design](../artifacts/fn232-rust-qualification-design-2026-10-22.md).
@@ -133,8 +133,8 @@ These Go source bytes invalidate the old SQLite source closure and five cooperat
 The admitted/shipped release binary excludes fault and deterministic-fixture features and rejects their fixture-only controls; retain build-feature evidence. Every verb uses task .4's declared golden view with independent canonical record/hash and raw ledger-integrity checks, never normalization of behavior or evidence fields. Qualification reports retained for every cell on the Rust binary; default build contains no Go host packages (archcheck test); CI source wiring validated and mandatory local commands pass, with no CI run dispatched; docs updated; every public verb's local parity/golden lane passes before harness job removal, and goldens remain as regressions; runtime/workload/retained-replay exits and final identities recorded under the unchanged one-hour qualification limit.
 
 ## Done summary
-TBD
-
+Blocked:
+Execution transferred by the owner cleanup-first amendment to fn-246-gomad-final-qualification-after-driver, tasks 4, 5, 6 and 7, after fn-242 and the complete fn-240 scope. Original acceptance remains pending and unchanged in substance; no missing proof is credited. Unblock/reconcile this task from real receiving evidence in fn-246.7. This is an explicit sequencing dependency, not an external impasse.
 ## Evidence
 - Commits:
 - Tests:

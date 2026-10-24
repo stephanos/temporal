@@ -4,8 +4,10 @@ The host implementation now lives in the single [Rust workspace](../../../rust/R
 The Go CLI, runner and host qualification producers described in older sections
 are retired source; retained Go code owns models, protocol generation, conformance
 oracles and the guest runtime overlay. Current build and reference checks are
-`make -C tools/gomad build`, `validate` and `test-wasm`. Final qualification uses
-the [Rust driver](../../../rust/driver/README.md) with frozen authenticated inputs and the unchanged
+`make -C tools/gomad build`, `validate` and `test-wasm`. fn-242 ports the remaining
+Python driver into Rust before fn-240 extraction. Final qualification is pending
+under fn-246 and follows the preserved [driver contract](../../../rust/driver/README.md)
+with frozen authenticated inputs and the unchanged
 3,600-second limit. This prospective source consolidation supplies no R12/R13
 acceptance; the conductor retains the frozen Go baseline until those gates pass.
 
@@ -16,8 +18,9 @@ bound, and passing a fixture is not a Temporal/storage support claim.
 The native backend was removed by fn-223. Final changed-candidate runtime,
 mandatory workload and retained-replay qualification, including every gate,
 subgate and fixture in the complete behavioral reach of
-`make -C tools/gomad test-wasm`, remain pending under fn-232 R12/task .13's
-frozen Rust qualification cycle. The receiver retains the unchanged budgets,
+`make -C tools/gomad test-wasm`, remain pending under fn-232's original acceptance.
+fn-246 executes and reconciles them after fn-242's Rust driver cutover and the full
+fn-240 extraction. The receiver retains the unchanged budgets,
 required input custody and actual source/helper/runtime/module/model identities.
 The gate definitions below remain required; native-deletion source checks and
 historical or interrupted Go attempts supply no final qualification pass.

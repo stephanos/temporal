@@ -7,7 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-232-gomad-rewrite-the-host-side-in-rust"
+    "fn-242-gomad-shrink-the-qualification"
   ],
   "id": "fn-240-gomad-context-sized-rust-crates-with",
   "impl_review_rounds": {},
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-22T22:16:43.030387Z"
+  "updated_at": "2026-10-24T16:44:55.567702Z"
 }
