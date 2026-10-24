@@ -218,10 +218,17 @@ fn rename(expr: &mut Expr, renamed: &dyn Fn(&ExprKind) -> Option<ExprKind>) {
         return;
     }
     match &mut expr.kind {
-        ExprKind::Unary(_, value) | ExprKind::Length(value) | ExprKind::Check(_, value) => {
+        ExprKind::Unary(_, value)
+        | ExprKind::Length(value)
+        | ExprKind::Check(_, value)
+        | ExprKind::Bounded(value)
+        | ExprKind::Payload(value)
+        | ExprKind::Some(value) => {
             rename(value, renamed);
         }
-        ExprKind::Binary(_, left, right) | ExprKind::Append(left, right) => {
+        ExprKind::Binary(_, left, right)
+        | ExprKind::Append(left, right)
+        | ExprKind::OptionalOr(left, right) => {
             rename(left, renamed);
             rename(right, renamed);
         }
@@ -467,4 +474,29 @@ fn numbered(occupied: &BTreeSet<String>, base: &str, generated: &mut BTreeSet<St
     }
     generated.insert(prefix.clone());
     prefix
+}
+
+#[cfg(test)]
+mod optional_tests {
+    use super::*;
+    use crate::Type;
+
+    #[test]
+    fn rename_visits_nominal_construction_projection_and_both_default_children() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: 0, max: 255 } };
+        let mut expression = int(ExprKind::OptionalOr(
+            Box::new(int(ExprKind::Some(Box::new(int(ExprKind::Bounded(Box::new(int(
+                ExprKind::World("timeout".into()),
+            )))))))),
+            Box::new(int(ExprKind::Payload(Box::new(int(ExprKind::Input("fallback".into())))))),
+        ));
+        rename(&mut expression, &|kind| match kind {
+            ExprKind::World(name) => Some(ExprKind::World(format!("selected_{name}"))),
+            ExprKind::Input(name) => Some(ExprKind::Input(format!("chosen_{name}"))),
+            _ => None,
+        });
+        let text = crate::emit::rendered(&expression);
+        assert!(text.contains("selected_timeout"), "{text}");
+        assert!(text.contains("chosen_fallback"), "{text}");
+    }
 }

@@ -366,6 +366,8 @@ fn kind(ty: &Type) -> umpire_tlc::Type {
     match ty {
         Type::Bool => umpire_tlc::Type::Bool,
         Type::Int { min, max } => umpire_tlc::Type::Int { min: *min, max: *max },
+        Type::Bounded(bound) => umpire_tlc::Type::Int { min: bound.low, max: bound.high },
+        Type::Optional(bound) => umpire_tlc::Type::OptionalInt { low: bound.low, high: bound.high },
         Type::Text => umpire_tlc::Type::Text,
         Type::Enum { variants, .. } => umpire_tlc::Type::Enum(variants.clone()),
         Type::Unit => umpire_tlc::Type::Tuple(Vec::new()),

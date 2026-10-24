@@ -64,6 +64,23 @@ impl<'a> Values<'a> {
             ExprKind::Outcome => {
                 leaf(format!("__umpire_outcome{}", if self.successor { "'" } else { "" }))
             }
+            ExprKind::Bounded(inner) | ExprKind::Payload(inner) => self.emit(inner),
+            ExprKind::Some(inner) => {
+                let v = self.emit(inner);
+                let raw = format!("({}) + 1", v.value);
+                let valid = conjoin([v.valid, format!("({raw}) >= 1 /\\ ({raw}) <= {}", i32::MAX)]);
+                self.bind(expression, raw, valid, false)
+            }
+            ExprKind::OptionalOr(option, fallback) => {
+                let o = self.emit(option);
+                let f = self.emit(fallback);
+                self.bind(
+                    expression,
+                    format!("IF {} # 0 THEN ({}) - 1 ELSE {}", o.value, o.value, f.value),
+                    conjoin([o.valid, f.valid]),
+                    false,
+                )
+            }
             ExprKind::Unary(op, inner) => {
                 let v = self.emit(inner);
                 let raw = match op {
@@ -204,5 +221,37 @@ impl<'a> Values<'a> {
             default(&expression.ty)
         );
         Value { value: v, valid: ok }
+    }
+}
+
+#[cfg(test)]
+mod optional_tests {
+    use super::*;
+
+    #[test]
+    fn present_optional_requires_fallback_validity_and_checks_some_encoding() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: 0, max: 255 } };
+        let option = int(ExprKind::Some(Box::new(int(ExprKind::Int(1)))));
+        let fallback = int(ExprKind::Binary(
+            Op::Div,
+            Box::new(int(ExprKind::Int(1))),
+            Box::new(int(ExprKind::Int(0))),
+        ));
+        let expression =
+            int(ExprKind::OptionalOr(Box::new(option.clone()), Box::new(fallback.clone())));
+        let mut values = Values::new("test");
+        let o = values.emit(&option);
+        let f = values.emit(&fallback);
+        let result = values.emit(&expression);
+        assert!(
+            values
+                .definitions
+                .contains(&format!("{} == ({}) /\\ ({})", result.valid, o.valid, f.valid)),
+            "{}",
+            values.definitions
+        );
+        assert!(values.definitions.contains("0 # 0"), "{}", values.definitions);
+        assert!(values.definitions.contains(&i32::MAX.to_string()));
+        assert!(values.definitions.contains(">= 1"), "{}", values.definitions);
     }
 }

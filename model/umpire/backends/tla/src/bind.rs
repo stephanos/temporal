@@ -153,6 +153,24 @@ impl Lifted {
 }
 
 pub(crate) fn to_literal(value: &Expr) -> Literal {
+    if let ExprKind::Int(raw) = &value.kind {
+        match &value.ty {
+            Type::Bounded(bound) => {
+                return Literal::Bounded { name: bound.name.clone(), raw: *raw };
+            }
+            Type::Optional(bound) => {
+                return match bound.decode(*raw) {
+                    Some(value) => {
+                        Literal::Optional(value.map(|raw| {
+                            Box::new(Literal::Bounded { name: bound.name.clone(), raw })
+                        }))
+                    }
+                    None => Literal::Int(*raw),
+                };
+            }
+            _ => {}
+        }
+    }
     match &value.kind {
         ExprKind::Bool(value) => Literal::Bool(*value),
         ExprKind::Int(value) => Literal::Int(*value),
@@ -173,7 +191,26 @@ fn typed<'a>(
     values: &[(String, Literal)],
     kind: &str,
 ) -> Result<Vec<Expr>, Diagnostic> {
+    let schema: Vec<_> = schema.collect();
+    if let Some((_, _, location)) = schema.first() {
+        let mut seen = std::collections::BTreeSet::new();
+        for (name, _) in values {
+            if !seen.insert(name) {
+                return Err(message(file, location, format!("duplicate {kind} field `{name}`")));
+            }
+            if !schema.iter().any(|(field, _, _)| *field == name) {
+                return Err(message(file, location, format!("undeclared {kind} field `{name}`")));
+            }
+        }
+    } else if !values.is_empty() {
+        return Err(message(
+            file,
+            &FrontDiagnostic { line: 1, column: 1, message: String::new() },
+            format!("undeclared {kind} field `{}`", values[0].0),
+        ));
+    }
     schema
+        .into_iter()
         .map(|(name, ty, location)| {
             let value = values
                 .iter()
@@ -203,6 +240,23 @@ fn literal(value: &Literal, ty: &Type) -> Option<Expr> {
         (Literal::Bool(value), Type::Bool) => ExprKind::Bool(*value),
         (Literal::Int(value), Type::Int { min, max }) if value >= min && value <= max => {
             ExprKind::Int(*value)
+        }
+        (Literal::Bounded { name, raw }, Type::Bounded(bound))
+            if name == &bound.name && bound.contains(*raw) =>
+        {
+            ExprKind::Int(*raw)
+        }
+        (Literal::Optional(None), Type::Optional(bound)) if bound.optional_valid() => {
+            ExprKind::Int(0)
+        }
+        (Literal::Optional(Some(value)), Type::Optional(bound)) => {
+            let Literal::Bounded { name, raw } = value.as_ref() else {
+                return None;
+            };
+            if name != &bound.name {
+                return None;
+            }
+            ExprKind::Int(bound.encode(*raw)?)
         }
         (Literal::Enum(value), Type::Enum { variants, .. }) if variants.contains(value) => {
             ExprKind::Enum(value.clone())

@@ -38,6 +38,8 @@ fn literal(v: NativeValue) -> Literal {
     match v {
         NativeValue::Bool(v) => Literal::Bool(v),
         NativeValue::Int(v) => Literal::Int(v),
+        NativeValue::Bounded { name, raw } => Literal::Bounded { name: name.into(), raw },
+        NativeValue::Optional(v) => Literal::Optional(v.map(|v| Box::new(literal(*v)))),
         NativeValue::Enum(v) => Literal::Enum(v.into()),
         NativeValue::Sequence(v) => Literal::Sequence(v.into_iter().map(literal).collect()),
     }
@@ -65,7 +67,8 @@ fn module() -> Result<Module, Box<dyn std::error::Error>> {
 fn default(ty: &umpire_tla::Type) -> Json {
     match ty {
         umpire_tla::Type::Bool => json!(false),
-        umpire_tla::Type::Int { .. } => json!({"#bigint":"0"}),
+        umpire_tla::Type::Int { .. } | umpire_tla::Type::Optional(_) => json!({"#bigint":"0"}),
+        umpire_tla::Type::Bounded(b) => json!({"#bigint": b.low.to_string()}),
         umpire_tla::Type::Text => json!(""),
         umpire_tla::Type::Enum { variants, .. } => json!(variants[0]),
         umpire_tla::Type::Seq(_) | umpire_tla::Type::Unit => json!([]),

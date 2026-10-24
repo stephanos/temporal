@@ -6,6 +6,9 @@ use crate::{Refusal, Schema, Type, runner::split_cfg};
 
 pub(crate) fn schema(module: &Module) -> Result<Schema, Refusal> {
     identifier(&module.name)?;
+    for parameter in &module.metadata.parameters {
+        backend_type(&parameter.ty, 0)?;
+    }
     let mut fields = BTreeMap::new();
     for field in &module.metadata.fields {
         identifier(&field.name)?;
@@ -46,6 +49,26 @@ fn backend_type(ty: &LiftType, depth: usize) -> Result<Type, Refusal> {
                 return Err(Refusal("invalid declared integer bounds".into()));
             }
             Type::Int { min: *min, max: *max }
+        }
+        LiftType::Bounded(bound) => {
+            identifier(&bound.name)?;
+            if let Some(field) = &bound.field {
+                identifier(field)?;
+            }
+            if !bound.valid() {
+                return Err(Refusal("invalid declared bounded integer".into()));
+            }
+            Type::Int { min: bound.low, max: bound.high }
+        }
+        LiftType::Optional(bound) => {
+            identifier(&bound.name)?;
+            if let Some(field) = &bound.field {
+                identifier(field)?;
+            }
+            if !bound.optional_valid() {
+                return Err(Refusal("invalid declared optional integer".into()));
+            }
+            Type::OptionalInt { low: bound.low, high: bound.high }
         }
         LiftType::Text => Type::Text,
         LiftType::Enum { name, variants } => {
@@ -136,6 +159,45 @@ fn validate_properties(module: &Module) -> Result<(), Refusal> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn nominal_schema_validates_descriptor_and_retains_exact_code_gap() {
+        let bound = umpire_dsl::__lifted::Bounded {
+            name: "Ticks".into(),
+            field: None,
+            backing: "u8".into(),
+            min: 0,
+            max: 255,
+            low: 1,
+            high: 3,
+        };
+        let raw = backend_type(&LiftType::Bounded(bound.clone()), 0);
+        assert_eq!(raw.ok(), Some(Type::Int { min: 1, max: 3 }));
+        let optional = backend_type(&LiftType::Optional(bound.clone()), 0);
+        assert_eq!(optional.ok(), Some(Type::OptionalInt { low: 1, high: 3 }));
+        for field in ["backing", "range", "name", "member", "width"] {
+            let mut bad = bound.clone();
+            match field {
+                "backing" => bad.backing = "u32".into(),
+                "range" => bad.low = 4,
+                "name" => bad.name = "not a name".into(),
+                "member" => bad.field = Some("not a member".into()),
+                _ => bad.max = 256,
+            }
+            assert!(backend_type(&LiftType::Bounded(bad.clone()), 0).is_err());
+            assert!(backend_type(&LiftType::Optional(bad), 0).is_err());
+        }
+        let mut signed = bound;
+        signed.backing = "i32".into();
+        signed.min = i128::from(i32::MIN);
+        signed.max = i128::from(i32::MAX);
+        for (low, high) in [(-1, 3), (0, i128::from(i32::MAX))] {
+            signed.low = low;
+            signed.high = high;
+            assert!(backend_type(&LiftType::Bounded(signed.clone()), 0).is_ok());
+            assert!(backend_type(&LiftType::Optional(signed.clone()), 0).is_err());
+        }
+    }
 
     #[test]
     fn enum_variants_admit_one_fieldless_payload_only() {

@@ -99,3 +99,29 @@ fn observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal()
     assert_eq!(decode_itf(raw, &schema, &BTreeMap::new(), 0)?.states[0].state, BTreeMap::new());
     Ok(())
 }
+
+#[test]
+fn optional_integer_itf_uses_the_exact_declared_code_set() -> Result<(), Box<dyn std::error::Error>>
+{
+    let mut schema = Schema {
+        fields: BTreeMap::from([("x".into(), Type::OptionalInt { low: 1, high: 3 })]),
+        observers: BTreeMap::from([("before".into(), Type::OptionalInt { low: 1, high: 3 })]),
+    };
+    for code in [-1, 0, 1, 2, 3, 4, 5] {
+        let raw = format!(
+            r##"{{"#meta":{{"format":"ITF","varTypes":{{"x":"Int","before":"Int"}}}},"vars":["x","before"],"states":[{{"#meta":{{"index":0}},"x":{{"#bigint":"{code}"}},"before":{{"#bigint":"{code}"}}}}]}}"##
+        );
+        let decoded = decode_itf(&raw, &schema, &BTreeMap::new(), 0);
+        assert_eq!(decoded.is_ok(), [0, 2, 3, 4].contains(&code), "code {code}");
+    }
+    schema.fields.insert("x".into(), Type::OptionalInt { low: 0, high: 3 });
+    let raw = r##"{"#meta":{"format":"ITF"},"vars":["x","before"],"states":[{"#meta":{"index":0},"x":{"#bigint":"1"},"before":{"#bigint":"2"}}]}"##;
+    assert_eq!(decode_itf(raw, &schema, &BTreeMap::new(), 0)?.states[0].state["x"], Value::Int(1));
+    for value in ["true", "\"1\"", "[]", "{\"#bigint\":\"1\",\"extra\":0}"] {
+        assert!(
+            decode_itf(&raw.replace("{\"#bigint\":\"1\"}", value), &schema, &BTreeMap::new(), 0)
+                .is_err()
+        );
+    }
+    Ok(())
+}
