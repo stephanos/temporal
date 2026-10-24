@@ -114,26 +114,22 @@ impl Registry {
     }
     pub fn open_read(&self, name: &str) -> Result<File, String> {
         self.check()?;
-        fs::openat(
-            &self.directory,
-            name,
-            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
-            Mode::empty(),
-        )
-        .map(File::from)
-        .map_err(|e| e.to_string())
-    }
-    pub fn verify(&self, registration: &Registration) -> Result<(), String> {
-        self.check()?;
         let file = File::from(
             fs::openat(
                 &self.directory,
-                format!("{}.process.json", registration.name),
-                OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+                name,
+                OFlags::RDONLY | OFlags::NONBLOCK | OFlags::NOFOLLOW | OFlags::CLOEXEC,
                 Mode::empty(),
             )
             .map_err(|e| e.to_string())?,
         );
+        if !file.metadata().map_err(|e| e.to_string())?.is_file() {
+            return Err("process registry file is not regular".into());
+        }
+        Ok(file)
+    }
+    pub fn verify(&self, registration: &Registration) -> Result<(), String> {
+        let file = self.open_read(&format!("{}.process.json", registration.name))?;
         let metadata = file.metadata().map_err(|e| e.to_string())?;
         let identity = self
             .pids

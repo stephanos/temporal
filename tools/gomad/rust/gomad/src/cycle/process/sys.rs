@@ -294,6 +294,15 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
     // SAFETY: actual parent of this raw-fork supervisor, captured before leaf creation.
     report.supervisor_parent_pid = i64::from(unsafe { getppid() });
     report.started = now();
+    let deadline = match report.started.checked_add(prepared.timeout_ns) {
+        Some(deadline) if report.started >= 0 => deadline,
+        _ => {
+            // SAFETY: refuse an unrepresentable deadline before creating a leaf.
+            unsafe {
+                _exit(125);
+            }
+        }
+    };
     // SAFETY: second fork inherits only supervisor-owned fds and preallocated
     // immutable memory. Both branches remain syscall-only until exec/_exit.
     let leaf = unsafe { fork() };
@@ -314,7 +323,6 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
     {
         report.reason = 3;
     }
-    let deadline = report.started.saturating_add(prepared.timeout_ns);
     while report.reaps == 0 && leaf > 0 {
         let mut status = 0;
         let mut usage = Usage::default();
@@ -515,4 +523,60 @@ pub(super) fn decode(bytes: &[u8]) -> Report {
     // SAFETY: all bit patterns are valid in the padding-free integer report;
     // read_unaligned does not require the byte buffer to align to Report.
     unsafe { std::ptr::read_unaligned(bytes.as_ptr().cast()) }
+}
+
+pub(super) fn subreaper() -> Result<bool, String> {
+    let mut value = 0i32;
+    // SAFETY: PR_GET_CHILD_SUBREAPER writes one initialized int in this process.
+    if unsafe {
+        prctl(
+            37,
+            (&raw mut value) as c_long,
+            0 as c_long,
+            0 as c_long,
+            0 as c_long,
+        )
+    } != 0
+    {
+        return Err(std::io::Error::last_os_error().to_string());
+    }
+    Ok(value == 1)
+}
+pub(super) fn claim_subreaper() -> Result<(), String> {
+    // SAFETY: explicit exclusive-owner initialization changes only this process.
+    if unsafe { prctl(36, 1 as c_long, 0 as c_long, 0 as c_long, 0 as c_long) } != 0
+        || !subreaper()?
+    {
+        return Err(std::io::Error::last_os_error().to_string());
+    }
+    Ok(())
+}
+pub(super) fn kill_owned(pid: i32) {
+    if pid > 0 {
+        // SAFETY: exclusive cycle owner owns all enumerated/registered children.
+        unsafe {
+            kill(pid, 9);
+        }
+    }
+}
+pub(super) fn reap_domain_child() -> Result<Option<i32>, i32> {
+    let mut status = 0;
+    let mut usage = Usage::default();
+    // SAFETY: only the explicit exclusive domain uses the any-child waiter;
+    // its mutex excludes normal exact supervisor reaps. These resources are
+    // discarded and can never become a leaf measurement.
+    let pid = unsafe { wait4(-1, &raw mut status, 1, &raw mut usage) };
+    match pid.cmp(&0) {
+        std::cmp::Ordering::Greater => Ok(Some(pid)),
+        std::cmp::Ordering::Equal => Ok(None),
+        std::cmp::Ordering::Less => Err(errno()),
+    }
+}
+
+pub(super) fn validate_deadline(timeout_ns: i64) -> Result<(), String> {
+    let started = now();
+    if started < 0 || started.checked_add(timeout_ns).is_none() {
+        return Err("command deadline cannot be represented in monotonic nanoseconds".into());
+    }
+    Ok(())
 }

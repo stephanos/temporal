@@ -9,6 +9,8 @@ pub(crate) mod busy;
 pub(crate) mod cleanup;
 mod observation;
 pub(crate) use observation::RawStreams;
+mod domain;
+pub(crate) use domain::CycleOwner;
 mod environment;
 mod procfs;
 mod registry;
@@ -159,12 +161,14 @@ impl OwnedInterval {
     }
 }
 pub(crate) struct Runner {
+    domain: Arc<domain::Domain>,
     registry: Arc<Registry>,
     context: Option<String>,
 }
 type Capture<'a> = dyn FnMut(&Registration, &Completed, &RawStreams) -> Result<Option<serde_json::Value>, String>
     + 'a;
 pub(crate) struct Running {
+    domain: Arc<domain::Domain>,
     registry: Arc<Registry>,
     registration: Registration,
     supervisor: i32,
@@ -201,8 +205,14 @@ fn duplicate(file: &impl std::os::fd::AsFd) -> Result<OwnedFd, String> {
     rustix::io::fcntl_dupfd_cloexec(file, 10).map_err(error)
 }
 impl Runner {
-    pub fn create(root: &Path, context: Option<String>) -> Result<Self, String> {
+    pub fn create(
+        owner: &CycleOwner,
+        root: &Path,
+        context: Option<String>,
+    ) -> Result<Self, String> {
+        owner.domain.lock()?.check()?;
         Ok(Self {
+            domain: Arc::clone(&owner.domain),
             registry: Arc::new(Registry::create(root)?),
             context,
         })
@@ -219,6 +229,7 @@ impl Runner {
             .map_err(|message| StartFailure { outcome, message })
     }
     pub fn active_intervals(&self) -> Result<Vec<OwnedInterval>, String> {
+        self.domain.lock()?.check()?;
         self.registry.check()?;
         if self.registry.degraded.load(Ordering::Acquire) {
             return Err("process registry terminal observation inconclusive".into());
@@ -272,6 +283,7 @@ impl Runner {
         outcome: &mut SpawnOutcome,
         interval: Option<OwnedInterval>,
     ) -> Result<Running, String> {
+        self.domain.lock()?.check()?;
         if self.registry.degraded.load(Ordering::Acquire) {
             return Err("process registry terminal observation inconclusive".into());
         }
@@ -298,9 +310,12 @@ impl Runner {
         {
             return Err("invalid argv".into());
         }
-        if command.timeout.is_zero() || command.timeout > Duration::from_secs(3600) {
+        let timeout_ns = i64::try_from(command.timeout.as_nanos())
+            .map_err(|_| "command timeout cannot be represented in monotonic nanoseconds")?;
+        if timeout_ns == 0 {
             return Err("invalid command timeout".into());
         }
+        sys::validate_deadline(timeout_ns)?;
         if command.private_context.is_some() && command.private_context != self.context {
             return Err("foreign private observation context".into());
         }
@@ -385,9 +400,11 @@ impl Runner {
             env: &env,
             executables: &executables,
             cwd: cwd.as_ptr(),
-            timeout_ns: i64::try_from(command.timeout.as_nanos()).map_err(error)?,
+            timeout_ns,
             mask: admission_mask.previous,
         };
+        let mut domain = self.domain.lock()?;
+        domain.check()?;
         let mut leaf = [0u8; 32];
         let (supervisor, handshake) = crate::fork_order::spawning(|| {
             let fork_mask = match sys::AdmissionMask::during_fork() {
@@ -415,6 +432,7 @@ impl Runner {
             (supervisor, handshake)
         });
         if supervisor > 0 {
+            domain.supervisors.insert(supervisor);
             *outcome = SpawnOutcome::Ambiguous {
                 supervisor: pid(supervisor)?,
             };
@@ -423,7 +441,9 @@ impl Runner {
             drop(gate);
             drop(report);
             if supervisor > 0 {
-                sys::reap_supervisor(supervisor)?;
+                return Err(self
+                    .domain
+                    .abort(&mut domain, &format!("supervisor spawn refused: {failure}")));
             }
             return Err(format!("supervisor spawn refused: {failure}"));
         }
@@ -446,14 +466,14 @@ impl Runner {
             Err(failure) => {
                 drop(gate);
                 drop(report);
-                sys::reap_supervisor(supervisor)?;
-                return Err(failure);
+                return Err(self.domain.abort(&mut domain, &failure));
             }
         };
         *outcome = SpawnOutcome::Created {
             pid: child,
             supervisor: pid(supervisor)?,
         };
+        drop(domain);
         let registration = Registration {
             name: name.into(),
             interval: interval.map(|mut interval| {
@@ -486,6 +506,7 @@ impl Runner {
             started_monotonic_nanos,
         };
         let mut running = Running {
+            domain: Arc::clone(&self.domain),
             registry: Arc::clone(&self.registry),
             registration,
             supervisor,
@@ -522,7 +543,10 @@ impl Runner {
                 Err(cleanup) => Err(format!("{failure}; cleanup inconclusive: {cleanup}")),
             };
         }
+        let domain = self.domain.lock()?;
+        domain.check()?;
         gate.write_all(b"1").map_err(error)?;
+        drop(domain);
         drop(gate);
         Ok(running)
     }
@@ -558,8 +582,14 @@ impl Running {
     fn poll_inner(
         &mut self,
         cancelled: &AtomicBool,
-        mut capture: Option<&mut Capture<'_>>,
+        capture: Option<&mut Capture<'_>>,
     ) -> Result<Option<Completed>, String> {
+        let ownership = Arc::clone(&self.domain);
+        let mut domain = ownership.lock()?;
+        if let Err(reason) = domain.check() {
+            self.supervisor = 0;
+            return Err(reason);
+        }
         if let Some(completed) = &self.completed {
             return Ok(Some(completed.clone()));
         }
@@ -570,22 +600,56 @@ impl Running {
         while self.received.len() < size_of::<sys::Report>() {
             let length = (size_of::<sys::Report>() - self.received.len()).min(buffer.len());
             match self.report.read(&mut buffer[..length]) {
-                Ok(0) => return Err("supervisor report incomplete; cleanup inconclusive".into()),
+                Ok(0) => {
+                    let failure = self.domain.abort(
+                        &mut domain,
+                        "supervisor report incomplete; cleanup inconclusive",
+                    );
+                    self.supervisor = 0;
+                    return Err(failure);
+                }
                 Ok(count) => self.received.extend_from_slice(&buffer[..count]),
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => return Ok(None),
                 Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
-                Err(e) => return Err(e.to_string()),
+                Err(e) => {
+                    let failure = self.domain.abort(&mut domain, &e.to_string());
+                    self.supervisor = 0;
+                    return Err(failure);
+                }
             }
         }
         let report = sys::decode(&self.received);
-        sys::reap_supervisor(self.supervisor)?;
-        self.supervisor = 0;
-        let mut completed = self
-            .observation(report, Path::new("/proc"))
-            .inspect_err(|_| self.registry.degraded.store(true, Ordering::Release))?;
-        if !completed.cleanup_complete {
-            self.registry.degraded.store(true, Ordering::Release);
+        if let Err(failure) = sys::reap_supervisor(self.supervisor) {
+            let failure = self.domain.abort(&mut domain, &failure);
+            self.supervisor = 0;
+            return Err(failure);
         }
+        domain.supervisors.remove(&self.supervisor);
+        self.supervisor = 0;
+        let completed = match self.observation(report, Path::new("/proc")) {
+            Ok(completed) => completed,
+            Err(failure) => return Err(self.domain.abort(&mut domain, &failure)),
+        };
+        if !completed.cleanup_complete {
+            let failure = format!(
+                "{}; cleanup inconclusive: {:?}",
+                completed
+                    .failure
+                    .as_deref()
+                    .unwrap_or("command process cleanup incomplete"),
+                completed.cleanup_error
+            );
+            return Err(self.domain.abort(&mut domain, &failure));
+        }
+        drop(domain);
+        self.complete_observation(completed, cancelled, capture)
+    }
+    fn complete_observation(
+        &mut self,
+        mut completed: Completed,
+        cancelled: &AtomicBool,
+        mut capture: Option<&mut Capture<'_>>,
+    ) -> Result<Option<Completed>, String> {
         if (cancelled.load(Ordering::Acquire) || self.cancelled) && completed.failure.is_none() {
             completed.failure = Some("interrupted".into());
         }
@@ -635,6 +699,8 @@ impl Running {
         if completed.end_ns < completed.start_ns {
             return Err("command wall clock moved before its start".into());
         }
+        let domain = self.domain.lock()?;
+        domain.check()?;
         if let Err(publication) =
             self.registry
                 .complete(&self.registration, &completed, &streams, private.as_ref())
@@ -788,7 +854,10 @@ impl Drop for Running {
                     Ok(Some(_)) => break,
                     Ok(None) => std::thread::park_timeout(Duration::from_millis(5)),
                     Err(_) => {
-                        let _ = sys::reap_supervisor(self.supervisor);
+                        if let Ok(mut domain) = self.domain.lock() {
+                            self.domain
+                                .abort(&mut domain, "command drop after inconclusive observation");
+                        }
                         self.supervisor = 0;
                         break;
                     }
@@ -798,4 +867,7 @@ impl Drop for Running {
     }
 }
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
+
+#[cfg(test)]
+mod fifo_tests;

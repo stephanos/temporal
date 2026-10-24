@@ -1,7 +1,17 @@
+#![allow(
+    dead_code,
+    reason = "Owner cases run in the standalone single-threaded fixture"
+)]
 use super::busy::BusyWorkers;
 use super::*;
 use std::collections::BTreeMap;
 use std::sync::atomic::AtomicU64;
+static OWNER: std::sync::OnceLock<CycleOwner> = std::sync::OnceLock::new();
+fn owner() -> &'static CycleOwner {
+    OWNER
+        .get()
+        .expect("fixture owner initialized before children/threads")
+}
 static SEQUENCE: AtomicU64 = AtomicU64::new(0);
 struct Fixture(PathBuf);
 impl Fixture {
@@ -14,7 +24,7 @@ impl Fixture {
         Self(path)
     }
     fn runner(&self) -> Runner {
-        Runner::create(&self.0, None).unwrap()
+        Runner::create(owner(), &self.0, None).unwrap()
     }
 }
 impl Drop for Fixture {
@@ -41,7 +51,6 @@ fn run(runner: &mut Runner, name: &str, command: Command) -> Completed {
         .wait(&AtomicBool::new(false))
         .unwrap()
 }
-#[test]
 fn actual_exit_signal_and_single_child_accounting() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -118,7 +127,6 @@ fn actual_exit_signal_and_single_child_accounting() {
     signaled.accepted = vec![-15];
     assert!(run(&mut runner, "accepted-signal", signaled).accepted());
 }
-#[test]
 fn durable_admission_refusal_and_interrupt_never_execute_leaf() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -155,7 +163,6 @@ fn durable_admission_refusal_and_interrupt_never_execute_leaf() {
             .is_err()
     );
 }
-#[test]
 fn timeout_and_cancellation_keep_primary_failure_after_reap() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -178,7 +185,6 @@ fn timeout_and_cancellation_keep_primary_failure_after_reap() {
     assert_eq!(cancelled.exit, -9);
     assert!(cancelled.cleanup_complete);
 }
-#[test]
 fn escaped_double_fork_descendants_are_killed_and_reaped() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -200,11 +206,10 @@ fn escaped_double_fork_descendants_are_killed_and_reaped() {
         descendant.trim()
     );
 }
-#[test]
 fn registry_and_environment_refuse_stale_foreign_and_untyped_inputs() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
-    assert!(Runner::create(&fixture.0, None).is_err());
+    assert!(Runner::create(owner(), &fixture.0, None).is_err());
     let completed = run(&mut runner, "fresh", command("exit 0"));
     assert!(completed.accepted());
     assert!(
@@ -250,7 +255,7 @@ fn registry_and_environment_refuse_stale_foreign_and_untyped_inputs() {
     exact.environment = Environment::Exact(BTreeMap::from([("ONLY".into(), "frozen".into())]));
     assert!(run(&mut runner, "exact", exact).accepted());
     let context_root = fixture.0.join("private-context");
-    let mut contextual = Runner::create(&context_root, Some("bound".into())).unwrap();
+    let mut contextual = Runner::create(owner(), &context_root, Some("bound".into())).unwrap();
     let mut matching = command("exit 0");
     matching.private_context = Some("bound".into());
     assert!(run(&mut contextual, "matching", matching).accepted());
@@ -269,7 +274,6 @@ fn registry_and_environment_refuse_stale_foreign_and_untyped_inputs() {
             .is_err()
     );
 }
-#[test]
 fn procfs_missing_malformed_and_live_members_never_mean_quiescent() {
     let fixture = Fixture::new();
     std::fs::create_dir(&fixture.0).unwrap();
@@ -292,7 +296,6 @@ fn procfs_missing_malformed_and_live_members_never_mean_quiescent() {
     std::fs::create_dir(&stat).unwrap();
     assert!(procfs::quiescent(&fixture.0, 42, 42).is_err());
 }
-#[test]
 fn supervisor_closes_inherited_flock_before_spawn_returns() {
     use rustix::fs::{FlockOperation, flock};
     let fixture = Fixture::new();
@@ -317,7 +320,6 @@ fn supervisor_closes_inherited_flock_before_spawn_returns() {
     let completed = running.wait(&AtomicBool::new(true)).unwrap();
     assert!(completed.cleanup_complete);
 }
-#[test]
 fn twelve_real_busy_workers_are_reaped_on_success_failure_and_drop() {
     for label in ["busy-boundaries", "busy-grouped"] {
         let fixture = Fixture::new();
@@ -373,7 +375,6 @@ fn twelve_real_busy_workers_are_reaped_on_success_failure_and_drop() {
         assert!(!Path::new(&format!("/proc/{pid}")).exists());
     }
 }
-#[test]
 fn failed_exec_is_distinct_from_an_accepted_exit_127() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -395,7 +396,6 @@ fn failed_exec_is_distinct_from_an_accepted_exit_127() {
     ordinary.accepted = vec![127];
     assert!(run(&mut runner, "ordinary", ordinary).accepted());
 }
-#[test]
 fn registration_changes_duplicates_and_interrupt_after_binding_never_release() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -453,7 +453,6 @@ fn registration_changes_duplicates_and_interrupt_after_binding_never_release() {
         .unwrap();
     assert_eq!(failed.outcome, SpawnOutcome::NoChild);
 }
-#[test]
 fn stage_intervals_are_typed_active_and_end_after_confirmed_cleanup() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -497,7 +496,6 @@ fn stage_intervals_are_typed_active_and_end_after_confirmed_cleanup() {
     );
     assert!(runner.active_intervals().unwrap().is_empty());
 }
-#[test]
 fn actual_report_binding_usage_and_cleanup_mutations_are_refused() {
     assert_eq!(size_of::<sys::Timeval>(), 16);
     assert_eq!(size_of::<sys::Usage>(), 144);
@@ -598,7 +596,6 @@ static FIXTURE_INTERRUPTED: AtomicBool = AtomicBool::new(false);
 extern "C" fn fixture_signal(_: i32) {
     FIXTURE_INTERRUPTED.store(true, Ordering::Release);
 }
-#[test]
 fn process_fixture_entry() {
     let Ok(mode) = std::env::var("CYCLE_FIXTURE_MODE") else {
         return;
@@ -672,6 +669,169 @@ fn process_fixture_entry() {
             std::fs::write(path, std::process::id().to_string()).unwrap();
             std::thread::park_timeout(Duration::from_secs(30));
         }
+        "claim-clean" => {
+            assert_eq!(std::fs::read_dir("/proc/self/task").unwrap().count(), 1);
+            let owner = CycleOwner::initialize_exclusive().unwrap();
+            assert!(CycleOwner::initialize_exclusive().is_err());
+            drop(owner);
+            assert!(sys::subreaper().unwrap());
+            assert!(CycleOwner::initialize_exclusive().is_err());
+        }
+        "claim-thread" => {
+            let (send, receive) = std::sync::mpsc::channel();
+            let thread = std::thread::spawn(move || receive.recv().unwrap());
+            assert!(CycleOwner::initialize_exclusive().is_err());
+            assert!(!sys::subreaper().unwrap());
+            send.send(()).unwrap();
+            thread.join().unwrap();
+            let _owner = CycleOwner::initialize_exclusive().unwrap();
+        }
+        "claim-child" => {
+            let mut child = std::process::Command::new("/bin/sleep")
+                .arg("30")
+                .spawn()
+                .unwrap();
+            let pid = child.id();
+            assert!(CycleOwner::initialize_exclusive().is_err());
+            assert!(!sys::subreaper().unwrap());
+            assert!(child.try_wait().unwrap().is_none());
+            assert!(Path::new(&format!("/proc/{pid}")).exists());
+            child.kill().unwrap();
+            assert!(!child.wait().unwrap().success());
+            assert!(!Path::new(&format!("/proc/{pid}")).exists());
+            eprintln!("REFUSED_EXISTING_CHILD reaped_pid={pid}");
+            let _owner = CycleOwner::initialize_exclusive().unwrap();
+        }
+        "claim-prior" => {
+            sys::claim_subreaper().unwrap();
+            assert!(CycleOwner::initialize_exclusive().is_err());
+            assert!(sys::subreaper().unwrap());
+        }
+        "death-leaf" => {
+            let invocation = fixture_command("doublefork", &path);
+            let mut child = std::process::Command::new(&invocation.argv[0]);
+            child
+                .args(&invocation.argv[1..])
+                .env_clear()
+                .envs(invocation.environment.values());
+            let _child = child.spawn().unwrap();
+            await_file(&path);
+            std::thread::park_timeout(Duration::from_secs(30));
+        }
+        "self-supervisor-death-owner" => {
+            let mut runner = Runner::create(owner(), &path.with_extension("inner"), None).unwrap();
+            let second = runner
+                .start(
+                    "second",
+                    command("exec sleep 30"),
+                    &AtomicBool::new(false),
+                    |_| Ok(()),
+                )
+                .unwrap();
+            let first = runner
+                .start(
+                    "first",
+                    command("kill -KILL \"$PPID\"; exec /bin/sleep 30"),
+                    &AtomicBool::new(false),
+                    |_| Ok(()),
+                )
+                .unwrap();
+            let pids = [
+                first.pid(),
+                first.registration.supervisor_pid,
+                second.pid(),
+                second.registration.supervisor_pid,
+            ];
+            let start = std::time::Instant::now();
+            let result = first.wait(&AtomicBool::new(false));
+            assert!(result.is_err());
+            for pid in pids {
+                assert!(!Path::new(&format!("/proc/{pid}")).exists());
+            }
+            let report = serde_json::json!({"pids":pids,"surviving_before_return":[],"error":result.err(),"elapsed_nanos":start.elapsed().as_nanos()});
+            std::fs::write(&path, serde_json::to_vec(&report).unwrap()).unwrap();
+            drop(second);
+        }
+        "supervisor-death-owner" => {
+            let inner = path.with_extension("inner");
+            let mut runner = Runner::create(owner(), &inner, None).unwrap();
+            let escaped_path = path.with_extension("escaped");
+            let first = runner
+                .start(
+                    "first",
+                    fixture_command("death-leaf", &escaped_path),
+                    &AtomicBool::new(false),
+                    |_| Ok(()),
+                )
+                .unwrap();
+            let second_root = path.with_extension("second-registry");
+            let (send, receive) = std::sync::mpsc::channel();
+            let (release, hold) = std::sync::mpsc::channel();
+            let worker = std::thread::spawn(move || {
+                let mut runner = Runner::create(owner(), &second_root, None).unwrap();
+                let running = runner
+                    .start(
+                        "second",
+                        command("exec sleep 30"),
+                        &AtomicBool::new(false),
+                        |_| Ok(()),
+                    )
+                    .unwrap();
+                assert!(send.send((runner, running)).is_ok());
+                let _ = hold.recv();
+            });
+            let (second_runner, second) = receive.recv_timeout(Duration::from_secs(3)).unwrap();
+            await_file(&escaped_path);
+            let escaped: u32 = std::fs::read_to_string(&escaped_path)
+                .unwrap()
+                .trim()
+                .parse()
+                .unwrap();
+            let stat = std::fs::read_to_string(format!("/proc/{escaped}/stat")).unwrap();
+            let escaped_session: u32 = stat[stat.rfind(')').unwrap() + 2..]
+                .split_ascii_whitespace()
+                .nth(3)
+                .unwrap()
+                .parse()
+                .unwrap();
+            assert_eq!(escaped_session, escaped);
+            let pids = [
+                first.pid(),
+                first.registration.supervisor_pid,
+                second.pid(),
+                second.registration.supervisor_pid,
+                escaped,
+            ];
+            let supervisor = rustix::process::Pid::from_raw(
+                i32::try_from(first.registration.supervisor_pid).unwrap(),
+            )
+            .unwrap();
+            rustix::process::kill_process(supervisor, rustix::process::Signal::KILL).unwrap();
+            let start = std::time::Instant::now();
+            let result = first.wait(&AtomicBool::new(false));
+            let surviving: Vec<_> = pids
+                .into_iter()
+                .filter(|pid| Path::new(&format!("/proc/{pid}")).exists())
+                .collect();
+            let refused = match runner.start(
+                "after-abort",
+                command("exit 0"),
+                &AtomicBool::new(false),
+                |_| Ok(()),
+            ) {
+                Ok(_) => panic!("aborted domain admitted command"),
+                Err(failure) => failure,
+            };
+            assert_eq!(refused.outcome, SpawnOutcome::NoChild);
+            assert!(runner.active_intervals().is_err());
+            assert!(second_runner.active_intervals().is_err());
+            release.send(()).unwrap();
+            worker.join().unwrap();
+            assert!(!inner.join("after-abort.stdout").exists());
+            let report = serde_json::json!({"owner_pid":std::process::id(),"pids":pids,"roles":["first_leaf","first_supervisor","second_leaf","second_supervisor","escaped_doublefork_descendant"],"second_spawn_thread_alive_during_drain":true,"escaped_session":escaped_session,"surviving_before_return":surviving,"error":result.err(),"elapsed_nanos":start.elapsed().as_nanos(),"later_spawn":format!("{:?}",refused.outcome),"later_error":refused.message});
+            std::fs::write(&path, serde_json::to_vec(&report).unwrap()).unwrap();
+            drop(second);
+        }
         "signal-owner" => {
             unsafe extern "C" {
                 fn signal(number: i32, handler: usize) -> usize;
@@ -680,7 +840,7 @@ fn process_fixture_entry() {
             unsafe {
                 signal(2, fixture_signal as *const () as usize);
             }
-            let mut runner = Runner::create(&path.with_extension("inner"), None).unwrap();
+            let mut runner = Runner::create(owner(), &path.with_extension("inner"), None).unwrap();
             let running = runner
                 .start(
                     "sleep",
@@ -703,7 +863,6 @@ fn process_fixture_entry() {
         _ => panic!("unknown fixture mode"),
     }
 }
-#[test]
 fn concurrent_accounting_excludes_unrelated_child_cpu_and_rss() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -752,7 +911,6 @@ fn concurrent_accounting_excludes_unrelated_child_cpu_and_rss() {
         other.id()
     );
 }
-#[test]
 fn actual_double_fork_and_signal_interruption_leave_no_owned_children() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -803,7 +961,6 @@ fn actual_double_fork_and_signal_interruption_leave_no_owned_children() {
         serde_json::to_string(&child).unwrap()
     );
 }
-#[test]
 fn interruption_after_kernel_reap_retains_exit_without_false_success() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -833,7 +990,6 @@ fn interruption_after_kernel_reap_retains_exit_without_false_success() {
     assert!(!completed.accepted());
     assert_eq!(completed.failure.as_deref(), Some("interrupted"));
 }
-#[test]
 fn aggregate_cleanup_failure_still_reaps_every_busy_worker() {
     let fixture = Fixture::new();
     let mut runner = fixture.runner();
@@ -849,7 +1005,6 @@ fn aggregate_cleanup_failure_still_reaps_every_busy_worker() {
         assert!(!Path::new(&format!("/proc/{pid}")).exists());
     }
 }
-#[test]
 fn inherited_writable_fixture_descriptor_does_not_outlive_spawn() {
     use std::os::unix::fs::PermissionsExt;
     let fixture = Fixture::new();
@@ -877,7 +1032,6 @@ fn inherited_writable_fixture_descriptor_does_not_outlive_spawn() {
             .cleanup_complete
     );
 }
-#[test]
 fn cleanup_deadline_and_terminal_publication_are_fail_closed() {
     assert!(sys::cleanup_budget(100, 101).is_ok());
     assert_eq!(sys::cleanup_budget(101, 101), Err(3));
@@ -915,7 +1069,6 @@ fn cleanup_deadline_and_terminal_publication_are_fail_closed() {
             .is_err()
     );
 }
-#[test]
 fn leaf_preserves_unrelated_blocked_signals_and_unblocks_admission_controls() {
     unsafe extern "C" {
         fn pthread_sigmask(how: i32, set: *const u64, old: *mut u64) -> i32;
@@ -956,10 +1109,9 @@ fn leaf_preserves_unrelated_blocked_signals_and_unblocks_admission_controls() {
         vec![(1, false), (2, false), (10, true), (15, false)]
     );
 }
-#[test]
 fn common_observation_binds_actual_parent_chain_and_authenticated_capture() {
     let fixture = Fixture::new();
-    let mut runner = Runner::create(&fixture.0, Some("actual-config".into())).unwrap();
+    let mut runner = Runner::create(owner(), &fixture.0, Some("actual-config".into())).unwrap();
     let marker = fixture.0.join("ancestry");
     let mut cmd = fixture_command("ancestry", &marker);
     cmd.private_context = Some("actual-config".into());
@@ -1017,6 +1169,7 @@ fn common_observation_binds_actual_parent_chain_and_authenticated_capture() {
     assert!(refused.get("private_observations").is_none());
     assert!(runner.active_intervals().is_err());
     let mut runner = Runner::create(
+        owner(),
         &fixture.0.join("changed-root"),
         Some("actual-config".into()),
     )
@@ -1036,7 +1189,6 @@ fn common_observation_binds_actual_parent_chain_and_authenticated_capture() {
     assert!(error.contains("streams changed"));
     assert!(runner.active_intervals().is_err());
 }
-#[test]
 fn exec_path_search_preserves_original_execvpe_environment_semantics() {
     use std::os::unix::fs::PermissionsExt;
     let fixture = Fixture::new();
@@ -1063,4 +1215,209 @@ fn exec_path_search_preserves_original_execvpe_environment_semantics() {
     let mut default = command("exit 0");
     default.argv = vec!["true".into()];
     assert!(run(&mut runner, "default-path", default).accepted());
+}
+
+fn command_timeout_accepts_retained_bounds_and_refuses_representation_overflow() {
+    let fixture = Fixture::new();
+    let mut runner = fixture.runner();
+    for seconds in [5400, 7200] {
+        let mut invocation = command("exit 0");
+        invocation.timeout = Duration::from_secs(seconds);
+        let completed = run(&mut runner, &format!("bound-{seconds}"), invocation);
+        assert!(completed.accepted());
+        assert_eq!(completed.resources.wait4_calls, 1);
+        assert!(!Path::new(&format!("/proc/{}", completed.pid)).exists());
+        eprintln!(
+            "RETAINED_TIMEOUT seconds={seconds} observation={}",
+            serde_json::to_string(&completed).unwrap()
+        );
+    }
+    for (name, timeout) in [
+        ("duration-overflow", Duration::MAX),
+        (
+            "deadline-overflow",
+            Duration::from_nanos(i64::MAX.unsigned_abs()),
+        ),
+    ] {
+        let mut invocation = command("exit 0");
+        invocation.timeout = timeout;
+        let failure = match runner.start(name, invocation, &AtomicBool::new(false), |_| Ok(())) {
+            Ok(_) => panic!("unrepresentable timeout admitted"),
+            Err(failure) => failure,
+        };
+        assert_eq!(failure.outcome, SpawnOutcome::NoChild);
+        assert!(!fixture.0.join(format!("{name}.stdout")).exists());
+        eprintln!(
+            "TIMEOUT_OVERFLOW_REFUSAL name={name} outcome={:?} error={}",
+            failure.outcome, failure.message
+        );
+    }
+}
+
+fn supervisor_death_drains_concurrent_commands_and_escaped_descendants() {
+    for mode in ["self-supervisor-death-owner", "supervisor-death-owner"] {
+        let fixture = Fixture::new();
+        let path = fixture.0.join("death-proof");
+        let mut runner = fixture.runner();
+        let mut invocation = fixture_command(mode, &path);
+        invocation.timeout = Duration::from_secs(10);
+        let completed = run(&mut runner, "owner", invocation);
+        let report: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        eprintln!("SUPERVISOR_DEATH_PROOF mode={mode} {report}");
+        for pid in report["pids"].as_array().unwrap() {
+            assert!(!Path::new(&format!("/proc/{}", pid.as_u64().unwrap())).exists());
+        }
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!(report["surviving_before_return"], serde_json::json!([]));
+        assert!(report["error"].is_string());
+        assert!(completed.accepted());
+    }
+}
+
+pub(crate) fn fixture_main() {
+    let mode = std::env::var("CYCLE_FIXTURE_MODE").ok();
+    if mode.is_none()
+        || matches!(
+            mode.as_deref(),
+            Some("signal-owner" | "supervisor-death-owner" | "self-supervisor-death-owner")
+        )
+    {
+        let owner = CycleOwner::initialize_exclusive().unwrap();
+        assert!(OWNER.set(owner).is_ok());
+    }
+    if mode.is_some() {
+        process_fixture_entry();
+        return;
+    }
+    let selected = std::env::args().nth(1);
+    let cases: &[(&str, fn())] = &[
+        (
+            "exclusive_owner_initialization_refuses_mixed_contexts",
+            exclusive_owner_initialization_refuses_mixed_contexts,
+        ),
+        (
+            "actual_exit_signal_and_single_child_accounting",
+            actual_exit_signal_and_single_child_accounting,
+        ),
+        (
+            "durable_admission_refusal_and_interrupt_never_execute_leaf",
+            durable_admission_refusal_and_interrupt_never_execute_leaf,
+        ),
+        (
+            "timeout_and_cancellation_keep_primary_failure_after_reap",
+            timeout_and_cancellation_keep_primary_failure_after_reap,
+        ),
+        (
+            "escaped_double_fork_descendants_are_killed_and_reaped",
+            escaped_double_fork_descendants_are_killed_and_reaped,
+        ),
+        (
+            "registry_and_environment_refuse_stale_foreign_and_untyped_inputs",
+            registry_and_environment_refuse_stale_foreign_and_untyped_inputs,
+        ),
+        (
+            "procfs_missing_malformed_and_live_members_never_mean_quiescent",
+            procfs_missing_malformed_and_live_members_never_mean_quiescent,
+        ),
+        (
+            "supervisor_closes_inherited_flock_before_spawn_returns",
+            supervisor_closes_inherited_flock_before_spawn_returns,
+        ),
+        (
+            "twelve_real_busy_workers_are_reaped_on_success_failure_and_drop",
+            twelve_real_busy_workers_are_reaped_on_success_failure_and_drop,
+        ),
+        (
+            "failed_exec_is_distinct_from_an_accepted_exit_127",
+            failed_exec_is_distinct_from_an_accepted_exit_127,
+        ),
+        (
+            "registration_changes_duplicates_and_interrupt_after_binding_never_release",
+            registration_changes_duplicates_and_interrupt_after_binding_never_release,
+        ),
+        (
+            "stage_intervals_are_typed_active_and_end_after_confirmed_cleanup",
+            stage_intervals_are_typed_active_and_end_after_confirmed_cleanup,
+        ),
+        (
+            "actual_report_binding_usage_and_cleanup_mutations_are_refused",
+            actual_report_binding_usage_and_cleanup_mutations_are_refused,
+        ),
+        (
+            "concurrent_accounting_excludes_unrelated_child_cpu_and_rss",
+            concurrent_accounting_excludes_unrelated_child_cpu_and_rss,
+        ),
+        (
+            "actual_double_fork_and_signal_interruption_leave_no_owned_children",
+            actual_double_fork_and_signal_interruption_leave_no_owned_children,
+        ),
+        (
+            "interruption_after_kernel_reap_retains_exit_without_false_success",
+            interruption_after_kernel_reap_retains_exit_without_false_success,
+        ),
+        (
+            "aggregate_cleanup_failure_still_reaps_every_busy_worker",
+            aggregate_cleanup_failure_still_reaps_every_busy_worker,
+        ),
+        (
+            "inherited_writable_fixture_descriptor_does_not_outlive_spawn",
+            inherited_writable_fixture_descriptor_does_not_outlive_spawn,
+        ),
+        (
+            "cleanup_deadline_and_terminal_publication_are_fail_closed",
+            cleanup_deadline_and_terminal_publication_are_fail_closed,
+        ),
+        (
+            "leaf_preserves_unrelated_blocked_signals_and_unblocks_admission_controls",
+            leaf_preserves_unrelated_blocked_signals_and_unblocks_admission_controls,
+        ),
+        (
+            "common_observation_binds_actual_parent_chain_and_authenticated_capture",
+            common_observation_binds_actual_parent_chain_and_authenticated_capture,
+        ),
+        (
+            "exec_path_search_preserves_original_execvpe_environment_semantics",
+            exec_path_search_preserves_original_execvpe_environment_semantics,
+        ),
+        (
+            "command_timeout_accepts_retained_bounds_and_refuses_representation_overflow",
+            command_timeout_accepts_retained_bounds_and_refuses_representation_overflow,
+        ),
+        (
+            "supervisor_death_drains_concurrent_commands_and_escaped_descendants",
+            supervisor_death_drains_concurrent_commands_and_escaped_descendants,
+        ),
+    ];
+    let mut count = 0;
+    for (name, case) in cases {
+        if selected
+            .as_ref()
+            .is_none_or(|selected| name.contains(selected))
+        {
+            println!("OWNER_CASE start {name}");
+            case();
+            count += 1;
+            println!("OWNER_CASE passed {name}");
+        }
+    }
+    assert!(count > 0, "empty owner fixture selection");
+    println!("OWNER_CASES passed={count}");
+}
+
+fn exclusive_owner_initialization_refuses_mixed_contexts() {
+    let fixture = Fixture::new();
+    let mut runner = fixture.runner();
+    for mode in ["claim-clean", "claim-thread", "claim-child", "claim-prior"] {
+        let completed = run(
+            &mut runner,
+            mode,
+            fixture_command(mode, &fixture.0.join(mode)),
+        );
+        assert!(completed.accepted());
+        eprintln!(
+            "OWNER_CLAIM_PROOF mode={mode} observation={}",
+            serde_json::to_string(&completed).unwrap()
+        );
+    }
 }

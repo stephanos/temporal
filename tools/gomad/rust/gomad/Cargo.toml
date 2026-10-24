@@ -47,3 +47,8 @@ undocumented_unsafe_blocks = "warn"
 name = "allocation_receiving"
 path = "tests/allocation_receiving.rs"
 harness = true
+
+[[test]]
+name = "cycle_process_owner"
+path = "src/cycle/process/owner_fixture.rs"
+harness = false
