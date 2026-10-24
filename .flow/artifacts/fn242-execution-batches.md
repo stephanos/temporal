@@ -110,6 +110,8 @@ B03 tokenizer dependency extension. Add the owner-required existing locked proc-
 - `tools/gomad/rust/gomad/Cargo.toml`
 - `tools/gomad/rust/Cargo.lock`
 
+B03 exclusive-owner fixture extension. Add only CUSTODY_FAMILY=bindings dispatch in tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs, using the existing real CycleOwner and preserving all families and Cargo targets.
+
 ### B04 reader-foundation
 
 Implement independent command/artifact custody and retained binary codecs as the common reader boundary.
