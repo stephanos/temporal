@@ -1,0 +1,77 @@
+{
+  "schema": "gomad.fn242-b02-review-fix/v1",
+  "status": "tested-awaiting-same-receipt-review",
+  "source_commits": [
+    "e00f6468e4",
+    "2722976d77"
+  ],
+  "original_checks": 24,
+  "new_filesystem_cases": 8,
+  "artifact_bindings": {
+    "/home/agent/wt/evidence/fn242-b02-attempt-admission/review-fix/handoff.md": "80d294836994a6c4dcdc99ebc4233caadeb40c9c071a8a8a08402c6211b9eaab",
+    "/home/agent/wt/evidence/fn242-b02-attempt-admission/review-fix/handoff.json": "51ea3f4837688fe92cf814dc87e040cdb2cc204a60994ef7e62a46f20027b784",
+    "/home/agent/wt/evidence/fn242-b02-attempt-admission/review-fix/proof-map.json": "12abcd617d5d018543ca366f4a113abec2668d496646e3ca6b0f605bd02cb536",
+    "/home/agent/wt/evidence/fn242-b02-attempt-admission/review-fix/final-source-hashes.json": "a628d5d8618d6af373d28c8872fbe45f6c891c5ac63a1570b464f70c42972ddf",
+    "/home/agent/wt/evidence/fn242-b02-attempt-admission/review-fix/root-handoff-audit.json": "c14c8ced420b250c78443f516fca3bd85507d98808a583f05f320bb5a574b8e5"
+  },
+  "conductor_audit": {
+    "integrated_head": "2722976d77",
+    "source_hashes": {
+      "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+      "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "bd6946abc62f44e094dfc64804c4a43003132335b61472094e90e23c4f9c1ae6",
+      "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "5addf4e9e5f572c2c630e7ad57e13d4d26b0ccee2e304a374fb5d52fb1be1efd",
+      "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+      "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "1e0c5e3d210ee20d3d34c29359108eb071f1e614a74898ad8f0db11c90afd2fe",
+      "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "1fbdf2c8f36e9934e8d6bb2eb13c4964130416037ee054e9afc1244f49738d28",
+      "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+      "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+    },
+    "proof_rows": 33,
+    "new_filesystem_proof_ids": [
+      "servingfs:prepare:declared overlay:ext4",
+      "servingfs:prepare:declared overlay:fuse",
+      "servingfs:prepare:evidence:ext4",
+      "servingfs:prepare:evidence:fuse",
+      "servingfs:reservation:declared overlay:ext4",
+      "servingfs:reservation:declared overlay:fuse",
+      "servingfs:reservation:evidence:ext4",
+      "servingfs:reservation:evidence:fuse"
+    ],
+    "observed_pids_absent": [
+      527491,
+      527492,
+      527493,
+      527494,
+      527495,
+      527496,
+      527497,
+      527498,
+      527499,
+      527500,
+      527501,
+      527502,
+      527503,
+      527504,
+      527505
+    ],
+    "log_sha256": {
+      "fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "final-cycle-test.log": "5f0c3f255265f5d9275de68f6dcaa47c4a3fe8f19be97b4e3e3e1507fcb52e15",
+      "clippy.log": "37b2bb9ef89e26abfe5da20197cfa3f9dd197b2d5aac4a87a884675718d889cd",
+      "red.log": "3162111eb075d6f9b7f3020d0c109b24090553ac5f001dba5c49f7739da7ac27",
+      "diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "exits": {
+      "red": 101,
+      "final-cycle-test": 0,
+      "clippy": 0,
+      "fmt": 0,
+      "diff-check": 0
+    },
+    "historical_launcher_unchanged": true,
+    "operational_binding_absent": true,
+    "reused_gate_reason": "Integrated source hashes exactly equal the already executed worker final gate; no source or dependency change in integration."
+  },
+  "gate_reuse": "Verified tested source hashes and all relevant Rust dependency/build inputs unchanged on integration; reused worker numeric-zero focused gates.",
+  "review_receipt": "/tmp/impl-review-receipt-1e77a535c1fd-fn-242-gomad-shrink-the-qualification.15.json"
+}
