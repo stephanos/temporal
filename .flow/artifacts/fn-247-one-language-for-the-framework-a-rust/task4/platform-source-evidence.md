@@ -2,9 +2,11 @@ The fork-path audit found that calling libc fork would invoke inherited applicat
 pthread_atfork callbacks in the supervisor and target, before our child entry points.
 Those callbacks can allocate or acquire locks, so the implementation bypasses them.
 
-Linux uses libc's syscall shim for SYS_clone with SIGCHLD and no sharing flags; all
-remaining clone parameters are zero, making architecture-specific pointer argument
-ordering irrelevant. Both supervisor and target forks use this path. The existing
+Linux uses libc's syscall shim for SYS_clone with SIGCHLD and no sharing flags; s390x
+uses a stack-first prefix, and the other native ABIs use flags first. Six
+explicit arguments, with every non-flag slot zero, cover their pointer/stack-size positions. SPARC child
+identity is normalized with raw PID queries; see clone-abi/README.md for the
+primary review correction to the original argument-order claim. Both supervisor and target forks use this path. The existing
 libc 0.2.191 registry source supplies the syscall numbers and scalar ABI. The isolated
 fixture poison_atfork_child registers a callback that _exit(99)s if an ordinary libc
 fork accidentally reappears; normal successful target execution distinguishes bypass.

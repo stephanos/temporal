@@ -46,9 +46,9 @@
       "log": "corpus.log"
     }
   ],
-  "final_test_identities": 45,
+  "final_test_identities": 48,
   "old_control_counterparts": 14,
-  "process_tests": 22,
+  "process_tests": 25,
   "linux_allocator_stress": {
     "allocator_threads": 4,
     "run_threads": 4,
@@ -58,11 +58,11 @@
   "native_platform": "Linux aarch64 glibc 2.43 uid/euid1000",
   "native_darwin": "unavailable; no SDK link or native execution claim",
   "source_hashes": {
-    "model/umpire/backends/process/tests/process.rs": "a1914a3d92093adc1d703e4384b6adf800e7a3fea9f6dfc898374dafdc037678",
+    "model/umpire/backends/process/tests/process.rs": "32cc546e58477360eb4b22fa19b259a2ddf4cbff3086f5b7b09cd2a061b2c306",
     "model/umpire/backends/process/src/tests.rs": "b047a8f6b58b31abf17b9b8c8d2c6b612252cf856ab59c8419d6e7b4162084a9",
     "model/umpire/backends/process/src/support.rs": "58126a8582f9e713f4ab1b69795b12f0438d0a0de81f49a626121513306ad189",
     "model/umpire/backends/process/src/lib.rs": "08d4412f777c7872fd50874ca53198a8f6691ccd76eee3b08755493207939d4b",
-    "model/umpire/backends/process/src/syscall.rs": "5cd45c0b36476a0eb529bb2ccab7f9e5e2a4ac3dfaec6cba4c89b74cb664132c",
+    "model/umpire/backends/process/src/syscall.rs": "a3aa5c13c81f95b53a56e1d8b062b10cbf6d87c9b042fb8706ce56b52cbae0a0",
     "model/umpire/backends/process/src/syscall/calls.rs": "1300cde9f479bd9a6c52e0b281b4091fe125bafa6e8615617a395f5735f418d7",
     "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "86cf0883273397351c88be4cd52372b2100d52073178c6dcbf4253edb3d9f4f2"
   },
@@ -73,8 +73,59 @@
     "initial rawfork cold suite deadlocked in inherited glibc abortlock; task-owned supervisors killed to release command; observed exit101, retained focused-deadlock.log",
     "intermediate Clippy exits101 retained; resolved without broad lint relaxation",
     "initial cargo fmt exited1 for fixture-relative calls module path; explicit path fixed",
-    "supplemental source fetch HTTP429/curl22 retained in wrapper-audit/extra-probe.log; later exact API/source fetches succeeded"
+    "supplemental source fetch HTTP429/curl22 retained in wrapper-audit/extra-probe.log; later exact API/source fetches succeeded",
+    "review PATH fallback regression exit101 for both missing interpreter and ENOEXEC rows before fix",
+    "review s390x clone-prefix table exit101 before fix (not native s390x execution)",
+    "review SPARC child-result table exit101 before fix (not native SPARC execution)",
+    "a source-patch assertion stopped before writing the SPARC fix; subsequent unchanged regression remained red101 in review-sparc-unapplied-fix.log; corrected patch then passed"
   ],
   "scope": "No full Model gate here; final task3 retains one combined required backend pipeline. No source/Model/guest/golden meaning or bytes changed outside canonical process scope.",
-  "after_native_test_changes": "Only cfg(macos) cancellation/error-binding closure, formatting and evidence; native Linux active paths unchanged. Scoped Clippy observed exit0 after the final source edit; native Darwin remains unavailable."
+  "after_native_test_changes": "After accepted review findings, PATH fallback and raw-clone ABI fixes passed the full focused process suite (25), scoped Clippy, 21 backend units and two native real-tool controls. SPARC-only normalization was covered by the last focused run; non-host architecture evidence remains source/scalar tests only.",
+  "external_metadata_commits": [
+    "2c9a6959086b4ac4ce736fe3d14f276705bff6ab",
+    "37aa1cc6f5"
+  ],
+  "review_round1": {
+    "dispatch_exit": 0,
+    "finalize_exit": 0,
+    "draw_verdicts": [
+      "NEEDS_WORK",
+      "NEEDS_WORK",
+      "NEEDS_WORK"
+    ],
+    "deduplicated_introduced_findings": 2,
+    "native_s390x_or_sparc": "unavailable: source and scalar table controls only"
+  },
+  "review_fix_commands": [
+    {
+      "command": "cd model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-reviewed-target mise exec -- cargo test -p umpire-backend-process --locked",
+      "exit": 0,
+      "tests_passed": 25,
+      "log": "review-fix-test.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo clippy -p umpire-backend-process --all-targets -- -D warnings",
+      "exit": 0,
+      "log": "review-fix-clippy.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-tlc -p umpire-apalache --lib --locked",
+      "exit": 0,
+      "tests_passed": 21,
+      "log": "review-fix-backend-unit.log"
+    },
+    {
+      "command": "cd model && UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tlc --test controls real_tlc_initial_invariant_has_a_typed_counterexample --locked -- --exact",
+      "exit": 0,
+      "tests_passed": 1,
+      "log": "review-fix-real-tlc.log"
+    },
+    {
+      "command": "cd model && UMPIRE_APALACHE=require mise exec -- cargo test -p umpire-apalache --test controls real_evaluated_start_failure_cannot_disappear_into_an_empty_range --locked -- --exact",
+      "exit": 0,
+      "tests_passed": 1,
+      "log": "review-fix-real-apalache.log"
+    }
+  ],
+  "compatibility_policy": "Owner waived old byte/backward-compatibility obligations during this fix loop. Prior corpus/hash passes are historical observations, not new completion gates; functional/safety controls remain required."
 }

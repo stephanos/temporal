@@ -1,0 +1,55 @@
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sparc-kernel-process.c.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sparc/kernel/process.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sparc/kernel/process.c blob_sha=0442ab00518d3ce333f60e8a00dfa43fa1e5b7a1
+22:	struct kernel_clone_args args = {
+28:	ret = kernel_clone(&args);
+46:	struct kernel_clone_args args = {
+47:		.flags		= CLONE_VFORK | CLONE_VM,
+53:	ret = kernel_clone(&args);
+66:asmlinkage long sparc_clone(struct pt_regs *regs)
+72:	struct kernel_clone_args args = {
+99:	ret = kernel_clone(&args);
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sparc-kernel-process_32.c.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sparc/kernel/process_32.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sparc/kernel/process_32.c blob_sha=9c7c662cb5659e0e766f3884bcf06b016f2c922f
+218:clone_stackframe(struct sparc_stackf __user *dst,
+234:	 * temporarily so we can build the child clone stack frame
+261:int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
+263:	unsigned long clone_flags = args->flags;
+323:		 * This is a clone() call with supplied user stack.
+332:		printk("clone: parent stack:\n");
+336:		childstack = clone_stackframe(childstack, parentstack);
+341:		printk("clone: child stack:\n");
+361:	if (clone_flags & CLONE_SETTLS)
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sparc-kernel-process_64.c.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sparc/kernel/process_64.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sparc/kernel/process_64.c blob_sha=529adfecd58ca1ee98199c64e30ea00e232b439f
+426:static unsigned long clone_stackframe(unsigned long csp, unsigned long psp)
+568:int copy_thread(struct task_struct *p, const struct kernel_clone_args *args)
+570:	unsigned long clone_flags = args->flags;
+611:		csp = clone_stackframe(sp, regs->u_regs[UREG_FP]);
+626:	if (clone_flags & CLONE_SETTLS)
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sparc-kernel-syscalls-syscall.tbl.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sparc/kernel/syscalls/syscall.tbl?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sparc/kernel/syscalls/syscall.tbl blob_sha=cfdfb3707c167cd26aefc6412accfefbddfef937
+263:217	common	clone			sys_clone
+483:# 435 reserved for clone3
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-mips-kernel-syscall.c.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/mips/kernel/syscall.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/mips/kernel/syscall.c blob_sha=1bfc34a2e5b328bf7c31b25cfeef85287b133fa4
+84:save_static_function(sys_clone);
+85:save_static_function(sys_clone3);
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-powerpc-kernel-syscalls.c.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/powerpc/kernel/syscalls.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/powerpc/kernel/syscalls.c blob_sha=68ebb23a5af4bb74c0006903b0a2aa5e5124fd4e
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-s390-kernel-syscalls-syscall.tbl.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/s390/kernel/syscalls/syscall.tbl?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/s390/kernel/syscalls/syscall.tbl blob_sha=01071182763e96ff03b5d74e4b9c4387ab84c456
+112:120  common	clone			sys_clone			sys_clone
+440:435  common	clone3			sys_clone3			sys_clone3
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-x86-entry-syscalls-syscall_64.tbl.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/x86/entry/syscalls/syscall_64.tbl?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/x86/entry/syscalls/syscall_64.tbl blob_sha=7093ee21c0d1c0410dbf17a77cb70a6bc6736f04
+68:56	common	clone			sys_clone
+361:435	common	clone3			sys_clone3
+All source fetches exited zero.

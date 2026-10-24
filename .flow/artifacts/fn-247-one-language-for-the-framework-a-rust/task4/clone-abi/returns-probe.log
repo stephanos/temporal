@@ -1,0 +1,87 @@
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/sparc64-syscall.S.json', 'https://api.github.com/repos/bminor/glibc/contents/sysdeps/unix/sysv/linux/sparc/sparc64/syscall.S?ref=04e750e75b73957cf1c791535a3f4319534a52fc']
+command_rc=0
+SOURCE: https://github.com/bminor/glibc/blob/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/sparc/sparc64/syscall.S blob_sha=c5adccfb79e768598afc1c45339e875d2bbedb44
+COMMAND: ['tail', '-24', '/tmp/fn2474-clone-abi/sparc64-syscall.S']
+   <https://www.gnu.org/licenses/>.  */
+
+#include <sysdep.h>
+	.text
+
+	.globl	__syscall_error
+ENTRY(syscall)
+	mov	%o0,%g1
+	mov	%o1,%o0
+	mov	%o2,%o1
+	mov	%o3,%o2
+	mov	%o4,%o3
+	mov	%o5,%o4
+	ldx	[%sp + STACK_BIAS + 176],%o5
+
+	ta	0x6d
+
+	bcc,pt	%xcc, 1f
+	 mov	%o7, %g1
+	call	__syscall_error
+	 mov	%g1, %o7
+1:	retl
+	 nop
+END(syscall)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/sparc32-syscall.S.json', 'https://api.github.com/repos/bminor/glibc/contents/sysdeps/unix/sysv/linux/sparc/sparc32/syscall.S?ref=04e750e75b73957cf1c791535a3f4319534a52fc']
+command_rc=0
+SOURCE: https://github.com/bminor/glibc/blob/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/sparc/sparc32/syscall.S blob_sha=70b31c77cf41eb2362d7c46b47499963c84676d5
+COMMAND: ['tail', '-24', '/tmp/fn2474-clone-abi/sparc32-syscall.S']
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <https://www.gnu.org/licenses/>.  */
+
+#include <sysdep.h>
+
+	.text
+	.globl	__syscall_error
+ENTRY(syscall)
+	mov	%o0, %g1
+	mov	%o1, %o0
+	mov	%o2, %o1
+	mov	%o3, %o2
+	mov	%o4, %o3
+	mov	%o5, %o4
+	ld	[%sp + 92], %o5
+	ta	0x10
+	bcc	1f
+	 mov	%o7, %g1
+	call	__syscall_error
+	 mov	%g1, %o7
+1:	retl
+	 nop
+END(syscall)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/kernel-sys.c.json', 'https://api.github.com/repos/torvalds/linux/contents/kernel/sys.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/kernel/sys.c blob_sha=4da31f28fda81f7dc0fd56fb276133f6bc26e404
+COMMAND: ['rg', '-n', '-A4', 'SYSCALL_DEFINE0\\(getpid\\)', '/tmp/fn2474-clone-abi/kernel-sys.c']
+967:SYSCALL_DEFINE0(getpid)
+968-{
+969-	return task_tgid_vnr(current);
+970-}
+971-
+command_rc=0
+COMMAND: ['rg', '-n', '-A6', 'Set the return value for the child', '/tmp/fn2474-clone-abi/arch-sparc-kernel-process_32.c']
+354:	/* Set the return value for the child. */
+355-	childregs->u_regs[UREG_I0] = current->pid;
+356-	childregs->u_regs[UREG_I1] = 1;
+357-
+358-	/* Set the return value for the parent. */
+359-	regs->u_regs[UREG_I1] = 0;
+360-
+command_rc=0
+COMMAND: ['rg', '-n', '-A6', 'Set the return value for the child', '/tmp/fn2474-clone-abi/arch-sparc-kernel-process_64.c']
+619:	/* Set the return value for the child. */
+620-	t->kregs->u_regs[UREG_I0] = current->pid;
+621-	t->kregs->u_regs[UREG_I1] = 1;
+622-
+623-	/* Set the second return value for the parent. */
+624-	regs->u_regs[UREG_I1] = 0;
+625-
+command_rc=0
+All source and inspection commands exited zero; no native SPARC/s390x execution.

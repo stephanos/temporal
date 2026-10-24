@@ -125,6 +125,9 @@
     "pthread_atfork_handlers_do_not_run_in_supervisor_or_target",
     "supervisor_owner_eof_returns_125",
     "supervisor_retains_first_stop_signal",
-    "unsupported_platform_is_an_explicit_refusal"
+    "unsupported_platform_is_an_explicit_refusal",
+    "path_search_tries_candidates_after_exec_errors",
+    "raw_clone_prefix_preserves_flags_and_null_stack",
+    "raw_clone_normalizes_sparc_child_identity"
   ]
 }

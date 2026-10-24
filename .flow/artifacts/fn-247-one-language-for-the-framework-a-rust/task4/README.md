@@ -9,7 +9,7 @@ inventories remain equal, including the guest closure. No runtime Cargo, Python 
 or sibling supervisor executable is required. The fixture binary is test support only.
 
 `control-parity.json` maps all eight retained Rust and six Python process controls to named
-Rust tests. The fresh-target focused run passed 22 controls, including actual Linux direct
+Rust tests. The fresh-target focused run passed 25 controls, including actual Linux direct
 and escaped descendant disappearance before fallback cleanup, owner-group TERM/KILL,
 supervisor TERM, owner EOF, timeout and cancellation. The allocator control runs 48 supervised
 execs across four callers while four allocator threads and a std::process spawn thread run.
@@ -17,8 +17,8 @@ The two Python process files were deleted only after this counterpart run passed
 Model Python helpers belong to the later tasks and remain outside this port.
 
 `observations.json` records actual commands, exits and source hashes. Final focused evidence
-is 22 process tests, 21 TLC/Apalache unit tests and one required real-tool control per backend:
-45 distinct passing test identities. Clippy passed for every process target. The direct cold
+is 25 process tests, 21 TLC/Apalache unit tests and one required real-tool control per backend:
+48 distinct passing test identities. Clippy passed for every process target. The direct cold
 consumer was built in a fresh target with lazy linking, has no BIND_NOW flag or sibling fixture,
 and runs with PATH pointing to no tools. Its baseline failed ENOENT before the port and its
 replacement passed. `run-cold-consumer.sh` retains the actual command recipe. Both direct and
@@ -47,3 +47,16 @@ not this worker's implementation. Task lane branches were integrated, and their 
 worktrees/branches removed normally. No full Model validation belongs to this task; final
 task 3 retains its one combined TLC/Apalache required validation pipeline. Documentation
 that temporarily described Python ownership is also assigned to final task 3.
+
+The first primary review's three draws returned NEEDS_WORK, reduced to two
+introduced findings. Both were accepted and fixed: PATH execution now tries all
+parent-prepared candidates; raw fork uses architecture-correct argument and child
+return conventions. Missing-interpreter and invalid-format rows, s390x argument
+and SPARC result tables failed first, then passed. The non-host controls establish
+source/scalar layout only. No native s390x/SPARC evidence is claimed. The final
+functional checks are in review-fix-*.log; initial review output is in review-round1/.
+
+During the review fix loop the owner waived old byte/backward-compatibility
+obligations for open tasks. Prior corpus and protected-hash observations remain
+historical evidence; they are not additional current completion gates. Functional
+process execution, lifecycle, platform safety and fork-boundary controls remain.

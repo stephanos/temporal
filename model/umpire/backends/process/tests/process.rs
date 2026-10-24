@@ -499,3 +499,31 @@ fn pthread_atfork_handlers_do_not_run_in_supervisor_or_target() -> Result<(), Re
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
     scratch.finish(Ok(()))
 }
+
+#[test]
+fn path_search_tries_candidates_after_exec_errors() -> Result<(), Refusal> {
+    use std::os::unix::fs::PermissionsExt;
+    let scratch = Scratch::new(&root()?)?;
+    let first = scratch.0.join("first");
+    let later = scratch.0.join("later");
+    fs::create_dir(&first)?;
+    fs::create_dir(&later)?;
+    std::os::unix::fs::symlink(FIXTURE, later.join("fallback-tool"))?;
+    let path = std::env::join_paths([&first, &later]).map_err(|e| Refusal(e.to_string()))?;
+    let mut results = Vec::new();
+    for (label, unusable) in [
+        ("interpreter", "#!/missing/backend-interpreter\n"),
+        ("format", "not an executable format\n"),
+    ] {
+        let candidate = first.join("fallback-tool");
+        fs::write(&candidate, unusable)?;
+        fs::set_permissions(&candidate, fs::Permissions::from_mode(0o755))?;
+        let mut command = Command::new("fallback-tool");
+        command.arg("echo").env("PATH", &path);
+        let (status, output) =
+            run_process(&mut command, &scratch.0, label, Limits::default(), None)?;
+        results.push((status.code(), output));
+    }
+    assert_eq!(results, [(Some(0), "native\n".into()), (Some(0), "native\n".into())]);
+    scratch.finish(Ok(()))
+}

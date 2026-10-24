@@ -1,0 +1,97 @@
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/kernel-fork.c.json', 'https://api.github.com/repos/torvalds/linux/contents/kernel/fork.c?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/kernel/fork.c blob_sha=22f43721d031d48fd5be2606e86642334be9735f
+2896:#ifdef CONFIG_CLONE_BACKWARDS
+2901:#elif defined(CONFIG_CLONE_BACKWARDS2)
+2906:#elif defined(CONFIG_CLONE_BACKWARDS3)
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/Kconfig blob_sha=bd9f095d69fa0300605b455d1d4f89da77129192
+1303:config CLONE_BACKWARDS
+1309:config CLONE_BACKWARDS2
+1314:config CLONE_BACKWARDS3
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-alpha-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/alpha/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/alpha/Kconfig blob_sha=109a4cddcd13890644d82e50826441f907f95354
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-arc-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/arc/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/arc/Kconfig blob_sha=5b24881420414729de85b3e3c42e3c1215c62ba8
+20:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-arm-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/arm/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/arm/Kconfig blob_sha=202397be76d8037b531b34dee16c7dfcfd0124ef
+53:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-arm64-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/arm64/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/arm64/Kconfig blob_sha=22f8a7bca6d21cf62bb02a558a03c4af02453d57
+126:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-csky-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/csky/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/csky/Kconfig blob_sha=5479707eb5d10df1e083c9c7c547c266b64f4232
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-hexagon-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/hexagon/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/hexagon/Kconfig blob_sha=e233b5efa2761e35c416cbc147f6b6422a7c5b8f
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-loongarch-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/loongarch/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/loongarch/Kconfig blob_sha=d9fce0fd475a049e4eae98caf448a70ee0f57d1f
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-m68k-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/m68k/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/m68k/Kconfig blob_sha=cc26df907bfe3c8143a931d259eceabb16af7411
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-microblaze-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/microblaze/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/microblaze/Kconfig blob_sha=f18ec02ddeb2335150ee5b0ae9adb4342806aa3b
+14:	select CLONE_BACKWARDS3
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-mips-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/mips/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/mips/Kconfig blob_sha=467b10f4361aeb7aad0121f334eaa5d23351010c
+32:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-nios2-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/nios2/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/nios2/Kconfig blob_sha=9c0e6eaeb005cdbf0d768f6f47a38f31d32b3974
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-openrisc-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/openrisc/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/openrisc/Kconfig blob_sha=69c0258700b28a8302df475c57b22e96576cee6d
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-parisc-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/parisc/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/parisc/Kconfig blob_sha=aa6a3cad275d914fe77ac28d9d4fa006dc457009
+54:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-powerpc-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/powerpc/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/powerpc/Kconfig blob_sha=1a2ff0276365b498e55a4e226396e73d6f9d6d3d
+185:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-riscv-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/riscv/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/riscv/Kconfig blob_sha=fa8f2da87a0a8348b886a9adc8f3e887005571e7
+88:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-s390-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/s390/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/s390/Kconfig blob_sha=cc1f9cffe2a5f434f08a05954b9f8dd5fab9b796
+139:	select CLONE_BACKWARDS2
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sh-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sh/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sh/Kconfig blob_sha=04ff5fb9242edd2babc4737ade679fa4ae11e86d
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-sparc-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/sparc/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/sparc/Kconfig blob_sha=dcfdb7f1dae9763b58646a910d252135d8139014
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-um-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/um/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/um/Kconfig blob_sha=c89575d05021f19ee7b50b2445215fb35aa4f84c
+No CLONE_BACKWARDS selection/definition in this file.
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-x86-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/x86/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/x86/Kconfig blob_sha=7b9a7e8f39acc8e9aeb7d4213e87d71047865f5c
+16:	select CLONE_BACKWARDS
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-clone-abi/arch-xtensa-Kconfig.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/xtensa/Kconfig?ref=v6.12']
+command_rc=0
+SOURCE: https://github.com/torvalds/linux/blob/v6.12/arch/xtensa/Kconfig blob_sha=d3db28f2f81108242d2bafb13503d729ba90fdb5
+23:	select CLONE_BACKWARDS
+fetch_failures=[]

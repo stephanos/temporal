@@ -154,7 +154,8 @@ mod supported {
     struct Prepared {
         api: calls::Api,
         directory: CString,
-        executable: CString,
+        _executables: Vec<CString>,
+        executables: Vec<*const libc::c_char>,
         _arguments: Vec<CString>,
         _environment: Vec<CString>,
         argv: Vec<*const libc::c_char>,
@@ -162,7 +163,6 @@ mod supported {
         buffer: Box<[u8; BUFFER_BYTES]>,
         close_limit: RawFd,
         signal_limit: libc::c_int,
-        launch_error: libc::c_int,
         #[cfg(target_os = "macos")]
         default_action: libc::sigaction,
         stop_action: libc::sigaction,
@@ -180,8 +180,11 @@ mod supported {
             let directory =
                 command.get_current_dir().unwrap_or(fallback_directory).canonicalize()?;
             let environment = environment(command)?;
-            let (executable, launch_error) =
-                executable(command.get_program(), &directory, &environment)?;
+            let executable_bytes =
+                executable_candidates(command.get_program(), &directory, &environment)?;
+            let mut executables =
+                executable_bytes.iter().map(|value| value.as_ptr()).collect::<Vec<_>>();
+            executables.push(ptr::null());
             let mut arguments = vec![cstring(command.get_program())?];
             arguments.extend(command.get_args().map(cstring).collect::<io::Result<Vec<_>>>()?);
             let environment = environment
@@ -248,7 +251,8 @@ mod supported {
                 #[cfg(target_os = "linux")]
                 kernel_signal_bytes,
                 directory: cstring(directory.as_os_str())?,
-                executable,
+                _executables: executable_bytes,
+                executables,
                 _arguments: arguments,
                 _environment: environment,
                 argv,
@@ -256,7 +260,6 @@ mod supported {
                 buffer: Box::new([0; BUFFER_BYTES]),
                 close_limit,
                 signal_limit,
-                launch_error,
             })
         }
 
@@ -270,13 +273,12 @@ mod supported {
             ChildContext {
                 api: &raw const self.api,
                 directory: self.directory.as_ptr(),
-                executable: self.executable.as_ptr(),
+                executables: self.executables.as_ptr(),
                 argv: self.argv.as_ptr(),
                 envp: self.envp.as_ptr(),
                 buffer: self.buffer.as_mut_ptr(),
                 close_limit: self.close_limit,
                 signal_limit: self.signal_limit,
-                launch_error: self.launch_error,
                 input,
                 output,
                 errors,
@@ -313,41 +315,20 @@ mod supported {
         Ok(environment)
     }
 
-    fn executable(
+    fn executable_candidates(
         program: &OsStr,
         directory: &Path,
         environment: &BTreeMap<OsString, OsString>,
-    ) -> io::Result<(CString, libc::c_int)> {
+    ) -> io::Result<Vec<CString>> {
         if program.as_bytes().contains(&b'/') {
-            return Ok((cstring(program)?, 0));
+            return Ok(vec![cstring(program)?]);
         }
         let path = environment
             .get(OsStr::new("PATH"))
             .map_or(OsStr::new("/bin:/usr/bin"), |v| v.as_os_str());
-        let mut failure = libc::ENOENT;
-        for entry in std::env::split_paths(path) {
-            let candidate = directory.join(entry).join(program);
-            let candidate = cstring(candidate.as_os_str())?;
-            // SAFETY: the candidate is a live NUL-terminated pathname.
-            if unsafe {
-                libc::faccessat(libc::AT_FDCWD, candidate.as_ptr(), libc::X_OK, libc::AT_EACCESS)
-            } == 0
-            {
-                if std::fs::metadata(OsStr::from_bytes(candidate.as_bytes()))
-                    .is_ok_and(|m| m.is_file())
-                {
-                    return Ok((candidate, 0));
-                }
-                failure = libc::EACCES;
-            } else {
-                match io::Error::last_os_error().raw_os_error() {
-                    Some(libc::EACCES) => failure = libc::EACCES,
-                    Some(libc::ENOENT | libc::ENOTDIR) => {}
-                    _ => return Ok((candidate, 0)),
-                }
-            }
-        }
-        Ok((cstring(program)?, failure))
+        std::env::split_paths(path)
+            .map(|entry| cstring(directory.join(entry).join(program).as_os_str()))
+            .collect()
     }
 
     fn close_limit() -> io::Result<RawFd> {
@@ -414,13 +395,12 @@ mod supported {
     struct ChildContext {
         api: *const calls::Api,
         directory: *const libc::c_char,
-        executable: *const libc::c_char,
+        executables: *const *const libc::c_char,
         argv: *const *const libc::c_char,
         envp: *const *const libc::c_char,
         buffer: *mut u8,
         close_limit: RawFd,
         signal_limit: libc::c_int,
-        launch_error: libc::c_int,
         input: RawFd,
         output: RawFd,
         errors: RawFd,
@@ -599,10 +579,19 @@ mod supported {
             if replace_mask(context, original_mask, ptr::null_mut()) != 0 {
                 child_error(api, c"cannot restore backend signal mask".as_ptr());
             }
-            if context.launch_error != 0 {
-                child_error(api, c"cannot execute backend subprocess".as_ptr());
+            let mut candidates = context.executables;
+            let mut saved_errno = 0;
+            while !(*candidates).is_null() {
+                api.execve(*candidates, context.argv, context.envp);
+                let error = errno(api);
+                if saved_errno == 0 && error != libc::ENOENT && error != libc::ENOTDIR {
+                    saved_errno = error;
+                }
+                candidates = candidates.add(1);
             }
-            api.execve(context.executable, context.argv, context.envp);
+            if saved_errno != 0 {
+                *api.errno = saved_errno;
+            }
             child_error(api, c"cannot execute backend subprocess".as_ptr())
         }
     }
@@ -701,22 +690,39 @@ mod supported {
         }
     }
 
+    #[cfg(target_os = "linux")]
+    fn clone_prefix(stack_first: bool) -> (libc::c_long, libc::c_long) {
+        let flags = libc::c_long::from(libc::SIGCHLD);
+        if stack_first { (0, flags) } else { (flags, 0) }
+    }
+
+    #[cfg(all(target_os = "linux", any(test, target_arch = "sparc", target_arch = "sparc64")))]
+    #[allow(clippy::cast_possible_truncation, reason = "the kernel returns pid_t values or -1")]
+    fn clone_pid(result: libc::c_long, before: libc::c_long, after: libc::c_long) -> libc::pid_t {
+        if result >= 0 && before != after { 0 } else { result as libc::pid_t }
+    }
+
     #[allow(clippy::cast_possible_truncation)]
     unsafe fn fork_without_handlers(api: &calls::Api) -> libc::pid_t {
         #[cfg(target_os = "linux")]
         unsafe {
             // SIGCHLD with no shared-address-space flags gives fork semantics.
-            // Null arguments make clone's architecture-dependent argument order
-            // immaterial; libc's syscall shim invokes no pthread_atfork handlers.
+            // s390x puts the null stack before flags; every remaining ABI slot
+            // is zero, including the extra CLONE_BACKWARDS3 stack-size slot.
             let zero: libc::c_long = 0;
-            (api.syscall())(
-                libc::SYS_clone,
-                libc::c_long::from(libc::SIGCHLD),
-                zero,
-                zero,
-                zero,
-                zero,
-            ) as libc::pid_t
+            let (first, second) = clone_prefix(cfg!(target_arch = "s390x"));
+            #[cfg(any(target_arch = "sparc", target_arch = "sparc64"))]
+            let before = (api.syscall())(libc::SYS_getpid);
+            let result = (api.syscall())(libc::SYS_clone, first, second, zero, zero, zero, zero);
+            #[cfg(any(target_arch = "sparc", target_arch = "sparc64"))]
+            {
+                let after = (api.syscall())(libc::SYS_getpid);
+                clone_pid(result, before, after)
+            }
+            #[cfg(not(any(target_arch = "sparc", target_arch = "sparc64")))]
+            {
+                result as libc::pid_t
+            }
         }
         #[cfg(target_os = "macos")]
         unsafe {
@@ -922,6 +928,22 @@ mod supported {
             assert_eq!(result, Some(125));
             drop(running);
             fs::remove_dir_all(directory)
+        }
+
+        #[test]
+        #[cfg(target_os = "linux")]
+        fn raw_clone_prefix_preserves_flags_and_null_stack() {
+            let flags = libc::c_long::from(libc::SIGCHLD);
+            assert_eq!([clone_prefix(false), clone_prefix(true)], [(flags, 0), (0, flags)]);
+        }
+
+        #[test]
+        #[cfg(target_os = "linux")]
+        fn raw_clone_normalizes_sparc_child_identity() {
+            assert_eq!(
+                [clone_pid(42, 42, 43), clone_pid(43, 42, 42), clone_pid(-1, 42, 42)],
+                [0, 43, -1]
+            );
         }
 
         #[test]

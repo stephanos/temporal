@@ -1,0 +1,30 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.31s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-reviewed-target/debug/deps/umpire_backend_process-e7d9c6953b360575)
+
+running 7 tests
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... FAILED
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+
+failures:
+
+---- syscall::supported::tests::raw_clone_normalizes_sparc_child_identity stdout ----
+
+thread 'syscall::supported::tests::raw_clone_normalizes_sparc_child_identity' (558383) panicked at umpire/backends/process/src/syscall.rs:932:13:
+assertion `left == right` failed
+  left: [42, 43, -1]
+ right: [0, 43, -1]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    syscall::supported::tests::raw_clone_normalizes_sparc_child_identity
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`

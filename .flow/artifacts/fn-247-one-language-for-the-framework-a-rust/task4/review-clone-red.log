@@ -1,0 +1,24 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_backend_process-e7d9c6953b360575)
+
+running 1 test
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... FAILED
+
+failures:
+
+---- syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack stdout ----
+
+thread 'syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack' (548832) panicked at umpire/backends/process/src/syscall.rs:937:13:
+assertion `left == right` failed
+  left: [(17, 0), (17, 0)]
+ right: [(17, 0), (0, 17)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`

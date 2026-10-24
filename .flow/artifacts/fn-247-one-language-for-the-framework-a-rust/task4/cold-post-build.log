@@ -1,10 +1,3 @@
-   Compiling proc-macro2 v1.0.107
-   Compiling unicode-ident v1.0.27
-   Compiling quote v1.0.47
-   Compiling libc v0.2.191
-   Compiling thiserror v2.0.21
-   Compiling syn v3.0.9
-   Compiling thiserror-impl v2.0.21
    Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
    Compiling process-cold-consumer v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task4/cold-consumer)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.98s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s

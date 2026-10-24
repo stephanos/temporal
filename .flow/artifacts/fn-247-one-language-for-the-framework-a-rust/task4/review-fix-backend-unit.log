@@ -1,0 +1,38 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.99s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_apalache-15b23be69049c519)
+
+running 9 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test replay::optional_tests::nominal_optional_projection_refuses_wrong_names_and_malformed_payloads ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::missing_changed_and_symlinked_installations_refuse_before_model_execution ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_tlc-802e2faa4f8f1911)
+
+running 12 tests
+test module::tests::nominal_schema_validates_descriptor_and_retains_exact_code_gap ... ok
+test decode::tests::observer_only_safety_assignment_keeps_empty_state_refusal ... ok
+test module::tests::enum_variants_admit_one_fieldless_payload_only ... ok
+test decode::tests::string_and_collection_values_preserve_authored_contents ... ok
+test runner::tests::counterexample_requires_consecutive_states_and_a_valid_lasso ... ok
+test decode::tests::typed_dump_rejects_missing_extra_wrong_type_and_truncation ... ok
+test runner::tests::evaluation_errors_name_the_property_and_state ... ok
+test runner::tests::incomplete_messages_and_exploration_are_refused ... ok
+test runner::tests::located_property_invariants_name_only_the_selected_operator ... ok
+test runner::tests::typed_module_refuses_inconsistent_declarations_before_spawning ... ok
+test runner::tests::escaping_cache_symlinks_are_refused_before_creating_files ... ok
+test runner::tests::process_limits_kill_and_reap_and_jar_admission_fails_closed ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

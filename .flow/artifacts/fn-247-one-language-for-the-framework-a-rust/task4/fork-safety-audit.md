@@ -46,3 +46,11 @@ SIGKILL recovery is not promised. Linux lifecycle controls assert direct and esc
 disappearance before their fallback cleanup. Native macOS and Darwin SDK linkage are
 unavailable here. Apple's private `__fork` entry has source/export evidence, not an ABI
 stability guarantee; see `platform-source-evidence.md`.
+
+The primary review corrected the initial PATH and clone assumptions. Every PATH
+candidate byte string and pointer is prepared before fork; the target iterates
+execve attempts using only that immutable sentinel-terminated table and scalars.
+Linux clone uses an explicit stack-first prefix on s390x, six zero-filled ABI
+slots, and raw PID comparison for SPARC child-return normalization. These have
+native host regression controls plus source/table controls for the unavailable
+architectures; no non-host execution is claimed. See clone-abi/README.md.

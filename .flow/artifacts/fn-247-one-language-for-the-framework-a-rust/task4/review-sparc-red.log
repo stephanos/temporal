@@ -1,0 +1,24 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_backend_process-e7d9c6953b360575)
+
+running 1 test
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... FAILED
+
+failures:
+
+---- syscall::supported::tests::raw_clone_normalizes_sparc_child_identity stdout ----
+
+thread 'syscall::supported::tests::raw_clone_normalizes_sparc_child_identity' (557578) panicked at umpire/backends/process/src/syscall.rs:932:13:
+assertion `left == right` failed
+  left: [42, 43, -1]
+ right: [0, 43, -1]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    syscall::supported::tests::raw_clone_normalizes_sparc_child_identity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-backend-process --lib`
