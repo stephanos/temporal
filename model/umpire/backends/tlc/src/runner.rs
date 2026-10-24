@@ -6,7 +6,7 @@ use std::{
     time::Duration,
 };
 
-use crate::{Refusal, Schema, State, TraceState, decode_dump, decode_state};
+use crate::{Error, Evaluation, Refusal, Schema, State, TraceState, decode_dump, decode_state};
 
 /// Official stable release artifact admitted by this backend.
 pub const JAR_VERSION: &str = "1.7.4";
@@ -93,7 +93,10 @@ impl Tlc {
     /// Explore an emitted module and check all registered claims without a native reference graph.
     /// The returned state set belongs to the complete unrestricted specification; scoped progress
     /// claims use their own observer specifications and retain typed counterexamples.
-    pub fn check_module(&self, module: &umpire_lift::Module) -> Result<TlcResult, Refusal> {
+    ///
+    /// # Errors
+    /// A refusal, or TLC's typed evaluation error naming the property and state it failed in.
+    pub fn check_module(&self, module: &umpire_lift::Module) -> Result<TlcResult, Error> {
         let schema = crate::module::schema(module)?;
         let mut result = self.check(&module.name, &module.tla, &module.cfg, &schema)?;
         for cfg in module
@@ -106,14 +109,14 @@ impl Tlc {
             let additional = self.check(&module.name, &module.tla, cfg, &schema)?;
             for (operator, property) in additional.properties {
                 if result.properties.insert(operator.clone(), property).is_some() {
-                    return Err(Refusal(format!("duplicate property result {operator}")));
+                    return Err(Refusal(format!("duplicate property result {operator}")).into());
                 }
             }
             if u64::try_from(result.output.len().saturating_add(additional.output.len()))
                 .unwrap_or(u64::MAX)
                 > self.limits.output_bytes
             {
-                return Err(Refusal("combined module output limit exceeded".into()));
+                return Err(Refusal("combined module output limit exceeded".into()).into());
             }
             result.output.push_str(&additional.output);
         }
@@ -161,29 +164,32 @@ impl Tlc {
     }
 
     /// Explore without claims first, then independently check every inline PROPERTY/INVARIANT.
+    ///
+    /// # Errors
+    /// A refusal, or TLC's typed evaluation error naming the property and state it failed in.
     pub fn check(
         &self,
         name: &str,
         tla: &str,
         cfg: &str,
         schema: &Schema,
-    ) -> Result<TlcResult, Refusal> {
+    ) -> Result<TlcResult, Error> {
         schema.validate()?;
         if name.is_empty() || !name.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'_') {
-            return Err(Refusal("module name must be one TLA+ identifier".into()));
+            return Err(Refusal("module name must be one TLA+ identifier".into()).into());
         }
         if self.limits.timeout.is_zero()
             || self.limits.output_bytes == 0
             || self.limits.dump_bytes == 0
             || self.limits.heap_mb == 0
         {
-            return Err(Refusal("subprocess limits must be positive".into()));
+            return Err(Refusal("subprocess limits must be positive".into()).into());
         }
         let (base_cfg, properties) = split_cfg(cfg)?;
         let scratch = Scratch::new(&self.root)?;
-        let result = (|| {
+        let result = (|| -> Result<TlcResult, Error> {
             fs::write(scratch.0.join(format!("{name}.tla")), tla)?;
-            let (output, dump) = self.execute(name, &base_cfg, &scratch.0, "explore", None)?;
+            let (output, dump) = self.execute(name, &base_cfg, &scratch.0, None, schema)?;
             let exploration_messages = messages(&output)?;
             let count = distinct_count(&exploration_messages)?;
             let states = decode_dump(&dump, count, schema)?;
@@ -196,7 +202,7 @@ impl Tlc {
             for (kind, property) in properties {
                 let property_cfg = format!("{base_cfg}\n{kind} {property}\n");
                 let (output, _) =
-                    self.execute(name, &property_cfg, &scratch.0, &property, Some(&property))?;
+                    self.execute(name, &property_cfg, &scratch.0, Some(&property), schema)?;
                 let messages = messages(&output)?;
                 let violated = messages
                     .iter()
@@ -213,7 +219,7 @@ impl Tlc {
                     .unwrap_or(u64::MAX)
                     > self.limits.output_bytes
                 {
-                    return Err(Refusal("combined check output limit exceeded".into()));
+                    return Err(Refusal("combined check output limit exceeded".into()).into());
                 }
                 result.output.push_str(&output);
             }
@@ -227,9 +233,10 @@ impl Tlc {
         name: &str,
         cfg: &str,
         directory: &Path,
-        label: &str,
         property: Option<&str>,
-    ) -> Result<(String, String), Refusal> {
+        schema: &Schema,
+    ) -> Result<(String, String), Error> {
+        let label = property.unwrap_or("explore");
         let config = directory.join("Run.cfg");
         fs::write(&config, cfg)?;
         let dump = directory.join(format!("{label}.dump"));
@@ -254,8 +261,11 @@ impl Tlc {
             .current_dir(directory);
         let (status, output) =
             run_process(&mut command, directory, label, self.limits, Some(&dump))?;
-        let messages = messages(&output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
+        let parsed = parse(&output).map_err(|error| Refusal(format!("{error}\n{output}")))?;
         let tla = fs::read_to_string(directory.join(format!("{name}.tla")))?;
+        failure(&parsed, property, &tla, schema)?;
+        let messages: Vec<_> =
+            parsed.into_iter().map(|message| (message.code, message.body)).collect();
         let violation = selected_violation(&messages, property, &tla)?;
         let finished = messages.iter().any(|(code, _)| *code == 2186);
         let success = messages.iter().any(|(code, _)| *code == 2193);
@@ -271,10 +281,11 @@ impl Tlc {
             return Err(Refusal(format!(
                 "process failed or incomplete for {} (exit {status}):\n{output}",
                 property.unwrap_or("reachability")
-            )));
+            ))
+            .into());
         }
         if violation && property.is_none() {
-            return Err(Refusal(format!("reachability unexpectedly refuted:\n{output}")));
+            return Err(Refusal(format!("reachability unexpectedly refuted:\n{output}")).into());
         }
         Ok((output, bounded_text(&dump, self.limits.dump_bytes)?))
     }
@@ -373,37 +384,127 @@ pub(super) fn split_cfg(cfg: &str) -> Result<(String, Vec<(String, String)>), Re
     Ok((base, properties))
 }
 
+const START: &str = "@!@!@STARTMSG ";
+const END: &str = "@!@!@ENDMSG ";
+/// The violation and behavior messages TLC marks as errors.
+const REPORTED: [u32; 9] = [2103, 2107, 2108, 2110, 2112, 2116, 2121, 2122, 2264];
+
+/// One TLC message: its code, whether TLC marks it an error, and its text, followed by the text
+/// of each message nested in it.
+struct Message {
+    code: u32,
+    error: bool,
+    body: String,
+}
+
 fn messages(output: &str) -> Result<Vec<(u32, String)>, Refusal> {
+    Ok(parse(output)?.into_iter().map(|message| (message.code, message.body)).collect())
+}
+
+fn parse(output: &str) -> Result<Vec<Message>, Refusal> {
     let mut messages = Vec::new();
     let mut remaining = output;
-    while let Some(start) = remaining.find("@!@!@STARTMSG ") {
-        remaining = &remaining[start + "@!@!@STARTMSG ".len()..];
-        let (header, rest) = remaining
-            .split_once(" @!@!@\n")
-            .ok_or_else(|| Refusal("truncated TLC message header".into()))?;
-        let code = header
-            .split(':')
-            .next()
-            .and_then(|code| code.parse().ok())
-            .ok_or_else(|| Refusal("invalid TLC message code".into()))?;
-        let (body, rest) = rest
-            .split_once("@!@!@ENDMSG ")
-            .ok_or_else(|| Refusal("truncated TLC message body".into()))?;
-        let (end, rest) = rest
-            .split_once(" @!@!@")
-            .ok_or_else(|| Refusal("truncated TLC message terminator".into()))?;
-        if end.parse::<u32>().ok() != Some(code) {
-            return Err(Refusal("mismatched TLC message terminator".into()));
-        }
-        if header.split(':').nth(1) == Some("1")
-            && !matches!(code, 2107 | 2108 | 2110 | 2112 | 2116 | 2121 | 2122 | 2264)
-        {
-            return Err(Refusal(format!("TLC execution error {code}: {body}")));
-        }
-        messages.push((code, body.trim().to_owned()));
+    while let Some(start) = remaining.find(START) {
+        let (message, rest) = message(&remaining[start + START.len()..], 0)?;
+        messages.push(message);
         remaining = rest;
     }
     Ok(messages)
+}
+
+/// The message after a `STARTMSG` marker, and the output after its terminator. TLC nests the
+/// cause of a failed evaluation, such as an integer overflow, inside the failure's report.
+fn message(input: &str, depth: usize) -> Result<(Message, &str), Refusal> {
+    if depth > 4 {
+        return Err(Refusal("TLC messages nest too deeply".into()));
+    }
+    let (header, mut rest) = input
+        .split_once(" @!@!@\n")
+        .ok_or_else(|| Refusal("truncated TLC message header".into()))?;
+    let mut fields = header.split(':');
+    let code = fields
+        .next()
+        .and_then(|code| code.parse().ok())
+        .ok_or_else(|| Refusal("invalid TLC message code".into()))?;
+    let error = fields.next() == Some("1");
+    let mut body = String::new();
+    loop {
+        let end = rest.find(END).ok_or_else(|| Refusal("truncated TLC message body".into()))?;
+        match rest.find(START) {
+            Some(start) if start < end => {
+                body.push_str(&rest[..start]);
+                let (nested, after) = message(&rest[start + START.len()..], depth + 1)?;
+                body.push_str(&nested.body);
+                body.push('\n');
+                rest = after;
+            }
+            _ => {
+                body.push_str(&rest[..end]);
+                rest = &rest[end + END.len()..];
+                break;
+            }
+        }
+    }
+    let (end, rest) = rest
+        .split_once(" @!@!@")
+        .ok_or_else(|| Refusal("truncated TLC message terminator".into()))?;
+    if end.parse::<u32>().ok() != Some(code) {
+        return Err(Refusal("mismatched TLC message terminator".into()));
+    }
+    Ok((Message { code, error, body: body.trim().to_owned() }, rest))
+}
+
+/// TLC's first error other than a violation and its behavior. TLC names the property whose
+/// evaluation failed, or locates the failing expression, for a failed evaluation; that becomes
+/// a typed [`Evaluation`] with the behavior up to the failing state. Any other error refuses.
+/// A run checks one `property` only after exploration evaluated the initial predicate and
+/// next-state relation, so a failure TLC leaves unnamed in that run is the property's.
+fn failure(
+    messages: &[Message],
+    property: Option<&str>,
+    tla: &str,
+    schema: &Schema,
+) -> Result<(), Error> {
+    let Some(first) =
+        messages.iter().find(|message| message.error && !REPORTED.contains(&message.code))
+    else {
+        return Ok(());
+    };
+    let positions = messages.iter().find(|message| message.code == 2103);
+    let prefix = match first.code {
+        2111 => Some("Evaluating invariant "),
+        2113 => Some("Evaluating action property "),
+        _ => None,
+    };
+    if prefix.is_none() && positions.is_none() {
+        return Err(Refusal(format!("TLC execution error {}: {}", first.code, first.body)).into());
+    }
+    let (head, cause) = first.body.split_once('\n').unwrap_or((&first.body, ""));
+    let named = prefix.and_then(|prefix| {
+        let rest = head.strip_prefix(prefix)?;
+        located(rest, tla).or_else(|| rest.strip_suffix(" failed."))
+    });
+    let mut message = if named.is_some() { cause.trim() } else { first.body.as_str() }.to_owned();
+    let property = named.or(property).map(str::to_owned);
+    if let Some(positions) = positions {
+        message.push('\n');
+        message.push_str(&positions.body);
+    }
+    let states: Vec<_> = messages
+        .iter()
+        .filter(|message| matches!(message.code, 2216 | 2217))
+        .map(|message| (message.code, message.body.clone()))
+        .collect();
+    let (trace, state) = if states.is_empty() {
+        (None, None)
+    } else {
+        let state = states
+            .last()
+            .and_then(|(_, body)| body.split_once('\n'))
+            .map(|(_, assignment)| assignment.trim().to_owned());
+        (Some(decode_trace(&states, schema)?), state)
+    };
+    Err(Box::new(Evaluation { property, message, trace, state }).into())
 }
 
 fn distinct_count(messages: &[(u32, String)]) -> Result<usize, Refusal> {
@@ -518,51 +619,57 @@ mod tests {
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("duplicate authored field"))
+                .is_some_and(|error| error.to_string().contains("duplicate authored field"))
         );
         let mut invalid = module.clone();
         invalid.metadata.observer_fields.push(invalid.metadata.observer_fields[0].clone());
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("duplicate observer"))
+                .is_some_and(|error| error.to_string().contains("duplicate observer"))
         );
         let mut invalid = module.clone();
         invalid.metadata.observer_types.insert("undeclared".into(), umpire_lift::Type::Bool);
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("observer declarations differ"))
+                .is_some_and(|error| error.to_string().contains("observer declarations differ"))
         );
         let mut invalid = module.clone();
         invalid.metadata.fields[0].name = "__umpire_edge_tick".into();
-        assert!(tlc.check_module(&invalid).err().is_some_and(|error| error.0.contains("collides")));
+        assert!(
+            tlc.check_module(&invalid)
+                .err()
+                .is_some_and(|error| error.to_string().contains("collides"))
+        );
         let mut invalid = module.clone();
         invalid.metadata.fields[0].ty = umpire_lift::Type::Int { min: 3, max: 2 };
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("integer bounds"))
+                .is_some_and(|error| error.to_string().contains("integer bounds"))
         );
         let mut invalid = module.clone();
         invalid.metadata.fields[0].ty =
             umpire_lift::Type::Enum { name: "Empty".into(), variants: Vec::new() };
         assert!(
-            tlc.check_module(&invalid).err().is_some_and(|error| error.0.contains("enum variants"))
+            tlc.check_module(&invalid)
+                .err()
+                .is_some_and(|error| error.to_string().contains("enum variants"))
         );
         let mut invalid = module.clone();
         invalid.metadata.invariants.push(invalid.metadata.invariants[0].clone());
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("duplicate property"))
+                .is_some_and(|error| error.to_string().contains("duplicate property"))
         );
         let mut invalid = module;
         invalid.cfg = "SPECIFICATION Spec\n".into();
         assert!(
             tlc.check_module(&invalid)
                 .err()
-                .is_some_and(|error| error.0.contains("property declarations differ"))
+                .is_some_and(|error| error.to_string().contains("property declarations differ"))
         );
         Ok(())
     }
@@ -588,10 +695,15 @@ mod tests {
         for text in [
             "@!@!@STARTMSG 2193:0 @!@!@\n",
             "@!@!@STARTMSG 2193:0 @!@!@\nOK\n@!@!@ENDMSG 2186 @!@!@",
-            "@!@!@STARTMSG 1000:1 @!@!@\ncrash\n@!@!@ENDMSG 1000 @!@!@",
+            "@!@!@STARTMSG 2111:1 @!@!@\nfailed\n@!@!@STARTMSG 2178:0 @!@!@\nOverflow\n@!@!@ENDMSG 2111 @!@!@",
         ] {
             assert!(messages(text).is_err(), "accepted {text}");
         }
+        let crash = parse("@!@!@STARTMSG 1000:1 @!@!@\ncrash\n@!@!@ENDMSG 1000 @!@!@");
+        assert!(crash.is_ok_and(|crash| matches!(
+            failure(&crash, None, "", &Schema::default()),
+            Err(Error::Refusal(Refusal(text))) if text == "TLC execution error 1000: crash"
+        )));
         assert!(
             distinct_count(&[(
                 2199,
@@ -608,6 +720,70 @@ mod tests {
         ] {
             assert!(split_cfg(cfg).is_err(), "accepted {cfg}");
         }
+    }
+
+    /// TLC's own reports, as recorded from TLC 2.19: the cause nests inside the failure.
+    #[test]
+    fn evaluation_errors_name_the_property_and_state() -> Result<(), Refusal> {
+        let schema = Schema {
+            fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),
+            observers: BTreeMap::new(),
+        };
+        let state = |number: usize, x: usize| {
+            let action = if number == 1 { "Initial predicate" } else { "Next line 5, col 9" };
+            format!(
+                "@!@!@STARTMSG 2217:4 @!@!@\n{number}: <{action}>\nx = {x}\n\n@!@!@ENDMSG 2217 @!@!@\n"
+            )
+        };
+        let behavior = "@!@!@STARTMSG 2121:1 @!@!@\nThe behavior up to this point is:\n@!@!@ENDMSG 2121 @!@!@\n";
+        let positions = "@!@!@STARTMSG 2103:1 @!@!@\nThe error occurred when TLC was evaluating the nested\nexpressions at the following positions:\n0. Line 4, column 9 to line 4, column 26 in P\n\n@!@!@ENDMSG 2103 @!@!@\n";
+        let invariant = format!(
+            "@!@!@STARTMSG 2111:1 @!@!@\nEvaluating invariant Wide failed.\n@!@!@STARTMSG 2178:0 @!@!@\nOverflow when computing 3*1000000000\n@!@!@ENDMSG 2178 @!@!@\n@!@!@ENDMSG 2111 @!@!@\n{behavior}{}{}{}{}",
+            state(1, 0),
+            state(2, 1),
+            state(3, 2),
+            state(4, 3)
+        );
+        let assert = format!(
+            "@!@!@STARTMSG 2132:1 @!@!@\nThe first argument of Assert evaluated to FALSE; the second argument was:\n\"checked Rust integer overflow\"\n@!@!@ENDMSG 2132 @!@!@\n{behavior}{}{}{positions}",
+            state(1, 0),
+            state(2, 1)
+        );
+        let initial = format!(
+            "@!@!@STARTMSG 1000:1 @!@!@\n@!@!@STARTMSG 2178:0 @!@!@\nOverflow when computing 3*1000000000\n@!@!@ENDMSG 2178 @!@!@\n@!@!@ENDMSG 1000 @!@!@\n{positions}"
+        );
+        let evaluation = |output: &str| match failure(&parse(output)?, None, "", &schema) {
+            Err(Error::Evaluation(evaluation)) => Ok(evaluation),
+            other => Err(Refusal(format!("not an evaluation error: {other:?}"))),
+        };
+        let wide = evaluation(&invariant)?;
+        assert_eq!(wide.property.as_deref(), Some("Wide"));
+        assert_eq!(wide.message, "Overflow when computing 3*1000000000");
+        assert_eq!(wide.state.as_deref(), Some("x = 3"));
+        assert_eq!(wide.trace.as_ref().map(|trace| trace.states.len()), Some(4));
+        assert_eq!(
+            wide.to_string(),
+            "TLC evaluation error in property Wide: Overflow when computing 3*1000000000\n\
+             at state 4 of the behavior:\nx = 3"
+        );
+        let next = evaluation(&assert)?;
+        assert_eq!(next.property, None);
+        assert!(next.message.contains("checked Rust integer overflow"), "{next}");
+        assert!(next.message.contains("Line 4, column 9"), "{next}");
+        assert!(next.to_string().starts_with("TLC evaluation error in the next-state relation"));
+        assert_eq!(next.state.as_deref(), Some("x = 1"));
+        let unnamed = failure(&parse(&initial)?, Some("Checked"), "", &schema);
+        assert!(matches!(
+            unnamed,
+            Err(Error::Evaluation(evaluation)) if evaluation.property.as_deref() == Some("Checked")
+                && evaluation.to_string().ends_with("in an initial state")
+        ));
+        let init = evaluation(&initial)?;
+        assert!(init.trace.is_none() && init.state.is_none());
+        assert!(init.to_string().starts_with(
+            "TLC evaluation error in the initial predicate: Overflow when computing 3*1000000000"
+        ));
+        Ok(())
     }
 
     #[test]

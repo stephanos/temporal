@@ -1,5 +1,5 @@
 //! Controls of the differential check outside the fixture folders: the lifter's and the
-//! backends' own admitted Models, checked arithmetic, lazy start domains, `usize` lengths, the
+//! backends' own admitted Models, checked arithmetic, lazy start domains, length arithmetic, the
 //! claim cap, seeded mutant trees that must disagree, and a first timing of interpreted against
 //! compiled exploration.
 
@@ -186,13 +186,81 @@ fn start_domains_evaluate_lazily() -> TestResult {
     Ok(())
 }
 
+/// A sum or product of a length is refused at its span, so no back end reads it; the Model
+/// still checks natively.
 #[test]
-fn lengths_compute_in_usize() -> TestResult {
-    interpreted(usize_lengths::lengths::world, None, Checker::BUDGET, None)?;
+fn length_sums_and_products_are_refused() -> TestResult {
+    let refusal = usize_lengths::lengths::World::__umpire_lifted()
+        .model
+        .err()
+        .ok_or("a length product was admitted")?;
+    assert!(
+        refusal.message.starts_with("`+` and `*` on a Vector length are refused"),
+        "{refusal:?}"
+    );
+    assert_eq!((refusal.line, refusal.column), (40, 20), "{refusal:?}");
     let report = Checker::explore(&usize_lengths::lengths::world(), Checker::BUDGET)?
         .verify_all()?
         .to_string();
     assert!(report.contains("outcome: Verified"), "{report}");
+    Ok(())
+}
+
+/// A difference, quotient or remainder of lengths means the same compiled, interpreted and in
+/// TLC, including a difference below zero, which every back end reports in the same state.
+#[test]
+#[allow(clippy::print_stderr)]
+fn length_differences_agree_on_every_back_end() -> TestResult {
+    use usize_lengths::{differences, underflow};
+    interpreted(differences::world, None, Checker::BUDGET, None)?;
+    interpreted(underflow::world, None, Checker::BUDGET, None)?;
+    let native = Checker::explore(&differences::world(), Checker::BUDGET)?.verify_all()?;
+    let verdicts: Vec<_> = native
+        .claims
+        .iter()
+        .map(|claim| (claim.name.clone(), format!("{:?}", claim.outcome)))
+        .collect();
+    assert_eq!(
+        verdicts,
+        [("halves".into(), "Verified".into()), ("below_two".into(), "Refuted".into())]
+    );
+    let report = Checker::explore(&underflow::world(), Checker::BUDGET)?.verify_all()?.to_string();
+    assert!(report.contains("attempt to subtract with overflow"), "{report}");
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        eprintln!(
+            "length controls checked natively; no TLC evidence (set UMPIRE_BACKENDS=require)"
+        );
+        return Ok(());
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let tlc = umpire_tlc::Tlc::discover(&root)?;
+    // rustc names this `#[path]` module's file relative to the workspace, not to this test.
+    let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lengths.rs");
+    let lift = |mut embedded: umpire_dsl::__lifted::Embedded| {
+        embedded.file = source.display().to_string();
+        umpire_testing::lift(Some(&embedded), &source)
+    };
+    let module = lift(differences::World::__umpire_lifted())?;
+    let result = tlc.check_module(&module)?;
+    assert_eq!(result.states.len(), 4);
+    let tlc_verdicts: Vec<_> = ["Invariant_halves", "Invariant_below_two"]
+        .iter()
+        .map(|operator| result.properties.get(*operator).map(|property| property.verdict))
+        .collect();
+    assert_eq!(
+        tlc_verdicts,
+        [Some(umpire_tlc::Verdict::Verified), Some(umpire_tlc::Verdict::Refuted)]
+    );
+    let module = lift(underflow::World::__umpire_lifted())?;
+    let Err(umpire_tlc::Error::Evaluation(error)) = tlc.check_module(&module) else {
+        return Err("TLC did not report the length underflow as an evaluation error".into());
+    };
+    assert_eq!(error.property.as_deref(), Some("Invariant_remaining"), "{error}");
+    assert!(error.message.contains("checked Rust integer overflow"), "{error}");
+    assert!(
+        error.state.as_deref().is_some_and(|state| state.contains("values = <<1, 1>>")),
+        "{error}"
+    );
     Ok(())
 }
 

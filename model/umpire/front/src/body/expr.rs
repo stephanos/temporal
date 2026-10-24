@@ -203,6 +203,17 @@ impl Environment {
                 {
                     return self.err(node, "integer operator applied to a non-integer");
                 }
+                // Rust computes lengths in `usize`, TLC in 32-bit integers: a sum or product can
+                // exceed TLC's range where Rust's holds. A difference, quotient or remainder of
+                // two in-range lengths stays in range, so every back end reads it alike.
+                if matches!(op, Op::Add | Op::Mul) && left.ty == super::vector::index_type() {
+                    return self.err(
+                        node,
+                        "`+` and `*` on a Vector length are refused: Rust computes lengths in \
+                         usize and TLC in 32-bit integers, which can disagree; compare the length \
+                         instead",
+                    );
+                }
                 Expr::binary(op, left, right)
             }
             RustExpr::If(condition) => {

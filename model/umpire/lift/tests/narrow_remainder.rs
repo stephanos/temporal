@@ -36,7 +36,8 @@ fn overflow<M: Machine>(
     )?;
     let error = result.err().ok_or("TLC accepted narrow MIN % -1 despite native overflow")?;
     let error = error.to_string();
-    assert!(error.contains("TLC execution error 2132"), "{error}");
+    assert!(error.contains("TLC evaluation error in the next-state relation"), "{error}");
+    assert!(error.contains("The first argument of Assert evaluated to FALSE"), "{error}");
     assert!(error.contains("Rust signed division/remainder overflow"), "{error}");
     Ok(())
 }

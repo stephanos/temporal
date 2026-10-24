@@ -64,13 +64,17 @@ impl Scratch {
         }
     }
 
-    pub fn finish<T>(self, result: Result<T, Refusal>) -> Result<T, Refusal> {
+    pub fn finish<T, E: std::fmt::Display + From<Refusal>>(
+        self,
+        result: Result<T, E>,
+    ) -> Result<T, E> {
         match fs::remove_dir_all(&self.0) {
             Ok(()) => result,
             Err(error) => Err(Refusal(format!(
                 "TLC cleanup failed: {error}; result: {}",
                 result.err().map_or_else(|| "completed".into(), |error| error.to_string())
-            ))),
+            ))
+            .into()),
         }
     }
 }
@@ -331,7 +335,7 @@ mod tests {
         assert!(failure.refusal.0.contains("limit"));
         assert_eq!(failure.output, "started\n");
         let path = scratch.0.clone();
-        scratch.finish(Ok(()))?;
+        scratch.finish::<_, Refusal>(Ok(()))?;
         assert!(!path.exists());
         Ok(())
     }
@@ -385,7 +389,7 @@ mod tests {
             assert!(!Path::new("/proc").join(pid).exists(), "owned pid {pid} was not reaped");
         }
         let path = scratch.0.clone();
-        scratch.finish(Ok(()))?;
+        scratch.finish::<_, Refusal>(Ok(()))?;
         assert!(!path.exists());
         Ok(())
     }
@@ -430,7 +434,7 @@ mod tests {
         let result = run_process(&mut command, &work.0, "capture", Limits::default(), None);
         assert_eq!(fs::read_to_string(&protected)?, "unchanged");
         assert!(result.is_err());
-        work.finish(Ok(()))?;
+        work.finish::<_, Refusal>(Ok(()))?;
         scratch.finish(Ok(()))
     }
 

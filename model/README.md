@@ -794,7 +794,7 @@ runner's `interpreted_agrees_with_compiled` runs it for every shared fixture and
 admitted one is not interpreted. The Temporal activity's `run()` and the admitted checker
 controls call `umpire_testing::interpreted` themselves. The `interpreted` test of
 `umpire-fixtures` adds the lifter's and the backends' own Models (the Apalache arithmetic
-fixture across 220 Worlds), lazy start domains, `usize` lengths, checked-arithmetic failures,
+fixture across 220 Worlds), lazy start domains, length arithmetic, checked-arithmetic failures,
 the claim cap and seeded mutant trees that must disagree. The interpreter does not replace the compiled checker, and the guest
 and typed replay keep running the compiled bodies. The catalog, claim order, computed starts
 and declared-World starts stay the compiled Model's; a fixture's negative claim is judged by
@@ -842,7 +842,9 @@ Rust types (`i8`, `i16`, `i32`, `u8`, `u16`); wider types refuse by source locat
 Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/enum elements:
 `new`/`default`, `len`, `is_empty`, guarded `push_back`, and safe `get` queries
 (`is_some`/`is_none` or `copied().unwrap_or(default)`). Growth requires an authored finite
-length guard; arbitrary collection methods, indexing and panicking `unwrap` refuse.
+length guard; arbitrary collection methods, indexing and panicking `unwrap` refuse. Rust
+computes lengths in `usize` and TLC in 32-bit integers, so `+` and `*` on a length refuse at
+their span (fn-242); comparison, `-`, `/` and `%` mean the same in both and are admitted.
 Action inputs without a declared World, generic or aliased input types and custom `Finite`
 implementations, generic delegating adapters and arbitrary Rust remain outside the subset.
 

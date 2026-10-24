@@ -17,6 +17,37 @@ fn bounded_vector_operations_are_lifted_with_safe_defaulted_get()
     Ok(())
 }
 
+/// Rust computes lengths in `usize`, TLC in 32-bit integers: a sum or product of a length,
+/// including an index computed from one, refuses at its span; a difference, quotient or
+/// remainder is admitted.
+#[test]
+fn length_sums_and_products_refuse_at_their_span() -> Result<(), Box<dyn std::error::Error>> {
+    let source = include_str!("fixtures/vector.rs");
+    for (claim, refused) in [
+        ("self.values.len() + 1 <= 3", true),
+        ("1 + self.values.len() <= 3", true),
+        ("self.values.len() * 2 <= 4", true),
+        ("self.values.get(self.values.len() + 0).is_none()", true),
+        ("self.values.len() - self.values.len() / 2 <= 2", false),
+        ("self.values.len() % 2 < 2", false),
+        ("self.values.get(self.values.len() / 2).copied().unwrap_or(7) == 7", false),
+    ] {
+        let edited = source.replace(
+            "check!(self.values.len() <= 2);",
+            &format!("check!(self.values.len() <= 2); check!({claim});"),
+        );
+        match Lift::parse("vector.rs", &edited) {
+            Err(error) if refused => {
+                assert!(error.message.contains("`+` and `*` on a Vector length"), "{error}");
+                assert_eq!(error.line, 40, "{claim}: {error}");
+            }
+            Ok(_) if !refused => {}
+            other => return Err(format!("{claim}: {:?}", other.map(|_| ())).into()),
+        }
+    }
+    Ok(())
+}
+
 #[test]
 #[allow(clippy::print_stderr)]
 fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dyn std::error::Error>>

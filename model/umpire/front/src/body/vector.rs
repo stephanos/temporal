@@ -7,7 +7,8 @@ use quote::ToTokens;
 use std::collections::BTreeMap;
 use syn::Expr as RustExpr;
 
-fn index_type() -> Type {
+/// `usize` lengths and indices, spelled as the non-negative 32-bit integers TLC computes in.
+pub(super) fn index_type() -> Type {
     Type::Int { min: 0, max: i128::from(i32::MAX) }
 }
 
