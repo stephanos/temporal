@@ -39,6 +39,9 @@ Committed `bbf0835fbf` native `checker/src/progress.rs` selects exact fair actio
 
 Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`, refreshed `make umpire-guest`, `make umpire-check-model-slice`, `make umpire-check-model-gaps`. Required TLC must execute the activity and replay exact expiry facts and false claims. Retain native/default and larger-world counts, Cases(n), actual fairness descriptors and timing including soft-budget misses. Update only approved activity output; old independent evidence and unrelated artifacts/metadata remain exact.
 
+### Worker actions under programmed workers (2026-10-24)
+
+Heartbeat and the cancellation acknowledgement are Model actions the worker performs and Umpire observes in server history (fn-243); nothing in the Model changes for that. `temporal.rs` gains their program rows in fn-237.4, not here; this task only keeps the realization compiling against the new state and actions.
 ## Acceptance
 - [ ] All four deadline arming/reset/spanning and authored simultaneous-priority controls pass. Exact expiry facts, zero handling and disabled no-budget Tick survive native/TLC agreement and replay.
 - [ ] Cooperative pending-heartbeat/acknowledgement and completion/failure races follow the approved policy; atomic compatibility and all terminal/stale-attempt laws remain. A heartbeat-only closure mutation fails.

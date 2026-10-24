@@ -1,7 +1,7 @@
 ---
 satisfies: [R5]
 ---
-# fn-228-runner-and-run-the-one-go-host-loop.5 After .4: Shim endpoint for non-Go SDK workers with protocol versioning
+# fn-228-runner-and-run-the-one-go-host-loop.5 Superseded by fn-243: Shim endpoint for non-Go SDK workers (not built)
 
 ## Description
 Add a local gRPC endpoint on the Runner that forwards Answer for out-of-process workers, carrying a protocol version; a thin forwarder returns result, failure, heartbeat or delay; unknown version is a Refusal; unreachable endpoint and callback timeout are DriverFault events. Prove with one non-Go SDK worker control (the smallest SDK the repository already provisions) and a Go-side fake for the four reply kinds.
@@ -21,8 +21,9 @@ The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"). Superseded 
 - [ ] One non-Go worker control passes
 
 ## Done summary
-Blocked:
-Deferred by the owner on 2026-10-23 pending a design rethink: workers should be pre-programmed before they run (no live worker-to-Umpire connection, e.g. in a cloud setup). The partial start was later deleted at the owner's request; superseded by fn-243.
+Superseded by fn-243 (programmed workers); nothing built. The owner deferred the Shim on 2026-10-23 ("skip the Shim for now"), the partial start was deleted the same day, and the live worker connection R5 asked for is replaced by Model-issued worker programs judged from server history. R5 is not delivered by fn-228.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

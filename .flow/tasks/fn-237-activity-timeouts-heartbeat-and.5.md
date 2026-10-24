@@ -35,6 +35,9 @@ Quick from model/: `mise exec -- cargo test -p umpire-dsl --doc`. Run formatting
 
 Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. No global model-update or stale counts. Preserve final timing output and prior evidence, including any unmet soft targets.
 
+### Addendum (2026-10-24)
+
+Also record the heartbeat and cancellation-acknowledgement program rows and the hold fault's role in the held attempt and schedule-to-start expiry, pointing at fn-243's DESIGN.md text rather than repeating it.
 ## Acceptance
 - [ ] DESIGN documents facts, bounded optional values, the extended activity World/state table, deadline and cancellation laws, the fair-worker assumption and the final compatibility projection, each backed by completed fn-237 tasks.
 - [ ] Actual native/TLC counts per selected World, the live cancellation proof and final model-time output are retained with all misses and refusal boundaries explicit.

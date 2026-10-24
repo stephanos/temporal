@@ -18,8 +18,8 @@ As of 2026-10-24.
 
 On 2026-10-18 the owner paused everything else for one question: should Umpire be built in Rust?
 The Scala framework is frozen under `model/archived/` for reference and is not expected to build.
-Earlier Scala phases and the one-language series remain deferred in Flow and retain paths relative
-to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
+The Scala-era specs (fn-119 to fn-209: 58 specs, 183 tasks) were closed in Flow on 2026-10-24 at the
+owner's request, unimplemented; the archived tree stays the reference. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
 Execution resumed under the owner's active milestone-completion goal (2026-10-20), renewed on
@@ -110,8 +110,7 @@ runs the activity Model through the Runner behind an allowlist fence, and every 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
-| fn-228.7 | ⬜ todo | After .6, fn-244.2 and fn-243.2; writes R40 in its final form (programmed workers): DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
+| fn-228.7 | ⬜ todo | After .6, fn-244.2 and fn-243.2; writes R40 in its final form (programmed workers): DESIGN.md Runner and Run write-up; R33 to R40 discharged; R5 closed as superseded (R7) |
 
 ### fn-244: Package layout of model/umpire: role directories, clear names, a crate map (model)
 
@@ -136,7 +135,9 @@ Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries th
 timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
 (optional handler facts, bounded optional values), the final one-tick compatibility refinement,
 live timeout admission and cancellation evidence, and their write-up. Reactivated by the owner
-on 2026-10-23, scheduled after fn-238.
+on 2026-10-23, scheduled after fn-238. On 2026-10-24 the spec was aligned with fn-243: .4's worker evidence
+is program rows (heartbeat, cancellation acknowledgement) judged from server history, the held attempt and
+schedule-to-start expiry use the hold fault, and task paths carry the fn-244 layout mapping.
 [Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
 
 | Name | Status | What |

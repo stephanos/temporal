@@ -70,4 +70,6 @@ This spec turns the probe into a real back end beside `umpire/backends/tlc` and 
 
 2026-10-23, Apalache: redundant for the word-level subset admitted today; its remaining value is symbolic sets, functions and unbounded sequences. Deferred until set-valued state exists, per the write-up; fn-211's R6 (symbolic Worlds) moves here as R6.
 
+2026-10-24, paths (fn-244): the back ends sit under `model/umpire/backends/{native,tla,tlc,apalache}` and this crate joins them at `backends/symbolic`; the fixture runner is `model/umpire/dev/testing`, fixtures are `model/umpire/dev/fixtures/fixtures/<name>`, and the shared replay types to lift out of `umpire-apalache` live in `backends/apalache`.
+
 Tool recipe from the spike: rIC3 v1.5.2 from source needs cmake and a `clang` on PATH; the binary is `ric3`; z3 (for the SMT-LIB tool) came from the `z3-solver` wheel.

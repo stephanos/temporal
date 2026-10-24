@@ -35,6 +35,15 @@ Quick from model/: `mise exec -- cargo test --manifest-path temporal/realization
 
 Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`, `make umpire-guest`, `make umpire-check-model-slice`, `make umpire-check-model-gaps`. Report inherited failures accurately. Retain capture identities, the pinned binding identity, live Describe/heartbeat/acknowledgement evidence, privacy checks and actual timings; do not expose private values in diagnostics.
 
+### Reworked for programmed workers (2026-10-24)
+
+fn-243 replaces the Answer path this description inherited from fn-227.5. Read Approach steps 2 and 4 as follows:
+
+- Worker behaviour is program rows, not Answer replies. Extend the activity key and response types (`model/temporal/proto/umpire/temporal/v1`) with `RecordActivityTaskHeartbeat` and `RespondActivityTaskCanceled` responses and the cancel-requested bit a heartbeat response reveals as a key field; the `WorkerProgram` envelope does not change. The Realization enumerates the new rows from the same reply policy; the coverage test extends to them. The raw executor sends them as is; the sdk executor's generic handler heartbeats and returns the canceled error.
+- The held attempt and the schedule-to-start expiry come from the hold fault in the proposal's instruction (fn-243), never from a sleeping worker or `start_delay`.
+- Judgment is from server history: the Describe projection reads outcome, last failure, heartbeat and cancel-request state and projects the multi-step paths. A worker that heartbeats or acknowledges where its row says otherwise is Unexplained.
+- The live slice runs through `umpire explore` with the raw executor first, then the sdk executor with identical judgments: held-attempt cancellation with pending heartbeat and acknowledgement, completion-after-cancel race, schedule-to-start expiry under a hold, plus fn-227's retry proof and the Complete, Fail, HostRefusal and context-Cancellation controls.
+- Paths: `umpire-wasm` is `umpire-runtime` (`model/umpire/protocol/runtime`); the Driver is `common/testing/testpilot/temporal/{act,control,provision}` as fn-243.2 leaves it; executors are `model/temporal/hosts/go/reference/worker/{raw,sdk}`; the live harness is whatever fn-243.2 leaves of `tests/testpilot_model_slice_test.go`. `model/temporal/**` paths are unchanged.
 ## Acceptance
 - [ ] Selected World admission uses actual filled same-invocation evidence, an explicit request timeout-to-tick quantization table and retained pinned cooperative protocol identity. Unsupported binding cannot install a World; out-of-domain timeouts and a missing binding name the offending field (`asynchronous_cancel` for the binding).
 - [ ] The extended admission commits through fn-227.5's facade transactions only; its publication/allocation, freeze, Reset and receipt-replay controls pass with the extended World, and generic runtime production has no Temporal data or ABI change.

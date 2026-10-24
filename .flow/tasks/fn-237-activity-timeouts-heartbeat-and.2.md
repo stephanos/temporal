@@ -41,6 +41,9 @@ Quick from `model/`: `mise exec -- cargo test -p umpire-lift -p umpire-tlc -p um
 
 Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. Refresh changed linked guest bytes through `make umpire-guest` and run embedded slice/gaps. Compare the original artifact manifest, including metadata; only new fixture/source expectations are added. Retain counts, replay traces and actual timings.
 
+### Paths after fn-244.1 (2026-10-24)
+
+`model/umpire/dsl/macros` is `model/umpire/author/dsl/macros`; `model/umpire/lift` is `model/umpire/backends/tla` (crate `umpire-tla`); `model/umpire/tests/fixtures/<name>` is `model/umpire/dev/fixtures/fixtures/<name>` (crate `umpire-fixtures`, formerly `umpire-tests`); `model/umpire/testing` is `model/umpire/dev/testing`; `model/umpire/backends/tlc` is unchanged. Quick command crates: `-p umpire-dsl-macros -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures` as applicable.
 ## Acceptance
 - [ ] fn-227.2's shared checked scalar constructor, O's explicit fixture factory and independent selected-binding/start validation distinguish absent, positive Ticks and exhausted Remaining zero. Forged raw values fail the factory/binding checks with the field named; authored native bounds-invariant controls refute invalid starts/updates. No generic native admission claim is made.
 - [ ] The narrow typed source surface works through state/before/World/constants; unsupported forms refuse by location. Eager-default and existing Vector controls remain discriminating.

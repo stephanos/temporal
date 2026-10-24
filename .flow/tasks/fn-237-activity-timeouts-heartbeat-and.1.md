@@ -39,6 +39,10 @@ Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make mod
 ### Ordering note (2026-10-24)
 
 Starts after fn-244.1, the serialized layout freeze, so it works in the new crate paths (for example `author/dsl/macros` and `backends/tla`).
+
+### Paths after fn-244.1 (2026-10-24)
+
+`model/umpire/dsl/macros` is `model/umpire/author/dsl/macros`; `model/umpire/lift` is `model/umpire/backends/tla` (crate `umpire-tla`); `model/umpire/tests/fixtures/<name>` is `model/umpire/dev/fixtures/fixtures/<name>` (crate `umpire-fixtures`, formerly `umpire-tests`); `model/umpire/testing` is `model/umpire/dev/testing`; `model/umpire/backends/tlc` is unchanged. Quick command crates: `-p umpire-dsl-macros -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures` as applicable.
 ## Acceptance
 - [ ] Public/private and unit/declared-World machines mix unit and optional handlers correctly. Unsupported returns, payload/discriminant/alias/nested carriers and mixed carriers fail the appropriate compile/source controls.
 - [ ] Native changed-None, unchanged-Some, ordinary empty, stay, rejection and invalid-mutation controls preserve enabledness and exact fact cardinality.
