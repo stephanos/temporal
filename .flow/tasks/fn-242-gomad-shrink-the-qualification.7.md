@@ -10,6 +10,7 @@ Before deleting any original check or closing cutover, complete the global R1 pr
 
 After .9/.10 replace composition/preparation and every retained producer endpoint, delete tools/gomad/rust/driver/ and its 71 test files and workload_tools Python that only served it. Repoint Makefile targets (qualify, validate-wasm-determinism driver suite), .github/workflows/gomad.yml source, QUALIFICATION.md one-box gates and ARCHITECTURE.md to the verb. Migrate the determinism inventory driver: evidence references (5 distinct today) to the Rust tests that replaced them so inventory_all_evidence_references_resolve stays green. Run the gomad-source-size/v1 counter before and after against the fn-232.13 ledger row. Before deletion, execute a bounded fresh-input preparation-through-dispatch-and-validation fixture through the supported Rust entry points, including representative genuine producer paths and catching input-authentication/endpoint mutations. Each replacement has executable contract proof; generated bindings must reference surviving endpoints only. This focused proof dispatches no full96 or full production cohort. The actual final-candidate roles, current measurement-role producers, SQLite oracle, runtime, live and R4 cohort remain fn-246.4-owned. Keep approved Go generators, conformance models and the guest toolchain with their original contracts. Merge gate green. Touches: tools/gomad/rust/driver (removed), workload_tools Python that served it (removed), Rust cutover fixture tests, Makefile, .github/workflows/gomad.yml, QUALIFICATION.md, ARCHITECTURE.md, determinism/inventory.json, .flow/artifacts/fn242-size.md, .flow/artifacts/fn242-obligation-inventory proof-resolution/audit append.
 
+Complexity amendment (owner, 2026-10-24): at cutover, remove every `allow`/`expect(dead_code)` whose reason names fn-242 integration (55 production dead-code allowances at 2026-10-24). Delete code that is still unused.
 ## Acceptance
 - [ ] Global R1 audit covers every original inventory/source-predicate row with no dropped, unclassified or unresolved pending proof sites; each retained Rust check has actual catching execution evidence, or a valid fold/deletion reason and same-failure/trust-boundary replacement proof
 - [ ] Zero pending_regression/unresolved proof rows remain before check deletion or .7/.8 completion; retain row-level commands, control/mutation outcomes, numeric exits, source bindings and resolution provenance, and do not credit future tests or status rewrites as proof
@@ -19,7 +20,7 @@ After .9/.10 replace composition/preparation and every retained producer endpoin
 - [ ] make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism exits 0 with no driver: reference unresolved
 - [ ] QUALIFICATION.md, ARCHITECTURE.md, CLI.md and CI source name the verb
 - [ ] Size table recorded with counter version, baseline and final revisions
-
+- [ ] No `dead_code` allowance citing fn-242 integration remains; unused code is deleted rather than allowed.
 ## Done summary
 TBD
 

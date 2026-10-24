@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:05:24.791432Z",
+  "depends_on": [
+    "fn-248-gomad-linux-and-darwin-parity-for-the.1"
+  ],
+  "id": "fn-248-gomad-linux-and-darwin-parity-for-the.2",
+  "priority": null,
+  "spec": "fn-248-gomad-linux-and-darwin-parity-for-the",
+  "spec_path": ".flow/tasks/fn-248-gomad-linux-and-darwin-parity-for-the.2.md",
+  "status": "todo",
+  "title": "One host module for OS queries",
+  "updated_at": "2026-10-24T22:05:24.791432Z"
+}

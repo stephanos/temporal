@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:16:24.250989Z",
+  "depends_on": [
+    "fn-249-gomad-retire-the-go-reference-models.1"
+  ],
+  "id": "fn-249-gomad-retire-the-go-reference-models.2",
+  "priority": null,
+  "spec": "fn-249-gomad-retire-the-go-reference-models",
+  "spec_path": ".flow/tasks/fn-249-gomad-retire-the-go-reference-models.2.md",
+  "status": "todo",
+  "title": "Capture Go oracle outputs as Rust corpus goldens",
+  "updated_at": "2026-10-24T22:16:24.250989Z"
+}

@@ -20,7 +20,7 @@ Both patterns touch every host module, so they must not race the fn-240 extracti
 
 ## Architecture & Data Models
 
-**Authenticated reads (R1).** `gomad-evidence` gains one module, `io`, with three pieces: `BoundedRead` (read at most N bytes from an already pinned handle, refusing longer input with the existing boundary message), `Digest` (the one SHA-256 and hex helper, with the canonical-bytes variant), and `Authenticated<T>` (bounded read, digest, compare against an expected identity, then typed decode; the only way to turn retained bytes into a value). Callers in campaign, qualify, minimize, replay, measurement, install, sweep and the fixture modules delete their local copies. The engine side (`wasmhost`) keeps its own identity sites, which bind helper and module identities and already live in one place each.
+**Authenticated reads (R1).** `gomad-evidence` gains one module, `io`, built on `cap-std` `Dir` handles for pinned, no-escape directory access (replacing hand-rolled `openat`/`NOFOLLOW` sequences), with three pieces: `BoundedRead` (read at most N bytes from an already pinned handle, refusing longer input with the existing boundary message), `Digest` (the one SHA-256 and hex helper, with the canonical-bytes variant), and `Authenticated<T>` (bounded read, digest, compare against an expected identity, then typed decode; the only way to turn retained bytes into a value). Callers in campaign, qualify, minimize, replay, measurement, install, sweep and the fixture modules delete their local copies. The engine side (`wasmhost`) keeps its own identity sites, which bind helper and module identities and already live in one place each.
 
 **Typed receipts (R2).** Each retained JSON record that survives fn-242 gets a serde struct with `#[serde(deny_unknown_fields)]` and the field set documented in CLI.md: qualification result, stress report and recipe, measurement receipt and input catalogue row, scenario, campaign ledger row, minimize checkpoint. Canonical bytes keep flowing through the existing canonical encoder (sorted keys, native integer widths), so on-disk bytes and identities do not change. `serde_json::Value` remains only in the canonical encoder, the `inspect` verb's output assembly, and tests.
 
@@ -28,7 +28,7 @@ Both patterns touch every host module, so they must not race the fn-240 extracti
 
 - All public CLI flags, JSON outputs, record formats, identities and goldens are unchanged; the reviewed goldens are the proof.
 - `cargo test --workspace`, `make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism lint-rust` pass after every task.
-- No new dependency beyond what the workspace already has.
+- `cap-std` may be added for `BoundedRead`/pinned-directory access (owner, 2026-10-24); no other new dependency.
 
 ## Edge Cases & Constraints
 

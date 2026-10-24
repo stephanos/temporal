@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-242-gomad-shrink-the-qualification"
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-247-gomad-protobuf-host-side-evidence",
+    "fn-248-gomad-linux-and-darwin-parity-for-the"
   ],
   "id": "fn-240-gomad-context-sized-rust-crates-with",
   "impl_review_rounds": {},
