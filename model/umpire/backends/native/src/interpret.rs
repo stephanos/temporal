@@ -9,6 +9,8 @@ use std::{
 };
 
 use rustc_hash::FxHashMap;
+#[cfg(test)]
+use umpire_dsl::Value as Exported;
 use umpire_dsl::{
     __lifted::{
         Callbacks, Evaluates, Interprets, Type,
