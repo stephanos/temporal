@@ -3,7 +3,10 @@
 
 #[author_kit::machine]
 mod counter {
-    use author_kit::{Action, Finite, State, World, check};
+    use author_kit::{
+        Finite,
+        dsl::{Action, State, World, check},
+    };
 
     #[derive(World)]
     pub(crate) struct World {
