@@ -280,7 +280,30 @@ fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
     std::os::unix::fs::symlink(&text, &link)?;
     assert!(bounded_text(&link, 4).is_err());
     assert!(bounded_text(&scratch.0, 4).is_err());
-    for (label, dump) in [("dump-budget", &text), ("dump-link", &link)] {
+    let invalid = scratch.0.join("invalid");
+    fs::write(&invalid, [255])?;
+    assert!(bounded_text(&invalid, 4).is_err());
+    let fifo = scratch.0.join("dump-fifo");
+    assert!(Command::new("mkfifo").arg(&fifo).status()?.success());
+    assert!(bounded_text(&fifo, 4).is_err());
+    let deep = scratch.0.join("deep");
+    let mut directory = deep.clone();
+    for _ in 0..66 {
+        fs::create_dir(&directory)?;
+        directory.push("d");
+    }
+    let wide = scratch.0.join("wide");
+    fs::create_dir(&wide)?;
+    for index in 0..4096 {
+        fs::write(wide.join(index.to_string()), [])?;
+    }
+    for (label, dump) in [
+        ("dump-budget", &text),
+        ("dump-link", &link),
+        ("dump-fifo", &fifo),
+        ("dump-depth", &deep),
+        ("dump-entries", &wide),
+    ] {
         assert!(
             run_process(
                 &mut fixture("echo"),
@@ -292,8 +315,17 @@ fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
             .is_err()
         );
     }
-    assert!(Scratch::new_in(&scratch.0, "../escape").is_err());
-    assert!(Scratch::new_in(&scratch.0, "link/child").is_err());
+    for relative in ["../escape", "/absolute", "link/child", "text/child"] {
+        assert!(Scratch::new_in(&scratch.0, relative).is_err());
+    }
+    let removed = Scratch::new(&scratch.0)?;
+    fs::remove_dir(&removed.0)?;
+    let failure = removed
+        .finish::<(), Refusal>(Err(Refusal("prior failure".into())))
+        .err()
+        .ok_or_else(|| Refusal("cleanup failure was hidden".into()))?;
+    assert!(failure.0.contains("TLC cleanup failed"));
+    assert!(failure.0.contains("prior failure"));
     scratch.finish(Ok(()))
 }
 
