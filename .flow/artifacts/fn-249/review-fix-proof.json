@@ -1,0 +1,51 @@
+{
+  "source_commit": "e6725b34b3d5b8e5eeaf759e1666d3bcd965fd8f",
+  "source_revision": "dc76222c8a3a6a9e67170e019b9f7f7eefd8cc87",
+  "source_hashes": {
+    ".flow/artifacts/fn-249/collect_inventory.py": "7e7142d7404c709342bf9ef2d5bfeec98a4c41393a054a094430e4bb31089b80",
+    ".flow/artifacts/fn-249/coverage.json": "24e53e80ef8b12257fed57ac26b2c2a983cf7932527040d71273a1dd3226dfcb",
+    ".flow/artifacts/fn-249/inventory.md": "5f7357458d7f5100f76ddbe56ddebaa2cb90a4dd43e30117fceec5335bfdd8ff",
+    ".flow/artifacts/fn-249/stages.json": "b90f118cca8c2c55d06a42de882eb2544b8c3c7157f311dfab586d04edc27a75",
+    ".flow/artifacts/fn-249/tests.md": "55cddc725aeffad196f016cea199dbdb2a97d7bbdc30f39ab12b533248720a85",
+    ".flow/artifacts/fn-249/verify_inventory.py": "f629358f915998539858cd71ebffa9e4877b4b08dffa5c593ca0f46b8009e87a"
+  },
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 /home/agent/wt/evidence/fn249-model-inventory/review-fix/regressions.py",
+      "exit_code": 0,
+      "log": "/home/agent/wt/evidence/fn249-model-inventory/review-fix/green-0.log",
+      "sha256": "fcce0793e9bd1240d73353e33aea766668947c6f95cbcb1b098954bdfab2f9ab"
+    },
+    {
+      "command": "python3 .flow/artifacts/fn-249/collect_inventory.py --check",
+      "exit_code": 0,
+      "log": "/home/agent/wt/evidence/fn249-model-inventory/review-fix/green-1.log",
+      "sha256": "d20d9a11b56a3124d395044e27f1c04e854a2a655a38f6f3d3b8e1df187784fd"
+    },
+    {
+      "command": "python3 .flow/artifacts/fn-249/verify_inventory.py",
+      "exit_code": 0,
+      "log": "/home/agent/wt/evidence/fn249-model-inventory/review-fix/green-2.log",
+      "sha256": "a6f0fd6bc74e7b85737a6741275685f112f1e627670305257fc3fd5e75274544"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "log": "/home/agent/wt/evidence/fn249-model-inventory/review-fix/green-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "red": {
+    "command": "python3 /home/agent/wt/evidence/fn249-model-inventory/review-fix/regressions.py",
+    "exit_code": 1,
+    "log": "/home/agent/wt/evidence/fn249-model-inventory/review-fix/red.log",
+    "sha256": "bc34c64f3c647342bbec9a64587d674b41f1d70ee2bb5978afdcaeaeeb25a82c"
+  },
+  "handoff_sha256": "41d4b4b4c0c8336ede162e3fcd5e9c920df294a9108d17c9d4c516b7f330f7c9",
+  "limitations": [
+    "Static analysis only; no project builds/tests or mutation/qualification claims.",
+    "Full wasmhost Rust source superset, not a compiler module graph. Source spans are declaration-to-EOF context, not function bodies.",
+    "Unrelated externally written spec review ledger remains uncommitted; saved in external-spec-ledger.json and excluded from commit."
+  ],
+  "review": "same-receipt re-review pending"
+}
