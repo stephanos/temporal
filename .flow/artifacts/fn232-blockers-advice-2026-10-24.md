@@ -117,3 +117,29 @@ window), where it can be done once with a plan golden.
 2. Verify (2)'s remaining mirrors and QUALIFICATION.md; run the standalone onebox check.
 3. Merge-gate on the merged tree, including `test-rust-engine` (3) and the diagnostic matrix (4).
 4. Clean disk (5), then launch the cycle with the current controller and leave the host alone (6).
+
+## Addendum (same day): what the retained attempts have never exercised
+
+Across the eight retained cycle attempts, 73 of the 96 stages have never produced a PASS receipt:
+every `runtime-N` shard, all ten `workload-*` cells, `workload-corpus`, the four `sqlite-selection-*`
+stages and `sqlite-catalogue`, `ordinary`, `artifact`, `operator`, `storage`, `network`, `clusters`,
+the `terminal-*` and `busy-*` stages and `retained-*`. The cycles so far have only ever reached the
+build, lint and unit-test half. Treat the first run that gets past `temporal-inspection` as a
+discovery run: expect new failures in the second half, run failed stages standalone, and fix forward.
+
+Two risks in that half are now filed as tasks:
+
+- **fn-232.31** (predicted blocker; .13 depends on it): the sqlite and multi-instance cells have never
+  run under the per-owner World transition budget that Rust enforces since `93be185443`. Onebox needed
+  4.7 MiB for one cluster over three virtual minutes; the replication scenario runs two clusters for
+  up to fifteen. Measure first, as .30 did, then set the budget with headroom. Do this before the cycle
+  reaches `workload-multi-instance-*`, because that stage runs late and a failure there costs the hour.
+- **fn-232.32** (same class as the .30 refusal, lower priority): readers still pass literal bounds
+  (16 MiB versus 64 MiB for the same `cluster-replay.json`, ad hoc stream bounds in the workload and
+  retry readers). Unify them with the authenticated limits so nothing qualifies on one path and is
+  refused on another.
+
+Checked and not a problem: phase attribution is enabled on the real `qualify` path
+(`cli/qualify.rs`) and `/proc/self/clear_refs` is writable in this sandbox, so the 2 GiB operator
+ceiling is measured against operator phases, not against the 2.75 GiB whole-process peak the onebox
+run reaches. The runtime-N reader's 64 MiB bound matches what `runtime_qualification.rs` records.

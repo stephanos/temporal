@@ -508,6 +508,8 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | Done | Capacity diagnosis authenticated and independently reviewed; actual defect remains assigned to .30 |
 | [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | 🚧 Running | Repair polling and retained replay; prove the original full canary with its measured8MiB trace budget; follows .29 |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
+| [fn-232.31](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md) | ⬜ Todo | Measure sqlite/multi-instance World transition budgets under enforced recording before the cycle reaches them; .13 depends on it |
+| [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⬜ Todo | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
 
 Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
 launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish
