@@ -1,13 +1,50 @@
 ---
-satisfies: [R7]
+satisfies: [R1, R2, R3, R4, R5, R6, R7]
 ---
-# fn-246-realization-as-a-checked-refinement-a.6 DESIGN.md 'Realization as a checked refinement', README authoring paragraph, counts and model-time; the workflow Model named as the re-measurement
+# fn-246-realization-as-a-checked-refinement-a.6 Integrated evidence, artifact/count/timing gates and checked-refinement author docs
 
 ## Description
-After .3, .4 and .5. Write the DESIGN.md section: the five abstractions, the protocol Model and refinement semantics (starts, preserved edges, stutters, gaps, violations), strategy derivation, the shared/feature layout, per-feature and shared line counts before and after against the twice-the-Model target, and `make model-time`. Update `model/README.md` with the authoring paragraph (registry attributes, entity, read, refines) and the crate map for `temporal/shared`. Name the workflow Model as the re-measurement of the ratio. MILESTONES remains root-owned. Full gates: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`, `make umpire-check-model-slice`, `make umpire-check-model-gaps`.
+
+Complete integrated R1-R7 evidence, counts/timing and author documentation after .3/.4/.5. Keep final evidence and documentation in this one finalization task. Root retains MILESTONES and downstream admission ownership.
+
+**Size:** M
+**Files:** DESIGN/README/guest-build and realization authoring docs, reproducible count/artifact checks, exact retained evidence manifests and necessary existing gate wiring.
+**Touches:** [model/DESIGN.md, model/README.md, model/GUEST_BUILDS.md, model/temporal/{annotate,realization}/README.md, model/dev/xtask/**, model/temporal/testing/**, Makefile, model/temporal/hosts/go/umpire_temporal_guest.wasm]
+
+## Approach
+
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+
+1. Run an exact protected-artifact manifest against the integrated pre-fn-246 baseline. Protect old generic/v1 guest+Run fixtures, Kettle except listed Reach outputs, original compatibility/checkpoint/hash and terminal-only program bytes. Allow only individually listed new prefix2 guest metadata/record outputs, Kettle Reach, protocol/refinement and approved feature derived-name/key outputs. No blanket legacy-guest rebuild/metadata addition or broad normalization; unexpected added/deleted/changed artifacts fail.
+2. Rebuild and commit the Temporal guest through the existing builder before live verification; run freshness checks with CI-set fail-closed prerequisites. Record source/guest parity, hash/size and native/wasm/Go host results. Generated bindings remain current through existing three-module scripts.
+3. Run full model/required-TLC and boundary/claim/annotation/refinement/strategy controls, production prefix2 metadata retention/type coupling, legacy1/new2/unknown/malformed/mismatched version admission and exact old/new record replay. Include the non-equivalent latent-budget counterexample, typed expiry Facts, negative earlier-prefix/latest-only witness and atomic publication/retry controls. Execute all current actual raw/nativeSDK explore/live rows with fresh guest and retained identifiers/counts. fn-237.4's admission/evidence/journal/gates/original cooperative witnesses and fn-243.5's original unheld proof stay open; neither a new version nor a generic mock discharges them.
+4. Rerun reproducible baseline/final mapping counts with semantic Model, mapping metadata/fillers/predicates, generated, shared handwritten and shared protocol components separately. Report exact file/line classifications and <=2x ratio. Any feature semantics moved into shared remain in the feature charge. An over-target result fails without a written owner exception; no smaller/easier feature substitution.
+5. Record make model-time's actual inner-loop/full-gate timings and R30 overrun status. Explain authoring in DESIGN's Realization as a checked refinement section and README/crate map using the final APIs and measured evidence. Name workflow remeasurement as the next feature's enforced ratio gate; do not claim it measured here. Document protocol/TLC own-invariant evidence separately from native refinement and later TLC refinement mapping.
+6. Hand root the complete implementation/Flow closure commits, exact evidence locations and retained downstream obligations. Render HTML only through the configured Flow lens at root's safe boundary; no browser/Lavish. Count/artifact/build helpers extend fn-247's Rust xtask owner; preserve its one-language contract. No Python helper, broad drift scanner, new CI workflow or new dependency.
+
+## Investigation targets
+
+**Required:**
+
+- `Makefile:1278-1305` for current model-check/freshness/parity/timing owners.
+- `model/README.md:63-152,478-637` and `model/DESIGN.md` for current authoring/runtime and R30 claims.
+- `model/GUEST_BUILDS.md`, `model/dev/xtask` and retained shell launchers as fn-247 leaves them for current builder/protobuf freshness ownership.
+- `model/temporal/feature/activity/compatibility/checkpoint.rs` and original manifest for exact protected evidence.
+- .3's count/inventory harness and .5's independent policy/decision manifest for final measurement.
+- Current fn-243.5/fn-237.4 task contracts and actual `tests/testpilot_model*test.go` for mandatory retained live rows.
+
+## Verification
+
+From root, in dependency-safe order: `make umpire-guest`; `make model-check`; `UMPIRE_BACKENDS=require make model-check`; `make umpire-check-model-slice`; `make umpire-check-model-gaps`; current explore/record/replay controls; `make model-time`. Use `test_dep` for every Go command and integration only where its harness requires it. Run only required focused regressions again if integrated changes expose a new failure; retain real exits/output and inherited-failure distinctions.
 
 ## Acceptance
-- [ ] TBD
+
+- [ ] Exact manifest allows only listed opt-in prefix2 metadata/record, Kettle Reach, protocol/refinement and feature program/key outputs. Legacy1 guest+Run bytes, Exact/Kettle contract, independent checkpoint and old terminal-only bytes remain pinned. No default metadata addition to all guests, unexplained artifact change or broad normalization.
+- [ ] Fresh committed guest passes CI-set freshness plus native/wasm/Go parity; full model/required-TLC, annotation/refinement/policy mutants and actual current raw/SDK slice/gaps/explore/replay rows execute with retained output/count evidence.
+- [ ] Production metadata/type coupling, legacy1/new2/unknown/malformed/mismatched admission/replay and version-aware prefix presentation execute. Latent global/local budget continuations, typed expiry Facts, negative earlier-prefix/latest-only witness, unsafe merge and failed-publication/retry controls pass without rewriting prior Runs.
+- [ ] Exact baseline/final file/line inventory meets mapping <=2x semantic Model lines with honest shared/generated/protocol ownership; registry metadata is mapping and moved feature semantics stay charged. No unwritten ratio exception.
+- [ ] DESIGN/README authoring and layout match final contracts and measured counts/timing. Protocol TLC invariants and native refinement are distinct; workflow remeasurement and later TLC mapping remain named future gates.
+- [ ] Actual model-time figures and R30 soft-target overruns are reported. Root receives committed closure/evidence and unchanged mandatory fn-237.4 cooperative/live/journal/gate and fn-243.5 original unheld/raw/SDK proof obligations.
 
 ## Done summary
 TBD

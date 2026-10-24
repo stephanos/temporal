@@ -7,7 +7,6 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-243-programmed-workers-the-model-issues",
     "fn-247-one-language-for-the-framework-a-rust"
   ],
   "id": "fn-246-realization-as-a-checked-refinement-a",
@@ -31,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T16:42:26.403819Z"
+  "updated_at": "2026-10-24T19:07:08.287970Z"
 }

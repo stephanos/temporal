@@ -9,6 +9,6 @@
   "spec": "fn-246-realization-as-a-checked-refinement-a",
   "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.1.md",
   "status": "todo",
-  "title": "Reach, fillers and capability traits in umpire-runtime; Kettle adopts Reach",
-  "updated_at": "2026-10-24T16:09:22.411284Z"
+  "title": "Transactional bounded Reach and Kettle proof point",
+  "updated_at": "2026-10-24T19:08:23.660364Z"
 }

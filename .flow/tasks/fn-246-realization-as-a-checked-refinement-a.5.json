@@ -4,13 +4,15 @@
   "claimed_at": null,
   "created_at": "2026-10-24T16:09:22.411663Z",
   "depends_on": [
-    "fn-246-realization-as-a-checked-refinement-a.3"
+    "fn-246-realization-as-a-checked-refinement-a.3",
+    "fn-246-realization-as-a-checked-refinement-a.4",
+    "fn-246-realization-as-a-checked-refinement-a.14"
   ],
   "id": "fn-246-realization-as-a-checked-refinement-a.5",
   "priority": null,
   "spec": "fn-246-realization-as-a-checked-refinement-a",
   "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.5.md",
   "status": "todo",
-  "title": "Worker strategies enumerated from the Model replace hand-named scenarios; program rows derived from strategies and fillers",
-  "updated_at": "2026-10-24T16:09:22.411663Z"
+  "title": "Complete observable-worker policies, coverage construction and filler-derived programs",
+  "updated_at": "2026-10-24T19:08:24.799653Z"
 }

@@ -1,0 +1,93 @@
+{
+  "kind": "plan-authoring-validation",
+  "spec": "fn-246-realization-as-a-checked-refinement-a",
+  "baseline_head": "67a7c6af38",
+  "source_checkpoint_fn2373": "e04f0dc1a3; source checkpoint only, closure pending at authoring",
+  "fn247": "67a7c6af38; approved seven-task plan only, implementation not begun",
+  "validation_command": "BASH_ENV=/dev/null /home/agent/.codex/scripts/flowctl validate --spec fn-246-realization-as-a-checked-refinement-a --coverage --json",
+  "validation": {
+    "success": true,
+    "requirement_coverage": "## Requirement coverage\n\n| Req | Description | Task(s) | Gap justification |\n| --- | --- | --- | --- |\n| R1 | Generic Reach uses typed targets, existing checked-step/replay and a bounded evidence-compatible frontier preserving all required latent continuations; Exact/Kettle stays singleton/legacy1-compatible. The global=3/heartbeat=2 hidden-Tick/Heartbeat and fully evidenced global/heartbeat expiries discriminate greedy commitment. Canonical order chooses report witnesses without pruning distinct continuations/work or claiming hidden-state measurement/uniqueness/completeness. Prefix2 reports replay from Reset against all prior observations and typed emitted Facts; earlier reports remain immutable existential prefix claims. Actual mode-coupled guest metadata, discovered Host/Run version and exact replay select semantics; unknown/malformed/mismatched versions refuse. Complete no-match is Unexplained; unresolved work/precedence/resource bounds are Refused without branch loss. Atomic publication/frontier/cursor/pending, failed publication/retry, negative-prefix/fact, unsafe-merge, fabricated-state and legacy/new/unknown-version controls pass. No ambiguity is waived through fn-237.4's missing-cause scope. | fn-246-realization-as-a-checked-refinement-a.1, fn-246-realization-as-a-checked-refinement-a.10, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.8, fn-246-realization-as-a-checked-refinement-a.9 | \u2014 |\n| R2 | Fill/capabilities compose Realize for direct, derived, generic-guest, Kettle and activity consumers, preserving layouts/export shape, publication transaction and listed legacy1 compatibility while consuming explicit prefix2 protocol/version mechanics and feature-capability amendments in API Contracts. Missing required capabilities name compile errors; defaults/empty enums/generic declarations have positive controls; malformed typed evidence remains refused through existing validation. | fn-246-realization-as-a-checked-refinement-a.11, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.7, fn-246-realization-as-a-checked-refinement-a.8 | \u2014 |\n| R3 | The shared Temporal catalog, claims, field kinds, entity lens, correlation, reads, hold, receipt/freeze/Reset, program-envelope, filler-driven probes and support contain no feature-module coupling or embedded feature policy. Errors include invalid/duplicate claims, descriptor/result mismatch, claimed-field/enum omissions and feature-semantic leakage. Required API/domain names remain valid. | fn-246-realization-as-a-checked-refinement-a.11, fn-246-realization-as-a-checked-refinement-a.12, fn-246-realization-as-a-checked-refinement-a.2, fn-246-realization-as-a-checked-refinement-a.6 | \u2014 |\n| R4 | The activity binding consists of registry declarations, entity/read configuration, snapshot/semantic projection, claimed field rules, fillers and evidence predicates. Old handwritten classification, response, correlation and probe-baseline tables disappear. Before/after live judgments agree and every previous probe ID has an audited retained/removed outcome. The accepted-gap list empties only when every remaining semantic case has an independently justified typed semantic/applicability prediction with primary contract provenance and every removal follows the independently specified opaque/unclaimed-tree rule. Errors include any unexplained case loss, weakened claimed constraint, inferred opaque bound or residual unaccounted gap. Original conditional queue-name and retry-ordering paired live controls remain mandatory. | fn-246-realization-as-a-checked-refinement-a.12, fn-246-realization-as-a-checked-refinement-a.3, fn-246-realization-as-a-checked-refinement-a.6 | \u2014 |\n| R5 | The independently authored full protocol Model, including latent timer semantics and separate public view, has native fixtures and required TLC own-invariant agreement. Native refinement accounts for every full World/state field, preserves all budgets/expiry/reset/spanning laws and proves its observable-view compatibility commutes with online target matching. Reports retain starts, mapped edges, stutters, gaps and violations. Changed protocol edge, removed feature edge, wrong projection/start/outcome/budget, erased timer field, mapped-disabled edge and visible-equal/full-state-changing stutter controls fail. A gap is incomplete coverage, never preservation success. Exact missing live expiry cause retains fn-237's predeclared narrow scope without inferring cause from Canceled or discharging original rows. The independent checkpoint remains byte/hash checked; no TLC-side refinement is claimed. | fn-246-realization-as-a-checked-refinement-a.10, fn-246-realization-as-a-checked-refinement-a.13, fn-246-realization-as-a-checked-refinement-a.4, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.9 | \u2014 |\n| R6 | Every implementable worker policy over actual observable histories/keys within the declared finite depth is enumerated from the complete checked_step/emitted Model decision graph, with canonical names, typed choices and filler-derived programs replacing handwritten scenarios/response selection. The moved backward-compatible key/codec/raw-and-SDK continuation capability supports required heartbeat/acknowledgement decisions. An independent coverage construction proves every required emitted worker action/outcome decision has a representable witness across client/environment branches; unrepresentable raw-state policies/conflicts remain separately reported. Poll delivery, stale rejected Polls, response decisions and explicit Heartbeat stays are classified from the reanchored prerequisite graph; empty Rust fallthroughs earn no edge or coverage. Original terminal-only wire bytes, universal closure laws and all original mandatory live rows remain retained. Errors include unbounded choices, finite resource exhaustion, duplicate/incompatible keys, malformed or missing actual notification, unsupported SDK programs, observable-history conflicts and any missing required choice. Refusal and partial programs earn no completeness or live-coverage credit. | fn-246-realization-as-a-checked-refinement-a.14, fn-246-realization-as-a-checked-refinement-a.5, fn-246-realization-as-a-checked-refinement-a.6 | \u2014 |\n| R7 | Reproducible before/after activity counts meet mapping <=2x semantic Model lines and report handwritten/generated/shared/protocol ownership separately. Mapping metadata cannot inflate the denominator; moving feature semantics cannot reduce the numerator. DESIGN explains the checked-refinement architecture, layout, counts and actual model-time; README explains authoring. The workflow Model is the later remeasurement gate. Errors include missing files/count classifications, feature semantics charged as generic, unexplained excluded lines and an over-target ratio; only a written owner exception can relax the ratio. | fn-246-realization-as-a-checked-refinement-a.3, fn-246-realization-as-a-checked-refinement-a.6 | \u2014 |\n",
+    "spec": "fn-246-realization-as-a-checked-refinement-a",
+    "root_errors": [],
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "task_count": 14
+  },
+  "dag_checks": {
+    "task_count": 14,
+    "original_ids_preserved": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "new_ids": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "acyclic": true,
+    "waves": [
+      [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.11"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.10"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.2"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.3"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.4"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.5"
+      ],
+      [
+        "fn-246-realization-as-a-checked-refinement-a.6"
+      ]
+    ],
+    "all_tasks_todo": true
+  },
+  "dependency_edit": {
+    "removed_only": "fn-243-programmed-workers-the-model-issues",
+    "retained": "fn-247-one-language-for-the-framework-a-rust",
+    "whole_fn237_added": false
+  },
+  "downstream_amendment": "Pending owned artifact only. Apply against fresh fn237 parent/task4 canonical content before future task4 admission. No downstream canonical write ran.",
+  "not_performed": [
+    "implementation",
+    "build",
+    "SDK feasibility probe",
+    "production marker retention proof",
+    "primary review",
+    "HTML rendering",
+    "downstream canonical edit",
+    "MILESTONES edit"
+  ]
+}
