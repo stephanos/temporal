@@ -3,7 +3,7 @@ use crate::cycle::model::{Mode, PlanConfig};
 use serde_json::{Value, json};
 use std::path::PathBuf;
 
-fn config() -> PlanConfig {
+pub(super) fn config() -> PlanConfig {
     PlanConfig {
         binary: PathBuf::from("/sealed/release"),
         config_path: PathBuf::from("/sealed/driver.json"),
@@ -11,7 +11,7 @@ fn config() -> PlanConfig {
     }
 }
 
-fn oracle() -> Value {
+pub(super) fn oracle() -> Value {
     let bytes = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/../../../../.flow/artifacts/fn242-stage-table.json"

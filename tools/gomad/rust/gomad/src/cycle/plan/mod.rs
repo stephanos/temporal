@@ -1,4 +1,5 @@
 mod declarations;
+pub(crate) mod leaf;
 
 use super::model::{Isolation, Mode, Plan, PlanConfig, Semantic, Stage, StageContract};
 use std::collections::BTreeSet;
@@ -110,3 +111,6 @@ pub(crate) fn decode(config: &PlanConfig, bytes: &[u8]) -> Result<Plan, String> 
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod leaf_tests;
