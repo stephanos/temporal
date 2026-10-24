@@ -43,7 +43,9 @@ func (r *Runner) replayRun(ctx context.Context, opts Options) (_ *Run, err error
 	} else if ok {
 		derived := verdictOf(s.run.Events, recorded.GetVerdict().GetExplained())
 		s.run.Verdict = derived
-		if !proto.Equal(derived, recorded.GetVerdict()) {
+		if legacyRefusalVerdict(recorded.GetVerdict(), derived, s.run.Events) {
+			s.run.Verdict = proto.CloneOf(recorded.GetVerdict())
+		} else if !proto.Equal(derived, recorded.GetVerdict()) {
 			reason := "replay: the recorded verdict differs from the replayed events"
 			if derived.GetRefused() != nil {
 				reason += ": " + derived.GetRefused().GetReason()
@@ -53,6 +55,25 @@ func (r *Runner) replayRun(ctx context.Context, opts Options) (_ *Run, err error
 	}
 	s.progress.finished(s.run)
 	return s.run, nil
+}
+
+// Legacy Runs omitted the refusal's message from the verdict's display reason.
+// Event reproduction stays exact; only that prior canonical presentation is admitted.
+func legacyRefusalVerdict(recorded, derived *runv1.Verdict, events []*runv1.Event) bool {
+	old, current := recorded.GetRefused(), derived.GetRefused()
+	if old == nil || current == nil || old.GetEvent() != current.GetEvent() || old.GetEvent() >= uint64(len(events)) {
+		return false
+	}
+	refusal := events[old.GetEvent()].GetRefusal()
+	if refusal == nil || refusal.GetRefusal() == nil {
+		return false
+	}
+	if old.GetReason() != fmt.Sprintf("model refused %s: %s", refusal.GetMethod(), refusal.GetRefusal().GetCode()) {
+		return false
+	}
+	normalized := proto.CloneOf(recorded)
+	normalized.GetRefused().Reason = current.GetReason()
+	return proto.Equal(normalized, derived)
 }
 
 // question replays a recorded prefix, or only Resets without one, then asks one Propose or Judge.

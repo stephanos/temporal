@@ -491,3 +491,46 @@ func TestProgressNamesPositionsOnly(t *testing.T) {
 		}
 	}
 }
+
+func TestLegacyRefusalReplayPreservesOnlyTheCanonicalRecordedReason(t *testing.T) {
+	wasm := statefulGuest(t)
+	h := newHarness(t, wasm, driverFor(map[byte][]step{0: {{kind: EventCallback, value: 4, call: 1}}}))
+	current := h.run(ModeExplore, configured(1))
+	refusal := current.Events[current.Verdict.GetRefused().Event].GetRefusal()
+	legacy := "model refused " + refusal.Method.String() + ": " + refusal.GetRefusal().Code.String()
+	for _, name := range []string{"legacy", "current", "forged-reason", "forged-event", "forged-field"} {
+		t.Run(name, func(t *testing.T) {
+			recorded := proto.CloneOf(current)
+			switch name {
+			case "legacy":
+				recorded.Verdict.GetRefused().Reason = legacy
+			case "current":
+			case "forged-reason":
+				recorded.Verdict.GetRefused().Reason = legacy + ": forged"
+			case "forged-event":
+				recorded.Verdict.GetRefused().Reason = legacy
+				recorded.Verdict.GetRefused().Event--
+			case "forged-field":
+				recorded.Verdict.GetRefused().Reason = legacy
+				recorded.Verdict.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 0x01})
+			default:
+				t.Fatal(name)
+			}
+			before := mustMarshal(t, recorded)
+			replayed, err := New(wasm, func(context.Context) (Driver, error) { t.Fatal("legacy replay contacted Driver"); return nil, nil }).Run(t.Context(), ModeReplay, Options{Recorded: recorded})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.HasPrefix(name, "forged") {
+				if !strings.Contains(replayed.Verdict.GetRefused().Reason, "recorded verdict differs") {
+					t.Fatalf("forged verdict accepted: %v", replayed.Verdict)
+				}
+			} else if !proto.Equal(recorded, replayed) {
+				t.Fatalf("recorded refusal changed: got %v want %v", replayed.Verdict, recorded.Verdict)
+			}
+			if string(before) != string(mustMarshal(t, recorded)) {
+				t.Fatal("recorded Run mutated")
+			}
+		})
+	}
+}
