@@ -125,13 +125,21 @@ fn selected_leaves_keep_authored_world_identity_and_exact_fairness()
 #[test]
 fn native_interpretation_selects_before_converting_exact_actions()
 -> Result<(), Box<dyn std::error::Error>> {
+    let readmitted = parsed(source())?;
     for maximum in [1, 2, 3] {
-        let world = umpire_checker::Interpreted::new(selected::World::new(maximum, true))?;
-        let assumptions = world.assumptions();
-        assert_eq!(assumptions[0].0, "current");
-        assert_eq!(assumptions[0].1.fair.len(), usize::from(maximum) + 1);
-        let last = assumptions[0].1.fair.last().ok_or("missing fair close")?;
-        assert_eq!(ActionValues::<selected::World>::action_value(last).0, "Worker::Close");
+        for world in [
+            umpire_checker::Interpreted::new(selected::World::new(maximum, true))?,
+            umpire_checker::Interpreted::from_tree(
+                selected::World::new(maximum, true),
+                &readmitted,
+            )?,
+        ] {
+            let assumptions = world.assumptions();
+            assert_eq!(assumptions[0].0, "current");
+            assert_eq!(assumptions[0].1.fair.len(), usize::from(maximum) + 1);
+            let last = assumptions[0].1.fair.last().ok_or("missing fair close")?;
+            assert_eq!(ActionValues::<selected::World>::action_value(last).0, "Worker::Close");
+        }
     }
     Ok(())
 }

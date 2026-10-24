@@ -224,8 +224,19 @@ fn nonprimitive_worlds_missing_else_and_deep_helpers_refuse() -> Result<(), Stri
 
 #[test]
 fn folded_arithmetic_is_still_an_authored_forbidden_operand() -> Result<(), String> {
-    let source = SOURCE.replace("w.enabled && w.maximum == 1", "false && w.maximum + 1 == 2");
-    let error = admit(&source).err().ok_or("folded arithmetic guard admitted")?;
-    assert!(error.message.contains("arithmetic"), "{error:?}");
+    let equal_leaves = SOURCE
+        .replace(
+            "fair([Worker::Poll(1), Worker::Poll(2), Worker::Close]).without([])",
+            "fair([Worker::Poll(1), Worker::Close])",
+        )
+        .replace(
+            "fair([Worker::Poll(1), Worker::Poll(2), Worker::Poll(3), Worker::Close])",
+            "fair([Worker::Poll(1), Worker::Close])",
+        );
+    for source in [SOURCE, &equal_leaves] {
+        let source = source.replace("w.enabled && w.maximum == 1", "false && w.maximum + 1 == 2");
+        let error = admit(&source).err().ok_or("folded arithmetic guard admitted")?;
+        assert!(error.message.contains("arithmetic"), "{error:?}");
+    }
     Ok(())
 }
