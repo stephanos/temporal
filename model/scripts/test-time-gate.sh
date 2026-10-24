@@ -83,3 +83,5 @@ expect_warnings "$inner_warning" 10.001 60 '' ''
 expect_warnings "$gate_warning" 10 60.001 '' ''
 expect_warnings '' 2 4 2 4
 expect_warnings "$gate_warning"$'\n'"$inner_warning" 3 5 2 4
+
+bash scripts/test-model-validate.sh

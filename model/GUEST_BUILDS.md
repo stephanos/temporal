@@ -94,11 +94,14 @@ From the repository root:
 python3 -m unittest discover -s model/scripts/tests -p 'test_*.py'
 bash -n model/scripts/guest.sh model/scripts/tests/build-guests.sh
 CARGO_TARGET_DIR=/absolute/task-owned-target bash model/scripts/tests/build-guests.sh
-UMPIRE_BACKENDS=require CARGO_TARGET_DIR=/absolute/task-owned-target make model-check
-CARGO_TARGET_DIR=/absolute/task-owned-target make model-time
+CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate
 ```
 
-`model-time` executes the actual default gate and an edited-checker inner loop.
+`model-validate` executes one TLC-required full gate and one edited-checker inner loop.
+It forces TLC-required mode through conflicting environment and Make assignments; add
+`UMPIRE_APALACHE=require` to require Apalache independently in the same run. Required timings
+are separate from historical default-mode receipts below. Legacy `model-check` (gate only) and
+`model-time` (gate plus benchmark) retain default/skip and explicit required-mode selection.
 The 60 s full-gate (raised from 30 s on 2026-10-21) and 10 s inner-loop budgets are soft targets; observed overruns
 must be reported. Temporal embeds the committed `temporal/hosts/go/umpire_temporal_guest.wasm`
 through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environment override.

@@ -1270,7 +1270,7 @@ endif
 RUST_MODEL_CARGO := cd model && mise exec -- cargo
 RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model/scripts/time-gate.sh --step $(1),)
 
-.PHONY: model-check model-fmt model-update model-time
+.PHONY: model-check model-fmt model-update model-time model-validate
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
 	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
@@ -1305,3 +1305,6 @@ model-update:
 model-time:
 	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
 	@$(CURDIR)/model/scripts/time-gate.sh
+
+model-validate:
+	@$(MAKE) UMPIRE_BACKENDS=require model-time

@@ -65,7 +65,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Code generation: `make proto`
 - Update API proto: `make update-go-api`
 - Unit Testing: `make unit-test`
-- Model gate (format, lint, docs, native fixtures, wasm and Go-host parity): `make model-check`
+- Model validation (TLC-required gate and edited-checker timing): `make model-validate`
 - Model formatting: `make model-fmt`
 - Update Model goldens: `make model-update`
 - Model feedback-loop timing: `make model-time`

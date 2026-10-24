@@ -76,7 +76,8 @@ advisories; it needs the tool installed and the network.
 The gate, from the repository root (`temporal/`):
 
 ```
-make model-check   # fmt --check, clippy -D warnings on all targets, docs with warnings denied, tests
+make model-validate # one TLC-required full gate, then one edited-checker benchmark
+make model-check   # same full gate, TLC skipped by default; no benchmark
 make model-fmt     # rustfmt the workspace
 make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60 s gate soft targets (R30)
 ```
@@ -146,6 +147,12 @@ The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
 exceptions only on the three named export attributes. DSL/checker retain `forbid`.
 
 From inside `model/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
+`model-validate` runs `model-time` with TLC required, overriding conflicting environment and Make
+command-line settings. Apalache remains independent: use `UMPIRE_APALACHE=require make model-validate`
+to require both backends in the same run. Required-mode timings are separate from historical
+default-mode measurements. `model-check` and `model-time` retain their default/skip and explicit
+required modes.
+
 `model-time` measures the actual `make model-check`, including every current gate step. Its inner
 loop defaults to touching `umpire/backends/native/src/lib.rs` and testing `umpire-checker`; select another
 crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model/`). Timed
@@ -833,7 +840,7 @@ backend, fetch the pinned official tool once, then require its agreement checks:
 
 ```sh
 bash model/scripts/fetch-tlc.sh
-UMPIRE_BACKENDS=require make model-check
+make model-validate
 ```
 
 The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TLC 2.19

@@ -34,6 +34,7 @@ fi
 inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
 inner_file=${UMPIRE_INNER_SOURCE:-umpire/backends/native/src/lib.rs}
 printf '%-32s %7s\n' "step (warm)" "time"
+printf 'backend modes: UMPIRE_BACKENDS=%s UMPIRE_APALACHE=%s\n' "${UMPIRE_BACKENDS:-skip (default)}" "${UMPIRE_APALACHE:-skip (default)}"
 printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check\n'
 gate_log=$(mktemp)
 trap 'rm -f "$gate_log"' EXIT
