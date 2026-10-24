@@ -189,9 +189,19 @@ completion/review records, code, test goldens, Git history, active-spec evidence
 and shared or uncertain artifacts. Cleanup does not authorize remote ref changes.
 
 The installed Flow CLI checks committed local closures; the conductor owns branch
-integration into `umpire`. If a reinstall restores the
-publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts
-directory and run `python3 tools/flow/test_committed_dependencies.py`.
+integration into `umpire`.
+
+Before closing a spec, assess existing gate and review costs and whether they can
+run faster with the same coverage. Reuse evidence; estimates, explained unknowns
+and justified no-safe-savings decisions are valid. This project's close requires
+`--validation-review-file <repo-file>`; input may be uncommitted scratch. Close
+copies exact bytes to a content-addressed artifact and returns it in
+`modified_paths`; commit those paths with the normal closure. Automated make-pr
+uses `.flow/artifacts/<spec-id>/validation-cost-review.json` as input.
+For the v1 schema, retry semantics, focused checks, and reinstalling both the
+committed-dependencies and validation-review patches, read
+[tools/flow/README.md](tools/flow/README.md). Coordinate shared installed-script
+writes and enable the project policy only after both installed targets pass.
 
 ### Disk checks between tasks
 

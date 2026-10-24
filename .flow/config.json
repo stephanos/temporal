@@ -41,6 +41,9 @@
   "scouts": {
     "github": false
   },
+  "specClose": {
+    "validationReviewRequired": true
+  },
   "tracker": {
     "charts": "off",
     "conflictTiebreak": "always-ask",
