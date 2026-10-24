@@ -51,6 +51,7 @@ pub(crate) fn parse(
         methods: BTreeMap::new(),
         vector_imported: admit_imports(items)?,
         outcome_type: if declared.rejecting { Type::outcome() } else { Type::Unit },
+        fact_type: Type::Unit,
         phased: false,
         checks: std::cell::RefCell::default(),
         dsl: imports(items)
@@ -341,6 +342,7 @@ pub(crate) fn parse(
         name,
         state_name,
         outcome_type: parser.outcome_type,
+        fact_type: parser.fact_type,
         world_path: if parser.declared_world {
             format!("{}::World", module.ident)
         } else {

@@ -86,6 +86,8 @@ pub struct Method {
     pub arity: usize,
     /// The actor an `#[on]` method handles.
     pub actor: Option<syn::Ident>,
+    /// Whether the handler returns an optional fact.
+    pub fact: bool,
     /// A postcondition's `after = Actor::Variant` filter.
     pub after: Option<Path>,
     /// The impl's position among the module's items.
@@ -122,6 +124,8 @@ pub struct Machine {
     pub rejecting: bool,
     /// Whether any body uses `stay!`.
     pub staying: bool,
+    /// The optional local fact carrier.
+    pub fact: Option<syn::Ident>,
     /// Registered methods in declaration order.
     pub methods: Vec<Method>,
     /// Local fieldless enums outside the actors and `derive(Finite)`, with their variants.
@@ -299,6 +303,7 @@ pub fn machine(args: &TokenStream, input: &ItemMod) -> Result<Machine> {
         rejecting: invokes(tokens.clone(), "reject"),
         staying: invokes(tokens, "stay"),
         methods,
+        fact: None,
         enums,
     })
 }
@@ -799,6 +804,7 @@ fn registrations(
                 world,
                 arity,
                 actor,
+                fact: false,
                 after,
                 item,
                 index,

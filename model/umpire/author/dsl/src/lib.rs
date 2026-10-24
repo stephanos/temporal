@@ -63,6 +63,10 @@ pub mod __lifted {
         fn __umpire_state(values: &[value::Value]) -> Self::State;
         /// An edge outcome from its value.
         fn __umpire_outcome(value: &value::Value) -> Self::Outcome;
+        /// An authored edge fact from its admitted value.
+        fn __umpire_fact(_value: &value::Value) -> Self::Fact {
+            panic!("the Model declares no fact decoder")
+        }
         /// An edge outcome's value.
         fn __umpire_outcome_value(outcome: &Self::Outcome) -> value::Value;
         /// Each `check!` the embedded Model's claims index, as its failure reports it.

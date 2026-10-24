@@ -11,6 +11,8 @@ pub struct Lifted {
     pub state_name: String,
     /// Outcome type.
     pub outcome_type: Type,
+    /// The authored fact carrier, or unit when no handler returns facts.
+    pub fact_type: Type,
     /// Unit World constructor or declared World type path.
     pub world_path: String,
     /// Whether the Model declares a World, so emission needs a bound one.
@@ -114,6 +116,7 @@ pub struct Branch {
     pub updates: BTreeMap<String, Expr>,
     pub checks: Vec<Expr>,
     pub outcome: Expr,
+    pub facts: Expr,
     pub preserve_self_loop: bool,
 }
 #[derive(Clone, Debug, umpire_ir_derive::Print)]

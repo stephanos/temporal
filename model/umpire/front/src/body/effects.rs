@@ -89,6 +89,7 @@ impl Environment {
                 updates: state.values,
                 checks,
                 outcome,
+                facts: default_expr(&Type::Seq(Box::new(self.fact_type.clone()))),
                 preserve_self_loop: stays,
             });
         }

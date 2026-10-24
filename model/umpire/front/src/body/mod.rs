@@ -94,6 +94,7 @@ pub(crate) struct Environment {
     pub(crate) vector_imported: bool,
     /// The step outcome type: unit, or the stock outcome of a rejecting Model.
     pub(crate) outcome_type: Type,
+    pub(crate) fact_type: Type,
     /// Whether the State implements `umpire_dsl::Phased`, whose default methods it then has.
     pub(crate) phased: bool,
     /// The module's `use umpire_dsl::...` bindings: bound name to the path after `umpire_dsl::`.
@@ -139,6 +140,7 @@ impl Environment {
             methods: BTreeMap::new(),
             vector_imported: model.fields.iter().any(|field| matches!(field.ty, Type::Seq(_))),
             outcome_type: model.outcome_type.clone(),
+            fact_type: model.fact_type.clone(),
             phased: false,
             dsl: BTreeMap::new(),
             checks: std::cell::RefCell::default(),
