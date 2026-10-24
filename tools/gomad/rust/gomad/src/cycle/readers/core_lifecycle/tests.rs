@@ -127,3 +127,214 @@ fn receive_genuine_lifecycle_rows_and_targeted_mutations() {
         }
     }
 }
+
+fn predicate_mutants(root: &str, variant: &str, o: &Value) -> Vec<(Value, &'static str)> {
+    let mut mutants = Vec::new();
+    let mut add = |key: &str, value: Value, reason| {
+        let mut changed = o.clone();
+        changed[key] = value;
+        mutants.push((changed, reason));
+    };
+    match root {
+        MODEL if variant.starts_with("memory-capacity-") => {
+            add("memory_bytes", json!(65537), "capacity actual resources");
+            let mut model = o["local_model"].clone();
+            model["calls"] = json!(999);
+            add("local_model", model, "interrupted model lifetime/calls");
+            let mut request = o["request"].clone();
+            request["limits"]["fuel"] = json!(999999);
+            add("request", request, "capacity request budget");
+        }
+        DRAIN if variant == "held-peer-release" => {
+            add(
+                "after_control_attempts",
+                json!(5),
+                "post-failure native control attempt",
+            );
+            add(
+                "probe_elapsed_nanos",
+                json!(49_999_999),
+                "drain release/join bounds",
+            );
+            add(
+                "release_to_return_nanos",
+                json!(5_000_000_000u64),
+                "drain release/join bounds",
+            );
+            add(
+                "message",
+                json!("substituted failure"),
+                "drain terminal ownership",
+            );
+        }
+        OPERATOR | DRAIN => {
+            add(
+                "terminal",
+                json!("substituted"),
+                "failed wait terminal precedence",
+            );
+            add(
+                "steps",
+                json!([step("wait", "a"), step("start", "a")]),
+                "authored lifecycle action order",
+            );
+        }
+        LAZY => {
+            add("incarnations", json!(["a/1", "b/1"]), "lazy dormant owner");
+        }
+        CLEANUP => {
+            add("terminal", json!("substituted"), "cleanup terminal/drop");
+            let field = if variant == "context-cancel-after-actual-output" {
+                "store_dropped_before_return"
+            } else {
+                "all_stores_dropped_before_return"
+            };
+            add(field, json!(false), "cleanup terminal/drop");
+            if variant == "action-limit" {
+                add(
+                    "message",
+                    json!("scenario action capacity limit=2 used=1 delta=1"),
+                    "action limit/used/delta",
+                );
+            }
+        }
+        HOST | INTERNAL if variant != "cancelled-before-start" => {
+            add(
+                "cancelled",
+                json!(o["cancelled"] != true),
+                "host termination classification",
+            );
+            add("bound_millis", json!(1), "host termination bounds");
+            add(
+                "all_stores_dropped_before_return",
+                json!(false),
+                "host termination store leak",
+            );
+        }
+        HOST => {
+            add(
+                "steps",
+                json!([step("start", "a")]),
+                "authored lifecycle action order",
+            );
+        }
+        MODEL | ATTRIBUTION => {
+            add(
+                "admission_error",
+                json!("substituted"),
+                "typed owner admission precedence",
+            );
+        }
+        CALLBACK => {
+            add("error_kind", json!("capacity"), "native callback refusal");
+            add(
+                "activity",
+                json!({"launched_stores":1,"remote_callback_attempts":1}),
+                "native activity ownership",
+            );
+        }
+        DEADLINE => {
+            add("bounded_millis", json!(660001), "sealed deadline extension");
+        }
+        RESTART | RETRY => {
+            add("retry_slot", json!(4), "retry consumed incarnation slot");
+            add(
+                "recovery_input_unchanged",
+                json!(false),
+                "restart recovery preimages",
+            );
+            let mut after = o["storage_after_refusal"].clone();
+            after["context"] = json!([1]);
+            add(
+                "storage_after_refusal",
+                after,
+                "refused restart changed storage",
+            );
+        }
+        GRACE => {
+            add(
+                "elapsed_nanos",
+                json!(4_999_999_999u64),
+                "actual cleanup grace bound",
+            );
+            add(
+                "elapsed_nanos",
+                json!(10_000_000_000u64),
+                "actual cleanup grace bound",
+            );
+            add(
+                "cleanup_error",
+                json!("cluster cleanup deadline exceeded"),
+                "cleanup masked original failure",
+            );
+        }
+        NETWORK if variant == "valid" => {
+            add("profile", json!("foreign"), "network admission");
+        }
+        NETWORK => {
+            add("admitted", json!(true), "network owner refusal");
+        }
+        SQLITE => {
+            add(
+                "error",
+                json!("substituted"),
+                "SQLite refusal classification",
+            );
+        }
+        ORACLE => {
+            let mut checks = o["checks"].clone();
+            checks["acknowledged-durable-recovery.events"] = json!(false);
+            add("checks", checks, "SQLite native oracle forwarding");
+        }
+        BOOT => {
+            add(
+                "accepted",
+                json!(variant != "matching"),
+                "selected boot network admission",
+            );
+        }
+        "TestStorageCrashBoundOnlyByCrashBefore|TestOperatorAcceptsDeclaredStorageCrash" => {
+            add(
+                "accepted",
+                json!(variant != "crash-before"),
+                "storage crash boundary",
+            );
+        }
+        _ => panic!("missing direct lifecycle mutant for {root}/{variant}"),
+    }
+    mutants
+}
+
+#[test]
+#[ignore = "requires independently captured genuine lifecycle harness stdout"]
+fn genuine_lifecycle_direct_predicate_mutations() {
+    let raw =
+        std::fs::read(std::env::var("GOMAD_B06_LIFECYCLE_LOG").expect("GOMAD_B06_LIFECYCLE_LOG"))
+            .unwrap();
+    observations(&raw, &catalog()).unwrap();
+    let mut caught = 0;
+    for line in std::str::from_utf8(&raw)
+        .unwrap()
+        .lines()
+        .filter(|line| line.contains(SCHEMA))
+    {
+        let row =
+            crate::cycle::custody::strict_json(line[line.find('{').unwrap()..].as_bytes()).unwrap();
+        let root = if row.get("original_roots").is_some() {
+            STORAGE.join("|")
+        } else {
+            row["original_root"].as_str().unwrap().into()
+        };
+        let variant = row["variant"].as_str().unwrap();
+        for (changed, predicate) in predicate_mutants(&root, variant, &row["observed"]) {
+            let error = cases::validate(&root, variant, &changed, row.get("inputs")).unwrap_err();
+            assert_eq!(error, predicate, "{root}/{variant}");
+            println!(
+                "B06_DIRECT_MUTANT root={root} variant={variant} input_sha256={} predicate={predicate}",
+                sha(&serde_json::to_vec(&changed).unwrap())
+            );
+            caught += 1;
+        }
+    }
+    assert!(caught >= catalog().len());
+}
