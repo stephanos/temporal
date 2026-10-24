@@ -508,10 +508,10 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
+| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | 🚧 Running | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
-| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
+| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | 🚧 Running | Remove duplicated measurement checking |
 | [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |
 | [fn-242.10](.flow/tasks/fn-242-gomad-shrink-the-qualification.10.md) | ⬜ Todo | Rust producer adapters; preserve leaf commands and prove replacement contracts |
 | [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
