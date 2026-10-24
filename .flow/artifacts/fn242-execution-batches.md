@@ -100,6 +100,8 @@ Leader dependency additions: none.
 - `tools/gomad/rust/gomad/src/cycle/preparation/bindings/**`
 - `tools/gomad/rust/gomad/src/cycle/preparation/composition/**`
 
+Conductor integration extension. B03 owns `tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs` solely to expose read-only access to its existing endpoint map. Preserve catalog entries and all leaf recipes; define final partition descriptors in the owned composition module. Admission still waits for actual B01 completion. Original acceptance and proof ownership remain unchanged.
+
 ### B04 reader-foundation
 
 Implement independent command/artifact custody and retained binary codecs as the common reader boundary.

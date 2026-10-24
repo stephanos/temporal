@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.17 Freeze authenticated role and configuration bindings
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**, tools/gomad/rust/gomad/src/cycle/preparation/composition/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**, tools/gomad/rust/gomad/src/cycle/preparation/composition/**, tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs
 
 ## Description
 Port configure cell/native/live/SQLite/runtime input helpers and freeze. Authenticate roles, public bindings, installations and source/input seals. Consume endpoint descriptors from foundation without requiring endpoint implementations to exist yet.
@@ -39,3 +39,7 @@ TBD
 ## Owner-authorized batch B03 (bindings-composition)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.17, fn-242-gomad-shrink-the-qualification.19. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
+
+## Shared endpoint catalog integration
+
+B03 additionally owns the exact leaf module file in Touches solely to expose read-only access to the existing endpoint mapping. Reuse that single catalog in composition; preserve all mappings, recipe argv and production derivation. Keep final partition descriptors in the owned composition module. Existing plan/leaf goldens remain the regression check. This authorizes no implementation before B01 completion and changes no original acceptance or proof owner.
