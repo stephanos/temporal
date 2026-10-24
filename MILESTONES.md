@@ -100,20 +100,21 @@ process support with a Rust supervisor (`libc` promoted under R18, the fn-211.3 
 binary crate replaces every script with identical arguments and output; Python leaves the prerequisites.
 No behaviour change; guest bytes and goldens identical. Its eight-task plan passed primary review,
 including cold freshness admission before xtask bootstrap and the owner-approved single-pass validation.
-Shared process support is extracted; the supervisor replacement and helper ports remain queued. Placed before fn-246.1, which depends on it,
+Shared process support is extracted and single-pass validation is delivered: one required gate plus benchmark
+passed in about17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
+replacement and helper ports remain queued. Placed before fn-246.1, which depends on it,
 since fn-246 and fn-240 build on the process crate. Scope includes the retained-original verifier's
 Rust port, preserving its independent authority and artifacts.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.8 | 🔄 in progress | After committed .1: one timed required-backend validation pipeline, focused default-mode controls and unchanged legacy commands (R4, R5) |
-| fn-247.4 | ⬜ todo | After .8: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
+| fn-247.4 | 🔄 in progress | Committed .1 and .8 verified: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
 | fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
 | fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission and unchanged guest bytes (R2, R3) |
 | fn-247.6 | ⬜ todo | After .5: pinned Apalache installer, archive/publication/concurrency controls (R2, R3) |
 | fn-247.7 | ⬜ todo | After .6: retired-name filtering and immutable original-artifact verifier (R2, R3) |
-| fn-247.3 | ⬜ todo | After .7: Rust-only gate, prerequisites and ownership docs, full parity and model-time (R3, R4) |
+| fn-247.3 | ⬜ todo | After .7: Rust-only gate/docs, exact parity and one combined-backend model-validate run (R3, R4, R5) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
