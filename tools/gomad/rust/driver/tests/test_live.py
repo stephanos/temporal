@@ -391,3 +391,46 @@ class DryRunLiveReadiness(unittest.TestCase):
                 self.assertTrue(all('fn-232.14' in reason for reason in gaps.values()))
                 with patch.object(live,'REACH_GAPS_BLOCK',True),self.assertRaises(driver.Refusal):live.test_wasm_reach(config,set())
                 self.assertEqual(live.test_wasm_reach(config,live.SLIM_IDS),{})
+
+
+class CounterfactualReach(unittest.TestCase):
+    def test_absence_reports_only_uncredited_divergence_and_keeps_stage_strict(self):
+        import live
+        import ordinary_receiving
+        import counterfactual_receiving as receiving
+        import counterfactual_lineage as lineage
+        import broad_stages
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); mapping = root / 'map.json'
+            key = lineage.SOURCE + '#' + lineage.ROOT
+            entries = {key: dict(evidence=sorted(receiving.IDS))}
+            entries.update({key + '@9714/' + case: dict(evidence=['original-divergence/' + case]) for case in receiving.original.CASES})
+            entries['other#Strict'] = dict(evidence=['actual/strict'])
+            driver.write(mapping, dict(schema='gomad.original-test-wasm-reach/v1', entries=entries))
+            config = dict(root=str(root), source_sha256='source', identity={}, _config_sha256='config',
+                          files={str(mapping): driver.sha(mapping)}, live_corpus=dict(test_wasm_reach=dict(map=str(mapping))))
+            base = root / 'stages' / receiving.STAGE; base.mkdir(parents=True)
+            receipt = dict(stage=receiving.STAGE, status='PASS', exit=0, source='source', identity={}, config_sha256='config', subgates=[])
+            driver.write(base / 'receipt.json', receipt)
+            with patch.object(live, 'original_callables', return_value=set(entries)), \
+                    patch.object(ordinary_receiving, 'final_read', return_value=dict(actual_cases=[])), \
+                    patch.object(live, 'coverage'), patch.object(live, 'stage_subgate_evidence', return_value=set()), \
+                    patch.object(broad_stages, 'read', return_value={}) as broad, \
+                    patch.object(receiving, 'read') as divergence_read:
+                actual = set(live.SLIM_IDS) | {'actual/strict'}
+                gaps = live.test_wasm_reach(config, actual)
+                self.assertEqual(set(gaps), set(entries) - {'other#Strict'})
+                self.assertTrue(all('fn-232.14' in reason for reason in gaps.values()))
+                broad.assert_called_once(); divergence_read.assert_not_called()
+                with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaises(Refusal):
+                    live.test_wasm_reach(config, actual)
+                with self.assertRaisesRegex(Refusal, 'unexecuted/duplicate'):
+                    live.test_wasm_reach(config, live.SLIM_IDS)
+                driver.write(base / 'receipt.json', dict(receipt, status='FAIL', exit=1))
+                with self.assertRaisesRegex(Refusal, 'completed owning stage'):
+                    live.test_wasm_reach(config, actual)
+                driver.write(base / 'receipt.json', receipt)
+                for invalid in (None, {}, dict(cli_build='relative')):
+                    config['live_corpus']['test_wasm_reach']['executed_divergence'] = invalid
+                    with self.subTest(invalid=invalid), self.assertRaises(Refusal):
+                        live.test_wasm_reach(config, actual)

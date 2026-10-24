@@ -176,6 +176,70 @@ class SameStageCounterfactual(unittest.TestCase):
             config['live_corpus']['test_wasm_reach']['executed_divergence'] = changed
             with self.assertRaises(Refusal):receiving.selection(config)
 
+    def test_absent_endpoint_is_unexecuted_without_launch_or_receipts(self):
+        import counterfactual_receiving as receiving
+        import broad_stages
+        config = dict(root='/evidence', live_corpus=dict(test_wasm_reach={}))
+        with patch.object(receiving, 'guard'), patch.object(receiving, 'inputs') as inputs, \
+                patch.object(receiving, 'command') as command, patch.object(receiving, 'read') as read, \
+                patch.object(broad_stages, 'read', return_value={}) as broad:
+            for reader in (receiving.run, receiving.observations, receiving.final_read):
+                with self.subTest(reader=reader.__name__):
+                    facts = reader(config)
+                    self.assertEqual(facts['status'], 'UNEXECUTED')
+                    self.assertFalse(facts['executed'])
+                    self.assertFalse(facts['credited'])
+                    self.assertEqual(facts['actual_cases'], [])
+                    self.assertIn('fn-232.14', facts['gap'])
+            broad.assert_called_once()
+            inputs.assert_not_called(); command.assert_not_called(); read.assert_not_called()
+            for reader in (receiving.run, receiving.observations, receiving.final_read):
+                with patch.object(gate.live, 'REACH_GAPS_BLOCK', True), self.assertRaises(Refusal):
+                    reader(config)
+
+    def test_declared_invalid_endpoint_never_becomes_optional_absence(self):
+        import counterfactual_receiving as receiving
+        import broad_stages
+        selected = dict(cli_build='/cli', harness_build='/harness', compiler_root='/compiler', module_cache='/modules')
+        config = dict(root='/evidence', live_corpus=dict(test_wasm_reach={}))
+        with patch.object(receiving, 'guard'), patch.object(broad_stages, 'read', return_value={}):
+            for invalid in (None, {}, [], 'missing', dict(selected, cli_build='relative'), dict(selected, extra='/other')):
+                config['live_corpus']['test_wasm_reach']['executed_divergence'] = invalid
+                for reader in (receiving.run, receiving.observations, receiving.final_read):
+                    with self.subTest(invalid=invalid, reader=reader.__name__), self.assertRaises(Refusal):
+                        reader(config)
+            config['live_corpus']['test_wasm_reach']['executed_divergence'] = selected
+            with patch.object(receiving, 'inputs', side_effect=Refusal('declared corrupt source/config/role')):
+                for reader in (receiving.run, receiving.observations):
+                    with self.subTest(reader=reader.__name__), self.assertRaisesRegex(Refusal, 'declared corrupt'):
+                        reader(config)
+
+    def test_child_receives_explicit_config_and_verified_loader_precedes_production(self):
+        import counterfactual_receiving as receiving
+        selected = dict(cli_build='/cli', harness_build='/harness', compiler_root='/compiler', module_cache='/modules')
+        config = dict(python='/python', _config_path='/sealed/config.json')
+        argv = receiving.argv(config, selected, Path('/out'))
+        self.assertEqual(argv[argv.index('--config') + 1], config['_config_path'])
+        arguments = ['executed_divergence.py', 'produce', *argv[3:]]
+        loaded = dict(dry_run=True)
+        with patch.object(sys, 'argv', arguments), patch.object(gate, 'configured', return_value=loaded) as loader, \
+                patch.object(gate, 'sha', return_value='sealed'), patch.object(gate, 'produce') as produce:
+            gate.main()
+            loader.assert_called_once_with(Path('/sealed/config.json'))
+            self.assertIs(produce.call_args.kwargs['frozen'], loaded)
+            self.assertEqual(loaded['_config_sha256'], 'sealed')
+        with patch.object(sys, 'argv', arguments), patch.object(gate, 'configured', side_effect=Refusal('invalid sealed config')), \
+                patch.object(gate, 'produce') as produce:
+            with self.assertRaisesRegex(Refusal, 'invalid sealed config'): gate.main()
+            produce.assert_not_called()
+
+    def test_environment_cannot_admit_dry_run_counterfactual_roles(self):
+        import dry_run
+        with patch.object(dry_run, 'is_record', return_value=True), \
+                patch.object(gate.main_cli_build, 'read_build') as reader:
+            with self.assertRaisesRegex(Refusal, 'configuration'): gate.roles('/cli', '/harness')
+            reader.assert_not_called()
+
     def test_stronger_same_stage_drain_is_required_before_any_divergence_credit(self):
         import counterfactual_receiving as receiving
         import broad_stages
