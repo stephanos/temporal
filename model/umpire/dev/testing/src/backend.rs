@@ -12,6 +12,14 @@ fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::E
     match (ty, value) {
         (Type::Bool, Value::Bool(value)) => Ok(value.to_string()),
         (Type::Int { .. }, Value::Int(value)) => Ok(value.to_string()),
+        (Type::Bounded(bounded), Value::Int(raw)) if bounded.contains(*raw) => {
+            Ok(bounded_debug(bounded, *raw))
+        }
+        (Type::Optional(bounded), Value::Int(code)) => match bounded.decode(*code) {
+            Some(None) => Ok("None".into()),
+            Some(Some(raw)) => Ok(format!("Some({})", bounded_debug(bounded, raw))),
+            None => Err(format!("invalid optional code for {}: {code}", bounded.name).into()),
+        },
         (Type::Text, Value::Text(value)) => Ok(format!("{value:?}")),
         (Type::Enum { name, variants }, Value::Text(value)) if variants.contains(value) => {
             Ok(value.strip_prefix(&format!("{name}::")).unwrap_or(value).to_owned())
@@ -37,6 +45,13 @@ fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::E
         )),
         _ => Err(format!("decoded value does not match authored type: {ty:?}: {value:?}").into()),
     }
+}
+
+fn bounded_debug(bounded: &umpire_dsl::__lifted::Bounded, raw: i128) -> String {
+    bounded.field.as_ref().map_or_else(
+        || format!("{}({raw})", bounded.name),
+        |field| format!("{} {{ {field}: {raw} }}", bounded.name),
+    )
 }
 
 fn state_text(module: &Module, state: &State) -> Result<String, Box<dyn std::error::Error>> {
@@ -263,6 +278,12 @@ fn admits(ty: &Type, value: &Literal) -> bool {
         (Type::Bool, Literal::Bool(_)) => true,
         (Type::Int { min, max }, Literal::Int(value)) => (*min..=*max).contains(value),
         (Type::Enum { variants, .. }, Literal::Enum(value)) => variants.contains(value),
+        (Type::Bounded(bounded), Literal::Bounded { name, raw }) => {
+            *name == bounded.name && bounded.contains(*raw)
+        }
+        (Type::Optional(bounded), Literal::Optional(value)) if bounded.optional_valid() => {
+            value.as_ref().is_none_or(|value| admits(&Type::Bounded(bounded.clone()), value))
+        }
         _ => false,
     }
 }
@@ -392,6 +413,74 @@ fn agreement(
 mod tests {
     use super::*;
     use crate::Files;
+
+    fn bounded(name: &str, field: Option<&str>, low: i128) -> umpire_dsl::__lifted::Bounded {
+        umpire_dsl::__lifted::Bounded {
+            name: name.into(),
+            field: field.map(str::to_owned),
+            backing: "u8".into(),
+            min: 0,
+            max: 255,
+            low,
+            high: 3,
+        }
+    }
+
+    #[test]
+    fn nominal_debug_preserves_authored_shapes_and_exact_optional_codes() -> crate::TestResult {
+        let ticks = bounded("Ticks", None, 1);
+        let remaining = bounded("Remaining", Some("ticks"), 0);
+        for (ty, code, expected) in [
+            (Type::Bounded(ticks.clone()), 1, "Ticks(1)"),
+            (Type::Optional(ticks.clone()), 0, "None"),
+            (Type::Optional(ticks.clone()), 2, "Some(Ticks(1))"),
+            (Type::Optional(remaining.clone()), 1, "Some(Remaining { ticks: 0 })"),
+        ] {
+            assert_eq!(debug_value(&ty, &Value::Int(code))?, expected);
+        }
+        for value in [
+            Value::Int(-1),
+            Value::Int(1),
+            Value::Int(5),
+            Value::Bool(false),
+            Value::Text("Some(Ticks(1))".into()),
+            Value::Seq(Vec::new()),
+        ] {
+            assert!(debug_value(&Type::Optional(ticks.clone()), &value).is_err(), "{value:?}");
+        }
+        assert!(debug_value(&Type::Bounded(ticks.clone()), &Value::Int(0)).is_err());
+        let mut malformed = remaining;
+        malformed.max = 4;
+        assert!(debug_value(&Type::Optional(malformed), &Value::Int(0)).is_err());
+        let mut module = module(Vec::new(), Vec::new());
+        module.metadata.fields[0].ty = Type::Optional(ticks);
+        let field = module.metadata.fields[0].name.clone();
+        assert!(state_text(&module, &State::from([(field, Value::Int(1))])).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn nominal_action_literals_require_exact_typed_identity() {
+        let ticks = bounded("Ticks", None, 1);
+        let ty = Type::Optional(ticks.clone());
+        assert!(admits(&ty, &Literal::Optional(None)));
+        assert!(admits(
+            &ty,
+            &Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 1 })))
+        ));
+        for value in [
+            Literal::Int(2),
+            Literal::Optional(Some(Box::new(Literal::Int(1)))),
+            Literal::Optional(Some(Box::new(Literal::Bounded {
+                name: "Remaining".into(),
+                raw: 1,
+            }))),
+            Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 0 }))),
+            Literal::Optional(Some(Box::new(Literal::Optional(None)))),
+        ] {
+            assert!(!admits(&ty, &value), "{value:?}");
+        }
+    }
 
     struct Invalid;
 

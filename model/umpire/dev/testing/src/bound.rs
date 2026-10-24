@@ -87,6 +87,20 @@ impl<M: Declared> Bound<M> {
     /// # Errors
     /// Returns any checker or backend failure, or a disagreement.
     pub fn check_module(mut self, folder: &Path, module: &Module) -> crate::RunResult {
+        let expected = self.binding.as_ref().map_err(Clone::clone)?;
+        let mut starts = Vec::new();
+        for state in &expected.starts {
+            if !starts.contains(state) {
+                starts.push(state.clone());
+            }
+        }
+        if module.metadata.binding.as_ref().is_none_or(|actual| {
+            actual.world != expected.world
+                || actual.starts != starts
+                || actual.actions != expected.actions
+        }) {
+            return Err("emitted module differs from the selected World binding".into());
+        }
         let (graph, files) = self.native()?;
         crate::backend::check_exploration(
             &self.world,
@@ -134,6 +148,33 @@ fn literal(value: Value) -> Literal {
         Value::Bool(value) => Literal::Bool(value),
         Value::Int(value) => Literal::Int(value),
         Value::Enum(value) => Literal::Enum(value.into()),
+        Value::Bounded { name, raw } => Literal::Bounded { name: name.into(), raw },
+        Value::Optional(value) => Literal::Optional(value.map(|value| Box::new(literal(*value)))),
         Value::Sequence(values) => Literal::Sequence(values.into_iter().map(literal).collect()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nominal_exports_preserve_identity_and_optional_structure() {
+        for (value, expected) in [
+            (
+                Value::Bounded { name: "Ticks", raw: 1 },
+                Literal::Bounded { name: "Ticks".into(), raw: 1 },
+            ),
+            (Value::Optional(None), Literal::Optional(None)),
+            (
+                Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 0 }))),
+                Literal::Optional(Some(Box::new(Literal::Bounded {
+                    name: "Remaining".into(),
+                    raw: 0,
+                }))),
+            ),
+        ] {
+            assert_eq!(literal(value), expected);
+        }
     }
 }
