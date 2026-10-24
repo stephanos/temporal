@@ -229,18 +229,20 @@ impl Admission {
     fn floors(&self, probe: &impl Probe, reservation: bool) -> Result<(), String> {
         let b = &self.bindings;
         let inner = b.scratch.parent().ok_or("scratch parent missing")?;
-        for (path, floor, scratch) in [
-            (b.evidence.as_path(), 12 * GIB, false),
-            (inner, 12 * GIB, true),
+        for (path, floor, scratch, overlay_role) in [
+            (b.evidence.as_path(), 12 * GIB, false, Some("evidence")),
+            (inner, 12 * GIB, true, None),
             (
                 b.host.as_path(),
                 if reservation { 45 * GIB } else { 12 * GIB },
                 false,
+                None,
             ),
             (
                 b.overlay.as_path(),
                 if reservation { 20 * GIB } else { 12 * GIB },
                 false,
+                Some("declared overlay"),
             ),
         ] {
             let fact = probe.filesystem(path)?;
@@ -256,6 +258,12 @@ impl Admission {
                 !scratch || (!fact.kind.contains("fuse") && fact.kind != "virtiofs"),
                 "scratch filesystem refused",
             )?;
+            if let Some(role) = overlay_role {
+                require(
+                    fact.kind == "overlayfs",
+                    &format!("actual overlay {role} is required"),
+                )?;
+            }
             require(
                 !reservation || !scratch || fact.kind == "overlayfs",
                 "actual overlay scratch is required",

@@ -360,6 +360,22 @@ fn memory_original_166_176_179_187_194_198_201_203() {
 
 #[test]
 fn serving_filesystems_require_overlay_at_preparation() {
+    let host = Fixture::new();
+    let host_facts = Facts {
+        change: Some((
+            host.bindings.host.clone(),
+            Filesystem {
+                kind: "ext4".into(),
+                available_bytes: 64 * GIB,
+            },
+        )),
+        fail: false,
+    };
+    Admission::prepare(host.bindings.clone(), &host_facts)
+        .unwrap()
+        .recheck(&host_facts)
+        .unwrap();
+    println!("SERVING_FS_HOST_CONTROL ext4 preparation=accepted reservation=accepted");
     let mut incorrectly_accepted = Vec::new();
     for role in ["evidence", "declared overlay"] {
         for kind in ["fuse", "ext4"] {
