@@ -33,6 +33,8 @@ Guest identity schemas and all hash-input encodings stay unchanged: Python-compa
 
 Guest check mode returns 0 for fresh, 2 for stale/missing and 1 for tool/build/discovery failure, reports sizes and the first differing offset, and never publishes the candidate. Freshness disables automatic installs; absent CI permits a missing-prerequisite warning/skip, while even empty CI requires failure. Probe/metadata/build/staleness errors always fail.
 
+Freshness enters through a Bash admission launcher before any xtask cache lookup or build. It sets `MISE_AUTO_INSTALL=false` and `MISE_EXEC_AUTO_INSTALL=false` before the first probe. Missing mise or a positively established missing pinned prerequisite returns the existing local warning/0 only when CI is absent; empty or nonempty CI fails/1. Probe errors, malformed configuration/metadata, pin disagreement and bootstrap compilation failures always fail/1. The launcher uses mise's existing TOML/config and tool-query interfaces rather than adding a JSON/TOML parser or another prerequisite. Its bounded bootstrap checks cover all old missing cases before invoking Cargo: pinned Rust and Cargo, rustup-managed compiler availability, Go, protoc, rust-src and wasm target. Once admitted, build/execute xtask, which performs the full authoritative metadata/TOML validation and guest comparison again. An already cached binary never bypasses entry admission. Prove this ordering against the actual Make/shell entrypoint with an empty xtask cache and one absent prerequisite at a time; no Cargo, guest build or artifact publication may occur on a missing-prerequisite skip. Errors must never be classified as missing solely from a nonzero probe exit.
+
 The retained-original verifier still checks the pinned original commit, exactly 15 manifest entries, the independent authoritative checksum manifest, every listed original and the same success statement. Neither implementation convenience nor a regenerated artifact may replace that authority.
 
 ## Edge Cases & Constraints
@@ -63,6 +65,10 @@ Task fn-247-one-language-for-the-framework-a-rust.4 proves cold focused-consumer
 No Model, DSL, protocol, IR, checker semantics or Temporal feature refactor; only the exact compatibility verifier migration reaches the feature tree. No new public tool format, guest pin refresh, golden acceptance or compiler/dependency upgrade. No frozen-archive or retained-original modification. No change to historical Flow Python evidence or Flow tooling. No Windows support claim, remote operation or history rewrite. rIC3 remains deferred and consumes the process/xtask patterns only when revived.
 
 ## Decision Context
+
+Maintainability (plan review): duplication - Prerequisite and pin-consistency checks occur in both Bash admission and xtask; post-bootstrap revalidation is explicitly required; structure - none identified.
+
+[plan review round 1, conductor accepted]: cold freshness admission must run before native xtask bootstrap. Add a small Bash launcher using existing mise query/config interfaces, disable auto-install before its first probe, retain strict local/CI/error classification and test the actual cold entrypoint. The complete parsing/comparison remains in xtask; a warm binary is not evidence of cold admission. Read-only installed mise CLI probes established config-get access to both TOML pin files and requested/active/installed tool queries; missing-tool/error controls remain implementation obligations.
 
 2026-10-24, [owner]: extract process ownership from the TLA+ emitter and remove the Model toolchain's Python helpers. libc promotion is expressly approved. The previous claim that this work does not overlap fn-237 is replaced by the committed fn-237.3 admission gate.
 

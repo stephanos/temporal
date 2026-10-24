@@ -11,9 +11,109 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T19:02:53.838178Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "b55f13347b20f357bb60b5324ef90d44b1e254d60b1cb936976b1494c7ab51fe",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "classification": "introduced",
+            "findingId": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 351321,
+      "output_sha256": "a9432be84499a16a3783ce58470322727a0cee8ed81843bd16720e22da3fe9d1",
+      "reservation_id": "597a095ee85d40f3b2bde934c144d568",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T19:00:36.811381Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "fa065375acd4bc7d6fbe8ef49dfbc041f502a58b788bdba258a3e5046920a305",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "classification": "introduced",
+            "findingId": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 740,
+      "output_sha256": "87937fe5dd61c7d54aeef7ee49b35fc2c159bf5a770c5e835e97eed1bcf61a7c",
+      "reservation_id": "97f6c5498db14ceb92587d9c75cf4aae",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T19:02:53.831597Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-247-one-language-for-the-framework-a-rust.md",
   "status": "open",
   "title": "One language for the framework: a Rust process supervisor and an xtask crate replace the Python helpers (model)",
@@ -28,5 +128,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T18:52:08.304024Z"
+  "updated_at": "2026-10-24T19:03:01.541286Z"
 }

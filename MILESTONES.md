@@ -116,15 +116,21 @@ supervision leaves the TLA+ emitter, and then asked why Python exists at all ("y
 policy and for build glue without a Cargo home. `umpire-backend-process` at `backends/process` takes the
 process support with a Rust supervisor (`libc` promoted under R18, the fn-211.3 precedent); a `dev/xtask`
 binary crate replaces every script with identical arguments and output; Python leaves the prerequisites.
-No behaviour change; guest bytes and goldens identical. Placed before fn-246.1, which depends on it, since
-fn-246 and fn-240 build on the process crate; it touches only back-end support, scripts and the Makefile.
+No behaviour change; guest bytes and goldens identical. Its seven-task plan passed primary review,
+including cold freshness admission before xtask bootstrap. Placed before fn-246.1, which depends on it,
+since fn-246 and fn-240 build on the process crate. Scope includes the retained-original verifier's
+Rust port, preserving its independent authority and artifacts.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.1 | ⬜ todo | After committed fn-237.3: `umpire-backend-process` with the Rust supervisor; `tla`, `tlc`, `apalache` depend on it; orphan-grandchild control (R1) |
-| fn-247.2 | ⬜ todo | After .1: `xtask` replaces `model/scripts/*.py` byte for byte; guest rebuilt identical; all `.py` under `model/` gone (R2, R3) |
-| fn-247.3 | ⬜ todo | After .2: Python out of prerequisites and docs; DESIGN one-language rule; model-time (R4) |
+| fn-247.1 | ⬜ todo | After committed fn-237.3: extract shared process support and retain the exact equivalence baseline (R1, R4) |
+| fn-247.4 | ⬜ todo | After .1: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
+| fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
+| fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission and unchanged guest bytes (R2, R3) |
+| fn-247.6 | ⬜ todo | After .5: pinned Apalache installer, archive/publication/concurrency controls (R2, R3) |
+| fn-247.7 | ⬜ todo | After .6: retired-name filtering and immutable original-artifact verifier (R2, R3) |
+| fn-247.3 | ⬜ todo | After .7: Rust-only gate, prerequisites and ownership docs, full parity and model-time (R3, R4) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
