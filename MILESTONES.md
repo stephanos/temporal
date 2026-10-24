@@ -120,14 +120,13 @@ choices as recommended. Crates move into role directories (`author/`, `front/`, 
 `protocol/`, `catalog/`, `hosts/go/`, `reference/kettle/`, `dev/`); `umpire-lift` becomes
 `umpire-tla` and owns the subprocess supervision TLC and Apalache share; `umpire-annotations` merges
 into `umpire-catalog`; a new `umpire` facade gives Model authors one dependency; the Go module splits
-into `host`, `runner` and `gen`; `model/README.md` gains a crate map. The owner placed both tasks before fn-243 on 2026-10-24; .2 finishes first, followed by the serialized Rust freeze in .1. No behaviour change; goldens
+into `host`, `runner` and `gen`; `model/README.md` gains a crate map. The owner placed both tasks before fn-243 on 2026-10-24. The Go split (.2) is complete and committed with reviewed default-model, live slice/gaps and importer checks; the serialized Rust freeze (.1) is in progress. No behaviour change; goldens
 byte-identical except listed path-embedding snapshots; the guest is rebuilt.
 [Spec](.flow/specs/fn-244-package-layout-of-modelumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-244.1 | ⬜ todo | Serialized freeze after fn-238 and fn-242 close, before fn-237.1: Rust crates into role directories, `umpire-tla`, catalog merge, facade, crate map (R1, R3) |
-| fn-244.2 | 🔄 in progress | After fn-228.6, before fn-228.7: Go module split into `host`, `runner`, `gen`; Kettle Go under `reference/kettle` (R2) |
+| fn-244.1 | 🔄 in progress | Serialized freeze after fn-238 and fn-242 close, before fn-237.1: Rust crates into role directories, `umpire-tla`, catalog merge, facade, crate map (R1, R3) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
