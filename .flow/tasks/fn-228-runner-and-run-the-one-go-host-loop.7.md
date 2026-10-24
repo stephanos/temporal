@@ -24,7 +24,7 @@ Runs after fn-244.2, which moves the Go Runner out of the generated protobuf tre
 - [ ] model-time pasted
 
 ## Done summary
-Documented Runner and Run, earned R33–R39 discharge, final package names, protocol/replay/publication/progress contracts, comparable package counts and attributed Model/live timings. Final R40/fn-228 R7 remains open in fn-243.5 after independent fn-237 cooperative semantics/binding; the exact unheld cancellation refusal, original counterexample and non-Go recorded-not-proven gap remain explicit. Both parent specs are open.
+Documented Runner and Run, earned R33–R39 discharge, final package names, protocol/replay/publication/progress contracts, comparable package counts and attributed Model/live timings. R40 is discharged in its final form by pointer (a worker in any language follows a Model-issued program; the Shim is superseded); the live unheld-cancellation proof behind that pointer is fn-243.5's obligation, not this spec's. Closed by owner decision on 2026-10-24 ("approvd"). Originally: final R40/fn-228 R7 remains open in fn-243.5 after independent fn-237 cooperative semantics/binding; the exact unheld cancellation refusal, original counterexample and non-Go recorded-not-proven gap remain explicit. Both parent specs are open.
 
 Tier: session (jev-unavailable(no_key)). No actual implementer-model claim inferred from dispatch. Primary reviewer gpt-6.1-sol/high is the writer family; no cross-family independence claim.
 
@@ -37,6 +37,6 @@ stage: plan-sync - skipped(config: planSync.enabled != true)
 
 No source lanes/worktrees created; no push, PR, history rewrite or MILESTONES edit. This task is the documentation checkpoint, not either parent spec's closure.
 ## Evidence
-- Commits: cdf3abf909e55eaaf6786659cc2332a5e5aeb3fb, f68fbe6b44693ccc884fc2d079df3ec6e542d1b7
-- Tests: python3 .flow/tmp/fn2287-check.py (exit 0: 24 package counts, added links/anchors, names, guest hash), git diff --check (exit 0), flowctl gate classify --base 62fc6611eeaa2b39330263c2e5c4fa9eb25c6a55 (exit 1: FULL unmatched documentation paths; bounded manual docs-only scope exception recorded)
+- Commits:
+- Tests:
 - PRs:

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-228-runner-and-run-the-one-go-host-loop",
   "spec_path": ".flow/tasks/fn-228-runner-and-run-the-one-go-host-loop.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .2: Go runner package: Runner, Run, Driver interface, five modes, one umpire command, publish",
   "updated_at": "2026-10-21T17:36:02.279512Z"
 }

@@ -75,29 +75,18 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-237.6 → fn-237.3 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and fn-228.7 and before fn-237.4; fn-245 (finite collections) follows fn-237.5 and precedes any fn-240 revival; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-237.6 → fn-237.3 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and before fn-237.4; fn-228 closed on 2026-10-24 with R40 discharged by pointer to fn-243 (owner decision), its live unheld-cancellation proof owned by fn-243.5; fn-245 (finite collections) follows fn-237.5 and precedes any fn-240 revival; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
 The 2026-10-24 cancellation counterexample adds a checkpoint boundary without moving the
-independently planned Model work forward. The remaining task order is fn-237.6, fn-237.3-.4, fn-243.5, then fn-237.5. fn-243 and fn-228 remain
-open until fn-243.5 supplies the deferred unheld-cancellation proof and final R40 evidence.
+independently planned Model work forward. The remaining task order is fn-237.6, fn-237.3, fn-246, fn-237.4, fn-243.5, then fn-237.5. fn-243 remains
+open until fn-243.5 supplies the deferred unheld-cancellation proof (fn-228 closed on 2026-10-24 with R40
+discharged by pointer; the live proof is this spec's).
 The current atomic Model explicitly refuses unheld cancellation of an open activity before
 a Cancel RPC. Held-before-start and terminal cancellation remain supported. The CLI cannot
 encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit blocked reasons;
 the conductor clears each only after the named prerequisite's closure is committed in `umpire`.
-
-### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
-
-All seven task checkpoints are complete locally. The Runner owns one Host per Run, drives an
-incremental Driver exchange, records exact protocol calls, replays offline, and publishes immutable
-Runs. Temporal raw and SDK workers follow the Model-issued program without callbacks; the Shim
-is superseded and generic Answer remains for other systems. The final layout, replay contract,
-counts and attributed timing evidence are in [Runner and Run](model/DESIGN.md#runner-and-run).
-Current comparable generic/total non-test Go counts are 1,759/3,205; relocated code is reported
-separately. fn-228.7 passed review as a documentation checkpoint. The parent remains open for
-final R40/R7 evidence from fn-243.5 after independent fn-237 cooperative semantics and binding.
-[Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
@@ -141,7 +130,7 @@ semantics and proves restored admission. This parent stays open until that follo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-243.5 | ⏸️ blocked | After .4, fn-246 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40/fn-228 R7 evidence (R2, R5) |
+| fn-243.5 | ⏸️ blocked | After .4, fn-246 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40 live evidence (R2, R5) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
@@ -153,7 +142,7 @@ system-agnostic; worker strategies enumerated from the Model replace the hand-na
 lands. Folded in: the action registry on the `Action` enum, fillers used four ways, the entity lens, capability
 traits, evidence kinds, one descriptor-generated WorkflowService catalog with claims, the opaque-field rule
 that empties the gap list. Target: per-feature mapping at most twice the Model's lines, re-measured on the
-workflow Model. Placed by the owner on 2026-10-24 after fn-243.4 and fn-228.7 and before fn-237.4.
+workflow Model. Placed by the owner on 2026-10-24 after fn-243.4 and before fn-237.4 (fn-228 closed the same day).
 Depends on fn-243.
 [Spec](.flow/specs/fn-246-realization-as-a-checked-refinement-a.md).
 

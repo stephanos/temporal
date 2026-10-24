@@ -465,7 +465,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md",
-  "status": "open",
+  "status": "done",
   "title": "Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -478,5 +478,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T10:49:12.656472Z"
+  "updated_at": "2026-10-24T16:28:14.043661Z"
 }

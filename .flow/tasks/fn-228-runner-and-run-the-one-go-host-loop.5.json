@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-228-runner-and-run-the-one-go-host-loop",
   "spec_path": ".flow/tasks/fn-228-runner-and-run-the-one-go-host-loop.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Superseded by fn-243: Shim endpoint for non-Go SDK workers (not built)",
   "updated_at": "2026-10-24T04:02:54.781038Z"
 }
