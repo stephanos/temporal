@@ -212,13 +212,14 @@ fn excluded_seed_keeps_all_cells_unexecuted_and_preserves_the_requested_root() {
     fs::write(repo.join("go.mod"), b"module stress-selection-fixture\n").unwrap();
     for arguments in [vec!["init", "-q"], vec!["add", "go.mod"]] {
         assert!(
-            std::process::Command::new("git")
-                .arg("-C")
-                .arg(&repo)
-                .args(arguments)
-                .status()
-                .unwrap()
-                .success()
+            crate::fork_order::status(
+                std::process::Command::new("git")
+                    .arg("-C")
+                    .arg(&repo)
+                    .args(arguments)
+            )
+            .unwrap()
+            .success()
         );
     }
     let root = repo.join("stress output");

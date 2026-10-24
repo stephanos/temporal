@@ -131,6 +131,8 @@ class OriginalClusterReplay(unittest.TestCase):
                          ['/ordinary-helper-test','--exact',*ordinary.VOLUME_TESTS,'--test-threads=1'])
         self.assertEqual(by_name[ordinary.WORKLOAD_TOOLS]['argv'],
                          ['/python','-m','unittest','discover','-v','-s','/repo/tools/gomad/rust/workload_tools','-p','test_*.py'])
+        self.assertEqual(by_name[ordinary.INSTALLED_PUBLICATION]['argv'],
+                         ['/python','/repo/tools/gomad/testdata/parity/installed-publication-test.py','-v'])
 
     def test_ordinary_workload_tool_cases_require_every_listed_pass(self):
         ok = (b'test_a (test_x.Case.test_a) ... ok\ntest_b (test_x.Case.test_b) ... ok\n\n'

@@ -47,7 +47,7 @@ mod tests {
     fn compiler(root: &Path, response: &str) -> PathBuf {
         let path = root.join("pinned-go");
         fs::write(&path, format!("#!/bin/sh\nprintf '%s\\n' \"$@\" \"${{GOFLAGS-unset}}\" \"$GOTOOLCHAIN\" \"$SENTINEL\" \"$GOTMPDIR\" > '{}'\nprintf '%s' '{}'\n", root.join("query").display(), response)).unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        crate::fork_order::make_executable(&path, 0o700);
         path
     }
 

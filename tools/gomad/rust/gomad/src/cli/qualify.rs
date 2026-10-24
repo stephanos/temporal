@@ -86,13 +86,20 @@ pub fn run(
         .map_err(|error| status(3, error))?;
     let qualified = cells::run(&frozen).map_err(|error| status(3, error))?;
     let published = cells::publish(&frozen, qualified).map_err(|error| status(3, error))?;
+    emit(output, &published)
+}
+
+/// Writes the bounded response before any publication or cost/budget
+/// failure, so the retained pointer and receipt always survive; a final
+/// cell's cost/budget gate then precedes the application classification.
+fn emit(output: &mut dyn Write, published: &cells::Qualified) -> Result<i32, super::Error> {
     let result_path = published.path.to_string_lossy().into_owned();
     let encoded = response(&published.path, &published.receipt)?;
     output
         .write_all(&encoded)
         .map_err(|error| status(3, format!("qualification response output failed: {error}")))?;
-    if let Some(error) = published.publication_error {
-        return Err(publication_error(&error));
+    if let Some(error) = &published.publication_error {
+        return Err(publication_error(error));
     }
     let retained = &published.result;
     if !retained.manifest.provisional
@@ -240,6 +247,189 @@ mod receiving_response_tests {
             panic!("bounded escaped path refused");
         };
         assert!(encoded.len() <= 8 << 10);
+    }
+
+    fn published(
+        provisional: bool,
+        target_success: bool,
+        cost_failure: Option<&str>,
+        budget_failure: Option<&str>,
+        within_budget: Option<bool>,
+    ) -> crate::qualify::cells::Qualified {
+        let mut manifest = serde_json::json!({});
+        for field in [
+            "schema",
+            "id",
+            "workload",
+            "profile",
+            "integrated_source_sha256",
+            "workload_source_sha256",
+            "runtime_sha256",
+            "compiler_sha256",
+            "helper_sha256",
+            "host_sha256",
+            "model_sha256",
+            "engine_sha256",
+            "host_config_sha256",
+            "module_sha256",
+            "toolchain_sha256",
+            "host_os",
+            "host_arch",
+        ] {
+            manifest[field] = "fixture".into();
+        }
+        manifest["provisional"] = provisional.into();
+        manifest["cell"] = "success".into();
+        for (field, value) in [("seed", 7), ("repeat", 2), ("fuel", 1), ("memory_bytes", 1)] {
+            manifest[field] = value.into();
+        }
+        manifest["unsupported"] = serde_json::json!([]);
+        let budget = within_budget.map(|within| serde_json::json!({"resident_stores":1,"checks":[],"violations":[],"pending":[],"within_budget":within}));
+        let result = serde_json::from_value(serde_json::json!({"schema":"fixture","manifest":manifest,
+            "report":{"schema":"fixture","qualified":target_success,"deterministic":true,"target_success":target_success,"seed":7,"repeat":2,"command":["gomad"],"record_sha256":null,"first_divergence":null,"executions":[],"failure":null},
+            "observations":{"operator_process_id":1,"resident_stores":1,"start":null,"prepared":null,"executed":null,"preparation_wall_nanos":1,"samples":[]},
+            "cost":null,"cost_failure":cost_failure,"budget":budget,"budget_failure":budget_failure,"integrated_source_manifest":null,"provenance":{}}))
+        .unwrap();
+        crate::qualify::cells::Qualified {
+            path: "/retained/result.json".into(),
+            receipt: crate::qualify::result::Receipt {
+                schema: "fixture".into(),
+                result_sha256: crate::evidence::canonical::digest(b"published result"),
+                operator_process_id: u64::from(std::process::id()),
+                linked_after: None,
+                operator_peak_rss_bytes: None,
+            },
+            result,
+            publication_error: None,
+        }
+    }
+
+    fn retained_response(output: &[u8], published: &crate::qualify::cells::Qualified) {
+        let response: serde_json::Value = serde_json::from_slice(output).unwrap();
+        assert_eq!(response["result_path"], "/retained/result.json");
+        assert_eq!(
+            response["operator_receipt"],
+            serde_json::to_value(&published.receipt).unwrap()
+        );
+    }
+
+    /// Original `TestFinalQualificationCostGatePreservesPublishedSupportOutcome`:
+    /// a final cell's missing or failed cost/budget evidence exits 3 apart from
+    /// the application outcome, a provisional cell keeps its application status,
+    /// and the retained pointer and receipt are written before any status.
+    #[test]
+    fn final_cost_gate_preserves_published_support_outcome() {
+        for (name, provisional, success, cost, budget_failure, within, expected) in [
+            ("final success", false, true, None, None, Some(true), 0),
+            (
+                "final application failure",
+                false,
+                false,
+                None,
+                None,
+                Some(true),
+                1,
+            ),
+            (
+                "final missing cost measurement",
+                false,
+                true,
+                Some("missing CPU"),
+                None,
+                Some(true),
+                3,
+            ),
+            (
+                "final missing budget measurement",
+                false,
+                true,
+                None,
+                Some("missing operator RSS"),
+                None,
+                3,
+            ),
+            ("final absent budget", false, true, None, None, None, 3),
+            (
+                "final exceeded budget",
+                false,
+                true,
+                None,
+                None,
+                Some(false),
+                3,
+            ),
+            (
+                "application failure with invalid cost",
+                false,
+                false,
+                Some("missing CPU"),
+                None,
+                Some(true),
+                3,
+            ),
+            (
+                "provisional success diagnostic",
+                true,
+                true,
+                Some("missing CPU"),
+                Some("missing operator RSS"),
+                None,
+                0,
+            ),
+            (
+                "provisional application diagnostic",
+                true,
+                false,
+                Some("missing CPU"),
+                Some("missing operator RSS"),
+                None,
+                1,
+            ),
+        ] {
+            let published = published(provisional, success, cost, budget_failure, within);
+            let before = published.result.clone();
+            let mut output = Vec::new();
+            let status = match super::emit(&mut output, &published) {
+                Ok(status) => status,
+                Err(error) => {
+                    assert!(
+                        error.message.contains("cost/budget")
+                            && !error.message.contains("target_failure"),
+                        "{name}: {}",
+                        error.message
+                    );
+                    error.status
+                }
+            };
+            assert_eq!(status, expected, "{name}");
+            retained_response(&output, &published);
+            assert_eq!(
+                published.result, before,
+                "{name}: raw support evidence changed"
+            );
+        }
+    }
+
+    /// Original `TestQualificationResponseRetainsReceiptBeforePublicationFailure`:
+    /// a publication failure exits 3 as a publication error, never as an
+    /// application failure or cost acceptance, after the response is written.
+    #[test]
+    fn response_retains_receipt_before_publication_failure() {
+        for empty in [true, false] {
+            let mut published = published(false, true, None, None, Some(true));
+            if empty {
+                published.receipt.result_sha256 = String::new();
+                published.receipt.operator_process_id = 0;
+            }
+            published.publication_error = Some("missing publication self observation".into());
+            let mut output = Vec::new();
+            let error = super::emit(&mut output, &published).unwrap_err();
+            assert_eq!(error.status, 3);
+            assert!(
+                error.message.contains("publication") && !error.message.contains("target_failure")
+            );
+            retained_response(&output, &published);
+        }
     }
 
     #[test]

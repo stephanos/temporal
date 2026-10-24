@@ -208,17 +208,21 @@ fn execute_command<K: AsRef<OsStr>, V: AsRef<OsStr>>(
             .map_err(failure)
     };
     let start_ns = observed_time()?;
-    let child = Command::new(compiler)
-        .args(args)
-        .current_dir(directory)
-        .env_clear()
-        .envs(environment)
-        .stdin(Stdio::null())
-        .stdout(Stdio::from(open(&stdout)?))
-        .stderr(Stdio::from(open(&stderr)?))
-        .process_group(0)
-        .spawn()
-        .map_err(failure)?;
+    let stdout_file = Stdio::from(open(&stdout)?);
+    let stderr_file = Stdio::from(open(&stderr)?);
+    let child = crate::fork_order::spawning(|| {
+        Command::new(compiler)
+            .args(args)
+            .current_dir(directory)
+            .env_clear()
+            .envs(environment)
+            .stdin(Stdio::null())
+            .stdout(stdout_file)
+            .stderr(stderr_file)
+            .process_group(0)
+            .spawn()
+    })
+    .map_err(failure)?;
     let mut owner = Child(child);
     let child = &mut owner.0;
     let command_deadline = Instant::now() + Duration::from_secs(600);

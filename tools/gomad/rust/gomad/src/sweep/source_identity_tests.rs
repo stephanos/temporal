@@ -60,13 +60,14 @@ impl GitFixture {
         fixture
     }
     fn git(&self, args: &[&str]) {
-        let status = std::process::Command::new("git")
-            .args(args)
-            .current_dir(&self.options.checkout)
-            .env_clear()
-            .envs(&self.options.environ)
-            .status()
-            .unwrap();
+        let status = crate::fork_order::status(
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&self.options.checkout)
+                .env_clear()
+                .envs(&self.options.environ),
+        )
+        .unwrap();
         assert!(status.success());
     }
     fn identity(&self) -> Result<(String, String), String> {

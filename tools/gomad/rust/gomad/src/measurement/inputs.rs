@@ -544,10 +544,6 @@ const PRODUCERS: &[(&str, &[Input])] = &[
                 required: false,
             },
             Input {
-                variable: "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET",
-                required: false,
-            },
-            Input {
                 variable: "GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256",
                 required: false,
             },
@@ -616,14 +612,6 @@ const PRODUCERS: &[(&str, &[Input])] = &[
             },
             Input {
                 variable: "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION",
-                required: false,
-            },
-            Input {
-                variable: "GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE",
-                required: false,
-            },
-            Input {
-                variable: "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET",
                 required: false,
             },
             Input {
@@ -923,10 +911,6 @@ const PRODUCERS: &[(&str, &[Input])] = &[
             },
             Input {
                 variable: "GOMAD_WASM_CLUSTER_HELPER_ADMISSION",
-                required: false,
-            },
-            Input {
-                variable: "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET",
                 required: false,
             },
             Input {

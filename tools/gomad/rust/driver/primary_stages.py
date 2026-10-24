@@ -20,7 +20,7 @@ OWNED = BROAD | {'ordinary', 'clusters', 'retained-durable-restart', 'busy-group
 WORKLOAD_TOOLS = HERE.parent / 'workload_tools'
 TIMEOUTS = {'ordinary': 3600, 'clusters': 5400, 'retained-durable-restart': 900, 'busy-grouped': 1800, 'busy-boundaries': 1800,
             'network-streams': 1800, 'storage': 3600, 'network': 3600, 'temporal-inspection': 3600,
-            'artifact': 900, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900, 'terminal-module': 3600, 'terminal-host-admission': 900, 'terminal-exit': 3600}
+            'artifact': 2700, 'operator': 1800, 'conformance-helper-build': 3600, 'terminal-controls': 900, 'wasmmeasure-build': 3600, 'helper-build': 3600, 'ordinary-helper-publication': 900, 'terminal-module': 3600, 'terminal-host-admission': 900, 'terminal-exit': 3600}
 TIMEOUTS.update({label: 7200 for label in BROAD})
 MISSING = {}
 
@@ -268,10 +268,12 @@ def canonical_argv(config, label, root, mode):
             '--stage', label, '--root', str(root)]
 
 
-def installed_failure_inputs(config):
+def installed_lifecycle_inputs(config):
+    # The installed typed lifecycle families use the same typed guest
+    # configuration and dependency cache as the installed cluster-failure roots.
     entry = config.get('installed_cluster_failure')
     require(isinstance(entry, dict) and set(entry) == {'guest_config', 'module_cache'},
-            'operator stage requires its installed cluster-failure guest configuration and dependency cache')
+            'installed lifecycle stage requires the installed typed guest configuration and dependency cache')
     live.sealed_input(config, entry['guest_config'])
     live.sealed_input(config, entry['module_cache'])
     return entry
@@ -346,11 +348,20 @@ def recipes(config, label, root):
                            '--section', 'retained' if label == 'artifact' else 'operator', '--root', config['root']])]
         if label == 'operator':
             # Original installed cluster-failure roots (deadlock/capacity and the asymmetric two/three cells).
-            failure = installed_failure_inputs(config)
+            failure = installed_lifecycle_inputs(config)
             recipes_.insert(0, recipe('installed-cluster-failure', HERE / 'installed_cluster_failure.py', [
                 'produce', '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
                 '--guest-config', failure['guest_config'], '--module-cache', failure['module_cache'],
                 '--root', str(work / 'installed-cluster-failure')]))
+        if label == 'artifact':
+            # Original installed typed-scenario detached replay and kill/resume roots.
+            typed = installed_lifecycle_inputs(config)
+            import installed_lifecycle_families
+            for family in installed_lifecycle_families.FAMILIES:
+                recipes_.insert(-1, recipe('installed-lifecycle-' + family, HERE / 'installed_lifecycle_families.py', [
+                    'produce', '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
+                    '--guest-config', typed['guest_config'], '--module-cache', typed['module_cache'],
+                    '--root', str(work / ('installed-lifecycle-' + family)), '--family', family]))
         return recipes_
     if label in ('retained-durable-restart', 'busy-grouped'):
         entry = config['live_corpus']['families']['cluster']
@@ -686,6 +697,12 @@ def read_stage(config, label, root):
         conformance(config, root)
     elif label in ('artifact', 'operator'):
         import final_retained
+        if label == 'artifact':
+            import installed_lifecycle_families
+            installed_lifecycle_inputs(config)
+            for family in installed_lifecycle_families.FAMILIES:
+                installed_lifecycle_families.read_result(root / ('primary/installed-lifecycle-' + family) / 'result.json',
+                                                         Path(config['build_receipt']), family)
         section = 'retained' if label == 'artifact' else 'operator'
         report = final_retained.collect(config, Path(config['root']), section, read_only=True)
         require(report['schema'] == 'gomad.rust-driver-final-section/v1'
@@ -694,7 +711,7 @@ def read_stage(config, label, root):
         coverage([final_retained.IDS[section]], report['subgates'])
         if label == 'operator':
             import installed_cluster_failure
-            installed_failure_inputs(config)
+            installed_lifecycle_inputs(config)
             installed_cluster_failure.read_result(root / 'primary/installed-cluster-failure/result.json', Path(config['build_receipt']))
     elif label in ('retained-durable-restart', 'busy-grouped'):
         cluster(config, label, root)

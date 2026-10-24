@@ -1,7 +1,5 @@
 use super::*;
-use std::{
-    collections::BTreeMap, fs, os::unix::fs::PermissionsExt, path::PathBuf, process::Command,
-};
+use std::{collections::BTreeMap, fs, path::PathBuf, process::Command};
 
 struct Scratch(PathBuf);
 impl Scratch {
@@ -27,7 +25,7 @@ fn four_original_published_reruns_execute_without_nesting_requested_roots() {
         b"#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$RERUN_ARGUMENTS\"\n",
     )
     .unwrap();
-    fs::set_permissions(&recorder, fs::Permissions::from_mode(0o700)).unwrap();
+    crate::fork_order::make_executable(&recorder, 0o700);
     for (name, variable, shell) in [
         ("guest-profile", "GOMAD_WASM_GUEST_PROFILE_ROOT", true),
         ("guest-variants", "GOMAD_WASM_GUEST_PROFILE_ROOT", true),
@@ -91,9 +89,7 @@ fn four_original_published_reruns_execute_without_nesting_requested_roots() {
                 command
             };
             assert!(
-                command
-                    .env("RERUN_ARGUMENTS", &arguments)
-                    .status()
+                crate::fork_order::status(command.env("RERUN_ARGUMENTS", &arguments))
                     .unwrap()
                     .success()
             );

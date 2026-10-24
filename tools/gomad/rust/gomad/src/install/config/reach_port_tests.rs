@@ -200,3 +200,138 @@ fn temporal_clock_selection_binds_configuration_identity() {
         "clock selection was omitted from the configuration identity"
     );
 }
+
+/// Original `TestProviderAdmitsPinnedCooperativeProfile`: the cooperative
+/// runtime is admitted only with its pinned go1.27.1 compiler, while the stock
+/// profile keeps both supported compiler versions.
+#[test]
+fn cooperative_installation_refuses_a_compiler_outside_its_pinned_version() {
+    let root = temporary();
+    let path = root.0.join("installation.json");
+    for (profile, version, admitted) in [
+        (COOPERATIVE, "go1.27.1", true),
+        (COOPERATIVE, "go1.27.0", false),
+        (STOCK, "go1.27.0", true),
+        (STOCK, "go1.27.1", true),
+    ] {
+        let mut installed = installation(&root.0, profile, default_value(profile));
+        installed.go_version = version.into();
+        fs::write(&path, serde_json::to_vec(&installed).unwrap()).unwrap();
+        let resolved = manifest::resolve(Some(&path));
+        assert_eq!(resolved.is_ok(), admitted, "{profile} {version}");
+        if !admitted {
+            assert!(
+                resolved
+                    .err()
+                    .unwrap()
+                    .contains("unsupported runtime profile or implementation")
+            );
+        }
+    }
+}
+
+/// Original `TestDiscoverAdvertisesOnlyExecutableScenarioSupport`: discovery
+/// reports the resolved installation and never overstates capabilities; only
+/// the cooperative profile advertises typed scenarios, exact replay and a
+/// choice profile, and neither advertises simulation.
+#[test]
+fn discover_advertises_only_executable_scenario_support() {
+    for profile in [STOCK, COOPERATIVE] {
+        let root = temporary();
+        let path = root.0.join("installation.json");
+        let installed = installation(&root.0, profile, default_value(profile));
+        fs::write(&path, serde_json::to_vec(&installed).unwrap()).unwrap();
+        let mut output = Vec::new();
+        assert_eq!(
+            crate::cli::discover::run(&[], &mut output, Some(&path))
+                .unwrap_or_else(|error| panic!("{}", error.message)),
+            0,
+            "{profile}"
+        );
+        let response: Value = serde_json::from_slice(&output).unwrap();
+        let cooperative = profile == COOPERATIVE;
+        let capabilities = &response["capabilities"];
+        assert_eq!(capabilities["Name"], "wasm");
+        assert_eq!(capabilities["Simulation"], false);
+        assert_eq!(capabilities["TypedScenarios"], cooperative, "{profile}");
+        assert_eq!(
+            capabilities["ReplayModes"],
+            if cooperative {
+                serde_json::json!(["exact", "observed"])
+            } else {
+                serde_json::json!(["observed"])
+            }
+        );
+        assert_eq!(capabilities["ChoiceProfiles"].is_null(), !cooperative);
+        let resolved = manifest::resolve(Some(&path)).unwrap().path;
+        assert_eq!(
+            response["path"],
+            resolved.to_string_lossy().as_ref(),
+            "{profile}: resolved installation path missing"
+        );
+        assert!(
+            crate::cli::discover::run(&["extra".into()], &mut Vec::new(), Some(&path)).is_err()
+        );
+    }
+}
+
+/// Original `TestResolveInstallationPrecedenceAndSourceLessReplayInputs`: an
+/// explicit manifest wins over the environment, the environment over the
+/// executable sibling; the selected manifest resolves without its compiler,
+/// and an invalid explicit selection never falls back to the environment.
+#[test]
+fn installation_precedence_selects_one_manifest_and_resolves_source_less() {
+    let root = temporary();
+    let path = root.0.join("gomad-wasm.json");
+    let installed = installation(&root.0, STOCK, default_value(STOCK));
+    fs::write(&path, serde_json::to_vec(&installed).unwrap()).unwrap();
+    fs::remove_file(&installed.compiler_path).unwrap();
+    let executable = |beside_manifest: bool| {
+        let path = if beside_manifest {
+            root.0.join("gomad")
+        } else {
+            PathBuf::from("/missing/bin/gomad")
+        };
+        move || -> std::io::Result<PathBuf> { Ok(path) }
+    };
+    let manifest_text = path.to_str().unwrap();
+    for (explicit, environment, beside_manifest, source) in [
+        (
+            Some(path.as_path()),
+            Some("/missing/environment"),
+            false,
+            "explicit",
+        ),
+        (None, Some(manifest_text), false, "environment"),
+        (
+            Some(Path::new("")),
+            Some(manifest_text),
+            false,
+            "environment",
+        ),
+        (None, None, true, "executable-sibling"),
+        (None, Some(""), true, "executable-sibling"),
+    ] {
+        let (selected, actual) = manifest::select(
+            explicit,
+            environment.map(Into::into),
+            executable(beside_manifest),
+        )
+        .unwrap();
+        assert_eq!((selected.as_path(), actual), (path.as_path(), source));
+        let description = manifest::resolve_selected(selected, actual).unwrap();
+        assert_eq!(description.path, path);
+        assert!(canonical::valid_digest(&description.sha256));
+    }
+    let (selected, source) = manifest::select(
+        Some(Path::new("/missing/explicit")),
+        Some(path.clone().into_os_string()),
+        executable(false),
+    )
+    .unwrap();
+    assert_eq!(source, "explicit");
+    assert!(
+        manifest::resolve_selected(selected, source).is_err(),
+        "invalid explicit manifest fell back to environment"
+    );
+}

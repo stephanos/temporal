@@ -13609,24 +13609,24 @@
       "symbol": "source"
     },
     "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs#native_context_allows_persisted_dependencies_but_rejects_invalid_pending_order": {
-      "end_line": 352,
+      "end_line": 356,
       "path": "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs",
       "sha256": "0960378fffd96651aee370af1b040d9994be0088ec891398e8a3f08282e94b7a",
-      "start_line": 302,
+      "start_line": 306,
       "symbol": "native_context_allows_persisted_dependencies_but_rejects_invalid_pending_order"
     },
     "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs#sqlite_bound_seals_original_three_boots_and_append_only_selection": {
-      "end_line": 352,
+      "end_line": 356,
       "path": "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs",
       "sha256": "b110de800d618deeb6190ceea0ecc10ca6087d3b2890a4211235953346e4b3aa",
-      "start_line": 133,
+      "start_line": 137,
       "symbol": "sqlite_bound_seals_original_three_boots_and_append_only_selection"
     },
     "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs#temporal_bound_seals_role_entropy_peer_services_and_grouped_crash": {
-      "end_line": 352,
+      "end_line": 356,
       "path": "tools/gomad/rust/gomad/src/qualify/workloads/tests.rs",
       "sha256": "2c5a176faa1b2c0cb894e395fc805203bc535ff1f12701907973c73cfc315131",
-      "start_line": 163,
+      "start_line": 167,
       "symbol": "temporal_bound_seals_role_entropy_peer_services_and_grouped_crash"
     },
     "tools/gomad/rust/workload_tools/producer.py#captured": {

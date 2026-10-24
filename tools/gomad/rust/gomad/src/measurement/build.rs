@@ -420,18 +420,22 @@ pub(super) fn observe_command(
                 .map_err(error)
         };
         let executable = argv.first().ok_or("empty native process command")?;
+        let stdout_file = Stdio::from(open(&stdout)?);
+        let stderr_file = Stdio::from(open(&stderr)?);
         child = Some(
-            Command::new(executable)
-                .args(&argv[1..])
-                .current_dir(cwd)
-                .env_clear()
-                .envs(environment)
-                .stdin(Stdio::null())
-                .stdout(Stdio::from(open(&stdout)?))
-                .stderr(Stdio::from(open(&stderr)?))
-                .process_group(0)
-                .spawn()
-                .map_err(error)?,
+            crate::fork_order::spawning(|| {
+                Command::new(executable)
+                    .args(&argv[1..])
+                    .current_dir(cwd)
+                    .env_clear()
+                    .envs(environment)
+                    .stdin(Stdio::null())
+                    .stdout(stdout_file)
+                    .stderr(stderr_file)
+                    .process_group(0)
+                    .spawn()
+            })
+            .map_err(error)?,
         );
         pid = child.as_ref().map(std::process::Child::id);
         let deadline = started

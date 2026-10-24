@@ -18,11 +18,12 @@ impl Temporary {
     }
     fn git_metadata(repo: &Path, device: u64) -> Self {
         use std::os::unix::fs::MetadataExt;
-        let output = std::process::Command::new("git")
-            .args(["rev-parse", "--path-format=absolute", "--git-common-dir"])
-            .current_dir(repo)
-            .output()
-            .unwrap();
+        let output = crate::fork_order::output(
+            std::process::Command::new("git")
+                .args(["rev-parse", "--path-format=absolute", "--git-common-dir"])
+                .current_dir(repo),
+        )
+        .unwrap();
         assert!(
             output.status.success(),
             "Git common-dir required for source fixture"
@@ -530,11 +531,12 @@ fn isolated_checkout(repo: &Path) {
             "Exact compiled source fixture",
         ],
     ] {
-        let result = std::process::Command::new("git")
-            .args(args)
-            .current_dir(repo)
-            .output()
-            .unwrap();
+        let result = crate::fork_order::output(
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(repo),
+        )
+        .unwrap();
         assert!(
             result.status.success(),
             "{}",

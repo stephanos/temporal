@@ -323,7 +323,7 @@ fn diagnostic_only_virtual_time_difference_is_a_clock_before_later_effects() {
 
 #[test]
 fn stress_host_perturbations_do_not_change_declared_guest_inputs() {
-    use std::{fs, os::unix::fs::PermissionsExt};
+    use std::fs;
     let root =
         std::env::temp_dir().join(format!("gomad-stress-host-inputs-{}", std::process::id()));
     fs::create_dir(&root).unwrap();
@@ -334,7 +334,7 @@ request=json.loads(pathlib.Path(sys.argv[3]).read_text())
 root=pathlib.Path(request['root'])
 (root/'observation.json').write_text(json.dumps({'process_id':os.getpid(),'stress':os.getenv('GOMAD_WASM_STRESS'),'jitter':os.getenv('GOMAD_WASM_STRESS_JITTER'),'padding':os.getenv('GOMAD_STRESS_PADDING'),'tmp':os.getenv('TMPDIR'),'request':request}))
 ").unwrap();
-    fs::set_permissions(&binary, fs::Permissions::from_mode(0o700)).unwrap();
+    crate::fork_order::make_executable(&binary, 0o700);
     let mut json = false;
     let options = crate::cli::explore::parse(
         &[

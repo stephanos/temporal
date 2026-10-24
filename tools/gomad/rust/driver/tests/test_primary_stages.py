@@ -12,6 +12,14 @@ import primary_stages as primary
 from driver import Refusal
 
 
+def rows_artifact(primary, config, root):
+    rows = primary.recipes(config, 'artifact', root / 'stages/artifact')[:-1]
+    for row in rows:
+        assert row['argv'][1:3] == [str(primary.HERE / 'installed_lifecycle_families.py'), 'produce']
+        assert row['argv'][-4:-2] == ['--root', str(root / 'stages/artifact/primary' / ('installed-lifecycle-' + row['argv'][-1]))]
+    return rows
+
+
 class PrimaryRecipes(unittest.TestCase):
     def config(self, root, template):
         return dict(root=str(root), python='/sealed/python', _config_path='/sealed/driver.json',
@@ -112,16 +120,20 @@ class PrimaryRecipes(unittest.TestCase):
             with patch.object(primary.live, 'sealed_input'):
                 with self.assertRaises(Refusal):
                     primary.recipes(config, 'operator', root / 'stages/operator')
+                with self.assertRaises(Refusal):
+                    primary.recipes(config, 'artifact', root / 'stages/artifact')
                 config.update(build_receipt='/release/main-build.json', final_retained=dict(compiler_root='/go'),
                               installed_cluster_failure=dict(guest_config='/typed.json', module_cache='/modules'))
                 for label, section in [('artifact', 'retained'), ('operator', 'operator')]:
                     rows = primary.recipes(config, label, root / 'stages' / label)
-                    self.assertEqual(len(rows), 1 if label == 'artifact' else 2)
+                    self.assertEqual(len(rows), 4 if label == 'artifact' else 2)
                     self.assertEqual(rows[-1]['argv'][-4:], ['--section', section, '--root', str(root)])
                     self.assertNotIn('--read-only', rows[-1]['argv'])
                 failure = rows[0]['argv']
                 self.assertEqual(failure[1:3], [str(primary.HERE / 'installed_cluster_failure.py'), 'produce'])
                 self.assertEqual(failure[-2:], ['--root', str(root / 'stages/operator/primary/installed-cluster-failure')])
+                families = [row['argv'][-1] for row in rows_artifact(primary, config, root)]
+                self.assertEqual(families, ['typed-detached', 'kill-12', 'kill-24'])
 
     def test_conformance_reader_rejects_wrong_features_profile_and_missing_binary(self):
         with tempfile.TemporaryDirectory() as temporary:

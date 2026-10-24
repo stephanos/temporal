@@ -2131,9 +2131,10 @@
    "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1",
    "disposition": "rejected",
    "owner": "wasm wasi package",
-   "rule": "Live handles are collected without effects and sorted by unique (ID, Incarnation) before stop control frames reach World and network evidence. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules.",
+   "rule": "Live handles are collected without effects and sorted by unique (ID, Incarnation) before stop control frames reach World and network evidence. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules. Rust stops live incarnations in sorted handle order (fn-232.8 R1).",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/linked_simulation_corpus.rs:divergence_stops_live_incarnations_in_sorted_order"
    ]
   },
   {
@@ -2143,9 +2144,10 @@
    "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|unstable-sort|sort.Slice live|1",
    "disposition": "rejected",
    "owner": "wasm wasi package",
-   "rule": "The comparator orders by ID then Incarnation; handles are unique map keys, so unequal handles never compare equal. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules.",
+   "rule": "The comparator orders by ID then Incarnation; handles are unique map keys, so unequal handles never compare equal. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules. Rust stops live incarnations in sorted handle order (fn-232.8 R1).",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:tests/linked_simulation_corpus.rs:divergence_stops_live_incarnations_in_sorted_order"
    ]
   },
   {
@@ -2155,9 +2157,10 @@
    "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashContext|1",
    "disposition": "rejected",
    "owner": "wasm wasi package",
-   "rule": "Context volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules.",
+   "rule": "Context volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules. Rust validates in sorted volume order; the shared order corpus matches Go (fn-232.8 R2).",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:src/storage_transport/validation_order_corpus.rs:first_refusal_is_insertion_order_independent_and_matches_go"
    ]
   },
   {
@@ -2167,9 +2170,10 @@
    "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashSelection|1",
    "disposition": "rejected",
    "owner": "wasm wasi package",
-   "rule": "Selection volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules.",
+   "rule": "Selection volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution. The original Go host site is retired; native host-effect receiving coverage is enforced in the linked helper, campaign preparation/execution and cluster modules. Rust validates in sorted volume order; the shared order corpus matches Go (fn-232.8 R2).",
    "evidence": [
-    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried"
+    "rust:tests/inventory/host.rs:receiving_host_effect_sites_are_inventoried",
+    "rust:src/storage_transport/validation_order_corpus.rs:first_refusal_is_insertion_order_independent_and_matches_go"
    ]
   },
   {

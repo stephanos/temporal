@@ -368,19 +368,21 @@ pub(super) fn run(
     super::publish(&root, "invocation.json", &bytes)?;
     let mut command = Command::new(&contract.binary);
     let mut child = Child {
-        process: command
-            .arg0("go")
-            .args(&argv[1..])
-            .env_clear()
-            .envs(&shared.packages[0].environment)
-            .env("GOMAD_SHIM_BUILD_CHILD", root.join("invocation.json"))
-            .env("GOMAD_SHIM_BUILD_CHILD_SHA256", &digest)
-            .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .process_group(0)
-            .spawn()
-            .map_err(|e| e.to_string())?,
+        process: crate::fork_order::spawning(|| {
+            command
+                .arg0("go")
+                .args(&argv[1..])
+                .env_clear()
+                .envs(&shared.packages[0].environment)
+                .env("GOMAD_SHIM_BUILD_CHILD", root.join("invocation.json"))
+                .env("GOMAD_SHIM_BUILD_CHILD_SHA256", &digest)
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .process_group(0)
+                .spawn()
+        })
+        .map_err(|e| e.to_string())?,
         deadline,
     };
     let pid = child.process.id();
@@ -671,12 +673,11 @@ mod tests {
 
     #[test]
     fn generated_launcher_passes_runtime_arguments_and_bound_receipt_bytes() {
-        use std::os::unix::fs::PermissionsExt as _;
         let root =
             crate::campaign::prepare::process::Temporary::new(&std::env::temp_dir()).unwrap();
         let binary = root.0.join("capture 'binary");
         fs::write(&binary,b"#!/bin/sh\nprintf '%s\\0' \"$GOMAD_PREPARATION_RECEIPT\" \"$GOMAD_PREPARATION_RECEIPT_SHA256\" \"$@\" > \"$RESULT\"\n").unwrap();
-        fs::set_permissions(&binary, fs::Permissions::from_mode(0o700)).unwrap();
+        crate::fork_order::make_executable(&binary, 0o700);
         let contract = Contract {
             binary: binary.clone(),
             compiler: "/stock/go".into(),
@@ -705,14 +706,15 @@ mod tests {
         .unwrap();
         let result = root.0.join("captured");
         assert!(
-            Command::new("/bin/sh")
-                .arg(&launcher)
-                .arg("--json")
-                .arg(OsStr::from_bytes(b"a' \xff"))
-                .env("RESULT", &result)
-                .status()
-                .unwrap()
-                .success()
+            crate::fork_order::status(
+                Command::new("/bin/sh")
+                    .arg(&launcher)
+                    .arg("--json")
+                    .arg(OsStr::from_bytes(b"a' \xff"))
+                    .env("RESULT", &result)
+            )
+            .unwrap()
+            .success()
         );
         let actual = fs::read(result).unwrap();
         let expected = [
@@ -735,15 +737,16 @@ mod tests {
     #[test]
     fn cleanup_delivers_term_and_reaps_a_running_plain_shell() {
         use std::io::Read as _;
-        let mut process = Command::new("/bin/sh")
-            .args([
-                "-c",
-                "trap 'printf term; exit 0' TERM; printf ready; while :; do :; done",
-            ])
-            .process_group(0)
-            .stdout(Stdio::piped())
-            .spawn()
-            .unwrap();
+        let mut process = crate::fork_order::spawn(
+            Command::new("/bin/sh")
+                .args([
+                    "-c",
+                    "trap 'printf term; exit 0' TERM; printf ready; while :; do :; done",
+                ])
+                .process_group(0)
+                .stdout(Stdio::piped()),
+        )
+        .unwrap();
         let mut output = process.stdout.take().unwrap();
         let mut ready = [0; 5];
         output.read_exact(&mut ready).unwrap();
@@ -759,11 +762,12 @@ mod tests {
 
     #[test]
     fn cleanup_accepts_an_already_reaped_plain_child() {
-        let mut process = Command::new("/bin/sh")
-            .args(["-c", "exit 0"])
-            .process_group(0)
-            .spawn()
-            .unwrap();
+        let mut process = crate::fork_order::spawn(
+            Command::new("/bin/sh")
+                .args(["-c", "exit 0"])
+                .process_group(0),
+        )
+        .unwrap();
         assert!(process.wait().unwrap().success());
         drop(Child {
             process,

@@ -811,7 +811,10 @@
     "original_function": "step_artifact",
     "original_body": "  cd \"$wasm\"; env_after_runtime\n  export GOMAD_WASM_TASK4_EVIDENCE_ROOT=\"$QUAL_ROOT/artifact\"\n  named_test artifact TestIntegratedFailureArtifactFreshObservedReplays 15m ./backend\n",
     "required_subgates": [
-      "TestIntegratedFailureArtifactFreshObservedReplays"
+      "TestIntegratedFailureArtifactFreshObservedReplays",
+      "TestInstalledOperatorTypedScenarioDetachedReplay",
+      "TestInstalledOperatorKillResume",
+      "TestInstalledOperatorTypedScenarioKillResume"
     ],
     "repetitions": 1
   },

@@ -2,8 +2,7 @@ use super::*;
 use crate::campaign::prepare::process::Temporary;
 
 fn repository() -> (Temporary, Repo) {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/derive-tests")).unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     fs::write(root.0.join("go.mod"), "module example.test/repo\n").unwrap();
     for directory in ["runtime", "schema/sqlite", "pkg", "pkg2"] {
         fs::create_dir_all(root.0.join(directory)).unwrap();

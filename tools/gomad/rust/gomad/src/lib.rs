@@ -19,6 +19,7 @@ mod fixture_replay;
 mod fixture_role;
 #[cfg(feature = "determinism-fixture")]
 mod fixture_storage;
+pub(crate) mod fork_order;
 pub mod install;
 #[cfg(test)]
 pub(crate) mod installed_lifecycle_tests;

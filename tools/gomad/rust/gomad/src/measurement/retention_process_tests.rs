@@ -79,16 +79,17 @@ fn interrupted_run_recovery_preserves_latest_after_three_abrupt_exits() {
     let prior_pointer = std::fs::read(scratch.store().join("latest.json")).unwrap();
     let module = module_path!().split_once("::").unwrap().1;
     for _ in 0..3 {
-        let output = Command::new(std::env::current_exe().unwrap())
-            .args([
-                "--exact",
-                &format!("{module}::interrupted_child"),
-                "--nocapture",
-            ])
-            .env("GOMAD_RETENTION_CRASH_ROOT", &scratch.0)
-            .stdin(Stdio::null())
-            .output()
-            .unwrap();
+        let output = crate::fork_order::output(
+            Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    &format!("{module}::interrupted_child"),
+                    "--nocapture",
+                ])
+                .env("GOMAD_RETENTION_CRASH_ROOT", &scratch.0)
+                .stdin(Stdio::null()),
+        )
+        .unwrap();
         assert_eq!(output.status.code(), Some(23), "{output:?}");
         assert_eq!(scratch.latest(), prior);
         assert_eq!(

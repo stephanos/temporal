@@ -239,6 +239,16 @@ class ClosedCatalog(unittest.TestCase):
         good['watchdog_timeout']=True
         with self.assertRaises(Refusal):gate.validate_case(gate.HOST,'parent deadline',good)
 
+    def test_host_bound_before_launch_joins_one_never_created_store(self):
+        aborted=dict(handle=dict(node='a',incarnation=1),terminal='inspection_aborted',exit_code=None,
+            message='cluster inspection stopped',authorization_to_terminal_nanos=None,interrupted=False,stdout=None)
+        early=dict(terminal='watchdog_timeout',exit_code=None,watchdog_timeout=True,cancelled=False,bound_millis=20,
+            parent_cancel_after_millis=None,joined_incarnations=1,all_stores_dropped_before_return=True,
+            activity=activity(0),store_results=[aborted])
+        gate.validate_case(gate.INTERNAL,'internal deadline',early)
+        for change in (dict(activity=activity(1)),dict(store_results=[dict(aborted,terminal='trap')])):
+            with self.subTest(change=change),self.assertRaises(Refusal):gate.validate_case(gate.INTERNAL,'internal deadline',dict(early,**change))
+
     def test_sqlite_errors_are_rederived_from_exact_original_bytes(self):
         inputs=dict(ack_bytes=list(b'ACK 2\n'),stdout_bytes=list(b'INTEGRITY ok\nHISTORY x:committed\n'))
         gate.validate_case(gate.SQLITE,'nonnumeric-event',dict(error='invalid SQLite history'),inputs)

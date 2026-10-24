@@ -192,7 +192,7 @@ This task closes on one green run of the full 96-stage cycle on current `gomad`.
 
 ### Worker B notes (2026-10-23): item d, dry-run composition (branch fn232-composition)
 
-- **Dry run (rule 2/3).** `rust/driver/dry_run.py` builds role executables from the working tree with a shared incremental target and records SHA plus compiled host/helper identities (`gomad.dry-run-build/v1`). Readers accept a record only under `dry_run: true` (or `GOMAD_DRIVER_DRY_RUN=1` for preparation scripts); a normal freeze refuses it, so the formal 13-role receipts remain mandatory at the freeze. compose/configure leave unbound groups in `dry_run_unexecuted`; their final readers still refuse.
+- **Dry run (rule 2/3).** `rust/driver/dry_run.py` builds role executables from the working tree with a shared incremental target and records SHA plus compiled host/helper identities (`gomad.dry-run-build/v1`). Readers accept a record only under `dry_run: true` (or `GOMAD_DRIVER_DRY_RUN=1` for preparation scripts); a normal freeze refuses it, this describes the earlier formal-freeze route, superseded by the owner amendment above. compose/configure leave unbound groups in `dry_run_unexecuted`; their final readers still refuse.
 - **Collapses.** fn-185 R4 `qualified.{workflow,activity}` bind only a request recipe; the module is the same-cycle `terminal-module` output (identical `./tests` module, three tags, no arguments) and `gomad-measure --qualified-request` regenerates the request in-cycle. `private_observations` is the per-stage switch (`true`); its receipts are cycle outputs.
 - **New minimal producers.** `gomad-measure --stress-inputs` (stress spec inputs; the assembler installs with `stress-release`, configure binds `SOURCE_MANIFEST` at freeze), `diagnostic-helper-stage` (the diagnostic admission terminal-exit requires; only release builds could be staged), `--qualified-request REPO runtime` (runtime recipe template).
 - **installed_cluster_failure.py** runs in the `operator` stage: evidence IDs `stage/operator/TestInstalledOperatorClusterFailureEndsPromptly` and `stage/operator/TestInstalledOperatorAsymmetricGuestFailureEndsPromptly`.
@@ -206,3 +206,24 @@ This task closes on one green run of the full 96-stage cycle on current `gomad`.
   3. `cd /home/agent/wt/fn232-composition && /usr/bin/python3.14 tools/gomad/rust/driver/driver.py parallel --config FRESH/freeze/driver.json`.
   4. After the cycle, stress: `/usr/bin/python3.14 /home/agent/evidence/fn232-composition-v1/stress-window.py --window FRESH/stress/window.json --frozen-config FRESH/freeze/driver.json --root FRESH_STRESS`.
 - **Open:** never run end to end; `test_wasm_reach` was added after the v4 freeze proof; the 3 slim-refusal and 4 `stockgo` Go roots are not run by any static stage (reach reports them); one `check_files` over the 165k sealed files takes ~220 s per `guard`; `linked_cluster::...native_host_termination_preserves_watchdog_and_parent_cancellation_status` failed once under load (20 ms cancellation race).
+
+### Worker A handover, 2026-10-24 (branch fn232-flake-class, head below)
+
+Stopped on owner instruction. No cycle run was started.
+
+- **Merged or gated:** fn232-gap-ports (28 of 29 reach gaps ported or retired with reasons; builder and volume `/original-make/` selections have distinct ordinary run IDs), fn232-lint-flake (strict clippy in all 13 rust-lint modes), fn232-shim-etxtbsy.
+- **This branch:**
+  - `eb773cd5ac`: fn-227.1's four inventory rows cite the Rust map-order tests (R1, R2).
+  - `45e831a79e`: removes the allocation-probe wires and refuses retaining them inside the checkout.
+  - `ebaed60313`: `crate::fork_order` orders child creation against lock release (retention leases, store/pin/children locks, wrapper guards); `make_executable` for test fixtures; exact assertions for the capacity, launcher-pipe and wasmhost pre-launch-termination tests (core_lifecycle reader accepts the never-created form).
+  - `ffe9d0eea7`: removes the 93 derive-tests scratch files it accidentally committed, moves four test scratch roots to the system temp directory, and ignores `rust/*/target/`.
+- **Loop evidence** (`/home/agent/wt/evidence/fn232-flake-class-loop/`, load 30–50):
+  - gomad lib: 12/200 failed. None were the fixed classes. 7 were timeouts (`cli::run_guest::admission_tests::{same_driver_launches_have_distinct_campaigns_and_record_commitments, structured_all_pass_reports_both_authenticated_outcomes_then_summary}`, `evidence::store::publish::tests::{target_link_collision_releases_exclusive_guard_before_reuse_read, module_reader_serializes_cross_store_link_retirement_and_staging_cleanup}`, `measurement::cancellation_tests::cancellation_while_publication_lock_is_held_returns_before_lock_release`), which are deferred-perf under the quiet-host ruling. Runs 21, 24, 25, 112, 168 and 169 ended with no failure section; dmesg shows OOM kills only of other sessions' processes, so the cause is unknown.
+  - wasmhost lib: 1/200 failed (`live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace`, timing).
+  - allocation_receiving: invalid. Source files were edited during the loop, which trips the measurement source-closure tests.
+- **Next steps:**
+  1. Rerun the gomad lib loop on a committed, unedited tree, recording each run's exit status and signal, to classify the silent ends (OOM, backstop or crash).
+  2. Rerun the 50-run allocation_receiving loop the same way.
+  3. When B reports a resolving composition, run the full cycle with `driver.py parallel` on gomad head. Record every stage process's exit status and signal; treat a silent end as a real failure until shown otherwise; record timing-only failures as deferred-perf. Include the Rust sweep on a real guest and fn-233's launcher, shim and Make lanes.
+  4. Map `TestInstalledOperatorAsymmetricGuestFailureEndsPromptly` once `installed_cluster_failure` is wired into a stage.
+- **Retained:** worktree `/home/agent/wt/fn232-cycle-closure` (branches fn232-cycle-closure, fn232-gap-ports, fn232-lint-flake, fn232-shim-etxtbsy, fn232-flake-class); cargo target `/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-cycle-closure-target`; gate logs under `/home/agent/wt/evidence/fn232-*-gate/`. No background processes remain.

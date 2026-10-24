@@ -336,7 +336,9 @@ def validate_case(root, variant, observed, inputs=None):
             require(o['terminal'] == ('watchdog_timeout' if watchdog else 'cancelled') and o['exit_code'] is None, 'host termination classification changed')
             require(o['watchdog_timeout'] is watchdog and o['cancelled'] is not watchdog, 'host deadline mistaken for parent cancellation')
             require(o['bound_millis'] == (20 if watchdog else 1000) and o['parent_cancel_after_millis'] == (None if watchdog else 20), 'original host termination bounds changed')
-            actual = stores(o['store_results'], o['activity'])
+            # A 20 ms bound or parent cancellation can precede the launch; the
+            # incarnation then joins as a never-created, inspection-aborted store.
+            actual = stores(o['store_results'], o['activity'], require_created=False)
             require(integer(o['joined_incarnations']) == len(actual) and len(actual) <= 1 and o['all_stores_dropped_before_return'] is True, 'host termination leaked owned stores')
     elif root in (MODEL, ATTRIBUTION):
         fields(o, ('admission_error',))

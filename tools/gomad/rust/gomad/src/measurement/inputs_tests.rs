@@ -335,3 +335,43 @@ fn source_closure_authenticates_bytes_and_membership() {
     assert!(authenticate_source_closure(&root, &manifest).is_err());
     std::fs::remove_dir_all(root).unwrap();
 }
+/// Original `TestTemporalHostDiagnosticInputs` checked a recovery pair budget
+/// and compile-cache path. The native cluster producers bound each pair by the
+/// scenario's own wall limit and use the toolchain cache, so those inputs are
+/// not advertised: an invalid or valid value is refused instead of being
+/// silently ignored.
+#[test]
+fn cluster_producers_refuse_the_unused_recovery_budget_and_cache_inputs() {
+    for name in [
+        "cluster-owner-profile",
+        "diagnostic-cluster-baseline",
+        "matched-release-candidate",
+    ] {
+        for (flag, value) in [
+            ("--temporal-recovery-diagnostic-budget", "16m"),
+            ("--temporal-recovery-diagnostic-budget", "0s"),
+            ("--temporal-recovery-diagnostic-budget", "3m"),
+            ("--temporal-recovery-compile-cache", "relative/cache"),
+            ("--temporal-recovery-compile-cache", "/owned-cache"),
+        ] {
+            let mut arguments = valid(name);
+            arguments.extend(args(&[flag, value]));
+            let mut error = Vec::new();
+            assert_eq!(
+                run(
+                    &arguments,
+                    &[],
+                    &mut io::sink(),
+                    &mut error,
+                    |_, _, _| panic!("producer started")
+                ),
+                EXIT_REFUSED,
+                "{name} {flag} {value}"
+            );
+            assert_eq!(
+                String::from_utf8(error).unwrap(),
+                format!("flag provided but not defined: -{}\n", &flag[2..])
+            );
+        }
+    }
+}

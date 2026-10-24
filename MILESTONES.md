@@ -58,6 +58,26 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+### Stop state (2026-10-24, owner: "wrap up the current tasks and then stop")
+
+`gomad` is at the merge of A's flake fixes and E's reach fixes. Its merge gate passed. Nothing is running.
+
+Unmerged branches, each gate-green on its own:
+- `fn232-composition` (f2d899ec74) is worker B's cycle composition. It contains the reach binding, the report-only reach switch (`live.REACH_GAPS_BLOCK`), fn-222 alongside inspection, stress removed, wall time deferred and the producers. It conflicts with `gomad` in `rust/driver/primary_stages.py`, its test and the fn-232.13 task file. Resolve those, gate, then merge. The cycle commands are in its fn-232.13 task-file handover.
+- `fn221-rust-sweep` (1f341b38b0) is worker C's sweep fixes and fn-221.2 launch plan. Before launching the full sweep, investigate a ~10× batch-test slowdown versus Go and exercise resume/verify.
+- `fn232-reach-fixes-2` (9a6a25980a) is worker E's fn-232.14 progress, not fully gated. 4 partial entries remain; see its fn-232.14 handover.
+
+Next, in order:
+1. Merge the composition and run the full 96-stage cycle on `gomad` (closes fn-232.13).
+2. Merge the sweep and launch fn-221.2.
+3. Run stress and the fn-233 rerun.
+4. Finish fn-232.14.
+
+Known issues:
+- Gate tests with deadlines flake under load (run_guest admission, publish timeouts, wasmhost watchdog).
+- 6 gomad lib loop runs ended silently. OOM is ruled out; capture exit statuses on a clean tree.
+- About 350 MB of accidentally committed `.wire` blobs remain in local, unpushed history at d2d312737f. They are deleted at the tip; rewriting history needs owner approval.
+
 ### Opportunistic merge (owner decision, 2026-10-24)
 
 The owner noted that nobody uses Gomad yet and asked whether to "merge opportunistically and fix issues after". They approved the conductor's proposal. It supersedes the freeze requirements in the rulings below where they conflict:

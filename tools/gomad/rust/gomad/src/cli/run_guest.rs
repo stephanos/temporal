@@ -673,16 +673,17 @@ mod synchronization_tests {
             origin::identity().unwrap()
         ));
         fs::DirBuilder::new().mode(0o700).create(&root).unwrap();
-        let child = Command::new(std::env::current_exe().unwrap())
-            .args([
-                "--exact",
-                "cli::run_guest::synchronization_tests::registration_exec_child",
-            ])
-            .env("GOMAD_TEST_EXEC_ROOT", &root)
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
-            .spawn()
-            .unwrap();
+        let child = crate::fork_order::spawn(
+            Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "cli::run_guest::synchronization_tests::registration_exec_child",
+                ])
+                .env("GOMAD_TEST_EXEC_ROOT", &root)
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped()),
+        )
+        .unwrap();
         let pid = child.id();
         let output = child.wait_with_output().unwrap();
         assert!(
