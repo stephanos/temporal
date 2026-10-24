@@ -28,8 +28,7 @@ model/umpire/
 │   └── derive/                  umpire-ir-derive
 ├── backends/
 │   ├── native/                  umpire-checker         (crate name kept)
-│   ├── process/                 umpire-backend-process shared bounded subprocess, scratch and pinned-JDK support (added 2026-10-24)
-│   ├── tla/                     umpire-tla             was umpire-lift; TLA+ binding and emission only
+│   ├── tla/                     umpire-tla             was umpire-lift; owns the shared subprocess supervision
 │   ├── tlc/                     umpire-tlc
 │   └── apalache/                umpire-apalache        no dependency on umpire-tlc
 ├── protocol/
@@ -54,13 +53,13 @@ model/umpire/
 
 - Moves are directory moves plus Cargo path updates. Crate renames are limited to `umpire-lift` -> `umpire-tla` and the merge of `umpire-annotations` into `umpire-catalog`; every other crate name stays.
 - The facade `umpire` re-exports what a Model author needs (`dsl`, `suite`, catalog derive). Fixtures, samples and the Temporal Models switch to it where it reduces their dependency lists; nothing is forced.
-- Process supervision used by TLC and Apalache moves out of the emitter into its own crate `umpire-backend-process` at `backends/process` (today `umpire-tla::process`: `Limits`, `Refusal`, `Scratch`, `java_command`, `pinned_java`, `run_process`, `run_process_cancelled`, `bounded_text`); `umpire-tla`, `umpire-tlc` and `umpire-apalache` depend on it; `umpire-apalache` stops depending on `umpire-tlc`; `umpire-tla` keeps binding, emission and typed value admission only. Owner, 2026-10-24: the emitter is not the honest owner of process supervision, and fn-240's rIC3 runner must not depend on a TLA+ emitter to run a child process.
+- Process supervision used by TLC and Apalache moves into `umpire-tla`; `umpire-apalache` stops depending on `umpire-tlc`.
 - Go: the wasm Host moves from the module root to package `host`; the Runner moves to `hosts/go/runner`; generated protobuf packages move to `hosts/go/gen/...`; the generated-code freshness check covers exactly `gen/` with no exception. Kettle's Go server and Kettle-specific host tests move under `reference/kettle/` as their own Go module.
 - Every consumer is updated: `model/temporal` crates and Go packages, `tools/umpire`, `common/testing/testpilot`, `tools/canary`, Makefile targets, scripts, the source-boundary scanner, guest build inputs, MIGRATE.md's path table, AGENTS.md project structure and the module map.
 
 ## Acceptance Criteria
 
-- **R1:** The Rust crates sit in the target directories; `umpire-lift` is `umpire-tla`; `umpire-annotations` is merged into `umpire-catalog`; subprocess supervision is `umpire-backend-process` at `backends/process` with `tla`, `tlc` and `apalache` depending on it and `umpire-tla` free of process code; `umpire-apalache` no longer depends on `umpire-tlc`; the facade `umpire` exists and is used by at least the shared fixtures. Errors: behavioral, wire and semantic goldens byte-identical; snapshots that embed crate paths or names may change, each listed; leftover old paths or names in active source, manifests, scripts and current docs fail the scoped check (archived code and historical Flow evidence excluded).
+- **R1:** The Rust crates sit in the target directories; `umpire-lift` is `umpire-tla`; `umpire-annotations` is merged into `umpire-catalog`; `umpire-apalache` no longer depends on `umpire-tlc`; the facade `umpire` exists and is used by at least the shared fixtures. Errors: behavioral, wire and semantic goldens byte-identical; snapshots that embed crate paths or names may change, each listed; leftover old paths or names in active source, manifests, scripts and current docs fail the scoped check (archived code and historical Flow evidence excluded).
 - **R2:** The Go module is split into `host`, `runner` and `gen`; the freshness check has no special case; Kettle's Go server and tests live under `reference/kettle`; all importers updated; Go tests, the live slice and gaps pass on the rebuilt guest.
 - **R3:** `model/README.md` has the crate map; Cargo descriptions are current; MIGRATE.md, AGENTS.md and the module map name the new paths.
 
@@ -70,7 +69,5 @@ model/umpire/
 - `umpire-checker` keeps its crate name; `dev/` crates stay separate.
 
 ## Decision Context
-
-2026-10-24, owner ("yes" to the follow-up): `process.rs` leaves `umpire-tla` for its own crate `umpire-backend-process`, folded into .1 while it is in progress; the crate-map wording names one job per crate. Pure move, no behaviour change.
 
 2026-10-24, the owner approved the aggressive layout and both open choices as recommended (keep the `umpire-checker` crate name; keep the `dev/` crates separate). Placement: the Rust layout (.1) runs as one serialized freeze after fn-238 and fn-242 close and before fn-237.1 starts; the Go split (.2) runs after fn-228.6 and before fn-228.7, so the fn-228 write-up names the final paths. The guest is rebuilt because guest identities hash crate lockfile closures.
