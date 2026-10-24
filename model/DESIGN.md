@@ -90,6 +90,17 @@ timing of `Checker::explore_within` (shared, loaded 12-core host, medians): Kett
 compiled against 228 µs interpreted (2.6×), the 2,001-start wide shape 1.48 ms against 3.84 ms
 (2.6×). That is above .6's 2× gate; see `.flow/tmp/fn-238.5/handoff.md`.
 
+**Compiled stays the default** (fn-238.6, 2026-10-24). `#[machine]` now generates exactly one
+callback per claim, so the interpreter has no claim cap, and two behaviour-preserving speedups
+(direct field reads, each match guard evaluated once) bring the interpreter to a per-pair median of
+1.94× on Kettle and 1.77× on the wide shape, counting the setup cost every run pays, on a loaded
+host. The gate was not met: Kettle's upper quartile is 2.01× and the wide shape's tail reaches 3.3×,
+and the per-construct half (sets at most 25% above Option A) cannot be measured because no set
+construct is admitted. Per the task, the checker stays compiled; the differential check stays in
+the gate. The reviewed switch is preserved on local branch `work/fn2386-interpreted-switch`
+(`be59562661`, `6deb7dcb9d`) for a decision once sets are admitted. Evidence:
+`.flow/artifacts/fn-238.6/`.
+
 **Guest identity** (fn-238.8). .2 changed the Temporal guest without a code change because each
 crate's `-C metadata` hashed the whole `Cargo.lock`; it now hashes the crate's own lockfile
 closure (`scripts/guest-lock.py`), and a control shows an unrelated crate leaves both guests
@@ -677,7 +688,7 @@ These are previous shared-host observations, not isolated performance measuremen
 [This task's final output and timings](../.flow/artifacts/fn-227-parameterized-models-declared-worlds/task6-final-verification.json)
 record its own required model-time run and unchanged-production/guest reuse proof. Historical
 fn-232 failure evidence and later fn-232/fn-239 certifications remain; the current guest is
-not claimed freshly cross-OS certified. fn-238.5/.6 stay deferred absent an interpreted-checker need.
+not claimed freshly cross-OS certified. fn-238.5 delivered the interpreter as a differential check; fn-238.6 kept the compiled default (see the front end section).
 
 ## Historical authoring options
 
