@@ -1,0 +1,15 @@
+started=2026-10-24T20:41:16Z
+source=3e38c6080db279521afb1267f3964f96cdd9f9f9
+command=BASH_ENV=/dev/null make model-validate
+Linux dev-build 7.0.14 #1 SMP PREEMPT Mon Oct 12 09:57:44 UTC 2026 aarch64 GNU/Linux
+GNU Make 4.4.1
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+cargo 1.99.1 (5f94df478 2026-08-27)
+go version go1.27.0 linux/arm64
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+openjdk version "27" 2026-09-15
+OpenJDK Runtime Environment Temurin-27+35 (build 27+35)
+OpenJDK 64-Bit Server VM Temurin-27+35 (build 27+35, mixed mode, sharing)
+CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target
+finished=2026-10-24T20:41:16Z
+finished=2026-10-24T20:58:19Z

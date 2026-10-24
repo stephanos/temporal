@@ -147,16 +147,11 @@ The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
 exceptions only on the three named export attributes. DSL/checker retain `forbid`.
 
 From inside `model/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
-`model-validate` runs `model-time` with TLC required, overriding conflicting environment and Make
-command-line settings. Apalache remains independent: use `UMPIRE_APALACHE=require make model-validate`
-to require both backends in the same run. Required-mode timings are separate from historical
-default-mode measurements. `model-check` and `model-time` retain their default/skip and explicit
-required modes.
-
-`model-time` measures the actual `make model-check`, including every current gate step. Its inner
-loop defaults to touching `umpire/backends/native/src/lib.rs` and testing `umpire-checker`; select another
-crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model/`). Timed
-command failures fail the helper; exceeding a time budget prints a warning and succeeds.
+`model-validate` forces TLC-required `model-time` through environment/Make conflicts; add
+`UMPIRE_APALACHE=require` for both. Legacy modes remain; required timings are separate from historical defaults.
+`model-time` measures every `model-check` stage, then touches `umpire/backends/native/src/lib.rs` and tests
+`umpire-checker`. Select another crate/source with `UMPIRE_INNER_CRATE`/`UMPIRE_INNER_SOURCE` (relative to `model/`).
+Timed command failures fail the helper; exceeding a time budget prints a warning and succeeds.
 
 ## Catalog tooling
 

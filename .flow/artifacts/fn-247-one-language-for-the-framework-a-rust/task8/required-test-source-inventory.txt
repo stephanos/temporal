@@ -1,0 +1,44 @@
+model/umpire/backends/tlc/tests/scaling.rs:14:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/backends/tlc/tests/controls.rs:162:fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Error> {
+model/umpire/backends/tlc/tests/controls.rs:163:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/backends/tlc/tests/controls.rs:164:        eprintln!("TLC controls skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
+model/umpire/backends/tlc/tests/controls.rs:214:fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Error> {
+model/umpire/backends/tlc/tests/controls.rs:215:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/backends/tlc/tests/controls.rs:235:fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Error> {
+model/umpire/backends/tlc/tests/controls.rs:236:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/backends/tlc/tests/controls.rs:266:fn real_tlc_evaluation_errors_are_typed_and_located() -> Result<(), Error> {
+model/umpire/backends/tlc/tests/controls.rs:267:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/interpreted.rs:150:fn backend_controls_agree() -> TestResult {
+model/umpire/dev/fixtures/interpreted.rs:238:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/interpreted.rs:240:            "length controls checked natively; no TLC evidence (set UMPIRE_BACKENDS=require)"
+model/umpire/dev/fixtures/interpreted.rs:336:fn disagreement<M>(world: impl Fn() -> M, mutant: &Lifted) -> Result<String, String>
+model/umpire/dev/fixtures/interpreted.rs:412:fn fact_only_tree_mutant_disagrees() -> TestResult {
+model/umpire/dev/fixtures/interpreted.rs:448:fn seeded_mutant_trees_disagree() -> TestResult {
+model/temporal/testing/fixtures.rs:38:fn render_tlc(
+model/temporal/testing/fixtures.rs:56:    let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
+model/umpire/dev/fixtures/fixtures.rs:30:fn render_tlc(
+model/umpire/dev/fixtures/fixtures.rs:47:    let required = std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require");
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:138:fn world_fairness_metadata_only_mutations_refuse_before_tlc() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:184:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:220:fn world_fairness_required_tlc_agrees_and_replays_at_each_maximum() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:221:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:245:fn world_fairness_required_tlc_mutants_replay_heartbeat_and_starvation()
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:247:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs:297:fn assert_cycle(trace: &umpire_tlc::Trace, action: &str) -> umpire_testing::TestResult {
+model/temporal/testing/realization_control.rs:91:            .env_remove("UMPIRE_BACKENDS")
+model/umpire/dev/fixtures/fixtures/parameterized_world/tests.rs:52:fn actual_tlc_replays_the_false_claim_in_the_same_selected_world() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/parameterized_world/tests.rs:53:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/parameterized_world/tests.rs:54:        eprintln!("World replay control skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
+model/umpire/dev/fixtures/fixtures/optional_ticks/tests.rs:152:fn optional_ticks_source_only_mutant_disagrees_with_compiled_model() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/optional_ticks/tests.rs:188:fn optional_ticks_required_tlc_replays_exact_countdown_witnesses() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/optional_ticks/tests.rs:189:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/optional_ticks/tests.rs:221:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/optional_facts/tests.rs:71:fn required_tlc_replays_four_distinct_fact_witnesses_and_clearing() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/optional_facts/tests.rs:72:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/optional_facts/tests.rs:95:    if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
+model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs:127:fn actual_tlc_agrees_and_replays_in_both_selected_worlds() -> umpire_testing::TestResult {
+model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs:128:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs:129:        eprintln!("input World control skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
+model/umpire/dev/fixtures/fixtures/action_inputs/tests.rs:177:    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs:12:    std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require")
+model/umpire/dev/fixtures/fixtures/phased_rejection/tests.rs:131:fn rejecting_after_a_mutation_fails_in_tlc() -> umpire_testing::TestResult {
