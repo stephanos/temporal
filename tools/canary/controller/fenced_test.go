@@ -98,3 +98,51 @@ func TestActivityIDsAreTheCanarysOwn(t *testing.T) {
 		require.False(t, IsActivityID(id), id)
 	}
 }
+
+func TestFenceValidatesProgrammedInstructionsAndTheirReconciliation(t *testing.T) {
+	id := activityID(1)
+	inner := &stubDriver{}
+	f := &fencedDriver{Driver: inner, activityID: id}
+	cancel := &workflowservice.RequestCancelActivityExecutionRequest{Namespace: "namespace", ActivityId: id, RunId: "run"}
+	read := &workflowservice.DescribeActivityExecutionRequest{Namespace: "namespace", ActivityId: id, RunId: "run", IncludeOutcome: true, IncludeLastFailure: true}
+	instruction := &temporalv1.TemporalInstruction{Request: packed(t, cancel), HoldWorkerPolls: true, NotFoundRead: packed(t, &temporalv1.ObserveActivity{Request: packed(t, read), PollIntervalMs: 1, BackoffMs: 1, ReadTimeoutMs: 1})}
+	_, err := f.Start(t.Context(), 1, packed(t, instruction))
+	require.NoError(t, err)
+	for _, field := range []string{"activity", "namespace", "run", "method"} {
+		bad := proto.Clone(instruction).(*temporalv1.TemporalInstruction)
+		changed := proto.Clone(read).(*workflowservice.DescribeActivityExecutionRequest)
+		switch field {
+		case "activity":
+			changed.ActivityId = activityID(2)
+		case "namespace":
+			changed.Namespace = "another"
+		case "run":
+			changed.RunId = "another"
+		case "method":
+			bad.Request = packed(t, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: id})
+		default:
+			t.Fatal(field)
+		}
+		bad.NotFoundRead = packed(t, &temporalv1.ObserveActivity{Request: packed(t, changed)})
+		_, err = f.Start(t.Context(), 2, packed(t, bad))
+		require.ErrorIs(t, err, ErrOutsideFence, field)
+	}
+	require.Len(t, inner.started, 1)
+}
+
+type workerStub struct {
+	*stubDriver
+	metadata *runv1.Worker
+}
+
+func (d *workerStub) Worker() *runv1.Worker { return d.metadata }
+
+func TestFenceForwardsTheWorkersIdentity(t *testing.T) {
+	metadata := &runv1.Worker{Kind: "sdk", Version: "version", Namespace: "namespace", TaskQueue: "queue"}
+	inner := &workerStub{stubDriver: &stubDriver{}, metadata: metadata}
+	driver, err := fenced(func(context.Context) (runner.Driver, error) { return inner, nil }, activityID(1))(t.Context())
+	require.NoError(t, err)
+	recorder, ok := driver.(runner.WorkerRecorder)
+	require.True(t, ok)
+	require.Equal(t, metadata, recorder.Worker())
+}

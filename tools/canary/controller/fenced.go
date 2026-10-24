@@ -107,11 +107,52 @@ func (f *fencedDriver) Redact(event *runv1.Event) bool {
 	return false
 }
 
+// Worker preserves the executor identity of the wrapped Driver.
+func (f *fencedDriver) Worker() *runv1.Worker {
+	if recorder, ok := f.Driver.(runner.WorkerRecorder); ok {
+		return recorder.Worker()
+	}
+	return nil
+}
+
 // within admits only the allowlisted activity requests on the fenced activity, unwrapping the
 // read instruction; anything else, a workflow start, a signal-with-start, a multi-operation or a
 // schedule among them, is outside the fence.
 func (f *fencedDriver) within(payload *anypb.Any) error {
 	allowed := unaryRequests
+	if payload.MessageIs(new(temporalv1.TemporalInstruction)) {
+		instruction := new(temporalv1.TemporalInstruction)
+		if err := payload.UnmarshalTo(instruction); err != nil {
+			return err
+		}
+		cancellation := new(workflowservice.RequestCancelActivityExecutionRequest)
+		if !instruction.GetRequest().MessageIs(cancellation) {
+			return fmt.Errorf("%w: instruction names no cancellation", ErrOutsideFence)
+		}
+		if err := instruction.GetRequest().UnmarshalTo(cancellation); err != nil {
+			return err
+		}
+		if err := f.within(instruction.GetRequest()); err != nil {
+			return err
+		}
+		if instruction.GetNotFoundRead() != nil {
+			read := new(temporalv1.ObserveActivity)
+			if err := instruction.GetNotFoundRead().UnmarshalTo(read); err != nil {
+				return err
+			}
+			describe := new(workflowservice.DescribeActivityExecutionRequest)
+			if err := read.GetRequest().UnmarshalTo(describe); err != nil {
+				return fmt.Errorf("%w: reconciliation names no Describe", ErrOutsideFence)
+			}
+			if describe.GetNamespace() != cancellation.GetNamespace() || describe.GetRunId() != cancellation.GetRunId() {
+				return fmt.Errorf("%w: reconciliation crosses cancellation identity", ErrOutsideFence)
+			}
+			if err := f.within(instruction.GetNotFoundRead()); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 	if payload.MessageName() == readInstruction {
 		instruction := new(temporalv1.ObserveActivity)
 		if err := payload.UnmarshalTo(instruction); err != nil {
