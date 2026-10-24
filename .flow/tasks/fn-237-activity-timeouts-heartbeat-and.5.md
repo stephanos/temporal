@@ -15,7 +15,7 @@ Record R5's delivered timeout and cancellation surface and measured evidence aft
 
 ### Approach
 
-1. Reanchor fn-237.1 to fn-237.4 receipts and actual implementation spellings. Keep DESIGN within its 1000-line limit, preserving unrelated architecture and the separate fn-232 failed certification result.
+1. Reanchor fn-237.1 to fn-237.4, fn-237.6 World-selected fairness, and committed fn-243.5 receipts and actual implementation spellings. Keep DESIGN within its 1000-line limit, preserving unrelated architecture and the separate fn-232 failed certification result.
 2. Describe the opt-in `Option<F>` fact result and bounded nominal optional values, including the checked scalar construction boundary, without claiming generic World/state validation.
 3. Extend the activity World/state table with the timeouts, countdowns and `cancel_requested`. Record deadline priority and zero/reset laws, cooperative cancellation and its races, the exact-action fair-worker assumption and the schedule-to-close total-tick bound. Describe the final compatibility World's projection, including the Tick-to-deadline mapping, rather than claiming old activity byte equality. Record the timeout-to-tick table and the pinned cancellation binding.
 4. Obtain native/TLC counts per actually selected fixture and activity World and the actual live cancellation evidence from retained outputs. Execute model-time on the final tree and retain its full output. State soft-target misses honestly; a zero command exit does not mean a performance target was met.
@@ -26,6 +26,7 @@ Required:
 
 - `model/DESIGN.md` "Parameterized worlds and inputs" section as left by fn-227.6.
 - `optional_facts` and `optional_ticks` fixtures and their completed task receipts for exact counts and public APIs.
+- `world_fairness` fixture and fn-237.6 receipt for the bounded World-only source form, selected exact fair lists and actual native/TLC controls.
 - `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs}` and the compatibility harness for the final state/action/fact projection and live binding.
 - The fn-237.4 live slice/gap/privacy evidence and its exact embedded guest hash.
 

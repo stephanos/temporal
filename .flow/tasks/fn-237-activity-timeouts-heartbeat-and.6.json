@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T15:27:21.447676Z",
+  "depends_on": [
+    "fn-237-activity-timeouts-heartbeat-and.2"
+  ],
+  "id": "fn-237-activity-timeouts-heartbeat-and.6",
+  "priority": null,
+  "spec": "fn-237-activity-timeouts-heartbeat-and",
+  "spec_path": ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.6.md",
+  "status": "todo",
+  "title": "World-selected exact fairness lists through independent source binding",
+  "updated_at": "2026-10-24T15:28:39.844758Z"
+}

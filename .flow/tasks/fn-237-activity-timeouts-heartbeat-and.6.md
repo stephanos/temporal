@@ -1,0 +1,49 @@
+---
+satisfies: [R2]
+---
+# fn-237-activity-timeouts-heartbeat-and.6 World-selected exact fairness lists through independent source binding
+
+## Description
+Deliver R2's bounded World-selected exact assumption lists before the activity consumer. Reuse the already delivered concrete-action fairness semantics; this task changes source expressibility and binding, not activity policy or closed I.
+
+**Size:** M, one source/binding vertical across five existing production owners plus focused tests and one generic fixture.
+**Dependencies:** Start only after O's implementation and Flow closure are committed in umpire. Activity task .3 consumes this task's committed closure.
+**Files:** model/umpire/front/src/body/progress.rs; model/umpire/ir/src/tree.rs; model/umpire/backends/tla/src/{bind,names}.rs; model/umpire/backends/native/src/interpret.rs; focused front/TLA tests; a new ordinary fixture under model/umpire/dev/fixtures/fixtures/world_fairness/; the post-O authoring guide in model/README.md or model/umpire/README.md. Reanchor after O. Existing Print/native World plumbing are reused; emit.rs may receive only a narrow unresolved-plan refusal if the successful binding boundary cannot enforce it.
+**Touches:** [model/umpire/front/src/body/progress.rs, model/umpire/front/tests/**, model/umpire/ir/src/tree.rs, model/umpire/backends/tla/src/bind.rs, model/umpire/backends/tla/src/names.rs, model/umpire/backends/tla/src/emit.rs, model/umpire/backends/tla/tests/**, model/umpire/backends/native/src/interpret.rs, model/umpire/dev/fixtures/fixtures/world_fairness/**, model/umpire/dev/fixtures/interpreted.rs, model/README.md, model/umpire/README.md]
+
+### Approach
+
+1. Preserve the flat parser and existing fair/only/without leaves, builder chains and helper resolution. Admit exhaustive tail if/else and nested else-if around those leaves. Validate every branch, including inactive branches, and validate authored guard syntax before expression folding. Guards use only primitive World Bool fields, primitive Bool equality/inequality, primitive Int comparisons with matching literals or already admitted primitive-literal source constants, parentheses and boolean connectives. Reject nominal/optional carriers, arithmetic, calls, computed arrays/payloads, state/before/after/outcome/input dependencies and conditional-result builders; preserve current flat builders and helper-depth limits.
+2. Freeze one optional boxed typed conditional plan on the existing assumption definition, leaving flat fields and progress/root field types intact. An unresolved plan is not an empty flat scope. Preserve outer helper/registration identity, source diagnostics and same-scope comparisons; existing derived Print carries the plan. Required hidden embedded constructor additions are permitted, while every tracked old expansion and artifact remains exact. No new DSL/Lifts API, native scheduling policy or general expression evaluator.
+3. Add one narrow shared primitive guard-selection operation over validated typed World values. Both interpreted native and TLA consume it; compiled native World-taking assumption methods remain independent. TLA validates World values, resolves every registered and progress definition in a clone, then applies existing exact catalog membership to selected leaves. Native interpretation resolves before converting exact actions. Inactive well-typed Poll values are not catalog-checked. A selected invalid progress or registered-but-unused leaf refuses; do not silently filter, union, widen the catalog or invoke a native callback to derive source policy.
+4. Make naming validation conditional-aware at its existing owner before binding. Reserve possible generated Fair_ operators and registered Assumption_ aliases without unioning policy; cover names visible only after selection and plans that become equivalent in one World. Retain authored World field identities for selection and test renamed/shadowed parameters and state/World name collisions. Reject unresolved plans at successful consumer boundaries, never emitting empty/union fairness. Consume O's delivered World/CFG consistency guard rather than duplicate it; reanchor its final owner and actual controls after O closes.
+5. Add a no-activity-policy generic fixture with retry/current/stale Poll, an explicit close and an enabled heartbeat-like self-loop. At selected maxima 1/2/3, exact fair lists are Poll(1)..Poll(m) plus close, with 2/3/4 concrete values and all ordinary actions allowed. Use normal fixture discovery and compiled/interpreted/embedded/independently re-admitted paths. Prove actual required TLC verdicts and exact scope/ordinal/WF metadata; source-only selector/leaf mutations keep compiled native code fixed. Preserve existing action_inputs controls and their documented bounded-fairness limitation. Extend the actual post-O authoring-guide owner, keeping only a pointer at the other README rather than duplicating the grammar.
+
+### Investigation targets
+
+**Required** (reanchored at final O source 6f0fb85f56 and committed closure d6306a579f; implementation rechecks coordinates):
+- model/umpire/front/src/body/progress.rs:13 — assumption/helper/leaf grammar and progress assuming route; reuse the typed World environment in body/mod.rs:198.
+- model/umpire/ir/src/tree.rs:146 — flat definitions and same_scope; reuse ordinary Print and primitive IR expressions without exporting an interpreter.
+- model/umpire/backends/tla/src/bind.rs:24 — validated typed World boundary and selected catalog checks; reanchor O's final CFG consistency guard.
+- model/umpire/backends/tla/src/names.rs:345 — registered aliases and generated fairness names currently read flat scopes before binding.
+- model/umpire/backends/native/src/interpret.rs:133 — typed World import and existing exact assumption conversion.
+- model/umpire/dev/fixtures/fixtures/action_inputs/ — actual exact-payload WF, stale-payload, replay and structural bounded-fairness controls; closed I commits 3fd1d2f551 and 0469334f91.
+- .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-gap-findings.md — full refusal/mutation matrix and the five-family nonempty CFG requirement. O's existing guard is model/umpire/dev/testing/src/bound.rs:89, with actual five-family required-TLC controls at model/umpire/backends/tla/tests/world.rs:381; consume them rather than adding another guard.
+
+### Verification and boundaries
+
+Baseline old flat behavior and snapshot all current tracked expansions/artifacts before coding, including O's newly added optional_ticks expectations. O's retained 827-entry preservation manifest excludes its new fixture, so consuming it alone is insufficient; extend the protected baseline at integrated O. Focused from model/: mise exec -- cargo test -p umpire-front -p umpire-ir -p umpire-tla -p umpire-checker -p umpire-fixtures; repeat the new fixture under UMPIRE_BACKENDS=require, then scoped fmt and strict clippy. Finish with make model-check, UMPIRE_BACKENDS=require make model-check and make model-time, retaining actual counts, traces and soft-target misses. Follow the normal guest refresh/slice/gaps path only if linked bytes change; no unrelated golden updates.
+
+No activity source/policy, external API, dependency, native catalog rule, fairness-family semantics, public callback API, general evaluator or new configuration. The existing concrete per-value WF emitter remains the meaning owner. The task owner integrates all lanes and commits; the conductor owns MILESTONES.md. Source and shared-cache ownership remain serial after O, with disjoint subagent surfaces only after the typed plan interface is frozen.
+## Acceptance
+- [ ] Exhaustive World-only conditional assumption grammar, named helpers/registration/progress scope and embedding/re-admission work. Missing else, malformed inactive leaves, wrong helper argument/shadowed World identity, unknown fields/types, nominal/optional payloads, calls/arithmetic/computed lists, loops/match, conditional-result builders, state dependence, recursion/depth and forbidden operands hidden by folding refuse at their source; existing flat leaves/builders remain exact.
+- [ ] Selected typed World resolution precedes unchanged exact membership in native interpretation and TLA for all registered/progress definitions. Inactive larger-domain values remain admitted; missing/duplicate/extra/mistyped World fields, selected invalid or unused registered leaves, unresolved plans and conditional generated-name/alias collisions refuse. Empty-list semantics and any existing empty-scope refusals remain unchanged. Same-scope identity and all five nonempty CFG families retain the actual selected World; legal swaps refuse even when verdicts match, through O's existing guard.
+- [ ] Compiled native, interpreted, embedded and independently re-admitted source plus actual required TLC agree at maxima 1/2/3, with exact 2/3/4 fair values, typed allowed/fair ordinals, all ordinary actions allowed and one WF per selected Poll plus close. Missing close, omitted current Poll, stale payload, variant union, source-only predicate/leaf, legal World and metadata mutations discriminate by exact disagreement or typed refusal; starvation/heartbeat counterexamples replay without deriving policy from native graphs.
+- [ ] All tracked old flat expansions/goldens and immutable compatibility artifacts remain byte-identical against integrated O; new plan Print compiles/roundtrips. Authoring/subset README, actual fixture counts/replay evidence, focused/full gates and timing are recorded. Existing action_inputs negative controls and its explicitly nondiscriminating bounded-fairness behavioral check remain intact.
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:
