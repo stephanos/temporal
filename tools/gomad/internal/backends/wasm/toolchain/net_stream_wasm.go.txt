@@ -159,22 +159,27 @@ func gomadStreamPollPending() (bool, bool) {
 			}
 			current = current.next
 		}
+		polled := false
 		for i := 0; i < count; i++ {
 			current := pending
-			pending = pending.next
 			if byteorder.BEUint64(probe[gomadStreamHeader+8*i:]) == 0 {
+				// A poll can complete later requests, invalidating negative hints.
+				if polled {
+					break
+				}
+				pending = pending.next
 				continue
 			}
+			pending = pending.next
 			clear(current.buffer[40:gomadStreamHeader])
 			byteorder.BEPutUint32(current.buffer[4:], gomadStreamPoll)
 			gomadStreamInvoke(current.buffer)
+			polled = true
 			if byteorder.BEUint32(current.buffer[40:]) != 1 {
 				gomadStreamRemove(current)
 				close(current.done)
 				woken = true
 			}
-			// A poll can advance the network and complete a later request in this scan.
-			break
 		}
 	}
 	return woken, gomadStreamPendingHead != nil

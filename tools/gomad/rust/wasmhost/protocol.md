@@ -301,10 +301,12 @@ equal virtual times or identical prior payloads never justify cached readiness.
 
 The guest asks again on every pending scan, traverses its existing pending list
 in chunks of at most 128, and polls only reported-ready IDs in that list order.
-After each individual poll it refreshes the remaining suffix before skipping
-any further request, because that poll can advance the owner and complete a
-later request in the same scan. Pending-list removal, cancellation, deadlines
-and wake order continue through the existing individual completion path.
+Consecutive positive slots are hints to the existing authoritative individual
+poll, which retains its normal pending and error paths. Every individual poll
+invalidates the remaining negative slots: before skipping any such entry, the
+guest refreshes the remaining suffix, because the poll can advance the owner and
+complete a later request in the same scan. Pending-list removal, cancellation,
+deadlines and wake order continue through the existing individual completion path.
 
 The new operation changes guest runtime-overlay bytes and consequently runtime,
 module and preparation/install identities. Rebuild and authenticate affected
