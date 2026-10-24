@@ -1339,8 +1339,9 @@
    ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorAsymmetricGuestFailureEndsPromptly": {
-   "evidence": [],
-   "gap": "port: retained behaviour has no receiving Rust test"
+   "evidence": [
+    "stage/operator/TestInstalledOperatorAsymmetricGuestFailureEndsPromptly"
+   ]
   },
   "tools/gomad/internal/backends/wasm/command/scenario_test.go#TestInstalledOperatorClusterFailureEndsPromptly": {
    "basis": "weak name correlation within the owning domain; confirm in review",

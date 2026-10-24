@@ -582,10 +582,28 @@ def reach_reason(value):
     return isinstance(value, str) and 0 < len(value) <= 300 and '\n' not in value and value == value.strip()
 
 
+# Owner decision "Opportunistic merge": until fn-232.14 closes, explicit `gap`/`partial:` reach entries are
+# reported with the final row instead of refused. fn-232.14 flips this single switch to True.
+REACH_GAPS_BLOCK = False
+
+
+def reach_gap(entry):
+    if 'gap' in entry:
+        return str(entry['gap'])
+    return next((str(text) for text in (entry.get('basis', ''), *entry.get('evidence', []))
+                 if str(text).startswith(('gap:', 'partial:'))), None)
+
+
 def reach_coverage(original, entries, actual):
     require(original and set(entries) == set(original), 'missing/unexpected original test-wasm callable/subvariant mapping')
     commands = {}
+    gaps = {}
     for name, entry in entries.items():
+        gap = reach_gap(entry)
+        if gap is not None:
+            require(not REACH_GAPS_BLOCK, 'test-wasm reach gap: ' + name + ': ' + gap)
+            gaps[name] = gap
+            continue
         kinds = {'evidence', 'retired', 'collapsed_into'} & set(entry)
         require(len(kinds) == 1 and set(entry) <= kinds | {'reason', 'assertion_applicability', 'basis'}, 'test-wasm entry needs exactly one disposition: ' + name)
         if 'retired' in entry:
@@ -609,6 +627,7 @@ def reach_coverage(original, entries, actual):
             identities = {item.split('@stage/', 1)[1] for item in evidence}
             require(not previous.intersection(identities), 'one execution substituted for repeated original Make selections')
             previous.update(identities)
+    return gaps
 
 
 def original_callables(config, mapping, actual=()):
@@ -745,7 +764,7 @@ def test_wasm_reach(config, actual):
     counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
     reports.update(proof['actual_cases'])
     reports.update(stage_subgate_evidence(config))
-    reach_coverage(original, mapping['entries'], reports)
+    return reach_coverage(original, mapping['entries'], reports)
 
 
 def stage_subgate_evidence(config):
@@ -776,5 +795,8 @@ def read_corpus(config, root):
     require(admission_case in receiving_report(config, rust_admission), 'root19 Rust refusal testcase unexecuted')
     actual = set(required()) - {'test-wasm/complete-behavioral-reach'}
     actual.update(case for proof in proofs.values() for case in proof['actual_cases'])
-    test_wasm_reach(config, actual)
-    return [dict(id=name, status='PASS', executed=True, exit=0) for name in required()]
+    gaps = test_wasm_reach(config, actual)
+    rows = [dict(id=name, status='PASS', executed=True, exit=0) for name in required()]
+    if gaps:
+        next(row for row in rows if row['id'] == 'test-wasm/complete-behavioral-reach')['reported_gaps'] = gaps
+    return rows

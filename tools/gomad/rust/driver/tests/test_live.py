@@ -249,8 +249,7 @@ class RawBindingGuards(unittest.TestCase):
         for key, bad in ((gone, dict(retired='')), (gone, dict(retired='two\nlines')),
                          (gone, dict(retired='reason', evidence=['rust/gomad/receiver'])),
                          (sub, dict(collapsed_into=gone, reason='retired target')),
-                         (sub, dict(collapsed_into=root)), (sub, dict(collapsed_into='missing', reason='x')),
-                         (root, dict(evidence=[], gap='port'))):
+                         (sub, dict(collapsed_into=root)), (sub, dict(collapsed_into='missing', reason='x'))):
             entries = dict(good); entries[key] = bad
             with self.subTest(key=key, bad=bad), self.assertRaises(driver.Refusal):
                 live.reach_coverage(original, entries, {'rust/gomad/receiver'})
@@ -337,3 +336,14 @@ class RawBindingGuards(unittest.TestCase):
             self.assertIn(site+'/kind2-1',actual)
             mapping['subtests'][site]['derive']='declared-count'
             with self.assertRaises(driver.Refusal):live.original_callables(config,mapping,actual)
+
+
+class ReachGapSwitch(unittest.TestCase):
+    def test_gaps_are_reported_until_the_switch_blocks_them(self):
+        import live
+        entries = {'a#TestOne': dict(evidence=['rust/x/one']), 'a#TestGap': dict(evidence=[], gap='port: missing'),
+                   'a#TestPartial': dict(evidence=['partial: one subcase'])}
+        self.assertEqual(live.reach_coverage(set(entries), entries, {'rust/x/one'}),
+                         {'a#TestGap': 'port: missing', 'a#TestPartial': 'partial: one subcase'})
+        with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaisesRegex(driver.Refusal, 'reach gap'):
+            live.reach_coverage(set(entries), entries, {'rust/x/one'})
