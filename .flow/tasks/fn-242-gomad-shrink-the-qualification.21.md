@@ -5,7 +5,7 @@ satisfies: [R2]
 
 **Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_codec/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_codec/**, tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs, tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs, tools/gomad/rust/wasmhost/src/volume/image.rs
 
 ## Description
 Port core_codec storage/state/engine observations through existing authoritative Rust codecs where contracts match. Keep independent framing, counts, ordering, padding, numeric range, state identity and raw evidence comparisons.
@@ -41,3 +41,7 @@ TBD
 ## Owner-authorized batch B04
 
 Implementation and independent review run under fn-242-gomad-shrink-the-qualification.18 with the complete batch scope in `.flow/artifacts/fn242-execution-batches.json`. This original task retains all acceptance and proof ownership. Its leader dependency prevents separate worker admission. After whole-batch SHIP, start and complete this receipt-only member in original topological order using the actual reviewed source, shared review receipt and its own executed proof.
+
+## Shared storage decoder integration
+
+B04 additionally owns the three wasmhost files in Touches solely to expose immutable admitted storage image/state projections through the existing authoritative decoders. Keep recovery/image and state parsing single-owned; preserve current bounds, validation order, raw sections and independently compared effects, selected baselines and engine inputs. Do not expose mutable model internals or add World/network parsing here; those remain B06. Existing recovery_volumes/validate_state callers keep their current behavior. The decoder seam advisory is at .git/flow-notes/fn242-20261024T1800-cycle-wave/b04-decoder-seam.md. No B04 implementation is admitted before actual B01 completion.

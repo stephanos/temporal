@@ -113,6 +113,12 @@ Leader dependency additions: none.
 - `tools/gomad/rust/gomad/src/cycle/readers/command/**`
 - `tools/gomad/rust/gomad/src/cycle/readers/core_codec/**`
 
+B04 decoder integration extension. Expose immutable admitted storage projections through the existing wasmhost decoders, preserving current parser behavior and independent receiving comparisons. No duplicate parser, mutable model API or B06 scope. Additional exact files:
+
+- `tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs`
+- `tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs`
+- `tools/gomad/rust/wasmhost/src/volume/image.rs`
+
 ### B05 guest-inspection
 
 Share decoded guest and inspection fixtures, then validate installed inspection and recovery.

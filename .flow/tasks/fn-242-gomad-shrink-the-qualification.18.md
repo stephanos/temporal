@@ -5,7 +5,7 @@ satisfies: [R2]
 
 **Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**, tools/gomad/rust/gomad/src/cycle/readers/core_codec/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**, tools/gomad/rust/gomad/src/cycle/readers/core_codec/**, tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs, tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs, tools/gomad/rust/wasmhost/src/volume/image.rs
 
 ## Description
 Port receiving common helpers and command/artifact/preparation/result admission, plus core_identity. Admit one bounded authenticated byte buffer per read. Reuse qualify::spec::strict and qualify Result/PublicationReceipt APIs for their actual schemas; retain alias, mode, size and change-during-read checks at every independent open.
@@ -41,3 +41,7 @@ TBD
 ## Owner-authorized batch B04 (reader-foundation)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.18, fn-242-gomad-shrink-the-qualification.21. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
+
+## Shared storage decoder integration
+
+B04 additionally owns the three wasmhost files in Touches solely to expose immutable admitted storage image/state projections through the existing authoritative decoders. Keep recovery/image and state parsing single-owned; preserve current bounds, validation order, raw sections and independently compared effects, selected baselines and engine inputs. Do not expose mutable model internals or add World/network parsing here; those remain B06. Existing recovery_volumes/validate_state callers keep their current behavior. The decoder seam advisory is at .git/flow-notes/fn242-20261024T1800-cycle-wave/b04-decoder-seam.md. No B04 implementation is admitted before actual B01 completion.
