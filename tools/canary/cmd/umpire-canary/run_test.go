@@ -69,6 +69,59 @@ func TestMainRefusesAnOutputUnderTheModel(t *testing.T) {
 	require.Contains(t, summary.Detail, "under the model")
 }
 
+// Containment is checked where a path really is, through its symlinks: an output that is a symlink
+// into the model, an output under a symlinked model, and a recovery record whose not-yet-existing
+// path runs through a symlink into the output are all refused, and nothing is written.
+func TestMainResolvesSymlinksBeforeContainment(t *testing.T) {
+	root := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "model", "out"), 0o755))
+	outside := t.TempDir()
+	require.NoError(t, os.Symlink(filepath.Join(root, "model", "out"), filepath.Join(outside, "into-model")))
+	output := filepath.Join(outside, "output")
+	require.NoError(t, os.Mkdir(output, 0o755))
+	require.NoError(t, os.Symlink(output, filepath.Join(outside, "into-output")))
+	linkedDir := t.TempDir()
+	require.NoError(t, os.Mkdir(filepath.Join(linkedDir, "out"), 0o755))
+	linkedRoot := t.TempDir()
+	require.NoError(t, os.Symlink(linkedDir, filepath.Join(linkedRoot, "model")))
+	recovery := filepath.Join(t.TempDir(), "recovery.json")
+	for name, test := range map[string]struct {
+		dir, output, recovery, detail string
+	}{
+		"an output that links into the model":    {root, filepath.Join(outside, "into-model"), recovery, "under the model"},
+		"an output under a linked model":         {linkedRoot, filepath.Join(linkedDir, "out"), recovery, "under the model"},
+		"a recovery that links under the output": {root, output, filepath.Join(outside, "into-output", "recovery.json"), "under --output"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Chdir(test.dir)
+			var stdout, stderr bytes.Buffer
+			code := Main([]string{"run", "--output", test.output, "--recovery", test.recovery}, &stdout, &stderr, noEnvironment, controller.ProductionSeams())
+			require.Equal(t, controller.ExitFailed, code)
+			summary := summaryOf(t, &stdout)
+			require.Equal(t, statusUsage, summary.Status)
+			require.Contains(t, summary.Detail, test.detail)
+			_, err := os.Stat(test.recovery)
+			require.ErrorIs(t, err, os.ErrNotExist)
+		})
+	}
+}
+
+// resolve keeps the part of a path that does not exist yet as written, below its resolved parent.
+func TestResolveKeepsTheMissingTail(t *testing.T) {
+	target := t.TempDir()
+	linked := filepath.Join(t.TempDir(), "link")
+	require.NoError(t, os.Symlink(target, linked))
+	resolvedReal, err := filepath.EvalSymlinks(target)
+	require.NoError(t, err)
+	got, err := resolve(filepath.Join(linked, "absent", "recovery.json"))
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(resolvedReal, "absent", "recovery.json"), got)
+	require.True(t, within(resolvedReal, got))
+	require.True(t, within(resolvedReal, resolvedReal))
+	require.False(t, within(resolvedReal, resolvedReal+"-sibling"))
+	require.False(t, within(filepath.Join(resolvedReal, "absent"), resolvedReal))
+}
+
 // Reconcile with no recovery record has nothing to reconcile and needs no credential; the report
 // is its one document on stdout.
 func TestReconcileWithNoRecordIsNothingToReconcile(t *testing.T) {

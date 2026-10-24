@@ -40,6 +40,8 @@ func scriptedRun(world *anypb.Any, status string) *runner.Run {
 		run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Refused{Refused: &runv1.Refused{Event: 3, Reason: "driver fault"}}}
 	case StatusExplained:
 		run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUIESCENT}}}
+	default:
+		// A Run with no verdict, which the controller counts as failed.
 	}
 	return run
 }

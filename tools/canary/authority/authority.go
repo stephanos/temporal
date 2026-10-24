@@ -42,8 +42,10 @@ type Error struct {
 
 func (e *Error) Error() string { return e.Variable + ": " + e.Reason }
 
-// Coordinates are the target's raw names. They are never written: preflight compares their
-// digests with the policy's, and the Redactor removes them from every written text.
+// Coordinates are the target's raw names. Preflight compares their digests with the policy's, and
+// the Redactor removes them from progress, summaries and logs. A published Run's World holds the
+// namespace and task queue, which the Model needs to replay it; nothing written holds the gRPC
+// target.
 type Coordinates struct {
 	GRPC      string
 	Namespace string

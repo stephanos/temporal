@@ -508,14 +508,13 @@ for the broad-selector invocation. Their Complete/Fail/HostRefusal Answer calls 
 134.958/65.583/168.333 µs and 103.834/57.000/32.958 µs respectively. Concurrent clean
 compilation and Go linting ran during verification; these samples make no idle-host claim.
 
-The unchanged-scope umbrella invokes the dedicated slice and retains all legacy checks.
-Its seven inherited failures are AssessRecordedRuns, ExplorationDiscoversUnpinnedExecution,
-GeneratedCases, NexusControlForgedCompletionIsViolated, NexusControlReplaysThroughTheCommand,
-NexusPairCase and UmpireRunRunsACheckedInCaseAgainstAnyEndpoint (all TestTestpilot-prefixed).
-The comparison in `.flow/tmp/fn-216-4/legacy-comparison.md` retains this task's
-before/after identities and assertion causes, matching predecessor .3's comparison.
-This umbrella is red; the dedicated slice passing does not make it green. The frozen
-Scala tree was not revived to repair those legacy expectations.
+At fn-216.4 the umbrella also carried seven inherited legacy failures (AssessRecordedRuns,
+ExplorationDiscoversUnpinnedExecution, GeneratedCases, NexusControlForgedCompletionIsViolated,
+NexusControlReplaysThroughTheCommand, NexusPairCase and
+UmpireRunRunsACheckedInCaseAgainstAnyEndpoint, all TestTestpilot-prefixed; see
+`.flow/tmp/fn-216-4/legacy-comparison.md`). fn-228.3 and fn-228.6 retired them with the Case
+runtime and mapped their coverage to the Runner (`.flow/artifacts/fn-228.6/coverage-map.md`); the
+umbrella now expects no failure identity.
 
 ## Testing
 

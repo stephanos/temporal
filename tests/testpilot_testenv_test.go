@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"go.temporal.io/server/chasm/lib/activity"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/tests/testcore"

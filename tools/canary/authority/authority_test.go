@@ -2,6 +2,7 @@ package authority
 
 import (
 	"bytes"
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -12,11 +13,18 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/api/workflowservice/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const testAPIKey = "canary-api-key-4f6d0a1c9e"
@@ -116,6 +124,40 @@ func TestLoadBuildsATLSTransportFromEachCredential(t *testing.T) {
 			require.NotSame(t, transport.ClientTLS, options.ConnectionOptions.TLS, "each client gets its own TLS config")
 		})
 	}
+}
+
+// plainCredential is a per-RPC credential a plaintext test server may receive.
+type plainCredential struct{}
+
+func (plainCredential) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
+	return map[string]string{"authorization": "Bearer test-key"}, nil
+}
+
+func (plainCredential) RequireTransportSecurity() bool { return false }
+
+// The Driver's transport sends the canary namespace as the routing header a namespace-scoped API
+// key is checked against, and the per-RPC credential beside it, on every call.
+func TestTheDriverTransportSendsTheNamespaceAndTheCredential(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	received := make(chan metadata.MD, 1)
+	server := grpc.NewServer(grpc.UnknownServiceHandler(func(_ any, stream grpc.ServerStream) error {
+		incoming, _ := metadata.FromIncomingContext(stream.Context())
+		received <- incoming
+		return status.Error(codes.Unimplemented, "probe")
+	}))
+	go func() { _ = server.Serve(listener) }()
+	t.Cleanup(server.Stop)
+
+	transport := Transport{Target: listener.Addr().String(), Credentials: insecure.NewCredentials(), PerRPCCredentials: plainCredential{}}
+	conn, err := grpc.NewClient(transport.Target, transport.Driver(testCoordinates[VariableNamespace]).DialOptions...)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	_, err = workflowservice.NewWorkflowServiceClient(conn).DescribeNamespace(t.Context(), &workflowservice.DescribeNamespaceRequest{})
+	require.Equal(t, codes.Unimplemented, status.Code(err))
+	incoming := <-received
+	require.Equal(t, []string{testCoordinates[VariableNamespace]}, incoming.Get("temporal-namespace"))
+	require.Equal(t, []string{"Bearer test-key"}, incoming.Get("authorization"))
 }
 
 // No credential, half a pair or an unreadable pair refuses, naming the variable and never a value.

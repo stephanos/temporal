@@ -33,6 +33,10 @@ import (
 	"umpire.local/temporal"
 )
 
+// canaryPlantedAPIKey is set in every harness process's environment, which the harness transport
+// never uses, so the scans can prove no credential reaches what the process writes.
+const canaryPlantedAPIKey = "canary-planted-api-key-3e8b51"
+
 // canaryCleanupTimeout bounds removing a harness's namespace resources.
 const canaryCleanupTimeout = 5 * time.Second
 
@@ -61,7 +65,7 @@ func newCanaryHarness(t *testing.T, name string, edit func(*policy.Policy)) *can
 	coordinates := authority.Coordinates{
 		GRPC: env.FrontendGRPCAddress(), Namespace: "umpire-" + name, TaskQueue: "umpire-" + name + "-queue",
 	}
-	release, err := provision.Create(env.Context(), provision.Clients{Workflow: env.FrontendClient(), Operator: env.OperatorClient()},
+	release, err := provision.Create(t.Context(), provision.Clients{Workflow: env.FrontendClient(), Operator: env.OperatorClient()},
 		provision.Resources{Namespace: coordinates.Namespace, RetainNamespace: true})
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -111,6 +115,7 @@ func (h *canaryHarness) environment(job canaryJob, extra map[string]string) []st
 		preflight.VariableRunID:       job.runID,
 		preflight.VariableRunAttempt:  "1",
 		testharness.VariablePolicy:    h.policyPath,
+		authority.VariableAPIKey:      canaryPlantedAPIKey,
 	}
 	for key, value := range extra {
 		values[key] = value
@@ -136,9 +141,22 @@ func (h *canaryHarness) invoke(t *testing.T, job canaryJob, mode string, extra m
 	require.NotNil(t, command.ProcessState, "umpire-canary %s did not start: %v", mode, err)
 	t.Logf("umpire-canary %s: exit %d\n%s%s", mode, command.ProcessState.ExitCode(), stdout.String(), stderr.String())
 	host, _, _ := strings.Cut(h.coordinates.GRPC, ":")
-	for _, raw := range []string{h.coordinates.GRPC, host, h.coordinates.Namespace, h.coordinates.TaskQueue} {
-		require.NotContains(t, stdout.String()+stderr.String(), raw, "a coordinate reached the process's output")
+	for _, raw := range []string{h.coordinates.GRPC, host, h.coordinates.Namespace, h.coordinates.TaskQueue, canaryPlantedAPIKey} {
+		require.NotContains(t, stdout.String()+stderr.String(), raw, "a coordinate or credential reached the process's output")
 	}
+	// A published Run keeps its World's namespace and task queue, but never the gRPC target or a
+	// credential.
+	require.NoError(t, filepath.WalkDir(job.output, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		written, err := os.ReadFile(path)
+		require.NoError(t, err)
+		for _, raw := range []string{h.coordinates.GRPC, host, canaryPlantedAPIKey} {
+			require.NotContains(t, string(written), raw, "the gRPC target or a credential reached %s", path)
+		}
+		return nil
+	}))
 	return command.ProcessState.ExitCode(), stdout.Bytes()
 }
 
@@ -186,7 +204,7 @@ func (h *canaryHarness) leaseClose(t *testing.T) (string, enumspb.WorkflowExecut
 // started is unspecified.
 func (h *canaryHarness) activityStatus(t *testing.T, id string) enumspb.ActivityExecutionStatus {
 	t.Helper()
-	described, err := h.env.FrontendClient().DescribeActivityExecution(h.env.Context(), &workflowservice.DescribeActivityExecutionRequest{
+	described, err := h.env.FrontendClient().DescribeActivityExecution(t.Context(), &workflowservice.DescribeActivityExecutionRequest{
 		Namespace: h.coordinates.Namespace, ActivityId: id,
 	})
 	var notFound *serviceerror.NotFound

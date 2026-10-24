@@ -16,14 +16,13 @@ terms; this page says what each package is for.
 | `realization` | Admits executable realizations and types their guards, operands and payloads |
 | `internal/engine` | Evaluates finite table claims; private to `interp` and `check` |
 | [`export`](export/README.md) | Writes the IR for Quint and compares its answers with the reader's |
-| `lint` | Model lint: reports what a Model declares that nothing reaches, takes, asks, evidences or realizes, and its specification holes, with a coverage count per kind and each machine's per-operation modality table |
 
 The module map, [.plans/UMPIRE_MODULES.md](../../.plans/UMPIRE_MODULES.md), states each package's
 public interface and what it may import. `ir/ownership_test.go` enforces the reader's layers:
 `realization` imports `interp`, `ir` imports both, and `check` imports `ir` and `interp`. None imports
-Testpilot. `export` and `lint` depend only on `ir`, `interp` and `check`.
+Testpilot. `export` depends only on `ir`, `interp` and `check`.
 
-fn-228.6 retired Case lowering, conformance, IR-bridge exploration and their commands
+fn-228.6 retired Case lowering, conformance, IR-bridge exploration, Model lint and their commands
 (`umpire-gen-cases`, `umpire-lint`, `umpire-ir-bridge`) with the Testpilot Case runtime; the Runner
 judges every observation through the Model instead.
 

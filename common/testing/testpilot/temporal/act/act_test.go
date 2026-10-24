@@ -16,6 +16,8 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -34,6 +36,7 @@ type fakeServer struct {
 
 	mu       sync.Mutex
 	received map[string][][]byte
+	metadata []metadata.MD
 }
 
 func newFakeServer(t *testing.T, respond func(method string) ([]byte, error)) *fakeServer {
@@ -47,8 +50,10 @@ func newFakeServer(t *testing.T, respond func(method string) ([]byte, error)) *f
 		if err := stream.RecvMsg(in); err != nil {
 			return err
 		}
+		incoming, _ := metadata.FromIncomingContext(stream.Context())
 		f.mu.Lock()
 		f.received[method] = append(f.received[method], in.data)
+		f.metadata = append(f.metadata, incoming)
 		f.mu.Unlock()
 		data, err := f.respond(method)
 		if err != nil {
@@ -169,6 +174,27 @@ func TestUnaryObservesTheActualInvocation(t *testing.T) {
 	require.Equal(t, uint64(2), done.ID)
 	_, open := <-x.Events()
 	require.False(t, open)
+}
+
+// A Transport's dial options replace the plaintext default: the Driver's calls carry what they add,
+// and options with no transport security of their own cannot dial at all.
+func TestATransportReplacesThePlaintextDefault(t *testing.T) {
+	server := newFakeServer(t, func(string) ([]byte, error) { return []byte{}, nil })
+	probe := func(ctx context.Context, method string, request, reply any, conn *grpc.ClientConn, invoke grpc.UnaryInvoker, options ...grpc.CallOption) error {
+		return invoke(metadata.AppendToOutgoingContext(ctx, "x-transport", "probe"), method, request, reply, conn, options...)
+	}
+	transport := Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(probe)}}
+	x := start(t, testDriver(t, server.address, Options{Transport: transport}), 1, packed(t, cancelRequest))
+	event := next(t, x)
+	observation(t, event)
+	server.mu.Lock()
+	require.Equal(t, []string{"probe"}, server.metadata[0].Get("x-transport"), "the call went through the Transport's options")
+	server.mu.Unlock()
+	require.NoError(t, x.Respond(t.Context(), event.ID, explained(false)))
+
+	_, err := newDriver(Options{Address: server.address, Namespace: "namespace", TaskQueue: "queue",
+		Transport: Transport{DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(probe)}}}.withDefaults())
+	require.Error(t, err, "the Transport's options are used alone, never beside the plaintext default")
 }
 
 func TestAServerStatusIsEvidence(t *testing.T) {

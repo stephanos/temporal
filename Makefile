@@ -477,7 +477,7 @@ umpire-check-model-slice:
 		cat "$$temporary"; \
 		if [ "$$status" -ne 0 ]; then exit "$$status"; fi; \
 		awk '/^[[:space:]]*--- PASS:/ { passed[$$3] = 1 } \
-			END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Complete TestTestpilotModelSlice/Fail TestTestpilotModelSlice/HostRefusal TestTestpilotModelSlice/Cancellation TestTestpilotModelSliceThroughUmpire TestTestpilotModelSliceThroughUmpire/Complete TestTestpilotModelSliceThroughUmpire/Cancellation TestTestpilotModelSliceThroughUmpire/RetryThenComplete TestTestpilotModelSliceThroughUmpire/Fail TestTestpilotModelSliceThroughUmpire/HostRefusal TestTestpilotModelSliceThroughUmpire/UnreachableEndpoint TestTestpilotModelSliceThroughUmpire/ReplayWithoutServer", required, " "); \
+			END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Complete TestTestpilotModelSlice/Fail TestTestpilotModelSlice/HostRefusal TestTestpilotModelSlice/Cancellation TestTestpilotModelSlice/CancelAfterCompletion TestTestpilotModelSlice/CancelBeforeWorkerStart TestTestpilotModelSlice/RetryThenComplete TestTestpilotModelSlice/Annotations TestTestpilotModelSliceThroughUmpire TestTestpilotModelSliceThroughUmpire/Complete TestTestpilotModelSliceThroughUmpire/Cancellation TestTestpilotModelSliceThroughUmpire/RetryThenComplete TestTestpilotModelSliceThroughUmpire/Fail TestTestpilotModelSliceThroughUmpire/HostRefusal TestTestpilotModelSliceThroughUmpire/UnreachableEndpoint TestTestpilotModelSliceThroughUmpire/ReplayWithoutServer", required, " "); \
 				for (i = 1; i <= count; i++) if (!passed[required[i]]) { \
 					printf "Required Model slice test did not pass: %s\n", required[i]; failed = 1 \
 				} exit failed }' "$$temporary"
