@@ -67,6 +67,57 @@ pub mod __lifted {
         fn __umpire_outcome_value(outcome: &Self::Outcome) -> value::Value;
         /// Each `check!` the embedded Model's claims index, as its failure reports it.
         fn __umpire_checks() -> &'static [&'static str];
+        /// One callback per claim of the embedded Model, each judging its own claim through
+        /// `W`, since a claim callback is a plain function of the World.
+        fn __umpire_callbacks<W: Evaluates<Self>>() -> Callbacks<W, Self>;
+    }
+    /// A World that judges the claims of `M`'s embedded Model by their position.
+    pub trait Evaluates<M: crate::Machine> {
+        /// Records the checks of the invariant at `index` for `state`.
+        fn __umpire_invariant(&self, index: usize, state: &M::State);
+        /// Records the checks of the postcondition at `index` for one edge.
+        fn __umpire_postcondition(
+            &self,
+            index: usize,
+            before: &M::State,
+            after: &M::State,
+            outcome: &M::Outcome,
+        );
+        /// The progress claim at `index`, evaluated at `state`.
+        fn __umpire_progress(
+            &self,
+            index: usize,
+            state: &M::State,
+        ) -> crate::ProgressEvaluation<M::Action>;
+    }
+    /// An invariant's check-recording callback and its verdict-only adapter.
+    pub type InvariantCallbacks<W, M> = (
+        fn(&W, &<M as crate::Machine>::State),
+        fn(&W, &<M as crate::Machine>::State) -> crate::Verdict,
+    );
+    /// A postcondition's check-recording callback.
+    pub type PostconditionCallback<W, M> = fn(
+        &W,
+        &<M as crate::Machine>::State,
+        &<M as crate::Machine>::State,
+        &<M as crate::Machine>::Action,
+        &<M as crate::Machine>::Outcome,
+        &[<M as crate::Machine>::Fact],
+    );
+    /// A progress claim's evaluator.
+    pub type ProgressCallback<W, M> =
+        fn(
+            &W,
+            &<M as crate::Machine>::State,
+        ) -> crate::ProgressEvaluation<<M as crate::Machine>::Action>;
+    /// Exactly one callback per claim of the embedded Model, in its order.
+    pub struct Callbacks<W, M: crate::Machine> {
+        /// Per invariant.
+        pub invariants: Vec<InvariantCallbacks<W, M>>,
+        /// Per postcondition.
+        pub postconditions: Vec<PostconditionCallback<W, M>>,
+        /// Per progress claim.
+        pub progress: Vec<ProgressCallback<W, M>>,
     }
 }
 

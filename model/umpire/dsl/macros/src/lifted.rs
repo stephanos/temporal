@@ -53,6 +53,9 @@ fn interprets(
         .iter()
         .enumerate()
         .map(|(slot, field)| decode(&field.ty, &quote!(&values[#slot])));
+    let invariants = 0..model.invariants.len();
+    let postconditions = 0..model.postconditions.len();
+    let progress = 0..model.progress.len();
     let outcome = decode(&model.outcome_type, &quote!(value));
     let outcome_value = encode(&model.outcome_type, &quote!((*outcome)));
     syn::parse_quote! {
@@ -89,6 +92,32 @@ fn interprets(
             ) -> ::umpire_dsl::__lifted::value::Value {
                 use ::umpire_dsl::__lifted::value::Value as __UmpireValue;
                 #outcome_value
+            }
+            fn __umpire_callbacks<W: ::umpire_dsl::__lifted::Evaluates<Self>>(
+            ) -> ::umpire_dsl::__lifted::Callbacks<W, Self> {
+                ::umpire_dsl::__lifted::Callbacks {
+                    invariants: ::std::vec![#((
+                        |world: &W, state: &#state| {
+                            ::umpire_dsl::__lifted::Evaluates::<Self>::__umpire_invariant(world, #invariants, state)
+                        },
+                        |world: &W, state: &#state| {
+                            ::umpire_dsl::claim::evaluate(|| {
+                                ::umpire_dsl::__lifted::Evaluates::<Self>::__umpire_invariant(world, #invariants, state)
+                            })
+                            .verdict
+                        },
+                    )),*],
+                    postconditions: ::std::vec![#(
+                        |world: &W, before: &#state, after: &#state, _: &<Self as ::umpire_dsl::Machine>::Action, outcome: &<Self as ::umpire_dsl::Machine>::Outcome, _: &[<Self as ::umpire_dsl::Machine>::Fact]| {
+                            ::umpire_dsl::__lifted::Evaluates::<Self>::__umpire_postcondition(world, #postconditions, before, after, outcome)
+                        }
+                    ),*],
+                    progress: ::std::vec![#(
+                        |world: &W, state: &#state| {
+                            ::umpire_dsl::__lifted::Evaluates::<Self>::__umpire_progress(world, #progress, state)
+                        }
+                    ),*],
+                }
             }
             fn __umpire_checks() -> &'static [&'static str] {
                 // `check!`'s own capture and spelling of its argument.

@@ -41,6 +41,9 @@ mod apalache_empty_condition;
 #[path = "../backends/apalache/tests/fixtures/arithmetic_prefix.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod arithmetic_prefix;
+#[path = "crowded.rs"]
+#[allow(unreachable_pub, missing_docs)]
+mod many_claims;
 #[path = "../backends/apalache/tests/fixtures/replay.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod replay;
@@ -415,52 +418,82 @@ fn seeded_mutant_trees_disagree() -> TestResult {
     Ok(())
 }
 
-/// Claim callbacks are plain functions, one per position, so a Model with more claims of one
-/// kind than the interpreter has positions is refused when it is interpreted.
+/// `#[machine]` registers exactly one claim callback per claim, so a Model with more claims
+/// than a fixed table would hold still interprets and agrees; a tree whose claims the compiled
+/// Model does not register is refused.
 #[test]
-fn claims_beyond_the_cap_are_refused() -> TestResult {
+fn every_claim_has_its_own_callback() -> TestResult {
+    let agreement = interpreted(many_claims::crowded::world, None, Checker::BUDGET, None)?;
+    assert_eq!(agreement.states, 3);
     let mut crowded = kettle_tree()?;
-    let claim = crowded.invariants[0].clone();
-    crowded.invariants = vec![claim; 65];
+    crowded.invariants = vec![crowded.invariants[0].clone(); 2];
     let Err(refusal) = Interpreted::from_tree(kettle::world(), &crowded) else {
-        return Err("65 invariants were interpreted".into());
+        return Err("a tree with an unregistered invariant was interpreted".into());
     };
-    assert_eq!(refusal, "65 invariants exceed the interpreter's 64");
-    let mut full = kettle_tree()?;
-    full.invariants = vec![full.invariants[0].clone(); 64];
-    Interpreted::from_tree(kettle::world(), &full)?;
+    assert_eq!(refusal, "the tree has 2 invariants; the compiled Model registers 1");
     Ok(())
 }
 
-/// A first timing of interpreted against compiled exploration on Kettle and on Kettle's wide
-/// shape, 2,001 starts. Run alone, in release:
-/// `cargo test --release -p umpire-fixtures --test interpreted -- --ignored --nocapture`.
+/// One timed exploration.
+fn timed<N: umpire_dsl::Machine>(
+    world: &N,
+    starts: &[N::State],
+) -> Result<std::time::Duration, Box<dyn std::error::Error>> {
+    let started = std::time::Instant::now();
+    let graph =
+        Checker::explore_within(world, starts.to_vec(), Checker::BUDGET, Checker::CATALOG_LIMIT)?;
+    let elapsed = started.elapsed();
+    std::hint::black_box(graph.counts);
+    Ok(elapsed)
+}
+
+/// Release timing of interpreted against compiled exploration (`Checker::explore_within`,
+/// claims and progress included) on Kettle and on Kettle's wide shape, 2,001 starts. Runs
+/// alternate which side goes first; the report gives medians and their ratio, and with
+/// `UMPIRE_TIMING_OUT` set it is also written to that file. `UMPIRE_TIMING_SCALE` multiplies the
+/// repetitions. Run alone:
+/// `cargo test --release -p umpire-fixtures --test interpreted -- --ignored --nocapture timing`.
 #[test]
 #[ignore = "timing; run alone in release"]
 #[allow(clippy::print_stderr, clippy::cast_precision_loss)]
 fn timing() -> TestResult {
+    use std::fmt::Write;
     use umpire_dsl::Machine;
     let world = kettle::world();
     let interpreted = Interpreted::new(kettle::world())?;
+    let scale: usize =
+        std::env::var("UMPIRE_TIMING_SCALE").ok().and_then(|s| s.parse().ok()).unwrap_or(1);
     let wide: Vec<_> = (-1000..=1000)
         .map(|temperature| kettle::Model { temperature, heating_on: false, beeping: false })
         .collect();
-    for (shape, starts, repetitions) in [("kettle", world.starts(), 2_000), ("wide", wide, 200)] {
+    let mut report = String::new();
+    for (shape, starts, repetitions) in
+        [("kettle", world.starts(), 2_000 * scale), ("wide", wide, 200 * scale)]
+    {
+        compare(&world, &interpreted, Some(starts.clone()), Checker::BUDGET, None)?;
         let mut compiled = Vec::with_capacity(repetitions);
         let mut evaluated = Vec::with_capacity(repetitions);
-        for _ in 0..repetitions {
-            let agreement =
-                compare(&world, &interpreted, Some(starts.clone()), Checker::BUDGET, None)?;
-            compiled.push(agreement.compiled);
-            evaluated.push(agreement.interpreted);
+        for run in 0..repetitions {
+            if run % 2 == 0 {
+                compiled.push(timed(&world, &starts)?);
+                evaluated.push(timed(&interpreted, &starts)?);
+            } else {
+                evaluated.push(timed(&interpreted, &starts)?);
+                compiled.push(timed(&world, &starts)?);
+            }
         }
         compiled.sort();
         evaluated.sort();
         let (compiled, evaluated) = (compiled[repetitions / 2], evaluated[repetitions / 2]);
-        eprintln!(
-            "{shape}: {repetitions} runs, median compiled {compiled:?}, interpreted {evaluated:?}, ratio {:.2}",
+        writeln!(
+            report,
+            "{shape}: {repetitions} interleaved runs, median compiled {compiled:?}, interpreted {evaluated:?}, ratio {:.2}",
             evaluated.as_secs_f64() / compiled.as_secs_f64()
-        );
+        )?;
+    }
+    eprint!("{report}");
+    if let Ok(path) = std::env::var("UMPIRE_TIMING_OUT") {
+        std::fs::write(path, report)?;
     }
     Ok(())
 }
