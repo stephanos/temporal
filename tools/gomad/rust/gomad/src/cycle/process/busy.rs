@@ -28,6 +28,8 @@ impl BusyWorkers {
                 ],
                 cwd: Path::new("/").into(),
                 environment: Environment::Exact(BTreeMap::new()),
+                declared_environment: BTreeMap::new(),
+                temporary_paths: BTreeMap::new(),
                 accepted: vec![0],
                 timeout: Duration::from_secs(3600),
                 private_context: None,

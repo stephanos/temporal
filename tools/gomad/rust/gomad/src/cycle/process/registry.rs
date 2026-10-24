@@ -74,7 +74,7 @@ impl Registry {
         fs::openat(
             &self.directory,
             name,
-            OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+            OFlags::RDWR | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
             Mode::from_raw_mode(0o600),
         )
         .map(File::from)
@@ -111,6 +111,17 @@ impl Registry {
                 .insert(registration.pid, interval.clone());
         }
         result
+    }
+    pub fn open_read(&self, name: &str) -> Result<File, String> {
+        self.check()?;
+        fs::openat(
+            &self.directory,
+            name,
+            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+            Mode::empty(),
+        )
+        .map(File::from)
+        .map_err(|e| e.to_string())
     }
     pub fn verify(&self, registration: &Registration) -> Result<(), String> {
         self.check()?;
@@ -152,19 +163,56 @@ impl Registry {
         &self,
         registration: &Registration,
         completed: &Completed,
+        streams: &super::RawStreams,
+        private: Option<&serde_json::Value>,
     ) -> Result<(), String> {
         let mut value = serde_json::to_value(registration).map_err(|e| e.to_string())?;
+        let fields = serde_json::to_value(completed).map_err(|e| e.to_string())?;
+        for (key, field) in fields
+            .as_object()
+            .ok_or("invalid typed process observation")?
+        {
+            value[key] = field.clone();
+        }
+        for (key, field) in serde_json::to_value(streams)
+            .map_err(|e| e.to_string())?
+            .as_object()
+            .ok_or("invalid typed raw stream observation")?
+        {
+            value[key] = field.clone();
+        }
         value["active"] = serde_json::Value::Bool(!completed.cleanup_complete);
-        value["completed"] = serde_json::to_value(completed).map_err(|e| e.to_string())?;
-        let temporary = format!("{}.process.terminal", registration.name);
-        let mut file = self.create_file(&temporary)?;
-        serde_json::to_writer(&mut file, &value).map_err(|e| e.to_string())?;
-        file.sync_all().map_err(|e| e.to_string())?;
+        value["observation"] = serde_json::Value::String(
+            if completed.failure.is_none() && completed.cleanup_complete {
+                "completed"
+            } else {
+                "inconclusive"
+            }
+            .into(),
+        );
+        value["command"] = serde_json::to_value(&registration.argv).map_err(|e| e.to_string())?;
+        if let Some(private) = private {
+            value["private_observations"] = private.clone();
+        }
+        for suffix in ["process", "command"] {
+            let mut file = self.create_file(&format!("{}.{suffix}.terminal", registration.name))?;
+            serde_json::to_writer(&mut file, &value).map_err(|e| e.to_string())?;
+            file.write_all(b"\n").map_err(|e| e.to_string())?;
+            file.sync_all().map_err(|e| e.to_string())?;
+        }
         fs::renameat(
             &self.directory,
-            temporary.as_str(),
+            format!("{}.process.terminal", registration.name),
             &self.directory,
             format!("{}.process.json", registration.name),
+        )
+        .map_err(|e| e.to_string())?;
+        fs::renameat_with(
+            &self.directory,
+            format!("{}.command.terminal", registration.name),
+            &self.directory,
+            format!("{}.command.json", registration.name),
+            fs::RenameFlags::NOREPLACE,
         )
         .map_err(|e| e.to_string())?;
         self.directory.sync_all().map_err(|e| e.to_string())?;

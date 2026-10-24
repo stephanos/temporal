@@ -7,6 +7,8 @@
 )]
 pub(crate) mod busy;
 pub(crate) mod cleanup;
+mod observation;
+pub(crate) use observation::RawStreams;
 mod environment;
 mod procfs;
 mod registry;
@@ -35,6 +37,8 @@ pub(crate) struct Command {
     pub argv: Vec<String>,
     pub cwd: PathBuf,
     pub environment: Environment,
+    pub declared_environment: std::collections::BTreeMap<String, String>,
+    pub temporary_paths: std::collections::BTreeMap<String, String>,
     pub accepted: Vec<i32>,
     pub timeout: Duration,
     pub private_context: Option<String>,
@@ -47,17 +51,37 @@ pub(crate) struct Registration {
     pub parent_pid: u32,
     pub stage_pid: u32,
     pub active: bool,
+    pub supervisor_pid: u32,
+    pub supervisor_parent_pid: u32,
+    pub start_ns: u64,
+    pub clock: &'static str,
     pub argv: Vec<String>,
     pub cwd: PathBuf,
-    pub environment: Environment,
+    pub environment: std::collections::BTreeMap<String, String>,
+    pub temporary_paths: std::collections::BTreeMap<String, String>,
+    pub effective_environment: Option<std::collections::BTreeMap<String, String>>,
+    pub execution_environment: std::collections::BTreeMap<String, String>,
+    pub environment_mode: &'static str,
+    pub private_context: Option<String>,
     pub started_monotonic_nanos: u64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct Resources {
+    pub schema: String,
+    pub measurement: String,
+    pub scope: String,
+    pub exit_code: i32,
+    pub user_seconds: f64,
+    pub system_seconds: f64,
+    pub ru_maxrss: u64,
+    pub ru_maxrss_unit: String,
+    pub cpu_conversion: String,
+    pub rss_conversion: String,
     pub pid: u32,
     pub waited_pid: u32,
     pub wait_status: i32,
     pub reaps: u32,
+    pub wait4_calls: u32,
     pub user_nanos: u64,
     pub system_nanos: u64,
     pub peak_rss_bytes: u64,
@@ -67,6 +91,10 @@ pub(crate) struct Completed {
     pub pid: u32,
     pub parent_pid: u32,
     pub stage_pid: u32,
+    pub supervisor_pid: u32,
+    pub supervisor_parent_pid: u32,
+    pub start_ns: u64,
+    pub end_ns: u64,
     pub exit: i32,
     pub signal: Option<i32>,
     pub resources: Resources,
@@ -134,6 +162,8 @@ pub(crate) struct Runner {
     registry: Arc<Registry>,
     context: Option<String>,
 }
+type Capture<'a> = dyn FnMut(&Registration, &Completed, &RawStreams) -> Result<Option<serde_json::Value>, String>
+    + 'a;
 pub(crate) struct Running {
     registry: Arc<Registry>,
     registration: Registration,
@@ -143,6 +173,9 @@ pub(crate) struct Running {
     accepted: Vec<i32>,
     completed: Option<Completed>,
     cancelled: bool,
+    terminal_error: Option<String>,
+    stdout: File,
+    stderr: File,
 }
 fn error(error: impl std::fmt::Display) -> String {
     error.to_string()
@@ -317,6 +350,7 @@ impl Runner {
             .map(|a| a.as_ptr())
             .chain(std::iter::once(std::ptr::null()))
             .collect();
+        let start_ns = observation::wall_nanos()?;
         let stdout = self.registry.create_file(&format!("{name}.stdout"))?;
         let stderr = self.registry.create_file(&format!("{name}.stderr"))?;
         let stdin = File::open("/dev/null").map_err(error)?;
@@ -335,6 +369,7 @@ impl Runner {
             duplicate(&read_exec)?,
             duplicate(&write_exec)?,
         ];
+        let admission_mask = sys::AdmissionMask::block()?;
         let prepared = sys::Prepared {
             fds: owned.each_ref().map(AsRawFd::as_raw_fd),
             argv: &argv,
@@ -342,15 +377,21 @@ impl Runner {
             executable: executable.as_ptr(),
             cwd: cwd.as_ptr(),
             timeout_ns: i64::try_from(command.timeout.as_nanos()).map_err(error)?,
+            mask: admission_mask.previous,
         };
-        let mut leaf = [0u8; 16];
+        let mut leaf = [0u8; 32];
         let (supervisor, handshake) = crate::fork_order::spawning(|| {
+            let fork_mask = match sys::AdmissionMask::during_fork() {
+                Ok(mask) => mask,
+                Err(error) => return (-1, Err(error)),
+            };
             // SAFETY: child immediately enters the syscall-only path with every
             // string, descriptor and buffer prepared before fork. No unwinding.
             let supervisor = unsafe { sys::fork() };
             if supervisor == 0 {
                 sys::supervise(&prepared);
             }
+            drop(fork_mask);
             // Close parent copies before waiting for EOF/error from supervisor.
             drop(owned);
             drop(write_report);
@@ -377,13 +418,29 @@ impl Runner {
             }
             return Err(format!("supervisor spawn refused: {failure}"));
         }
-        let child = pid(
-            i32::try_from(i64::from_ne_bytes(leaf[..8].try_into().map_err(error)?))
-                .map_err(error)?,
-        )?;
-        let started_monotonic_nanos =
-            u64::try_from(i64::from_ne_bytes(leaf[8..].try_into().map_err(error)?))
-                .map_err(error)?;
+        let identity = (|| -> Result<(u32, u64, u32), String> {
+            let field = |offset| -> Result<i64, String> {
+                Ok(i64::from_ne_bytes(
+                    leaf[offset..offset + 8].try_into().map_err(error)?,
+                ))
+            };
+            let child = pid(i32::try_from(field(0)?).map_err(error)?)?;
+            let started = u64::try_from(field(8)?).map_err(error)?;
+            if field(16)? != i64::from(supervisor) || field(24)? != i64::from(std::process::id()) {
+                return Err("foreign supervisor parent identity".into());
+            }
+            report.set_nonblocking(true).map_err(error)?;
+            Ok((child, started, u32::try_from(field(24)?).map_err(error)?))
+        })();
+        let (child, started_monotonic_nanos, supervisor_parent_pid) = match identity {
+            Ok(identity) => identity,
+            Err(failure) => {
+                drop(gate);
+                drop(report);
+                sys::reap_supervisor(supervisor)?;
+                return Err(failure);
+            }
+        };
         *outcome = SpawnOutcome::Created {
             pid: child,
             supervisor: pid(supervisor)?,
@@ -399,12 +456,26 @@ impl Runner {
             parent_pid: pid(supervisor)?,
             stage_pid: std::process::id(),
             active: true,
+            supervisor_pid: pid(supervisor)?,
+            supervisor_parent_pid,
+            start_ns,
+            clock: "CLOCK_MONOTONIC",
             argv: command.argv,
             cwd: command.cwd,
-            environment: command.environment,
+            effective_environment: match &command.environment {
+                Environment::Exact(values) => Some(values.clone()),
+                Environment::Clean(_) => None,
+            },
+            execution_environment: command.environment.values().clone(),
+            environment_mode: match &command.environment {
+                Environment::Exact(_) => "exact",
+                Environment::Clean(_) => "inherited-clean",
+            },
+            environment: command.declared_environment,
+            temporary_paths: command.temporary_paths,
+            private_context: command.private_context,
             started_monotonic_nanos,
         };
-        report.set_nonblocking(true).map_err(error)?;
         let mut running = Running {
             registry: Arc::clone(&self.registry),
             registration,
@@ -414,6 +485,9 @@ impl Runner {
             accepted: command.accepted,
             completed: None,
             cancelled: false,
+            terminal_error: None,
+            stdout,
+            stderr,
         };
         let admission = self
             .registry
@@ -421,7 +495,7 @@ impl Runner {
             .and_then(|()| admit(&running.registration))
             .and_then(|()| self.registry.verify(&running.registration))
             .and_then(|()| {
-                if cancelled.load(Ordering::Acquire) {
+                if cancelled.load(Ordering::Acquire) || sys::AdmissionMask::interrupted()? {
                     Err("interrupted".into())
                 } else {
                     Ok(())
@@ -455,6 +529,28 @@ impl Running {
         }
     }
     pub fn poll(&mut self, cancelled: &AtomicBool) -> Result<Option<Completed>, String> {
+        self.poll_observed(cancelled, None)
+    }
+    fn poll_observed(
+        &mut self,
+        cancelled: &AtomicBool,
+        capture: Option<&mut Capture<'_>>,
+    ) -> Result<Option<Completed>, String> {
+        if let Some(error) = &self.terminal_error {
+            return Err(error.clone());
+        }
+        let result = self.poll_inner(cancelled, capture);
+        if let Err(error) = &result {
+            self.registry.degraded.store(true, Ordering::Release);
+            self.terminal_error = Some(error.clone());
+        }
+        result
+    }
+    fn poll_inner(
+        &mut self,
+        cancelled: &AtomicBool,
+        mut capture: Option<&mut Capture<'_>>,
+    ) -> Result<Option<Completed>, String> {
         if let Some(completed) = &self.completed {
             return Ok(Some(completed.clone()));
         }
@@ -475,11 +571,65 @@ impl Running {
         let report = sys::decode(&self.received);
         sys::reap_supervisor(self.supervisor)?;
         self.supervisor = 0;
-        let mut completed = self.observation(report, Path::new("/proc"))?;
+        let mut completed = self
+            .observation(report, Path::new("/proc"))
+            .inspect_err(|_| self.registry.degraded.store(true, Ordering::Release))?;
+        if !completed.cleanup_complete {
+            self.registry.degraded.store(true, Ordering::Release);
+        }
         if (cancelled.load(Ordering::Acquire) || self.cancelled) && completed.failure.is_none() {
             completed.failure = Some("interrupted".into());
         }
-        if let Err(publication) = self.registry.complete(&self.registration, &completed) {
+        let streams = observation::bind(
+            &self.registry,
+            &self.registration,
+            &self.stdout,
+            &self.stderr,
+        )
+        .inspect_err(|_| self.registry.degraded.store(true, Ordering::Release))?;
+        let mut capture_error = None;
+        let private = if completed.accepted()
+            && let Some(capture) = capture.as_mut()
+        {
+            if self.registration.private_context.is_none() {
+                capture_error = Some("private capture requires bound observation context".into());
+                None
+            } else {
+                match capture(&self.registration, &completed, &streams) {
+                    Ok(private) => private,
+                    Err(error) => {
+                        capture_error = Some(error);
+                        None
+                    }
+                }
+            }
+        } else {
+            None
+        };
+        if let Some(error) = &capture_error {
+            completed.failure = Some(format!("private capture refused: {error}"));
+        }
+        if capture.is_some()
+            && observation::bind(
+                &self.registry,
+                &self.registration,
+                &self.stdout,
+                &self.stderr,
+            )
+            .inspect_err(|_| self.registry.degraded.store(true, Ordering::Release))?
+                != streams
+        {
+            self.registry.degraded.store(true, Ordering::Release);
+            return Err("command streams changed during capture".into());
+        }
+        completed.end_ns = observation::wall_nanos()?;
+        if completed.end_ns < completed.start_ns {
+            return Err("command wall clock moved before its start".into());
+        }
+        if let Err(publication) =
+            self.registry
+                .complete(&self.registration, &completed, &streams, private.as_ref())
+        {
             self.registry.degraded.store(true, Ordering::Release);
             if completed.failure.is_none() {
                 completed.failure = Some(format!("terminal publication failed: {publication}"));
@@ -488,12 +638,18 @@ impl Running {
             return Err(publication);
         }
         self.completed = Some(completed.clone());
+        if let Some(error) = capture_error {
+            return Err(error);
+        }
         Ok(Some(completed))
     }
     fn observation(&self, report: sys::Report, proc_root: &Path) -> Result<Completed, String> {
         if report.pid != i64::from(self.registration.pid)
+            || report.supervisor_pid != i64::from(self.registration.supervisor_pid)
+            || report.supervisor_parent_pid != i64::from(self.registration.stage_pid)
             || report.waited_pid != report.pid
             || report.reaps != 1
+            || report.leaf_wait4_calls != 1
             || u64::try_from(report.started).ok() != Some(self.registration.started_monotonic_nanos)
             || report.started < 0
             || report.reaped <= report.started
@@ -540,13 +696,34 @@ impl Running {
             pid: self.registration.pid,
             parent_pid: self.registration.parent_pid,
             stage_pid: self.registration.stage_pid,
+            supervisor_pid: self.registration.supervisor_pid,
+            supervisor_parent_pid: self.registration.supervisor_parent_pid,
+            start_ns: self.registration.start_ns,
+            end_ns: observation::wall_nanos()?,
             exit,
             signal: (signal != 0).then_some(signal),
             resources: Resources {
+                schema: "gomad.driver-child-resources/v1".into(),
+                measurement: "wait4".into(),
+                scope: "whole-command-child".into(),
+                exit_code: exit,
+                user_seconds: observation::seconds(
+                    report.usage.user.seconds,
+                    report.usage.user.micros,
+                )?,
+                system_seconds: observation::seconds(
+                    report.usage.system.seconds,
+                    report.usage.system.micros,
+                )?,
+                ru_maxrss: u64::try_from(report.usage.counters[0]).map_err(error)?,
+                ru_maxrss_unit: "KiB".into(),
+                cpu_conversion: "round(seconds*1e9)".into(),
+                rss_conversion: "ru_maxrss*1024".into(),
                 pid: self.registration.pid,
                 waited_pid: u32::try_from(report.waited_pid).map_err(error)?,
                 wait_status: status,
                 reaps: 1,
+                wait4_calls: u32::try_from(report.leaf_wait4_calls).map_err(error)?,
                 user_nanos: nanos(report.usage.user.seconds, report.usage.user.micros)?,
                 system_nanos: nanos(report.usage.system.seconds, report.usage.system.micros)?,
                 peak_rss_bytes: u64::try_from(report.usage.counters[0])
@@ -563,7 +740,26 @@ impl Running {
             failure,
             accepted_exits: self.accepted.clone(),
         };
+        if completed.end_ns < completed.start_ns {
+            return Err("command wall clock moved before its start".into());
+        }
         Ok(completed)
+    }
+    pub fn wait_observed(
+        mut self,
+        cancelled: &AtomicBool,
+        mut capture: impl FnMut(
+            &Registration,
+            &Completed,
+            &RawStreams,
+        ) -> Result<Option<serde_json::Value>, String>,
+    ) -> Result<Completed, String> {
+        loop {
+            if let Some(completed) = self.poll_observed(cancelled, Some(&mut capture))? {
+                return Ok(completed);
+            }
+            std::thread::park_timeout(Duration::from_millis(5));
+        }
     }
     pub fn wait(mut self, cancelled: &AtomicBool) -> Result<Completed, String> {
         loop {

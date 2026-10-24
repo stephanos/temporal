@@ -19,6 +19,8 @@ pub(super) struct Usage {
 #[derive(Clone, Copy, Default)]
 pub(super) struct Report {
     pub pid: i64,
+    pub supervisor_pid: i64,
+    pub supervisor_parent_pid: i64,
     pub waited_pid: i64,
     pub status: i64,
     pub started: i64,
@@ -29,6 +31,7 @@ pub(super) struct Report {
     pub cleanup_error: i64,
     pub reason: i64,
     pub reaps: i64,
+    pub leaf_wait4_calls: i64,
     pub exec_error: i64,
 }
 #[repr(C)]
@@ -46,6 +49,8 @@ struct Timespec {
 unsafe extern "C" {
     #[link_name = "_Fork"]
     pub(super) fn fork() -> c_int;
+    fn getpid() -> c_int;
+    fn getppid() -> c_int;
     fn _exit(status: c_int) -> !;
     fn setsid() -> c_int;
     fn setpgid(pid: c_int, group: c_int) -> c_int;
@@ -64,6 +69,13 @@ unsafe extern "C" {
     fn kill(pid: c_int, signal: c_int) -> c_int;
     fn signal(number: c_int, handler: usize) -> usize;
     fn sigprocmask(how: c_int, set: *const u64, old: *mut u64) -> c_int;
+    fn pthread_sigmask(how: c_int, set: *const u64, old: *mut u64) -> c_int;
+    fn sigemptyset(set: *mut u64) -> c_int;
+    fn sigfillset(set: *mut u64) -> c_int;
+    fn sigaction(signal: c_int, action: *const c_void, old: *mut c_void) -> c_int;
+    fn sigaddset(set: *mut u64, signal: c_int) -> c_int;
+    fn sigpending(set: *mut u64) -> c_int;
+    fn sigismember(set: *const u64, signal: c_int) -> c_int;
     fn clock_gettime(clock: c_int, value: *mut Timespec) -> c_int;
     fn __errno_location() -> *mut c_int;
 }
@@ -74,6 +86,7 @@ pub(super) struct Prepared<'a> {
     pub executable: *const c_char,
     pub cwd: *const c_char,
     pub timeout_ns: i64,
+    pub mask: [u64; 16],
 }
 fn now() -> i64 {
     let mut time = Timespec::default();
@@ -138,12 +151,29 @@ fn child(prepared: &Prepared<'_>) -> ! {
             _exit(130);
         }
         close(3);
-        let empty = [0u64; 16];
-        if sigprocmask(2, empty.as_ptr(), std::ptr::null_mut()) != 0 {
+        for number in 1..=64 {
+            let mut action = [0u64; 32];
+            if sigaction(number, std::ptr::null(), action.as_mut_ptr().cast()) == 0 && action[0] > 1
+            {
+                signal(number, 0);
+            }
+        }
+        for number in [1, 2, 15] {
+            signal(number, 0);
+        }
+        let mut unblock = [0u64; 16];
+        if sigemptyset(unblock.as_mut_ptr()) != 0 {
             exec_failure(126);
         }
-        for number in [1, 2, 13, 15] {
-            signal(number, 0);
+        for number in [1, 2, 15] {
+            if sigaddset(unblock.as_mut_ptr(), number) != 0 {
+                exec_failure(126);
+            }
+        }
+        if sigprocmask(2, prepared.mask.as_ptr(), std::ptr::null_mut()) != 0
+            || sigprocmask(1, unblock.as_ptr(), std::ptr::null_mut()) != 0
+        {
+            exec_failure(126);
         }
         if chdir(prepared.cwd) != 0 {
             exec_failure(126);
@@ -240,14 +270,19 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
             signal(number, 1);
         }
         signal(17, 0);
-        let empty = [0u64; 16];
-        if sigprocmask(2, empty.as_ptr(), std::ptr::null_mut()) != 0
+        let mut blocked = [0u64; 16];
+        if sigfillset(blocked.as_mut_ptr()) != 0
+            || sigprocmask(2, blocked.as_ptr(), std::ptr::null_mut()) != 0
             || setsid() < 0
             || prctl(36, 1 as c_long, 0 as c_long, 0 as c_long, 0 as c_long) != 0
         {
             _exit(125);
         }
     }
+    // SAFETY: async-signal-safe identity queries in the isolated supervisor.
+    report.supervisor_pid = i64::from(unsafe { getpid() });
+    // SAFETY: actual parent of this raw-fork supervisor, captured before leaf creation.
+    report.supervisor_parent_pid = i64::from(unsafe { getppid() });
     report.started = now();
     // SAFETY: second fork inherits only supervisor-owned fds and preallocated
     // immutable memory. Both branches remain syscall-only until exec/_exit.
@@ -264,6 +299,8 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
     if leaf < 0
         || !send(4, &i64::from(leaf).to_ne_bytes())
         || !send(4, &report.started.to_ne_bytes())
+        || !send(4, &report.supervisor_pid.to_ne_bytes())
+        || !send(4, &report.supervisor_parent_pid.to_ne_bytes())
     {
         report.reason = 3;
     }
@@ -273,7 +310,30 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
         let mut usage = Usage::default();
         // SAFETY: this exact positive PID is the supervisor's unreaped leaf;
         // wait4 writes the Linux 64-bit status/rusage allocations.
-        let waited = unsafe { wait4(leaf, &raw mut status, 1, &raw mut usage) };
+        let Some(leaf_pid) = rustix::process::Pid::from_raw(leaf) else {
+            report.reason = 4;
+            break;
+        };
+        let probe = rustix::process::waitid(
+            rustix::process::WaitId::Pid(leaf_pid),
+            rustix::process::WaitIdOptions::EXITED
+                | rustix::process::WaitIdOptions::NOHANG
+                | rustix::process::WaitIdOptions::NOWAIT,
+        );
+        let waited = match probe {
+            Ok(Some(_)) => {
+                report.leaf_wait4_calls += 1;
+                // SAFETY: NOWAIT left this exact selected leaf unreaped; no other
+                // waiter exists in the isolated supervisor. The ABI buffers are valid.
+                unsafe { wait4(leaf, &raw mut status, 1, &raw mut usage) }
+            }
+            Ok(None) => 0,
+            Err(rustix::io::Errno::INTR) => continue,
+            Err(_) => {
+                report.reason = 4;
+                break;
+            }
+        };
         if waited == leaf {
             report.waited_pid = i64::from(waited);
             report.status = i64::from(status);
@@ -350,6 +410,71 @@ pub(super) fn supervise(prepared: &Prepared<'_>) -> ! {
     }
 }
 
+pub(super) struct AdmissionMask {
+    pub previous: [u64; 16],
+}
+impl AdmissionMask {
+    pub fn block() -> Result<Self, String> {
+        let mut previous = [0u64; 16];
+        let mut block = [0u64; 16];
+        // SAFETY: sigset_t is the Linux GNU 128-byte ABI; these C routines
+        // initialize it and change only this calling thread's signal mask.
+        unsafe {
+            if sigemptyset(block.as_mut_ptr()) != 0 {
+                return Err(std::io::Error::last_os_error().to_string());
+            }
+            for number in [1, 2, 15] {
+                if sigaddset(block.as_mut_ptr(), number) != 0 {
+                    return Err(std::io::Error::last_os_error().to_string());
+                }
+            }
+            let status = pthread_sigmask(0, block.as_ptr(), previous.as_mut_ptr());
+            if status != 0 {
+                return Err(std::io::Error::from_raw_os_error(status).to_string());
+            }
+        }
+        Ok(Self { previous })
+    }
+    pub fn during_fork() -> Result<Self, String> {
+        let mut previous = [0u64; 16];
+        let mut blocked = [0u64; 16];
+        // SAFETY: block inherited handlers only in this thread across raw fork;
+        // the parent guard restores its exact admission mask immediately afterward.
+        unsafe {
+            if sigfillset(blocked.as_mut_ptr()) != 0 {
+                return Err(std::io::Error::last_os_error().to_string());
+            }
+            let status = pthread_sigmask(0, blocked.as_ptr(), previous.as_mut_ptr());
+            if status != 0 {
+                return Err(std::io::Error::from_raw_os_error(status).to_string());
+            }
+        }
+        Ok(Self { previous })
+    }
+    pub fn interrupted() -> Result<bool, String> {
+        let mut pending = [0u64; 16];
+        // SAFETY: sigpending initializes this Linux sigset; member queries
+        // inspect only that initialized allocation and never retain pointers.
+        unsafe {
+            if sigpending(pending.as_mut_ptr()) != 0 {
+                return Err(std::io::Error::last_os_error().to_string());
+            }
+            Ok([1, 2, 15]
+                .into_iter()
+                .any(|number| sigismember(pending.as_ptr(), number) == 1))
+        }
+    }
+}
+impl Drop for AdmissionMask {
+    fn drop(&mut self) {
+        // SAFETY: restore exactly the calling parent's captured thread mask.
+        // Raw-fork children terminate with _exit and never drop this guard.
+        unsafe {
+            pthread_sigmask(2, self.previous.as_ptr(), std::ptr::null_mut());
+        }
+    }
+}
+
 pub(super) fn cleanup_budget(observed: i64, deadline: i64) -> Result<(), c_int> {
     if observed < 0 || observed >= deadline {
         Err(3)
@@ -358,6 +483,9 @@ pub(super) fn cleanup_budget(observed: i64, deadline: i64) -> Result<(), c_int> 
     }
 }
 pub(super) fn reap_supervisor(pid: i32) -> Result<(), String> {
+    if pid <= 0 {
+        return Err("invalid supervisor PID for exact reap".into());
+    }
     loop {
         let mut status = 0;
         let mut usage = Usage::default();
