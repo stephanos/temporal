@@ -419,6 +419,26 @@ impl Manifest {
         }
         Ok(())
     }
+
+    /// Go `Matched`: two compared cells share workload, candidate and workload
+    /// sources, host platform, seed, repeat and limits.
+    pub(crate) fn matched(&self, other: &Self) -> Result<(), String> {
+        self.validate()?;
+        other.validate()?;
+        if self.workload != other.workload
+            || self.integrated_source_sha256 != other.integrated_source_sha256
+            || self.workload_source_sha256 != other.workload_source_sha256
+            || self.host_os != other.host_os
+            || self.host_arch != other.host_arch
+            || self.seed != other.seed
+            || self.repeat != other.repeat
+            || self.fuel != other.fuel
+            || self.memory_bytes != other.memory_bytes
+        {
+            return Err("WASM comparison cells are not matched".into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

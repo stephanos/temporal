@@ -609,30 +609,69 @@ fn invalid_result_publication_fabricates_nothing() {
     std::fs::remove_dir(&root).unwrap();
 }
 
-/// The success/canary pair check of a support row: the two cells may differ
-/// only in their arguments and configuration; a changed policy, build input,
-/// module identity, module size or workload source is refused.
-#[test]
-fn support_success_and_canary_must_match_except_arguments_and_configuration() {
-    let success = policy_fixture(SELECTIONS[0]);
-    let policy = json!({"fixture":"policy"});
-    let pair = |canary: &QualificationResult, canary_policy: &Value, bytes: u64| {
-        matched_pair((&success, &policy, 7), (canary, canary_policy, bytes))
-    };
-    let mut canary = success.clone();
-    canary.provenance["inputs"]["arguments"] = json!(["canary"]);
-    canary.provenance["configuration"]["arguments"] = json!(["canary"]);
-    pair(&canary, &policy, 7).unwrap();
-    assert!(pair(&canary, &json!({"fixture":"changed"}), 7).is_err());
-    assert!(pair(&canary, &policy, 8).is_err());
-    for field in ["tags", "source", "module", "workload"] {
-        let mut changed = canary.clone();
-        match field {
-            "tags" => changed.provenance["inputs"]["tags"] = json!(["changed"]),
-            "source" => changed.provenance["inputs"]["source"] = json!("./changed"),
-            "module" => changed.manifest.module_sha256 = "changed".into(),
-            _ => changed.manifest.workload_source_sha256 = "changed".into(),
-        }
-        assert!(pair(&changed, &policy, 7).is_err(), "{field}");
+fn matched_fixture(cell: &str) -> QualificationResult {
+    let mut result = policy_fixture(SELECTIONS[0]);
+    let m = &mut result.manifest;
+    m.schema = result::MANIFEST_SCHEMA.into();
+    m.workload = "onebox".into();
+    m.cell = Some(cell.into());
+    m.integrated_source_manifest_path = Some("/frozen/source.manifest".into());
+    for digest in [
+        &mut m.integrated_source_sha256,
+        &mut m.workload_source_sha256,
+        &mut m.runtime_sha256,
+        &mut m.compiler_sha256,
+        &mut m.helper_sha256,
+        &mut m.host_sha256,
+        &mut m.model_sha256,
+        &mut m.engine_sha256,
+        &mut m.host_config_sha256,
+        &mut m.module_sha256,
+        &mut m.toolchain_sha256,
+    ] {
+        *digest = canonical::digest(b"fixture");
     }
+    result
+}
+
+/// Go `Matched` and the support pair check: a canary only stands beside the
+/// success row it was measured against.
+#[test]
+fn support_success_and_canary_must_be_matched_cells() {
+    let success = matched_fixture("success");
+    let policy = json!({"policy": "fixture"});
+    let pair = |canary: &QualificationResult, policy_b: &Value, bytes: u64| {
+        paired((&success, &policy, 9), (canary, policy_b, bytes))
+    };
+    assert_eq!(pair(&matched_fixture("canary"), &policy, 9), Ok(()));
+    type Change = fn(&mut Manifest);
+    let unmatched: [Change; 9] = [
+        |m| m.workload = "sqlite".into(),
+        |m| m.integrated_source_sha256 = canonical::digest(b"other"),
+        |m| m.workload_source_sha256 = canonical::digest(b"other"),
+        |m| m.host_os = "darwin".into(),
+        |m| m.host_arch = "amd64".into(),
+        |m| m.seed = 8,
+        |m| m.repeat = 3,
+        |m| m.fuel = 1,
+        |m| m.memory_bytes = 1,
+    ];
+    for change in unmatched {
+        let mut canary = matched_fixture("canary");
+        change(&mut canary.manifest);
+        assert_eq!(
+            pair(&canary, &policy, 9),
+            Err("WASM comparison cells are not matched".into())
+        );
+    }
+    let mut canary = matched_fixture("canary");
+    canary.manifest.module_sha256 = canonical::digest(b"other");
+    let differ = Err("support success/canary policy, source or module differ".into());
+    assert_eq!(pair(&canary, &policy, 9), differ);
+    let canary = matched_fixture("canary");
+    assert_eq!(pair(&canary, &policy, 10), differ);
+    assert_eq!(pair(&canary, &json!({"policy": "other"}), 9), differ);
+    let mut canary = matched_fixture("canary");
+    canary.provenance["inputs"]["tags"] = json!(["other"]);
+    assert_eq!(pair(&canary, &policy, 9), differ);
 }

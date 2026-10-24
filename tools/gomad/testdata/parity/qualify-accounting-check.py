@@ -256,8 +256,8 @@ def unit_pins(rows):
     6 GiB cold ceiling; a 6.1 GiB window (6.55 GB) must exceed it."""
     statuses = {row['name']: {item['name']: item['status'] for item in row['budget']['checks']} for row in rows if row['budget']}
     equal(6 * GIB, 6_442_450_944, 'units.cold_ceiling')
-    equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual cold helper peak RSS'], 'within', 'units.measured_window')
-    equal(statuses['phases-onebox-measured-5.78GiB-warm-pending']['individual warm helper peak RSS'], 'unattributed', 'units.measured_warm')
+    equal(statuses['phases-onebox-measured-5.78GiB-warm-exceeded']['individual cold helper peak RSS'], 'within', 'units.measured_window')
+    equal(statuses['phases-onebox-measured-5.78GiB-warm-exceeded']['individual warm helper peak RSS'], 'exceeded', 'units.measured_warm')
     equal(statuses['phases-window-6.1GiB-cold-exceeded']['individual cold helper peak RSS'], 'exceeded', 'units.cold_exceeded')
     equal(statuses['phases-zero-window-falls-back']['individual warm helper peak RSS'], 'unattributed', 'units.zero_window_pending')
     equal(statuses['phases-zero-operator-falls-back']['operator lifetime peak RSS'], 'unattributed', 'units.zero_operator_pending')

@@ -1,7 +1,11 @@
 # Gomad CLI and maintainer guide
 
-Gomad's execution backend is WASM. The native backend and its maintainer
-commands were removed by fn-223; Git history retains their documentation.
+Gomad is the single Rust `gomad` binary built from the `tools/gomad/rust`
+workspace (`make -C tools/gomad build`), with the WASM engine linked in. Its
+execution backend is WASM. The Go CLI, Runner and host producers were retired
+by fn-232.13, and the native backend and its maintainer commands by fn-223;
+Git history retains their documentation. Comparisons below against the frozen
+Go reference are retained parity evidence, not a supported Go command.
 
 Start with the [installation and first-failure guide](README.md). The
 [WASM operator guide](internal/backends/wasm/CLI.md) documents installed
@@ -639,7 +643,13 @@ snapshots of both. It also retains, for each store, the wall time, fuel, guest
 linear-memory peak and limit, trace bytes (the Go owner's WASI transcript,
 choice, diagnostic, storage and network traces; a cluster's shared network
 trace counts once, on its first store, and never per store) and virtual time, plus the self
-counters at the store's boundaries.
+counters at the store's boundaries. It also retains the compiler arguments of
+every command the initial preparation actually ran (`initial_compiler_commands`;
+a compile-cache hit runs no build) and whether that preparation compiled the
+module (`initial_preparation_compiled`). As in the Go host, cost is refused with
+"initial preparation command classification differs from actual observations"
+unless a command was retained and the flag is true exactly when one of them is a
+`go build` or `go test -c`.
 
 - **CPU** is the children delta plus the linked delta, each counted once. Store
   boundary counters only order the stores and prove they ran one at a time;
@@ -677,8 +687,11 @@ counters at the store's boundaries.
   installation's compile cache is a warm window, and the warm ceiling is checked
   exactly against the largest warm window. Executions after the first and the
   replays, which open the installation's compile cache as the `replay` verb does,
-  are warm. When no window reports a cache hit, the largest window peak is only
-  an upper bound of the warm phase: within under 4 GiB, unattributed otherwise.
+  are warm. As in the Go host, every resident guest needs an actual cache-hit
+  window (a cluster window measures each node it holds); otherwise the budget is
+  refused with "actual warm helper peak measurement is required for each
+  resident guest". A cache-hit window without an attributed window peak leaves
+  the warm check an upper bound: within under 4 GiB, unattributed otherwise.
   As in the Go host, cluster windows are not subject to the single-guest limits. The
   receipt's terminal operator check uses the operator phases through
   publication.
@@ -879,7 +892,7 @@ linked helper and runtime implementation identities. Go-lineage manifests are
 refused. Configuration JSON uses the existing WASI configuration grammar;
 Temporal setup derives the complete TemporalInstallation policy and guest tags.
 Source preparation replaces configuration argv with the requested target argv,
-as the Go Runner does, and preserves its configured environment.
+as the retired Go Runner did, and preserves its configured environment.
 
 The linked implementation is the default, so `--helper` is optional. An explicit
 path must name the running Rust host executable or a byte-identical copy of it.

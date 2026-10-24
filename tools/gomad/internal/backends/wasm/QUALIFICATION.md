@@ -548,43 +548,49 @@ CPU. Diagnostic-profile helpers can attribute cluster execution, but diagnostic
 timings cannot substitute for matched release costs. Guest-profile and diagnostic
 fuel-off helpers refuse clusters. Missing measurements remain open acceptance work.
 
-### Go-era cost gates without Rust enforcement
+### Go-era cost gates
 
 These checks existed in the retired Go owner (`internal/backends/wasm/qualification`,
-retained at baseline `1d7b37f00a`) and have no Rust counterpart. They remain open:
+retained at baseline `1d7b37f00a`). They are enforced on the Rust host with their
+original messages and bounds (fn-232.13 ruling 6):
 
-1. **Warm measurement for every resident guest, including clusters.** Go
-   `EvaluateBudget` (`budget.go`) failed with "actual warm helper peak measurement
-   is required for each resident guest" unless `len(warmResidents) ==
-   residentGuests`. Cache-hit cluster samples counted for every resident. Rust
-   never requires a cache-hit measurement. Without a cache-hit window, any
-   single-guest window at or under 4 GiB satisfies the warm check as an upper
-   bound. With attributed phases, a cell that has only cluster windows passes it
-   with observed 0. The 4 GiB, 6 GiB and 8 GiB limits themselves are unchanged;
-   only Go's requirement that each resident have an actual warm measurement is gone.
-2. **Mandatory corpus and SQLite catalogue reader self-measurement.** The Go
-   `TestActualMandatoryWorkloadCorpus` and `TestActualSQLiteSelectionCatalogue`
-   failed when `checkerAfter.PeakRSSBytes == 0 || checkerAfter.PeakRSSBytes >
-   2<<30` or the reader's CPU counters decreased. The corpus also summed
-   `result.Cost.CPUNanos` plus each receipt's terminal CPU exactly once. The
-   driver's `workload-corpus`, `workload-corpus-after-relocation` and
-   `sqlite-catalogue` readers neither measure their own CPU/RSS nor enforce
-   2 GiB, and nothing aggregates corpus CPU.
-3. **`Matched` manifest comparison.** Go `manifest.go` `Matched(a, b)` returned
-   "WASM comparison cells are not matched" unless `Workload`,
-   `IntegratedSourceSHA256`, `WorkloadSourceSHA256`, `HostOS`, `HostArch`,
-   `Seed`, `Repeat`, `Fuel` and `MemoryBytes` were all equal. No Rust function
-   compares two qualification Results. Only producer-specific `gomad-measure`
-   checks exist, such as separate matched caches and warm roles.
-4. **Per-phase helper costs in the Result.** Go `Summarize` (`cost.go`) summed
-   `EngineCompileNanos`, `InstantiationNanos`, per-sample `PreparationWallNanos`
-   and `CompileCacheHits` into the authenticated cost. Its `measuredCost`
-   (`result.go`) refused "initial preparation command classification differs from
-   actual observations" when `preparationCompiled(CompilerCommands[:InitialCompilerCommandCount])
-   != InitialPreparationCompiled`. Rust keeps the helper phase timings only in
-   unauthenticated-by-Result campaign files. It also has no per-command compiler
-   record and no cold-or-warm preparation flag. This is a recording gap, not a
-   relaxed limit.
+1. **Warm measurement for every resident guest, including clusters.** Enforced.
+   `qualify::cost::budget` refuses "actual warm helper peak measurement is
+   required for each resident guest" unless every resident guest has an actual
+   cache-hit store window. A cluster cache-hit window measures every node it
+   holds, as Go's cache-hit cluster samples did. Go additionally excluded helper
+   samples without image telemetry; the linked host has no such samples, so a
+   cache-hit window without an attributed window peak still counts as the warm
+   measurement, and its peak stays only an upper bound of the warm check.
+   The 4 GiB, 6 GiB and 8 GiB limits are unchanged.
+2. **Mandatory corpus and SQLite catalogue reader self-measurement.** Enforced.
+   The driver's `workload-corpus`, `workload-corpus-after-relocation` and
+   `sqlite-catalogue` readers measure their own process with `getrusage` and
+   refuse with Go's messages when the peak RSS is zero or over 2 GiB or a CPU
+   counter decreased. The corpus reader sums each Result's `cost.cpu_nanos` plus
+   its receipt's post-publication CPU exactly once and records the totals with
+   the reader's own CPU and peak in `corpus.json`; the catalogue reader adds its
+   own CPU to `catalogue.json`.
+3. **`Matched` manifest comparison.** Enforced for support pairs.
+   `Manifest::matched` refuses "WASM comparison cells are not matched" unless
+   `workload`, `integrated_source_sha256`, `workload_source_sha256`, `host_os`,
+   `host_arch`, `seed`, `repeat`, `fuel` and `memory_bytes` are equal; the
+   support list applies it to each success/canary pair before its policy,
+   source and module comparison. The SQLite selected-state reader already
+   compares the same fields of the primary and selected Results. The corpus
+   reader does not compare cells of one workload across profiles: under ruling
+   11 that reader gains only its self-measurement.
+4. **Initial-preparation compile classification.** Enforced. A qualification
+   Result's `observations` retain `initial_compiler_commands`, the compiler
+   arguments of every command its initial preparation actually ran (a
+   compile-cache hit runs no build), and `initial_preparation_compiled`.
+   `qualify::cost::cost` refuses "initial preparation command classification
+   differs from actual observations" when no command was retained or the flag
+   differs from Go's `preparationCompiled` (a `go build` or `go test -c`).
+   Per-phase helper timings (`EngineCompileNanos`, `InstantiationNanos`,
+   per-sample preparation wall, compile-cache hits) stay in the campaign
+   metrics files outside the authenticated Result cost (ruling 6): a lost
+   record, not a lost check.
 
 The following Go facts were declared but never checked in Go either: one visible
 continuation, serial heavy preparation, and the `ColdHelperExceededOriginal4GiBLimit`

@@ -2456,7 +2456,9 @@
    "evidence": [
     "public-verbs/fresh-differential-and-raw-golden-integrity",
     "rust/gomad/qualify::cost::warm_window_tests::cache_hit_windows_attribute_the_warm_helper_peak_exactly",
-    "rust/gomad/qualify::cost::warm_window_tests::a_cold_warm_window_still_exceeds_and_unreported_hits_stay_unattributed"
+    "rust/gomad/qualify::cost::warm_window_tests::a_cold_warm_window_still_exceeds_and_unreported_hits_stay_unattributed",
+    "rust/gomad/qualify::cost::warm_window_tests::cluster_warm_windows_must_cover_every_resident_node",
+    "rust/gomad/qualify::cost::warm_window_tests::every_resident_guest_requires_an_actual_warm_measurement"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/budget_test.go#TestBudgetOperatorOverrunCannotPass": {
@@ -2630,10 +2632,9 @@
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestComparisonRejectsUnmatchedLimits": {
    "evidence": [
-    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields",
-    "rust/gomad/qualify::support::tests::support_success_and_canary_must_match_except_arguments_and_configuration"
-   ],
-   "reason": "Go Matched compared two cell manifests; Rust support binds each cell to one fixed policy (fuel 1<<50, memory 4 GiB), so a mismatched fuel cell is refused per cell. Profile-may-differ has no Rust case: support cells are cooperative only."
+    "rust/gomad/qualify::support::tests::support_success_and_canary_must_be_matched_cells",
+    "rust/gomad/qualify::support::tests::support_policy_refuses_changed_complete_policy_fields"
+   ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestCostRequiresRealExecutionMeasurementsAndSeparatesReplay": {
    "basis": "partial: missing independent virtual_to_wall and distinct_outcomes assertions",
@@ -2653,9 +2654,10 @@
    "reason": "Caller-JSON refusal ported; detachment is by ownership: Rust freeze takes the operator Snapshot by value."
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime": {
-   "basis": "partial: missing matched-owner evidence reuse; cold build relabelled warm",
+   "basis": "partial: missing matched-owner evidence reuse",
    "evidence": [
-    "public-verbs/fresh-differential-and-raw-golden-integrity"
+    "public-verbs/fresh-differential-and-raw-golden-integrity",
+    "rust/gomad/qualify::cost::warm_window_tests::initial_preparation_flag_matches_its_actual_compiler_commands"
    ]
   },
   "tools/gomad/internal/backends/wasm/qualification/qualification_test.go#TestOperatorCostIncludesSetupGapAndSeparatesLogicalVirtualTime@9371/canonical-owner-matched-evidence": {
