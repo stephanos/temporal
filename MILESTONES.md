@@ -509,7 +509,7 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | 🚧 Running | Remove duplicated measurement checking |
-| [fn-242.11](.flow/tasks/fn-242-gomad-shrink-the-qualification.11.md) | ⬜ Todo | Independent 96-stage plan and shared cycle contracts |
+| [fn-242.11](.flow/tasks/fn-242-gomad-shrink-the-qualification.11.md) | 🚧 Running | Independent 96-stage plan and shared cycle contracts |
 | [fn-242.12](.flow/tasks/fn-242-gomad-shrink-the-qualification.12.md) | ⬜ Todo | DAG and resource scheduling with executed mutation proofs |
 | [fn-242.13](.flow/tasks/fn-242-gomad-shrink-the-qualification.13.md) | ⬜ Todo | Real process custody, accounting, busy workers and cleanup |
 | [fn-242.14](.flow/tasks/fn-242-gomad-shrink-the-qualification.14.md) | ⬜ Todo | Strict cycle configuration and frozen source/build authentication |
@@ -551,7 +551,7 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 | [fn-242.50](.flow/tasks/fn-242-gomad-shrink-the-qualification.50.md) | ⬜ Todo | Compose real retained reader sections and validate combined readback |
 | [fn-242.51](.flow/tasks/fn-242-gomad-shrink-the-qualification.51.md) | ⬜ Todo | Close final partitions and prove cluster admission edges |
 | [fn-242.52](.flow/tasks/fn-242-gomad-shrink-the-qualification.52.md) | ⬜ Todo | Integrate actual routes and prove bounded preparation through readback |
-| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | 🚧 Running | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
+| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⛔ Blocked | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
 | [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |

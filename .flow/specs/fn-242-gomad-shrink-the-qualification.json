@@ -14,7 +14,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-24T17:16:55.405090Z",
+  "plan_reviewed_at": "2026-10-24T18:21:37.342924Z",
   "review_attempts": [
     {
       "artifact_sha256": "3ee2c3013e242c503c5f1818dc635cf9ded24aab136fd1bce07acd01720a6ecb",
@@ -456,11 +456,79 @@
       "task": "fn-242-gomad-shrink-the-qualification.1",
       "timestamp": "2026-10-24T17:48:11.948662Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b6cc22ed8347cb91b2bcdeddbaaef137c5d4e5e05e4e2495916d3fc93570a994",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a1cac0582f73fa761f797be535fb974d",
+            "classification": "introduced",
+            "findingId": "finding-a1cac0582f73fa761f797be535fb974d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-63769de68266aed6bd8e668341a7fad9",
+            "classification": "introduced",
+            "findingId": "finding-63769de68266aed6bd8e668341a7fad9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2d687202df004ecb22090bc81f3259d2",
+            "classification": "introduced",
+            "findingId": "finding-2d687202df004ecb22090bc81f3259d2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "classification": "introduced",
+            "findingId": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "a110e4209d08c7b81ea7eac2cab544891dc20d44",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 797,
+      "output_sha256": "00e9bdabc15299e198cc861edb52bcdfdd2a63efce0880c51e9f2f72bbfc7a91",
+      "reservation_id": "e691f6c224e44e689da38b6b4aa40509",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T18:21:37.337673Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-242-gomad-shrink-the-qualification.1": 1,
-    "plan": 3,
+    "plan": 4,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -483,5 +551,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T18:17:14.552090Z"
+  "updated_at": "2026-10-24T18:21:37.343783Z"
 }

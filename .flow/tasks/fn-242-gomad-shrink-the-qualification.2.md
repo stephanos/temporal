@@ -21,8 +21,8 @@ Consume every mandatory retained-unproved pending_regression contract assigned t
 - [ ] Deterministic regressions catch ambiguous spawn charge loss, journal re-enrollment/reset and omission of any45GiB HOST/20GiB overlay/12GiB inner reservation-time floor; no full attempt is dispatched by these tests
 
 ## Done summary
-TBD
-
+Blocked:
+The design-only worker returned with no product changes and no live commands. The approved decomposition requires .11–.15 and genuine endpoint integration .52 before this original acceptance aggregate can execute. Retain every original acceptance/proof requirement; no completion or failure credit. Resume this aggregate after its actual prerequisites pass.
 ## Evidence
 - Commits:
 - Tests:
