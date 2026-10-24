@@ -57,3 +57,8 @@ harness = false
 name = "cycle_journal_owner"
 path = "src/cycle/journal/owner_fixture.rs"
 harness = false
+
+[[test]]
+name = "cycle_custody_owner"
+path = "src/cycle/custody/owner_fixture.rs"
+harness = false

@@ -11,7 +11,7 @@ use std::{
 /// recorded under this location-independent root instead of the caller's GOCACHE path.
 const GO_CACHE_ROOT: &str = "/$GOCACHE";
 
-fn cache_output_name(path: &Path, digest: &str) -> Option<PathBuf> {
+pub(crate) fn cache_output_name(path: &Path, digest: &str) -> Option<PathBuf> {
     let name = path.file_name()?.to_str()?;
     let shard = path.parent()?.file_name()?.to_str()?;
     let output = name.strip_suffix("-d")?;
