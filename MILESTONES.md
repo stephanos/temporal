@@ -108,12 +108,12 @@ live timeout admission and cancellation evidence, and their write-up. Reactivate
 on 2026-10-23, scheduled after fn-238. On 2026-10-24 the spec was aligned with fn-243: .4's worker evidence
 is program rows (heartbeat, cancellation acknowledgement) judged from server history, the held attempt and
 schedule-to-start expiry use the hold fault, and task paths carry the fn-244 layout mapping.
-Facts support is complete: native/interpreted/TLC agreement, four fact witnesses and exact old-artifact preservation passed. The independent cancellation boundary amendment is selected for fresh plan review before the Model consumer is implemented.
+Facts support is complete: native/interpreted/TLC agreement, four fact witnesses and exact old-artifact preservation passed. The independent cancellation boundary amendment passed fresh plan review before Model implementation; actual worker evidence and replay are explicit requirements.
 [Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-237.2 | ⬜ todo | Bounded nominal optional values through source binding, emission and decode (R1) |
+| fn-237.2 | 🔄 in progress | Bounded nominal optional values through source binding, emission and decode (R1) |
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
 | fn-237.5 | ⏸️ blocked | After .4 and committed fn-243.5: final DESIGN.md timeout and cancellation write-up (R5) |

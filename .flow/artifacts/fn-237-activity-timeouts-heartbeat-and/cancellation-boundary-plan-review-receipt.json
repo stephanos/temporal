@@ -1,0 +1,59 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "fe710aad41a72c9ed6b9b22b5e00823dbd87e90a",
+    "headSha": "f32e51c5cbb8357a3da68bb254c1fe72d1b97c2a",
+    "items": [
+      {
+        "body": "The mandatory witness requires the actual heartbeat cancellation notification and explicit worker acknowledgement, but the plan specifies no path carrying those observations into judgment and replay. Describe exposes pending state and heartbeat metadata, not the heartbeat response\u2019s `cancel_requested` bit or the acknowledgement RPC. Currently, `polls.go` passes those worker calls through without recording them, and `LiveRuntime::judge` admits only Start, Describe and Cancel observations. Matching terminal Canceled and the expected program row therefore cannot establish that the required notification and acknowledgement occurred. Incorrect worker behavior could remain Explained.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-a6bf86672a71cf318b046a022ab27ef6ca53a5a8850fc260c9764b37087c3c26",
+        "id": "finding-df4d69c97bbef659842212edac074902",
+        "lastSeenReceiptId": "review-68e9371eb20cf1429fa4dc1282065dbf598c81b89509813456a2ebcc13a52c9d",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify the correlated evidence path for the actual heartbeat response and worker acknowledgement through the existing protocol. Include run/attempt/token correlation, publication and replay behavior, plus negative controls where notification or acknowledgement differs while Describe snapshots remain identical.",
+        "title": "The mandatory witness requires the actual heartbeat cancellation notification and explicit worker acknowledgement, but the plan specifies no path carrying those observations into judgment and replay"
+      },
+      {
+        "body": "The declarations omit files explicitly required by the approaches. Task .2\u2019s reanchor names IR, front, native interpreter and author value/macro owners outside its mapped Touches. Task .4 requires changes under `model/temporal/proto/`, also absent from its Touches. Task .3 changes the generated World constructor, but its scope omits `realization/src/live.rs`, which directly calls `World::new(maximum_attempts)` and must compile before .4.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a6bf86672a71cf318b046a022ab27ef6ca53a5a8850fc260c9764b37087c3c26",
+        "id": "finding-056fcdcfdfe1d031685947d7ae08b7ec",
+        "lastSeenReceiptId": "review-68e9371eb20cf1429fa4dc1282065dbf598c81b89509813456a2ebcc13a52c9d",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R2",
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Update Files/Touches to cover the named current owners and assign the minimal production compatibility edits needed for .3\u2019s gates before .4\u2019s admission work.",
+        "title": "The declarations omit files explicitly required by the approaches"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-68e9371eb20cf1429fa4dc1282065dbf598c81b89509813456a2ebcc13a52c9d",
+    "supersedesReceiptId": "review-a6bf86672a71cf318b046a022ab27ef6ca53a5a8850fc260c9764b37087c3c26"
+  },
+  "id": "fn-237-activity-timeouts-heartbeat-and",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior findings: all fixed\n\nTask .4 now specifies actual worker RPC capture, correlation, delivery through `ActivityEvidence`, publication rollback, replay, and negative controls with identical Describe snapshots. Tasks .2\u2013.4 cover the missing file owners and constructor compatibility work.\n\nNo new blocking findings. Test strategy, async evidence and cleanup, dependency ordering, performance targets, and privacy requirements remain stated. Tasks .1/.2 retain their required serial scheduling.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Plan is solid, ready to implement\n",
+  "review_reservation_id": "6980edf0ac9f4d348ab6386bca76833e",
+  "session_id": "01a16dc8-bee5-7e60-a55f-6cc0372512c8",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T12:16:02.461494Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

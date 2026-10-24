@@ -14,9 +14,9 @@
     "fn-237-activity-timeouts-heartbeat-and.1": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-24T12:06:37.656224Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T12:16:02.473410Z",
   "ready": true,
   "review_attempts": [
     {
@@ -106,10 +106,64 @@
       "timestamp": "2026-10-24T12:06:37.646764Z",
       "tool_calls": 54,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "14f48940c02f01418e2d00d2e43260d8654b8cd047dc65e3896638e003582cd4",
+      "backend": "codex",
+      "base_sha": "fe710aad41a72c9ed6b9b22b5e00823dbd87e90a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-df4d69c97bbef659842212edac074902",
+            "classification": "introduced",
+            "findingId": "finding-df4d69c97bbef659842212edac074902",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-056fcdcfdfe1d031685947d7ae08b7ec",
+            "classification": "introduced",
+            "findingId": "finding-056fcdcfdfe1d031685947d7ae08b7ec",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f32e51c5cbb8357a3da68bb254c1fe72d1b97c2a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 669,
+      "output_sha256": "944aa5e54f6f8a3446b7b17f53a45287840f8da0d62ba14bee3b51455f9a0d9b",
+      "reservation_id": "6980edf0ac9f4d348ab6386bca76833e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T12:16:02.463048Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-237-activity-timeouts-heartbeat-and.1": 1
+    "impl:fn-237-activity-timeouts-heartbeat-and.1": 1,
+    "plan": 1,
+    "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -131,5 +185,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T12:14:15.858605Z"
+  "updated_at": "2026-10-24T12:16:02.474579Z"
 }

@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "type": "plan_review",
+  "id": "fn-237-activity-timeouts-heartbeat-and",
+  "verdict": "SHIP",
+  "session_id": "01a16dc8-bee5-7e60-a55f-6cc0372512c8",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "review": "Prior findings: all fixed\n\nTask .4 now specifies actual worker RPC capture, correlation, delivery through `ActivityEvidence`, publication rollback, replay, and negative controls with identical Describe snapshots. Tasks .2\u2013.4 cover the missing file owners and constructor compatibility work.\n\nNo new blocking findings. Test strategy, async evidence and cleanup, dependency ordering, performance targets, and privacy requirements remain stated. Tasks .1/.2 retain their required serial scheduling.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - Plan is solid, ready to implement\n",
+  "plan_review_status": "ship",
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
