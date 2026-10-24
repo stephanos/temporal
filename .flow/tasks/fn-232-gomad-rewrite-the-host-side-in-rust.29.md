@@ -12,14 +12,15 @@ Evidence: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/actual-di
 
 Repair and full unchanged canary RED/GREEN obligations have been transferred explicitly to .30. This split does not discharge the actual capacity failure, .13 full qualification, .22-.25 receiving, or .14 reach.
 ## Acceptance
-- [ ] Authenticate both actual diagnostic reproductions under original1MiB/scenario/assertions and exact source/compiler/runtime/model/host bindings; preserve failed World/network prefix and guest output, with original C8 raw attempt unchanged.
-- [ ] Verify selected World owner, exact accounting/op counts, virtual time and guest progress. Distinguish observed polling amplification from unsupported accounting-error or DNS-loop claims.
-- [ ] Independently review the diagnosis and its limits; retain raw evidence and instrumentation provenance. Claim no production repair or qualification pass from diagnostics.
-- [ ] Transfer repair, behavioral RED/GREEN and full original canary obligations into .30, and make .13 closure depend on .30. All original runtime/replay/capacity/receiving obligations remain intact.
+- [x] Authenticate both actual diagnostic reproductions under original1MiB/scenario/assertions and exact source/compiler/runtime/model/host bindings; preserve failed World/network prefix and guest output, with original C8 raw attempt unchanged.
+- [x] Verify selected World owner, exact accounting/op counts, virtual time and guest progress. Distinguish observed polling amplification from unsupported accounting-error or DNS-loop claims.
+- [x] Independently review the diagnosis and its limits; retain raw evidence and instrumentation provenance. Claim no production repair or qualification pass from diagnostics.
+- [x] Transfer repair, behavioral RED/GREEN and full original canary obligations into .30, and make .13 closure depend on .30. All original runtime/replay/capacity/receiving obligations remain intact.
 ## Done summary
-TBD
+Diagnosed the unchanged primary inspection refusal using two fresh separately labelled executions with byte-identical failed prefixes/guest streams. wasm-broker accepted6408 transitions/2136 visible calls totaling1048560B; next188B refused correctly at virtual471133454ns.1474 of1647 network polls remained pending; runtime scans explain amplification, not arithmetic overcount or demonstrated DNS causation. Independently authenticated raw hashes/counts/scenario/settings and diagnostic identity distinctions. Historical Go had no active recorder for these owners; current Rust explicitly activates per-owner native bounds, which remain required. No production repair committed and no qualification pass inferred. Repair/fullcanary obligations transferred intact to.30; .13 closure depends.30 and full96/final145 plus existing receiving. Three formal Codexgpt-6.1-sol/high draws SHIP,0findings,same-family disclosed. Durable receipt: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/diagnosis-review/receipt.json. OriginalC8/r1 unchanged; r3 scope addendum and archive custody preserve provenance.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c3e7a89f29e37e8254310ed01bf2528e53cfb8cf, be8f2726c5238ffdae878f02c82493862a959acd
+- Tests: Actual diagnostic reproductions02/03: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/actual-diagnosis-r1.json, Raw authentication: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/parent-diagnosis-authentication.json, Historical scope: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/actual-diagnosis-scope-addendum-r3.md, Green unchanged code gate: /home/agent/wt/evidence/fn232-split-closure/evidence-preparation/conductor-repaircombined-gate.json, Independent SHIP: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/diagnosis-review/receipt.json
 - PRs:

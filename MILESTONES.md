@@ -163,7 +163,7 @@ fixture defects; both are integrated, pass worker and conductor gates, and have 
 SHIP reviews. The combined source tree passes the canonical merge gate.
 Task .29 retains two matching diagnostic reproductions: repeated pending network polls
 exhaust correctly accounted broker transitions after 0.471 seconds of virtual time. Its
-diagnosis awaits independent review; .30 owns the repair and complete original canary under
+diagnosis passed independent SHIP review; .30 owns the repair and complete original canary under
 the unchanged 1 MiB bound. The repair follows the diagnosis while the other fixes proceed
 independently. No bound, scenario, assertion or receiving
 obligation is waived. All96 stages and the final145 reader remain required on the repaired
@@ -181,7 +181,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Complete and review fn-232.27–.30, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
+1. Complete and review fn-232.30 after the finished .27–.29 repairs/diagnosis, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -490,8 +490,8 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.26](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.26.md) | Done | Bind profile-neutral execution fixtures to compiled conditions; preserve strict role admission |
 | [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | Done | Handle tracked Gitlinks in onebox source inventory; worker/conductor gates and SHIP review passed |
 | [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | Done | Compiled-role fixture repair; full five-profile matrix, worker/conductor gates and SHIP review passed |
-| [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | 🚧 Running | Diagnose primary inspection transition capacity under unchanged1MiB/scenario |
-| [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | Todo | Repair inspection polling capacity and prove the full original canary under the unchanged bound; follows .29 |
+| [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | Done | Capacity diagnosis authenticated and independently reviewed; actual defect remains assigned to .30 |
+| [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | 🚧 Running | Repair inspection polling capacity and prove the full original canary under the unchanged bound; follows .29 |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
