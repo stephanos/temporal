@@ -110,6 +110,12 @@ Before starting the implementation or review of any request, you MUST REVIEW the
   from retained evidence for its exact candidate, host, profile and workload. Native soak
   reports are historical and do not qualify the current WASM backend.
 
+### Legacy compatibility
+
+For open Gomad work, apply the owner's [legacy compatibility retirement policy](.flow/artifacts/legacy-compatibility-policy-2026-10-24.md)
+before interpreting older spec, task or proof requirements. Retire legacy-only comparisons;
+retain current behavior, authentication and same-candidate deterministic replay.
+
 ### fn-242 execution policy
 
 Owner decision, 2026-10-24: prioritize throughput with coherent implementation batches,

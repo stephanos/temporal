@@ -1,5 +1,7 @@
 # fn-242 obligation inventory
 
+**Current owner amendment.** [Legacy compatibility is retired](legacy-compatibility-policy-2026-10-24.md). This supersedes legacy-only exact argv/schema/byte/frozen-host preservation clauses below. Original IDs/counts are historical discovery; cutover proves retained guarantees and explicitly disposes of compatibility-only rows without replacement proof.
+
 Analysis checkpoint at `4bdb81c48727c7ca280566c9f113685493e09b19`. All 145 final obligations and all 96 stage contracts remain required. This artifact changes no product code and supplies no qualification pass.
 
 The reviewed plan amendment is `8b385f4234` (conductor original `3329b8b9db`); it changes no inventoried product source. The JSON sidecar is the row ledger: each check carries the exact source predicate, diagnostic, source location, disposition and port owner. `modules[].check_ids` indexes every driver module. `proof_refs` resolve to named existing tests, assertions and observed mutations in `proof_catalog`. No deletion follows from a missing test.

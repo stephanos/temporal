@@ -3,6 +3,8 @@ satisfies: [R9, R12]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.31 Measure the multi-instance and SQLite cells World transition budgets under enforced per-owner recording before the cycle reaches them
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Description
 ### Current execution owner (2026-10-24, cleanup-first amendment)
 

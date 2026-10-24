@@ -1,5 +1,7 @@
 # Gomad: WASM host-side execution cost profile
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Conversation Evidence
 
 > user: "File a host-import profiling spec for performance before committing to any optimization."

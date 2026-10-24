@@ -3,6 +3,8 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.10 Replace retained Python stage producer adapters with executable Rust paths
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 Touches: tools/gomad/rust/gomad/src/cycle/producers/**, existing Rust production entry points, CLI producer dispatch and focused integration fixtures
 
 ## Description

@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.9.md",
   "status": "todo",
   "title": "Extract gomad-install and gomad-execution; remove cli back-edges",
-  "updated_at": "2026-10-24T16:07:27.796581Z"
+  "updated_at": "2026-10-24T22:10:02.476746Z"
 }

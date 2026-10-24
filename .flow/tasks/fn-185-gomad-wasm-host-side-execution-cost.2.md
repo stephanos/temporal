@@ -3,6 +3,8 @@ satisfies: [R2, R3, R6]
 ---
 # fn-185-gomad-wasm-host-side-execution-cost.2 Capture host-side profiles on cluster and single-guest workloads
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Description
 On a quiet host, run the fn-178 cluster scenario (the wasmmeasure producer replacing TestMatchedReleaseClusterCandidate, seeds 7, 19, 42) and the single-guest workflow and activity selections (seeds 0, 1000003, 2000006), one warmup plus three warm repetitions each, with the diagnostic-profile helper, and the same runs under `perf record` on the helper. Fold perf samples by symbol, map them to the same owners and compare the top three owners with the wall attribution. Verify the choice witness of every profiled run equals the release-helper run at the same seed. Retain under .flow/artifacts/fn185-*/ the raw profile JSON, folded stacks, host cpuinfo, boot id, source/helper/module/engine/model identities and exact rerun commands; summarize per-owner and per-op medians with ranges in a markdown artifact. Diagnostic and guest-profile helpers are never qualification evidence.
 

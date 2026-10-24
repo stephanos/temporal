@@ -1,5 +1,7 @@
 # Sometimes assertions and a site catalog on WASM
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Goal & Context
 
 `softassert.That` and `softassert.Fail` are already Gomad's `Always` oracle: the runner's `internal/evidence/record/softassert` observer scans guest output for the "failed assertion: " prefix and the failed-assertion tag, deduplicates messages and treats a hit as a failure with identity. Sixty-six production call sites use it. What is missing is the coverage half: a way for code to say "this path should be reached in some execution" and for a campaign to report when it never was. Without it, a 200-seed campaign that stays green says nothing about whether the workload exercised the code the engineer cares about.
@@ -113,4 +115,3 @@ Owner request (2026-10-16) following the discussion recorded in `.plans/GOMAD_FI
 | R4 | Campaign flags, never-hit summary, `--must-hit` outcome, inconclusive semantics. | fn-191-gomad-sometimes-assertions-and-a-site.4 | — |
 | R5 | `inspect` semantic section, legacy "no catalog", pre-change executable replay test. | fn-191-gomad-sometimes-assertions-and-a-site.3 | — |
 | R6 | One-box demonstration and cooperative qualification unchanged. | fn-191-gomad-sometimes-assertions-and-a-site.5 | — |
-

@@ -3,6 +3,8 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.4 Port the kept final readers: profiles, retained, terminal, reach, onebox support, cost
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Description
 Same contract as .3 for final_profiles.py, final_retained.py, terminal_module_receiving.py, reach.py, onebox_receiving.py (fn222 two-cell support list), receiving_cost.py, executed_divergence.py, identity_harness.py and the subgate obligation closer for required-final.json. For reach, retain explicit uncredited reporting before closure, then require strict refusal from authenticated actual fn-246.1 reach proof. Do not key this transition to old fn-232.14 Flow completion, because that original task receives final proof later. Preserve every original callable/evidence mapping, assertion, bound and feature-gated stage. Mutation fixtures reject gap/partial entries, missing proof and invalid proof bindings in strict mode; no task status alone can activate successful acceptance. Touches: tools/gomad/rust/gomad/src/cycle/final/**. The fn-246 consumers re-anchor these paths after the full fn-240 relayout.
 

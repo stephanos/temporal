@@ -1,5 +1,7 @@
 # Gomad: typed boundaries for the Rust host
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Conversation Evidence
 
 > user: "where does the actual complexity live in this project? and is code size and complexity coupled? is the complexity worth it or accidental?"

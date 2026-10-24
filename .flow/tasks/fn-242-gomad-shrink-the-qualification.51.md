@@ -3,6 +3,8 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.51 Close final partitions and prove cluster admission edges
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 **Touches:** tools/gomad/CLI.md, tools/gomad/rust/gomad/src/**, tools/gomad/rust/gomad/src/cli/**, tools/gomad/rust/gomad/src/cycle/**, tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/final/**, tools/gomad/rust/gomad/src/cycle/final_readers/**, tools/gomad/rust/gomad/src/cycle/final_readers/admission/**, tools/gomad/rust/gomad/src/cycle/preparation/**, tools/gomad/rust/gomad/src/cycle/producers/**, tools/gomad/rust/gomad/src/cycle/readers/**, tools/gomad/rust/gomad/src/cycle/routes/**, tools/gomad/rust/gomad/src/lib.rs, tools/gomad/rust/gomad/src/main.rs, tools/gomad/rust/gomad/tests/**
 
 ## Description
@@ -27,8 +29,8 @@ Wire fn-242.13's actual exclusive CycleOwner initialization at cycle CLI startup
 - [ ] Execute all84 semantic IDs through their real edge with controls; one edge cannot stand in for another. Exact145 final ownership is enforced and missing/duplicate/foreign/synthetic/skipped/unexecuted rows refuse.
 - [ ] Resolve every assigned pending_regression using an actually executed normal-return valid control and targeted catching mutation against current Rust code. Port retained keep-row catchers. Record original IDs/source SHA256, current source binding, exact input hashes/bytes, commands, outputs, numeric exits and direct intended predicate attribution.
 - [ ] Group checks through shared authoritative validators and fixture tables when input and trust boundary match. Preserve every compound condition term, bound, classification and independent reopening edge. Future test names, test counts, ancestor hash errors and mocked replacements do not resolve proof.
-- [ ] Run genuine controlled Rust and approved Go guest/model/tool behavior. Preserve strict JSON/custody, exact unchanged leaf argv, all96 stages/145 semantic obligations and3600s stop_at_deadline=False timing-only policy. No Python bridge, placeholder pass, full qualification dispatch or spent attempt.
-- [ ] Provide family callable modes with the old CLI input/output/refusal contract for actual routes integration. Retain endpoint/function mappings and fail closed for missing/unmapped routes until implemented.
+- [ ] Run genuine controlled Rust and approved Go guest/model/tool behavior. Preserve strict JSON/custody, documented current command semantics, all96 stages/145 semantic obligations and3600s stop_at_deadline=False timing-only policy. No Python bridge, placeholder pass, full qualification dispatch or spent attempt.
+- [ ] Provide documented current Rust callable interfaces and update actual route consumers together. Retain endpoint/function mappings and fail closed for missing/unmapped routes until implemented.
 - [ ] Quick filters select at least one actual test; retain nonzero selected count and numeric exits. Add existing feature flags required by the genuine family fixtures. If work exceeds one roughly100k-token iteration, create a further exact partition before dispatch and extend integration dependencies.
 
 ## Done summary

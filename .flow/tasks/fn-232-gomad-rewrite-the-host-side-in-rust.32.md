@@ -3,6 +3,8 @@ satisfies: [R5, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.32 Unify fixed payload read bounds with the authenticated artifact limits so a qualified artifact always replays
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Description
 ### Current execution owner (2026-10-24, cleanup-first amendment)
 

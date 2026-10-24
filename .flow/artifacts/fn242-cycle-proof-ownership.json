@@ -2,7 +2,7 @@
   "schema": "fn242-cycle-split-proposal/v1",
   "status": "proposal_not_Flow_lifecycle",
   "inventory_path": "/home/agent/wt/fn242-rust-cycle/.flow/artifacts/fn242-obligation-inventory.json",
-  "inventory_sha256": "21b500b6272f5b303c22e921225235ef6917d87f141a41d1429641f9d81bd4e3",
+  "inventory_sha256": "d8841a4f9b93aa781298a88d6202fbbea06e99a787750479e501e6cd5466f678",
   "inventory_commit": "c53c2a7a05",
   "original_owner": "fn-242.2",
   "original_check_count": 256,
@@ -7640,5 +7640,12 @@
     "status": "pending_regression",
     "implementation_owner": "cycle-custody",
     "original_aggregate_dependency": "fn-242.9 adds cycle-custody; original .2 dependency unchanged"
-  }
+  },
+  "compatibility_amendment": {
+    "path": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+    "sha256": "e82e4802edec9f6c64af9215e5750ded802bc3f95c2e9561c0fa775d30dd5e1d",
+    "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
+    "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
+  },
+  "ownership_interpretation": "Original IDs/partitions remain discovery provenance. Prove retained guarantees or record exact-ID compatibility retirement under the controlling owner policy."
 }

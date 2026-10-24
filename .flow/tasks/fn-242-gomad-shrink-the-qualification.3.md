@@ -3,6 +3,8 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.3 Port the kept stage readers and receivers into the verb validation step (core, receiving, cells)
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Description
 Port all retained readers identified by .1, including mandatory retained-unproved pending_regression rows, from receiving.py, core_*.py, cell_reader.py, runtime_gate.py, preparation.py and the typed receipt readers into Rust as the verb validation step, each with its mutation fixture from the inventory. Delete nothing here that .1 did not mark for deletion; record each deletion reason in the ledger. Golden/e2e first; a unit test names its invariant. Touches: tools/gomad/rust/gomad/src/cycle/readers/**.
 

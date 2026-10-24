@@ -670,7 +670,9 @@
         "proof_groups": [
           "aggregate-.2"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.3": {
       "title": "Port the kept stage readers and receivers into the verb validation step (core, receiving, cells)",
@@ -681,7 +683,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.4": {
       "title": "Port the kept final readers: profiles, retained, terminal, reach, onebox support, cost",
@@ -692,7 +696,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.5": {
       "title": "Dispose parity lanes and preserve required Go baseline inputs",
@@ -703,7 +709,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.7": {
       "title": "Cutover: delete the Python driver, repoint Make, CI, docs and the determinism inventory; record sizes",
@@ -714,7 +722,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.8": {
       "title": "Verify focused driver parity and hand off actual qualification to fn-246",
@@ -725,7 +735,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.9": {
       "title": "Replace fresh candidate configuration composition and input preparation in Rust",
@@ -736,7 +748,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.10": {
       "title": "Replace retained Python stage producer adapters with executable Rust paths",
@@ -747,7 +761,9 @@
         "endpoint_ids": [],
         "semantic_obligation_ids": [],
         "proof_groups": []
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.14": {
       "title": "Strict cycle configuration and frozen source/build authentication",
@@ -822,7 +838,9 @@
         "proof_groups": [
           "cycle-custody"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.15": {
       "title": "Fixed global attempt journal and reservation-time admission floors",
@@ -1097,7 +1115,9 @@
         "proof_groups": [
           "prep-inputs"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.17": {
       "title": "Freeze authenticated role and configuration bindings",
@@ -1156,7 +1176,9 @@
         "proof_groups": [
           "prep-bindings"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.18": {
       "title": "Validate command, artifact and preparation custody",
@@ -1315,7 +1337,9 @@
         "proof_groups": [
           "reader-command"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.19": {
       "title": "Compose fixed stages and surviving endpoint bindings",
@@ -1385,7 +1409,9 @@
         "proof_groups": [
           "prep-composition"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.20": {
       "title": "Validate runtime artifacts and forced replay aggregates",
@@ -1499,7 +1525,9 @@
         "proof_groups": [
           "reader-runtime"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.21": {
       "title": "Validate retained storage and engine codecs",
@@ -1703,7 +1731,9 @@
         "proof_groups": [
           "core-codec"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.22": {
       "title": "Implement retained, operator and ringpop final sections",
@@ -1848,7 +1878,9 @@
         "proof_groups": [
           "final-retained"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.23": {
       "title": "Validate native command observations and role custody",
@@ -1950,7 +1982,9 @@
         "proof_groups": [
           "final-native"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.24": {
       "title": "Validate actual guest and preparation observations",
@@ -2094,7 +2128,9 @@
         "proof_groups": [
           "core-guests"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.25": {
       "title": "Validate inspection decoding, search and refused mappings",
@@ -2207,7 +2243,9 @@
         "proof_groups": [
           "core-inspection"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.26": {
       "title": "Validate retained inputs, presence and mutation matrix",
@@ -2460,7 +2498,9 @@
         "proof_groups": [
           "core-retained"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.27": {
       "title": "Validate World, network, boot and cluster wire observations",
@@ -2627,7 +2667,9 @@
         "proof_groups": [
           "core-world"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.28": {
       "title": "Execute static and broad adapters with raw publication",
@@ -2808,7 +2850,9 @@
         "proof_groups": [
           "producer-static"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.29": {
       "title": "Build and authenticate CLI and broad harness producers",
@@ -2940,7 +2984,9 @@
         "proof_groups": [
           "producer-build"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.30": {
       "title": "Execute workload, inspection, recovery and support adapters",
@@ -3114,7 +3160,9 @@
         "proof_groups": [
           "producer-workload"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.31": {
       "title": "Execute installed lifecycle, interception and ringpop adapters",
@@ -3179,7 +3227,9 @@
         "proof_groups": [
           "producer-installed"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.32": {
       "title": "Execute frozen reference profile and public role preparation",
@@ -3222,7 +3272,9 @@
         "proof_groups": [
           "producer-reference"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.33": {
       "title": "Execute independent SQLite oracle and terminal controls",
@@ -3263,7 +3315,9 @@
         "proof_groups": [
           "producer-sqlite-terminal"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.34": {
       "title": "Validate mandatory Results, SQLite selections and Temporal histories",
@@ -3405,7 +3459,9 @@
         "proof_groups": [
           "reader-workload"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.35": {
       "title": "Validate installed inspection and recovery evidence",
@@ -3501,7 +3557,9 @@
         "proof_groups": [
           "reader-inspection"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.36": {
       "title": "Validate lifecycle recovery, drain and capacity",
@@ -3626,7 +3684,9 @@
         "proof_groups": [
           "core-lifecycle"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.37": {
       "title": "Validate installed cluster and interception readback",
@@ -3783,7 +3843,9 @@
         "proof_groups": [
           "final-installed"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.38": {
       "title": "Validate original clusters, ringpop, counterfactual and ordinary evidence",
@@ -3953,7 +4015,9 @@
         "proof_groups": [
           "final-clusters"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.39": {
       "title": "Validate terminal sidecars, compiler inputs, allocation and cost",
@@ -4117,7 +4181,9 @@
         "proof_groups": [
           "final-terminal"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.40": {
       "title": "Execute primary, runtime, cell and corpus adapters",
@@ -4347,7 +4413,9 @@
         "proof_groups": [
           "producer-primary"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.41": {
       "title": "Execute identity and divergence harnesses",
@@ -4392,7 +4460,9 @@
         "proof_groups": [
           "producer-identity"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.42": {
       "title": "Validate frozen reference profile and public role readback",
@@ -4505,7 +4575,9 @@
         "proof_groups": [
           "final-reference"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.43": {
       "title": "Validate independent SQLite catalogue and oracle readback",
@@ -4610,7 +4682,9 @@
         "proof_groups": [
           "final-sqlite"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.44": {
       "title": "Validate live families and transferred behavioral semantics",
@@ -4837,7 +4911,9 @@
         "proof_groups": [
           "reader-live"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.45": {
       "title": "Validate durable cells and broad closure readback",
@@ -4890,7 +4966,9 @@
         "proof_groups": [
           "reader-cells"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.46": {
       "title": "Validate current host, terminal attribution and profile resources",
@@ -5080,7 +5158,9 @@
         "proof_groups": [
           "final-profiles"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.47": {
       "title": "Validate public verb lanes, identity and executed divergence",
@@ -5208,7 +5288,9 @@
         "proof_groups": [
           "final-public"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.48": {
       "title": "Validate diagnostic, release and frozen reference preservation",
@@ -5303,7 +5385,9 @@
         "proof_groups": [
           "final-profile-reference"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.49": {
       "title": "Validate actual reach proof and ordered two-cell support",
@@ -5382,7 +5466,9 @@
         "proof_groups": [
           "final-reach-support"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.50": {
       "title": "Compose real retained reader sections and validate combined readback",
@@ -5399,7 +5485,9 @@
         "proof_groups": [
           "reader-integration"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.51": {
       "title": "Close final partitions and prove cluster admission edges",
@@ -5515,7 +5603,9 @@
         "proof_groups": [
           "final-admission"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     },
     "fn-242-gomad-shrink-the-qualification.52": {
       "title": "Integrate actual routes and prove bounded preparation through readback",
@@ -5528,7 +5618,9 @@
         "proof_groups": [
           "endpoint-integration"
         ]
-      }
+      },
+      "effective_acceptance_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+      "original_acceptance_interpretation": "Historical acceptance before the owner compatibility amendment; execute retained guarantees under current Flow acceptance, with explicit retirement of legacy-only guarantees."
     }
   },
   "batches": [
@@ -11248,7 +11340,7 @@
     "The leader implements every member in implementation_and_receipt_order. Internal compile/fixture checkpoints may run during implementation; internal members have no review or worker handoff gate. No member can be credited from a declaration or an unreviewed future implementation.",
     "After one independent whole-batch SHIP review, start/done each member in original topological order with the exact same actual reviewed source revision and shared review plus per-member proof evidence. The leader may finish before later receipt-only members only in this post-SHIP transaction. Receipt-only members record the actual implementation and their own original acceptance checks, not an administrative fake closure.",
     "B16 receives three independent final cutover draws covering the whole final candidate. All previous batches receive one independent fresh-context review. A changed batch after review requires appropriate revalidation and review of the changed scope.",
-    "Preserve every original acceptance, exact original check/function/endpoint ID and all 145 semantic obligations. Original aggregate .2/.3/.4/.9/.10 scope is exercised in B15; its implementation reuses completed child surfaces. Their original acceptance is never replaced by child status alone.",
+    "Preserve original task dependencies and exact discovery/proof ownership IDs. Apply current owner-amended acceptance: execute every retained guarantee and explicitly retire solely legacy-compatibility guarantees without replacement proof. Aggregate tasks still exercise all retained scope; child statuses alone do not prove it.",
     "Original R1 requires a catching test OR mutation for every retained guarantee. Direct malformed/input mutation and valid control executions cover every retained guarantee with exact row/source/failure/trust-boundary/command/exit bindings. Use representative high-risk source mutants; do not require recompiling one source mutant per guard. Shared fixtures may prove several rows only when each row has a direct catching outcome. Hash-only, ancestor-only, future named tests and status rewrites do not prove a row.",
     "Keep the roughly 100k-token iteration guardrail. Check/function counts guide batching, not mandatory splits or proof waivers. If a real iteration does not fit, stop at a source/proof checkpoint within the batch and continue its next bounded iteration without inventing task closure or dropping proof. Repartition only by revising this manifest and revalidating both DAGs before dispatch."
   ],
@@ -11301,8 +11393,8 @@
   ],
   "qualification_and_prerequisites": [
     "No batch dispatches a full qualification attempt. Both global attempts remain unused through fn-242. Preserve fixed journal binding, ambiguous-spawn charges and the immediately rechecked 45 GiB HOST / 20 GiB overlay / 12 GiB inner floors.",
-    "Preserve all 96 semantic stages, exact unchanged leaf argv, explicitly mapped orchestration replacements, bounds, resource/isolation declarations, 8 GiB live-memory guard, 12-worker busy groups and 3600-second policy with stop_at_deadline=False timing-only deferral. Correctness/resource/replay/infrastructure failures retain original classification.",
-    "Actual full candidate production, full qualification and independent receiving remain fn-246 after all fn-242 and all 13 fn-240 tasks. B16 handoff preserves authentic frozen Go baseline inputs and every still-pending R4/public18/original R6 acceptance.",
+    "Preserve supported stage behavior, workload/test selections, resource/isolation policy, live-memory guard, busy groups and 3600-second timing policy. Legacy argv/schema byte equality is retired; current failures retain meaningful correctness/resource/replay/infrastructure classification.",
+    "Actual full candidate production, qualification and independent receiving remain fn246 after fn242 and all13fn240 tasks. B16 hands off current functional/model/reference inputs still needed by retained acceptance; compatibility-only retired-Go preservation/comparisons are no longer gates.",
     "Known prerequisite fn-232.33 remains explicit. Mandatory storage/network/clusters producer installations need --compile-cache ROOT/engine-cache; non-provisional missing-cache admission must refuse with status 2 and named reason; standalone success/canary prove within_budget=true and cache_hit=true on every non-first window. Keep its original acceptance and source owner; B11/B10 port routes must carry the same binding, and fn-246 cannot start without the actual prerequisite proof.",
     "B14 implements strict authenticated reach-proof handling while gaps remain explicitly uncredited. Actual fn-246.1 proof activates strict receiving; old fn-232.14 task status cannot supply proof or cause a start deadlock."
   ],
@@ -11348,5 +11440,13 @@
   },
   "activation_verified_at": "2026-10-24T20:16:28.271363+00:00",
   "activation_flow_calls": 102,
-  "inflight_transition": "Preserve existing implementations and reviews already in flight. Task .12 finalized three SHIP draws; task .13 finishes its current implementation and receives one fresh high-effort independent review. The 16 batches begin after .13 is actually done."
+  "inflight_transition": "Preserve existing implementations and reviews already in flight. Task .12 finalized three SHIP draws; task .13 finishes its current implementation and receives one fresh high-effort independent review. The 16 batches begin after .13 is actually done.",
+  "compatibility_amendment": {
+    "path": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+    "sha256": "e82e4802edec9f6c64af9215e5750ded802bc3f95c2e9561c0fa775d30dd5e1d",
+    "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
+    "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
+  },
+  "input_sha256_semantics": "Historical input snapshots for the original partition, not authentication of amended live task descriptions. On admission read current Flow task acceptance and the controlling compatibility policy.",
+  "validation_counts_interpretation": "Validator proves historical source-ID partition/DAG preservation; counts are not mandatory retained implementation totals after explicit compatibility retirements."
 }

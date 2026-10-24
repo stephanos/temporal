@@ -3,6 +3,8 @@ satisfies: [R12, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.25 Close retirement, public parity, identity and source-size ledgers
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 Touches: .flow/artifacts/fn232-retirement/source-size-groups.py, .flow/artifacts/fn232-retirement/source-size-2026-10-23.md, fn-232.13 common closeout ledger, MILESTONES.md
 
 ## Description

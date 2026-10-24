@@ -3,6 +3,8 @@ satisfies: [R1, R8]
 ---
 # fn-246-gomad-final-qualification-after-driver.6 Independently receive R4 and public18 proof with retirement and final ledgers
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 Touches: .flow/artifacts/fn246-r4-public-closeout-*, fn232 source-size/identity/custody ledger append; source232/fn185 state remains .7-owned
 
 ## Description

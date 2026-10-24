@@ -3,6 +3,8 @@ satisfies: [R12, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.13 Qualification cycle on the Rust binary and Go host retirement
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 **Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description

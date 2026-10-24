@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.8.md",
   "status": "todo",
   "title": "Split wasm-engine from wasm-cluster; wasmhost helper bin",
-  "updated_at": "2026-10-24T16:07:27.280882Z"
+  "updated_at": "2026-10-24T22:10:02.168784Z"
 }

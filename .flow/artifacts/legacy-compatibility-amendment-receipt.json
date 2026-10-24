@@ -1,0 +1,981 @@
+{
+  "schema": "gomad.legacy-compatibility-amendment/v1",
+  "authority": "Owner2026-10-24: drop byte-for-byte compatibility from open tasks; backwards compatibility not needed",
+  "policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+  "specs_amended": 7,
+  "unfinished_tasks_amended": 70,
+  "items": [
+    {
+      "id": "fn-185-gomad-wasm-host-side-execution-cost",
+      "kind": "spec",
+      "path": ".flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md"
+    },
+    {
+      "id": "fn-191-gomad-sometimes-assertions-and-a-site",
+      "kind": "spec",
+      "path": ".flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust",
+      "kind": "spec",
+      "path": ".flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with",
+      "kind": "spec",
+      "path": ".flow/specs/fn-240-gomad-context-sized-rust-crates-with.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification",
+      "kind": "spec",
+      "path": ".flow/specs/fn-242-gomad-shrink-the-qualification.md"
+    },
+    {
+      "id": "fn-245-gomad-typed-boundaries-for-the-rust-host",
+      "kind": "spec",
+      "path": ".flow/specs/fn-245-gomad-typed-boundaries-for-the-rust-host.md"
+    },
+    {
+      "id": "fn-246-gomad-final-qualification-after-driver",
+      "kind": "spec",
+      "path": ".flow/specs/fn-246-gomad-final-qualification-after-driver.md"
+    },
+    {
+      "id": "fn-185-gomad-wasm-host-side-execution-cost.2",
+      "kind": "task",
+      "path": ".flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md"
+    },
+    {
+      "id": "fn-191-gomad-sometimes-assertions-and-a-site.3",
+      "kind": "task",
+      "path": ".flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.3.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.13",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.14",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.22",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.23",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.24",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.25",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.31",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md"
+    },
+    {
+      "id": "fn-232-gomad-rewrite-the-host-side-in-rust.32",
+      "kind": "task",
+      "path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.2",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.3",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.6",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.6.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.7",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.7.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.8",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.8.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.9",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.9.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.10",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.10.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.11",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.11.md"
+    },
+    {
+      "id": "fn-240-gomad-context-sized-rust-crates-with.12",
+      "kind": "task",
+      "path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.12.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.2",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.2.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.3",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.3.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.4",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.4.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.5",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.5.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.7",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.7.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.8",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.8.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.9",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.9.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.10",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.10.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.14",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.14.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.16",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.16.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.17",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.17.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.18",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.18.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.19",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.19.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.20",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.20.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.21",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.21.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.22",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.22.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.23",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.23.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.24",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.24.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.25",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.25.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.26",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.26.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.27",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.27.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.28",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.28.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.29",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.29.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.30",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.30.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.31",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.31.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.32",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.32.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.33",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.33.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.34",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.34.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.35",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.35.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.36",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.36.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.37",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.37.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.38",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.38.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.39",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.39.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.40",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.40.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.41",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.41.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.42",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.42.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.43",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.43.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.44",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.44.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.45",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.45.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.46",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.46.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.47",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.47.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.48",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.48.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.49",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.49.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.50",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.50.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.51",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.51.md"
+    },
+    {
+      "id": "fn-242-gomad-shrink-the-qualification.52",
+      "kind": "task",
+      "path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.52.md"
+    },
+    {
+      "id": "fn-245-gomad-typed-boundaries-for-the-rust-host.2",
+      "kind": "task",
+      "path": ".flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.2.md"
+    },
+    {
+      "id": "fn-245-gomad-typed-boundaries-for-the-rust-host.3",
+      "kind": "task",
+      "path": ".flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.3.md"
+    },
+    {
+      "id": "fn-245-gomad-typed-boundaries-for-the-rust-host.5",
+      "kind": "task",
+      "path": ".flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.5.md"
+    },
+    {
+      "id": "fn-246-gomad-final-qualification-after-driver.4",
+      "kind": "task",
+      "path": ".flow/tasks/fn-246-gomad-final-qualification-after-driver.4.md"
+    },
+    {
+      "id": "fn-246-gomad-final-qualification-after-driver.6",
+      "kind": "task",
+      "path": ".flow/tasks/fn-246-gomad-final-qualification-after-driver.6.md"
+    }
+  ],
+  "validation": {
+    "success": true,
+    "valid": true,
+    "root_errors": [],
+    "root_warnings": [],
+    "specs": [
+      {
+        "spec": "fn-95-gomad-f1-restore-the-checkout-on",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-96-gomad-f2-close-the-go127-port-on",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-97-gomad-f3-qualify-the-frontend",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-98-gomad-f4-close-the-tests-capability",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-99-gomad-f5-one-workflow-executing",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-100-gomad-f6-a-package-level-functional",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-102-gomad-architecture-consolidate",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-103-gomad-seeded-virtual-clock-ticks",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-104-gomad-run-a-downstream-cell-under-the",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Spec fn-104-gomad-run-a-downstream-cell-under-the: uncovered R-IDs: R4"
+        ],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-105-gomad-follow-ups-deferred-scope",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 32
+      },
+      {
+        "spec": "fn-106-gomad-close-the-remaining-tests-gaps",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-107-gomad-finish-downstream-cell",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Spec fn-107-gomad-finish-downstream-cell: uncovered R-IDs: R10, R12, R7, R8"
+        ],
+        "task_count": 7
+      },
+      {
+        "spec": "fn-108-gomad-reduce-code-size-without-removing",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 8
+      },
+      {
+        "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 76
+      },
+      {
+        "spec": "fn-110-gomad-minimize-the-runtime-patch",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-112-gomad-determinism-assurance-and-test",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 16
+      },
+      {
+        "spec": "fn-113-gomad-reduce-version-pin-maintenance",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-114-gomad-correct-search-path-defects-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 16
+      },
+      {
+        "spec": "fn-128-gomad-deferred-linux-qualification-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 7
+      },
+      {
+        "spec": "fn-149-gomad-deferred-darwin-qualification",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-151-wasm-gomad-execution-backend",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 9
+      },
+      {
+        "spec": "fn-152-gomad-runner-storage-on-one-append-only",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-152-gomad-runner-storage-on-one-append-only.1: evidence commit 3e27fe37f1 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-152-gomad-runner-storage-on-one-append-only.1: evidence commit 63e0bd1b1a is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-152-gomad-runner-storage-on-one-append-only.2: evidence commit 5b446e2dd8 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-152-gomad-runner-storage-on-one-append-only.2: evidence commit 72850fdaae is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 10
+      },
+      {
+        "spec": "fn-153-gomad-retire-canonical-json-and-private",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 21
+      },
+      {
+        "spec": "fn-154-gomad-simpler-virtual-network-with",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 12
+      },
+      {
+        "spec": "fn-155-gomad-syscall-level-io-boundary-from",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 8
+      },
+      {
+        "spec": "fn-156-wasm-gomad-productionization",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 8
+      },
+      {
+        "spec": "fn-164-gomad-backend-layout-shared-core-with",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 9
+      },
+      {
+        "spec": "fn-165-gomad-architecture-checks-structural",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-166-gomad-readable-package-structure-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-166-gomad-readable-package-structure-and.3: evidence commit 3b635b38c2 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-166-gomad-readable-package-structure-and.3: evidence commit 23bc923c68 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-166-gomad-readable-package-structure-and.3: evidence commit 09e74dcefd is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-166-gomad-readable-package-structure-and.3: evidence commit 8842f360c1 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-166-gomad-readable-package-structure-and.3: evidence commit 0159a7e012 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 11
+      },
+      {
+        "spec": "fn-172-gomad-guest-side-cost-experiments-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-173-gomad-wasm-helper-per-run-preparation",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-176-gomad-durable-volume-crash-model-in-the",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 7
+      },
+      {
+        "spec": "fn-177-gomad-network-models-in-the-rust-helper",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-177-gomad-network-models-in-the-rust-helper.2: evidence commit 2792c9407071b26cde225131be0e0ad7cc69ec77 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-177-gomad-network-models-in-the-rust-helper.3: evidence commit d6d30e2a98 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-178-gomad-multi-instance-clusters-in-one",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-178-gomad-multi-instance-clusters-in-one.1: evidence commit 1867a3de5f is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.1: evidence commit 04134c486c is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.1: evidence commit 92595e4a7c is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.2: evidence commit 03ac000666 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.2: evidence commit 09b5c9afef is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.3: evidence commit f2ffb223dd is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.3: evidence commit a69f36796c is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.4: evidence commit c43303abc0 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.4: evidence commit 331526f960 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.5: evidence commit 3dc48a8f59 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.5: evidence commit 95b0f9e130 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.6: evidence commit 49ec380806 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.6: evidence commit 05f312329e is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.12: evidence commit 4f83f4e13d is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.12: evidence commit 86f47634fb is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.13: evidence commit b5ccd7a65f is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.13: evidence commit 050839393d is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-178-gomad-multi-instance-clusters-in-one.13: evidence commit ebd685a55c is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 13
+      },
+      {
+        "spec": "fn-179-gomad-temporal-server-consistency",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 1
+      },
+      {
+        "spec": "fn-180-gomad-replay-time-instrumentation-for",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-181-gomad-wasm-operator-integration",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-182-gomad-smaller-wasm-guests",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-183-gomad-wasm-post-migration-cleanup",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-184-gomad-native-backend-isolation",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-185-gomad-wasm-host-side-execution-cost",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-186-gomad-remove-version-suffix-from",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-186-gomad-remove-version-suffix-from.1: satisfies names R-IDs absent from spec: R1, R2, R3, R4, R5, R6"
+        ],
+        "task_count": 1
+      },
+      {
+        "spec": "fn-187-gomad-wasm-helper-fixture-tests-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-188-gomad-wasm-determinism-boundary-audit",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-189-gomad-sync-with-upstream-temporal-main",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 1
+      },
+      {
+        "spec": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-191-gomad-sometimes-assertions-and-a-site",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 5
+      },
+      {
+        "spec": "fn-219-gomad-promote-the-model-projections-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-220-gomad-one-command-temporal-test-setup",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-221-gomad-functional-suite-triage-sweep-on",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-222-gomad-qualify-the-one-box-cell-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-223-gomad-delete-the-native-backend",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-224-gomad-ringpop-membership-on-wasm-within",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-225-gomad-bounded-harness-result-retention",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 1
+      },
+      {
+        "spec": "fn-227-gomad-close-wasm-map-order-determinism",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 1
+      },
+      {
+        "spec": "fn-228-gomad-helper-owned-replay-tape",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-229-gomad-symbolize-choice-sites-in-inspect",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-230-gomad-explore-site-scope-for-choice",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 3
+      },
+      {
+        "spec": "fn-231-gomad-site-aware-minimizer-ordering-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-232-gomad-rewrite-the-host-side-in-rust",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-232-gomad-rewrite-the-host-side-in-rust.30: evidence commit 4043a1afcec6332fc45fe756ed70597078e21b32 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 33
+      },
+      {
+        "spec": "fn-233-gomad-intercept-the-go-command-so-make",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      },
+      {
+        "spec": "fn-234-gomad-overlay-audit-dead-native",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-235-gomad-fail-cluster-runs-fast-and",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 2
+      },
+      {
+        "spec": "fn-240-gomad-context-sized-rust-crates-with",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 13
+      },
+      {
+        "spec": "fn-241-gomad-a-race-profile-for-wasip1-deferred",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 11
+      },
+      {
+        "spec": "fn-242-gomad-shrink-the-qualification",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "Task fn-242-gomad-shrink-the-qualification.1: evidence commit 8b385f4234b109e29d1bf888ede7a861ffc5d2aa is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-242-gomad-shrink-the-qualification.1: evidence commit 5d4805d1ecac901fee8b8bc8e8174ef7635e1308 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-242-gomad-shrink-the-qualification.1: evidence commit 64a55788f44440ec88761ec286ef4cb1ab581591 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-242-gomad-shrink-the-qualification.6: evidence commit 3d33bcfa61 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)",
+          "Task fn-242-gomad-shrink-the-qualification.6: evidence commit 4d24f8d061 is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+        ],
+        "task_count": 52
+      },
+      {
+        "spec": "fn-245-gomad-typed-boundaries-for-the-rust-host",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 6
+      },
+      {
+        "spec": "fn-246-gomad-final-qualification-after-driver",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 7
+      },
+      {
+        "spec": "fn-247-gomad-protobuf-host-side-evidence",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 7
+      },
+      {
+        "spec": "fn-248-gomad-linux-and-darwin-parity-for-the",
+        "valid": true,
+        "errors": [],
+        "warnings": [],
+        "task_count": 4
+      }
+    ],
+    "total_specs": 74,
+    "total_epics": 74,
+    "total_tasks": 583,
+    "total_errors": 0,
+    "total_warnings": 38
+  },
+  "retained": "Functional current behavior, same-candidate deterministic replay, authenticated current bytes, model oracles, performance/noninterference controls, bounds/resources, process custody, delivery and attempt policy",
+  "retirement": "Legacy-only rows may retire with named exact-ID disposition; no pass or retirement of unclassified mixed guarantees claimed",
+  "historical_source_predicates_and_dag": "unchanged",
+  "concurrent_drafts": "Working edits preserved; staged only owner compatibility amendment atop HEAD for overlapping tracked files",
+  "audit_paths": [
+    "/home/agent/wt/evidence/fn242-compatibility-amendment/fn242-audit.md",
+    "/home/agent/wt/evidence/fn242-compatibility-amendment/other-open-audit.md"
+  ],
+  "product_source_changes": 0
+}

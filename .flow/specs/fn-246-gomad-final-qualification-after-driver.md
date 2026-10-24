@@ -1,5 +1,7 @@
 # Gomad: final qualification after driver cleanup and crate extraction
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Goal and owner decision
 
 Finish all acceptance left open by the Rust host port on the implementation produced by fn-242 and the complete fn-240 extraction scope. The owner requested cleanup first on2026-10-24: finish the narrow fn-232.30 checkpoint, shrink and port the qualification driver, extract the smaller Rust crates, then execute the remaining qualification in a separate spec. This spec is the sole execution owner of that remaining work. Original fn-232 requirements remain open until actual receipts are reconciled; moving ownership supplies no qualification pass.

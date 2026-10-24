@@ -14,6 +14,8 @@ lists the gates a shared-owner change must pass.
 
 ## Work tracking
 
+Open work follows the [owner compatibility amendment](.flow/artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema and CLI compatibility gates are retired; current behavior, integrity and same-candidate deterministic replay remain required.
+
 Flow specs and tasks own scope, acceptance criteria (R-IDs), blockers, and evidence.
 Native linux/amd64 qualification and Linux CI work were deferred under
 [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md); native

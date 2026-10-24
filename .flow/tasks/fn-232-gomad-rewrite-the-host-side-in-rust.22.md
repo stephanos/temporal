@@ -3,6 +3,8 @@ satisfies: [R12, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.22 Receive current runtime and mandatory workload qualification evidence
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 Touches: fn-232 runtime/workload receiving evidence and task receipt; common identity ledger remains closeout-owned
 
 ## Description

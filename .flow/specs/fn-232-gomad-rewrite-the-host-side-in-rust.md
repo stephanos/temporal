@@ -1,5 +1,7 @@
 # Gomad: rewrite the host side in Rust
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 ## Goal & Context
 
 Gomad's execution semantics already live in the Rust helper: Wasmtime, the WASI subset, the clock, World, volume, network and namespace models, the cluster broker and inspection. The Go side owns orchestration: the CLI verbs, the campaign Runner, the artifact store, records and identities, qualification, installation and the toolchain overlay. The two halves talk over a per-execution pipe with codecs generated from shared schemas on both sides.

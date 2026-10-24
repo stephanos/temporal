@@ -3,6 +3,8 @@ satisfies: [R1, R2, R5, R6]
 ---
 # fn-246-gomad-final-qualification-after-driver.4 Prepare the actual final candidate and run the bounded full96/final145 cycle
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 Touches: fn-242 Rust cycle/preparation entrypoints only for evidenced inherited defects, .flow/artifacts/fn246-cycle-*, final candidate/input and attempt ledgers
 
 ## Description

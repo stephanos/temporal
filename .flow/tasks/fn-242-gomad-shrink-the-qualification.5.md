@@ -3,6 +3,8 @@ satisfies: [R3]
 ---
 # fn-242-gomad-shrink-the-qualification.5 Dispose parity lanes and preserve required Go baseline inputs
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 **Touches:** .flow/artifacts/fn242-handoff-*, .flow/artifacts/fn242-obligation-inventory*, .flow/artifacts/fn242-parity-dispositions.md, .flow/artifacts/fn242-size.md, .github/workflows/gomad.yml, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, tools/gomad/Makefile, tools/gomad/internal/backends/wasm/QUALIFICATION.md, tools/gomad/internal/backends/wasm/determinism/inventory.json, tools/gomad/rust/driver/**, tools/gomad/rust/gomad/src/**, tools/gomad/rust/gomad/tests/**, tools/gomad/rust/wasmhost/src/**, tools/gomad/rust/wasmhost/tests/**, tools/gomad/rust/workload_tools/**, tools/gomad/scripts/**, tools/gomad/testdata/parity/**
 
 ## Description

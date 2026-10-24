@@ -3,6 +3,8 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.14 Strict cycle configuration and frozen source/build authentication
 
+**Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
+
 **Touches:** tools/gomad/rust/gomad/src/cycle/build/**, tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/custody/**, tools/gomad/rust/gomad/src/cycle/preparation/inputs/**, tools/gomad/rust/gomad/src/campaign/prepare/inventory.rs
 
 ## Description
