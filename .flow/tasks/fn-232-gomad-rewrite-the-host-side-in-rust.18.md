@@ -14,7 +14,7 @@ Retained raw inputs: `/home/agent/wt/evidence/fn232-split-closure/resume-closure
 
 Distinguish authenticated no-test packages from skipped tests using the Go-owned listing and actual execution evidence. Tie the permitted empty-package set to the listing's package identities and exact no-test status/output. Do not silently ignore arbitrary package skips or infer inventory from observed passes. Producer and independent authenticator must reconstruct and validate the same scope. Such packages supply no test execution credit. Preserve Go-owned selection, platform/build flags, repeats, missing/duplicate execution checks, strict real test/subtest skips and source-bound existing exclusions.
 
-The ordinary_receiving.collect recursive selection consumes the same RETAINED packages and calls the shared parser/verifier. Carry the authenticated package scope into this caller too, preserving its root-dictionary API and deliberate namespace filtering. The same cause must not survive into a later cycle stage.
+The ordinary_receiving.collect recursive selection consumes the same RETAINED packages and calls the shared parser/verifier. Carry the authenticated package scope into this caller too, preserving deliberate namespace filtering and real-test credit. The same cause must not survive into a later cycle stage.
 
 Required reads: spec R11/R12; static_stages.py Go listing/inventory/verification, Execution.go and authenticate_result; ordinary_receiving.py selectors/collect; their focused tests in test_static_stages.py and test_original_primary.py; retained C99 raw listing/run and command receipts. Follow surrounding data/receipt conventions and add no dependencies or new lanes.
 
