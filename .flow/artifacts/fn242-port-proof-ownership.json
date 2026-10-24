@@ -2,7 +2,7 @@
   "schema": "gomad.fn242-successor-proposal/v1",
   "status": "PROPOSED; no lifecycle mutations or qualification credit",
   "inventory_path": ".flow/artifacts/fn242-obligation-inventory.json",
-  "inventory_sha256": "d8841a4f9b93aa781298a88d6202fbbea06e99a787750479e501e6cd5466f678",
+  "inventory_sha256": "21b500b6272f5b303c22e921225235ef6917d87f141a41d1429641f9d81bd4e3",
   "inventory_source_commit": "4bdb81c48727c7ca280566c9f113685493e09b19",
   "counts": {
     "checks": 3472,
@@ -50491,5 +50491,9 @@
     "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
     "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
   },
-  "ownership_interpretation": "Original IDs/partitions remain discovery provenance. Prove retained guarantees or record exact-ID compatibility retirement under the controlling owner policy."
+  "ownership_interpretation": "Original IDs/partitions remain discovery provenance. Prove retained guarantees or record exact-ID compatibility retirement under the controlling owner policy.",
+  "effective_obligation_policy": {
+    "path": ".flow/artifacts/fn242-effective-obligation-policy.json",
+    "sha256": "3cd9aac9ea1081095408fabe9401f697e3a77226ad3e1a4020183d544262784c"
+  }
 }

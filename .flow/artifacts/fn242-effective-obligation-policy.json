@@ -1,0 +1,21 @@
+{
+  "schema": "gomad.fn242-effective-obligation-policy/v1",
+  "historical_inventory": ".flow/artifacts/fn242-obligation-inventory.json",
+  "historical_inventory_sha256": "21b500b6272f5b303c22e921225235ef6917d87f141a41d1429641f9d81bd4e3",
+  "compatibility_amendment": {
+    "path": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+    "sha256": "e82e4802edec9f6c64af9215e5750ded802bc3f95c2e9561c0fa775d30dd5e1d",
+    "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
+    "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
+  },
+  "counts_interpretation": "Historical discovery and ownership counts; retained acceptance excludes explicitly retired_compatibility rows.",
+  "disposition_contract": {
+    "keep": "At least one named EXISTING catching test or mutation. This is not exhaustive conjunct/field coverage.",
+    "pending_regression": "Retained current behavior/integrity/bound guarantee awaiting catching proof. A solely legacy-compatibility guarantee may instead be explicitly retired under the owner amendment.",
+    "delete": "Delete/fold redundant checks only with retained guarantee coverage; compatibility-only rows may retire without replacement under the owner amendment.",
+    "retired_compatibility": "Exact original ID with named waived legacy-only guarantee and owner-policy reference. No replacement implementation/catching test; not an execution pass."
+  },
+  "cutover_gate": "Every retained endpoint has an executable current Rust route and catching proof; zero unresolved retained guarantees. Explicitly retired compatibility-only rows/endpoints need dispositions, not replacement code/proof. Original source expressions and IDs remain discovery history.",
+  "row_dispositions": [],
+  "row_disposition_owner": "Batch proof maps identify exact compatibility-only retirements; conductor merges their accepted dispositions before cutover. Empty list makes no retirement or pass claim."
+}
