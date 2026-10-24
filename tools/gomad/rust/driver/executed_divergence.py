@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import time
 
-from driver import HERE, check_files, command, read, require, sha, write
+from driver import HERE, check_files, command, configured, read, require, sha, write
 import live
 import main_cli_build
 import installed_cluster_cache
@@ -199,14 +199,18 @@ def pairs(root, cli):
     return report
 
 
-def verify(path):
+def verify(path, frozen=None):
     path = Path(path)
     result = read(path)
     root = path.parent
     recipe = read(root / 'recipe.json')
     require(path == root / 'result.json' and result['schema'] == SCHEMA and result['qualification'] is False,
             'foreign original divergence receipt')
-    cli, harness = roles(recipe['cli_build'], recipe['harness_build'])
+    import dry_run
+    require(not any(dry_run.is_record(path) for path in (recipe['cli_build'], recipe['harness_build']))
+            or (frozen is not None and frozen.get('dry_run') is True),
+            'counterfactual dry-run roles require an explicit verified configuration')
+    cli, harness = roles(recipe['cli_build'], recipe['harness_build'], frozen=frozen)
     require(result['files'] == retained_tree(root), 'original divergence retained files changed')
     check_files(recipe['inputs'])
     compiler = Path(recipe['compiler'])
@@ -227,8 +231,12 @@ def verify(path):
     return result
 
 
-def produce(cli_build, harness_build, compiler_root, module_cache, root):
-    cli, harness = roles(cli_build, harness_build)
+def produce(cli_build, harness_build, compiler_root, module_cache, root, frozen=None):
+    import dry_run
+    require(not any(dry_run.is_record(path) for path in (cli_build, harness_build))
+            or (frozen is not None and frozen.get('dry_run') is True),
+            'counterfactual dry-run roles require an explicit verified configuration')
+    cli, harness = roles(cli_build, harness_build, frozen=frozen)
     require(root.is_absolute() and root.resolve() == root and not root.exists(), 'original divergence root must be fresh/canonical')
     repo = (Path(read(cli['tools_plan'])['repo']) if cli['tools_plan'] else HERE.parents[3])
     require(not root.is_relative_to(repo), 'original divergence evidence must remain outside source')
@@ -262,7 +270,7 @@ def produce(cli_build, harness_build, compiler_root, module_cache, root):
     report = pairs(root, cli)
     path = root / 'result.json'
     write(path, dict(schema=SCHEMA, qualification=False, original_status=report['status'], files=retained_tree(root)))
-    verify(path)
+    verify(path, frozen=frozen)
     return path
 
 
@@ -274,8 +282,15 @@ def main():
         producer.add_argument('--' + name, type=Path, required=True)
     reader = sub.add_parser('verify')
     reader.add_argument('--receipt', type=Path, required=True)
+    for endpoint in (producer, reader):
+        endpoint.add_argument('--config', type=Path)
     args = parser.parse_args()
-    print(produce(args.cli_build, args.harness_build, args.compiler_root, args.module_cache, args.root) if args.mode == 'produce' else verify(args.receipt)['original_status'])
+    frozen = None
+    if args.config is not None:
+        frozen = configured(args.config)
+        frozen.update(_config_path=str(args.config.resolve()), _config_sha256=sha(args.config))
+    print(produce(args.cli_build, args.harness_build, args.compiler_root, args.module_cache, args.root, frozen=frozen)
+          if args.mode == 'produce' else verify(args.receipt, frozen=frozen)['original_status'])
 
 
 if __name__ == '__main__':

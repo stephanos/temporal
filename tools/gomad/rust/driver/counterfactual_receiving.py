@@ -21,6 +21,18 @@ def selection(config):
     return selected, root, root / 'executed-divergence'
 
 
+def absent(config):
+    reach = config['live_corpus']['test_wasm_reach']
+    require(isinstance(reach, dict), 'invalid original test-wasm reach declaration')
+    if 'executed_divergence' in reach:
+        selection(config)
+        return None
+    import live
+    gap = 'fn-232.14: original executed-divergence endpoint is absent; four pairs are unexecuted and uncredited'
+    require(not live.REACH_GAPS_BLOCK, gap)
+    return dict(status='UNEXECUTED', executed=False, credited=False, actual_cases=[], gap=gap)
+
+
 def input_paths(selected, repo):
     """Closed explicit input roots for the final freezer; no ambient cache search."""
     require(isinstance(selected, dict) and set(selected) == KEYS, 'incomplete four-pair input declaration')
@@ -61,7 +73,7 @@ def inputs(config, selected):
 
 
 def argv(config, selected, root):
-    args = [config['python'], str(HERE / 'executed_divergence.py'), 'produce']
+    args = [config['python'], str(HERE / 'executed_divergence.py'), 'produce', '--config', config['_config_path']]
     for key in ('cli_build', 'harness_build', 'compiler_root', 'module_cache'):
         args.extend(['--' + key.replace('_', '-'), selected[key]])
     return args + ['--root', str(root)]
@@ -74,11 +86,13 @@ def binding(config):
 
 
 def observations(config):
+    gap = absent(config)
+    if gap is not None: return gap
     selected, stage, root = selection(config)
     cli = inputs(config, selected)
     require(read(stage / 'counterfactual-binding.json') == binding(config),
             'four-pair producer belongs to another qualification cycle')
-    original.verify(root / 'result.json')
+    original.verify(root / 'result.json', frozen=config)
     report = original.pairs(root, cli)
     applicability = lineage.reconcile(report)
     for row in report['pairs']:
@@ -105,6 +119,8 @@ def observations(config):
 
 def run(config):
     guard(config)
+    gap = absent(config)
+    if gap is not None: return gap
     selected, stage, root = selection(config)
     inputs(config, selected)
     require(not root.exists(), 'four-pair receiving must start with fresh same-stage evidence')
@@ -118,8 +134,11 @@ def final_read(config):
     import broad_stages
     import core_lifecycle
     from primary_stages import enclose_child
-    selected, stage, root = selection(config)
+    stage = Path(config['root']) / 'stages' / STAGE
     facts = broad_stages.read(config, STAGE, stage)
+    gap = absent(config)
+    if gap is not None: return gap
+    selected, stage, root = selection(config)
     drain = facts['readers']['lifecycle']['roots'][core_lifecycle.DRAIN]
     require({row['variant'] for row in drain['cases']} == set(core_lifecycle.VARIANTS[core_lifecycle.DRAIN])
             and drain['native_receive'], 'same-stage stronger failure/drain behavior is missing')

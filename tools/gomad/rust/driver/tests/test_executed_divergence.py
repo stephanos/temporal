@@ -1,5 +1,8 @@
 """Pure original-counterfactual receiving refusal controls; no guests or builds."""
 import copy
+import json
+import subprocess
+import time
 from pathlib import Path
 import sys
 import tempfile
@@ -80,8 +83,10 @@ class OriginalExecutedDivergence(unittest.TestCase):
         cli = dict(source_sha256='s', head='h', symlinks={}, host_sha256='host', helper_sha256='fixture-helper',
                    runtime_implementation_sha256='runtime', context={'compiler': 'pinned'}, binary='/cli', binary_sha256='cli-bytes')
         harness = dict(cli, binary='/libtest', binary_sha256='libtest-bytes')
+        frozen = dict(source_sha256='s', _config_sha256='sealed')
         with patch.object(gate.main_cli_build, 'read_build', side_effect=[cli, harness]) as reader:
-            gate.roles(Path('/cli-receipt'), Path('/harness-receipt'))
+            gate.roles(Path('/cli-receipt'), Path('/harness-receipt'), frozen=frozen)
+            self.assertTrue(all(call.kwargs['frozen'] is frozen for call in reader.call_args_list))
             self.assertEqual([call.kwargs['expected_role'] for call in reader.call_args_list],
                              ['counterfactual-fixture', 'counterfactual-harness'])
         for key in ('source_sha256', 'head', 'symlinks', 'host_sha256', 'helper_sha256', 'runtime_implementation_sha256', 'context'):
@@ -223,7 +228,7 @@ class SameStageCounterfactual(unittest.TestCase):
         arguments = ['executed_divergence.py', 'produce', *argv[3:]]
         loaded = dict(dry_run=True)
         with patch.object(sys, 'argv', arguments), patch.object(gate, 'configured', return_value=loaded) as loader, \
-                patch.object(gate, 'sha', return_value='sealed'), patch.object(gate, 'produce') as produce:
+                patch.object(gate, 'sha', return_value='sealed'), patch.object(gate, 'produce') as produce, patch('builtins.print'):
             gate.main()
             loader.assert_called_once_with(Path('/sealed/config.json'))
             self.assertIs(produce.call_args.kwargs['frozen'], loaded)
@@ -233,11 +238,62 @@ class SameStageCounterfactual(unittest.TestCase):
             with self.assertRaisesRegex(Refusal, 'invalid sealed config'): gate.main()
             produce.assert_not_called()
 
+    def test_clean_child_authenticates_dry_run_roles_before_compiler_admission(self):
+        import driver
+        import host_admission
+        import test_dry_run_readiness as fixture
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            files, digest, head, links = gate.main_cli_build.source_state(driver.REPO, '/usr/bin/git')
+            config = dict(repo=str(driver.REPO), files=files, source_sha256=digest, head=head, symlinks=links)
+            cli, binary = fixture.record(root, config, 'counterfactual-fixture')
+            harness, _ = fixture.record(root, config, 'counterfactual-harness')
+            identity = driver.read(cli)
+            config.update(schema='gomad.rust-qualification-driver/v1', dry_run=True,
+                stages={label: dict(adapter='primary') for label in driver.mapping()},
+                final_reader=['unexecuted'], final_sections={'unexecuted': {}},
+                identity=dict(host=identity['host_sha256'], helper=identity['helper_sha256']),
+                cores=1, mem_gib=1, sent_epoch=time.time(), deadline_s=3600,
+                binary=str(binary), binary_sha256=driver.sha(binary), root=str(root / 'cycle'), scratch=str(root / 'scratch'),
+                temporary_paths=dict(TMPDIR=str(root / 'scratch/tmp'), GOTMPDIR=str(root / 'scratch/go')))
+            config['files'].update({str(p): driver.sha(p) for p in root.rglob('*') if p.is_file()})
+            config['files'][str(host_admission.STAT)] = driver.sha(host_admission.STAT)
+            path = root / 'config.json'; driver.write(path, config)
+            argv = [sys.executable, str(driver.HERE / 'executed_divergence.py'), 'produce',
+                '--cli-build', str(cli), '--harness-build', str(harness), '--compiler-root', str(root / 'absent-compiler'),
+                '--module-cache', str(root / 'modules'), '--root', str(root / 'result')]
+            observed = subprocess.run([*argv, '--config', str(path)], env=driver.clean_env(config), capture_output=True, text=True)
+            self.assertNotEqual(observed.returncode, 0)
+            self.assertIn('explicit stock compiler required', observed.stderr)
+            for mutation in ('environment-only', 'unsealed-role', 'source', 'role', 'binary-digest', 'corrupt-config'):
+                changed = copy.deepcopy(config)
+                args = [*argv, '--config', str(path)]
+                env = driver.clean_env(config)
+                if mutation == 'environment-only':
+                    args = argv; env['GOMAD_DRIVER_DRY_RUN'] = '1'
+                if mutation == 'unsealed-role': changed['files'].pop(str(cli))
+                if mutation == 'source': changed['source_sha256'] = 'f' * 64
+                if mutation in ('role', 'binary-digest'):
+                    record = driver.read(cli)
+                    record['role' if mutation == 'role' else 'binary_sha256'] = 'release' if mutation == 'role' else 'f' * 64
+                    cli.write_text(json.dumps(record))
+                    changed['files'][str(cli)] = driver.sha(cli)
+                path.write_text(json.dumps(changed) if mutation != 'corrupt-config' else '{}')
+                observed = subprocess.run(args, env=env, capture_output=True, text=True)
+                with self.subTest(mutation=mutation):
+                    self.assertNotEqual(observed.returncode, 0)
+                    self.assertNotIn('explicit stock compiler required', observed.stderr)
+                if mutation in ('role', 'binary-digest'):
+                    record = dict(identity); cli.write_text(json.dumps(record))
+                    config['files'][str(cli)] = driver.sha(cli)
+                path.write_text(json.dumps(config))
+
     def test_environment_cannot_admit_dry_run_counterfactual_roles(self):
         import dry_run
         with patch.object(dry_run, 'is_record', return_value=True), \
                 patch.object(gate.main_cli_build, 'read_build') as reader:
-            with self.assertRaisesRegex(Refusal, 'configuration'): gate.roles('/cli', '/harness')
+            with self.assertRaisesRegex(Refusal, 'configuration'):
+                gate.produce(Path('/cli'), Path('/harness'), Path('/compiler'), Path('/modules'), Path('/out'))
             reader.assert_not_called()
 
     def test_stronger_same_stage_drain_is_required_before_any_divergence_credit(self):

@@ -422,15 +422,21 @@ class CounterfactualReach(unittest.TestCase):
                 self.assertEqual(set(gaps), set(entries) - {'other#Strict'})
                 self.assertTrue(all('fn-232.14' in reason for reason in gaps.values()))
                 broad.assert_called_once(); divergence_read.assert_not_called()
-                with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaises(Refusal):
+                with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaises(driver.Refusal):
                     live.test_wasm_reach(config, actual)
-                with self.assertRaisesRegex(Refusal, 'unexecuted/duplicate'):
+                with self.assertRaisesRegex(driver.Refusal, 'unexecuted/duplicate'):
                     live.test_wasm_reach(config, live.SLIM_IDS)
-                driver.write(base / 'receipt.json', dict(receipt, status='FAIL', exit=1))
-                with self.assertRaisesRegex(Refusal, 'completed owning stage'):
+                (base / 'receipt.json').write_text(json.dumps(dict(receipt, status='FAIL', exit=1)))
+                with self.assertRaisesRegex(driver.Refusal, 'completed owning stage'):
                     live.test_wasm_reach(config, actual)
-                driver.write(base / 'receipt.json', receipt)
+                (base / 'receipt.json').write_text(json.dumps(receipt))
                 for invalid in (None, {}, dict(cli_build='relative')):
                     config['live_corpus']['test_wasm_reach']['executed_divergence'] = invalid
-                    with self.subTest(invalid=invalid), self.assertRaises(Refusal):
+                    with self.subTest(invalid=invalid), self.assertRaises(driver.Refusal):
+                        live.test_wasm_reach(config, actual)
+                config['live_corpus']['test_wasm_reach']['executed_divergence'] = dict(
+                    cli_build='/cli', harness_build='/harness', compiler_root='/compiler', module_cache='/modules')
+                for reason in ('failed producer', 'corrupt receipt', 'source mismatch', 'config mismatch', 'role mismatch'):
+                    with patch.object(receiving, 'final_read', side_effect=driver.Refusal(reason)), self.subTest(reason=reason), \
+                            self.assertRaisesRegex(driver.Refusal, reason):
                         live.test_wasm_reach(config, actual)

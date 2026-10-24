@@ -764,10 +764,18 @@ def test_wasm_reach(config, actual):
     coverage(subgates(stage), receipt['subgates'])
     proof = counterfactual_receiving.final_read(config)
     import counterfactual_lineage
-    counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
+    if 'gap' not in proof:
+        counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
     reports.update(proof['actual_cases'])
     reports.update(stage_subgate_evidence(config))
     entries = dict(mapping['entries'])
+    if 'gap' in proof:
+        reports.difference_update(counterfactual_receiving.IDS)
+        key = counterfactual_lineage.SOURCE + '#' + counterfactual_lineage.ROOT
+        for name, mapped in entries.items():
+            if (name == key or name.startswith(key + '@') or name.startswith(key + '/original-make/')
+                    or set(mapped.get('evidence', [])) & counterfactual_receiving.IDS):
+                entries[name] = dict(mapped, gap=proof['gap'])
     for path, name in SLIM_SOURCES.items():
         evidence = 'go/go.temporal.io/server/' + path.rsplit('/', 1)[0] + '/' + name
         if evidence in missing_slim:

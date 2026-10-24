@@ -87,6 +87,45 @@ class BroadStages(unittest.TestCase):
                 self.assertEqual({path.name for path in harness.owned_root(config).iterdir() if path.is_dir()},
                                  {'cluster-provider', 'cluster-functional', 'retained-cluster'})
 
+    def test_absent_counterfactual_gap_is_recomputed_and_never_credited_by_broad_closure(self):
+        import counterfactual_receiving as receiving
+        import live
+        import core_cluster_wire
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch) / 'stages' / receiving.STAGE; root.mkdir(parents=True)
+            config = dict(root=scratch, source_sha256='source', _config_sha256='config', identity={},
+                          live_corpus=dict(test_wasm_reach={}))
+            expected = broad.subgates(receiving.STAGE)
+            readers = {'cluster-wire': {'roots': {name: {'observed': True} for name in expected}}}
+            with patch.object(broad, 'preflight'), patch.object(broad, 'guard'), patch.object(receiving, 'guard'), \
+                    patch.object(harness, 'execute_build'), patch.object(harness, 'execute'), \
+                    patch.object(harness, 'read', return_value={}), \
+                    patch.object(harness, 'read_build', return_value={'context': {}}), \
+                    patch.object(broad, 'typed_readers', side_effect=lambda *args: (dict(readers), {})), \
+                    patch.object(core_cluster_wire, 'applicable', return_value=True), \
+                    patch.object(receiving, 'inputs') as inputs, patch.object(receiving, 'command') as command:
+                facts = broad.run(config, receiving.STAGE, root)
+                self.assertTrue(facts['complete'])
+                gap = facts['readers']['executed-divergence']
+                self.assertEqual(gap['status'], 'UNEXECUTED')
+                self.assertEqual((gap['executed'], gap['credited'], gap['actual_cases']), (False, False, []))
+                self.assertIn('fn-232.14', gap['gap'])
+                self.assertEqual(broad.read(config, receiving.STAGE, root), facts)
+                inputs.assert_not_called(); command.assert_not_called()
+                for field, value in (('executed', True), ('credited', True), ('actual_cases', sorted(receiving.IDS))):
+                    changed = json.loads(json.dumps(facts))
+                    changed['readers']['executed-divergence'][field] = value
+                    (root / 'broad-diagnostics.json').write_text(json.dumps(changed))
+                    with self.subTest(field=field), self.assertRaisesRegex(Refusal, 'independently reopened'):
+                        broad.read(config, receiving.STAGE, root)
+                (root / 'broad-diagnostics.json').write_text(json.dumps(facts))
+                with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaises(Refusal):
+                    broad.read(config, receiving.STAGE, root)
+                readers['cluster-wire']['roots'].pop(expected[0])
+                with self.assertRaisesRegex(Refusal, 'incomplete'): broad.accepted(broad.collect(config, receiving.STAGE, root))
+                config['live_corpus']['test_wasm_reach']['executed_divergence'] = None
+                with self.assertRaises(Refusal): broad.collect(config, receiving.STAGE, root)
+
     def test_closed_original_stage_inventory(self):
         config = {'root': '/owned'}
         for label, count in broad.COUNTS.items():
