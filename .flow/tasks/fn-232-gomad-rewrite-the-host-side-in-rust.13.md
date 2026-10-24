@@ -6,6 +6,14 @@ satisfies: [R12, R13, R14]
 **Touches:** tools/gomad/cmd/gomad, tools/gomad/internal/runner, tools/gomad/internal/evidence, tools/gomad/internal/cli, tools/gomad/Makefile, .github/workflows/gomad.yml, tools/gomad/internal/archcheck/**, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, MILESTONES.md
 
 ## Description
+### Current owner execution policy (2026-10-24)
+
+Finish this task narrowly before starting any other milestone implementation: repair the current red head through .30, run the complete final96/final145 cycle, fix what it exposes and close .13 only on actual complete proof. Parallel workers serve this critical path. After .13, fn-242 is required finishing work for the remaining Python host/qualification driver, including removing checks that do not prove their claimed property. Hold fn-240 until fn-242 has shrunk the implementation it would split.
+
+Bounded-effort exit: admit at most TWO NEW FULL qualification attempts after the current composition, counted from this owner instruction. Historical cycles and standalone .30 focused/canary/diagnostic runs do not consume these two attempts. Each genuine full96 driver dispatch consumes one attempt even when it fails early, aborts or leaves stages unstarted. Preparation that never dispatches the cycle does not consume an attempt. Record exact candidate/configuration/controller/driver identities, actual dispatch and terminal evidence under this task; never reset the count merely because a repair changes the candidate.
+
+If both new attempts fail to produce the required green cycle, stop stage-by-stage patching and further cycle launches. Reassess the architecture and report a concrete revised approach before resuming implementation; do not silently launch a third cycle or redefine qualification success. A failed cycle never closes this task. Existing correctness, replay, identity, resource and receiving requirements remain intact; the measured onebox8MiB budget decision is explicit in .30.
+
 Current implementation and verification map:
 [Rust qualification design](../artifacts/fn232-rust-qualification-design-2026-10-22.md).
 It maps every transferred live root and the remaining release-executable gates;

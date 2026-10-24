@@ -58,6 +58,15 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
+Owner execution limit (2026-10-24): repair the current red head, then allow at most two new
+full qualification attempts. Each full96 driver dispatch counts even if it fails early;
+historical cycles and standalone repair/canary runs do not count. If neither attempt goes
+green, stop stage patching and cycle launches, reassess the architecture, and report a revised
+approach before resuming. Candidate changes do not reset the count.
+
+After .13, treat fn-242 as required finishing work for the remaining Python host driver and
+its proof machinery. Hold fn-240 until fn-242 has shrunk the implementation it would split.
+
 ### Current handover (2026-10-24)
 
 fn-232.13 remains open: the full 96-stage cycle has not passed. The current integration input is
@@ -187,8 +196,9 @@ Other local inputs, using the rewritten refs:
 
 Next, in order:
 1. Complete and review fn-232.30 after the finished .27–.29 repairs/diagnosis, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
-2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
-3. Finish fn-232.14 and restore strict reach completeness.
+2. Begin fn-242 as required finishing work; fn-240 remains on hold until that shrink is complete. Cycle support claims stay provisional until fn-242 requalification.
+3. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle.
+4. Finish fn-232.14 and restore strict reach completeness.
 
 The owner-authorized history cleanup removed the oversized generated `.wire` blobs from all
 11 affected local refs. Main and composition file trees were unchanged by that cleanup, and
