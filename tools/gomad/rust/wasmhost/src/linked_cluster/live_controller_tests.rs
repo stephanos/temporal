@@ -3,6 +3,12 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 
+fn prepare_compiled(request: Request) -> Result<Prepared> {
+    let mut prepared = prepare(request)?;
+    prepared.conditions(linked::Conditions::compiled());
+    Ok(prepared)
+}
+
 fn output_wait_request(fd: u32, after: &str, nodes: &[&str], action: Action) -> Request {
     let module = format!(r#"(module
         (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
@@ -105,7 +111,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
                     max_string_bytes: request.broker.limits.max_string_bytes,
                 },
             };
-            let execution = execute_prepared(prepare(request).unwrap()).unwrap();
+            let execution = execute_prepared(prepare_compiled(request).unwrap()).unwrap();
             assert_eq!(execution.incarnations.len(), 1);
             let item = &execution.incarnations[0];
             assert_eq!(
@@ -132,7 +138,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
         nodes: vec!["a".into(), "b".into()],
         marker: b"mark".to_vec(),
     });
-    let execution = execute_prepared(prepare(request).unwrap()).unwrap();
+    let execution = execute_prepared(prepare_compiled(request).unwrap()).unwrap();
     assert_eq!(
         execution.outcome.termination, "exit",
         "{}",
@@ -152,7 +158,7 @@ fn conditional_output_wait_retains_world_and_actual_terminal() {
         ("i32.const 17 call $exit", "exit", Some(17)),
     ] {
         let execution = execute_prepared(
-            prepare(output_wait_request(2, after, &["a"], Action::Crash)).unwrap(),
+            prepare_compiled(output_wait_request(2, after, &["a"], Action::Crash)).unwrap(),
         )
         .unwrap();
         assert_eq!(execution.outcome.termination, terminal);
@@ -175,7 +181,7 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
         };
         let mut request = output_wait_request(1, loop_after, &["a"], action);
         request.boundaries[0].marker = b"never".to_vec();
-        let prepared = prepare(request).unwrap();
+        let prepared = prepare_compiled(request).unwrap();
         let activity = prepared.activity();
         let conditions = prepared.conditions.enter().unwrap();
         let session = conditions.session();
@@ -218,7 +224,7 @@ fn unbound_same_kind_and_cancellation_remain_failures_with_armed_marker() {
     }
     let mut request = output_wait_request(1, loop_after, &["a"], Action::Crash);
     request.boundaries[0].marker = b"never".to_vec();
-    let prepared = prepare(request).unwrap();
+    let prepared = prepare_compiled(request).unwrap();
     let activity = prepared.activity();
     let cancellation = prepared.cancellation.clone();
     let execution = thread::scope(|scope| {
@@ -383,7 +389,7 @@ fn original_request(input: &Value) -> Request {
 }
 
 fn prepared(input: &Value) -> Prepared {
-    let mut prepared = prepare(original_request(input)).unwrap();
+    let mut prepared = prepare_compiled(original_request(input)).unwrap();
     assert_eq!(prepared.steps.len(), 2);
     assert_eq!(prepared.steps[0].handle.node, "a");
     assert_eq!(prepared.steps[1].handle.node, "b");
@@ -480,7 +486,7 @@ fn final_network_uses_finished_shared_owner_instead_of_cached_incarnation() {
         .decode(reference["network_wire"].as_str().unwrap())
         .unwrap();
     assert_ne!(expected, Vec::<u8>::new());
-    let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+    let observed = execute_prepared(prepare_compiled(request).unwrap()).unwrap();
     assert_eq!(observed.outcome.termination, "exit");
     assert_eq!(observed.outcome.exit_code, Some(0));
     assert_eq!(
@@ -570,7 +576,7 @@ fn joined_storage_crash_preserves_successful_session_world_and_network() {
             (Action::Wait, "a", 2)
         ]
     );
-    let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+    let observed = execute_prepared(prepare_compiled(request).unwrap()).unwrap();
     assert_eq!(observed.incarnations.len(), 3);
     assert_original_incarnations_match(&observed, &reference);
     for item in &observed.incarnations {
@@ -704,7 +710,7 @@ fn actual_linked_world_transition_byte_bound_changes_capacity_and_replays_the_re
             request
         };
         let broker = make().broker;
-        let observed = execute_prepared(prepare(make()).unwrap()).unwrap();
+        let observed = execute_prepared(prepare_compiled(make()).unwrap()).unwrap();
         if limit == 1 {
             assert_eq!(
                 observed.outcome.termination, "capacity",
@@ -725,7 +731,7 @@ fn actual_linked_world_transition_byte_bound_changes_capacity_and_replays_the_re
             );
         }
         validate_world(&observed.world, &broker).unwrap();
-        let replayed = execute_prepared(prepare(make()).unwrap()).unwrap();
+        let replayed = execute_prepared(prepare_compiled(make()).unwrap()).unwrap();
         assert_eq!(replayed.world, observed.world);
         assert_eq!(replayed.outcome.termination, observed.outcome.termination);
         assert_eq!(replayed.outcome.message, observed.outcome.message);
@@ -769,7 +775,7 @@ fn one_and_thirty_two_mib_world_transition_bounds_change_the_same_actual_guest()
             module_digest = Some(digest);
         }
         let broker = request.broker.clone();
-        let observed = execute_prepared(prepare(request).unwrap()).unwrap();
+        let observed = execute_prepared(prepare_compiled(request).unwrap()).unwrap();
         assert_eq!(
             observed.outcome.termination,
             if limit == 1 << 20 { "capacity" } else { "exit" },
@@ -893,7 +899,8 @@ fn measurement_phase_callbacks_guard_actual_store_dispatch_and_join_for_both_sch
                 calls: Mutex::new(Vec::new()),
                 refuse,
             };
-            let result = execute_prepared_observed(prepare(request).unwrap(), Some(&observer));
+            let result =
+                execute_prepared_observed(prepare_compiled(request).unwrap(), Some(&observer));
             let expected = [(1, true), (1, false), (2, true), (2, false)];
             let through = refuse.map_or(4, |refuse| {
                 expected.iter().position(|value| *value == refuse).unwrap() + 1

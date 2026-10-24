@@ -102,6 +102,7 @@ impl OutputConsumer for Gate {
 #[test]
 fn short_output_callbacks_apply_backpressure_to_completion() {
     let mut prepared = linked::prepare(request("short-marker", "")).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     let (observe, observed) = mpsc::sync_channel(2);
     let (release, released) = mpsc::sync_channel(1);
     prepared.output(Arc::new(Gate {
@@ -133,7 +134,9 @@ fn short_output_callbacks_apply_backpressure_to_completion() {
 #[test]
 fn concurrent_requests_keep_streams_arguments_and_completion_isolated() {
     let mut first = linked::prepare(request("first", "")).unwrap();
+    first.conditions(linked::Conditions::compiled());
     let mut second = linked::prepare(request("second", "")).unwrap();
+    second.conditions(linked::Conditions::compiled());
     let (observe_a, output_a) = mpsc::sync_channel(2);
     let (observe_b, output_b) = mpsc::sync_channel(2);
     let (release_a, permission_a) = mpsc::sync_channel(1);
@@ -184,6 +187,7 @@ impl OutputConsumer for Failing {
 fn consumer_failure_retains_admitted_bytes_once_and_stops_execution() {
     let consumer = Arc::new(Failing(Mutex::new(0)));
     let mut prepared = linked::prepare(request("before-error", "")).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     prepared.output(consumer.clone());
     let result = linked::execute_prepared(prepared).unwrap();
     assert_eq!(result.outcome.termination, "infrastructure");
@@ -201,6 +205,7 @@ fn streaming_does_not_forward_output_rejected_by_namespace_limit() {
     input.limits.output_bytes = 1;
     input.namespace.as_mut().unwrap().limits.output_bytes = 1;
     let mut prepared = linked::prepare(input).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     prepared.output(consumer.clone());
     let result = linked::execute_prepared(prepared).unwrap();
     assert_eq!(result.outcome.termination, "capacity");
@@ -214,6 +219,7 @@ fn streaming_does_not_forward_output_rejected_by_evidence_limit() {
     let mut input = request("too-long", "");
     input.limits.evidence_bytes = 1;
     let mut prepared = linked::prepare(input).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     prepared.output(consumer.clone());
     let result = linked::execute_prepared(prepared).unwrap();
     assert_eq!(result.outcome.termination, "capacity");
@@ -241,6 +247,7 @@ fn cancellation_retains_and_forwards_only_available_output() {
         capture: Capture::default(),
     });
     let mut prepared = linked::prepare(request("before-cancel", "(loop br 0)")).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     prepared.cancellation(cancellation);
     prepared.output(consumer.clone());
     let result = linked::execute_prepared(prepared).unwrap();
@@ -258,9 +265,12 @@ fn cancellation_retains_and_forwards_only_available_output() {
 
 #[test]
 fn streaming_and_capture_only_retain_identical_evidence() {
-    let captured = linked::execute(request("identical", "")).unwrap();
+    let mut prepared = linked::prepare(request("identical", "")).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
+    let captured = linked::execute_prepared(prepared).unwrap();
     let consumer = Arc::new(Capture::default());
     let mut prepared = linked::prepare(request("identical", "")).unwrap();
+    prepared.conditions(linked::Conditions::compiled());
     prepared.output(consumer.clone());
     let streamed = linked::execute_prepared(prepared).unwrap();
     assert_eq!(streamed.evidence, captured.evidence);

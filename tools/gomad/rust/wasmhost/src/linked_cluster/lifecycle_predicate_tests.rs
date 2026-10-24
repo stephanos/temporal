@@ -42,7 +42,7 @@ fn failed_wait_preserves_first_terminal_and_never_starts_later_incarnations() {
         let mut input = request(&["a", "b"], body);
         input.steps.swap(1, 2);
         let declared = input.steps.clone();
-        let prepared = prepare(input).unwrap();
+        let prepared = prepare_compiled(input).unwrap();
         let activity = prepared.activity();
         let execution = execute_prepared(prepared).unwrap();
         assert_eq!(execution.executed_steps, declared[..2]);
@@ -72,7 +72,7 @@ fn failed_wait_preserves_first_terminal_and_never_starts_later_incarnations() {
 fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() {
     let mut input = request(&["a"], FINISH);
     input.nodes.push("b".into());
-    let prepared = prepare(input).unwrap();
+    let prepared = prepare_compiled(input).unwrap();
     let activity = prepared.activity();
     assert_eq!(activity.snapshot().launched_stores, 0);
     let execution = execute_prepared(prepared).unwrap();
@@ -89,7 +89,7 @@ fn requested_stores_are_lazy_and_cancellation_before_execution_has_no_actions() 
         }),
     );
 
-    let prepared = prepare(request(&["a"], FINISH)).unwrap();
+    let prepared = prepare_compiled(request(&["a"], FINISH)).unwrap();
     let activity = prepared.activity();
     prepared.cancellation.cancel();
     let execution = execute_prepared(prepared).unwrap();
@@ -141,7 +141,7 @@ fn mandatory_cleanup_keeps_only_authored_start_actions() {
         }
         let declared = input.steps.clone();
         let broker = input.broker.clone();
-        let mut prepared = prepare(input).unwrap();
+        let mut prepared = prepare_compiled(input).unwrap();
         let activity = prepared.activity();
         let cleanup = match mode {
             "shutdown" => CleanupMode::Shutdown,
@@ -325,7 +325,7 @@ fn observed_failure_drains_prestarted_peers_without_executing_their_waits() {
     for body in ["unreachable", "i32.const 17 call $exit"] {
         let input = request(&["a", "b"], body);
         let declared = input.steps.clone();
-        let prepared = prepare(input).unwrap();
+        let prepared = prepare_compiled(input).unwrap();
         let activity = prepared.activity();
         let execution = execute_prepared(prepared).unwrap();
         assert_eq!(execution.executed_steps, declared[..3]);
@@ -353,7 +353,7 @@ fn observed_failure_drains_prestarted_peers_without_executing_their_waits() {
 fn sealed_deadline_is_bounded_before_mutation_and_cannot_be_extended() {
     let mut input = request(&["a"], FINISH);
     input.wall_timeout = Duration::from_mins(11);
-    let mut prepared = prepare(input).unwrap();
+    let mut prepared = prepare_compiled(input).unwrap();
     let activity = prepared.activity();
     assert_eq!(prepared.wall_timeout(), Duration::from_mins(11));
     prepared.bound_wall_timeout(Duration::from_mins(7)).unwrap();
@@ -383,7 +383,7 @@ fn cancellation_after_actual_output_keeps_joined_incarnations_and_start_prefix()
     for incarnation in &mut input.incarnations {
         incarnation.request.limits.fuel = 4_000_000_000;
     }
-    let mut prepared = prepare(input).unwrap();
+    let mut prepared = prepare_compiled(input).unwrap();
     let activity = prepared.activity();
     prepared
         .cleanup_after_output(
@@ -465,7 +465,7 @@ fn synchronous_observer_cancellation_preserves_before_and_after_refusals() {
     }
     for slow_first in [false, true] {
         for refuse in [(1, true), (1, false), (2, true)] {
-            let prepared = prepare(phase_schedule_request(slow_first)).unwrap();
+            let prepared = prepare_compiled(phase_schedule_request(slow_first)).unwrap();
             let observer = Observer {
                 cancellation: prepared.cancellation.clone(),
                 activity: prepared.activity(),
@@ -508,7 +508,7 @@ fn refused_restart_preserves_owner_and_allows_retry_on_same_broker() {
             }))
             .unwrap(),
         );
-        let mut prepared = prepare(input).unwrap();
+        let mut prepared = prepare_compiled(input).unwrap();
         let activity = prepared.activity();
         let mut sealed = prepared
             .incarnations
@@ -640,7 +640,7 @@ fn native_host_termination_preserves_watchdog_and_parent_cancellation_status() {
         } else {
             Duration::from_secs(1)
         };
-        let mut prepared = prepare(input).unwrap();
+        let mut prepared = prepare_compiled(input).unwrap();
         if variant == "internal deadline" {
             prepared
                 .bound_wall_timeout(Duration::from_millis(20))
@@ -725,7 +725,7 @@ fn live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace()
     input.steps.retain(|step| step.action == Action::Start);
     input.wall_timeout = Duration::from_mins(15);
     input.incarnations[0].request.limits.fuel = u64::MAX;
-    let mut prepared = prepare(input).unwrap();
+    let mut prepared = prepare_compiled(input).unwrap();
     let activity = prepared.activity();
     let conditions = prepared.conditions.enter().unwrap();
     let session = conditions.session();
@@ -837,7 +837,7 @@ fn network_owner_admission_refuses_original_per_node_and_initial_incarnation_cas
         }
         input
     };
-    let admitted = prepare(make_request()).unwrap();
+    let admitted = prepare_compiled(make_request()).unwrap();
     assert_eq!(admitted.activity().snapshot().launched_stores, 0);
     raw(
         "TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses",
@@ -1093,7 +1093,9 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
         let input = storage_engine_request(&baseline, None);
         let module_sha256 = input.module_sha256.clone();
         let input_facts = native_request_input_facts(&input);
-        let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+        let mut prepared = linked::prepare(input).unwrap();
+        prepared.conditions(linked::Conditions::compiled());
+        let result = linked::execute_prepared(prepared).unwrap();
         assert_eq!(result.outcome.termination, "exit");
         assert_eq!(result.outcome.exit_code, Some(0));
         assert!(result.outcome.peak_memory_bytes > 0);
@@ -1136,7 +1138,9 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
             let input = storage_engine_request(&descriptor, Some(context));
             let module_sha256 = input.module_sha256.clone();
             let input_facts = native_request_input_facts(&input);
-            let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+            let mut prepared = linked::prepare(input).unwrap();
+            prepared.conditions(linked::Conditions::compiled());
+            let result = linked::execute_prepared(prepared).unwrap();
             assert_eq!(result.outcome.termination, "exit");
             assert_eq!(result.outcome.exit_code, Some(0));
             assert!(result.outcome.peak_memory_bytes > 0);
@@ -1191,7 +1195,9 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
         let input = storage_engine_request(&descriptor, Some(&context));
         let module_sha256 = input.module_sha256.clone();
         let input_facts = native_request_input_facts(&input);
-        let result = linked::execute_prepared(linked::prepare(input).unwrap()).unwrap();
+        let mut prepared = linked::prepare(input).unwrap();
+        prepared.conditions(linked::Conditions::compiled());
+        let result = linked::execute_prepared(prepared).unwrap();
         assert_eq!(result.outcome.termination, "invalid");
         assert_eq!(
             result.outcome.message,
@@ -1228,7 +1234,7 @@ fn actual_storage_engine_selection_and_divergence_retain_peak_memory_and_enumera
 fn observed_failure_drain_waits_for_held_native_peer_without_post_failure_controls() {
     let mut input = request(&["a", "b"], FINISH);
     input.incarnations[0] = request(&["a"], "unreachable").incarnations.remove(0);
-    let mut prepared = prepare(input).unwrap();
+    let mut prepared = prepare_compiled(input).unwrap();
     let activity = prepared.activity();
     let conditions = prepared.conditions.enter().unwrap();
     let session = conditions.session();
@@ -1408,7 +1414,7 @@ fn memory_capacity_keeps_owned_model_metadata_before_and_after_runtime_bootstrap
         let module_sha256 = input.incarnations[0].request.module_sha256.clone();
         let offered_fuel = input.incarnations[0].request.limits.fuel;
         let memory_bytes = input.incarnations[0].request.limits.memory_bytes;
-        let prepared = prepare(input).unwrap();
+        let prepared = prepare_compiled(input).unwrap();
         let activity = prepared.activity();
         let execution = execute_prepared(prepared).unwrap();
         assert_eq!(execution.executed_steps.len(), 2);
