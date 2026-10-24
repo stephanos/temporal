@@ -71,6 +71,9 @@ No Model, DSL, protocol, IR, checker semantics or Temporal feature refactor; onl
 
 ## Decision Context
 
+Maintainability (plan review): duplication - Task .3 would duplicate process/xtask controls between the replaced unittest stage and retained workspace stage; resolved by assigning them exclusively to the workspace stage. structure - none identified. Shared Cargo ownership for .9/.2/.6 is explicitly serialized while preserving independent source lanes.
+
+
 2026-10-24, [user-approved savings]: "yes apply savings" authorizes R5 and changes R4's final measurement command from `model-time` to `model-validate`. Reuse the existing timing orchestration for one required full gate and one edited-checker benchmark. Preserve legacy commands and all coverage, use focused intermediate checks, and keep root-owned milestone bookkeeping frozen during validation. Required timings are not directly comparable with historical default-gate timings. No TLC batching, caching, parallelism or new report framework is included.
 
 [conductor clarification] `model-validate` forces TLC but leaves Apalache independently opt-in. The new prerequisite verifies the TLC-required default once; final .3 explicitly opts into both backends in its one integrated run. Retaining the existing Apalache obligation does not reactivate deferred fn211 consumer work.

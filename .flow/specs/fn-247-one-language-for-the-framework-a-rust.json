@@ -15,8 +15,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-10-24T22:28:06.914667Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T23:12:38.904571Z",
   "ready": true,
   "review_attempts": [
     {
@@ -369,13 +369,66 @@
       "task": "fn-247-one-language-for-the-framework-a-rust.4",
       "timestamp": "2026-10-24T22:16:15.125803Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "13efb67d495201fbb96597eb28074d6724d6276e1226ebc82b53988398409592",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cfb078aba3155ab61da47984c358dc53",
+            "classification": "introduced",
+            "findingId": "finding-cfb078aba3155ab61da47984c358dc53",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5865422e2a462730f54e59b828242110",
+            "classification": "introduced",
+            "findingId": "finding-5865422e2a462730f54e59b828242110",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 3,
+      "head_sha": "e8fccf504444adf4debc3808013f1d82a558cfda",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 367965,
+      "output_sha256": "96e5924af6c4047ad8166a3c5de25a9cdd6d040b4141a7d8645e0c32dd0a0586",
+      "reservation_id": "8c720072595042aab64d86b69552ef77",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T23:12:38.895018Z",
+      "tool_calls": 37,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-247-one-language-for-the-framework-a-rust.1": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.4": 1,
     "impl:fn-247-one-language-for-the-framework-a-rust.8": 1,
-    "plan": 3,
+    "plan": 4,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -400,5 +453,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:28:07.429787Z"
+  "updated_at": "2026-10-24T23:15:29.061838Z"
 }

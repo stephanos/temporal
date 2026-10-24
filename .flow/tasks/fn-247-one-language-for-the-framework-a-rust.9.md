@@ -12,6 +12,8 @@ Adopt the R18-admitted `tempfile` 3.27 and `rustix` 1.1 in `umpire-backend-proce
 
 ### Approach
 
+- Shared Cargo.toml/Cargo.lock mutations have one conductor-assigned owner. Task .9 must serialize those edits with .2 and .6; dependency independence is not permission for concurrent shared-file writes. After .2 integrates, .9 process-source work may run beside .5 native guest-source work in isolated lanes, using separate build targets and integration before final guest/reproducibility evidence. No extra dependency edge or full gate is required.
+
 - First record the audited unsafe site count (`unsafe` blocks/fns in `src/**`) and the before/after package/feature inventory; both crates are already resolved, so no new resolution is expected. Request only needed features (`rustix`: process/fs/system as used) and keep them out of guest closures.
 - `support.rs`: create scratch directories with `tempfile::Builder` (prefix, 0700 permissions, `tempdir_in`, explicit `close()` so cleanup failure stays observable). The symlink-refusing workspace-relative walk stays hand-written.
 - `syscall.rs`, parent side only: replace raw libc with rustix safe wrappers for `fcntl` dupfd-cloexec, `getrlimit`/close limit, `waitpid` in `try_wait`/`Drop`/owned-child reaping, `getuid`/`geteuid`, Linux `prctl` subreaper, and similar calls where a wrapper exists. Keep raw libc where rustix has no wrapper and record why.

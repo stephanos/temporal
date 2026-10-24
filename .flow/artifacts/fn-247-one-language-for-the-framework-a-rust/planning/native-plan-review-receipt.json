@@ -1,0 +1,72 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "e8fccf504444adf4debc3808013f1d82a558cfda",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "e8fccf504444adf4debc3808013f1d82a558cfda",
+          "path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.9.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "Dependency-independent pairs .9/.2 and .9/.6 both declare ownership of `model/Cargo.toml` and `model/Cargo.lock`. These overlaps force serial dispatch despite their separate source ownership.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-83f7076d875df3f7340a3f561f2cdba0919281fc2936da7da0a6157ea6271adb",
+        "id": "finding-cfb078aba3155ab61da47984c358dc53",
+        "lastSeenReceiptId": "review-83f7076d875df3f7340a3f561f2cdba0919281fc2936da7da0a6157ea6271adb",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Make the shared Cargo-file serialization explicit and align it with the dependency/ownership declarations.",
+        "title": "Dependency-independent pairs"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "e8fccf504444adf4debc3808013f1d82a558cfda",
+          "path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.md",
+          "side": "head",
+          "startLine": 17
+        },
+        "body": "Replacing the unittest stage with process/xtask Cargo tests while retaining `cargo test --workspace` at Makefile:1290 executes those controls twice per canonical gate. Both crates are workspace members, so this adds redundant validation work to the timing pipeline.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-83f7076d875df3f7340a3f561f2cdba0919281fc2936da7da0a6157ea6271adb",
+        "id": "finding-5865422e2a462730f54e59b828242110",
+        "lastSeenReceiptId": "review-83f7076d875df3f7340a3f561f2cdba0919281fc2936da7da0a6157ea6271adb",
+        "ordinal": 2,
+        "rIds": [
+          "R3",
+          "R5"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "State which gate stage owns these controls so each runs once while preserving coverage and stage reporting.",
+        "title": "Replacing the unittest stage with process/xtask Cargo tests while retaining `cargo test --workspace` at Makefile:1290 executes those controls twice per canonical gate"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-83f7076d875df3f7340a3f561f2cdba0919281fc2936da7da0a6157ea6271adb"
+  },
+  "id": "fn-247-one-language-for-the-framework-a-rust",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic, all nine task specs, and the relevant repository code, then check for implementation blockers and epic/task inconsistencies.\nThe main dependency chain puts the supervisor proof before the tool ports. Task .9 is independent of several later ports and overlaps their Cargo files. I\u2019ll check the guest wrapper, installer, process crate and gate code for further conflicts or missing requirements.\nThe plan covers the active Python callers and their useful controls, including the lifecycle comparison that remains after the hash verifier is retired. It also states test, timing, diagnostic and process-safety requirements. I haven\u2019t found an implementation blocker; I\u2019m checking the shared-file declarations and final gate wiring before issuing the verdict.\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-247-one-language-for-the-framework-a-rust.9.md:11\nR-IDs: [R2, R6]\nLocation: Task .9 Touches and task dependency declarations.\nProblem: Dependency-independent pairs .9/.2 and .9/.6 both declare ownership of `model/Cargo.toml` and `model/Cargo.lock`. These overlaps force serial dispatch despite their separate source ownership.\nSuggestion: Make the shared Cargo-file serialization explicit and align it with the dependency/ownership declarations.\n\nSeverity: P2\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.md:17\nR-IDs: [R3, R5]\nLocation: Replacement of the unittest gate.\nProblem: Replacing the unittest stage with process/xtask Cargo tests while retaining `cargo test --workspace` at Makefile:1290 executes those controls twice per canonical gate. Both crates are workspace members, so this adds redundant validation work to the timing pipeline.\nSuggestion: State which gate stage owns these controls so each runs once while preserving coverage and stage reporting.\n\nmaintainability:\n  duplication: Task .3 schedules process/xtask Cargo controls in the replacement unittest stage and the retained workspace test stage.\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0}}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "8c720072595042aab64d86b69552ef77",
+  "session_id": "01a1702e-a60e-73b0-965d-b6a6bfcd6444",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T23:12:38.890971Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}
