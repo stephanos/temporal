@@ -285,7 +285,6 @@ fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
         }
     }
     let enums = enum_values(machine);
-    let nominal = nominal_values(items);
     let actions = action_values(&actors);
     let failures = machine.starts().is_none().then(|| {
         quote! {
@@ -311,7 +310,7 @@ fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
                 #failures
             }
         });
-    quote!(#world #actions #(#enums)* #(#nominal)*)
+    quote!(#world #actions #(#enums)*)
 }
 
 fn nominal_values(items: &[Item]) -> Vec<TokenStream> {
@@ -326,7 +325,10 @@ fn nominal_values(items: &[Item]) -> Vec<TokenStream> {
         };
         let derives_finite = item.attrs.iter().filter(|attr| attr.path().is_ident("derive"))
             .any(|attr| attr.parse_args_with(syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated)
-                .is_ok_and(|paths| paths.iter().any(|path| path.is_ident("Finite"))));
+                .is_ok_and(|paths| paths.iter().any(|path| {
+                    let names = path.segments.iter().map(|part| part.ident.to_string()).collect::<Vec<_>>();
+                    names == ["Finite"] || names == ["umpire_dsl", "Finite"]
+                })));
         if !derives_finite || !input.generics.params.is_empty() { return None; }
         let declare::Finite::Newtype { field, .. } = declare::finite(&input).ok()? else { return None };
         let name = &item.ident;
@@ -777,6 +779,9 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
     let outcome_type = if machine.rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
     let fact_type = machine.fact.as_ref().map_or_else(|| quote!(()), |fact| quote!(#fact));
     let outcome_catalog = outcome_catalog(machine.rejecting);
+    let admission = crate::roots::admission(input);
+    let nominal =
+        admission.content.as_ref().map_or_else(Vec::new, |(_, items)| nominal_values(items));
     let mut input = input.clone();
     input.attrs.insert(0, syn::parse_quote!(#[forbid(unsafe_code)]));
     let Some((_, items)) = &mut input.content else { unreachable!("declare reads inline modules") };
@@ -787,6 +792,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
         mark_computed_starts(items, state);
     }
     let values = value_exports(machine, items);
+    let values = quote!(#values #(#nominal)*);
     let post_tokens = postconditions(machine);
     let progress_tokens = progress_claims(machine);
     let invariant_tokens = invariant_claims(machine);
