@@ -42,7 +42,7 @@ mod fixture {
                 let mut input = String::new();
                 io::stdin().read_to_string(&mut input)?;
                 assert!(input.is_empty());
-                let child = Command::new("setsid")
+                let mut child = Command::new("setsid")
                     .arg(env::current_exe()?)
                     .arg("sleep")
                     .stdin(Stdio::null())
@@ -50,6 +50,7 @@ mod fixture {
                 fs::write(&args[3], parent_pid()?)?;
                 fs::write(&args[2], format!("{} {}", process::id(), child.id()))?;
                 sleep();
+                child.wait()?;
             }
             "owner" => {
                 let directory = Path::new(&args[2]);
