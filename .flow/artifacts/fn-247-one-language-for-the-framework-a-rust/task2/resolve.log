@@ -1,0 +1,16 @@
+    Updating crates.io index
+     Locking 7 packages to highest Rust 1.99 compatible versions
+      Adding block-buffer v0.12.1
+      Adding const-oid v0.10.2
+      Adding crypto-common v0.2.2
+      Adding digest v0.11.3
+      Adding hybrid-array v0.4.15
+      Adding sha2 v0.11.1
+      Adding typenum v1.20.1
+ Downloading crates ...
+  Downloaded block-buffer v0.12.1
+  Downloaded crypto-common v0.2.2
+  Downloaded const-oid v0.10.2
+  Downloaded digest v0.11.3
+  Downloaded sha2 v0.11.1
+  Downloaded hybrid-array v0.4.15
