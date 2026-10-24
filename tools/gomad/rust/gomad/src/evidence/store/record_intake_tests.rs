@@ -155,9 +155,7 @@ fn reseal(path: &Path, outcome: Outcome) {
 }
 
 fn rejects_resealed(outcome: Outcome) {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let published = publish(&root.0.join("store"), "");
     assert_eq!(assert_genuine(&published.path).outcome.termination, "exit");
     reseal(&published.path, outcome);
@@ -189,9 +187,7 @@ fn rejects_resealed(outcome: Outcome) {
 
 #[test]
 fn genuine_native_exit_trap_and_failure_records_authenticate_and_inspect() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     for (index, body, class, termination, code) in [
         (0, "", "success", "exit", Some(0)),
         (1, "unreachable", "target_failure", "trap", None),
@@ -248,9 +244,7 @@ fn resealed_exit_record_without_exit_status_is_rejected_by_public_intake() {
 
 #[test]
 fn resealed_unknown_nested_record_fields_refuse_before_inspection_output() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let published = publish(&root.0.join("store"), "");
     assert_genuine(&published.path);
     let manifest_path = published.path.join("manifest.json");
@@ -318,9 +312,7 @@ fn reseal_backend_counter(path: &Path, field: &str, value: u64) {
 
 #[test]
 fn resealed_backend_fuel_above_admitted_limit_refuses_public_intake() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let published = publish(&root.0.join("store"), "");
     let record = assert_genuine(&published.path);
     let backend: serde_json::Value = serde_json::from_slice(
@@ -390,9 +382,7 @@ fn native_terminal_snapshots_offered_output_before_public_outcome_is_mutable() {
 
 #[test]
 fn resealed_backend_invented_output_refuses_public_intake() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let published = publish(&root.0.join("store"), "");
     let record = assert_genuine(&published.path);
     assert!(!record.streams.contains_key("output/stdout"));
@@ -443,9 +433,7 @@ fn native_publication_versions_and_binds_the_independent_output_snapshot() {
 
 #[test]
 fn preinstantiation_capacity_keeps_zero_output_accounting_without_model_metadata() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let publication = native_publication_with_memory("", 2, |observed| {
         assert_eq!(observed.outcome.termination, "capacity");
         assert!(observed.outcome.message.contains("memory"));
@@ -496,9 +484,7 @@ fn replace_publication_backend(publication: &mut super::Publication, backend: &s
 
 #[test]
 fn store_publication_rejects_contradictory_native_backend_counters() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     for (field, value, diagnostic) in [
         ("fuel_remaining", 10001, "backend outcome fuel"),
         ("output_bytes", 1, "backend outcome output"),
@@ -531,9 +517,7 @@ fn store_publication_rejects_contradictory_native_backend_counters() {
 
 #[test]
 fn backend_terminal_claims_must_match_the_valid_record() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     for (index, termination, exit_code) in [
         (0, "trap", Some(0)),
         (1, "exit", None),
@@ -562,9 +546,7 @@ fn backend_terminal_claims_must_match_the_valid_record() {
 
 #[test]
 fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let publication = legacy_publication(native_publication("", |_| {}).unwrap());
     let name = "evidence/backend-outcome.json";
     let legacy_bytes = publication.payloads[name].clone();
@@ -591,9 +573,7 @@ fn legacy_v1_backend_records_remain_readable_without_rewriting_canonical_bytes()
 
 #[test]
 fn legacy_v1_cancelled_output_remains_readable_with_the_historical_zero_counter() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let (publication, _, retained) = offered_output_publication(1 << 20, true);
     assert!(retained > 0);
     let mut publication = legacy_publication(publication);
@@ -747,9 +727,7 @@ fn offered_output_publication(evidence_bytes: u64, cancel: bool) -> (super::Publ
 
 #[test]
 fn closed_descriptor_attempts_and_capacity_prefixes_keep_distinct_offered_output_counts() {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/record-intake-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     for (name, evidence_bytes, termination) in [
         ("closed", 1 << 20, "exit"),
         ("capacity", 1, "capacity"),

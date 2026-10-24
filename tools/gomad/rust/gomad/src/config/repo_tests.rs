@@ -2,8 +2,7 @@ use super::*;
 use crate::campaign::prepare::process::Temporary;
 
 fn module() -> Temporary {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/repo-tests")).unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     fs::write(root.0.join("go.mod"), "module example.test/repo\n").unwrap();
     for directory in ["runtime", "cmd/tool", "pkg/nested"] {
         fs::create_dir_all(root.0.join(directory)).unwrap();

@@ -122,9 +122,7 @@ fn captured_arguments_environment_and_entropy_keep_complete_immutable_configurat
 #[test]
 fn captured_namespace_reads_after_host_and_capture_buffers_are_removed_and_infers_readonly_absence()
 {
-    let root =
-        Temporary::new(&Path::new(env!("CARGO_MANIFEST_DIR")).join("target/preservation-tests"))
-            .unwrap();
+    let root = Temporary::new(&std::env::temp_dir()).unwrap();
     let source = root.0.join("schema/sqlite");
     std::fs::create_dir_all(&source).unwrap();
     std::fs::write(source.join("input"), b"frozen").unwrap();

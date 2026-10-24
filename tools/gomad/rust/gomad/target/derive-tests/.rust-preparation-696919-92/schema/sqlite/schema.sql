@@ -1,1 +1,0 @@
-CREATE TABLE example(id INTEGER);

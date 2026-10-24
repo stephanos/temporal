@@ -4,3 +4,4 @@
 
 /rust/target/
 **/__pycache__/
+/rust/*/target/
