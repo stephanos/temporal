@@ -41,3 +41,7 @@ TBD
 ## Owner-authorized batch B15
 
 Implementation and independent review run under fn-242-gomad-shrink-the-qualification.51 with the complete batch scope in `.flow/artifacts/fn242-execution-batches.json`. This original task retains all acceptance and proof ownership. Its leader dependency prevents separate worker admission. After whole-batch SHIP, start and complete this receipt-only member in original topological order using the actual reviewed source, shared review receipt and its own executed proof.
+
+## Python implementation-test cutover
+
+Before deleting workload_tools or completing cutover, replace the ordinary-workload-tools-run Python unittest-discovery leaf with actual Rust producer/regression coverage and map every retained assertion to its executed catcher. The Python implementation tests are a temporary dependency, not a surviving external producer or evidence of a Rust replacement. B03 preserves current production-derived leaf recipes only; this routes integration owns the replacement, current independent plan regression and explicit command disposition. External testdata/parity tests such as installed-publication-test.py remain separately inventoried lanes; do not silently retire their current behavior or expand them into managed driver endpoints.

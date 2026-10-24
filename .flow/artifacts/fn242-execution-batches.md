@@ -335,3 +335,9 @@ The owner explicitly requested batching, greater risk tolerance for throughput, 
 Six coding lanes share two conductor-granted heavy build/test slots. A worker requests a slot and exclusive target before heavy compilation, then releases it only after its command is terminal. Other lanes continue source and fixture work. Run one fresh high-effort correctness/integration review over all member acceptance per batch; B16 receives the final three-axis review. A review that returns findings still requires fixes and revalidation.
 
 The global two-attempt allowance remains policy/activity accounting. The fixed operational enrollment binding was absent at the read-only survey; this is not a verified durable counter or permission to recreate missing history. Actual enrollment and verification precede fn-246 dispatch; fn-242 uses fixture-only journals.
+
+## Shared exclusive-owner fixture and implementation-test cutover
+
+B03/B04 have one explicit additive fixture overlap in cycle/custody/owner_fixture.rs: B03 owns its bindings family arm, B04 its command/RetainedSession arm. Each isolated branch preserves existing arms; the conductor integrates both. Production scopes remain disjoint; there is no new Cargo target or owner mechanism.
+
+B15 replaces ordinary-workload-tools-run Python unittest discovery with actual mapped Rust regression coverage before deleting workload_tools or cutover. B03 preserves its current leaf recipe temporarily; external testdata/parity lanes remain separately inventoried. No legacy comparison or current functional obligation receives an automatic pass.
