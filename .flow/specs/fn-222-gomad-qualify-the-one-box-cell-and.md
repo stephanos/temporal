@@ -53,8 +53,9 @@ Task .1 runs unchanged source preparation first. A preparation failure is retain
 ## Quick commands
 
 ```sh
-cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/qualification ./internal/evidence/qualification
-# Exact cell commands and environment: internal/backends/wasm/QUALIFICATION.md#one-box-cell-gates
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad qualification
+python3 -m unittest discover -s tools/gomad/rust/driver/tests -p 'test_onebox*'
+# Exact cell commands and environment: tools/gomad/internal/backends/wasm/QUALIFICATION.md#one-box-cell-gates
 ```
 
 ## Requirement coverage
@@ -63,3 +64,10 @@ cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/qualification 
 | --- | --- | --- | --- |
 | R1 | Mandatory one-box cell qualified with retained checkpoint. | fn-222-gomad-qualify-the-one-box-cell-and.1 | — |
 | R2 | Candidate-bound support list, including smoke and frontend selections. | fn-222-gomad-qualify-the-one-box-cell-and.2 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **Owners are Rust.** `internal/evidence/qualification`, `internal/backends/wasm/qualification` and `backend.TemporalGuestBuildTags()` named above were retired with the Go host. The owner is `tools/gomad/rust/gomad/src/qualification/**`; the support-list producer and validator are the `fn222-support` tooling and `rust/driver/onebox_receiving.py`; the guest tags come from the installation's Temporal guest-tag policy in QUALIFICATION.md. The Go names stay as semantic references only.
+2. **Runs inside the cycle.** MILESTONES ruling 12: the one-box fn-222 group runs alongside the inspection stage's own onebox inspection inside the 96-stage cycle, not after it. Task .1 closes on that cycle's gate exits and the two-cell support list (`fn222/two-cell-ordered-support-list`).
+3. **No freeze; provisional claims.** "Freeze the support-list candidate" in Edge Cases is superseded by the 2026-10-24 opportunistic-merge decision. The list binds to the commit the cycle ran on. Support rows published from that cycle are labeled provisional until fn-242's requalification under the Rust cycle verb; the label is part of the published document, not a side note.
+4. **Mandatory corpus unchanged.** Both selections (`unchanged-workflow-type-smoke` and `frontend-system-info`) remain required for the first accepted list. Nothing in these amendments adds or removes a gate.

@@ -10,7 +10,7 @@ The existing Go `wasi` implementation and tests are the behavioral reference. Un
 - **R1:** The Rust cluster shutdown path (behavioral reference: Go `ClusterSession.Shutdown`) sends stop control frames in stable `(ID, Incarnation)` order when two or more nodes remain live. Fresh same-seed shutdowns preserve World and network evidence under varied map insertion order.
 - **R2:** The Rust storage-crash selection validator (behavioral reference: Go `ValidateStorageCrashSelection`) visits `StorageCrashContext` and `StorageCrashSelection` volumes in sorted volume order. Multiple invalid entries yield identical unsupported refusal messages under varied insertion order, before execution.
 - **R3:** Reconcile the three originally reported sites in `determinism/inventory.json` with the current implementation and named behavioral regressions. Already-controlled Go rows are historical/current-source facts, not proof of the Rust port. Admit controlled Rust rules and remove corresponding caveats only after the Rust behavioral corpus passes.
-- **R4:** Retain actual model/implementation identity changes and reconcile the frozen-candidate runtime, workload and retained-replay qualification received by fn-232 R12/task .13. Historical qualification does not qualify the changed model.
+- **R4:** Retain actual model/implementation identity changes and reconcile the runtime, workload and retained-replay qualification received by fn-232 R12/task .13 (the green 96-stage cycle on current `gomad`; no formal freeze under the 2026-10-24 opportunistic-merge decision). Historical qualification does not qualify the changed model.
 
 ## Verification
 
@@ -20,3 +20,7 @@ Task .1 supplies regression cases with multiple insertion orders, verifies inven
 ## Receiving contract
 
 fn-232.8 explicitly owns the linked-core cleanup and sorted crash-selection implementation, the affected helper surfaces and the transferred corpus acceptance. Preserve malformed-plan refusal while adding the admitted live-session shutdown path. Final qualification remains with fn-232.13; fn-227.1 reconciles both receiving proofs before closure.
+
+## Status (2026-10-24)
+
+R1 and R2 are implemented in Rust by fn-232.8 (merge f16f53e59d, RED/GREEN receipts in `.flow/artifacts/fn232.8-identity-handoff-2026-10-22.txt`). What remains for task .1: name the Rust tests in the two determinism-inventory rows (ClusterSession.Shutdown, execution.Shutdown) and receive the fn-232.13 cycle for R4. Nothing else is open here; this spec closes with .1.

@@ -435,4 +435,23 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
-Owner request 2026-10-23. Starts after the fn-232.13 cycle and the post-freeze windows. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Tasks come from `/flow-next:plan`.
+Owner request 2026-10-23. Starts after the fn-232.13 cycle, the fn-233 rerun and the fn-221 sweep have run on `gomad`; it does not wait for stress (ruling 7) or the quiet-host profiles. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Tasks come from `/flow-next:plan`. Conductor ruling 2026-10-24: fn-242 runs before fn-240's extractions, and one fresh cycle under the Rust verb closes both.
+
+### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
+
+Owner's 8–12 crate target stands (ruling 10). Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
+| [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
+| [fn-240.3](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md) | ⬜ Todo | Extract `wasm-sim` (clock, network, volume, event_order, sim controller) |
+| [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide next cuts |
+
+### Race profile for wasip1 — [fn-241](.flow/specs/fn-241-gomad-a-race-profile-for-wasip1-deferred.md)
+
+Deferred by owner decision 2026-10-23; all four tasks ⛔ Blocked on the revival trigger recorded in the spec (saturated fault matrix, benchmark table showing a reachable unreported race). No work until revived.
+
+### Captured backlog without tasks
+
+[fn-190](.flow/specs/fn-190-gomad-wasm-checkpoint-restore-experiment.md) checkpoint-restore experiment and [fn-191](.flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md) Sometimes assertions are reviewed designs with no tasks; both must be re-homed onto the Rust replay/campaign owners before task breakdown.

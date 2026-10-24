@@ -73,8 +73,10 @@ Task .1 shows a single-guest activity run whose per-op and per-owner tables reco
 ## Quick commands
 
 ```sh
-cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile
-cd tools/gomad && go run ./internal/backends/wasm/cmd/wasmmeasure --help
+cargo build --manifest-path tools/gomad/rust/Cargo.toml -p gomad --release --locked --bin gomad-measure --features helper-diagnostic-profile
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad --features helper-diagnostic-profile --test profile_corpus
+gomad-measure host-owner-profile --help      # R1/R2/R3 producer
+gomad-measure runtime-cost-profile --help    # R4 release-preservation check
 ```
 
 ## Requirement coverage
@@ -87,3 +89,9 @@ cd tools/gomad && go run ./internal/backends/wasm/cmd/wasmmeasure --help
 | R4 | Release helper unchanged in behavior; moved runtime-cost producer passes; no Cargo dependency or lockfile change. | fn-185-gomad-wasm-host-side-execution-cost.1 | — |
 | R5 | Ranked decision report with Amdahl bound, mechanism and risk per center, ending in one verdict; roadmap and milestones updated. | fn-185-gomad-wasm-host-side-execution-cost.3 | — |
 | R6 | Transferred fn-182 R4 and fn-184 R5 timing: matched same-host baseline/candidate, repetitions, median/range, gain-versus-spread labels, identities and rerun commands, reusing or re-creating the prepared drivers. | fn-185-gomad-wasm-host-side-execution-cost.2 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **Owners are Rust.** The Go collector (`internal/measure`, `cmd/wasmmeasure`) named in API Contracts was retired with the Go host. The producer is the `gomad-measure` binary in `tools/gomad/rust/gomad` (`host-owner-profile`, `runtime-cost-profile`), reading the linked helper's `helper-diagnostic-profile` feature; the release build is the empty-feature `gomad`. Task .1's 2026-10-23 handover shows R1 attribution, reconciliation and witness equality proven on `gomad`; its R4 release-preservation check stays open until the fn-232.13 cycle supplies it.
+2. **Tasks .2/.3 wait for the quiet-host window.** Owner decision 2026-10-23: timing results are non-blocking until the owner declares a quiet host. The profiles, the perf sampling and the verdict run then, on the commit current at that time, together with the stress timing and cycle timing reruns. The revival trigger is recorded in task .2.
+3. **R6(b) recommendation (owner decision needed).** R6(b) compares build, vet, lint and default-test wall times of the Go host before and after its fn-184 isolation (base `3dae95b99f`, after `f22f8ef227`). Both are Go-host trees that no longer exist in the default build; the measurement would time a deleted codebase and cannot inform any current decision. The conductor recommends closing R6(b) as won't-do with that reason and keeping R6(a) (full versus slim guest cost on the Rust host, which still answers a live question). Until the owner rules, R6(b) stays as written and is reported unavailable.

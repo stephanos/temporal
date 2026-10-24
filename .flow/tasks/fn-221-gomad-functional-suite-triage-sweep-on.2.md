@@ -32,3 +32,7 @@ Conductor decision (owner-delegated): rerun only the 344 load-sensitive units, t
 - **Compiler:** the Go 1.27.1 tree was copied to `evidence/fn221/rerun-tools/go1.27.1` because the original path was removed. All 2217 provenance-listed toolchain files hash identical, and the candidate key matched. The conductor accepted this.
 - **Progress:** 4 of 344 done, all former timeouts. Each is now capacity-exceeded (WASI network-v2-evidence-bytes) inside the 3m budget; flag this in the artifact. 340 remain: 3 timeouts and 337 infrastructure.
 - **Checker ready:** reviewed repeated-header and exact-path validation is integrated (`492707ea91`, `393109ab19`); all eleven checker tests passed after integration. Use the tracked checker in the handover above. This earns no guest or qualification row. Ignore the abandoned attempt in `rerun-20261022T1509Z`.
+
+### Superseded: full rerun on the Rust binary (MILESTONES ruling 9, recorded 2026-10-24)
+
+Do not resume the Go-candidate journal described above; its rows are non-transferable. Rerun the whole sweep with the Rust `gomad-wasm-sweep` on `gomad` after the fn-232.13 cycle is green, using the launch plan on branch `fn221-rust-sweep` (`911833fb48`). First investigate the historical batch-test slowdown versus Go and exercise resume/verify on two packages. Classify load-only failures as contention for the quiet-host recheck. The 2026-10-22 run roots and worktrees are history and may be removed under the cleanup policy once the new matrix is retained.

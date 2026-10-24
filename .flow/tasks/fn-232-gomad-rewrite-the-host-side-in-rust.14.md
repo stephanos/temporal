@@ -1,3 +1,6 @@
+---
+satisfies: [R15]
+---
 # fn-232-gomad-rewrite-the-host-side-in-rust.14 Close the remaining test-wasm reach-map gaps after closure
 
 ## Description

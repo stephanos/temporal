@@ -75,6 +75,8 @@ R1 includes the compile/instantiation/teardown fail-stop and interrupted-campaig
 - **R12:** After R4 to R10 pass, one full qualification cycle runs on the final frozen Rust binary alone under the unchanged one-hour limit, including required runtime, workload and retained-replay gates, and its reports and actual identity bindings are retained. This receives the pending fn-228 R7, fn-219 R5, fn-227 R4 and fn-188 identity-triggered qualification obligations; failed/interrupted/unrun Go attempts remain historical. Then the Go host-side packages and the Go binary are removed from the default build, with archcheck enforcing that no default-set source imports them. Errors: a qualification cell failing on the Rust binary blocks retirement.
 - **R13:** The mandatory local behavioral differential harness runs both binaries on fresh executions of the corpus for every public verb, comparing each binary's own identity-matching artifacts, and reports the first semantic difference with its path. CI job source is wired until R12 completes; actual CI execution is not authorized or required by this source-only delivery. Errors: a missing corpus entry or semantic difference fails the local gate, never skips or becomes advisory.
 
+- **R15:** The behavioral reach of the retired `make -C tools/gomad test-wasm` is mapped: every original test root and named subtest maps onto a Rust suite, parity lane, transferred live root or qualification cell in `tools/gomad/testdata/parity/test-wasm-reach-map.json`, with its original assertions and bounds, or carries a one-line Go-implementation-only retirement reason. Errors: once task .14 closes, the reach reader refuses any `gap:` or `partial:` entry; until then it reports them (2026-10-24 opportunistic-merge decision). The 752 original callables are not ported one by one.
+
 - **R14:** Every verb uses the declared per-verb diagnostic-only projection and deterministic fixture controls above, with raw canonical-record/hash and ledger-integrity verification independent of golden comparison. Regeneration under an environment flag requires repeated agreement and a byte-identical second golden regeneration. Fault/fixture features are excluded from release and qualification binaries. Unit tests exist only for invariants the corpus cannot observe and each names that invariant. Errors: a golden or raw-integrity difference fails with its path; undeclared normalization or a differing second regeneration fails; a unit test without a stated invariant fails lint.
 
 ## Boundaries
@@ -96,8 +98,20 @@ The rewrite is scheduled on structural grounds the owner weighed against the por
 ## Quick commands
 
 ```bash
-make -C tools/gomad validate
+make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism   # merge gate (stock Go 1.27.1 first on PATH)
 cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad
-(tools/gomad/scripts/behavioral-parity --help)
-# Use the replay lane with the receiver-owned Go baseline and explicit Rust binary; see tools/gomad/rust/README.md.
+tools/gomad/scripts/behavioral-parity --help    # parity lanes; the Go baseline is receiver-owned, out of tree
+python3 tools/gomad/rust/driver/driver.py parallel   # the 96-stage cycle; see rust/driver/README.md
 ```
+
+## Amendments (2026-10-24, conductor under the owner's delegation)
+
+These record how the owner's later decisions in MILESTONES.md change this spec. Where they conflict with the text above, the amendment wins.
+
+1. **Retirement before the cycle, not after.** R12 says the Go host is removed "then", after the cycle. The owner's 2026-10-23 ruling merged the .13 retirement change first so the cycle binds to the retired source; ARCHITECTURE.md already describes the Rust workspace as the only host. R12's remaining obligation is the cycle itself.
+2. **No formal freeze.** Under the 2026-10-24 opportunistic-merge decision, fn-232.13 closes on one green run of the full 96-stage cycle on current `gomad`, with command exits and actual candidate identities retained. There is no 13-role receipt rebuild and no re-freeze when the source moves; evidence binds to the commit that ran it. "Frozen candidate" elsewhere in this spec now means that commit.
+3. **Reach of `test-wasm` is R15.** Conductor ruling 1 (MILESTONES "fn-232.13 scope rulings") is recorded above as R15. Task .13 reports the map with the cycle; task .14 closes the remaining `gap:`/`partial:` entries (39 at the time of writing) and re-enables refusal.
+4. **R13 after retirement.** The Go binary no longer exists in the tree. The parity lanes run against the receiver-owned frozen Go baseline at `/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a` (host-local, not durable). R13 is satisfied by those retained lanes until fn-242 disposes of each lane (keep as golden, fold into Rust tests, or retire with the baseline). Do not add new Go-versus-Rust lanes.
+5. **The cycle driver is Python.** `tools/gomad/rust/driver/` (about 34k lines) grew out of the stage scripts during .13 and was never a design decision. fn-242 moves it into a Rust `gomad` verb; until then, no new Python beyond what the cycle strictly needs (MILESTONES ruling 11).
+6. **Single workspace.** `gomad-wasmhost` now lives at `tools/gomad/rust/wasmhost` as a workspace member with one `Cargo.lock` (owner decision 2026-10-21); the "existing helper crate" in Architecture refers to it there.
+7. **Timing is non-blocking until the quiet-host window.** The 3,600-second limit and stage budgets are measured and recorded on every cycle but, under the owner's 2026-10-23 decision, a wall-time-only failure does not block closure. Correctness, replay, identities and memory/capacity bounds remain binding.

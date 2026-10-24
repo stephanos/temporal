@@ -9,7 +9,7 @@
 
 ## Goal & Context
 
-The Rust side of gomad is two crates: `tools/gomad/rust/gomad` (~35k lines, 17 top-level modules) and `tools/gomad/internal/backends/wasm/wasmhost` (~57k lines, 33 top-level modules). A worker assigned a task in `replay/` or `volume/` today has no crate-level statement of what it may touch and routinely reads into neighbours to find the seam. The owner wants crates sized so one fits in an agent's context with room to work, each with a boundary that is written down and enforced by the compiler, and tests that exercise that boundary rather than internals.
+The Rust side of gomad is two workspace crates under `tools/gomad/rust/`: `gomad` (about 74k production and 37k test lines) and `wasmhost` (about 43k production and 14k test lines), per the 2026-10-23 survey in `.flow/artifacts/fn240-crate-survey-2026-10-23.md`; the figures below from the 2026-10-22 grep are stale. A worker assigned a task in `replay/` or `volume/` today has no crate-level statement of what it may touch and routinely reads into neighbours to find the seam. The owner wants crates sized so one fits in an agent's context with room to work, each with a boundary that is written down and enforced by the compiler, and tests that exercise that boundary rather than internals.
 
 Survey on 2026-10-22 (grep over `crate::` paths and `wasmtime` imports):
 
@@ -24,7 +24,7 @@ Testing policy (already decided, 2026-10-20): end-to-end fixture tests take prio
 
 ## Architecture & Data Models
 
-One Cargo workspace rooted at `tools/gomad/rust/Cargo.toml` (it exists; `wasmhost` joins it as a path member or stays a path dependency, decided in task .1 by whichever keeps the Go `cgo`/build-script wiring unchanged). Each extracted crate is a directory beside `gomad/` with:
+One Cargo workspace rooted at `tools/gomad/rust/Cargo.toml`; `wasmhost` is already a member with one `Cargo.lock` (owner decision 2026-10-21), and there is no Go build of it any more. The helper artifact path used by `wasm-test-helper`/`publish-executable.sh` must stay unchanged. Each extracted crate is a directory beside `gomad/` with:
 
 - `src/lib.rs` whose crate doc comment states the crate's job in one paragraph and lists what it deliberately does not do. This is the first thing a worker reads and is the context saver.
 - `#![warn(missing_docs)]` so every public item is justified; the public surface is kept to what consumers and boundary tests use.
@@ -52,14 +52,14 @@ Each extraction records, in `.flow/artifacts/fn-240-gomad-context-sized-rust-cra
 
 ## API Contracts
 
-- `cargo test --workspace` and the Go-side build (`go build ./...` under `tools/gomad`, plus the WASM helper build) pass unchanged after every task.
+- `cargo test --workspace`, the retained Go side (`go build ./...` under `tools/gomad`: models, generator, overlay, archcheck) and the merge gate (`make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism`) pass unchanged after every task.
 - Every extracted crate's `lib.rs` doc comment answers "what does this crate own" and "what does it refuse to own" in prose a worker can read in under a minute.
 - `tests/` in each extracted crate compiles against the crate's public API only; `cargo test -p <crate>` runs its boundary tests in isolation without the workspace's other crates as dev-dependencies, except fixtures shared via a path to `testdata/`.
 - No crate re-exports another crate's entire module tree (`pub use other::*`) to paper over a seam.
 
 ## Edge Cases & Constraints
 
-- `wasmhost` is built from Go via its own `Cargo.toml` and `build.rs`; the Go invocation and the produced artifact path must not change. If joining the workspace moves `target/`, the shared cargo cache convention (`~/.cache/codex-build/cargo-target`) is preserved.
+- `wasmhost` is built by cargo as a workspace member; the helper artifact path consumed by `wasm-test-helper`/`publish-executable.sh` must not change. The shared cargo cache convention (`~/.cache/codex-build/cargo-target`) is preserved.
 - `namespace/` imports `wasmtime`; it does not go into `wasm-sim`. If a sim-only core exists inside it, that is a later cut, not part of task .3.
 - A boundary test that needs an internal is a signal the boundary is wrong, not a licence to widen `pub`. The task records the case and either moves the seam or keeps the test inline with its invariant named.
 - Compile time may get worse with a deep chain of thin crates. If the task .4 measurement shows clean-build wall time up by more than 20%, further cuts stop until the DAG is widened.
@@ -70,7 +70,7 @@ Each extraction records, in `.flow/artifacts/fn-240-gomad-context-sized-rust-cra
 
 - **R1:** A dependency survey artifact lists, for every top-level module of both crates, its `crate::` edges and whether it imports `wasmtime`, and derives the cut table above from it. Errors: a proposed crate whose modules have an unlisted edge is a finding.
 - **R2:** `gomad-evidence` is a workspace crate with a `lib.rs` contract doc, `missing_docs` on, and boundary tests under `tests/` that cover store open/publish, symbolize and inspection through the public API; all prior inline tests either moved to `tests/` or retained with a named invariant; `cargo test --workspace` and the e2e fixture suite pass unchanged. Errors: a `pub` added only for a test and not listed with its reason is a finding.
-- **R3:** `wasm-sim` is a crate with no `wasmtime` dependency, holding clock, network and volume with their existing corpus/conformance tests as boundary tests; the Go helper build is unchanged. Errors: a `wasmtime` import anywhere under `wasm-sim`, or a change to the helper artifact path, is a finding.
+- **R3:** `wasm-sim` is a crate with no `wasmtime` dependency, holding clock, network and volume (plus `event_order`, `stress_jitter` and the pure controller half of `linked_simulation`, as the survey requires) with their existing corpus/conformance tests as boundary tests; the helper artifact path is unchanged. Errors: a `wasmtime` import anywhere under `wasm-sim`, or a change to the helper artifact path, is a finding.
 - **R4:** After R2 and R3 the measurement artifact compares lines, build times and public surface before and after, and a go/no-go decision for the next cut is recorded with its reason. Errors: a decision without the measurements is a finding.
 - **R5:** Every crate created under this spec has a `lib.rs` doc that names what the crate owns and what it does not; a worker reading only that doc and `tests/` can state the crate's contract. Errors: a crate without that doc is a finding.
 
@@ -91,7 +91,7 @@ Sequencing: whole spec after fn-232 (Rust host rewrite chain) lands; spec-level 
 
 ## Early proof point
 
-Task .2, first hour: move `evidence/` into a crate with no changes except `use` paths and confirm `cargo test --workspace` passes. If more than `use` path edits are needed, the seam is not where the survey says it is; stop and report.
+Task .2, first hour: move `evidence/` into a crate. The survey already names three back-edges to invert first (`evidence/store/open.rs` → `minimize::source::read` and `campaign::origin::authenticate`; `evidence/search_context.rs` → `site_scope` and `choice::hex`) and two cross-module test files to move to `gomad`. Beyond those listed relocations, only `use` path edits are expected; if more is needed, the seam is not where the survey says it is; stop and report.
 
 ## Quick commands
 
@@ -100,8 +100,8 @@ cd tools/gomad/rust
 cargo build --workspace --timings                       # baseline, record wall time
 cargo test --workspace
 cargo test -p gomad-evidence                            # boundary tests only, after task .2
-grep -rn 'wasmtime' ../internal/backends/wasm/wasmhost/src/{clock,network,volume}   # expect empty
-(cd ../ && go build ./...)                              # Go side unchanged
+grep -rn 'wasmtime' wasmhost/src/{clock,network,volume}   # expect empty
+(cd ../ && go build ./...)                              # retained Go side unchanged
 ```
 
 ## Requirement coverage
@@ -113,3 +113,9 @@ grep -rn 'wasmtime' ../internal/backends/wasm/wasmhost/src/{clock,network,volume
 | R3 | `wasm-sim` extracted without `wasmtime`; helper build unchanged. | fn-240-gomad-context-sized-rust-crates-with.3 | — |
 | R4 | Measurement and go/no-go for further cuts. | fn-240-gomad-context-sized-rust-crates-with.4 | — |
 | R5 | Every new crate carries its contract doc. | fn-240-gomad-context-sized-rust-crates-with.2, fn-240-gomad-context-sized-rust-crates-with.3 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **The survey is in.** `.flow/artifacts/fn240-crate-survey-2026-10-23.md` (commit d7e311b557) supersedes the 2026-10-22 grep in Goal & Context. Its findings that change this spec: neither crate has a layered module graph (one strongly connected component each); the owner's 8–12 target fits with 11 crates (3 helper-side, 8 host-side); both approved first extractions need the listed relocations, not `use`-path edits alone; `world` belongs in `wasm-sim`, not a `wasm-engine` crate; `engine` and `cluster` stay together on purpose. Task .1 is not closed: its build-time baseline (`cargo build --timings`, clean and incremental) has not been recorded, and that is what remains of R1.
+2. **Ordering.** Extractions wait for the fn-232.13 cycle and the post-cycle windows (MILESTONES ruling 10) and run after fn-242 (conductor ruling, recorded in fn-242): fn-242 first removes the Python driver and duplicated measurement checking, then .2/.3 here, then one fresh cycle under fn-242's Rust verb closes both. The read-only survey already ran.
+3. **`gomad-measure` size.** The survey's crate 10 (`measurement`, `stress`, `profile`) is about 19.7k production lines, over the context target. fn-242's measurement deduplication is expected to shrink it; task .4 measures it after fn-242 rather than cutting it blind.

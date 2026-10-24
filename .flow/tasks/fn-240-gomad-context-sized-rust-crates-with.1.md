@@ -16,3 +16,6 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Status 2026-10-24
+Survey artifact landed as `.flow/artifacts/fn240-crate-survey-2026-10-23.md` (d7e311b557), at `gomad` 520c28ef12, not at the path named above. It covers module edges, the SCC analysis and the 11-crate cut table. Remaining for acceptance: record the `cargo build --timings` clean and incremental baseline on current `gomad` (nothing was built for the survey). No code changes.

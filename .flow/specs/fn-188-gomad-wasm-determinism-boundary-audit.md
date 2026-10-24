@@ -36,7 +36,7 @@ Deployment bounds: one maintainer, Linux/arm64 development host, Flow-driven wor
 - Seed findings the audit must dispose of, each with a row and a decision: the WASM no-op `gomadDiagnosticCheckSeededDraw` (implement the host-timed-draw check or record why wasip1 cannot host-time a draw); the still host-timed `enlistWorker` draw in the GC pacer under wasip1; GC `LastGC`/`PauseEnd` stamps under wasip1; `cputicks`, tracer and FIPS paths under wasip1; the helper's `SystemTime`/`/dev/urandom` temp-file names and `Instant` metrics; one OS thread per cluster instance under the baton; Go map ranging that feeds volume evidence before sorting; `sort.Slice` keys; serde_json map ordering; Wasmtime SIMD with NaN canonicalization.
 - A disposition of `escape` is admitted only when the influence is outside the deterministic-time guarantee today, is documented in the README with its justification, and has a test that detects when it starts reaching bounded evidence. An escape that reaches bounded evidence on any stress cell is a failure, not a documented escape.
 - Perturbation must not change declared inputs: environment and path variations stay outside the recorded environment and identities; a cell that would alter an identity is invalid and reported as such. The `stress-jitter` feature is refused by the Go side for any qualification role, like the diagnostic-profile and guest-profile helpers.
-- Stress runs need a quiet host and are serialized behind other build-heavy work; they are measurement-class producers, never part of `make test`. Repetition counts are stated in the report; a cell with fewer repetitions than requested is `skipped`, never `pass`.
+- Stress runs are measurement-class producers, never part of `make test`. Owner decision 2026-10-23: the full matrix runs right after the fn-232.13 cycle on the loaded host as a correctness check; every same-seed divergence is a finding regardless of load, while wall time and other timing results are recorded and judged only in the quiet-host window. Repetition counts are stated in the report; a cell with fewer repetitions than requested is `skipped`, never `pass`.
 - Cluster comparisons cover every executed incarnation and the shared World order, not only the selected guest; never-started guests contribute nothing. Equal-time orderings follow recorded cluster order.
 - Coordination: fn-180 owns the debug import, prefix cuts and the runtime-state witness; this spec lists the debug import as `controlled` with fn-180's tests as evidence and reuses the witness fields in comparisons rather than adding counters. fn-187.1 owns the helper transcript corpus and fn-187.2 the measurement command; the stress producer and new corpus cases follow their shapes and land after them or batch with them. fn-185 edits dispatch points for profiling; the helper source scan allowlists its diagnostic module. fn-184 isolates native; this spec does not touch native sources.
 - No model semantic, protocol, evidence format or performance change is in scope; a finding that requires one is filed as its own spec and the row records the referral.
@@ -73,9 +73,10 @@ Task .1 lands the inventory with rows for the import table and the seven seeded 
 
 ```sh
 (cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/... -run 'Determinism|Inventory|Refuse' -count=1)
-cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --test engine
-make -C tools/gomad/internal/backends/wasm test
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad-wasmhost --release --locked --test engine
+make -C tools/gomad validate-wasm-determinism   # inventory, archcheck and the driver suite
 make -C tools/gomad validate
+gomad-measure --stress-inputs <repo> <root> <name>   # Rust stress producer (task .5)
 ```
 
 ## Requirement coverage
@@ -88,3 +89,9 @@ make -C tools/gomad validate
 | R4 | First-divergence report with reproducer and prefix cut, verified by perturbation fixtures. | fn-188-gomad-wasm-determinism-boundary-audit.4 | — |
 | R5 | Named regression test per escape, version pinning, inventory tests in the test target and validate. | fn-188-gomad-wasm-determinism-boundary-audit.6 | — |
 | R6 | Documented contract in both READMEs and recorded decisions on the seed findings. | fn-188-gomad-wasm-determinism-boundary-audit.2, fn-188-gomad-wasm-determinism-boundary-audit.6 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **Owners after the Rust host.** The Go `wasmmeasure` command and `internal/measure` named in Architecture and in task .5 were retired with the Go host. The stress producer is the Rust `gomad-measure` binary (`rust/gomad/src/measurement/stress_driver.rs`, `--stress-inputs`) with the assembler used by worker B; the inventory and completeness tests run through `make -C tools/gomad validate-wasm-determinism`, which `test-wasm` depends on. The helper crate is `tools/gomad/rust/wasmhost`.
+2. **Receiving Rust owners.** Task .6's handover (2026-10-23) reconciled the retired-Go evidence references to live Rust receivers and added the `driver:` evidence kind. R5's "inventory and boundary tests run in the WASM package test target" now means the Rust workspace tests plus `validate-wasm-determinism`; there is no Go WASM package test target to wire.
+3. **Red head.** The handover reports the reference-helper `helper_corpus` red on `gomad` head (19 pre-existing cases plus one cluster guard), blocking `test-rust-engine`/`test-wasm`. Under "A red head stops the line" this is fixed with a regression test before further merges; it is not an fn-188 finding unless the cause is a determinism escape.

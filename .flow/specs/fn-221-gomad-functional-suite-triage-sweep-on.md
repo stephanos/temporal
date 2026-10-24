@@ -81,8 +81,9 @@ Task .1 runs the harness on `tests/gomadfunctional` alone and on one ordinary `t
 ## Quick commands
 
 ```sh
-cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/...
-# harness invocation decided in task .1; sweep output lands under .flow/artifacts/
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad sweep
+cargo run --manifest-path tools/gomad/rust/Cargo.toml -p gomad --release --bin gomad-wasm-sweep -- --help
+# sweep output lands under .flow/artifacts/fn221-*; branch fn221-rust-sweep carries the .2 launch plan
 ```
 
 ## Requirement coverage
@@ -93,3 +94,10 @@ cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/...
 | R2 | Every test has one class with reason and candidate identity in the retained matrix. | fn-221-gomad-functional-suite-triage-sweep-on.2 | — |
 | R3 | Ranked reasons, suspect outcomes and follow-on spec recommendations. | fn-221-gomad-functional-suite-triage-sweep-on.3 | — |
 | R4 | Observation only; no support claim; QUALIFICATION.md unchanged. | fn-221-gomad-functional-suite-triage-sweep-on.2, fn-221-gomad-functional-suite-triage-sweep-on.3 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **Harness owner.** The harness is the Rust `gomad-wasm-sweep` binary (`tools/gomad/rust/gomad/src/sweep/`), not a Go developer command under `internal/backends/wasm`. The `gomad explore … go-test` path it drives is the Rust verb. fn-220 has landed, so the sweep uses its installation; the throwaway-configuration clause is moot.
+2. **Full rerun on the Rust binary (MILESTONES ruling 9).** Task .2's 2026-10-22 rerun of the Go-candidate journal at `1d7b37f00a` is not resumed. The Go host's 337 helper-link-count infrastructure rows and changed evidence bounds make that journal non-transferable, so the whole sweep reruns on `gomad` after the fn-232.13 cycle. Before launching, investigate the historical batch-test slowdown versus Go and exercise resume/verify on two packages, as the `fn221-rust-sweep` handover asks.
+3. **Load-only failures.** Under the 2026-10-23 performance decision, rows that fail only from host load (timeouts, deadline-sensitive inspection fixtures) are classified as contention in the matrix and rechecked in the quiet-host window. The "quiet host" wording in Edge Cases is a recording requirement, not a start condition. Guest outcomes on the modeled clock are deterministic and stand as observed.
+4. **Still an observation.** R4 is unchanged: no row of the matrix becomes a support claim; fn-222's cycle-published list is the only support document, and it is provisional until fn-242.

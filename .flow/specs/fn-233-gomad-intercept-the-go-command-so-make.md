@@ -127,7 +127,7 @@ cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad shim
 cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad wrapper
 # after the verbs exist:
 gomad --installation /absolute/operator/temporal.json -- go test ./tests/gomadfunctional -run '^TestFrontendSystemInfo$' -v
-gomad -- make functional-test TEST_RACE_FLAG=off PERSISTENCE_TYPE=sql PERSISTENCE_DRIVER=sqlite
+gomad -- make functional-test TEST_RACE_FLAG=off TEST_SHUFFLE_FLAG=off PERSISTENCE_TYPE=sql PERSISTENCE_DRIVER=sqlite TEST_ARGS='-run ^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$'
 tools/gomad/scripts/behavioral-parity --help
 # Extend the parity/golden driver with the new run-guest lane in task .1; use its documented explicit binary inputs.
 ```
@@ -144,3 +144,10 @@ tools/gomad/scripts/behavioral-parity --help
 | R6 | Temporal Makefile target runs unchanged through the wrapper. | .4 | — |
 | R7 | Operator documentation. | .4 | — |
 | R8 | Golden corpus coverage per branch and refusal. | .1, .2, .3 | — |
+
+## Amendments (2026-10-24, conductor)
+
+1. **Status.** The `--` wrapper dispatch (`main.rs`), the shim classifier (`shim/classify.rs`, `shim/build.rs`), `run-guest` (`cli/run_guest.rs`) and `gomad.toml` at the Temporal module root already exist on `gomad`. Task .1 is in progress; .2 to .4 remain, and the task boundaries above stand as the acceptance map even where code landed early.
+2. **Formal rerun after the cycle.** The launcher, shim and Make lanes run in the fn-232.13 dry run; the formal fn-233 rerun (about one hour) starts on `gomad` as soon as that cycle is green (MILESTONES ruling 9 and the opportunistic-merge decision). Load-only timeouts are classified as contention and rechecked in the quiet-host window.
+3. **R6 shape.** Temporal's `functional-test` target runs three roots (`./tests`, NDC, XDC) with `COMPILED_TEST_ARGS`, which carries `-race` when `TEST_RACE_FLAG=on` and `-shuffle on` when `TEST_SHUFFLE_FLAG=on`; `CGO_ENABLED` defaults to 0. The positive smoke run therefore passes `TEST_RACE_FLAG=off`, `TEST_SHUFFLE_FLAG=off` and a `TEST_ARGS='-run …'` selector for the registered supported selection, as in Quick commands. The NDC and XDC roots are expected to be refused or to fail classification; that is recorded, not a support claim.
+4. **`gomad.toml` today.** It declares `runtime_root` and `derive = "temporal"` only; `guest` is absent, so every `go run`/`go build` is host passthrough. This is the intended default for the Temporal checkout.

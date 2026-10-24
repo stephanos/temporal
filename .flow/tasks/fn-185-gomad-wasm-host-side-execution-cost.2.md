@@ -35,3 +35,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Deferred to the quiet-host window (owner decision 2026-10-23)
+
+**Revival trigger:** the owner declares a quiet-host window. This task then runs on the commit current at that time, alongside the stress timing and cycle timing reruns. Producer: `gomad-measure host-owner-profile` and `runtime-cost-profile` (Rust); the Go `wasmmeasure` paths above are retired references. Sweep representatives come from the fn-221 Rust sweep matrix. Nothing in the acceptance is waived.
