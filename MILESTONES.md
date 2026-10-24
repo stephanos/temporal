@@ -75,12 +75,12 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-237.3 → fn-247 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and before fn-237.4; fn-228 closed on 2026-10-24 with R40 discharged by pointer to fn-243 (owner decision), its live unheld-cancellation proof owned by fn-243.5; fn-245 (finite collections) follows fn-237.5 and precedes any fn-240 revival; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-247 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and before fn-237.4; fn-228 closed on 2026-10-24 with R40 discharged by pointer to fn-243 (owner decision), its live unheld-cancellation proof owned by fn-243.5; fn-245 (finite collections) follows fn-237.5 and precedes any fn-240 revival; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
 The 2026-10-24 cancellation counterexample adds a checkpoint boundary without moving the
-independently planned Model work forward. The remaining task order is fn-237.3, fn-247, fn-246, fn-237.4, fn-243.5, then fn-237.5. fn-243 remains
+independently planned Model work forward. The remaining task order is fn-247, fn-246, fn-237.4, fn-243.5, then fn-237.5. fn-243 remains
 open until fn-243.5 supplies the deferred unheld-cancellation proof (fn-228 closed on 2026-10-24 with R40
 discharged by pointer; the live proof is this spec's).
 The current atomic Model explicitly refuses unheld cancellation of an open activity before
@@ -89,24 +89,6 @@ encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit bloc
 the conductor clears each only after the named prerequisite's closure is committed in `umpire`.
 
 Sections follow the remaining execution order (first open task first); deferred specs come last.
-
-### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
-
-Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
-timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
-(optional handler facts, bounded optional values), the final one-tick compatibility refinement,
-live timeout admission and cancellation evidence, and their write-up. Reactivated by the owner
-on 2026-10-23, scheduled after fn-238. On 2026-10-24 the spec was aligned with fn-243: .4's worker evidence
-is program rows (heartbeat, cancellation acknowledgement) judged from server history, the held attempt and
-schedule-to-start expiry use the hold fault, and task paths carry the fn-244 layout mapping.
-Facts, bounded optional values and World-selected fairness support are complete: native/interpreted/TLC agreement, mutation controls, full gates and exact old-artifact preservation passed. The independent cancellation boundary amendment passed fresh plan review before Model implementation; actual worker evidence and replay are explicit requirements.
-[Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-237.3 | 🔄 in progress | After committed .1, .2, .6 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
-| fn-237.4 | ⬜ todo | After .3 and committed fn-246: live timeout admission and cooperative cancellation evidence (R4) |
-| fn-237.5 | ⏸️ blocked | After .4 and committed fn-243.5: final DESIGN.md timeout and cancellation write-up (R5) |
 
 ### fn-247: One language for the framework: Rust process supervisor and xtask replace the Python helpers (model)
 
@@ -124,7 +106,7 @@ Rust port, preserving its independent authority and artifacts.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.1 | ⬜ todo | After committed fn-237.3: extract shared process support and retain the exact equivalence baseline (R1, R4) |
+| fn-247.1 | 🔄 in progress | Committed fn-237.3 prerequisite verified: extract shared process support and retain the exact equivalence baseline (R1, R4) |
 | fn-247.4 | ⬜ todo | After .1: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
 | fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
 | fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission and unchanged guest bytes (R2, R3) |
@@ -168,6 +150,23 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 | fn-246.4 | ⬜ todo | After .3, .11, .13: generic native Refinement consumer and activity declaration (R5) |
 | fn-246.5 | ⬜ todo | After .3, .4, .14: complete observable-worker policies and derived programs (R6) |
 | fn-246.6 | ⬜ todo | After .3, .4, .5: integrated evidence, count/timing gates and author docs (R1–R7) |
+
+### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
+
+Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
+timeouts, Heartbeat, Tick and cooperative cancellation with their native and source support
+(optional handler facts, bounded optional values), the final one-tick compatibility refinement,
+live timeout admission and cancellation evidence, and their write-up. Reactivated by the owner
+on 2026-10-23, scheduled after fn-238. On 2026-10-24 the spec was aligned with fn-243: .4's worker evidence
+is program rows (heartbeat, cancellation acknowledgement) judged from server history, the held attempt and
+schedule-to-start expiry use the hold fault, and task paths carry the fn-244 layout mapping.
+Facts, bounded optional values and World-selected fairness support are complete: native/interpreted/TLC agreement, mutation controls, full gates and exact old-artifact preservation passed. The independent deadline, heartbeat, Tick, retry and cooperative-cancellation Model policy is complete, with three-draw SHIP review, native/TLC replay, exact retained compatibility and full gates. Live constructors still use atomic cancellation with absent timeouts; actual timeout and cooperative worker evidence remains in .4.
+[Spec](.flow/specs/fn-237-activity-timeouts-heartbeat-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-237.4 | ⬜ todo | After .3 and committed fn-246: live timeout admission and cooperative cancellation evidence (R4) |
+| fn-237.5 | ⏸️ blocked | After .4 and committed fn-243.5: final DESIGN.md timeout and cancellation write-up (R5) |
 
 ### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
 
