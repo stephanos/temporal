@@ -18,6 +18,10 @@ ROOTS = ('TestBrokerOrdersAreCurrent', 'TestBrokerOrdersRustNetworkEvidenceRebui
 ORIGINAL_COMMIT = '1d695061b6382009d0659238c652a5a765b1d5f5'
 ORIGINAL_WASI_PIN = 'sha256:5fddc30fd325f3168d32a0084a3e76e3a10b341da7aee86ddcd9f3b2a8b91bc3'
 RELOCATED_WASI_PIN = 'sha256:bd45d4831ca0f417b6411a29b70cf1070a779e5f04591a679c180d925b586d15'
+ORIGINAL_NETWORK_PIN = 'sha256:d299f192c384e1d3949df7f21039b94f2add8f9bfe493a96dafe2c22e5b45f84'
+CURRENT_WASI_PIN = 'sha256:48dd5e7be652d1ae1bc7d21e7cc2197730d3b007a5aa58691f800ac1a2facbd5'
+CURRENT_NETWORK_PIN = 'sha256:c3e3442cc50df70fb704a024d81d63872b311edef244dfabef8a7e8575c39bd0'
+CURRENT_NETWORK_ADAPTER_SHA256 = '71bed2e65d21283b390a679c9d7236eb27d3b852470b9813c3427cd462d46011'
 ORIGINAL_CORPUS = {
     'network_cluster_cases': (51, '7cb0497950335edffa3bdaf48de63694bab3174d2ef0302b1f6db96f1c414beb'),
     'broker_orders': (19, '8802ba410039c540f093dce503aa9d63b252bcac038b9ba21ff46595c7ebdada'),
@@ -339,16 +343,19 @@ def corpus_inputs(config):
         for path in paths:
             native_roles.pinned(config, path)
             raw = path.read_bytes()
+            closure_raw = raw
             if directory == 'network_cluster_cases':
                 doc = native_roles.decode(raw)
                 require(path.suffix == '.json' and doc['schema'] == 'gomad.network-cluster-corpus/v1' and doc['name'] == path.stem
-                        and doc['implementation_sha256'] == RELOCATED_WASI_PIN,
-                        'network corpus original header or fixed relocated implementation pin changed')
-                old = ('"implementation_sha256":"' + RELOCATED_WASI_PIN + '"').encode()
-                replacement = ('"implementation_sha256":"' + ORIGINAL_WASI_PIN + '"').encode()
-                require(raw.count(old) == 1, 'network corpus original pin substitution is ambiguous')
-                raw = raw.replace(old, replacement)
-            digest.update(path.name.encode() + b'\0' + len(raw).to_bytes(8, 'big') + raw)
+                        and doc['implementation_sha256'] == CURRENT_WASI_PIN and doc['network_implementation_sha256'] == CURRENT_NETWORK_PIN,
+                        'network corpus original header or fixed current implementation pin changed')
+                for field, current, original in (('implementation_sha256', CURRENT_WASI_PIN, ORIGINAL_WASI_PIN),
+                                                 ('network_implementation_sha256', CURRENT_NETWORK_PIN, ORIGINAL_NETWORK_PIN)):
+                    old = ('"' + field + '":"' + current + '"').encode()
+                    replacement = ('"' + field + '":"' + original + '"').encode()
+                    require(closure_raw.count(old) == 1, 'network corpus original pin substitution is ambiguous')
+                    closure_raw = closure_raw.replace(old, replacement)
+            digest.update(path.name.encode() + b'\0' + len(closure_raw).to_bytes(8, 'big') + closure_raw)
             if path.suffix == '.json':
                 documents[directory][path.stem] = native_roles.decode(raw)
         require((len(paths), digest.hexdigest()) == expected, 'network corpus differs from immutable original inventory or content: ' + directory)
@@ -357,17 +364,18 @@ def corpus_inputs(config):
     for name, expected in ORIGINAL_NETWORK_SOURCES.items():
         path = native_roles.pinned(config, root / 'internal/model/network' / name)
         sources[name] = sha(path.read_bytes())
-        require(sources[name] == expected, 'network retained Go source differs from immutable original: ' + name)
+        require(sources[name] == (CURRENT_NETWORK_ADAPTER_SHA256 if name == 'adapter.go' else expected), 'network retained Go source differs from fixed source anchor: ' + name)
     inventory = ''.join(name + ':' + sources[name] + '\n' for name in sorted(sources) if name != 'record_identity.go').encode()
     network_pin = 'sha256:' + sha(inventory)
+    require(network_pin == CURRENT_NETWORK_PIN, 'network recomputed source identity differs from fixed current pin')
     path = native_roles.pinned(config, crate / 'src/network/PINNED_GO_NETWORK_SHA256')
     require(path.read_text() == network_pin + '\n', 'network drift pin differs from recomputed immutable Go source')
     path = native_roles.pinned(config, crate / 'src/cluster/network/PINNED_GO_WASI_SHA256')
-    require(path.read_text() == RELOCATED_WASI_PIN + '\n', 'network relocated WASI drift pin changed')
+    require(path.read_text() == CURRENT_WASI_PIN + '\n', 'network current WASI drift pin changed')
     require(all(doc['network_implementation_sha256'] == network_pin for doc in documents['network_cluster_cases'].values()), 'network corpus Go implementation drift')
     return documents, dict(original_commit=ORIGINAL_COMMIT, corpora=closures, network_source_inputs=sources,
                            network_implementation_sha256=network_pin, original_wasi_source_anchors=ORIGINAL_WASI_SOURCE_ANCHORS,
-                           original_wasi_pin=ORIGINAL_WASI_PIN, relocated_wasi_pin=RELOCATED_WASI_PIN,
+                           original_wasi_pin=ORIGINAL_WASI_PIN, relocated_wasi_pin=RELOCATED_WASI_PIN, current_wasi_pin=CURRENT_WASI_PIN,
                            retired_drift_check='Removed Go WASI API implementation is anchored to original source hashes; no claim of regenerating it')
 
 

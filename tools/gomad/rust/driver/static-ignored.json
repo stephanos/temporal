@@ -461,6 +461,14 @@
           "features": []
         }
       ]
+    },
+    {
+      "crate": "gomad",
+      "name": "actual_pending_reads_complete_and_replay_under_one_mib",
+      "source": "gomad/src/replay/cluster/pending_reads_guest_tests.rs",
+      "reason": "actual pinned Go compilation and live guests require the parent execution lease",
+      "disposition": "supporting-only-nonqualification",
+      "final_id": null
     }
   ]
 }

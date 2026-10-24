@@ -77,7 +77,7 @@ class NetworkReader(unittest.TestCase):
 
     def test_original_closure_rejects_joint_candidate_and_expectation_edits(self):
         repo = DATA.parents[5]
-        for mutation in ('delete', 'add', 'expected', 'input', 'broker_world', 'wire', 'network_source', 'network_pin', 'wasi_pin'):
+        for mutation in ('delete', 'add', 'expected', 'input', 'broker_world', 'wire', 'network_source', 'network_adapter', 'network_pin', 'wasi_pin'):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
                 copied = Path(temporary)
                 for directory in gate.ORIGINAL_CORPUS:
@@ -112,8 +112,9 @@ class NetworkReader(unittest.TestCase):
                     raw = path.read_bytes(); path.write_bytes(raw.replace(b'"world_base64":', b'"changed_world_base64":'))
                 elif mutation == 'wire':
                     path = data / 'cluster_network/b.gmnetev1'; path.write_bytes(path.read_bytes() + b'\0')
-                elif mutation == 'network_source':
-                    path = copied / 'tools/gomad/internal/model/network/simulation.go'; path.write_bytes(path.read_bytes() + b'\n')
+                elif mutation in ('network_source', 'network_adapter'):
+                    name = 'adapter.go' if mutation == 'network_adapter' else 'simulation.go'
+                    path = copied / 'tools/gomad/internal/model/network' / name; path.write_bytes(path.read_bytes() + b'\n')
                 elif mutation in ('network_pin', 'wasi_pin'):
                     path = copied / 'tools/gomad/rust/wasmhost' / ('src/network/PINNED_GO_NETWORK_SHA256' if mutation == 'network_pin' else 'src/cluster/network/PINNED_GO_WASI_SHA256')
                     path.write_text('sha256:' + '0' * 64 + '\n')
