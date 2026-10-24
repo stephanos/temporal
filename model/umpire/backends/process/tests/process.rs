@@ -142,7 +142,6 @@ fn cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin() -> Res
 }
 
 #[test]
-#[cfg(target_os = "linux")]
 fn java_environment_is_clean_and_supervisor_group_is_private() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
     let mut command = java_command(Path::new(FIXTURE));
@@ -172,6 +171,7 @@ fn substituted_log_symlink_cannot_modify_an_external_file() -> Result<(), Refusa
 #[test]
 fn substituted_log_fifo_returns_without_waiting_for_a_reader() -> Result<(), Refusal> {
     let scratch = Scratch::new(&root()?)?;
+    assert!(Command::new("mkfifo").arg(scratch.0.join("replacement.fifo")).status()?.success());
     let work = scratch.0.clone();
     let (send, receive) = std::sync::mpsc::channel();
     let worker = thread::spawn(move || {
@@ -384,5 +384,29 @@ fn diagnostic_text_cannot_make_a_hung_preflight_pass() -> Result<(), Refusal> {
     .ok_or_else(|| Refusal("hung preflight was admitted".into()))?;
     assert!(failure.refusal.0.contains("limit"));
     assert!(failure.output.contains("TLC cache escapes repository"));
+    scratch.finish(Ok(()))
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn owner_group_and_direct_supervisor_termination_reap_owned_tree() -> Result<(), Refusal> {
+    for mode in ["owner-group", "owner-group-kill", "supervisor"] {
+        let scratch = Scratch::new(&root()?)?;
+        let output = fixture("lifecycle-harness").arg(mode).arg(&scratch.0).output()?;
+        assert!(output.status.success(), "{mode}: {}", String::from_utf8_lossy(&output.stderr));
+        assert_reaped(&scratch.0.join("pids"))?;
+        scratch.finish::<_, Refusal>(Ok(()))?;
+    }
+    Ok(())
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn owner_death_terminates_and_reaps_separate_session_descendants() -> Result<(), Refusal> {
+    let scratch = Scratch::new(&root()?)?;
+    let output = fixture("lifecycle-harness").arg("owner-eof").arg(&scratch.0).output()?;
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert!(output.stderr.is_empty());
+    assert_reaped(&scratch.0.join("pids"))?;
     scratch.finish(Ok(()))
 }
