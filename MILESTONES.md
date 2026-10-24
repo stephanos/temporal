@@ -549,7 +549,18 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 ### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
 
-Owner request 2026-10-23. Starts after the fn-232.13 cycle, the fn-233 rerun and the fn-221 sweep have run on `gomad`; it does not wait for stress (ruling 7) or the quiet-host profiles. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Tasks come from `/flow-next:plan`. Conductor ruling 2026-10-24: fn-242 runs before fn-240's extractions, and one fresh cycle under the Rust verb closes both.
+Owner request 2026-10-23. Starts after the fn-232.13 cycle, the fn-233 rerun and the fn-221 sweep have run on `gomad`; it does not wait for stress (ruling 7) or the quiet-host profiles. Each check keeps a named failure it catches or is deleted, and the Python cycle driver becomes a Rust `gomad` verb. Conductor ruling 2026-10-24: fn-242 runs before fn-240's extractions, and one fresh cycle under the Rust verb closes both. Task .1 is analysis only and may start now.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | ⬜ Todo | Obligation inventory and the 96-stage table the verb must reproduce |
+| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
+| [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
+| [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
+| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; retire the Go baseline |
+| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
+| [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Cutover: delete the Python driver, repoint Make, CI, docs, inventory; sizes |
+| [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Requalification cycle under the verb with verdict parity |
 
 ### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
 

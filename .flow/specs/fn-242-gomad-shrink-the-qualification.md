@@ -21,14 +21,14 @@ Qualification stays at least as strong as today, with much less code:
 - **Requalification.** The result must pass one fresh full cycle under the new Rust verb, with the same stage set and bounds, and with a side-by-side comparison against the frozen-candidate cycle's verdicts.
 - **Testing.** Golden and e2e tests come before unit tests, and a unit test must name its invariant.
 
-## Acceptance
+## Acceptance Criteria
 
-- [ ] An obligation inventory exists. Each entry lists the failure it detects and either its catching test or mutation, or its deletion reason. No obligation remains without a named failure.
-- [ ] The Rust cycle verb replaces `tools/gomad/rust/driver/`. The Python driver and its tests are deleted, and Make, CI and QUALIFICATION.md point at the verb.
-- [ ] Each parity lane has a recorded disposition (keep, fold or retire), and that disposition has been carried out.
-- [ ] Duplicated measurement checking is removed.
-- [ ] Before/after line counts are recorded with the fn-232.13 size counter.
-- [ ] One fresh full cycle passes under the verb within 3,600 s, with verdict parity against the fn-232.13 closing cycle (bound to the commit it ran on). Wall-time-only misses are recorded and judged in the quiet-host window; correctness verdicts must match.
+- **R1:** An obligation inventory exists for every `required-final.json` subgate (145 today), every driver reader/receiver module and every receipt check. Each entry names the concrete failure it detects and either its catching test or mutation, or its deletion reason. Errors: an obligation without a named failure, or a kept check without a catching test or mutation, is a finding.
+- **R2:** A Rust `gomad` cycle verb replaces `tools/gomad/rust/driver/`: the same 96 stages, argv, bounds, resource policy (cores, memory, locks, scratch, live-memory guard, exclusive timing stages) and the 3,600-second limit, in serial and parallel modes, plus the kept readers and receivers as its validation step. The Python driver and its tests are deleted; Make, CI, QUALIFICATION.md and the determinism inventory's `driver:` evidence references point at the verb and its Rust tests. Errors: a stage whose argv, bound or resource declaration differs from the retired driver's plan fails the plan golden; a deleted check without an R1 deletion reason is a finding.
+- **R3:** Every parity lane under `testdata/parity/` and `scripts/` has a recorded disposition (keep as golden regression, fold into Rust tests, or retire with the Go baseline), and that disposition has been carried out. Errors: a lane without a disposition, or a retired lane whose checks are not covered elsewhere, is a finding.
+- **R4:** `measurement/` logic that duplicates qualify/result checking is removed; what remains is inventoried under R1. Errors: a removed check without an inventory entry is a finding.
+- **R5:** Before/after file, byte and code-line counts are recorded with the fn-232.13 counter `gomad-source-size/v1`, separating production, tests and generated code. Errors: a count without the counter version and exact revisions is a finding.
+- **R6:** One fresh full cycle passes under the verb within 3,600 s, with verdict parity against the fn-232.13 closing cycle (bound to the commit it ran on). Wall-time-only misses are recorded and judged in the quiet-host window; correctness verdicts must match. Errors: a verdict difference blocks closure; a missing retained command exit or identity is a finding.
 
 ## Interim rule (2026-10-23, until this spec runs)
 
