@@ -20,9 +20,27 @@ Inventory the three launcher-policy failures for the Rust port and name a catchi
 - [ ] Inventory rows name catching regressions for ambiguous spawn charging, missing/mismatched journal enrollment and all three dispatch resource floors; original stage/obligation coverage is preserved
 
 ## Done summary
-TBD
+Inventoried 3,728 source-bound checks across 73 modules, all 145 final obligations, 38 endpoint substitutions/499 function mappings, and the reproducible 96-stage contract. Local discovery is complete; global R1 stays unproved: 192 check credits have verified controls/refusals, 3,536 checks and all 145 semantic obligations remain mandatory pending work; no qualification attempt ran.
 
+Tier: session (jev-unavailable(no_key)); project implementer pin retained
+baseline: none — task/spec define no Quick commands.
+stage: impl-review - ran [2026-10-24T17:23:21.791303Z..2026-10-24T17:48:11.947779Z] (codex:gpt-6.1-sol:high; first three draws NEEDS_WORK; resumed review SHIP; same family disclosed)
+
+Review receipt: /tmp/impl-review-receipt-0b8490237aa9-fn-242-gomad-shrink-the-qualification.1.json
+Review details: .flow/review-fanout/6cbfc70d450f4832b3e21c7800ae5519/ and .flow/tmp/fn242-impl-review-round2.log. All six distinct findings fixed. Five read-only research agents joined before staging.
+
+Owned artifact commits: 5d4805d1ecac901fee8b8bc8e8174ef7635e1308, 64a55788f44440ec88761ec286ef4cb1ab581591. Imported plan 8b385f4234 is equivalent to conductor main 3329b8b9db; do not integrate that equivalent twice. Product source is unchanged. Root authorized one post-SHIP lifecycle exception: Flow memory entry bug/test-failures/require-valid-controls-before-crediting-2026-10-24.
+
+Verification commands/results are in handoff.json tests[] and .flow/tmp/fn242-final-tests.json; exact source, recorder and log hashes are in the JSON artifact. Initial proof-control handle 37962 exited124: INCONCLUSIVE, no proof credited, source SHA256 33c9c97915c45a4705f763d608d4222a104738b27ecbd51352d232e458843dca. Recovery handle 39939 exited0 (tool d48dbc): 175 tests/22.696s, source SHA256 2f9546be1540f0327ffaccdd88ad288ceb1c221985636b17548550e6fdf1e8e2. It audited 707 current credits and explicitly reconciled the already-withdrawn delegated-74 row: all 708 originals map to 192 approved/516 downgraded; this is not 708 executed tests. Reviews 75639/82227 and every other owned command exited.
+
+Expanded coverage failed with 246 omissions before correction, then passed with zero missing explicit sites; ten pure branch/control probes passed. Gate classification is FULL for imported MILESTONES.md; there are no Quick/full-gate identities to run or GATE_SKIPPED lines to fabricate. Focused artifact/fixture checks and diff check pass. Source-size start counter gomad-source-size/v1 is retained in .flow/tmp/fn242-source-size-start.json; .7 owns final measurement.
+
+Retain /home/agent/wt/fn242-obligation-inventory for integration and open-spec proof scripts/logs under .flow/tmp/fn242-* until transferred. No worker-created worktree/cache, assigned build target or cleanup; other worktrees are untouched, listed in .flow/tmp/fn242-worktrees-at-handoff.txt. Handover root: /home/agent/wt/evidence/fn242-obligation-inventory. No owned process remains. Disk: 85 GiB available.
+
+Next: tracked Flow splits for oversized .3/.4/.9/.10; .7/.8 wait for every successor and zero unresolved proof/endpoint replacements. Complete fn-242, then ALL approved fn-240 tasks 1–13, then fn-246 actual qualification/receiving. Preserve original acceptance and pending Go baseline inputs. Full allowance: 0 used/2 remaining. Tracker sync: n/a (inactive); planSync false.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8b385f4234b109e29d1bf888ede7a861ffc5d2aa, 5d4805d1ecac901fee8b8bc8e8174ef7635e1308, 64a55788f44440ec88761ec286ef4cb1ab581591
+- Tests: env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_driver.py (exit0;9 tests), env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tools/gomad/rust/driver/tests:tools/gomad/rust/driver python3 -m unittest test_composition test_configs test_static_stages test_primary_stages test_final test_adapters test_host_admission (exit0;84 tests), env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .flow/artifacts/wasm-qualification-driver/parallel/tests -p test_scheduler.py (exit0;31 tests), env -u GIT_DIR -u GIT_WORK_TREE PYTHONDONTWRITEBYTECODE=1 timeout 600 python3 - < .flow/tmp/fn242-reader-proof-recorder.py (source-attributed stdin execution;exit0;313 tests;exact binding in artifact), PYTHONDONTWRITEBYTECODE=1 python3 - < .flow/tmp/fn242-final-proof-executed.py (actual stdin body retained;exit0;52 tests), env -u GIT_DIR -u GIT_WORK_TREE PYTHONDONTWRITEBYTECODE=1 timeout 600 python3 .flow/tmp/fn242-orchestration-proof-recorder.py (43 tests;exit0;executed/reproduction identity in artifact), INCONCLUSIVE: env -u GIT_DIR -u GIT_WORK_TREE PYTHONDONTWRITEBYTECODE=1 timeout 600 python3 .flow/tmp/fn242-proof-control-audit.py; initial script SHA25633c9c97915c45a4705f763d608d4222a104738b27ecbd51352d232e458843dca; process_exit124; no pass/proof credited, env -u GIT_DIR -u GIT_WORK_TREE PYTHONDONTWRITEBYTECODE=1 timeout 600 python3 .flow/tmp/fn242-proof-control-audit.py; recovery script SHA2562f9546be1540f0327ffaccdd88ad288ceb1c221985636b17548550e6fdf1e8e2; process_exit0;175 tests, python3 .flow/tmp/fn242-reader-boolean-probes.py (10 pure controls/mutations;exit0;retained result JSON), env PYTHONDONTWRITEBYTECODE=1 python3 .flow/tmp/fn242-verify-inventory.py (exit0;3728 rows/145 exact subgates/96 byte-identical derived stages), python3 .flow/tmp/fn242-site-coverage.py (before exit1/246 missing;after exit0/zero missing;73 sources/3589 explicit sites), git diff --check (exit0), gate classify --base 4bdb81c48727c7ca280566c9f113685493e09b19 => FULL: unmatched MILESTONES.md; spec/task Quick commands:none; artifact-only focused verification completed; no full gate identities defined
 - PRs:

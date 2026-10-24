@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-242-gomad-shrink-the-qualification",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-242-gomad-shrink-the-qualification.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -286,15 +288,185 @@
       "task": null,
       "timestamp": "2026-10-24T17:16:55.400355Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4c1c84bfee1b36b1587d6c9048f82970d00e720729aaa3ab5b9789364e46538d",
+      "backend": "codex",
+      "base_sha": "4bdb81c48727c7ca280566c9f113685493e09b19",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1f43e292956cf1efdf4a79ca58fcfd36",
+            "classification": "introduced",
+            "findingId": "finding-1f43e292956cf1efdf4a79ca58fcfd36",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-de1b4ad57ddbfee5ca781df387b11ce2",
+            "classification": "introduced",
+            "findingId": "finding-de1b4ad57ddbfee5ca781df387b11ce2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3a3e479a27c946a90f3deec2648f506f",
+            "classification": "introduced",
+            "findingId": "finding-3a3e479a27c946a90f3deec2648f506f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e76428e40e2dd075ee1b7a23deb64dd2",
+            "classification": "introduced",
+            "findingId": "finding-e76428e40e2dd075ee1b7a23deb64dd2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c5cb25c6fcd4cde4a4a7ac5f6481b723",
+            "classification": "introduced",
+            "findingId": "finding-c5cb25c6fcd4cde4a4a7ac5f6481b723",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-44503a4df61d27c2326555415d69c31f",
+            "classification": "introduced",
+            "findingId": "finding-44503a4df61d27c2326555415d69c31f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5d4805d1ecac901fee8b8bc8e8174ef7635e1308",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 5800,
+      "output_sha256": "21f97ac8e45ef0abdbe7990a2997c31815c93269f33b21aa1f37d703449eabc8",
+      "reservation_id": "6cbfc70d450f4832b3e21c7800ae5519",
+      "round_consumed": true,
+      "scope": "impl:fn-242-gomad-shrink-the-qualification.1",
+      "superseded_by": null,
+      "task": "fn-242-gomad-shrink-the-qualification.1",
+      "timestamp": "2026-10-24T17:28:09.086249Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "43fd73ad5412af5f971e7e862dbc91da5e7d2d693534fbbabd68de10c6694887",
+      "backend": "codex",
+      "base_sha": "4bdb81c48727c7ca280566c9f113685493e09b19",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1f43e292956cf1efdf4a79ca58fcfd36",
+            "classification": "introduced",
+            "findingId": "finding-1f43e292956cf1efdf4a79ca58fcfd36",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-de1b4ad57ddbfee5ca781df387b11ce2",
+            "classification": "introduced",
+            "findingId": "finding-de1b4ad57ddbfee5ca781df387b11ce2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3a3e479a27c946a90f3deec2648f506f",
+            "classification": "introduced",
+            "findingId": "finding-3a3e479a27c946a90f3deec2648f506f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e76428e40e2dd075ee1b7a23deb64dd2",
+            "classification": "introduced",
+            "findingId": "finding-e76428e40e2dd075ee1b7a23deb64dd2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c5cb25c6fcd4cde4a4a7ac5f6481b723",
+            "classification": "introduced",
+            "findingId": "finding-c5cb25c6fcd4cde4a4a7ac5f6481b723",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-44503a4df61d27c2326555415d69c31f",
+            "classification": "introduced",
+            "findingId": "finding-44503a4df61d27c2326555415d69c31f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "64a55788f44440ec88761ec286ef4cb1ab581591",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1363,
+      "output_sha256": "0a39618e32dffa48499eceeee9c7612833b3bbf94fc0ab4ebd02ff0f1cdb6e12",
+      "reservation_id": "28aff9992b484e2c95380405d686c379",
+      "round_consumed": true,
+      "scope": "impl:fn-242-gomad-shrink-the-qualification.1",
+      "superseded_by": null,
+      "task": "fn-242-gomad-shrink-the-qualification.1",
+      "timestamp": "2026-10-24T17:48:11.948662Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-242-gomad-shrink-the-qualification.1": 1,
     "plan": 3,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-242-gomad-shrink-the-qualification.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-242-gomad-shrink-the-qualification.md",
@@ -311,5 +483,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T17:16:55.406536Z"
+  "updated_at": "2026-10-24T17:48:11.951473Z"
 }
