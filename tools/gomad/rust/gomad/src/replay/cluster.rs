@@ -318,7 +318,7 @@ fn simulation_plan(opened: &Opened, inputs: &Inputs) -> Result<Option<simulation
         let trace = retained_primary
             .evidence
             .get("choice")
-            .map(|payload| payload.read(opened, 1 << 30))
+            .map(|payload| payload.read(opened, primary.limits.evidence_bytes))
             .transpose()?
             .unwrap_or_default();
         let (config, candidate) = simulation_record_wire::candidate_for_artifact(
@@ -575,7 +575,7 @@ fn authenticate_retained_incarnation(
         if stream.bytes != descriptor.bytes || stream.sha256 != descriptor.sha256 {
             return Err("retained cluster stream identity mismatch".into());
         }
-        descriptor.read(opened, 1 << 30)?;
+        descriptor.read(opened, item.limits.evidence_bytes)?;
     }
     if let Some(state) = retained.evidence.get("storage_state") {
         let storage = storage_input(item)?
@@ -738,6 +738,12 @@ pub fn authenticate_inspection(
             .iter()
             .find(|item| item.handle == observed.handle)
             .ok_or("unknown cluster inspection incarnation")?;
+        let incarnation = inputs
+            .configuration
+            .incarnations
+            .iter()
+            .find(|item| item.handle == observed.handle)
+            .ok_or("unknown cluster inspection incarnation")?;
         for (name, bytes) in [
             ("choice", &observed.streams.choice),
             ("transcript", &observed.streams.wasi),
@@ -749,7 +755,7 @@ pub fn authenticate_inspection(
             let expected = retained
                 .evidence
                 .get(name)
-                .map(|descriptor| descriptor.read(opened, 1 << 30))
+                .map(|descriptor| descriptor.read(opened, incarnation.limits.evidence_bytes))
                 .transpose()?
                 .unwrap_or_default();
             if *bytes != expected {

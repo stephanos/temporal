@@ -506,6 +506,42 @@ fn retained_incarnation_uses_authenticated_evidence_bound() {
     }
 }
 
+#[test]
+fn retained_inspection_uses_authenticated_evidence_bound() {
+    let bound = (1 << 30) + (2 << 20) + (128 << 20);
+    for excess in [0, 1] {
+        let fixture = evidence_bound_fixture(bound, bound + excess);
+        let opened = fixture.open();
+        opened.authenticate_all().unwrap();
+        let raw = opened.payload(FILE, 16 << 20).unwrap();
+        let inputs = super::inputs(&opened).unwrap();
+        let evidence: inspection::Evidence = serde_json::from_value(json!({
+            "schema":"gomad.wasm-inspection/v3", "complete":true,
+            "boundary_encoding":"gomad.inspection-boundaries-binary/v1",
+            "lifecycle_encoding":"gomad.inspection-lifecycle-binary/v1",
+            "state_encoding":"gomad.inspection-state-sha256/v2",
+            "world_encoding":"gomad.inspection-world-sha256/v2",
+            "world":"", "lifecycle":"", "boundary_frames":"",
+            "incarnations":[{"handle":inputs.retained[0].handle,
+                "started_order":0,"terminal_order":0,
+                "registry":{"closed":false,"closed_order":0,"entries":[]},
+                "streams":{"choice":"","wasi":"","network":"","storage":"",
+                    "stdout":crate::campaign::exploration::base64(b"ok"),"stderr":""}}]
+        }))
+        .unwrap();
+        let result = super::authenticate_inspection(&opened, &evidence);
+        if excess == 0 {
+            assert_eq!(result, Ok(()));
+        } else {
+            assert_eq!(
+                result.unwrap_err(),
+                "cluster payload exceeds caller bound or has invalid identity"
+            );
+        }
+        assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), raw);
+    }
+}
+
 /// Original `TestRetainedTargetModuleIsBoundedBeforeCopy`: the retained
 /// module's 512 MiB bound is checked from the listed size alone, before the
 /// manifest entry is consulted or any byte is read.
