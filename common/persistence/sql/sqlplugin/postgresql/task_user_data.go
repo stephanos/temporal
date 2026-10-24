@@ -83,7 +83,7 @@ func (pdb *db) AddToBuildIdToTaskQueueMapping(ctx context.Context, request sqlpl
 	query.WriteString(addBuildIdToTaskQueueMappingQry)
 	var params []any
 	for idx, buildId := range request.BuildIds {
-		query.WriteString(fmt.Sprintf("($%d, $%d, $%d)", idx*3+1, idx*3+2, idx*3+3))
+		fmt.Fprintf(&query, "($%d, $%d, $%d)", idx*3+1, idx*3+2, idx*3+3)
 		if idx < len(request.BuildIds)-1 {
 			query.WriteString(", ")
 		}
@@ -106,7 +106,7 @@ func (pdb *db) RemoveFromBuildIdToTaskQueueMapping(ctx context.Context, request 
 		if idx == len(request.BuildIds)-1 {
 			sep = ")"
 		}
-		query.WriteString(fmt.Sprintf("$%d%s", idx+3, sep))
+		fmt.Fprintf(&query, "$%d%s", idx+3, sep)
 		params[idx+2] = buildId
 	}
 

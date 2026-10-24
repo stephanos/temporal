@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T14:49:58.463853Z",
+  "depends_on": [
+    "fn-240-symbolic-back-end-models-as-btor2.1",
+    "fn-240-symbolic-back-end-models-as-btor2.2"
+  ],
+  "id": "fn-240-symbolic-back-end-models-as-btor2.3",
+  "priority": null,
+  "spec": "fn-240-symbolic-back-end-models-as-btor2",
+  "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.3.md",
+  "status": "todo",
+  "title": "Witness decoding and native replay: typed frames by declaration index, checked_step replay, claim re-judged, shared Replay types with umpire-apalache, mutation controls",
+  "updated_at": "2026-10-23T14:49:58.463853Z"
+}

@@ -1,0 +1,97 @@
+[06:15:53 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/native-symbolic/out-big/big/fails_over_at_boiling.btor
+[06:15:53 INFO] origin ts has 368 vars, 3 inputs, 39 latches, 4 constraints, 1216 clauses and 3276 lits in cnf
+[06:15:53 INFO] trivial simplified ts: 104 vars, 3 inputs, 39 latches, 4 constraints, 472 clauses and 1900 lits in cnf
+[06:15:53 INFO] scorr: eliminates 0 latchs out of 39 in 0.00s
+[06:15:53 INFO] scorr: simplified ts: 102 vars, 3 inputs, 39 latches, 4 constraints, 467 clauses and 1892 lits in cnf
+[06:15:53 INFO] frts: eliminates 1 out of 102 vars in 0.00s
+[06:15:53 INFO] frts: simplified ts: 101 vars, 3 inputs, 39 latches, 4 constraints, 461 clauses and 1879 lits in cnf
+[06:15:53 INFO] preprocessed ts has 101 vars, 3 inputs, 39 latches, 4 constraints, 461 clauses and 1879 lits in cnf
+[06:15:53 INFO] IC3 found no counterexample up to depth 0
+[06:15:53 INFO] IC3 found no counterexample up to depth 1
+[06:15:53 INFO] IC3 found no counterexample up to depth 2
+[06:15:53 INFO] IC3 found no counterexample up to depth 3
+[06:15:53 INFO] IC3 found no counterexample up to depth 4
+[06:15:53 INFO] IC3 found no counterexample up to depth 5
+[06:15:53 INFO] IC3 found no counterexample up to depth 6
+[06:15:53 INFO] IC3 found no counterexample up to depth 7
+[06:15:53 INFO] IC3 found no counterexample up to depth 8
+[06:15:53 INFO] IC3 found no counterexample up to depth 9
+[06:15:53 INFO] IC3 found no counterexample up to depth 10
+[06:15:53 INFO] IC3 found no counterexample up to depth 11
+[06:15:53 INFO] IC3 found no counterexample up to depth 12
+[06:15:53 INFO] IC3 found no counterexample up to depth 13
+[06:15:53 INFO] IC3 found no counterexample up to depth 14
+[06:15:53 INFO] IC3 found no counterexample up to depth 15
+[06:15:53 INFO] IC3 found no counterexample up to depth 16
+[06:15:53 INFO] IC3 found no counterexample up to depth 17
+[06:15:53 INFO] IC3 found no counterexample up to depth 18
+[06:15:53 INFO] IC3 found no counterexample up to depth 19
+[06:15:53 INFO] IC3 found no counterexample up to depth 20
+[06:15:53 INFO] IC3 found no counterexample up to depth 21
+[06:15:53 INFO] IC3 found no counterexample up to depth 22
+[06:15:53 INFO] IC3 found no counterexample up to depth 23
+[06:15:53 INFO] IC3 found no counterexample up to depth 24
+[06:15:53 INFO] IC3 found no counterexample up to depth 25
+[06:15:53 INFO] IC3 found no counterexample up to depth 26
+[06:15:53 INFO] IC3 found no counterexample up to depth 27
+[06:15:53 INFO] IC3 found no counterexample up to depth 28
+[06:15:53 INFO] IC3 found no counterexample up to depth 29
+[06:15:53 INFO] IC3 found no counterexample up to depth 30
+[06:15:53 INFO] IC3 found no counterexample up to depth 31
+[06:15:53 INFO] IC3 found no counterexample up to depth 32
+[06:15:53 INFO] IC3 found no counterexample up to depth 33
+[06:15:53 INFO] IC3 found no counterexample up to depth 34
+[06:15:53 INFO] IC3 found no counterexample up to depth 35
+[06:15:53 INFO] IC3 found no counterexample up to depth 36
+[06:15:53 INFO] IC3 found no counterexample up to depth 37
+[06:15:53 INFO] IC3 found no counterexample up to depth 38
+[06:15:53 INFO] IC3 found no counterexample up to depth 39
+[06:15:53 INFO] IC3 found no counterexample up to depth 40
+[06:15:53 INFO] IC3 found no counterexample up to depth 41
+[06:15:53 INFO] IC3 found no counterexample up to depth 42
+[06:15:53 INFO] IC3 found no counterexample up to depth 43
+[06:15:53 INFO] IC3 found no counterexample up to depth 44
+[06:15:53 INFO] IC3 found no counterexample up to depth 45
+[06:15:53 INFO] IC3 found no counterexample up to depth 46
+[06:15:53 INFO] IC3 found no counterexample up to depth 47
+[06:15:53 INFO] IC3 found no counterexample up to depth 48
+[06:15:53 INFO] IC3 found no counterexample up to depth 49
+[06:15:53 INFO] IC3 proved the property
+[06:15:53 INFO] obligations: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 33]
+[06:15:53 INFO] frames [52]: 2 8 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 33 30 
+[06:15:53 INFO] SolverStatistic {
+    num_solve: 5506,
+    avg_solve_time: 3.541µs,
+    avg_decide_var: 0.648949,
+    num_simplify_subsume: 0,
+    num_simplify_self_subsume: 0,
+}
+[06:15:53 INFO] Statistic {
+    time: 0.02s,
+    num_mic: 190,
+    avg_mic_cube_len: 5.205263,
+    avg_po_cube_len: 6.275971,
+    mic_drop: success: 41, fail: 943, success rate: 4.17%,
+    num_down: 984,
+    num_down_sat: 1037,
+    ctp: success: 0, fail: 162, success rate: 0.00%,
+    block: Block {
+        overall_time: 10.710577ms,
+        get_bad_time: 78 times in 160.081000µs,
+        blocked_time: 161 times in 687.660000µs,
+        get_pred_time: 2.781702ms,
+        mic_time: 10.275255ms,
+        push_time: 194.164µs,
+    },
+    propagate: Propagate {
+        overall_time: 1.277168ms,
+        push_inf_time: 846.96µs,
+    },
+    xor_gen: success: 0, fail: 0, success rate: NaN%,
+    num_auxiliary_var: 0,
+    test: success: 0, fail: 0, success rate: NaN%,
+}
+UNSAT
+0
+
+--- stderr ---

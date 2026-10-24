@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-23T14:49:58.464307Z",
+  "depends_on": [
+    "fn-240-symbolic-back-end-models-as-btor2.3"
+  ],
+  "id": "fn-240-symbolic-back-end-models-as-btor2.4",
+  "priority": null,
+  "spec": "fn-240-symbolic-back-end-models-as-btor2",
+  "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.4.md",
+  "status": "todo",
+  "title": "Fixture consumer: expected/symbolic.txt and symbolic/paths, UMPIRE_BACKENDS=require gating, ownership registration, Kettle goldens, DESIGN and MILESTONES",
+  "updated_at": "2026-10-23T14:49:58.464307Z"
+}

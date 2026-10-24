@@ -199,15 +199,15 @@ func generateBisectSummary(reports []TestBisectReport, repo string, minProb floa
 	if qualifying == 0 {
 		sb.WriteString("No actionable commit suspects found")
 		if skipped > 0 {
-			sb.WriteString(fmt.Sprintf(" — %d tests analyzed but none above %s confidence", skipped, threshold))
+			fmt.Fprintf(&sb, " — %d tests analyzed but none above %s confidence", skipped, threshold)
 		}
 		sb.WriteString("\n")
 		return sb.String()
 	}
 
-	sb.WriteString(fmt.Sprintf("%d tests with actionable suspects (≥%s confidence)", qualifying, threshold))
+	fmt.Fprintf(&sb, "%d tests with actionable suspects (≥%s confidence)", qualifying, threshold)
 	if skipped > 0 {
-		sb.WriteString(fmt.Sprintf(", %d below confidence threshold", skipped))
+		fmt.Fprintf(&sb, ", %d below confidence threshold", skipped)
 	}
 	sb.WriteString("\n\n")
 

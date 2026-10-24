@@ -1,6 +1,6 @@
 # Native symbolic back end: BTOR2 + rIC3 instead of Apalache
 
-Status: spike done 2026-10-23, verdict positive. Probe kept at `.flow/tmp/native-symbolic/`
+Status: spike done 2026-10-23, verdict positive. Probe kept at `model/design/native-symbolic/`
 (README, `run.sh`, emitted files, logs, reports). Built against f76f622a79.
 
 ## Answer in brief
@@ -106,7 +106,7 @@ Replace the Apalache direction with a native symbolic back end spec:
 ## Rerun
 
 ```
-cd temporal/.flow/tmp/native-symbolic
+cd temporal/model/design/native-symbolic
 RIC3=/path/to/ric3 SMT_SOLVER=/path/to/z3 ./run.sh           # baseline + controls
 RIC3=/path/to/ric3 RUNS=big ./run.sh                         # scaled Kettle, ~3 min
 ```

@@ -74,7 +74,7 @@ func TestSelectedTransitionsKeepExerciseErrorsLimitsAndRefusal(t *testing.T) {
 			require.Equal(t, tc.kind, r.Kind, r.Explanation)
 			require.Equal(t, tc.exercised, r.Exercised)
 			if tc.kind == DeclarationError {
-				require.NotNil(t, r.Cause)
+				require.Error(t, r.Cause)
 				require.NotEmpty(t, r.Position)
 			}
 		})

@@ -1,0 +1,10 @@
+== big (BOILING_TEMPERATURE = 1_000_000, a real second Model)
+emit: 355 shared BTOR2 lines in 69.9µs; native: 2000083 states, depth 999962, cut=false, 19.03s
+property                 kind           engine   verdict      time  steps  replay; agreement
+beeps_only_when_off      Invariant      ic3      safe        0.10s  -      unbounded proof; agrees
+never_beeps              Negative       ic3      timeout   120.09s  -      ; no verdict
+warms_only_when_on       Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+fails_over_at_boiling    Postcondition  ic3      safe        0.10s  -      unbounded proof; agrees
+arithmetic               Arithmetic     ic3      safe        0.10s  -      unbounded proof; agrees
+all verdicts agree with the native checker: true
+

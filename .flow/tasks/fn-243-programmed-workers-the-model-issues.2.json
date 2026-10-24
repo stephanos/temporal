@@ -11,6 +11,6 @@
   "spec": "fn-243-programmed-workers-the-model-issues",
   "spec_path": ".flow/tasks/fn-243-programmed-workers-the-model-issues.2.md",
   "status": "todo",
-  "title": "The Go worker follows programs; judgment from server history",
-  "updated_at": "2026-10-23T23:51:30.028599Z"
+  "title": "Raw and SDK executors follow the program; Driver hold fault; judgment from server history",
+  "updated_at": "2026-10-24T01:11:11.355248Z"
 }

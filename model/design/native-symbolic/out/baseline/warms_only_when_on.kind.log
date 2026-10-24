@@ -1,0 +1,14 @@
+[06:17:18 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/native-symbolic/out/baseline/warms_only_when_on.btor
+[06:17:18 INFO] origin ts has 490 vars, 3 inputs, 69 latches, 4 constraints, 1428 clauses and 3662 lits in cnf
+[06:17:18 INFO] trivial simplified ts: 163 vars, 3 inputs, 69 latches, 4 constraints, 658 clauses and 2420 lits in cnf
+[06:17:18 INFO] scorr: eliminates 0 latchs out of 69 in 0.00s
+[06:17:18 INFO] scorr: simplified ts: 161 vars, 3 inputs, 69 latches, 4 constraints, 653 clauses and 2412 lits in cnf
+[06:17:18 INFO] frts: eliminates 1 out of 161 vars in 0.00s
+[06:17:18 INFO] frts: simplified ts: 160 vars, 3 inputs, 69 latches, 4 constraints, 647 clauses and 2399 lits in cnf
+[06:17:18 INFO] preprocessed ts has 160 vars, 3 inputs, 69 latches, 4 constraints, 647 clauses and 2399 lits in cnf
+[06:17:18 INFO] Kind found no counterexample up to depth 0
+[06:17:18 INFO] Kind proved the property
+UNSAT
+0
+
+--- stderr ---

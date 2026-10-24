@@ -56,7 +56,7 @@ func (hi *hostInfo) summary() string {
 		case roleKey, portKey:
 			// skip these, they can be determined from context
 		default:
-			s.WriteString(fmt.Sprintf("[%s=%s]", k, v))
+			fmt.Fprintf(&s, "[%s=%s]", k, v)
 		}
 	}
 	return s.String()

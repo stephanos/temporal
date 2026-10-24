@@ -11,6 +11,6 @@
   "spec": "fn-243-programmed-workers-the-model-issues",
   "spec_path": ".flow/tasks/fn-243-programmed-workers-the-model-issues.3.md",
   "status": "todo",
-  "title": "A worker in another language follows a program file",
-  "updated_at": "2026-10-23T23:51:30.033582Z"
+  "title": "A raw executor in another language follows the program file",
+  "updated_at": "2026-10-24T01:11:11.618845Z"
 }

@@ -76,7 +76,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228.6 → fn-244.2 → fn-243 → fn-228.7 → fn-238 → fn-237 (fn-243 moved before fn-228.7 and fn-237 on 2026-10-24 so R40 is written once and fn-237 gets the hold fault; fn-242 runs in the parallel lane before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228.6 → fn-244.2 → fn-243 → fn-228.7 → fn-238 → fn-237 (fn-243 moved before fn-228.7 and fn-237 on 2026-10-24 so R40 is written once and fn-237 gets the hold fault; fn-242 runs in the parallel lane before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -170,6 +170,28 @@ hold fault and follows.
 | fn-243.2 | ⬜ todo | After .1: raw and sdk executors, Driver hold fault, judgment from server history, live slice (R2, R3) |
 | fn-243.3 | ⬜ todo | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
 | fn-243.4 | ⬜ todo | After .2, .3 and fn-228.7: DESIGN.md R40 final form checked; design note points to code (R5) |
+
+### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
+
+Captured on 2026-10-23 from the positive native symbolic spike (`model/design/native-symbolic-backend.md`;
+probe preserved at `model/design/native-symbolic/`). Turns the probe into `umpire-symbolic` beside the TLC
+and Apalache back ends: the compiled World's embedded admitted tree emitted as BTOR2 with one `bad` per
+property, a pinned rIC3 built into `model/build/ric3` running IC3 for unbounded proofs and BMC to the native
+depth plus one for violations, witnesses replayed through `checked_step` with the claim re-judged natively,
+a consumer selected by `expected/symbolic.txt` under `UMPIRE_BACKENDS=require`, then symbolic Worlds (fn-211's
+R6 moves here) and the rest of the admitted subset. A proof counts as evidence only with native agreement.
+No liveness; TLC owns progress claims. fn-211 stays deferred until set-valued state is admitted. Deferred at
+the owner's request on 2026-10-23; no task started. The probe remains runnable for measurements.
+[Spec](.flow/specs/fn-240-symbolic-back-end-models-as-btor2.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-240.1 | ⏸️ deferred | `umpire-symbolic` crate: BTOR2 emitter over the embedded admitted tree for Kettle-shaped Models, checked arithmetic latch, one-step history, emission goldens (R1) |
+| fn-240.2 | ⏸️ deferred | After .1: pinned rIC3 built into `model/build/ric3`; IC3 proofs, BMC to native depth plus one, lifecycle, verdict kinds (R2) |
+| fn-240.3 | ⏸️ deferred | After .1, .2: witness decoding by declaration index, `checked_step` replay, claim re-judged, replay types shared with `umpire-apalache`, mutation controls (R3, R4) |
+| fn-240.4 | ⏸️ deferred | After .3: `expected/symbolic.txt` consumer, require-mode gating, ownership, Kettle goldens, DESIGN.md and MILESTONES (R4, R5, R8) |
+| fn-240.5 | ⏸️ deferred | After .4: symbolic Worlds over declared finite domains, computed starts, decoded World replay, `parameterized_world` golden (R6) |
+| fn-240.6 | ⏸️ deferred | After .4: action inputs, non-unit outcomes, bounded sequences, Rust widths on `Type::Int`; `action_inputs` and `shared_returns` goldens (R7) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model) — deferred
 

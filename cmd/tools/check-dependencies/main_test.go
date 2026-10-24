@@ -25,7 +25,7 @@ func makeGoMod(deps map[string]string) string {
 	var s strings.Builder
 	s.WriteString("module test\n\ngo 1.21\n\nrequire (\n")
 	for mod, ver := range deps {
-		s.WriteString(fmt.Sprintf("\t%s %s\n", mod, ver))
+		fmt.Fprintf(&s, "\t%s %s\n", mod, ver)
 	}
 	return s.String() + ")\n"
 }

@@ -4747,11 +4747,11 @@ func (s *WorkflowUpdateSuite) TestUpdatesAreSentToWorkerInOrderOfAdmission() {
 	`)
 	for i := range nUpdates {
 		tvi := env.Tv().WithUpdateIDNumber(i)
-		expectedHistory.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&expectedHistory, `
 	  %d WorkflowExecutionUpdateAccepted {"AcceptedRequest":{"Meta": {"UpdateId": "%s"}}}
 	  %d WorkflowExecutionUpdateCompleted {"Meta": {"UpdateId": "%s"}}`,
 			5+2*i, tvi.UpdateID(),
-			6+2*i, tvi.UpdateID()))
+			6+2*i, tvi.UpdateID())
 	}
 
 	history := env.GetHistory(env.Namespace().String(), env.Tv().WorkflowExecution())

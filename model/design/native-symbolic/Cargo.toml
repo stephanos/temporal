@@ -1,0 +1,16 @@
+[package]
+name = "umpire-native-symbolic"
+description = "Spike: Umpire Models emitted as BTOR2 word-level transition systems, checked by rIC3, witnesses replayed natively"
+version = "0.0.1"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+umpire-dsl = { path = "../../umpire/dsl" }
+umpire-ir = { path = "../../umpire/ir" }
+umpire-checker = { path = "../../umpire/checker" }
+
+[profile.dev]
+overflow-checks = true

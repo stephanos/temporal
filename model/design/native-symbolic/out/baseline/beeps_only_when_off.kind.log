@@ -1,0 +1,14 @@
+[06:17:17 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/native-symbolic/out/baseline/beeps_only_when_off.btor
+[06:17:17 INFO] origin ts has 326 vars, 3 inputs, 35 latches, 4 constraints, 1037 clauses and 2747 lits in cnf
+[06:17:17 INFO] trivial simplified ts: 98 vars, 3 inputs, 35 latches, 4 constraints, 433 clauses and 1617 lits in cnf
+[06:17:17 INFO] scorr: eliminates 0 latchs out of 35 in 0.00s
+[06:17:17 INFO] scorr: simplified ts: 96 vars, 3 inputs, 35 latches, 4 constraints, 426 clauses and 1602 lits in cnf
+[06:17:17 INFO] frts: eliminates 0 out of 96 vars in 0.00s
+[06:17:17 INFO] frts: simplified ts: 96 vars, 3 inputs, 35 latches, 4 constraints, 426 clauses and 1602 lits in cnf
+[06:17:17 INFO] preprocessed ts has 96 vars, 3 inputs, 35 latches, 4 constraints, 426 clauses and 1602 lits in cnf
+[06:17:17 INFO] Kind found no counterexample up to depth 0
+[06:17:17 INFO] Kind proved the property
+UNSAT
+0
+
+--- stderr ---

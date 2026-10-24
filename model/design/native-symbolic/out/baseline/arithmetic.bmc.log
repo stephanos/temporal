@@ -1,0 +1,77 @@
+[06:18:18 INFO] the model to be checked: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/native-symbolic/out/baseline/arithmetic.btor
+[06:18:18 INFO] origin ts has 334 vars, 3 inputs, 36 latches, 4 constraints, 1092 clauses and 2902 lits in cnf
+[06:18:18 INFO] trivial simplified ts: 100 vars, 3 inputs, 36 latches, 4 constraints, 437 clauses and 1627 lits in cnf
+[06:18:18 INFO] scorr: eliminates 1 latchs out of 36 in 0.00s
+[06:18:18 INFO] scorr: simplified ts: 95 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1588 lits in cnf
+[06:18:18 INFO] frts: eliminates 0 out of 95 vars in 0.00s
+[06:18:18 INFO] frts: simplified ts: 95 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1588 lits in cnf
+[06:18:18 INFO] preprocessed ts has 95 vars, 3 inputs, 35 latches, 4 constraints, 422 clauses and 1588 lits in cnf
+[06:18:18 INFO] BMC found no counterexample up to depth 0
+[06:18:18 INFO] BMC found no counterexample up to depth 1
+[06:18:18 INFO] BMC found no counterexample up to depth 2
+[06:18:18 INFO] BMC found no counterexample up to depth 3
+[06:18:18 INFO] BMC found no counterexample up to depth 4
+[06:18:18 INFO] BMC found no counterexample up to depth 5
+[06:18:18 INFO] BMC found no counterexample up to depth 6
+[06:18:18 INFO] BMC found no counterexample up to depth 7
+[06:18:18 INFO] BMC found no counterexample up to depth 8
+[06:18:18 INFO] BMC found no counterexample up to depth 9
+[06:18:18 INFO] BMC found no counterexample up to depth 10
+[06:18:18 INFO] BMC found no counterexample up to depth 11
+[06:18:18 INFO] BMC found no counterexample up to depth 12
+[06:18:18 INFO] BMC found no counterexample up to depth 13
+[06:18:18 INFO] BMC found no counterexample up to depth 14
+[06:18:18 INFO] BMC found no counterexample up to depth 15
+[06:18:18 INFO] BMC found no counterexample up to depth 16
+[06:18:18 INFO] BMC found no counterexample up to depth 17
+[06:18:18 INFO] BMC found no counterexample up to depth 18
+[06:18:18 INFO] BMC found no counterexample up to depth 19
+[06:18:18 INFO] BMC found no counterexample up to depth 20
+[06:18:18 INFO] BMC found no counterexample up to depth 21
+[06:18:18 INFO] BMC found no counterexample up to depth 22
+[06:18:18 INFO] BMC found no counterexample up to depth 23
+[06:18:18 INFO] BMC found no counterexample up to depth 24
+[06:18:18 INFO] BMC found no counterexample up to depth 25
+[06:18:18 INFO] BMC found no counterexample up to depth 26
+[06:18:18 INFO] BMC found no counterexample up to depth 27
+[06:18:18 INFO] BMC found no counterexample up to depth 28
+[06:18:18 INFO] BMC found no counterexample up to depth 29
+[06:18:18 INFO] BMC found no counterexample up to depth 30
+[06:18:18 INFO] BMC found no counterexample up to depth 31
+[06:18:18 INFO] BMC found no counterexample up to depth 32
+[06:18:18 INFO] BMC found no counterexample up to depth 33
+[06:18:18 INFO] BMC found no counterexample up to depth 34
+[06:18:18 INFO] BMC found no counterexample up to depth 35
+[06:18:18 INFO] BMC found no counterexample up to depth 36
+[06:18:18 INFO] BMC found no counterexample up to depth 37
+[06:18:18 INFO] BMC found no counterexample up to depth 38
+[06:18:18 INFO] BMC found no counterexample up to depth 39
+[06:18:18 INFO] BMC found no counterexample up to depth 40
+[06:18:18 INFO] BMC found no counterexample up to depth 41
+[06:18:18 INFO] BMC found no counterexample up to depth 42
+[06:18:18 INFO] BMC found no counterexample up to depth 43
+[06:18:18 INFO] BMC found no counterexample up to depth 44
+[06:18:18 INFO] BMC found no counterexample up to depth 45
+[06:18:18 INFO] BMC found no counterexample up to depth 46
+[06:18:18 INFO] BMC found no counterexample up to depth 47
+[06:18:18 INFO] BMC found no counterexample up to depth 48
+[06:18:18 INFO] BMC found no counterexample up to depth 49
+[06:18:18 INFO] BMC found no counterexample up to depth 50
+[06:18:18 INFO] BMC found no counterexample up to depth 51
+[06:18:18 INFO] BMC found no counterexample up to depth 52
+[06:18:18 INFO] BMC found no counterexample up to depth 53
+[06:18:18 INFO] BMC found no counterexample up to depth 54
+[06:18:18 INFO] BMC found no counterexample up to depth 55
+[06:18:18 INFO] BMC found no counterexample up to depth 56
+[06:18:18 INFO] BMC found no counterexample up to depth 57
+[06:18:18 INFO] BMC found no counterexample up to depth 58
+[06:18:18 INFO] BMC found no counterexample up to depth 59
+[06:18:18 INFO] BMC found no counterexample up to depth 60
+[06:18:18 INFO] BMC found no counterexample up to depth 61
+[06:18:18 INFO] BMC found no counterexample up to depth 62
+[06:18:18 INFO] BMC found no counterexample up to depth 63
+[06:18:18 INFO] bmc reached bound 63, stopping search
+UNKNOWN
+2
+
+--- stderr ---

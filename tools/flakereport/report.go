@@ -102,7 +102,7 @@ func generateSuiteBreakdownTable(suiteReports []SuiteReport) string {
 		if sr.FlakeRate > boldFlakeRateThreshold {
 			rate = "**" + rate + "**"
 		}
-		sb.WriteString(fmt.Sprintf("| `%s` | %s | %s |\n", sr.SuiteName, rate, lastFailure))
+		fmt.Fprintf(&sb, "| `%s` | %s | %s |\n", sr.SuiteName, rate, lastFailure)
 	}
 
 	return sb.String()
@@ -117,7 +117,7 @@ func generateTestReportTable(reports []TestReport, rateHeader string, maxLinks i
 	reports = limitReportRows(reports)
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("| Test | %s | Last Failure | Trend | Links |\n", rateHeader))
+	fmt.Fprintf(&sb, "| Test | %s | Last Failure | Trend | Links |\n", rateHeader)
 	sb.WriteString("|------|------------|-------------|-------|-------|\n")
 
 	for _, report := range reports {
@@ -134,8 +134,8 @@ func generateTestReportTable(reports []TestReport, rateHeader string, maxLinks i
 		if pct > boldFlakeRateThreshold {
 			rate = "**" + rate + "**"
 		}
-		sb.WriteString(fmt.Sprintf("| `%s` | %s | %s | `%s` | %s |\n",
-			report.TestName, rate, lastFailure, formatSparkline(report.TrendPoints), links))
+		fmt.Fprintf(&sb, "| `%s` | %s | %s | `%s` | %s |\n",
+			report.TestName, rate, lastFailure, formatSparkline(report.TrendPoints), links)
 	}
 
 	return sb.String()
@@ -148,7 +148,7 @@ func generateOccurrenceReportTable(reports []TestReport, nameHeader, countHeader
 	reports = limitReportRows(reports)
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("| %s | %s | Last Occurrence | Trend | Links |\n", nameHeader, countHeader))
+	fmt.Fprintf(&sb, "| %s | %s | Last Occurrence | Trend | Links |\n", nameHeader, countHeader)
 	sb.WriteString("|------|--------------------|-----------------|-------|-------|\n")
 	for _, report := range reports {
 		links := formatLinks(report.GitHubURLs, maxLinks)
@@ -156,8 +156,8 @@ func generateOccurrenceReportTable(reports []TestReport, nameHeader, countHeader
 		if !report.LastFailure.IsZero() {
 			lastOccurrence = hoursAgo(report.LastFailure)
 		}
-		sb.WriteString(fmt.Sprintf("| `%s` | %d | %s | `%s` | %s |\n",
-			report.TestName, report.FailureCount, lastOccurrence, formatSparkline(report.TrendPoints), links))
+		fmt.Fprintf(&sb, "| `%s` | %d | %s | `%s` | %s |\n",
+			report.TestName, report.FailureCount, lastOccurrence, formatSparkline(report.TrendPoints), links)
 	}
 
 	return sb.String()
