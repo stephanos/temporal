@@ -1,0 +1,3010 @@
+{
+  ".flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256": {
+    "bytes": 80187,
+    "sha256": "5799233527eff38f1a342d5189436b3f2d4346217244aa5afd5ff47052412d9d"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/admission.json": {
+    "bytes": 158341,
+    "sha256": "b947cdbfea1a90b94f0d962b8644b9a9088353fa6ce32086eece192095fb3762"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/blocks.json": {
+    "bytes": 99593,
+    "sha256": "a03c862ddc287e34f94a919bfeeeaea7836c74e9c7aa90d2d1d25b03f0eb3b5f"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/capabilitySections.json": {
+    "bytes": 92760,
+    "sha256": "f79fe3ac666a3b2e19f76c216e8291866781e2e8cc73f85b595809422eac80a7"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/capabilitySections.waivers.json": {
+    "bytes": 902,
+    "sha256": "73a22bae18afbceea2a403c05099bf746bfe451b21734bd96a7d2b5a346ffeda"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/captured.json": {
+    "bytes": 88863,
+    "sha256": "94fdb783af7c4fab2bac809af3caa4349fe4bde557d6cf112510598468799be2"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/channels.json": {
+    "bytes": 37741,
+    "sha256": "dda143d5437bfd9316528bbea53b7b0c3cc4af7f156c0fc186b5c82a651d8893"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/composedProgress.json": {
+    "bytes": 28502,
+    "sha256": "414f885d38ad99edba7f79a96c16cbacd9bc3cc02442c9b4c019803073a768e4"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/deadlineCapabilities.json": {
+    "bytes": 184157,
+    "sha256": "89a299b87f36e53de859cc1af897aa1e3c58c424c7033ef973d460c0c86565b2"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/declarations.json": {
+    "bytes": 75942,
+    "sha256": "6894b45d403cdd4489286c223261fd56a5d3afae20fd151e7cedbe02bf86aa5b"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/hints.json": {
+    "bytes": 226376,
+    "sha256": "04d4bf7e56c3fa3c7819f6ae70ff57ad81c50830dcab285dda4fea61a98c8faa"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/hintsRefused.json": {
+    "bytes": 243575,
+    "sha256": "9f451f4986899eec1b3b4505267c72f1b4210bff8b812a272fda754586ebe090"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/presence.json": {
+    "bytes": 39978,
+    "sha256": "b80bbbcbc3a86e79f4e1c3545da078332384aabaa0caa018405486f50d2615b8"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/realizations.json": {
+    "bytes": 119312,
+    "sha256": "72c790fbc8484fff2f706a4c1d5ae80f8e5dfdd869e188958484c758822c9551"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/rejections.json": {
+    "bytes": 70321,
+    "sha256": "e5bb61806db3a5465046159c885980e5472ee295d0af4c48c6706af68de9c4fa"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/rejections.waivers.json": {
+    "bytes": 53,
+    "sha256": "cd721de83dfaab992e3a3c30a732bd391cde53846599c09817de0e6bb85af57d"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/rejects.txt": {
+    "bytes": 45898,
+    "sha256": "1508edff707b185b595a8bb221c94243f01359a65cb608386c19a9ed3497d66c"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/retryCapabilities.json": {
+    "bytes": 220038,
+    "sha256": "c989219cfea062f0e860e472ad226eb1bbcbd546a25d69eb995a2cfd20837dd2"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/retrySelection.json": {
+    "bytes": 209263,
+    "sha256": "2d2828f581ba8be5c95aac0edb1a6ede2d1a59d1c600bf656ace03b450ce3653"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/roles.json": {
+    "bytes": 128129,
+    "sha256": "d83e92d6d055e93e6f5946dd84ffa97f74b919e8b41bc870739ac7f9c17f5b8b"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/rules.json": {
+    "bytes": 155766,
+    "sha256": "1869bd8f4911a81555285cdaa27ae9cce21ef6e7c5320221a4ce3e09eb960af2"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/sections.json": {
+    "bytes": 12210,
+    "sha256": "9d9a8f1e1a1cd935e1015866687c5ff689f5e584def098b4eb24adcf5a8d6029"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/statusFacts.json": {
+    "bytes": 66920,
+    "sha256": "65b724a415fc65b2c59a589a12621635ba4933f5722e193a64f9faa5997e505a"
+  },
+  "model/archived/framework/export/testdata/lifts/expected/taskqueue.json": {
+    "bytes": 211282,
+    "sha256": "2b05d8e91e093224aa622321cc115da9145f61f809671c1b0df2b393b980bf53"
+  },
+  "model/temporal/feature/activity/compatibility/README.md": {
+    "bytes": 2845,
+    "sha256": "9f1644372ef032cb085cad7fc6b8c7c6e898d1cb6fd0f3ca6e0bd1159ebba9f4"
+  },
+  "model/temporal/feature/activity/compatibility/checkpoint.rs": {
+    "bytes": 6584,
+    "sha256": "b18374101c5dad9edb63fe8686a87f8d9e1ad57dc003659640f41493a7e98c5b"
+  },
+  "model/temporal/feature/activity/compatibility/manifest.json": {
+    "bytes": 4206,
+    "sha256": "f1670e524508dc6e24b0f950ed4ee71cd72f81b9edaf9176b1ec9b009f3d7a9c"
+  },
+  "model/temporal/feature/activity/compatibility/original/coverage.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/coverage.snap.txt": {
+    "bytes": 716,
+    "sha256": "dff85c941be647cca77e11749b6c8cc921960c7dab6758217f1b9030022b789f"
+  },
+  "model/temporal/feature/activity/compatibility/original/expansion/closings.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/expansion/closings.snap.txt": {
+    "bytes": 2284,
+    "sha256": "c2bebbdf72b27b5bf4011689f613a30a1628b09fea9a5d6666e2c93fa2ba7ea8"
+  },
+  "model/temporal/feature/activity/compatibility/original/gaps.txt": {
+    "bytes": 879197,
+    "sha256": "a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0"
+  },
+  "model/temporal/feature/activity/compatibility/original/lift.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/lift.snap.txt": {
+    "bytes": 122,
+    "sha256": "da995d701deb189247455a852811aa58b22fe834158b4a715f05009fa15b6479"
+  },
+  "model/temporal/feature/activity/compatibility/original/realization.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/realization.snap.txt": {
+    "bytes": 7794,
+    "sha256": "88a00db7d38337b3ea57a358f938eb4cbcae5120e73b6f4f2ad7470f3ff68c8e"
+  },
+  "model/temporal/feature/activity/compatibility/original/report.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/report.snap.txt": {
+    "bytes": 175,
+    "sha256": "cd0343ba3eb50dc78bc0b6b14f3a327b120fe44ef46600253554f3fd7af5f5d3"
+  },
+  "model/temporal/feature/activity/compatibility/original/rows.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/rows.snap.txt": {
+    "bytes": 973,
+    "sha256": "a111619002e42cfd12d0279028b2b88ef049a7682a85516cfc8e134f210556e8"
+  },
+  "model/temporal/feature/activity/compatibility/original/states.snap": {
+    "bytes": 82,
+    "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4"
+  },
+  "model/temporal/feature/activity/compatibility/original/states.snap.txt": {
+    "bytes": 173,
+    "sha256": "21219b834f051b851e78c9280688fce443dc7e4913bcaa3bd38add809eff5381"
+  },
+  "model/temporal/feature/activity/compatibility/verify.py": {
+    "bytes": 938,
+    "sha256": "c78f9b9069ed631e8be257ede1a984a8e7f562f32e4d9e67016ce69b4226225a"
+  },
+  "model/temporal/feature/activity/expected/Activity@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/temporal/feature/activity/expected/Activity@cfg.snap.cfg": {
+    "bytes": 708,
+    "sha256": "a051abf2b55d53cd064a4f29b5edfbcc7dd22bdd15efa233c08bbaec541905e0"
+  },
+  "model/temporal/feature/activity/expected/Activity@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/temporal/feature/activity/expected/Activity@tla.snap.tla": {
+    "bytes": 95865,
+    "sha256": "32004472a945babc752d846a6ada7ec9250c23880836a404eb647f2a558bf96e"
+  },
+  "model/temporal/feature/activity/expected/coverage.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/coverage.snap.txt": {
+    "bytes": 2077,
+    "sha256": "22f0acc3b3b943bf6c5e3e69794bfb12e134dc1f55b7490cbe0fad1f836dcd06"
+  },
+  "model/temporal/feature/activity/expected/expansion/closings.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/expansion/closings.snap.txt": {
+    "bytes": 31327,
+    "sha256": "76e8a125a1230aba6d0cace6a378b1b4aaa41d02a05da4b5f59f4162994d1030"
+  },
+  "model/temporal/feature/activity/expected/gaps.txt": {
+    "bytes": 879197,
+    "sha256": "a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0"
+  },
+  "model/temporal/feature/activity/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/temporal/feature/activity/expected/realization.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/realization.snap.txt": {
+    "bytes": 4719,
+    "sha256": "d7b7aa3be865568f8daf41aa7f209a22e9dabfcaeec6dd58a42c1e0c1b8b009b"
+  },
+  "model/temporal/feature/activity/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/report.snap.txt": {
+    "bytes": 798,
+    "sha256": "ccb4d183763d03e14a00c38d0d24ed6ced104e1ba6a154f6e9a0ae6d86378a12"
+  },
+  "model/temporal/feature/activity/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/rows.snap.txt": {
+    "bytes": 17327,
+    "sha256": "d83c7c53bfd74d3ee8eb1171dab1d5effdeb6ebefbff0dc51e2350db2068bc34"
+  },
+  "model/temporal/feature/activity/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/states.snap.txt": {
+    "bytes": 3659,
+    "sha256": "a73500197c2135b063f665e9c067af9313aa92a8a7fdef5ea7d9701d468d488c"
+  },
+  "model/temporal/feature/activity/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/temporal/feature/activity/expected/tlc.snap.txt": {
+    "bytes": 1375,
+    "sha256": "18f90e57b103ce9def3400898109a72e86196e4ed2e5885bd21185d81127211c"
+  },
+  "model/temporal/hosts/go/umpire_temporal_guest.wasm": {
+    "bytes": 3507305,
+    "sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion@rs.snap.rs": {
+    "bytes": 5622,
+    "sha256": "8e164867dcb0a151297cd9fc0e78e5aeb642d70c00035cdf7fd404de8d1dfdf8"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/declared_world/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/declared_world/expected/expansion@rs.snap.rs": {
+    "bytes": 5792,
+    "sha256": "42631f799e1602a68efe0270767922fbb016ba842099bab2ec96709ee3e46cb6"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/finite/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/finite/expected/expansion@rs.snap.rs": {
+    "bytes": 1304,
+    "sha256": "f8aaca414068f29969638f16c92e75c967a969f79935183eb6f352a9a9b26ad1"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/machine/expected/expansion@rs.snap.rs": {
+    "bytes": 20358,
+    "sha256": "4dfbd08143756bfc7d5b6b04db11a1f89465ae1e01d15a06566ca97baf2987a7"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/path/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/path/expected/expansion@rs.snap.rs": {
+    "bytes": 4117,
+    "sha256": "551a19cc853feb3d2d125b968246348bbadfcd671e7506dbccf0526d9eb6e42f"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/rejecting_machine/expected/expansion@rs.snap.rs": {
+    "bytes": 8126,
+    "sha256": "287a77205f64c777cbc032ed1263ff4ff118fbc7fec6b2439d29007f8cdc70ac"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/state/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/state/expected/expansion@rs.snap.rs": {
+    "bytes": 3064,
+    "sha256": "3cfe8c0f3d1191b2e4b3b3efef06850f795e952053be8d743728a4390ce098a5"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/staying_machine/expected/expansion@rs.snap.rs": {
+    "bytes": 7643,
+    "sha256": "b024be67a111d0399c733197e188225c1b8da524edce9a846ee98db7fc5d3b33"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/world/expected/expansion@rs.snap": {
+    "bytes": 85,
+    "sha256": "3f1cf9c162ac0103075a713dff6eaee615af030276540dcc53f7d1fd5500b245"
+  },
+  "model/umpire/author/dsl/macros/tests/fixtures/world/expected/expansion@rs.snap.rs": {
+    "bytes": 1836,
+    "sha256": "709a56b19e96bf588573d9ce82238dcc0808247ef82c4480faf4d6d57dab6c44"
+  },
+  "model/umpire/author/dsl/tests/fixtures/action_inputs_limits/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/action_inputs_limits/expected/values.snap.txt": {
+    "bytes": 62,
+    "sha256": "b36e173f3053a7ac03e8f7af185baef94c5afef383e0306a335980263cba71a9"
+  },
+  "model/umpire/author/dsl/tests/fixtures/action_inputs_values/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/action_inputs_values/expected/values.snap.txt": {
+    "bytes": 518,
+    "sha256": "ab4cff85b8312701ec61f66ab12e64001992fbba10952f5686b4057bbbb87966"
+  },
+  "model/umpire/author/dsl/tests/fixtures/assumptions/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/assumptions/expected/values.snap.txt": {
+    "bytes": 413,
+    "sha256": "344f1b071592c7e9f7f7c9f88089d3e581b6c547e71e6c945a1add37d2cf39b6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/derives/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/derives/expected/values.snap.txt": {
+    "bytes": 573,
+    "sha256": "226e5c55f8e813d41709dc35cf9380b89f68d7772b8e9e8c9905431cc305e393"
+  },
+  "model/umpire/author/dsl/tests/fixtures/empty_actions/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/empty_actions/expected/values.snap.txt": {
+    "bytes": 30,
+    "sha256": "ba2ebbac061042833ee1954f001278f0bbe9817b2d88b01f86174c023b91e733"
+  },
+  "model/umpire/author/dsl/tests/fixtures/formatting/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/formatting/expected/values.snap.txt": {
+    "bytes": 136,
+    "sha256": "a7d8c94ecede938b44fc19740f38dfca3de1d02eb3b7ca8cd36873bd30e7d01d"
+  },
+  "model/umpire/author/dsl/tests/fixtures/machine/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/machine/expected/values.snap.txt": {
+    "bytes": 1146,
+    "sha256": "8d955e1369f327dac01b7fbae56a87fb3557b748eaab36e57f2389b66644c1bc"
+  },
+  "model/umpire/author/dsl/tests/fixtures/path/expected/values.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/dsl/tests/fixtures/path/expected/values.snap.txt": {
+    "bytes": 527,
+    "sha256": "350557159ea7eb4632ec6c307562da5da466961b0b5d1a95b597f6521a7b33a9"
+  },
+  "model/umpire/author/suite/tests/fixtures/along/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/along/expected/messages.snap.txt": {
+    "bytes": 2186,
+    "sha256": "b33c7ffc35c4ea7efc72cffe10a50a3aedd23a59951b8be5ee26f69b03e5ec73"
+  },
+  "model/umpire/author/suite/tests/fixtures/ambiguous_step/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/ambiguous_step/expected/messages.snap.txt": {
+    "bytes": 125,
+    "sha256": "177ab509d19d2eb5fff9db4bb30839a946943580abec382e15b976acacf4b65a"
+  },
+  "model/umpire/author/suite/tests/fixtures/disabled_step/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/disabled_step/expected/messages.snap.txt": {
+    "bytes": 806,
+    "sha256": "a33040ba6056bce232fc6bed2e7a83d9996324a30e0c18b0e7c6ece9117af03b"
+  },
+  "model/umpire/author/suite/tests/fixtures/expect_line/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/expect_line/expected/messages.snap.txt": {
+    "bytes": 138,
+    "sha256": "3cd2c8df092d99f6420fc16ed65eed3b26b99fd62ed559c7544cc8fbff7fbcf4"
+  },
+  "model/umpire/author/suite/tests/fixtures/search_budget/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/search_budget/expected/messages.snap.txt": {
+    "bytes": 1243,
+    "sha256": "734b543d54260c4321c6480615dfd515559f20818e3e296ab2ec4adb0149d04a"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_find/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_find/expected/messages.snap.txt": {
+    "bytes": 3094,
+    "sha256": "db151947b8824a9d2649c044ed4b8202955f49049c0411e4c5df9dedd307976c"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_refuted/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_refuted/expected/messages.snap.txt": {
+    "bytes": 1346,
+    "sha256": "c8e0ae03b721026988d64cf965d4aa7265483a623603222b50b45f21c41462b9"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_skipped/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_skipped/expected/messages.snap.txt": {
+    "bytes": 868,
+    "sha256": "b6bf7654ce2988fa09d5389f56e116a7cb591bfb078ae8916ff488da62eaa3b9"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_verify_all/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/space_verify_all/expected/messages.snap.txt": {
+    "bytes": 696,
+    "sha256": "944fdd1021c4f6888a75bd284bb39f091df898218e01f36951fa60a2b96123a9"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/coverage.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/coverage.snap.txt": {
+    "bytes": 1560,
+    "sha256": "216020ce4de6996aa4c6a984f99c56e4e8286c0f6f144d3123ae5ec53cb2be0e"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/closings.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/closings.snap.txt": {
+    "bytes": 1240,
+    "sha256": "964a1358378922a2411d2c3799224ae44b4adf3d9d2cc4b941a6ab7a46c5a2e3"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/sample.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/expansion/sample.snap.txt": {
+    "bytes": 1455,
+    "sha256": "a5d7730d354109448c304417c95482f0de4e1c876af46befd07b0013f234f10a"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/messages.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/author/suite/tests/fixtures/test_space/expected/messages.snap.txt": {
+    "bytes": 961,
+    "sha256": "bfb03cbcbbed62eff6013ea835a1d2851731c2ac328ebd03275c43552cfae159"
+  },
+  "model/umpire/backends/apalache/tests/expected/kettle-negative.txt": {
+    "bytes": 8943,
+    "sha256": "056c2a8e2760e936d375e6ed5647fb330f0fb473abda587593870a9393b52a84"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/report.snap.txt": {
+    "bytes": 272,
+    "sha256": "7c905a5b110b86e129280995628ffb2000df28ce41d74f8a097f06c56d59477b"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/rows.snap.txt": {
+    "bytes": 239,
+    "sha256": "8ea4547902514ab4b76dc2e754fc5956a0549b65852ee14e4176d7e5989a9608"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/choices/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "d627090d9ada24de88f37976918fe02b43161bace043cd205e9994fab6d1f9bd"
+  },
+  "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/claim_order/expected/report.snap.txt": {
+    "bytes": 1345,
+    "sha256": "9adf669ae7c21b8447e975cd5a0a119a697d1ab9e312329a811b937fa144b60f"
+  },
+  "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/deep_chain/expected/report.snap.txt": {
+    "bytes": 160,
+    "sha256": "7e0f59faa930f07f916e46cef49e2e715fa0114be75b6ed22280182f1a170ded"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/idle_changes.snap.txt": {
+    "bytes": 157,
+    "sha256": "3715f3d96b4eeb5b7849cc9c69f94eb59370fc4112a67888c0becb5320e83850"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/paths/never_decreases.snap.txt": {
+    "bytes": 112,
+    "sha256": "78941bddfff451039619c72524f8d0eead30fbe445ca5e7596408b917247e0c2"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/report.snap.txt": {
+    "bytes": 217,
+    "sha256": "f98114edabe2a031f7636872c4283331266879c4bbbbecf06e58072d9aeb1eb4"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/edge_checks/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/paths/step_0_0.snap.txt": {
+    "bytes": 93,
+    "sha256": "0da8db87605867fdc7aea604d737341b36ad7d4516fd62cfe471041e7f451442"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/report.snap.txt": {
+    "bytes": 388,
+    "sha256": "9635799d2d8b5f3270bc7b91f2c4a4000e57c12a85aebd4b40b74878e3418351"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_overflow/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/paths/step_0_0.snap.txt": {
+    "bytes": 78,
+    "sha256": "b0d1f7355ab791b444a4e838b6e4514cd3f910c3e4b2c3fd01f1425b813c1cac"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/report.snap.txt": {
+    "bytes": 373,
+    "sha256": "7cb1d86695c8ddac51330d4e45a9dd4f32b8c628cde683dd4fa1f1c3d32639d9"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/effect_panic/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/paths/unchanged.snap.txt": {
+    "bytes": 107,
+    "sha256": "c638d2d0a52a0ab08a0f5c6d9f4d223c84b1f348774586fc6494730dea0bb3b7"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/report.snap.txt": {
+    "bytes": 132,
+    "sha256": "fae32d2729c5312b2995923fc2dcfede4c0160b2fb00f13498ad4ef654269f64"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/rows.snap.txt": {
+    "bytes": 125,
+    "sha256": "6f17bac7add4d54a0e57c87fd98237082e0e889acfd298c10a1faa90fc9e62d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/format_values/expected/states.snap.txt": {
+    "bytes": 61,
+    "sha256": "47b79e5e7fb8bfe41738e02bae7ebb51207297c5764e4b4cd743f4f493723511"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/paths/safe.snap.txt": {
+    "bytes": 68,
+    "sha256": "f30bc38408a45b3bc0e61331e4747fc31c6c4d95c0899b26f897deac5f887acf"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/report.snap.txt": {
+    "bytes": 180,
+    "sha256": "1969901515d3741b61a904b6188db00e594af7597109ba29f04261351a803cbf"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/hole_then_failure/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/report.snap.txt": {
+    "bytes": 250,
+    "sha256": "c8da03f134a94f1cdf4b9ab222d17bd1cb90efee3d989a81b37807189694f0b8"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/holes/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/negative_report.snap.txt": {
+    "bytes": 300,
+    "sha256": "953ffbf605ef755251c4da15b210e0a8807417ffcde0d941711a1e591441a915"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/starts_zero.snap.txt": {
+    "bytes": 78,
+    "sha256": "b7ae6f7e9a188897e6d9103f3cd3e344ab5f2efdcf0879ffa444b943b25c66dd"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/paths/stays_zero.snap.txt": {
+    "bytes": 78,
+    "sha256": "b7ae6f7e9a188897e6d9103f3cd3e344ab5f2efdcf0879ffa444b943b25c66dd"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/report.snap.txt": {
+    "bytes": 271,
+    "sha256": "2a2ed766af4e43a839f53858b77930a1d98812ddfb46ed0ed72ce47d191c1dbe"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/rows.snap.txt": {
+    "bytes": 70,
+    "sha256": "be1e501b8fa00a2ff7df61282b8cd95f112c6c3d12d9ac74d3b62d860b523397"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/interleaved_claims/expected/states.snap.txt": {
+    "bytes": 48,
+    "sha256": "16be30cdb9ac5aace977442324cd9e53c311e7bbc3d85ee177f2d88ee0e31757"
+  },
+  "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/invalid_state/expected/report.snap.txt": {
+    "bytes": 29,
+    "sha256": "a59574527eb86014b039834a29f32dbf792eb39033100b4c85aebf196ac6bf2b"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/paths/safe.snap.txt": {
+    "bytes": 115,
+    "sha256": "b174597ecba45f4fe2f3f5d80599fce595909d017a878561a6a8216c5ec82eef"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/report.snap.txt": {
+    "bytes": 209,
+    "sha256": "a3427fcfc7a4b6bc0ac01e711ac3306374613f7f2a5941f0c57fa9d13267a4dc"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/invariant_panic/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/paths/unchanged.snap.txt": {
+    "bytes": 68,
+    "sha256": "f30bc38408a45b3bc0e61331e4747fc31c6c4d95c0899b26f897deac5f887acf"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/report.snap.txt": {
+    "bytes": 263,
+    "sha256": "123d37d87a2b1526a5a02703c486afdb32677d5c93e4ecd9a92b69fd08ca21f0"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/rows.snap.txt": {
+    "bytes": 68,
+    "sha256": "1104c7e2e4a1376492d98f19d58ba5e6d9d5fcb5b03e61eb3d6488bd2e6d298b"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/post_refuted_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/paths/panicking_edge.snap.txt": {
+    "bytes": 129,
+    "sha256": "fe37d4bce22f3027c63a4ca9064c950a2b2ba99b54af6f568f5ebe24e4093114"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/report.snap.txt": {
+    "bytes": 264,
+    "sha256": "622da4582623bdbb9477973ce58d6a344fe1af358fb3371f713d675d46134326"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/postcondition_panic/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/paths/reaches_target.snap.txt": {
+    "bytes": 95,
+    "sha256": "a034d526c276c826c3ed18c4619b650983b15b3ed91a460e71c5760866cc7d8b"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/report.snap.txt": {
+    "bytes": 248,
+    "sha256": "c634e0099bd25d3833988fca44c9191debca352e0286afc6828a862711677056"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/rows.snap.txt": {
+    "bytes": 130,
+    "sha256": "f12c5eb64276cd20d848d3eeb0be7d6f087bc601c3b677e9c8a5c6fc67d0dd13"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_action_choices/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "9de08698834ee83caae0e493ab439998c7d5070c3abba979e5ba46f01d34c133"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/report.snap.txt": {
+    "bytes": 163,
+    "sha256": "a502299dae4ceb50c1041884bcc8b7f74ef4d884ddbc5284f77e7c8acfa7726d"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/rows.snap.txt": {
+    "bytes": 66,
+    "sha256": "ce262c9b11eee7b00e18998f172b6d4cd60a965df384003f4559b23bd257c986"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_admission_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_assumption_validation/expected/report.snap.txt": {
+    "bytes": 4346,
+    "sha256": "2dd84e2309c26e5af324dffb2355ded7fc95aa84e9b562ead2e93dcb309fdfff"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_bounds/expected/report.snap.txt": {
+    "bytes": 5360,
+    "sha256": "d6da096b44bc4e3607ae34f390bf49e99bf0fa0888a23cbe2a380d1a991838f7"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_chain_path/expected/report.snap.txt": {
+    "bytes": 263,
+    "sha256": "c4a8e28c8e3c84bdb565b94d20922b6376ea6114356e58fcd8dd99caa8159e82"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/report.snap.txt": {
+    "bytes": 163,
+    "sha256": "8686532265a96af45fd8826806a44a02d795e6af720967b3459294cb0557c9a1"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/rows.snap.txt": {
+    "bytes": 132,
+    "sha256": "dbb2f561998ba4fb87cd95cf69f6e0cdf0c56043250ace5e28f4eb08bb9b80b3"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_choices_cut/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/paths/step_0_0.snap.txt": {
+    "bytes": 87,
+    "sha256": "8bd77db15ef659a4fc63b9301b3d793778997891f06369fac7dd23f0d5e9125f"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/report.snap.txt": {
+    "bytes": 306,
+    "sha256": "9244c7962d49535883216e8070bf952e925b3bcaf857fc35f8bb333eec5fc922"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_effect_panic/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_explicit_fairness/expected/report.snap.txt": {
+    "bytes": 236,
+    "sha256": "6cd89eae791b31ad272f3baba77a0a984525345a9b42fef1100c0cdcf52476a1"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/paths/reaches_target.snap.txt": {
+    "bytes": 96,
+    "sha256": "dfdd48ea1296ef5c859b1af44c6b11885d05e6ad29c822289984fb7143c7c277"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/report.snap.txt": {
+    "bytes": 163,
+    "sha256": "00637f1ecb8becb84f2699c8be8bf1c4527d000787183f6e89f9eb4e72e7217c"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/rows.snap.txt": {
+    "bytes": 132,
+    "sha256": "3c801a1cacdcd4dafc1c9540ee27777a4398b14a82077bc565403383eaaab0f2"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_external_cycle_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/independent_failure.snap.txt": {
+    "bytes": 93,
+    "sha256": "c5bd22fc839eb22d123bfe19f58b08fdf5dc4400d4a03a22010aec80e110e692"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/target_panic.snap.txt": {
+    "bytes": 83,
+    "sha256": "95ffe750ea9dafc981513ac3cd32abe49da602a57462ae41e66080a247fecc4b"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/paths/trigger_panic.snap.txt": {
+    "bytes": 85,
+    "sha256": "4edb4a330c315bb2f8870a4f8a12a9564e6fbca6b36c352bf00ba7275391f93c"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/report.snap.txt": {
+    "bytes": 568,
+    "sha256": "5de0d3cdbaf180db149bc233920b41c419b5cd7d2a3cc6c4a5cbe2fe0f1deea4"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/rows.snap.txt": {
+    "bytes": 63,
+    "sha256": "c7392a28b3219cd2d78677e0169cc8a34008006a38fc62a5cc43e5608b8d5091"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_independent_failure/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/paths/reaches_target.snap.txt": {
+    "bytes": 96,
+    "sha256": "dfdd48ea1296ef5c859b1af44c6b11885d05e6ad29c822289984fb7143c7c277"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/report.snap.txt": {
+    "bytes": 163,
+    "sha256": "00637f1ecb8becb84f2699c8be8bf1c4527d000787183f6e89f9eb4e72e7217c"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/rows.snap.txt": {
+    "bytes": 132,
+    "sha256": "3c801a1cacdcd4dafc1c9540ee27777a4398b14a82077bc565403383eaaab0f2"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_internal_cycle_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/paths/reaches_target.snap.txt": {
+    "bytes": 93,
+    "sha256": "b4a1c0a26ca55bfac1d04d6fd5436ebffc2c11e66f07f43f865f2671c55f4e55"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/report.snap.txt": {
+    "bytes": 250,
+    "sha256": "e76c201fadf3f351ca5c40a923b5b861754fb060b6640bb37796bae86dbf1455"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/rows.snap.txt": {
+    "bytes": 63,
+    "sha256": "35762547442b27bafc9c4142959db61076bbc7854793b9830aa551e55373747f"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_multiple_starts/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "2367fea877490b9df195fa9f5c896bfdce51772c39ede9a7ba8037e8eb8500d7"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/report.snap.txt": {
+    "bytes": 136,
+    "sha256": "bb69da3bb8bbf38718abb393ae08c5a623f355f3852262528f724308280d1500"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/rows.snap.txt": {
+    "bytes": 129,
+    "sha256": "8073ae4ea1a37d4531649f2057f9a24b454a9bdf508cb51018c4a3f16d2e8ea5"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_queued_cut/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/paths/reaches_target.snap.txt": {
+    "bytes": 139,
+    "sha256": "b39692fa1f1cbe2695f9b4bbd9938d71efab09be856e9c82b7a577a911ad826a"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/report.snap.txt": {
+    "bytes": 136,
+    "sha256": "14d601926dd0fde499e08a6610579be2e7cd54080024c963a88c76c7f4e0a233"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/rows.snap.txt": {
+    "bytes": 258,
+    "sha256": "12ff1c8055a5e2c8bf56179c669543be3751c7d63bddc124c99a0a7d7d19d4ed"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_refuted_cut/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "8853b445b5ee29c682e6761b08f26463d8746a8ec2d12c7dcd7ab4fca4325e32"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_scope_refusal/expected/report.snap.txt": {
+    "bytes": 46,
+    "sha256": "23ba9d1e847b9488591e78a677cc2bacb8f05a9f6ac41a9ccec0256b33e0811f"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/report.snap.txt": {
+    "bytes": 207,
+    "sha256": "a614c2fb540f98cc717dde67a9c847dd7fede0987e34e67e0d7151c63d305f56"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_starts_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "812fc3941eca4b63289a2498c8be509e5cb5b8b84a6597e7c3a98c4b5a9cd547"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/target_panic.snap.txt": {
+    "bytes": 83,
+    "sha256": "95ffe750ea9dafc981513ac3cd32abe49da602a57462ae41e66080a247fecc4b"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/paths/trigger_panic.snap.txt": {
+    "bytes": 85,
+    "sha256": "4edb4a330c315bb2f8870a4f8a12a9564e6fbca6b36c352bf00ba7275391f93c"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/report.snap.txt": {
+    "bytes": 568,
+    "sha256": "a70c71873654a9116d62163a62a69a48f5f6dca7afa97aef5b70c030c3f5f113"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/rows.snap.txt": {
+    "bytes": 63,
+    "sha256": "c7392a28b3219cd2d78677e0169cc8a34008006a38fc62a5cc43e5608b8d5091"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/progress_unknown/expected/states.snap.txt": {
+    "bytes": 36,
+    "sha256": "01837f7e5d7e3591556050e92b72a129da99d143a5844ace7efe90700b7907e3"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/paths/safe.snap.txt": {
+    "bytes": 22,
+    "sha256": "24cb1d276b0a9e2602eafdb2b6032cfa26104d797e12a87f409f0e317298bf97"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/report.snap.txt": {
+    "bytes": 238,
+    "sha256": "bac7da277aec3241ffb0fc51592eee92f566f63db15e8feee190989e747afec7"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/rows.snap.txt": {
+    "bytes": 68,
+    "sha256": "1104c7e2e4a1376492d98f19d58ba5e6d9d5fcb5b03e61eb3d6488bd2e6d298b"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/refuted_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/rejecting_mutation/expected/report.snap.txt": {
+    "bytes": 101,
+    "sha256": "18da6c865d2073fed7dc23fb9bd79340bc344f806807305c3b133f72f069c48c"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap.txt": {
+    "bytes": 250,
+    "sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt": {
+    "bytes": 50116,
+    "sha256": "8741e7c3b735cc5b2e21fee255c6ab5a0bedeaa143bc3e1c3f7beb924019ba70"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/sample_kettle_trait/expected/states.snap.txt": {
+    "bytes": 18754,
+    "sha256": "75b449441158e2960bf63199281076fba92251234f72fb06bfb48598c34f05bf"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/report.snap.txt": {
+    "bytes": 159,
+    "sha256": "5acd70916c4c8a3dbfac0a0f9910efe7f647e9580edccd7fbf784fd322932f4e"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/shared_starts/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/report.snap.txt": {
+    "bytes": 282,
+    "sha256": "494ca447c4bd8bd9b6709be8ce1b8903033e6bb6be351f2dd97bc2180a82f34d"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/starts_cut/expected/states.snap.txt": {
+    "bytes": 18,
+    "sha256": "afa607d8affbbb7063309d269f79d1d0345e2b65191570829e82112021ebec9c"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/report.snap.txt": {
+    "bytes": 238,
+    "sha256": "a817905c272e84d8ebebe490051a3cd31fd354ec5bd64367a628a7f053c3df7a"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/rows.snap.txt": {
+    "bytes": 267,
+    "sha256": "cc960833190094e568e749b9ff534caa0d62cae622c7189a91937914cd97eb27"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/vacuity/expected/states.snap.txt": {
+    "bytes": 54,
+    "sha256": "79954ae7dd998172adca9739387e91c05ce1b5a2a9cb5a5094bec946a3f9ca0f"
+  },
+  "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/backends/native/tests/fixtures/zero_budget/expected/report.snap.txt": {
+    "bytes": 54,
+    "sha256": "fb96a71834cf118f808cefc485041e498e2f985c8936b1cfb525a4f44286b213"
+  },
+  "model/umpire/backends/tla/tests/expected/path_refusals.txt": {
+    "bytes": 306,
+    "sha256": "f6eef3cc1da863f1efba155f87767889f4ee4692cbedaf6617a1731a2ac6e825"
+  },
+  "model/umpire/backends/tla/tests/expected/phased_refusals.txt": {
+    "bytes": 1779,
+    "sha256": "359949eec3bf90192e599cb33c3ea936de116e0ee7b43bd29fe47bad9f59bb36"
+  },
+  "model/umpire/backends/tla/tests/expected/unsupported.txt": {
+    "bytes": 108,
+    "sha256": "00258ac3646ca35b6cfa0c8a5c335139e1cf4c2d114e0a59562347a32c617319"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/lift.snap.txt": {
+    "bytes": 293,
+    "sha256": "c5baaa9a52c15f86474d83a42eeca1f18096362cd083d6b7932c478474a453cc"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/report.snap.txt": {
+    "bytes": 142,
+    "sha256": "0cef0042d29ea29ef3ebd864f95a2887a0d4eef99036ac150c7e82179eaa5967"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/rows.snap.txt": {
+    "bytes": 402,
+    "sha256": "dfb68cca6286df078c806ea1847dd8e5a41059fe74a59149ba962f2b0fb29d8c"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/accepted_self_loops/expected/states.snap.txt": {
+    "bytes": 44,
+    "sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@cfg.snap.cfg": {
+    "bytes": 166,
+    "sha256": "6e41d8991948a7dff311ee579807aaa5ff317afc7727c1a5e39d493742c448ad"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/Inputs@tla.snap.tla": {
+    "bytes": 15624,
+    "sha256": "468813fe5b96356b6dbbb353528f45c9eef2cff841b98d26a16aa95fa63cb44d"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/negative_report.snap.txt": {
+    "bytes": 385,
+    "sha256": "30d96dede57141f1006e9477bdddcc42ff02f384c21c26f723b61589d5df177e"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/excluded_poll_settles.snap.txt": {
+    "bytes": 196,
+    "sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/never_retried.snap.txt": {
+    "bytes": 185,
+    "sha256": "a2c50ce45c2adf9596b2e7bdd6b615de9268097e6c48ddd93284529282f254b9"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/settles_within_four.snap.txt": {
+    "bytes": 196,
+    "sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/paths/stale_poll_settles.snap.txt": {
+    "bytes": 196,
+    "sha256": "9c8a9e9fbc411620a4f9cd97fe37496c09d3d0a2bfc8007ed618e3cacfb160c3"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/report.snap.txt": {
+    "bytes": 356,
+    "sha256": "55ba9639df8328e0b2029ed96b61de6c3c66e34aefd6860fc51e4d4bba9ef8d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/rows.snap.txt": {
+    "bytes": 1913,
+    "sha256": "2b107653d8b4c2148e17ce2c3b516240822c2c4e7ca01a232868b5e91867837c"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/states.snap.txt": {
+    "bytes": 404,
+    "sha256": "3f929c50ad712fdb081fb80ab89dc752ae978f7067e356174d6cb122ae623ae6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/action_inputs/expected/tlc.snap.txt": {
+    "bytes": 590,
+    "sha256": "f3d70914bb9566bfaadd5b319ea384825a920375e7c7067d2e1dccd4802d9f22"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@cfg.snap.cfg": {
+    "bytes": 157,
+    "sha256": "505cea8005296a997806591168a907dd3c7e6640f7578abce32b58b8fe84fb5a"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/ChangedState@tla.snap.tla": {
+    "bytes": 4624,
+    "sha256": "a4cc424d88675085f65ae2f4b3cf9f5730387bdf4f34dc91a04e80b498c3e607"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/paths/actual_change_checked.snap.txt": {
+    "bytes": 162,
+    "sha256": "d4d440239c03c9eafc1eabc5719b050de134b15016ddf5252a0c5d157534bab6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/report.snap.txt": {
+    "bytes": 642,
+    "sha256": "4fa20b174685177727f5f0db929f98bd0acff0bb8794e93e45755d47e08f16f8"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/rows.snap.txt": {
+    "bytes": 76,
+    "sha256": "3dfe4c10eb725e19330ad5916bf26577b1adf2da44b9edb502cfaa531e54124e"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/states.snap.txt": {
+    "bytes": 51,
+    "sha256": "318e7d9ac2712ddf4cad2f0d0a82ee69614e71bf10a4e80bbdb2a1b508c8d5a6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/changed_state/expected/tlc.snap.txt": {
+    "bytes": 391,
+    "sha256": "f217255a476bea0af2bf5ff32f21e21216014d22267001c6733599c8f16a88a4"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/lift.snap.txt": {
+    "bytes": 128,
+    "sha256": "0567837222f26077537a7c392589b893f045ad3b2b92e07d58ced439be6f2586"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/report.snap.txt": {
+    "bytes": 414,
+    "sha256": "3730e291c19a5640ed05def71b67b3d4163c28e66aaede6af5319adcf9dabb78"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_cut/expected/states.snap.txt": {
+    "bytes": 5341,
+    "sha256": "609d4207e15b2441cc48c8a83bb8d75000f54485f0eab8eb4444ce4f1b20c89e"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/lift.snap.txt": {
+    "bytes": 133,
+    "sha256": "80a973f9ba7e608bb31e57e0d1eb0cbd0af655d900b349790acc21b4763de4ed"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_fair_heat.snap.txt": {
+    "bytes": 378,
+    "sha256": "c3356a8b9995eb18e5f7feaac95c9b104c4c894c53f1aaec54a86a09542fc64f"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_press_only.snap.txt": {
+    "bytes": 161,
+    "sha256": "b23ebc5269c9d96afc4b3d849d422f4b447370caa4c182814dfef235e773426b"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_unrestricted.snap.txt": {
+    "bytes": 378,
+    "sha256": "c3356a8b9995eb18e5f7feaac95c9b104c4c894c53f1aaec54a86a09542fc64f"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/paths/room_within_80.snap.txt": {
+    "bytes": 7274,
+    "sha256": "6203867428b4e24136053f46c77abcba5e08c528027179d213a5424358e233fe"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/kettle_progress/expected/report.snap.txt": {
+    "bytes": 805,
+    "sha256": "4163927abb428845d114ae66042f290adb66a7a8e400ebe29ef1ed4bd2352f27"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@cfg.snap.cfg": {
+    "bytes": 204,
+    "sha256": "63b8a96a42524f1a676d416be769391c49ef34ff88adc20f73c512524516008a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@tla.snap": {
+    "bytes": 106,
+    "sha256": "632f1031f6fa2cd51feef72e4347f155ac64b7e1daf28bd7fbdce519d41d84a8"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/Facts@tla.snap.tla": {
+    "bytes": 8346,
+    "sha256": "5e8eac53226c0734ddf375eeba16ceffc03fe10f2dd7809640e938fa505aa708"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_a.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_a.snap.txt": {
+    "bytes": 132,
+    "sha256": "209cae491da88957b7cdcc7aebcf9a8265aad298ff0035b694a40688e84b1079"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_b.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_b.snap.txt": {
+    "bytes": 132,
+    "sha256": "a69012bc4f32f13dc0ecad7fbd34b8bd241454120de0fb6ef55206b8c0db485a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_c.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_c.snap.txt": {
+    "bytes": 132,
+    "sha256": "36870b19cdc0df8b88b4259e7b041bc9c5f5d3afda3e4dbcf2d6221cb5c8d2fc"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_clear.snap.txt": {
+    "bytes": 182,
+    "sha256": "3e2450b93c9aee3bfd1aa9252a44f6f90eecab8a1b8fed514d1155df3954c141"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_d.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/paths/never_d.snap.txt": {
+    "bytes": 132,
+    "sha256": "c31916b5fda970a64174f96592d953793cef2dcf19f0e005f20ccaef07cf891a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/report.snap.txt": {
+    "bytes": 669,
+    "sha256": "10e0b262c0ab0930584cf1dc1e7a6adaa71f817762f58fc5699cc6da3ad00e5f"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/rows.snap.txt": {
+    "bytes": 2537,
+    "sha256": "245d34faa8ab47f0c08a993704b4e2ca7e10cf2f21735a06d054856b0d635b2f"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/states.snap.txt": {
+    "bytes": 154,
+    "sha256": "7b9fca8ecbc8c3edbb0b7726cf0fee9c4f95fd0c9b4a0780d5196b182304842a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_facts/expected/tlc.snap.txt": {
+    "bytes": 395,
+    "sha256": "2b0515e3d396fb2e644ac2ae757c684b80b00e743bc67e38e05152731f032031"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@cfg.snap.cfg": {
+    "bytes": 371,
+    "sha256": "4aa086b3a4346c0e5c318c622ab696dbd630daea5552921826abf20b4a1062ff"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/Countdown@tla.snap.tla": {
+    "bytes": 14382,
+    "sha256": "47d93e1934906495629c8e8ac8c78f1f46b621135128724c310f2e3835960aec"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/negative_report.snap.txt": {
+    "bytes": 687,
+    "sha256": "6d2b1b6a0b3d64d54d14aff0e6e4ab321a476203d8dace3d54c8879948c726b1"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_decrements.snap.txt": {
+    "bytes": 443,
+    "sha256": "91dd9c38a4cd4ff06a9b7e7e67eeca683d92833e5ad3c7f01cc17f02f769bf8f"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_exhausted.snap.txt": {
+    "bytes": 555,
+    "sha256": "c72f6f6eed650b88bc5c18329a15b15dd3f470c568420c48d7e758e435d1cf10"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/paths/never_started.snap.txt": {
+    "bytes": 142,
+    "sha256": "f803399d294306b590b7a65629f77422645fab609ab87ad7a2fb94ca5c02a88a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/report.snap.txt": {
+    "bytes": 658,
+    "sha256": "3cba62e70e15d2dbbc3c7e181990d421ca5eb71941d3bf22376dc7291e25c526"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/rows.snap.txt": {
+    "bytes": 449,
+    "sha256": "579894e89525f73e466a6eabb69a37d457c9ea7320776486e1b58669dfa5fb3a"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/states.snap.txt": {
+    "bytes": 317,
+    "sha256": "abb5f4ce47f315ef3c22af1383ca05ef71e7536568f0a7b1f02b5d7fca5a2f25"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/optional_ticks/expected/tlc.snap.txt": {
+    "bytes": 546,
+    "sha256": "5fe54359c81c30782a6480a125a5866437fd1afbb06f292456c74a7da5f910d8"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@cfg.snap.cfg": {
+    "bytes": 138,
+    "sha256": "6a4faf0b5b8b4adb5c8c77b6daa4a7f23ddc16afb043c19f4c28745cf9b169d1"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/Counter@tla.snap.tla": {
+    "bytes": 5524,
+    "sha256": "012c5e067fcbdd40135d7ae756874bfd1dac098f48f4dae894a32facd44ddfb5"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/negative_report.snap.txt": {
+    "bytes": 208,
+    "sha256": "618780a04d2cc0def081d8416f166be643cf8751f6a44c66be7a6b8b26ae74ee"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/paths/never_three.snap.txt": {
+    "bytes": 96,
+    "sha256": "57df10fa48ddd61c88974ee05cbdca8575249e9085074c0604709e54655d1d71"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/report.snap.txt": {
+    "bytes": 182,
+    "sha256": "ac1149e1ca68eb3adac9ae11b95d3c6cabc0583a88ceb87378cd03c5ec1fe81e"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/rows.snap.txt": {
+    "bytes": 237,
+    "sha256": "ee9f6fcfd14ff573f6fc22999e0130f5d4a9513bd517aa4df33396221db81532"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/states.snap.txt": {
+    "bytes": 165,
+    "sha256": "4844f28a0862c906d511259bbc1cbcff21cc8115b4cc20e97c60f21dbf65cb5c"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/parameterized_world/expected/tlc.snap.txt": {
+    "bytes": 347,
+    "sha256": "68d98c79c8e85fe6cc9e1348dc933d866d89dd0185389850caa918ba64bd2506"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@cfg.snap.cfg": {
+    "bytes": 285,
+    "sha256": "85a895daf60ee8daed24f937b3b7fd599244957f5a4635528ced41fd6f06ef24"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/Job@tla.snap.tla": {
+    "bytes": 14577,
+    "sha256": "0776391c203e11d142b718032d4337c88861e2f127f3c13c1046c0135fd6e747"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/closed_rejects.snap.txt": {
+    "bytes": 253,
+    "sha256": "27fb52573ea8dff886b25ab4b619ea670cf63ce502e1d73c8e41361037aa1ddd"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/recheck_rejects.snap.txt": {
+    "bytes": 280,
+    "sha256": "ec29514c0e8f4eee03f011529f70a88e5baa905356a934c77c0d5f42a4afa70d"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/reopen_remains.snap.txt": {
+    "bytes": 269,
+    "sha256": "c08133ae7de7110fc0121d4addf41e679f86d31b2ff94c6c1ef61a2cf8a07050"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/steps_accept.snap.txt": {
+    "bytes": 221,
+    "sha256": "3f1a21f7dc36205d07a73c66be2095d9959312498d4fe75ded979b7fbbb9aa95"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/terminal_remains.snap.txt": {
+    "bytes": 269,
+    "sha256": "c08133ae7de7110fc0121d4addf41e679f86d31b2ff94c6c1ef61a2cf8a07050"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/paths/touch_rejects.snap.txt": {
+    "bytes": 278,
+    "sha256": "7ad2fe9f5f4b599f2c674d5a41c9c09cfcd8b3cc2a43514590e13c7663da65e1"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/report.snap.txt": {
+    "bytes": 1058,
+    "sha256": "105f88bbcd211ccaf6307e1059372945c12f7c0a0cf34f1f30b63bf676180903"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/rows.snap.txt": {
+    "bytes": 3294,
+    "sha256": "1b7e86314122fa369183f33ffb20db23f1467198e6ffb433a4c265dcfb9beb20"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/states.snap.txt": {
+    "bytes": 312,
+    "sha256": "e58013adcf11b049f417a943fd06c74fde73c8cd2f6ec1a84b09825434901175"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/phased_rejection/expected/tlc.snap.txt": {
+    "bytes": 682,
+    "sha256": "a64f1f2873b1dea0f62be46ba124ab8318921386ed8d37d0dcf0b4298aa1a042"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/Graph@tla.snap.tla": {
+    "bytes": 5577,
+    "sha256": "767f680f20e5c823791be6cef55c968faeebbcff2670fbec1b87d73c86edcf0c"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/report.snap.txt": {
+    "bytes": 166,
+    "sha256": "ff621e51444c8e952f8f5a2adeaa795b9c32c720e1da798c85e4d935d6325663"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/rows.snap.txt": {
+    "bytes": 279,
+    "sha256": "89092379eac9c4f9064f8f333005516ae53cca542322bd69578d216e0b3c00af"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/states.snap.txt": {
+    "bytes": 66,
+    "sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_continuous/expected/tlc.snap.txt": {
+    "bytes": 176,
+    "sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/lift.snap.txt": {
+    "bytes": 174,
+    "sha256": "2f218f9053ccddc78671991ca6d65f2b2f23ca54269411d703e0a790a3faa8a2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/paths/boils.snap.txt": {
+    "bytes": 161,
+    "sha256": "b23ebc5269c9d96afc4b3d849d422f4b447370caa4c182814dfef235e773426b"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/report.snap.txt": {
+    "bytes": 200,
+    "sha256": "d6f6a11fd0816c44f8c9040e42f11e5b6616b8946cb127073be00372be848f04"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/rows.snap.txt": {
+    "bytes": 229,
+    "sha256": "4ea71ccffc731d9741feb3f0d06c88bfb9aad4d0a1a4726c1e34fc0de17af883"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_dead_end/expected/states.snap.txt": {
+    "bytes": 127,
+    "sha256": "76b43f4383757c924f08778bc7327dfd20950efffa3bbfdbcdacec0ab8fe69dd"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/Graph@tla.snap.tla": {
+    "bytes": 5107,
+    "sha256": "7cacd90a34d13bc2c41dd6616a5dea2339c15933fb5f8854f60860d3f590efbe"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/paths/reaches_target.snap.txt": {
+    "bytes": 145,
+    "sha256": "5e5889dcd7b1553d84f6eca0682b0c98a71f8e81cc744edff3574a25b9096e41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/report.snap.txt": {
+    "bytes": 204,
+    "sha256": "ccf41a97752183b2858fafd82e58285e0eae12ecf13426143f19dbff8a3c34b2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/rows.snap.txt": {
+    "bytes": 131,
+    "sha256": "29c47ab1e34d0f2d26aaa5c101c527852a856c625be21244f453b51309f7d57c"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/states.snap.txt": {
+    "bytes": 44,
+    "sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_excluded_prefix/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "307abce741e9fcee05686fe757e9ae1a5a6a4b1c7a5beacfda8d1367b4206fea"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/Graph@tla.snap.tla": {
+    "bytes": 4628,
+    "sha256": "675af90909940607e37a5503b64300fd8260af8bc374fde926ff8084c463abf7"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/report.snap.txt": {
+    "bytes": 285,
+    "sha256": "e47767ade6012b24073011fcf1e0827dfedeb0fd67cb680ba9768d67f4127ca5"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/rows.snap.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/states.snap.txt": {
+    "bytes": 22,
+    "sha256": "ce35d49521862911308980daad0f30eea16c439d3b41c957d4067a44aba94fd0"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_fulfilled/expected/tlc.snap.txt": {
+    "bytes": 176,
+    "sha256": "12a677193d9c505ace73700ba69af10747c54a423010a94493d07a04ffa36080"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/Graph@tla.snap.tla": {
+    "bytes": 5302,
+    "sha256": "30171dde2c23cd5dfaab57c96ce03cb82713cc72f7ed2d368f93acd550c9a175"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/paths/reaches_target.snap.txt": {
+    "bytes": 191,
+    "sha256": "ede7b72815e9d34677776b6c3079f49bff48fb7ce75dacb3a2ebf0b6f7f443e3"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/report.snap.txt": {
+    "bytes": 165,
+    "sha256": "0542b229b7811292b04edab93f676dfcb1ae83763c153923b0463ed124a770fb"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/rows.snap.txt": {
+    "bytes": 197,
+    "sha256": "bdffc0f895210aa4b55b3599a65734c83ab244673f32025d80072d4ed2a62ab2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/states.snap.txt": {
+    "bytes": 66,
+    "sha256": "c1c480e2c77a78b84285ea1a077acbd9502a13515a3524c63ff4487154b361e3"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_graph/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "758c3e222a39537b2396cc6bd8de28acf8891d23da1fdbbe3e17de47f1be3b74"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/Graph@tla.snap.tla": {
+    "bytes": 5575,
+    "sha256": "38be2f1328275086fd89b9b7a5e320fdd2077c87c197512d59cc3e88af53eef7"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/paths/reaches_target.snap.txt": {
+    "bytes": 145,
+    "sha256": "60db934858e8f43d6497d3bf74f27980ec957fce90360273b0d673554fc7ceb1"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/report.snap.txt": {
+    "bytes": 164,
+    "sha256": "9d692d27f717152bf67304d99fe56e518f871091a12007bbd60737abc509f122"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/rows.snap.txt": {
+    "bytes": 205,
+    "sha256": "37d3dce186ab51e4d27ec221036b19cb9bfad1decac85832318c7c6f97a8823c"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/states.snap.txt": {
+    "bytes": 66,
+    "sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_intermittent/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "758c3e222a39537b2396cc6bd8de28acf8891d23da1fdbbe3e17de47f1be3b74"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/Graph@tla.snap.tla": {
+    "bytes": 5138,
+    "sha256": "4f17fc5b50f9273e058d7a7c143f7c6f94985d85d98c6adb8bbecce420b453b7"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/paths/reaches_target.snap.txt": {
+    "bytes": 99,
+    "sha256": "9e5c11a54f86e8a9349d4f2051078bcfbed1ec2897777fb7c4ff5e4439d51bb1"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/report.snap.txt": {
+    "bytes": 203,
+    "sha256": "a1710081656173cb7aca7312107d9ba6d54a5963797fbaf4329ebb840f0095ab"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/rows.snap.txt": {
+    "bytes": 139,
+    "sha256": "d774a64cf91d78a3fdfa5d041c07b5eba8f9f85ff45ca7a08b5ab1d351d04080"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/states.snap.txt": {
+    "bytes": 44,
+    "sha256": "138ca7b0d49e3e93d7f5920c4e36e0614a671fe6b83e283da4ba4ec10b529bdb"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_scope_exit/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "307abce741e9fcee05686fe757e9ae1a5a6a4b1c7a5beacfda8d1367b4206fea"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/Graph@tla.snap.tla": {
+    "bytes": 4832,
+    "sha256": "c3b40bfddd5df176ea78e69e93f6813bc3119805af8bac3c932fa5db30c22917"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/paths/reaches_target.snap.txt": {
+    "bytes": 99,
+    "sha256": "9e5c11a54f86e8a9349d4f2051078bcfbed1ec2897777fb7c4ff5e4439d51bb1"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/report.snap.txt": {
+    "bytes": 244,
+    "sha256": "fefa58cc2d57f2753ab5e31f48418bf6af42c7ea76d793073ddc2df59325e6e5"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/rows.snap.txt": {
+    "bytes": 65,
+    "sha256": "96bfd01ec090d894b6f8c466814ba5ed6d87a116c154b44e21cf2088484ac541"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/states.snap.txt": {
+    "bytes": 22,
+    "sha256": "ce35d49521862911308980daad0f30eea16c439d3b41c957d4067a44aba94fd0"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_self_loop/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "5d1b39c23981fa91c4302ecb044a40ff9c58669ff280c247f1f6aa873acc9428"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/Graph@tla.snap.tla": {
+    "bytes": 5285,
+    "sha256": "cba3bbafa1722325bc4ddd951d721cc38df24028473ec60a4eb77bae7e872b90"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/report.snap.txt": {
+    "bytes": 167,
+    "sha256": "f9f29bdb4b5e115788ace25b5ff613bbdb8280e3caf6eae7e30c30061b3f05cc"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/rows.snap.txt": {
+    "bytes": 197,
+    "sha256": "a79ff864f6ee6ed251d2b8c1d46af8b3fe006cac7eab4c1ea89363d7b1069d98"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/states.snap.txt": {
+    "bytes": 66,
+    "sha256": "67aa7718d65403b17a7ac5cbc3b36739fbd6a7507b70b7778145826dfe0d1959"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_target_barrier/expected/tlc.snap.txt": {
+    "bytes": 176,
+    "sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/Graph@tla.snap.tla": {
+    "bytes": 5092,
+    "sha256": "95f998d0e35dfb2f12fb4a507a410f733565436812bb0ce9b1d7aaa05b21cd1d"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/report.snap.txt": {
+    "bytes": 208,
+    "sha256": "e881bd9163d7fcfafb68bdb0698027928daed881b6ed7c7c62e1c156f6b8c4ef"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/rows.snap.txt": {
+    "bytes": 131,
+    "sha256": "6fc0c55efa4a3d377ed6edafeaa2f5136c9245edb41ab9e96ec8a866b42f2fd5"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/states.snap.txt": {
+    "bytes": 66,
+    "sha256": "e64db7be6290bd995557f56702a8c5ed2c407fcdc6b36ba81ba0afd5dcc967f0"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_trigger_stops/expected/tlc.snap.txt": {
+    "bytes": 176,
+    "sha256": "d6f139de06400afc0f359b4dd415c90f30485d59f721615454026ecbbb461589"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@cfg.snap.cfg": {
+    "bytes": 19,
+    "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/Graph@tla.snap.tla": {
+    "bytes": 6625,
+    "sha256": "663de4575a0b2a796593938c6f6264bcff71c82b9896380fd3df7fef5fafd372"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/paths/reaches_target.snap.txt": {
+    "bytes": 264,
+    "sha256": "0aea6a0a3c59f084395d7383a569763ab6f7cedf6cc8bb581dc0f284919de213"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/report.snap.txt": {
+    "bytes": 206,
+    "sha256": "9ed9266c5f8aee70783912808a2b865e00505c3ad67bbb37ba3bf816f9a4fcb3"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/states.snap.txt": {
+    "bytes": 88,
+    "sha256": "a1199d547600f6d0ed1d37e7a157dad022335a4f10b64a7ce160c6f9038c3bea"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/progress_two_lobes/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "6441c50a84c73d018ec688cc88cb6406be4fc6a6af75985d4cb065c07234a597"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/lift.snap.txt": {
+    "bytes": 114,
+    "sha256": "e03276a826d1c2f4fd9f04e47f87e81f68a89a064e8cc2f71e2d47ec3b3b4463"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/report.snap.txt": {
+    "bytes": 204,
+    "sha256": "f5f37eb25ae2dc7ba6dad79270e03ebf3bd6384cfdb374c2b9a581fb1ea0c21b"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/rows.snap.txt": {
+    "bytes": 412,
+    "sha256": "51a682875ad72d76eb0e48c5090d80d379a551e261b8e50e77fe23e8c70a46ae"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/rejecting_steps/expected/states.snap.txt": {
+    "bytes": 44,
+    "sha256": "4a3f59cb451315fae94875b37cd3538266c0769a8c8353d18343ea8dce4a8c98"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@cfg.snap.cfg": {
+    "bytes": 128,
+    "sha256": "ed940745ec38fd8361f0231dc189ec22e29e821c8e51cd0615e4f5ff6c34b3b7"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/Kettle@tla.snap.tla": {
+    "bytes": 8019,
+    "sha256": "e3dadab67781b75ae429cec6663633caed6c9fb300f7e1d1d8c4d1d545e57015"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/coverage.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/coverage.snap.txt": {
+    "bytes": 1726,
+    "sha256": "ed01578296f03aafb7c789747d00271f57b8f762d95014790b61992522f6d2bc"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/closings.snap.txt": {
+    "bytes": 1082363,
+    "sha256": "00461f4a71227debc7724cdb4b6ea5071e7d2dd6e82fbeaec85f2311dcf3f1d5"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/enabledness.snap.txt": {
+    "bytes": 2595,
+    "sha256": "cdd3d7d9d4e49a9ea54fa8b4e2f3b51f7d2f12e6192c56976f8c06a5509af50d"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/expansion/sample.snap.txt": {
+    "bytes": 3977,
+    "sha256": "b4835cb96997fd1a1e0801ffb5a3edd8a392c4d36b515d67052548c0a30d9d83"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/negative_report.snap.txt": {
+    "bytes": 276,
+    "sha256": "e27222fec96dae8b15342c4de17ad807f0b8aeb5917e0c3d34dd4de11fb6b36e"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/paths/never_beeps.snap.txt": {
+    "bytes": 5588,
+    "sha256": "669be523819722f527f84764d0d36303220918228a29035b57cd0ee75262dbed"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/report.snap.txt": {
+    "bytes": 250,
+    "sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/states.snap.txt": {
+    "bytes": 18471,
+    "sha256": "8afc5e4c241e2dd6af140b4998a2831749a9e9b5312fdf1ba823baa2a702b799"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/sample_kettle/expected/tlc.snap.txt": {
+    "bytes": 442,
+    "sha256": "a3772fb96094019b4383d580cdcd40cba45b049bcaf6c8d323219617ec0cb05a"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@cfg.snap.cfg": {
+    "bytes": 80,
+    "sha256": "c3ecd5ddbc3ad59ebfcc98944a2a6543c5700deabec909813e8d82097a7d3d73"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/Gate@tla.snap.tla": {
+    "bytes": 16468,
+    "sha256": "162ea6c421ef9ab018e43d9f6532c9f3150a281858bbb36448cf6b3258925da4"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/paths/steps_accept.snap.txt": {
+    "bytes": 311,
+    "sha256": "d416efa98689dbf4d942c7dd9045cc3c94834c2e8d7a5567f881dc6fe237cdfc"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/report.snap.txt": {
+    "bytes": 270,
+    "sha256": "b2ff49f259bb8a4dc0b0d770901d39507ab1a2ec4d3cf202528620756b4d6336"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/rows.snap.txt": {
+    "bytes": 4215,
+    "sha256": "d8233ca8aa0af1f6453e46f81b4a8ebb94d0946013ab4b12c432247b5903e578"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/states.snap.txt": {
+    "bytes": 842,
+    "sha256": "1c23346929e7d259221e6fd9776cdd50f4a37ed40da25b2a2258ac360f105d46"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/shared_returns/expected/tlc.snap.txt": {
+    "bytes": 174,
+    "sha256": "ff52df12e76e5c86aadc2ee881f04b311092238409898a34e5ba82c179388048"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@cfg.snap": {
+    "bytes": 86,
+    "sha256": "8fa6cd4529b2141313b6667cf1cd3acbeed0d5f46926f0225082dfe6a186e30a"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@cfg.snap.cfg": {
+    "bytes": 107,
+    "sha256": "2d85734723fa66c0a7ea895b52cc8fe471e354e094bfce903c10d47ad0920b94"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@tla.snap": {
+    "bytes": 86,
+    "sha256": "f65020b7e468da5e6ff5b95e37ad3dce0411f8ad02fb96c173b4ed265aca1ff2"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/Retry@tla.snap.tla": {
+    "bytes": 9003,
+    "sha256": "9e34711ebcf83dc9e9c784fde3272b74410e4d21294ba9d2788dec2373079ba5"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/lift.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/lift.snap.txt": {
+    "bytes": 43,
+    "sha256": "61eefe435e405ff1f247f48995bee1fa51aea994be4a57e77e67fa4491a5ac41"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/negative_report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/negative_report.snap.txt": {
+    "bytes": 211,
+    "sha256": "2a57ef26eb5eb2a9d12106aad2234a5fd2a16d6e4510530bec8826f80bfb19a9"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/paths/never_closed.snap.txt": {
+    "bytes": 214,
+    "sha256": "621ecc5401406b4a2d2cc8ccd06c399ca1805f2d81080f2eeedd5452d2fcf1d8"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/report.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/report.snap.txt": {
+    "bytes": 184,
+    "sha256": "a18331b6bd1069cd3491d304c7b8980e14d8ab23698b35f66393cffbdeb69117"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/rows.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/rows.snap.txt": {
+    "bytes": 2010,
+    "sha256": "100d9ada136aebc5a1811e26e5b02d414d460979b22ea6b148f057a09c8ebd9f"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/states.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/states.snap.txt": {
+    "bytes": 468,
+    "sha256": "8899eba990396eb2f60d9780cd5a053c43147fa4535b941292a3218d9bbdbac0"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/tlc.snap": {
+    "bytes": 86,
+    "sha256": "19cf439a27c5eca05e08dce82d77e5a504af7001c499d621fe95a82bc73346d6"
+  },
+  "model/umpire/dev/fixtures/fixtures/world_fairness/expected/tlc.snap.txt": {
+    "bytes": 347,
+    "sha256": "f5c8fa8026ebef39ca5c41f0d711e7e4d4536f252f389eb0c457add5726d7827"
+  },
+  "model/umpire/reference/kettle/expected/coverage.snap": {
+    "bytes": 10298,
+    "sha256": "6433747fc74211d590e419fec5e0ebeaeaa37ec2e51c2050867497b8bcc434ce"
+  },
+  "model/umpire/reference/kettle/expected/gaps.txt": {
+    "bytes": 38548,
+    "sha256": "a761582977d5756eb692ea5b601c97697765a3a307fa6ebddeeafac6ddb9f54f"
+  },
+  "model/umpire/reference/kettle/expected/mutants.snap.txt": {
+    "bytes": 815,
+    "sha256": "97f9c08cad9b5221ef9d459aa7834705f6975b8f314b71cf16532a937811de6f"
+  },
+  "model/umpire/reference/kettle/expected/report.snap.txt": {
+    "bytes": 250,
+    "sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  "model/umpire/reference/kettle/expected/transcript.snap.txt": {
+    "bytes": 21698,
+    "sha256": "4b6d35ba1996bc6522fdf90ecf06f73eaf3a42d504d79f387880931cb147ca4b"
+  }
+}

@@ -5,7 +5,7 @@ use proc_macro2::Span;
 use std::{collections::BTreeMap, fmt, path::Path};
 use syn::spanned::Spanned;
 #[doc(hidden)]
-pub mod process;
+pub use umpire_backend_process as process;
 pub mod values;
 pub use process::{Limits, Refusal};
 

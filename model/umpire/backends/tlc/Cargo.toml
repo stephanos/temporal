@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-backend-process.workspace = true
 thiserror.workspace = true
 umpire-tla.workspace = true
 

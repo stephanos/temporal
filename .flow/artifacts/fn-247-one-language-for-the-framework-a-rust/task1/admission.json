@@ -1,0 +1,10 @@
+{
+  "base_commit": "cf339e835809cca4ce3cc06a9dda5d66948e02eb",
+  "implementation": "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98",
+  "primary_review": "49ef7069fc",
+  "closure": "baef3f669d",
+  "ancestor_checks": "all exit 0 before source edits",
+  "source_reference_reanchor": "94e47d7878 references resolve against current integrated base above; no pre-task3 guest used",
+  "process_rs_sha256": "f7f61ff0637b14505367d1b56cc5c2074309ca9a6b85a2e53ce2771f57029d68",
+  "process_py_sha256": "612bc470007baa9c5cb655d7087bd2623f7974ec547af4b3ac2fea08c88896ef"
+}

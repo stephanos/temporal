@@ -1,0 +1,7 @@
+{
+  "moved_sources": "byte-identical to pre-edit base",
+  "artifacts_unchanged": 752,
+  "third_party_packages_versions_checksums_features": "unchanged",
+  "local_graph_delta": "process crate depends on existing thiserror; TLA/TLC/Apalache each add process edge",
+  "guest_sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0"
+}

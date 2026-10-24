@@ -1,0 +1,13 @@
+defaults=60s,8388608,134217728,512
+refusal=TLC refusal: control
+success:status=Some(0),output="outerr"
+failure:status=Some(7),output="refused"
+signal:status=Some(143),output=""
+cancel:refusal=TLC refusal: subprocess cancelled (cancel),output=""
+timeout:refusal=TLC refusal: subprocess limit or unsafe output (timeout),output="started"
+utf8:refusal=TLC refusal: non-UTF8 subprocess output: invalid utf-8 sequence of 1 bytes from index 0,output="�"
+bounded: "hello"
+bounded-overflow: exact diagnostic with structurally checked scratch path
+scratch: TLC refusal: scratch path must be workspace relative
+java-env: [("CLASSPATH", None), ("JAVA_TOOL_OPTIONS", None), ("JDK_JAVA_OPTIONS", None), ("TLA_LIBRARY", None), ("_JAVA_OPTIONS", None)]
+cleanup: absent

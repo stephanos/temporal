@@ -1,0 +1,11 @@
+test_all_darwin_helpers_prevent_process_creation (test_backend_process.DarwinPolicy.test_all_darwin_helpers_prevent_process_creation) ... ok
+test_diagnostic_text_cannot_make_a_hung_preflight_pass (test_backend_process.Supervisor.test_diagnostic_text_cannot_make_a_hung_preflight_pass) ... ok
+test_installer_containment_preflight_requires_no_descendants (test_backend_process.Supervisor.test_installer_containment_preflight_requires_no_descendants) ... ok
+test_owner_death_terminates_and_reaps_separate_session_descendants (test_backend_process.Supervisor.test_owner_death_terminates_and_reaps_separate_session_descendants) ... ok
+test_owner_group_and_direct_supervisor_termination_reap_owned_tree (test_backend_process.Supervisor.test_owner_group_and_direct_supervisor_termination_reap_owned_tree) ... ok
+test_simulated_darwin_helper_cannot_start_an_escaped_descendant (test_backend_process.Supervisor.test_simulated_darwin_helper_cannot_start_an_escaped_descendant) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.479s
+
+OK

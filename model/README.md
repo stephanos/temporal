@@ -31,7 +31,8 @@ proc macros, syntax, build support and derives live beneath that crate.
 | `ir` | `umpire-ir` | Admitted typed tree, expressions and embedded values. | No; compiler/checker interface. |
 | `ir/derive` | `umpire-ir-derive` | Generate embedded tree construction. | No; IR implementation. |
 | `backends/native` | `umpire-checker` | Explore and check Models natively. | Through the suite; direct engine use is available. |
-| `backends/tla` | `umpire-tla` | Bind and emit TLA+, supervise backend processes and admit shared typed values. | No; backend support. |
+| `backends/process` | `umpire-backend-process` | Own bounded backend processes, Java admission, capture and scratch cleanup. | No; backend support. |
+| `backends/tla` | `umpire-tla` | Bind and emit TLA+ and admit shared typed values. | No; backend support. |
 | `backends/tlc` | `umpire-tlc` | Execute TLC and decode complete state sets and counterexamples. | No; backend adapter. |
 | `backends/apalache` | `umpire-apalache` | Execute bounded safety checks and confirm traces by native replay. | No; optional backend adapter. |
 | `protocol/proto` | — | Shared protobuf schemas and ABI contract. | For host/realization integration. |
@@ -53,8 +54,9 @@ The `umpire` facade exports DSL and suite items at its root, including `machine`
 `State`, `World`, `path`, `Space`, `Run` and `verify_all`, plus `Catalog` and `annotate`.
 The same surfaces are available as `umpire::{dsl, suite, catalog}`. It reduces author
 dependencies while the underlying crates remain independently usable. Backend adapters share
-supervision and typed assignments through `umpire-tla`;
-`umpire-apalache` has no dependency on `umpire-tlc`. Apalache remains opt-in with
+supervision through `umpire-backend-process` and typed assignments through `umpire-tla`;
+`umpire-apalache` has no dependency on `umpire-tlc`. The process crate temporarily retains its
+Python supervisor until the Rust replacement passes the retained process controls. Apalache remains opt-in with
 `UMPIRE_APALACHE=require`; the required TLC gate uses `UMPIRE_BACKENDS=require`.
 `author/umpire/tests/consumer` proves authoring with one renamed facade dependency.
 `protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`

@@ -1,0 +1,342 @@
+[
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_symlink_in_each_install_component_is_refused",
+    "line": 41,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_partial_and_wrong_jar_never_download_or_publish",
+    "line": 57,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_archive_and_extracted_jar_mismatches_leave_no_partial_install",
+    "line": 69,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_dangling_components_and_unsafe_locks_refuse_without_download",
+    "line": 82,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_failed_download_cleans_private_staging",
+    "line": 107,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_apalache.py",
+    "control": "test_concurrent_installers_publish_once_and_converge",
+    "line": 121,
+    "rust_counterpart_owner_task": "6",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_all_darwin_helpers_prevent_process_creation",
+    "line": 23,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_simulated_darwin_helper_cannot_start_an_escaped_descendant",
+    "line": 45,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_installer_containment_preflight_requires_no_descendants",
+    "line": 82,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_diagnostic_text_cannot_make_a_hung_preflight_pass",
+    "line": 101,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_owner_group_and_direct_supervisor_termination_reap_owned_tree",
+    "line": 108,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_backend_process.py",
+    "control": "test_owner_death_terminates_and_reaps_separate_session_descendants",
+    "line": 166,
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest.py",
+    "control": "test_build_fresh_stale_and_failure",
+    "line": 15,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_freshness.py",
+    "control": "test_ready_fresh_stale_missing_and_compile_failure",
+    "line": 85,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_freshness.py",
+    "control": "test_missing_prerequisites_skip_only_with_ci_unset",
+    "line": 108,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_freshness.py",
+    "control": "test_probe_error_is_not_missing_toolchain",
+    "line": 136,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_freshness.py",
+    "control": "test_stale_guest_fails_real_model_check",
+    "line": 144,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_freshness.py",
+    "control": "test_missing_embedded_file_fails_go_compilation",
+    "line": 157,
+    "rust_counterpart_owner_task": "5",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_unrelated_workspace_packages_and_dev_dependencies_do_not_change_closures",
+    "line": 57,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_workspace_unified_optional_edges_of_shared_crates_change_closures",
+    "line": 66,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_checkout_location_does_not_change_closures",
+    "line": 74,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_closure_changes_reach_every_dependent",
+    "line": 78,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_platform_specific_build_dependencies_are_part_of_the_closure",
+    "line": 86,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_edge_structure_is_part_of_the_closure",
+    "line": 94,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_same_name_and_version_from_two_sources_is_ambiguous",
+    "line": 100,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_registry_package_without_lockfile_entry_refuses",
+    "line": 115,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_lock.py",
+    "control": "test_command_writes_a_content_addressed_closure_map",
+    "line": 126,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_host_hashes_and_paths_do_not_change_target_identity",
+    "line": 55,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_target_dependency_identity_propagates",
+    "line": 67,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_package_features_profile_and_compiler_remain_distinct",
+    "line": 72,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_missing_or_ambiguous_lock_closure_refuses",
+    "line": 88,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_build_std_units_need_no_workspace_lock_closure",
+    "line": 96,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_missing_or_corrupt_dependency_identity_refuses",
+    "line": 117,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_native_macro_identity_is_portable_without_changing_its_flags",
+    "line": 129,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_conflicting_native_macro_variants_refuse",
+    "line": 142,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_probes_pass_through_without_requiring_cargo_environment",
+    "line": 153,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_compiler_failure_does_not_publish_identity",
+    "line": 157,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_identity_is_available_during_pipelined_compilation",
+    "line": 168,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_guest_rustc.py",
+    "control": "test_cargo_jobserver_descriptor_reaches_compiler",
+    "line": 181,
+    "rust_counterpart_owner_task": "2",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/scripts/tests/test_retired_names.py",
+    "control": "test_active_spellings_and_historical_exclusions",
+    "line": 15,
+    "rust_counterpart_owner_task": "7",
+    "checkpoint": "retained unchanged; Rust port pending assigned task"
+  },
+  {
+    "source": "model/temporal/feature/activity/compatibility/checkpoint.rs",
+    "python_child_lines": [
+      149
+    ],
+    "controls": [
+      "state_key",
+      "outcome_key",
+      "phase",
+      "reference",
+      "projected_state",
+      "projected",
+      "retained_original_hashes_and_exact_lifecycle_projection",
+      "changed_original_lifecycle_edge_fails_the_same_comparison"
+    ],
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; child replacement pending task4"
+  },
+  {
+    "source": "model/umpire/backends/tla/src/process.rs",
+    "python_child_lines": [
+      215,
+      357,
+      383,
+      399,
+      451,
+      466,
+      482,
+      522
+    ],
+    "controls": [
+      "default",
+      "from",
+      "new",
+      "new_in",
+      "drop",
+      "java_command",
+      "pinned_java",
+      "validate_java",
+      "drop",
+      "from",
+      "from",
+      "run_process",
+      "run_process_cancelled",
+      "same_file",
+      "within_budget",
+      "size",
+      "bounded_text",
+      "direct_helper_timeout_retains_output_and_cleans_scratch",
+      "timeout_cleans_descendants_before_return",
+      "cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+      "wrong_java_version_vendor_and_failed_launch_are_refused",
+      "java_environment_is_clean_and_supervisor_group_is_private",
+      "substituted_log_symlink_cannot_modify_an_external_file",
+      "substituted_log_fifo_returns_without_waiting_for_a_reader",
+      "failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8"
+    ],
+    "rust_counterpart_owner_task": "4",
+    "checkpoint": "retained unchanged; child replacement pending task4"
+  }
+]

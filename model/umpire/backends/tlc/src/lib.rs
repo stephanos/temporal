@@ -6,7 +6,8 @@ mod runner;
 
 pub use decode::*;
 pub use runner::*;
-pub use umpire_tla::{Limits, Refusal, values::*};
+pub use umpire_backend_process::{Limits, Refusal};
+pub use umpire_tla::values::*;
 
 /// TLC's own evaluation of the emitted module failed, such as an integer overflow past TLC's
 /// 32-bit integers or a failed `Assert`: a located finding, never a property verdict.

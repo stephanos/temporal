@@ -856,6 +856,7 @@ dependencies = [
  "serde",
  "serde_json",
  "umpire",
+ "umpire-backend-process",
  "umpire-checker",
  "umpire-dsl",
  "umpire-tla",
@@ -866,6 +867,13 @@ name = "umpire-author-consumer"
 version = "0.0.1"
 dependencies = [
  "umpire",
+]
+
+[[package]]
+name = "umpire-backend-process"
+version = "0.0.1"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
@@ -1196,6 +1204,7 @@ dependencies = [
  "proc-macro2",
  "syn 3.0.9",
  "thiserror",
+ "umpire-backend-process",
  "umpire-checker",
  "umpire-dsl",
  "umpire-front",
@@ -1207,6 +1216,7 @@ name = "umpire-tlc"
 version = "0.0.1"
 dependencies = [
  "thiserror",
+ "umpire-backend-process",
  "umpire-checker",
  "umpire-dsl",
  "umpire-tla",

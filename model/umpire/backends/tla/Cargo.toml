@@ -1,6 +1,6 @@
 [package]
 name = "umpire-tla"
-description = "TLA+ emission, shared backend supervision and typed value admission"
+description = "TLA+ emission and shared typed value admission"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-backend-process.workspace = true
 thiserror.workspace = true
 umpire-front.workspace = true
 syn.workspace = true

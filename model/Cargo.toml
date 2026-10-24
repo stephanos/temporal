@@ -12,6 +12,7 @@ members = [
     "umpire/ir",
     "umpire/ir/derive",
     "umpire/backends/native",
+    "umpire/backends/process",
     "umpire/backends/tla",
     "umpire/backends/tlc",
     "umpire/backends/apalache",
@@ -60,6 +61,7 @@ umpire-suite = { version = "0.0.1", path = "umpire/author/suite" }
 umpire-ir-derive = { version = "0.0.1", path = "umpire/ir/derive" }
 umpire-ir = { version = "0.0.1", path = "umpire/ir" }
 umpire-front = { version = "0.0.1", path = "umpire/front" }
+umpire-backend-process = { version = "0.0.1", path = "umpire/backends/process" }
 umpire-tla = { version = "0.0.1", path = "umpire/backends/tla" }
 umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }

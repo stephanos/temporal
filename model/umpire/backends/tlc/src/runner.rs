@@ -14,7 +14,7 @@ pub const JAR_VERSION: &str = "1.7.4";
 /// SHA-256 of the official v1.7.4 release asset.
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
-use umpire_tla::process::{Scratch, bounded_text, java_command, pinned_java, run_process};
+use umpire_backend_process::{Scratch, bounded_text, java_command, pinned_java, run_process};
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

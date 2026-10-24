@@ -10,10 +10,7 @@ use std::{
     process::Command,
     time::Duration,
 };
-use umpire_tla::{
-    Limits, Refusal,
-    process::{Scratch, java_command, pinned_java, run_process},
-};
+use umpire_backend_process::{Limits, Refusal, Scratch, java_command, pinned_java, run_process};
 /// Selected official release.
 pub const VERSION: &str = "0.62.4";
 /// SHA-256 of the versioned official release archive.
@@ -226,7 +223,7 @@ impl Apalache {
                     .arg(format!("--inv={invariant}"))
                     .arg(format!("--length={length}"))
                     .arg(&file);
-                match umpire_tla::process::run_process_cancelled(
+                match umpire_backend_process::run_process_cancelled(
                     &mut command,
                     &scratch.0,
                     "check",

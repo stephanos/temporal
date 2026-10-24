@@ -1,0 +1,330 @@
+[
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::direct_helper_timeout_retains_output_and_cleans_scratch",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::direct_helper_timeout_retains_output_and_cleans_scratch",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::timeout_cleans_descendants_before_return",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::timeout_cleans_descendants_before_return",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::wrong_java_version_vendor_and_failed_launch_are_refused",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::wrong_java_version_vendor_and_failed_launch_are_refused",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::java_environment_is_clean_and_supervisor_group_is_private",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::java_environment_is_clean_and_supervisor_group_is_private",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::substituted_log_symlink_cannot_modify_an_external_file",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::substituted_log_symlink_cannot_modify_an_external_file",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::substituted_log_fifo_returns_without_waiting_for_a_reader",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::substituted_log_fifo_returns_without_waiting_for_a_reader",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/umpire/backends/tla/src/process.rs::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+    "after": "model/umpire/backends/process/src/lib.rs::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+    "equivalence": "entire module byte-identical",
+    "native_child_port_task": "fn-247.4"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_symlink_in_each_install_component_is_refused",
+    "after": "model/scripts/tests/test_apalache.py::test_symlink_in_each_install_component_is_refused",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_partial_and_wrong_jar_never_download_or_publish",
+    "after": "model/scripts/tests/test_apalache.py::test_partial_and_wrong_jar_never_download_or_publish",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_archive_and_extracted_jar_mismatches_leave_no_partial_install",
+    "after": "model/scripts/tests/test_apalache.py::test_archive_and_extracted_jar_mismatches_leave_no_partial_install",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_dangling_components_and_unsafe_locks_refuse_without_download",
+    "after": "model/scripts/tests/test_apalache.py::test_dangling_components_and_unsafe_locks_refuse_without_download",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_failed_download_cleans_private_staging",
+    "after": "model/scripts/tests/test_apalache.py::test_failed_download_cleans_private_staging",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_apalache.py::test_concurrent_installers_publish_once_and_converge",
+    "after": "model/scripts/tests/test_apalache.py::test_concurrent_installers_publish_once_and_converge",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.6",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_all_darwin_helpers_prevent_process_creation",
+    "after": "model/scripts/tests/test_backend_process.py::test_all_darwin_helpers_prevent_process_creation",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_simulated_darwin_helper_cannot_start_an_escaped_descendant",
+    "after": "model/scripts/tests/test_backend_process.py::test_simulated_darwin_helper_cannot_start_an_escaped_descendant",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_installer_containment_preflight_requires_no_descendants",
+    "after": "model/scripts/tests/test_backend_process.py::test_installer_containment_preflight_requires_no_descendants",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_diagnostic_text_cannot_make_a_hung_preflight_pass",
+    "after": "model/scripts/tests/test_backend_process.py::test_diagnostic_text_cannot_make_a_hung_preflight_pass",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_owner_group_and_direct_supervisor_termination_reap_owned_tree",
+    "after": "model/scripts/tests/test_backend_process.py::test_owner_group_and_direct_supervisor_termination_reap_owned_tree",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_backend_process.py::test_owner_death_terminates_and_reaps_separate_session_descendants",
+    "after": "model/scripts/tests/test_backend_process.py::test_owner_death_terminates_and_reaps_separate_session_descendants",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.4",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest.py::test_build_fresh_stale_and_failure",
+    "after": "model/scripts/tests/test_guest.py::test_build_fresh_stale_and_failure",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_freshness.py::test_ready_fresh_stale_missing_and_compile_failure",
+    "after": "model/scripts/tests/test_guest_freshness.py::test_ready_fresh_stale_missing_and_compile_failure",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_freshness.py::test_missing_prerequisites_skip_only_with_ci_unset",
+    "after": "model/scripts/tests/test_guest_freshness.py::test_missing_prerequisites_skip_only_with_ci_unset",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_freshness.py::test_probe_error_is_not_missing_toolchain",
+    "after": "model/scripts/tests/test_guest_freshness.py::test_probe_error_is_not_missing_toolchain",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_freshness.py::test_stale_guest_fails_real_model_check",
+    "after": "model/scripts/tests/test_guest_freshness.py::test_stale_guest_fails_real_model_check",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_freshness.py::test_missing_embedded_file_fails_go_compilation",
+    "after": "model/scripts/tests/test_guest_freshness.py::test_missing_embedded_file_fails_go_compilation",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.5",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_unrelated_workspace_packages_and_dev_dependencies_do_not_change_closures",
+    "after": "model/scripts/tests/test_guest_lock.py::test_unrelated_workspace_packages_and_dev_dependencies_do_not_change_closures",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_workspace_unified_optional_edges_of_shared_crates_change_closures",
+    "after": "model/scripts/tests/test_guest_lock.py::test_workspace_unified_optional_edges_of_shared_crates_change_closures",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_checkout_location_does_not_change_closures",
+    "after": "model/scripts/tests/test_guest_lock.py::test_checkout_location_does_not_change_closures",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_closure_changes_reach_every_dependent",
+    "after": "model/scripts/tests/test_guest_lock.py::test_closure_changes_reach_every_dependent",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_platform_specific_build_dependencies_are_part_of_the_closure",
+    "after": "model/scripts/tests/test_guest_lock.py::test_platform_specific_build_dependencies_are_part_of_the_closure",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_edge_structure_is_part_of_the_closure",
+    "after": "model/scripts/tests/test_guest_lock.py::test_edge_structure_is_part_of_the_closure",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_same_name_and_version_from_two_sources_is_ambiguous",
+    "after": "model/scripts/tests/test_guest_lock.py::test_same_name_and_version_from_two_sources_is_ambiguous",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_registry_package_without_lockfile_entry_refuses",
+    "after": "model/scripts/tests/test_guest_lock.py::test_registry_package_without_lockfile_entry_refuses",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_lock.py::test_command_writes_a_content_addressed_closure_map",
+    "after": "model/scripts/tests/test_guest_lock.py::test_command_writes_a_content_addressed_closure_map",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_host_hashes_and_paths_do_not_change_target_identity",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_host_hashes_and_paths_do_not_change_target_identity",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_target_dependency_identity_propagates",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_target_dependency_identity_propagates",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_package_features_profile_and_compiler_remain_distinct",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_package_features_profile_and_compiler_remain_distinct",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_missing_or_ambiguous_lock_closure_refuses",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_missing_or_ambiguous_lock_closure_refuses",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_build_std_units_need_no_workspace_lock_closure",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_build_std_units_need_no_workspace_lock_closure",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_missing_or_corrupt_dependency_identity_refuses",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_missing_or_corrupt_dependency_identity_refuses",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_native_macro_identity_is_portable_without_changing_its_flags",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_native_macro_identity_is_portable_without_changing_its_flags",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_conflicting_native_macro_variants_refuse",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_conflicting_native_macro_variants_refuse",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_probes_pass_through_without_requiring_cargo_environment",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_probes_pass_through_without_requiring_cargo_environment",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_compiler_failure_does_not_publish_identity",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_compiler_failure_does_not_publish_identity",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_identity_is_available_during_pipelined_compilation",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_identity_is_available_during_pipelined_compilation",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_guest_rustc.py::test_cargo_jobserver_descriptor_reaches_compiler",
+    "after": "model/scripts/tests/test_guest_rustc.py::test_cargo_jobserver_descriptor_reaches_compiler",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.2",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  },
+  {
+    "before": "model/scripts/tests/test_retired_names.py::test_active_spellings_and_historical_exclusions",
+    "after": "model/scripts/tests/test_retired_names.py::test_active_spellings_and_historical_exclusions",
+    "equivalence": "retained Python control; supervisor import relocated for process suite only",
+    "rust_port_task": "fn-247.7",
+    "rust_port_status": "pending; no Rust replacement claimed at extraction checkpoint"
+  }
+]
