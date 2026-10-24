@@ -31,6 +31,18 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             "declared World requires a selected World and complete-start binding",
         ));
     }
+    if model
+        .assumptions
+        .iter()
+        .chain(model.progress.iter().map(|claim| &claim.assumption))
+        .any(|assumption| assumption.conditional.is_some())
+    {
+        return Err(Diagnostic::of(
+            &model.file,
+            &model.location,
+            "unresolved conditional assumption requires a selected World binding",
+        ));
+    }
     // Only Models with action inputs observe the concrete catalog ordinal of each edge.
     let inputs = model.has_inputs();
     let mut observers = OBSERVERS.to_vec();

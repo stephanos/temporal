@@ -343,7 +343,14 @@ pub(crate) fn validate(file: &str, source: &Source, model: &Lifted) -> Result<()
     }
     names.register_negative(model)?;
     for assumption in &model.assumptions {
-        if model.progress.iter().any(|claim| claim.assumption.same_scope(assumption)) {
+        if model.progress.iter().any(|claim| {
+            claim.assumption.possible_scopes().iter().any(|progress| {
+                assumption
+                    .possible_scopes()
+                    .iter()
+                    .any(|registered| progress.same_scope(registered))
+            })
+        }) {
             names.register(&format!("Assumption_{}", assumption.name), &assumption.name)?;
         }
     }
@@ -363,7 +370,12 @@ pub(crate) fn validate(file: &str, source: &Source, model: &Lifted) -> Result<()
             names.register(&format!("{prefix}_{}", claim.name), &claim.name)?;
         }
         for action in &model.actions {
-            if !claim.assumption.fair.iter().any(|fair| fair.name == action.name) {
+            if !claim
+                .assumption
+                .possible_scopes()
+                .iter()
+                .any(|scope| scope.fair.iter().any(|fair| fair.name == action.name))
+            {
                 continue;
             }
             let fair = format!("Fair_{}_{}", claim.name, operator(&action.name));
