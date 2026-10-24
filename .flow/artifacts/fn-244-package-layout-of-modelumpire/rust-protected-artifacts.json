@@ -2,10 +2,11 @@
   "base_commit": "9bb2ba62e6ecd05f5dedc326e7f8c579a6c06d9a",
   "protected_count": 1192,
   "summary": {
-    "identical": 864,
+    "identical": 863,
     "merged-catalog-expansion-root": 1,
     "compiler-diagnostic-path": 4,
     "snapshot-source-metadata": 321,
+    "rebuilt-guest": 1,
     "facade-authored-input-path": 2
   },
   "protected": [
@@ -3149,8 +3150,8 @@
       "original": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
       "current": "model/temporal/hosts/go/umpire_temporal_guest.wasm",
       "before_sha256": "757fd2e8ca05d8116f5d20c6fbe3586ff2d865296319ddec2cb1d48fe5dab66e",
-      "after_sha256": "757fd2e8ca05d8116f5d20c6fbe3586ff2d865296319ddec2cb1d48fe5dab66e",
-      "status": "identical"
+      "after_sha256": "69454c4c3ecbe4672ec6f96b6cb68d8481c98c12ea2f68ff2eecc1a3145d04e7",
+      "status": "rebuilt-guest"
     },
     {
       "original": "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization-authored.snap",
