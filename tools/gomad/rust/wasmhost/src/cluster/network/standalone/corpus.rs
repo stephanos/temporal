@@ -87,7 +87,7 @@ fn go_standalone_network_adapter_corpus() {
         .map(|entry| entry.unwrap().path())
         .collect();
     files.sort();
-    assert_eq!(files.len(), 62);
+    assert_eq!(files.len(), 63);
     for path in files {
         let fixture: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         assert_eq!(fixture["schema"], "gomad.network-adapter-corpus/v1");

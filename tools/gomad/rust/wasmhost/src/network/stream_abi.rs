@@ -99,13 +99,13 @@ pub fn readiness_probe_v1(call: &Call, data: &[u8]) -> Result<Vec<u64>, Invalid>
         || data.len() != HEADER + 8 * call.count as usize
         || data[48..52].iter().any(|byte| *byte != 0)
     {
-        return Err(Invalid("network v2 readiness probe v1 layout"));
+        return Err(Invalid("network v2 readiness probe layout"));
     }
     let mut ids = Vec::with_capacity(call.count as usize);
     for payload in data[HEADER..].chunks_exact(8) {
         let id = u64_at(payload, 0);
         if id == 0 || id >= 1 << 48 || ids.contains(&id) {
-            return Err(Invalid("network v2 readiness probe v1 request"));
+            return Err(Invalid("network v2 readiness probe request"));
         }
         ids.push(id);
     }

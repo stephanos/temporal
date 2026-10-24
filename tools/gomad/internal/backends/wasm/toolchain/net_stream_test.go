@@ -55,11 +55,16 @@ var probes [][]uint64
 var witnesses int
 var malformed string
 var cascade bool
+var boundaries []uint64
+var control string
+var controlQueued bool
 func gomadStreamWitness(){witnesses++}
 func gomadWasmNetStream(p *byte,n uint32)uint32{
  b:=unsafe.Slice(p,int(n))
+ if controlQueued {if control=="complete" {ready[3]=true}else{delete(ready,2)};controlQueued=false}
  switch op:=byteorder.BEUint32(b[4:]);op {
  case 14:
+  boundaries=append(boundaries,0)
   count:=int(byteorder.BEUint32(b[36:]))
   if count<1 || count>128 || len(b)!=64+8*count {panic("unbounded readiness probe")}
   expected:=make([]byte,len(b));byteorder.BEPutUint32(expected,2);byteorder.BEPutUint32(expected[4:],14);byteorder.BEPutUint32(expected[36:],uint32(count));copy(expected[64:],b[64:])
@@ -69,15 +74,15 @@ func gomadWasmNetStream(p *byte,n uint32)uint32{
   probes=append(probes,ids)
   switch malformed {case "id":byteorder.BEPutUint64(b[64:],9999);case "count":byteorder.BEPutUint32(b[36:],0);case "status":byteorder.BEPutUint32(b[40:],1)}
  case gomadStreamPoll:
-  id:=byteorder.BEUint64(b[8:]);polls=append(polls,id)
+  id:=byteorder.BEUint64(b[8:]);polls=append(polls,id);boundaries=append(boundaries,id)
   if ready[id]{delete(ready,id);byteorder.BEPutUint32(b[40:],0);byteorder.BEPutUint32(b[36:],1);b[64]=byte(id)}else{byteorder.BEPutUint32(b[40:],1)}
  default:panic("unexpected operation")
  }
- if cascade && byteorder.BEUint32(b[4:])==gomadStreamPoll && byteorder.BEUint64(b[8:])==1 {ready[2]=true}
+ if byteorder.BEUint32(b[4:])==gomadStreamPoll && byteorder.BEUint64(b[8:])==1 {if cascade {ready[2]=true};if control!="" {controlQueued=true}}
  return 0
 }
 func setup(n int)[]*gomadStreamPending{
- gomadStreamPendingHead=nil;gomadStreamPendingTail=nil;gomadStreamNextRequest=0;ready=map[uint64]bool{};polls=nil;probes=nil;witnesses=0;malformed="";cascade=false
+ gomadStreamPendingHead=nil;gomadStreamPendingTail=nil;gomadStreamNextRequest=0;ready=map[uint64]bool{};polls=nil;probes=nil;witnesses=0;malformed="";cascade=false;boundaries=nil;control="";controlQueued=false
  pending:=make([]*gomadStreamPending,n)
  for i:=range pending{
   p:=&gomadStreamPending{buffer:gomadStreamFrame(gomadStreamRead,1,0,0,1,0),done:make(chan struct{}),active:true};pending[i]=p
@@ -109,6 +114,25 @@ func TestRepeatedScansAndReadyOrder(t *testing.T){
  if woken,waiting:=gomadStreamPollPending();!woken || waiting || gomadStreamPendingTail!=nil {t.Fatal("drain left pending requests")}
  calls:=len(probes)+len(polls)
  if woken,waiting:=gomadStreamPollPending();woken || waiting || calls!=len(probes)+len(polls){t.Fatal("empty scan crossed host boundary")}
+}
+func TestAllReadyUsesOneProbePerChunk(t *testing.T){
+ pending:=setup(259)
+ expected:=make([]uint64,len(pending))
+ for i:=range pending {id:=uint64(i+1);ready[id]=true;expected[i]=id}
+ if woken,waiting:=gomadStreamPollPending();!woken || waiting {t.Fatal("all-ready scan did not drain")}
+ if len(probes)!=3 || !reflect.DeepEqual(polls,expected){t.Fatalf("all-ready scan: %d probes, polls=%v",len(probes),polls)}
+ for _,p:=range pending {select {case <-p.done:default:t.Fatal("ready entry not woken")}}
+}
+func TestPositiveHintsAndInvalidatedNegativeSlots(t *testing.T){
+ for _,mode:=range []string{"none","complete","withdraw"}{t.Run(mode,func(t *testing.T){
+  pending:=setup(3);ready[1]=true;ready[2]=true
+  if mode!="none" {control=mode}
+  woken,waiting:=gomadStreamPollPending()
+  expected:=[]uint64{0,1,2,0}
+  if mode=="complete" {expected=append(expected,3)}
+  if !woken || waiting!=(mode!="complete") || !reflect.DeepEqual(boundaries,expected){t.Fatalf("boundaries=%v woken=%v waiting=%v",boundaries,woken,waiting)}
+  if pending[0].active || pending[1].active!=(mode=="withdraw") || pending[2].active!=(mode!="complete"){t.Fatal("authoritative poll result or suffix readiness lost")}
+ })}
 }
 func TestPollCompletionCascade(t *testing.T){
  pending:=setup(3);ready[1]=true;cascade=true

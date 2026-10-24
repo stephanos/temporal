@@ -894,7 +894,7 @@ impl Endpoint {
         }
         if call.op == stream_abi::READINESS_PROBE_V1 && call.id == 0 {
             if !runtime {
-                return Err(Failure::Invalid("network v2 readiness probe v1 lifetime"));
+                return Err(Failure::Invalid("network v2 readiness probe layout"));
             }
             let ids = stream_abi::readiness_probe_v1(&call, data)
                 .map_err(|invalid| Failure::Invalid(invalid.0))?;
@@ -908,7 +908,7 @@ impl Endpoint {
                         .is_some_and(|pending| pending.request.domain == *domain)
                 });
                 if !valid {
-                    return Err(Failure::Invalid("network v2 readiness probe v1 request"));
+                    return Err(Failure::Invalid("network v2 readiness probe request"));
                 }
             }
             self.advance(&mut shared, now)?;
