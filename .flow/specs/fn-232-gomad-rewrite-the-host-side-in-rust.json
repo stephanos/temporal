@@ -10,7 +10,10 @@
     "fn-228-gomad-helper-owned-replay-tape"
   ],
   "id": "fn-232-gomad-rewrite-the-host-side-in-rust",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-232-gomad-rewrite-the-host-side-in-rust.15": 0,
+    "fn-232-gomad-rewrite-the-host-side-in-rust.17": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -378,16 +381,90 @@
       "timestamp": "2026-10-24T04:11:53.246228Z",
       "tool_calls": 28,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0ec8ab3574827c0c3c15e339d620f583727191d4b2d7bdce3c76c2f18baab4ba",
+      "backend": "codex",
+      "base_sha": "b0cf3c4ddbd648a699c88a4e9a62d6d7bed5cb18",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "66dad56f36c006e0ddc072a4acdbb08d548f5dc9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "d604091d316c4a3481b2dedd3a18c919",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.15",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.15",
+      "timestamp": "2026-10-24T04:20:11.087677Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3173cce267c48c16a7cb565d0e778424e607e171fe94f1d17d89711d9bc00553",
+      "backend": "codex",
+      "base_sha": "b0cf3c4ddbd648a699c88a4e9a62d6d7bed5cb18",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1ed2324cf7bbc51487d39117b9c61fe107f335d9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "00c1f20b03dd486fa661c0e68e0f021b",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.17",
+      "timestamp": "2026-10-24T04:20:31.012226Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 4,
-    "plan#completion": 0
+    "plan#completion": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.15": 1,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "plan": 0
+    "plan": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.15": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 0
   },
   "spec_path": ".flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md",
   "status": "open",
@@ -403,5 +480,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T04:11:53.263327Z"
+  "updated_at": "2026-10-24T04:20:31.013849Z"
 }
