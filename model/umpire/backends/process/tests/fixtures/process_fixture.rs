@@ -106,6 +106,11 @@ mod fixture {
             }
             "utf8" => io::stdout().write_all(&[255])?,
             "echo" => io::stdout().write_all(b"native\n")?,
+            "argv-env" => {
+                println!("arg:{}", args[2]);
+                println!("value:{}", env::var("UMPIRE_PROCESS_VALUE")?);
+                println!("removed:{}", env::var_os("UMPIRE_PROCESS_REMOVED").is_none());
+            }
             "descendant-attempt" => {
                 match Command::new(env::current_exe()?).arg("sleep").process_group(0).spawn() {
                     Err(error) if error.kind() == io::ErrorKind::WouldBlock => {

@@ -442,3 +442,45 @@ fn owner_death_terminates_and_reaps_separate_session_descendants() -> Result<(),
     assert_reaped(&scratch.0.join("pids"))?;
     scratch.finish(Ok(()))
 }
+
+#[test]
+fn launch_status_and_prepared_command_contracts_are_preserved() -> Result<(), Refusal> {
+    use std::os::unix::fs::PermissionsExt;
+    let scratch = Scratch::new(&root()?)?;
+    let nonexec = scratch.0.join("not-executable");
+    fs::write(&nonexec, "not executable")?;
+    fs::set_permissions(&nonexec, fs::Permissions::from_mode(0o600))?;
+    let missing = scratch.0.join("missing-executable");
+    for (label, executable) in [("missing", &missing), ("nonexec", &nonexec)] {
+        let (status, _) =
+            run_process(&mut Command::new(executable), &scratch.0, label, Limits::default(), None)?;
+        assert_eq!(status.code(), Some(1), "{label}");
+    }
+    let mut missing_cwd = fixture("echo");
+    missing_cwd.current_dir(scratch.0.join("missing-directory"));
+    let failure = run_process(&mut missing_cwd, &scratch.0, "cwd", Limits::default(), None)
+        .err()
+        .ok_or_else(|| Refusal("missing working directory was admitted".into()))?;
+    assert!(failure.0.contains("cannot spawn cwd"), "{failure}");
+    std::os::unix::fs::symlink(FIXTURE, scratch.0.join("tool"))?;
+    for (index, program) in ["tool", "./tool"].into_iter().enumerate() {
+        let mut command = Command::new(program);
+        command
+            .args(["argv-env", "space ' \" unicode λ"])
+            .current_dir(&scratch.0)
+            .env("PATH", ".")
+            .env("UMPIRE_PROCESS_VALUE", "prepared")
+            .env("UMPIRE_PROCESS_REMOVED", "present")
+            .env_remove("UMPIRE_PROCESS_REMOVED");
+        let (status, output) = run_process(
+            &mut command,
+            &scratch.0,
+            &format!("prepare-{index}"),
+            Limits::default(),
+            None,
+        )?;
+        assert!(status.success());
+        assert_eq!(output, "arg:space ' \" unicode λ\nvalue:prepared\nremoved:true\n");
+    }
+    scratch.finish(Ok(()))
+}
