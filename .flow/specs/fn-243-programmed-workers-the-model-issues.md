@@ -1,5 +1,7 @@
 # Programmed workers: the Model issues each worker's program before it runs (model, temporal)
 
+> HTML render lens (local, ignored): open `.flow/artifacts/fn-243-programmed-workers-the-model-issues/spec.html` locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-23): "skip the Shim for now"
@@ -59,7 +61,7 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 - Same World gives the same program bytes; same state and seed give the same proposal. Goldens pin both.
 - A task outside the admitted World (attempt beyond the maximum, another activity) is a scope Refusal, as today; the unprogrammed failure lands consistently with it.
 - An unprogrammed task inside the World is a Realization defect: Refused, named "unprogrammed", never a finding about the system.
-- Cancel-before-start uses the hold; cancel-after-completion is unchanged. Without a hold the cancel races the worker and either explained outcome is accepted.
+- Cancel-before-start uses the hold; cancel-after-completion is unchanged. The original requirement, "Without a hold the cancel races the worker and either explained outcome is accepted," remains an outstanding R2 obligation. The atomic-Model checkpoint refuses unheld cancellation of an open activity before issuing a Cancel RPC. Task .5 restores admission and proves the original obligation after the independently planned cooperative Model and live binding are committed.
 - Silence from the worker is a timeout in history, judged as the Model's Deadline actions allow; it is never confused with a program gap because the gap has its own failure type.
 - Executors keep no state across tasks. A Model that would need that is wrong, not the worker.
 - No non-Go SDK is available offline in this sandbox (Go SDK only in the module cache; no Python SDK or gRPC). R4 is conditional.
@@ -72,6 +74,12 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 - **R4:** A raw executor in one language other than Go follows the same program file with no connection to Umpire, if a gRPC stack is available offline; otherwise the missing pieces are recorded in the task.
 - **R5:** DESIGN.md's Runner and Run section states R40 in its final form: a worker in any language follows a Model-issued program and the Run records what happened; the Shim is recorded as superseded; the proposal vocabulary (action, bootstrap, read) and the hold fault are recorded.
 
+## Quick commands
+
+```bash
+cd model && mise exec -- cargo test -p umpire-temporal --test program_history --test proposal
+```
+
 ## Boundaries
 
 - No Model semantics change; the Model decides every worker response, earlier, by enumeration.
@@ -80,6 +88,16 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 - No heartbeat or delay response kinds until a Model can judge them.
 - No Temporal detail in `model/umpire`; the envelope, key types and executors live under `model/temporal`.
 
+## Cancellation admission checkpoints
+
+The current activity Model cancels atomically. An actual retained SDK Run demonstrates that the server can acknowledge cancellation of a started attempt while leaving cancellation pending, permit completion or failure, and reject a distinct second cancellation request. The checkpoint does not reinterpret that evidence or change the Model to match it.
+
+Task .2 completes the admitted held-before-start and terminal-cancellation slice. It explicitly refuses unheld cancellation of an open activity with `unheld cancellation of an open activity is outside the atomic cancellation Model`; the refusal publishes no cancellation proposal and causes no Cancel RPC. Ordinary supported Runs retain strict explanation and program-deviation controls.
+
+The original unheld-race requirement stays open under R2. Task .5 consumes the independently specified cooperative semantics and committed live binding from fn-237, restores only justified admission, and proves actual raw/SDK races. The original counterexample and original guest identity remain preserved and replay as their original finding; later Model support is a separate proof.
+
+Task .4 and fn-228.7 document the delivered worker architecture and this admission boundary. Neither closes this spec or claims the deferred behavior passed. Task .5 updates the final R40 status and fn-228 R7 evidence after its live and offline-replay proof passes. Both parent obligations remain open until that committed evidence exists. The CLI supports native dependencies only within a spec. Cross-spec prerequisites use explicit blocked tasks and conductor admission checks against committed closures, without whole-spec edges that would block the producer of the cooperative semantics.
+
 ## Decision Context
 
 2026-10-23: the owner deferred the Shim and asked for pre-programmed workers; worker actions are the evidence, a misbehaving worker must fail the Model's judgment.
@@ -87,3 +105,16 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 2026-10-24, owner decisions after a walk-through: (1) Read proposal kind; worker actions observed, not proposed. (2) No agreement check; program derived from the one policy, coverage test instead. (3) Scenario tag in the `header`, not the input. (4) Cancel-before-start by a hold fault in the proposal's instruction, not `start_delay` and not a program delay. (5) Program on the Reset response plus `umpire program`. (6) Executors under `model/temporal/hosts/go/reference/worker`, raw and sdk. (7) Placement after fn-228.6 and fn-244.2, before fn-228.7, so one lane edits the Driver at a time and R40 is written once; fn-237 needs the hold fault and follows.
 
 Also settled: the envelope is feature-agnostic with per-feature key types; no fallback field, the unprogrammed behaviour is an executor contract; the worker is part of the system under test and the Run records the executor kind; the program is constant per Model and World with per-Run variation carried in proposed inputs. fn-228.5 is superseded by this spec.
+
+2026-10-24, conductor under the owner's standing autonomous-work instruction: preserve the frozen atomic Model and the actual cancellation counterexample. Scope-refuse unsupported unheld open-state cancellation in .2, keep its original R2 obligation in .5, and consume the already-approved fn-237 cooperative Model rather than fitting semantics to the server. The interleaving is .1-.3, fn-228.7, .4, fn-237.1-.4, .5, then fn-237.5.
+
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Reset returns a deterministic program for the admitted World; `umpire program` writes it; wire goldens pin `ResetResponse.program` and `PROPOSAL_KIND_READ`; the Runner and Driver never decode the program (import graph). Errors: a Reset without a configured World returns no program; an unknown key type is refused by the worker at start. | fn-243-programmed-workers-the-model-issues.1 | — |
+| R2 | The raw executor follows the program; the live slice (complete, retry-then-complete, fail, cancel-before-start under a hold, cancel-after-completion, host refusal) passes through `umpire explore` with Read proposals, judged from server history, with the Run as the only artifact and the executor kind recorded. The SDK executor then passes the same slice with identical judgments. Errors: an unsupported hold is a DriverFault; a read timeout stays a DriverFault. | fn-243-programmed-workers-the-model-issues.2, fn-243-programmed-workers-the-model-issues.5 | — |
+| R3 | A worker that deviates from its program is Unexplained at the deviating observation (control: a mutant raw executor completing where the program says fail, and one completing with a different result). An unprogrammed task ends the Run Refused with the reason named (control: an empty program). A coverage test proves every scenario and admitted attempt has a row. | fn-243-programmed-workers-the-model-issues.2 | — |
+| R4 | A raw executor in one language other than Go follows the same program file with no connection to Umpire, if a gRPC stack is available offline; otherwise the missing pieces are recorded in the task. | fn-243-programmed-workers-the-model-issues.3 | — |
+| R5 | DESIGN.md's Runner and Run section states R40 in its final form: a worker in any language follows a Model-issued program and the Run records what happened; the Shim is recorded as superseded; the proposal vocabulary (action, bootstrap, read) and the hold fault are recorded. | fn-243-programmed-workers-the-model-issues.4, fn-243-programmed-workers-the-model-issues.5 | — |

@@ -43,6 +43,7 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 
 Heartbeat and the cancellation acknowledgement are Model actions the worker performs and Umpire observes in server history (fn-243); nothing in the Model changes for that. `temporal.rs` gains their program rows in fn-237.4, not here; this task only keeps the realization compiling against the new state and actions.
 ## Acceptance
+- [ ] Independently specify repeated cancellation while a cancellation request is pending from the approved domain/API contract before comparing implementation behavior. The retained server code 9 observation does not itself authorize Model semantics or a NotFound remapping; preserve a genuine disagreement as a finding.
 - [ ] All four deadline arming/reset/spanning and authored simultaneous-priority controls pass. Exact expiry facts, zero handling and disabled no-budget Tick survive native/TLC agreement and replay.
 - [ ] Cooperative pending-heartbeat/acknowledgement and completion/failure races follow the approved policy; atomic compatibility and all terminal/stale-attempt laws remain. A heartbeat-only closure mutation fails.
 - [ ] Exact concrete Poll and closing-action weak-fairness obligations verify progress natively and on required TLC Worlds, including no-timeout/retry Worlds. Union-fairness, missing-close and stale-Poll starvation controls remain discriminating; applicable tick-bound/reset/expiry defects refute without counter clamping or cuts.

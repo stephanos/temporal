@@ -108,3 +108,55 @@ Correctness axis: 2 findings; worst tier Should Fix.
 Standards axis: 0 tiered findings; no worst tier. The provisioning observation is routed to correctness for the fix decision.
 
 The conductor accepted the namespace guard fix, full payload equality restoration and live provisioning deletion control. This decision does not change either report or constitute a primary review verdict. Follow-up evidence will record resolution.
+
+# fn-243.2 follow-up at fad276df
+
+The following reports are verbatim follow-ups after the accepted fixes and explicit atomic-Model admission boundary. The original reports above remain unchanged. Executable source is `fad276dfc399766a28b51d4262829f90be6e73b6`; tracking changes remain separate.
+
+### Correctness axis
+
+## Quality Audit — Correctness follow-up: c96f9bac → fad276df
+
+### Summary
+
+- Files changed: 31 · Critical 0 · Should Fix 0 · Consider 0 · Ship: ✅ Scoped checkpoint.
+- No remaining correctness findings met the reporting threshold.
+
+### Resolution status
+
+- Walked: **model/temporal/hosts/go/reference/worker/sdk/sdk.go:72** binds the program namespace on the shared transport; composition rejects namespace/queue mismatches before polling.
+- Cited: **model/temporal/hosts/go/reference/worker/sdk/sdk_test.go:22** restores complete payload equality.
+
+### Scope and evidence
+
+- Walked: unheld open-state cancellation returns exact Unsupported before publishing a proposal; held and terminal cancellation remain admitted. fn-243.5 retains the deferred obligation.
+- Walked: readiness retries only namespace-missing probes; modeled Start remains single-send. Replay, compound-evidence correlation, publication transactions and frozen Model source are unchanged.
+- Cited retained logs: final model gate 688.082s, inner loop 8.479s; live umbrella passed 2,427 identities. No builds rerun.
+
+### Test Budget
+
+- Follow-up gross additions: 1,179 test lines versus 161 implementation lines, including substantial fixture/setup code; this is not the fixture-excluded ratio.
+
+### Standards axis
+
+## Quality Audit — Standards axis: fn-243.2 follow-up
+
+### Summary
+
+- Files changed: 31 · Should Fix 0 · Consider 0 · Blocking: none possible (standards axis)
+- No new standards findings. Worst tier: none.
+
+### Follow-up resolution
+
+- **walked:** `tests/testpilot_model_slice_umpire_test.go:529` restores namespace creation and deletion checks. Its 21 recorded Runs require strict explanations for supported cases and exact refusals for excluded unheld cancellation.
+- **walked:** The scope plan preserves the original counterexample and leaves unheld cancellation proof open in fn-243.5; final R40 remains open.
+
+### What's Good
+
+- **walked:** Readiness probes stay in provisioning; SDK namespace and header setup stay in the executor. Dependency checks permit only the composition root’s exact `temporal/act` edge.
+- **executed:** No file crosses 1,000 lines in this follow-up diff.
+
+No builds or gates were rerun; supplied results remain conductor evidence.
+
+Correctness follow-up: 0 remaining findings; no worst tier.
+Standards follow-up: 0 tiered findings; no worst tier. The provisioning observation is resolved with strict supported-case and exact-refusal classification.

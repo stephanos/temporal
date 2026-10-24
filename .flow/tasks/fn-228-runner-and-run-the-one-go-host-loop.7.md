@@ -1,10 +1,10 @@
 ---
 satisfies: [R7]
 ---
-# fn-228-runner-and-run-the-one-go-host-loop.7 After .6, fn-244.2 and fn-243.2: DESIGN.md Runner and Run write-up; R33 to R40 discharged
+# fn-228-runner-and-run-the-one-go-host-loop.7 After committed fn-243.2: Runner and Run write-up, R33-R39 discharge and R40 proof checkpoint
 
 ## Description
-Add the DESIGN.md section recording the vocabulary sentence, Propose, the Run schema, per-package counts before and after, live timings and make model-time; mark the R33 to R40 table rows discharged with pointers; update README and MIGRATE for the runner package and renames. MILESTONES.md is the root agent's.
+Add the DESIGN.md section recording the vocabulary sentence, Propose, the Run schema, per-package counts before and after, live timings and make model-time; discharge independently earned R33 to R39 rows and record the delivered R40 architecture with its remaining unheld cancellation obligation assigned to fn-243.5; update README and MIGRATE for the runner package and renames. MILESTONES.md is the root agent's.
 
 ### Required integration contract
 
@@ -18,6 +18,7 @@ fn-228.5 is superseded by fn-243 (programmed workers) and closed with nothing bu
 
 Runs after fn-244.2, which moves the Go Runner out of the generated protobuf tree, so the write-up names its final path.
 ## Acceptance
+- [ ] Document the exact current atomic-Model refusal for unheld open-state cancellation, held-before-start and terminal support, and the deferred fn-243.5 proof. Keep fn-228's final R40/R7 obligation open until that evidence is committed; this task is the architecture documentation checkpoint.
 - [ ] DESIGN.md section and R33 to R40 rows updated
 - [ ] README and MIGRATE updated
 - [ ] model-time pasted

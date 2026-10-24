@@ -39,14 +39,17 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 
 Also record the heartbeat and cancellation-acknowledgement program rows and the hold fault's role in the held attempt and schedule-to-start expiry, pointing at fn-243's DESIGN.md text rather than repeating it.
 ## Acceptance
+- [ ] Consume committed fn-243.5 unheld cancellation admission/live/replay evidence and final R40 status so this final timeout/cancellation write-up reflects the actual supported scope.
 - [ ] DESIGN documents facts, bounded optional values, the extended activity World/state table, deadline and cancellation laws, the fair-worker assumption and the final compatibility projection, each backed by completed fn-237 tasks.
 - [ ] Actual native/TLC counts per selected World, the live cancellation proof and final model-time output are retained with all misses and refusal boundaries explicit.
 - [ ] DESIGN remains within 1000 lines, existing documentation/formatting checks and full gates pass, and unrelated evidence/goldens and fn-232 status are preserved.
 
 
 ## Done summary
-TBD
+Blocked:
+Waiting for committed fn-243-programmed-workers-the-model-issues.5.
 
+The conductor may reset this block only after fn-243.5 is done and its implementation and Flow closure commits are ancestors of `umpire`. Final timeout/cancellation documentation consumes its unheld cancellation proof and final R40 status. Native fn-237.4 remains a separate prerequisite. The CLI cannot encode cross-spec task dependencies. This block must not block fn-237.1 through fn-237.4, which produce the independent semantics and live binding.
 ## Evidence
 - Commits:
 - Tests:

@@ -14,8 +14,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T10:02:12.820945Z",
   "review_attempts": [
     {
       "artifact_sha256": "59fad4b61dbd891ab5468bccddad49c635b3f891acde1e9f4af20bd1a57ef628",
@@ -111,16 +111,55 @@
       "task": "fn-243-programmed-workers-the-model-issues.2",
       "timestamp": "2026-10-24T09:02:05.675342Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "903d9e033f5bccf72489c757f3ea78f35d977519fcacb83178dc8abd5688da56",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fad276dfc399766a28b51d4262829f90be6e73b6",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 293890,
+      "output_sha256": "9a66aa658c6a7e88c246800cb22d27b3aa689fa95991c6a85807aa4f582c52d8",
+      "reservation_id": "5f765d8e259642b38f5792e392066cfd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T10:02:12.812378Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-243-programmed-workers-the-model-issues.1": 1
+    "impl:fn-243-programmed-workers-the-model-issues.1": 1,
+    "plan": 1,
+    "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-243-programmed-workers-the-model-issues.1": 0,
-    "impl:fn-243-programmed-workers-the-model-issues.2": 0
+    "impl:fn-243-programmed-workers-the-model-issues.2": 0,
+    "plan": 0
   },
   "spec_path": ".flow/specs/fn-243-programmed-workers-the-model-issues.md",
   "status": "open",
@@ -136,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T09:02:05.689062Z"
+  "updated_at": "2026-10-24T10:18:26.528775Z"
 }

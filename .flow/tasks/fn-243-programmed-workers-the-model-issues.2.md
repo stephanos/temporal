@@ -10,6 +10,8 @@ After .1. Executors under `model/temporal/hosts/go/reference/worker`: `raw` (pla
 
 The Temporal Driver is `common/testing/testpilot/temporal/{act,control,provision}` (the `runner.Driver` interface is `model/umpire/hosts/go/runner/driver.go`). This task removes `act/worker.go` (the in-process worker and its gate, `exchange.go`'s `worker_tasks` reading) and `control/delivery.go` (Answer delivery), adds the hold to `act`, and starts the configured executor from `provision`. The Run's worker record (executor kind, version, namespace, task queue) is filled here. `tests/testpilot_model_slice_test.go` and `tests/testpilot_model_annotations_test.go` are the live harness to rework; no Temporal detail enters `model/umpire`.
 ## Acceptance
+- [ ] Current checkpoint explicitly refuses unheld open-state cancellation before proposal publication or Cancel RPC, using the exact named atomic-Model scope reason; retain strict supported-case assertions and independent no-Cancel-RPC controls for raw and SDK.
+- [ ] Preserve the actual pending-cancellation counterexample, original guest identity and server-free replay. The original unheld-race obligation remains open for fn-243.5 after fn-237.4; completing this checkpoint does not close fn-243 or claim that behavior passed.
 - [ ] Raw executor passes the live slice through `umpire explore`; Run is the only artifact and records the executor kind
 - [ ] SDK executor passes the same slice with identical judgments
 - [ ] Deviation controls Unexplained; empty-program control Refused; unsupported hold is a DriverFault
