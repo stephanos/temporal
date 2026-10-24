@@ -8,6 +8,8 @@
 
 pub const HEADER: usize = 64;
 pub const MAXIMUM_CHUNK_BYTES: usize = 64 << 10;
+pub const READINESS_PROBE_V1: u32 = 14;
+pub const MAXIMUM_READINESS_REQUESTS: usize = 128;
 /// Go `netmodel.StreamStallTimeout`: above the WASI errno range.
 pub const STREAM_STALL_TIMEOUT: u32 = 1 << 16 | 0x16;
 
@@ -84,6 +86,30 @@ pub fn query(call: &Call, length: usize) -> Result<(), Invalid> {
         return Err(Invalid("network v2 query"));
     }
     Ok(())
+}
+
+/// The separately versioned, non-consuming `readiness_probe_v1` operation.
+pub fn readiness_probe_v1(call: &Call, data: &[u8]) -> Result<Vec<u64>, Invalid> {
+    if call.id != 0
+        || call.handle != 0
+        || call.deadline != 0
+        || call.port != 0
+        || call.address != 0
+        || call.count as usize > MAXIMUM_READINESS_REQUESTS
+        || data.len() != HEADER + 8 * call.count as usize
+        || data[48..52].iter().any(|byte| *byte != 0)
+    {
+        return Err(Invalid("network v2 readiness probe v1 layout"));
+    }
+    let mut ids = Vec::with_capacity(call.count as usize);
+    for payload in data[HEADER..].chunks_exact(8) {
+        let id = u64_at(payload, 0);
+        if id == 0 || id >= 1 << 48 || ids.contains(&id) {
+            return Err(Invalid("network v2 readiness probe v1 request"));
+        }
+        ids.push(id);
+    }
+    Ok(ids)
 }
 
 /// Go's per-operation payload rule: writes and reads carry exactly `count`

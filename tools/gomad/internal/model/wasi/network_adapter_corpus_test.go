@@ -355,6 +355,40 @@ func networkAdapterCorpora(t *testing.T) []networkAdapterCorpus {
 		b.step(networkAdapterInput{Action: "serve", Nanos: 12, Data: streamFrame(4, 5, y, 0, 0, 1, nil)})
 		b.serve(streamFrame(5, 6, x, 0, 0, 1, []byte("x")))
 	})
+	add("readiness-probe-v1-nonconsuming-and-strict-wire", streamConfig(), 0, func(b *networkAdapterBuilder) {
+		x, y, _ := b.pair()
+		empty := readinessFrame()
+		if got := b.serve(empty); !bytes.Equal(got, empty) {
+			t.Fatalf("empty readiness probe differs: %x", got)
+		}
+		b.serve(streamFrame(4, 4, y, 0, 0, 1, nil))
+		b.serve(streamFrame(4, 5, x, 0, 0, 1, nil))
+		probe := readinessFrame(5, 4)
+		if got := b.serve(probe); !bytes.Equal(got, readinessFrame(0, 0)) {
+			t.Fatalf("pending readiness probe differs: %x", got)
+		}
+		reserved := readinessFrame(4)
+		reserved[48] = 1
+		for _, malformed := range [][]byte{readinessFrame(4, 4), append(readinessFrame(4), 0), reserved, readinessFrame(4, 99)} {
+			if got := b.serve(malformed); got != nil {
+				t.Fatalf("malformed readiness probe accepted: %x", got)
+			}
+		}
+		b.serve(streamFrame(5, 6, x, 0, 0, 1, []byte("x")))
+		for range 2 {
+			if got := b.serve(probe); !bytes.Equal(got, readinessFrame(0, 4)) {
+				t.Fatalf("ready probe consumed or reordered completion: %x", got)
+			}
+		}
+		got := b.serve(streamFrame(12, 4, 0, 0, 0, 1, nil))
+		if len(got) != 65 || got[64] != 'x' || binary.BigEndian.Uint32(got[36:]) != 1 || binary.BigEndian.Uint32(got[40:]) != 0 || binary.BigEndian.Uint32(got[44:]) != 0 {
+			t.Fatalf("readiness probe lost the original read result: %x", got)
+		}
+		if got := b.serve(readinessFrame(4)); got != nil {
+			t.Fatalf("consumed readiness request accepted: %x", got)
+		}
+		b.serve(streamFrame(13, 5, 0, 0, 0, 0, nil))
+	})
 	networkAdapterClockCorpora(add)
 	return corpora
 }

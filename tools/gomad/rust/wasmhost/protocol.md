@@ -272,6 +272,47 @@ signature. It forwards `runtime_net_stream` to the Go owner using an in-place
 buffer of 64 through 65,600 bytes; the v2 network profile uses remote model
 execution.
 
+`net_stream` operation 14 is the separately versioned `readiness_probe_v1`.
+It requires an active cooperative runtime and uses the existing v2 64-byte
+network header: big-endian u32 version 2 at offset 0, u32 operation 14 at
+offset 4, and u32 count N at offset 36; every other header byte is zero.
+N is 0..128 and the complete buffer is exactly 64+8*N bytes (at most 1,088
+bytes). The payload is N big-endian u64 endpoint-local request IDs, each
+nonzero and below 2^48. IDs must be unique and currently pending in the
+calling endpoint/incarnation. Malformed headers, lengths or IDs, duplicates,
+foreign IDs and stale IDs fail closed. An empty probe is valid.
+
+The successful reply retains the header and count. Each payload slot contains
+its original request ID when the completion is ready, or zero when still
+pending. A probe never consumes a completion, removes a request or allocates
+a new network request ID; repeated probes can report the same ready result.
+Existing individual poll/query operations retain their semantics and individual
+polls consume reported completions, including their original bytes and errors.
+
+Every probe is an ordinary `runtime_net_stream` broker boundary: queued
+controller commands are drained and the World registers, readies and quiesces
+the call with its existing three charged transitions. The network endpoint
+attaches and advances its authoritative owner at broker time before answering.
+A command queued after the probe is observed at the next ordinary poll, probe
+or idle boundary. Readiness therefore reflects virtual-time advancement,
+other-incarnation activity, new requests, cancellation, close/half-close,
+deadline changes and expiry, delivery delays, partition/heal, revoke and restart;
+equal virtual times or identical prior payloads never justify cached readiness.
+
+The guest asks again on every pending scan, traverses its existing pending list
+in chunks of at most 128, and polls only reported-ready IDs in that list order.
+After each individual poll it refreshes the remaining suffix before skipping
+any further request, because that poll can advance the owner and complete a
+later request in the same scan. Pending-list removal, cancellation, deadlines
+and wake order continue through the existing individual completion path.
+
+The new operation changes guest runtime-overlay bytes and consequently runtime,
+module and preparation/install identities. Rebuild and authenticate affected
+inputs before qualification; prior preparations and recorded identities are not
+normalized into the new implementation. Existing retained formats and absent-field
+artifact interpretation are unchanged. Historical failure prefixes and diagnostic
+instrumentation remain separate from fresh qualification evidence.
+
 The final frame is `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":123,"peak_memory_bytes":65536,"output_bytes":2}`.
 Terminations are `exit`, `capacity`, `unsupported`, `trap`, `invalid`, and
 `infrastructure`, plus `divergence` for cooperative forced-choice mismatch.

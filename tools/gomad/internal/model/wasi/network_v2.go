@@ -154,6 +154,29 @@ func (e *Environment) runtimeNetworkStream(input json.RawMessage) (bytesOutput, 
 		return bytesOutput{Data: data}, nil
 	}
 	n := e.networkV2
+	if op == 14 {
+		if n == nil || e.runtime == nil || !e.runtime.configured || e.runtime.finished || !allZero(data[8:36]) || !allZero(data[40:64]) || count > 128 || len(data) != networkStreamHeader+8*int(count) {
+			return bytesOutput{}, invalid("network v2 readiness probe layout")
+		}
+		seen := make(map[uint64]bool, count)
+		for offset := networkStreamHeader; offset < len(data); offset += 8 {
+			requestID := binary.BigEndian.Uint64(data[offset:])
+			domain, exists := n.requests[requestID]
+			if requestID == 0 || requestID >= 1<<48 || seen[requestID] || !exists || domain != n.client && domain != n.server || !n.model.Pending(domain, n.requestBase+requestID) {
+				return bytesOutput{}, invalid("network v2 readiness probe request")
+			}
+			seen[requestID] = true
+		}
+		if err := e.networkV2Advance(e.now); err != nil {
+			return bytesOutput{}, err
+		}
+		for offset := networkStreamHeader; offset < len(data); offset += 8 {
+			if !n.worldReady[binary.BigEndian.Uint64(data[offset:])] {
+				binary.BigEndian.PutUint64(data[offset:], 0)
+			}
+		}
+		return bytesOutput{Data: data}, nil
+	}
 	if n == nil || e.runtime == nil || !e.runtime.configured || e.runtime.finished || id == 0 || id >= 1<<48 || count > netmodel.MaximumChunkBytes || port > 65535 {
 		return bytesOutput{}, invalid("network v2 operation")
 	}

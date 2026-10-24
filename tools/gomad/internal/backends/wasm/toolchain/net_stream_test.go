@@ -1,39 +1,45 @@
 package toolchain
 
 import (
- "bytes"
- "go/ast"
- "go/format"
- "go/parser"
- "go/token"
- "os"
- "os/exec"
- "path/filepath"
- "testing"
+	"bytes"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"testing"
 )
 
 func TestStreamPendingReadinessBatches(t *testing.T) {
- file, err := parser.ParseFile(token.NewFileSet(), "net_stream_wasm.go.txt", netStreamGlue, 0)
- if err != nil { t.Fatal(err) }
- wanted := map[string]bool{"gomadStreamInvoke":true,"gomadStreamFrame":true,"gomadStreamRemove":true,"gomadStreamPollPending":true}
- var declarations bytes.Buffer
- for _, declaration := range file.Decls {
-  include := false
-  switch declaration := declaration.(type) {
-  case *ast.GenDecl:
-   include = declaration.Tok == token.CONST
-   for _, spec := range declaration.Specs {
-    if spec, ok := spec.(*ast.TypeSpec); ok && spec.Name.Name == "gomadStreamPending" {include = true}
-   }
-  case *ast.FuncDecl:
-   include = wanted[declaration.Name.Name]
-  }
-  if include {
-   if err := format.Node(&declarations, token.NewFileSet(), declaration); err != nil {t.Fatal(err)}
-   declarations.WriteByte('\n')
-  }
- }
- source := `package pending
+	file, err := parser.ParseFile(token.NewFileSet(), "net_stream_wasm.go.txt", netStreamGlue, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wanted := map[string]bool{"gomadStreamInvoke": true, "gomadStreamFrame": true, "gomadStreamRemove": true, "gomadStreamPollPending": true}
+	var declarations bytes.Buffer
+	for _, declaration := range file.Decls {
+		include := false
+		switch declaration := declaration.(type) {
+		case *ast.GenDecl:
+			include = declaration.Tok == token.CONST
+			for _, spec := range declaration.Specs {
+				if spec, ok := spec.(*ast.TypeSpec); ok && spec.Name.Name == "gomadStreamPending" {
+					include = true
+				}
+			}
+		case *ast.FuncDecl:
+			include = wanted[declaration.Name.Name]
+		}
+		if include {
+			if err := format.Node(&declarations, token.NewFileSet(), declaration); err != nil {
+				t.Fatal(err)
+			}
+			declarations.WriteByte('\n')
+		}
+	}
+	source := `package pending
 import ("encoding/binary";"reflect";"testing";"unsafe")
 var byteorder=struct{
  BEUint32 func([]byte)uint32
@@ -116,11 +122,15 @@ func TestMalformedReadinessResponse(t *testing.T){
   gomadStreamPollPending()
  })}
 }
-`+declarations.String()
- directory:=t.TempDir()
- if err:=os.WriteFile(filepath.Join(directory,"pending_test.go"),[]byte(source),0600);err!=nil {t.Fatal(err)}
- command:=exec.Command(filepath.Join(stockRoot(t),"bin/go"),"test","-count=1","pending_test.go")
- command.Dir=directory
- command.Env=append(os.Environ(),"GOROOT=","GOTOOLCHAIN=local","GOWORK=off","GOENV=off","GOFLAGS=")
- if output,err:=command.CombinedOutput();err!=nil {t.Fatalf("guest pending readiness: %v\n%s",err,output)}
+` + declarations.String()
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "pending_test.go"), []byte(source), 0600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(filepath.Join(stockRoot(t), "bin/go"), "test", "-count=1", "pending_test.go")
+	command.Dir = directory
+	command.Env = append(os.Environ(), "GOROOT=", "GOTOOLCHAIN=local", "GOWORK=off", "GOENV=off", "GOFLAGS=")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("guest pending readiness: %v\n%s", err, output)
+	}
 }

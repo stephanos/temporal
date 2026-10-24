@@ -219,6 +219,14 @@ func virtualNanos(value time.Time) uint64 {
 	return uint64(value.UnixNano())
 }
 
+// Pending reports whether a live domain owns an uncollected request.
+func (m *Model) Pending(domain Domain, id uint64) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	p := m.pending[id]
+	return !m.network.finished && m.network.live[domain.Node] == domain && p != nil && p.request.Domain == domain
+}
+
 func (m *Model) Dispatch(request Request) Result {
 	m.mu.Lock()
 	defer m.mu.Unlock()

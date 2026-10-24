@@ -27,8 +27,10 @@ const (
 	gomadStreamWriteDeadline
 	gomadStreamPoll
 	gomadStreamCancel
-	gomadStreamHeader = 64
-	gomadStreamChunk  = 64 << 10
+	gomadStreamReadinessProbeV1
+	gomadStreamHeader     = 64
+	gomadStreamChunk      = 64 << 10
+	gomadStreamProbeLimit = 128
 )
 
 //go:wasmimport gomad_wasm_v2 net_stream
@@ -134,17 +136,46 @@ func gomadStreamRemove(pending *gomadStreamPending) {
 
 func gomadStreamPollPending() (bool, bool) {
 	woken := false
+	var probe [gomadStreamHeader + 8*gomadStreamProbeLimit]byte
 	for pending := gomadStreamPendingHead; pending != nil; {
-		next := pending.next
-		clear(pending.buffer[40:gomadStreamHeader])
-		byteorder.BEPutUint32(pending.buffer[4:], gomadStreamPoll)
-		gomadStreamInvoke(pending.buffer)
-		if byteorder.BEUint32(pending.buffer[40:]) != 1 {
-			gomadStreamRemove(pending)
-			close(pending.done)
-			woken = true
+		clear(probe[:])
+		count := 0
+		for current := pending; current != nil && count < gomadStreamProbeLimit; current = current.next {
+			copy(probe[gomadStreamHeader+8*count:], current.buffer[8:16])
+			count++
 		}
-		pending = next
+		byteorder.BEPutUint32(probe[:], 2)
+		byteorder.BEPutUint32(probe[4:], gomadStreamReadinessProbeV1)
+		byteorder.BEPutUint32(probe[36:], uint32(count))
+		gomadStreamInvoke(probe[:gomadStreamHeader+8*count])
+		if byteorder.BEUint32(probe[40:]) != 0 || byteorder.BEUint32(probe[36:]) != uint32(count) {
+			panic("net: invalid gomad stream readiness response")
+		}
+		current := pending
+		for i := 0; i < count; i++ {
+			id := byteorder.BEUint64(probe[gomadStreamHeader+8*i:])
+			if id != 0 && id != byteorder.BEUint64(current.buffer[8:]) {
+				panic("net: invalid gomad stream readiness response")
+			}
+			current = current.next
+		}
+		for i := 0; i < count; i++ {
+			current := pending
+			pending = pending.next
+			if byteorder.BEUint64(probe[gomadStreamHeader+8*i:]) == 0 {
+				continue
+			}
+			clear(current.buffer[40:gomadStreamHeader])
+			byteorder.BEPutUint32(current.buffer[4:], gomadStreamPoll)
+			gomadStreamInvoke(current.buffer)
+			if byteorder.BEUint32(current.buffer[40:]) != 1 {
+				gomadStreamRemove(current)
+				close(current.done)
+				woken = true
+			}
+			// A poll can advance the network and complete a later request in this scan.
+			break
+		}
 	}
 	return woken, gomadStreamPendingHead != nil
 }

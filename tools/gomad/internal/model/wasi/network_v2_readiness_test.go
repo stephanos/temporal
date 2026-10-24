@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
- "strconv"
+	"strconv"
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
@@ -23,7 +23,8 @@ func TestNetworkV2ReadinessProbe(t *testing.T) {
 	t.Parallel()
 	e := streamEnvironment(t, streamConfig())
 	client, server := reviewStreamPair(t, e)
-	for id, handle := range map[uint64]uint64{4: server, 5: client} {
+	for i, handle := range []uint64{server, client} {
+		id := uint64(i + 4)
 		result := streamCall(t, e, streamFrame(4, id, handle, 0, 0, 1, nil))
 		if binary.BigEndian.Uint32(result[40:]) != 1 {
 			t.Fatal("read did not pend")
@@ -86,11 +87,14 @@ func TestNetworkV2ReadinessProbeBounds(t *testing.T) {
 func TestNetworkV2ReadinessProbeRejectsInvalidUnchanged(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
-		name string
+		name   string
 		mutate func(*testing.T, *Environment, []byte) []byte
 	}{
 		{"zero", func(_ *testing.T, _ *Environment, b []byte) []byte { binary.BigEndian.PutUint64(b[64:], 0); return b }},
-		{"wide", func(_ *testing.T, _ *Environment, b []byte) []byte { binary.BigEndian.PutUint64(b[64:], 1<<48); return b }},
+		{"wide", func(_ *testing.T, _ *Environment, b []byte) []byte {
+			binary.BigEndian.PutUint64(b[64:], 1<<48)
+			return b
+		}},
 		{"unknown", func(_ *testing.T, _ *Environment, b []byte) []byte { binary.BigEndian.PutUint64(b[64:], 99); return b }},
 		{"duplicate", func(_ *testing.T, _ *Environment, _ []byte) []byte { return readinessFrame(2, 2) }},
 		{"mixed_unknown", func(_ *testing.T, _ *Environment, _ []byte) []byte { return readinessFrame(2, 99) }},
@@ -98,16 +102,35 @@ func TestNetworkV2ReadinessProbeRejectsInvalidUnchanged(t *testing.T) {
 		{"trailing", func(_ *testing.T, _ *Environment, b []byte) []byte { return append(b, 0) }},
 		{"count", func(_ *testing.T, _ *Environment, b []byte) []byte { binary.BigEndian.PutUint32(b[36:], 0); return b }},
 		{"oversized", func(_ *testing.T, _ *Environment, _ []byte) []byte { return readinessFrame(make([]uint64, 129)...) }},
-		{"consumed", func(t *testing.T, e *Environment, b []byte) []byte { streamCall(t, e, streamFrame(13, 2, 0, 0, 0, 0, nil)); return b }},
-		{"revoked", func(t *testing.T, e *Environment, b []byte) []byte { if err := e.networkV2.model.Revoke(e.networkV2.server, false); err != nil { t.Fatal(err) }; return b }},
-		{"foreign", func(_ *testing.T, e *Environment, b []byte) []byte { e.networkV2.requests[2] = netmodel.Domain{Run: 1, Node: "foreign", Incarnation: 1}; return b }},
-		{"old_incarnation", func(_ *testing.T, e *Environment, b []byte) []byte { d := e.networkV2.requests[2]; d.Incarnation++; e.networkV2.requests[2] = d; return b }},
+		{"consumed", func(t *testing.T, e *Environment, b []byte) []byte {
+			streamCall(t, e, streamFrame(13, 2, 0, 0, 0, 0, nil))
+			return b
+		}},
+		{"revoked", func(t *testing.T, e *Environment, b []byte) []byte {
+			if err := e.networkV2.model.Revoke(e.networkV2.server, false); err != nil {
+				t.Fatal(err)
+			}
+			return b
+		}},
+		{"foreign", func(_ *testing.T, e *Environment, b []byte) []byte {
+			e.networkV2.requests[2] = netmodel.Domain{Run: 1, Node: "foreign", Incarnation: 1}
+			return b
+		}},
+		{"old_incarnation", func(_ *testing.T, e *Environment, b []byte) []byte {
+			d := e.networkV2.requests[2]
+			d.Incarnation++
+			e.networkV2.requests[2] = d
+			return b
+		}},
 		{"inactive", func(_ *testing.T, e *Environment, b []byte) []byte { e.runtime.configured = false; return b }},
 		{"finished", func(_ *testing.T, e *Environment, b []byte) []byte { e.runtime.finished = true; return b }},
 	}
 	for _, offset := range []int{8, 16, 24, 32, 40, 44, 48, 52, 56, 60} {
-		cases = append(cases, struct { name string; mutate func(*testing.T, *Environment, []byte) []byte }{
-			name: "header_" + strconv.Itoa(offset),
+		cases = append(cases, struct {
+			name   string
+			mutate func(*testing.T, *Environment, []byte) []byte
+		}{
+			name:   "header_" + strconv.Itoa(offset),
 			mutate: func(_ *testing.T, _ *Environment, b []byte) []byte { b[offset] = 1; return b },
 		})
 	}
@@ -120,14 +143,26 @@ func TestNetworkV2ReadinessProbeRejectsInvalidUnchanged(t *testing.T) {
 			frame := tc.mutate(t, e, readinessFrame(2))
 			e.now = 10
 			before, err := e.NetworkV2Evidence()
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				t.Fatal(err)
+			}
 			encoded, err := json.Marshal(bytesOutput{Data: frame})
-			if err != nil { t.Fatal(err) }
-			if _, err := e.runtimeNetworkStream(encoded); err == nil { t.Fatal("invalid readiness probe accepted") }
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := e.runtimeNetworkStream(encoded); err == nil {
+				t.Fatal("invalid readiness probe accepted")
+			}
 			after, err := e.NetworkV2Evidence()
-			if err != nil { t.Fatal(err) }
-			if !bytes.Equal(before, after) { t.Fatal("invalid probe changed evidence") }
-			if _, err := e.networkV2.model.Advance(0); err != nil { t.Fatalf("invalid probe advanced model clock: %v", err) }
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(before, after) {
+				t.Fatal("invalid probe changed evidence")
+			}
+			if _, err := e.networkV2.model.Advance(1); err != nil {
+				t.Fatalf("invalid probe advanced model clock: %v", err)
+			}
 		})
 	}
 }

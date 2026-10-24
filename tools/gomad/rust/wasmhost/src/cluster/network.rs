@@ -892,6 +892,34 @@ impl Endpoint {
             stream_abi::query(&call, data.len()).map_err(|invalid| Failure::Invalid(invalid.0))?;
             return Ok(());
         }
+        if call.op == stream_abi::READINESS_PROBE_V1 {
+            if !runtime {
+                return Err(Failure::Invalid("network v2 readiness probe v1 lifetime"));
+            }
+            let ids = stream_abi::readiness_probe_v1(&call, data)
+                .map_err(|invalid| Failure::Invalid(invalid.0))?;
+            let mut shared = lock(&shared);
+            for &id in &ids {
+                let valid = self.requests.get(&id).is_some_and(|domain| {
+                    shared
+                        .owner
+                        .pending
+                        .get(&(self.request_base + id))
+                        .is_some_and(|pending| pending.request.domain == *domain)
+                });
+                if !valid {
+                    return Err(Failure::Invalid("network v2 readiness probe v1 request"));
+                }
+            }
+            self.advance(&mut shared, now)?;
+            for (index, &id) in ids.iter().enumerate() {
+                let ready = shared.owner.pending[&(self.request_base + id)]
+                    .result
+                    .is_some();
+                stream_abi::set_u64(data, HEADER + 8 * index, if ready { id } else { 0 });
+            }
+            return Ok(());
+        }
         if !runtime
             || call.id == 0
             || call.id >= 1 << 48
