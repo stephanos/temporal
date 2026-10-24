@@ -73,7 +73,17 @@ with `model/umpire/hosts/go` and `model/temporal/hosts/go`; the extension module
 replaces the generic host locally. The generic module exposes `host`, `runner` and
 `gen/umpire/.../v1`; Kettle's Go server/tests live in their own module at
 `model/umpire/reference/kettle`, replacing the generic module with `../../hosts/go`.
-The real server/SDK slice already consumes both host modules.
+The real server/SDK slice already consumes both host modules. `umpire.local/model/runner`
+is source in `model/umpire/hosts/go/runner`, outside generated `gen/umpire`; transport is
+`umpire.local/model/host`. Current crate names are `umpire-runtime` at
+`umpire/protocol/runtime` and `umpire-fixtures` at `umpire/dev/fixtures`.
+Temporal's reference raw/SDK executors stay in `model/temporal/hosts/go/reference/worker`;
+server composition in `tools/umpire/temporaldriver` injects Validate/Follow into the
+transport Driver. Workers receive Reset's exported program and have no Umpire callback
+connection. Generic Answer remains available to other systems; the Shim was superseded.
+[Runner and Run](model/DESIGN.md#runner-and-run) records exact replay/publication contracts,
+relocation-inclusive counts, and the still-open R40 cancellation proof; extraction must
+preserve that boundary rather than claim it closed.
 These local references require no publication. The post-extraction setup below preserves
 that development property; extraction and publication have not run.
 

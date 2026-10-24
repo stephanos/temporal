@@ -734,18 +734,215 @@ needed parameter/domain gaps, rather than claiming Kettle establishes their read
 
 The owner-approved priority is fn-214, fn-216, fn-221, fn-213, fn-215, fn-212, fn-218, fn-217, then
 fn-211. This is scheduling order, preserving each spec's prerequisites and approval boundaries.
-The post-verdict Case plan must carry these requirements; none is implemented by fn-210:
+The following records the original post-verdict obligations and their current disposition.
+The [Runner and Run checkpoint](#runner-and-run) supplies the implementation and evidence;
+fn-210 itself did not deliver these later slices.
 
-| Requirement | Case-plan obligation |
+| Requirement | Current disposition |
 | --- | --- |
-| R33, later owner amendment | The owner superseded schema-copy guidance with `umpire.model.v1` and Reset/Judge/Answer over opaque Any, plus exactly three Temporal envelopes over the upstream API. Fn-216 delivers that protocol slice without copying/importing Testpilot's schema. The broader Program remains data the Model replays; remove Contract/correlated-clause/CEL verification and bind Case identity to the Model content hash, Model and protocol version in the later Case plan. |
-| R34, tightened by R35/R37 | Target at most **5,000 generic** and **11,000 total non-test Go lines** in Testpilot, down from the historical approximately 20,000 / 29,000 inventory. Remove `internal/verification` (2,725) and `evaluation` (849); shrink `internal/ir` (4,105) to instruction decoding, `internal/execution` (6,575) to act-and-observe, `replay` (1,513) to Model search, and `campaign` (1,261) to the host loop. Retain needed recording/storage and most Temporal driver work (about 8,600 before callback simplification); report achieved sizes. Older 6,000/14,000 and 5,000/13,000 targets are superseded. |
-| R35 | Remove all CEL, `cel`/`predicate`, the IR CEL bridge and `cel-go`. The Model decides read completion on each observation. Instructions contain interval/timeout/backoff mechanics; capture and redaction are field paths. A read timeout without Model acceptance is an incomplete read in the Run, judged by the Model. Execution checks still enforce RPC completion, evidence well-formedness and redaction. |
-| R36 | Keep `#[machine]` registration-only. Lifted trees, subset diagnostics and TLC's second opinion belong to fn-212, which first judges whether their machinery is worthwhile. Superseded: fn-212 added the lifter, and since fn-238.4 `#[machine]` embeds the admitted Model. |
-| R37 | At every SDK callback ask the Model what to return; serialize callbacks into the run's one Model instance. Remove worker interpreter/expression/typed-script behavior. Record a callback the Model cannot answer in the Run for Model judgment. |
-| R38 | Replace the separate run/fuzz/replay/assess/repeat commands with one host loop and modes/drivers for a Model question, exploration, reduction, recorded Run or many Runs. Remove the NDJSON campaign/replay bridge. |
-| R39 | A Run contains its observation log and Model judgment. Remove evaluation profiles, receipts and provenance documents. Keep `publish` as a never-overwrite store and keep only the canary's lease and policy. |
-| R40 | Host exactly one Model per Run in the Go runner. Go callbacks stay in process; other SDK workers use the runner's local gRPC/HTTP endpoint with protobuf messages and a thin forwarding shim returning result/failure/heartbeat/delay. Workers never embed another Model. Record unreachable endpoints and callback timeouts in the Run for Model judgment; refuse unknown shim protocol versions with Refusal. |
+| R33, later owner amendment | Discharged by fn-216 and fn-228: `umpire.model.v1` carries opaque Any through Reset/Judge/Answer/Propose; Temporal owns its envelopes over the upstream API. The Run pins guest content hash and protocol version. Case identity and Contract/correlated-clause verification were removed, rather than reintroduced. |
+| R34, tightened by R35/R37 | Discharged: at most **5,000 generic** and **11,000 total non-test Go lines**, including relocated Runner code. Current comparable totals are **1,759 / 3,205**; the broader relocation-inclusive inventory below prevents package moves from hiding code. Older 6,000/14,000 and 5,000/13,000 targets are superseded. |
+| R35 | Discharged: CEL, `cel`/`predicate`, the IR CEL bridge and `cel-go` are removed. The Model owns read completion; Driver instructions carry polling/timeout/backoff and capture/redaction mechanics. A timeout without Model acceptance is a DriverFault ending Refused, never a successful read. |
+| R36 | Superseded and resolved: fn-212 delivered lifting and TLC; since fn-238.4 `#[machine]` embeds the admitted Model. The earlier registration-only restriction is historical. |
+| R37 | Discharged under the owner-approved programmed-worker replacement: Temporal's live Answer callback path and worker interpreter/gate are retired. The Model issues the worker table on Reset and judges actual server history. Generic Answer and Run `Event.answer` remain for other systems. |
+| R38 | Discharged: one Runner loop implements question/explore/reduce/replay/repeat behind `umpire`; separate legacy run/fuzz/replay/assess/repeat commands and the NDJSON campaign/replay bridge are removed. `umpire program` exports Reset's worker table without a Driver. |
+| R39 | Discharged: the versioned Run records exact protocol calls and judgments; evaluation profiles, receipts and provenance documents are removed. Publish is immutable; the canary retains lease and policy. |
+| R40 | Architecture delivered; final proof remains open. Exactly one Host/Model per Run; workers follow Model-issued programs without an Umpire connection, replacing the proposed Shim. Raw and Go SDK live/replay evidence covers the admitted scope. Unheld open-state cancellation remains explicitly refused; fn-243.5 consumes independent fn-237 cooperative semantics/binding before final R40 and fn-228 R7 closure. Non-Go execution is recorded as unproven. |
+
+## Runner and Run
+
+The Model is the umpire; the Runtime hosts one Model; a Realization binds it to one
+system; the Runner drives a Driver, asks the Model to Propose, Judge and (for systems
+that need callbacks) Answer, and records a Run. The runtime and fixture crates are
+`umpire-runtime` and `umpire-fixtures`. Generic Go transport is
+`umpire.local/model/host`, the loop is `umpire.local/model/runner` at
+`umpire/hosts/go/runner`, and generated packages are under `umpire/hosts/go/gen/umpire`.
+The Temporal adapter is a separate module at `temporal/hosts/go`.
+
+### Protocol and ownership
+
+[`model.proto`](umpire/protocol/proto/umpire/model/v1/model.proto) adds
+`METHOD_PROPOSE = 6`: `ProposeRequest { seed: uint64 }` returns
+`ProposeResponse { request: Any, action: string, kind: ProposalKind }`.
+Kinds are ACTION=1, BOOTSTRAP=2 and READ=3; unspecified/unknown kinds are refused.
+`QUIESCENT=9` means no enabled external proposal. A second Propose while pending
+refuses STATE. Same admitted state and seed produce the same proposal; internal
+steps and Deadline ticks are not external proposals.
+
+Reset transactionally clears pending/admission state and selects the World configuration.
+For Temporal it also returns `ResetResponse.program`, an opaque Any containing the
+World's ordered worker table. Fresh activity admission starts with BOOTSTRAP: an empty
+action name and filled Start request. Start is admission, not a new Model transition.
+Only successful, correlated actual Start request/result evidence installs the World
+and Scheduled/attempt-one state; missing, failed or crossed evidence cannot admit it.
+Publication failure rolls back these changes. Actions retain enabledness checks;
+READ observes autonomous worker progress without committing a proposed worker action.
+
+One fresh Host belongs to each Run. The Runner serializes all Host calls in receive
+order. `Driver.Start(ctx, request, payload)` returns an incremental Exchange with
+Events, Respond and Close. Event IDs increase within the exchange and request numbers
+correlate proposals; duplicates, crossed IDs, missing Done and transport faults end
+Refused. Each dependent read waits for its Judge decision. An Explained intermediate
+observation with `JudgeResponse.continue_polling = true` retains the pending proposal;
+only a correlated final Explained clears it. Unexplained freezes progress until Reset.
+The Driver applies interval, timeout and backoff mechanically. Close cancels and joins
+owned work. A timeout without Model acceptance records DriverFault, not a Go judgment
+about Temporal behavior. Generic callbacks can be answered while an RPC is in flight;
+Temporal no longer uses that path.
+
+Temporal's transport Driver lives in `common/testing/testpilot/temporal/act`. It takes
+opaque program bytes and injected `ValidateProgram`/`Follow` functions. Composition in
+`tools/umpire/temporaldriver` supplies the raw or SDK executor, validates namespace and
+task queue against configuration, and uses the Driver-owned connection. Executors
+under `temporal/hosts/go/reference/worker/{raw,sdk}` follow exact first-match keys and
+return programmed results/failures; an unknown key refuses startup and an unmatched
+task fails nonretryably as `umpire.unprogrammed`. No worker calls Umpire or embeds a
+Model. The hold fault contains worker polls until the proposed request is acknowledged;
+it replaces the worker gate and is not a program delay. Unsupported holds are
+DriverFaults. The [programmed-worker design](design/programmed-workers.md) records the
+owner's replacement of the Shim and callback architecture.
+
+### Run, replay and publication
+
+The authoritative schema is [`umpire.run.v1`](umpire/protocol/proto/umpire/run/v1/run.proto).
+`Run` fields are model_hash(1), protocol_version(2), world(3), seed(4), events(5),
+verdict(6), worker(7). Worker records kind, version, namespace and task_queue; it
+identifies the executor/deployment without assigning behavioral authority to Go.
+Each Event records sequence(1), request(2), driver_event(3), redacted(4), and one of:
+
+| Event variant (tag) | Recorded content |
+| --- | --- |
+| reset (5) | Exact Reset request and response, including the program |
+| proposal (6) | Exact Propose request and response |
+| judgment (7) | Exact Judge request (actual Observation) and response |
+| answer (8) | Exact Answer request/response and worker-call correlation; retained for other systems |
+| annotation (9) | Exact Annotate request and response used for filling |
+| refusal (10) | Method, exact request bytes, refusal and call correlation |
+| driver_fault (11) | Reason and opaque Driver evidence |
+
+Events are in publication order. Verdict is Explained(termination, limit),
+Unexplained(event), or Refused(event, reason). Explained after a proposal/event budget
+only explains observed behavior, not every possible future. Terminations distinguish
+quiescence, proposal budget, event budget and question completion.
+Replay creates a fresh same-hash/version Host, restores configuration, repeats exact
+ordered calls, and compares responses and terminal disposition, without a Driver or
+external I/O. Missing/reordered/duplicate events, crossed correlation, hash/version/
+configuration mismatches and tampered responses are refused. Redaction occurs after
+judgment; an Event marked redacted makes replay Refused rather than reconstructing
+missing evidence. Worker metadata and fault evidence survive replay.
+
+Publish uses `<model_hash>/<seed>/<sha256(canonical Run bytes)>.binpb`. Deterministic
+protobuf serialization excludes wall-clock progress, and the digest is outside the
+payload. Identical publication is idempotent; different content cannot overwrite an
+existing object, including concurrent publication/collision controls. Repeat executions
+with different observations receive different keys. The canary adds its lease/policy
+and fence, not another evaluation artifact.
+
+`umpire` modes share this loop: question restores a prefix then asks one Propose or
+Judge without effects; explore uses fresh configured Hosts for bounded seeds; repeat
+makes independent Runs of the same seed set; reduce tries bounded shorter proposal-seed
+prefixes and reports the shortest reproduction found, not a minimum; replay is offline.
+Exit codes are 0 Explained, 1 Unexplained, 2 Refused/DriverFault and 3 when the
+command cannot run. `umpire program` exports
+Reset's program to a file for workers. Batch stderr progress gives mode, iteration,
+seed, event position and termination reason without payloads, credentials or absolute
+artifact paths; stdout gives publication keys and the deciding verdict.
+
+### Size and deletion evidence
+
+Counts below are direct non-test `*.go` file lines per package, excluding `testdata`
+and generated packages, including comments and blank lines (`wc -l`, not logical SLOC).
+Historical before/after inventories and the per-test deletion map are retained in
+[fn-228.6 count-before](../.flow/artifacts/fn-228.6/count-before.txt),
+[count-after](../.flow/artifacts/fn-228.6/count-after.txt), and
+[coverage-map](../.flow/artifacts/fn-228.6/coverage-map.md).
+Current counts identify executable source `fad276dfc399766a28b51d4262829f90be6e73b6`;
+subsequent closure/roadmap commits do not alter those sources.
+
+| Package or explicit scope | Before fn-228.6 | After fn-228.6 | Current |
+| --- | ---: | ---: | ---: |
+| Testpilot generic (duration retained: 36) | 21,506 | 36 | 36 |
+| Testpilot temporal/act | 1,328 | 1,353 | 1,183 |
+| Testpilot temporal/control | 421 | 119 | 0 |
+| Testpilot temporal/provision | 198 | 198 | 263 |
+| Other Testpilot Temporal packages | 8,787 | 0 | 0 |
+| Relocated generic Runner | 1,611 | 1,611 | 1,723 |
+| Generic target: Testpilot generic + Runner (≤5,000) | 23,117 | 1,647 | 1,759 |
+| Total target: all Testpilot + Runner (≤11,000) | 33,851 | 3,317 | 3,205 |
+
+The before Temporal total is 10,734; current is 1,446. `internal/ir` and
+`internal/execution` were deleted outright, alongside verification, evaluation, CEL,
+predicate, contract, casefile, campaign, replay, publish, generated Cases and Case lowering.
+The historical coverage map accounts for 25 retired live tests, seven legacy failures
+and four pre-existing live failures. It names gaps rather than counting deletions as
+passing tests: Nexus/Workflow Models and Drivers, workflow-scheduled activities,
+heartbeats, attempt timeout and IR-bridge minimization have no Runner equivalent.
+The retained host-level slice still covers cancellation and annotations.
+
+Current canary packages are authority315, cmd213, controller1821, policy237,
+preflight162, recovery255 and testharness110: **3,113** total. The CLI is **61**;
+Testpilot + Runner + canary + CLI is **6,379** (fn-228.6 after: 6,387).
+Moved reference workers are parent101 + raw76 + sdk149 = **326**, and composition is
+**43**: including both gives **6,748**. Adding the **624**-line Host gives **7,372**;
+Temporal host-module root glue adds **33**, giving **7,405**. These wider inventories
+report relocation explicitly and do not redefine the original target scopes.
+
+Generated code is excluded from both targets. Historical generic-host **5,734** included
+Kettle **1,834**, annotations915, model1450, realization342 and run1193. Current generic
+`hosts/go/gen/umpire` is annotations915 + model1464 + realization342 + run1290 = **4,011**;
+Kettle's relocated generated package remains **1,834** in its separate module. The
+homologous generic schema family is therefore **5,734 → 5,845**, not 5,734 → 4,011.
+Temporal generated code is **425 → 812** (activity219 + probe259 + temporal334).
+Combined comparable generated totals are **6,159 → 6,657**; a directory move is not a
+code reduction.
+
+### Live evidence, timing and remaining obligation
+
+The committed [fn-243.2 verification](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/task-2-verification.md)
+records actual exit-0 gates at source `fad276dfc399766a28b51d4262829f90be6e73b6`:
+
+| Command / stage | Measurement | Result |
+| --- | ---: | --- |
+| `CI=1 UMPIRE_BACKENDS=require make model-time`, full gate | 688.082 s / 60 s soft target | Exit 0; target missed |
+| Same command, inner edit/test loop | 8.479 s / 10 s soft target | Target met |
+| `make umpire-check-live-tests`, slice | 51.588 s | Umbrella exit 0 |
+| Same umbrella, gaps | 394.015 s | Umbrella exit 0 |
+| Same umbrella, full Testpilot stage | 437.061 s | Umbrella exit 0 |
+
+Required TLC ran; optional Apalache remained deferred. Identities include negative
+controls and exact supported-scope refusals. The whole umbrella recorded 2,427 passing
+test identities, not 2,427 conformant Runs. Historical
+fn-228.6 `UMPIRE_BACKENDS=require make model-time` at `d23625a390` exited 0 with
+571.968 s full / 8.864 s inner; these are historical timings, not today's performance.
+This documentation checkpoint reuses committed evidence without a new Model/live run.
+The broad legacy `go test -tags test_dep ./tools/umpire/... ...` surface remains
+inherited red; no claim that every repository suite is green follows from these gates.
+
+Current guest SHA256 is `b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a`;
+the retained exported program is `518a416709b0ec47f968ff6f97fba0cfa6dc536bce59f233d59906f0497548cd`
+(World-specific bytes, not a universal program identity). Raw and Go SDK executors
+both run without Umpire callbacks and preserve actual content/metadata in offline replay.
+The created-namespace lifecycle records 21 Runs: admitted cases must be Explained,
+and only the exact audited scope refusals are accepted. It does not prove all 21
+Runs Explained.
+
+The independent atomic Model makes Cancel immediately Canceled. An actually started
+server attempt can remain CANCEL_REQUESTED, then Complete or Fail; a second Cancel can
+return status 9. The current Realization refuses before proposal or Cancel RPC with
+`unheld cancellation of an open activity is outside the atomic cancellation Model`.
+Held-before-start and terminal Cancel remain supported. The original seed18
+[counterexample](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/counterexamples/cancel-ack-pending-1.json)
+at guest `13e91f833a1c3696fa57dc04b551eb6631a9313e896d9a4e259f7dd0e3a0f55d`
+(source `75e5b78c6d3a486e8f986a403503167fbb248952`) still replays Unexplained at event6
+with its original guest and zero Driver calls. No status remapping, changed Model
+semantics or different-guest replay converts that evidence into a pass.
+
+Fn-243.5 follows independent cooperative Model semantics/live binding in fn-237.3/.4,
+restores justified unheld-cancellation proof, and supplies final R40/fn-228 R7 evidence.
+Both parent specs remain open. The [non-Go offline gap](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/non-go-offline-gap.md)
+records protoc29.5 available through mise but absent non-Go gRPC runtimes/service bindings;
+no independent non-Go executor was run. That recorded-not-proven outcome does not count
+as a polyglot live pass. Heartbeat and new timeout realization remain fn-237 work.
 
 ## Mini activity slice (fn-216)
 
@@ -924,9 +1121,10 @@ run uses the existing serviceerror conversion and preserves the observed status.
 | Judge successful cancel before worker startup | 28.042 |
 | Judge Canceled Describe after accepted cancel | 47.875 |
 
-The R33-R40 and Case obligations above remain deferred. This proof covers these two RPC
-scenarios through the existing SDK/server slice; it does not execute a Testpilot Case or
-establish general Temporal conformance.
+This historical proof covers these two RPC scenarios through the then-current SDK/server
+slice; it did not discharge the broader obligations at that checkpoint. Their current
+disposition is recorded in [Runner and Run](#runner-and-run), with final R40 proof still
+open. This historical result does not establish general Temporal conformance.
 
 ## Final measurements and editor evidence
 

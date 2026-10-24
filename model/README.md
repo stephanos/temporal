@@ -532,12 +532,24 @@ and atomic cancellation describe only the retained retry checkpoint. No Model tr
 was changed to fit server evidence. [Current evidence and boundaries](DESIGN.md#parameterized-worlds-and-inputs)
 include selected-World counts and the retained actual live retry proof.
 
-For R33 this proves the Model protocol and opaque payload seam, preserving old wire
-bytes and refusal codes. Broader Case identity/versioning, Program replay and removal
-of Contract/CEL remain open. R34's size reduction, R35's CEL removal, R36's deferred
-lifting decision, R37's general callback replacement, R38's unified host loop, R39's
-Run/storage redesign and R40's polyglot forwarding remain the obligations in DESIGN's
-[Case-plan table](DESIGN.md#recommendation-and-next-slices); this slice does not discharge them.
+At that historical checkpoint, R33's protocol seam was proven and the broader runtime
+replacement was still open. The later [Runner and Run](DESIGN.md#runner-and-run)
+checkpoint now discharges R33–R39, records the final package layout and exact Run/replay
+schema, and reports comparable counts and actual gate timings. Temporal workers now
+follow a Model-issued program from Reset without callbacks; generic Answer remains for
+other systems. `umpire program --model <guest.wasm> --world <world.binpb> --out <program.binpb>`
+exports that table. The raw and Go SDK executors live in
+`temporal/hosts/go/reference/worker/{raw,sdk}`; `tools/umpire/temporaldriver` composes
+their Validate/Follow functions with the opaque transport Driver in Testpilot's `temporal/act`.
+The hold fault replaces the old worker gate; the proposed Shim was superseded.
+
+Final R40/fn-228 R7 proof remains open in fn-243.5 after independent fn-237 cooperative
+semantics and binding. Unheld open-state cancellation is refused before proposal or
+Cancel RPC with `unheld cancellation of an open activity is outside the atomic cancellation Model`;
+held-before-start and terminal cancellation remain supported. The recorded 21-Run
+lifecycle admits Explained cases plus only exact audited scope refusals, not 21 Explained
+Runs. [Non-Go execution remains unproven](../.flow/artifacts/fn-243-programmed-workers-the-model-issues/non-go-offline-gap.md)
+in the offline environment. Both fn-228 and fn-243 remain open.
 
 Predecessor .3's final dedicated run took 381.104 ms including cleanup, with Answer
 calls of 55.417 µs Complete, 48.750 µs Fail and 31.166 µs HostRefusal. Its full/inner
