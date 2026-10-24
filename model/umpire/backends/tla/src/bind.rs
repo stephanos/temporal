@@ -39,6 +39,24 @@ impl Lifted {
                 ));
             }
         }
+        let selected = self
+            .world_fields
+            .iter()
+            .zip(&world)
+            .map(|(field, value)| (field.name.clone(), value.clone()))
+            .collect();
+        let mut bound = self.clone();
+        for assumption in &mut bound.model.assumptions {
+            *assumption = assumption
+                .select(&selected)
+                .map_err(|error| self.refuse(&error, error.message.clone()))?;
+        }
+        for claim in &mut bound.model.progress {
+            claim.assumption = claim
+                .assumption
+                .select(&selected)
+                .map_err(|error| self.refuse(&error, error.message.clone()))?;
+        }
         let mut starts = Vec::new();
         for row in &binding.starts {
             let state = typed(
@@ -51,8 +69,7 @@ impl Lifted {
                 starts.push(state);
             }
         }
-        let catalog = self.bind_catalog(binding)?;
-        let mut bound = self.clone();
+        let catalog = bound.bind_catalog(binding)?;
         bound.world_values = Some(world);
         bound.complete_starts = Some(starts);
         bound.catalog = Some(catalog);
@@ -99,8 +116,12 @@ impl Lifted {
                 values: entry.values.clone(),
             })
             .collect();
-        for claim in &self.progress {
-            let assumption = &claim.assumption;
+        for (kind, name, assumption) in self
+            .assumptions
+            .iter()
+            .map(|assumption| ("assumption", &assumption.name, assumption))
+            .chain(self.progress.iter().map(|claim| ("progress", &claim.name, &claim.assumption)))
+        {
             for listed in
                 assumption.only.iter().flatten().chain(&assumption.without).chain(&assumption.fair)
             {
@@ -113,8 +134,7 @@ impl Lifted {
                     };
                     return Err(self.refuse(&self.location,
                         format!(
-                            "progress `{}` names `{spelled}`, which the selected World's catalog lacks",
-                            claim.name
+                            "{kind} `{name}` names `{spelled}`, which the selected World's catalog lacks"
                         ),
                     ));
                 }
@@ -124,7 +144,7 @@ impl Lifted {
             {
                 return Err(self.refuse(
                     &self.location,
-                    format!("progress `{}` assumption admits no catalog action", claim.name),
+                    format!("{kind} `{name}` assumption admits no catalog action"),
                 ));
             }
         }
