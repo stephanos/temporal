@@ -134,6 +134,56 @@ class OriginalClusterReplay(unittest.TestCase):
         self.assertEqual(by_name[ordinary.INSTALLED_PUBLICATION]['argv'],
                          ['/python','/repo/tools/gomad/testdata/parity/installed-publication-test.py','-v'])
 
+    def test_ordinary_recursive_authenticates_empty_packages_and_keeps_namespace_filter(self):
+        def events(rows):
+            return ('\n'.join(json.dumps(row) for row in rows) + '\n').encode()
+        namespace = ordinary.NAMESPACE.removeprefix('go/').rsplit('/', 1)
+        volume = (namespace[0], 'TestVolumeConformanceCorpus')
+        builder = ('archcheck', 'TestBuilder')
+        groups = dict(namespace=[namespace, volume], builder=[builder], recursive=[volume],
+                      **{'recursive-builder': [builder], 'slim': [case.removeprefix('go/').rsplit('/', 1)
+                                                                 for case in sorted(ordinary.live.SLIM_IDS)]})
+        empty = [dict(Action='output', Package='empty', Output='?   \tempty\t[no test files]\n'),
+                 dict(Action='skip', Package='empty')]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for role in ordinary.ROLES:
+                (root/('ordinary-' + role + '-list.stdout')).write_bytes(b'case: test\n')
+                (root/('ordinary-' + role + '-ignored.stdout')).write_bytes(b'0 tests\n')
+                (root/('ordinary-' + role + '-run.stdout')).write_bytes(
+                    b'test case ... ok\ntest result: ok. 1 passed; 0 failed; 0 ignored;\n')
+            (root/(ordinary.VOLUME_REPEAT + '.stdout')).write_text(
+                ''.join('test ' + name + ' ... ok\n' for name in ordinary.VOLUME_TESTS)
+                + 'test result: ok. 2 passed; 0 failed; 0 ignored;\n')
+            for name in (ordinary.WORKLOAD_TOOLS, ordinary.INSTALLED_PUBLICATION):
+                (root/(name + '.stderr')).write_bytes(b'test_a (__main__.Case.test_a) ... ok\nRan 1 test in 0.01s\nOK\n')
+            for name, roots in groups.items():
+                listed = roots + [namespace] if name == 'recursive' else roots
+                packages = sorted({package for package, _ in listed})
+                (root/('ordinary-' + name + '-list.stdout')).write_bytes(events(
+                    [dict(Action='output', Package=package, Output=test + '\n') for package, test in listed]
+                    + [dict(Action='pass', Package=package) for package in packages]
+                    + (empty if name == 'recursive' else [])))
+                (root/('ordinary-' + name + '-run.stdout')).write_bytes(events(
+                    [dict(Action=action, Package=package, Test=test) for package, test in roots for action in ('run', 'pass')]
+                    + [dict(Action='pass', Package=package) for package in packages]
+                    + (empty if name == 'recursive' else [])))
+            original = dict(callables={str(index): dict(original_runs=['a', 'b']) for index in range(4)}, counts={})
+            config = dict(repo='/source', live_corpus=dict(original_reference_commit='pinned'))
+            with patch.object(ordinary.reach, 'inventory', return_value=original):
+                result = ordinary.collect(config, root)
+                self.assertEqual(result['selections']['recursive'], ['go/' + volume[0] + '/' + volume[1]])
+                self.assertIn(ordinary.NAMESPACE, result['actual_cases'])
+                self.assertFalse(any('empty' in case for case in result['actual_cases']))
+                path = root/'ordinary-recursive-run.stdout'
+                raw = path.read_bytes()
+                for changed in (raw.replace(b'[no test files]', b'[no tests to run]'),
+                                raw + events([dict(Action='skip', Package='empty')]),
+                                raw + events([dict(Action='run', Package=namespace[0], Test=namespace[1])])):
+                    path.write_bytes(changed)
+                    with self.assertRaises(Refusal):
+                        ordinary.collect(config, root)
+
     def test_ordinary_workload_tool_cases_require_every_listed_pass(self):
         ok = (b'test_a (test_x.Case.test_a) ... ok\ntest_b (test_x.Case.test_b) ... ok\n\n'
               b'----------------------------------------------------------------------\nRan 2 tests in 0.010s\n\nOK\n')
