@@ -159,7 +159,8 @@ survived. Retain the attempt and terminal audits under
 The diagnostic integration target exposed two additional role-neutral fixture helpers;
 Temporal inspection exposed both a tracked Gitlink inventory error and a1MiB transition-byte
 capacity refusal. Tasks .27 and .28 repair the independently diagnosed inventory and
-fixture defects; both worker gates are green, with conductor verification and review pending.
+fixture defects; both are integrated, pass worker and conductor gates, and have independent
+SHIP reviews. The combined source tree passes the canonical merge gate.
 Task .29 retains two matching diagnostic reproductions: repeated pending network polls
 exhaust correctly accounted broker transitions after 0.471 seconds of virtual time. Its
 diagnosis awaits independent review; .30 owns the repair and complete original canary under
@@ -487,8 +488,8 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | 🚧 Running | Receive R4 preservation proof; reconcile fn185 |
 | [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | 🚧 Running | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
 | [fn-232.26](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.26.md) | Done | Bind profile-neutral execution fixtures to compiled conditions; preserve strict role admission |
-| [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | 🚧 Running | Handle tracked Gitlinks in onebox source inventory |
-| [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | 🚧 Running | Complete compiled-role integration fixture repair and full five-profile target matrix |
+| [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | Done | Handle tracked Gitlinks in onebox source inventory; worker/conductor gates and SHIP review passed |
+| [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | Done | Compiled-role fixture repair; full five-profile matrix, worker/conductor gates and SHIP review passed |
 | [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | 🚧 Running | Diagnose primary inspection transition capacity under unchanged1MiB/scenario |
 | [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | Todo | Repair inspection polling capacity and prove the full original canary under the unchanged bound; follows .29 |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |

@@ -18,7 +18,9 @@
     "fn-232-gomad-rewrite-the-host-side-in-rust.19": 0,
     "fn-232-gomad-rewrite-the-host-side-in-rust.20": 0,
     "fn-232-gomad-rewrite-the-host-side-in-rust.21": 0,
-    "fn-232-gomad-rewrite-the-host-side-in-rust.26": 0
+    "fn-232-gomad-rewrite-the-host-side-in-rust.26": 0,
+    "fn-232-gomad-rewrite-the-host-side-in-rust.27": 0,
+    "fn-232-gomad-rewrite-the-host-side-in-rust.28": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -809,6 +811,76 @@
       "task": "fn-232-gomad-rewrite-the-host-side-in-rust.26",
       "timestamp": "2026-10-24T10:33:29.132662Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0c20eb056d1237063457921706879b2a7fd9cf26b5e0d50b0ff143d095ec7f6e",
+      "backend": "codex",
+      "base_sha": "66b7b7153c29dd68166de33c79cafd76a7adbaf5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c3e7a89f29e37e8254310ed01bf2528e53cfb8cf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "9a4713a700ce41ebbe955dd18e6ddfc4",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.27",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.27",
+      "timestamp": "2026-10-24T14:20:27.359479Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "42d1e07632e759c5a793f3c32613d7a0d2c887d53d02b7bc96907dd9f00ec614",
+      "backend": "codex",
+      "base_sha": "ce29dc0e24352121ec17c5e5cdf5d9323ecda545",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c3e7a89f29e37e8254310ed01bf2528e53cfb8cf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ad8113288afd4cc8a802bc5aa5b8e10f",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.28",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.28",
+      "timestamp": "2026-10-24T14:22:58.383209Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -820,6 +892,8 @@
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.20": 1,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.21": 1,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.26": 1,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.27": 1,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.28": 1,
     "plan": 6,
     "plan#completion": 0
   },
@@ -834,6 +908,8 @@
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.20": 0,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.21": 0,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.26": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.27": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.28": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md",
@@ -850,5 +926,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T10:33:29.134092Z"
+  "updated_at": "2026-10-24T14:22:58.386959Z"
 }

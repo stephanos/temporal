@@ -26,6 +26,17 @@ settings, and the distinction between diagnostic and qualification identities.
 Temporary instrumentation remains isolated and uncommitted. Original cycle8
 evidence is unchanged; these diagnostics supply no qualification pass.
 
+The historical scope comparison is retained separately in
+`/home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/actual-diagnosis-scope-addendum-r3.md`
+and its hashed source manifest. Retired Go did not activate recording on either
+internal World. Rust commit `93be185443` explicitly broadened the public limit
+to each native owner. Current `wasmhost/protocol.md` retains that active-bound
+contract and separately preserves earlier absent-field artifacts. Restoring the
+old inactive scope for new preparations would waive the current contract.
+The repair must therefore preserve active enforcement and reduce unnecessary
+visible operations safely; a guest-only time or dirty-bit cache is insufficient
+because visible calls process queued controller commands.
+
 Task .30 receives the repair and full original canary obligations formerly in
 .29. Its unchanged 1 MiB bound, timers, retries, assertions, broker accounting,
 replay and identity requirements still apply. Task .13 depends on .30 and retains
