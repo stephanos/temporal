@@ -258,3 +258,27 @@ fn canonical_option_constructor_paths_are_admitted() -> Result {
     }
     Ok(())
 }
+
+#[test]
+fn canonical_optional_imports_preserve_the_existing_fact_carrier() -> Result {
+    let original = Lift::parse("optional_facts.rs", SOURCE)?;
+    for import in [
+        "use core::option::Option;",
+        "use std::option::{Option, Some, None};",
+        "use ::core::option::Option::{Some, None};",
+    ] {
+        let source = SOURCE.replace(
+            "use umpire_dsl::{State, Action};",
+            &format!("use umpire_dsl::{{State, Action}}; {import}"),
+        );
+        let imported = Lift::parse("optional_facts.rs", &source)?;
+        assert_eq!(imported.fact_type, original.fact_type);
+        for (before, after) in original.actions.iter().zip(&imported.actions) {
+            assert_eq!(before.branches[0].facts, after.branches[0].facts);
+        }
+        for emit in [Tla::emit, Tla::safety] {
+            assert_eq!(emit(&original)?.tla, emit(&imported)?.tla);
+        }
+    }
+    Ok(())
+}

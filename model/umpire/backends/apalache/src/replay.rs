@@ -674,7 +674,6 @@ fn typed_literal(ty: &SourceType, value: &Literal) -> bool {
             Literal::Bounded { name, raw } => b.name == *name && b.encode(*raw).is_some(),
             _ => false,
         },
-        (SourceType::Bounded(_) | SourceType::Optional(_), _) => false,
         (SourceType::Seq(inner), Literal::Sequence(values)) => {
             values.iter().all(|v| typed_literal(inner, v))
         }

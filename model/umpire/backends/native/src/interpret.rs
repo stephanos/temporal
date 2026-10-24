@@ -831,6 +831,21 @@ impl<'a, S> Frame<'a, S> {
         (self.get)(state, slot)
     }
 
+    fn some(&mut self, value: &Node) -> Value {
+        let raw = self.eval(value).integer();
+        assert!(
+            (0..i128::from(i32::MAX)).contains(&raw),
+            "an optional payload exceeds its ordinal encoding"
+        );
+        Value::Int(raw + 1)
+    }
+
+    fn optional_or(&mut self, value: &Node, fallback: &Node) -> Value {
+        let code = self.eval(value).integer();
+        let fallback = self.eval(fallback);
+        if code == 0 { fallback } else { Value::Int(code - 1) }
+    }
+
     fn eval(&mut self, node: &Node) -> Value {
         match node {
             Node::Const(value) => value.clone(),
@@ -892,19 +907,8 @@ impl<'a, S> Frame<'a, S> {
                     self.eval(no)
                 }
             }
-            Node::Some(value) => {
-                let raw = self.eval(value).integer();
-                assert!(
-                    (0..i128::from(i32::MAX)).contains(&raw),
-                    "an optional payload exceeds its ordinal encoding"
-                );
-                Value::Int(raw + 1)
-            }
-            Node::OptionalOr(value, fallback) => {
-                let code = self.eval(value).integer();
-                let fallback = self.eval(fallback);
-                if code == 0 { fallback } else { Value::Int(code - 1) }
-            }
+            Node::Some(value) => self.some(value),
+            Node::OptionalOr(value, fallback) => self.optional_or(value, fallback),
             Node::Tuple(values) => {
                 Value::Tuple(values.iter().map(|value| self.eval(value)).collect())
             }

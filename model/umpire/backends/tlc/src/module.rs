@@ -112,6 +112,10 @@ fn identifier(name: &str) -> Result<(), Refusal> {
     Ok(())
 }
 
+fn constant_bindings(cfg: &str) -> Vec<&str> {
+    cfg.lines().map(str::trim).filter(|line| line.starts_with("CONSTANT")).collect()
+}
+
 fn validate_properties(module: &Module) -> Result<(), Refusal> {
     let metadata = &module.metadata;
     let properties = metadata
@@ -135,6 +139,11 @@ fn validate_properties(module: &Module) -> Result<(), Refusal> {
         identifier(operator)?;
         if name.is_empty() || !names.insert(name) || !operators.insert(operator) {
             return Err(Refusal(format!("duplicate property declaration {name:?}/{operator}")));
+        }
+        if constant_bindings(cfg) != constant_bindings(&module.cfg) {
+            return Err(Refusal(format!(
+                "selected World bindings differ in isolated CFG for {name}"
+            )));
         }
         let (_, selected) = split_cfg(cfg)?;
         if selected != [(kind.to_owned(), operator.to_owned())] {

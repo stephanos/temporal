@@ -49,35 +49,41 @@ fn evaluate(node: &Node) -> Value {
     Frame::new(|(): &(), _| unreachable!(), None, None, &[], None, &[]).eval(node)
 }
 
-fn int(value: i128) -> Box<Node> {
-    Box::new(Node::Const(Value::Int(value)))
+fn int(value: i128) -> Node {
+    Node::Const(Value::Int(value))
 }
 
 #[test]
 fn optional_default_is_eager_and_decodes_zero_payload() {
     for (code, expected) in [(0, 3), (1, 0), (2, 1), (4, 3)] {
-        assert_eq!(evaluate(&Node::OptionalOr(int(code), int(3))), Value::Int(expected));
+        assert_eq!(
+            evaluate(&Node::OptionalOr(Box::new(int(code)), Box::new(int(3)))),
+            Value::Int(expected)
+        );
     }
     for op in [Op::Div, Op::Add] {
         let (left, right) = if op == Op::Div { (1, 0) } else { (255, 1) };
-        let fallback = Node::Binary(op, int(left), int(right), (0, 255));
+        let fallback = Node::Binary(op, Box::new(int(left)), Box::new(int(right)), (0, 255));
         assert!(
-            std::panic::catch_unwind(|| evaluate(&Node::OptionalOr(int(2), Box::new(fallback))))
-                .is_err()
+            std::panic::catch_unwind(|| evaluate(&Node::OptionalOr(
+                Box::new(int(2)),
+                Box::new(fallback)
+            )))
+            .is_err()
         );
     }
 }
 
 #[test]
 fn some_encoding_checks_ordinal_bounds_without_finite_validation() {
-    assert_eq!(evaluate(&Node::Some(int(255))), Value::Int(256));
-    assert_eq!(evaluate(&Node::Some(int(0))), Value::Int(1));
+    assert_eq!(evaluate(&Node::Some(Box::new(int(255)))), Value::Int(256));
+    assert_eq!(evaluate(&Node::Some(Box::new(int(0)))), Value::Int(1));
     assert_eq!(
-        evaluate(&Node::Some(int(i128::from(i32::MAX) - 1))),
+        evaluate(&Node::Some(Box::new(int(i128::from(i32::MAX) - 1)))),
         Value::Int(i128::from(i32::MAX))
     );
     for raw in [-1, i128::from(i32::MAX), i128::MAX] {
-        assert!(std::panic::catch_unwind(|| evaluate(&Node::Some(int(raw)))).is_err());
+        assert!(std::panic::catch_unwind(|| evaluate(&Node::Some(Box::new(int(raw))))).is_err());
     }
 }
 
@@ -93,7 +99,7 @@ fn resolver_preserves_scalar_conversions_and_backing_arithmetic() {
         world_fields: vec![],
         location: umpire_dsl::__lifted::Diagnostic { line: 1, column: 1, message: String::new() },
         fields: vec![],
-        constants: Default::default(),
+        constants: std::collections::BTreeMap::new(),
         actions: vec![],
         invariants: vec![],
         postconditions: vec![],

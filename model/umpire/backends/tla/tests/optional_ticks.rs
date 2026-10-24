@@ -1,7 +1,7 @@
 //! Bounded nominal optional values retain their source identity.
 use umpire_tla::Lift;
 
-const SOURCE: &str = r#"
+const SOURCE: &str = r"
 use umpire_dsl::machine;
 #[machine] mod countdown {
     use umpire_dsl::{Action, Finite, State, World};
@@ -19,7 +19,7 @@ use umpire_dsl::machine;
         }
     }
 }
-"#;
+";
 
 #[test]
 fn source_local_optional_ticks_are_admitted() -> Result<(), Box<dyn std::error::Error>> {
@@ -123,7 +123,12 @@ fn optional_complete_starts_keep_whole_row_correlation_and_empty_selection()
     assert_eq!(full.tla, Tla::emit(&lifted.bind(&selected)?)?.tla);
     selected.starts.clear();
     let empty = Tla::emit(&lifted.bind(&selected)?)?;
-    assert!(empty.tla.lines().any(|line| line == "Init == FALSE"));
+    assert_eq!(
+        empty.metadata.binding.as_ref().ok_or("missing empty binding")?.starts,
+        Vec::<Vec<(String, Literal)>>::new()
+    );
+    let init = empty.tla.lines().find(|line| line.starts_with("Init ==")).ok_or("Init missing")?;
+    assert!(init.starts_with("Init == (FALSE) /\\ "), "{init}");
     Ok(())
 }
 
@@ -234,5 +239,98 @@ fn shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata()
             Type::Optional(_)
         ));
     }
+    Ok(())
+}
+
+#[path = "fixtures/optional_eager.rs"]
+mod eager;
+
+fn safety_schema(module: &umpire_tla::Module) -> umpire_tlc::Schema {
+    fn ty(source: &Type) -> umpire_tlc::Type {
+        use umpire_tlc::Type as Backend;
+        match source {
+            Type::Bool => Backend::Bool,
+            Type::Int { min, max } => Backend::Int { min: *min, max: *max },
+            Type::Bounded(bound) => Backend::Int { min: bound.low, max: bound.high },
+            Type::Optional(bound) => Backend::OptionalInt { low: bound.low, high: bound.high },
+            Type::Enum { variants, .. } => Backend::Enum(variants.clone()),
+            Type::Text => Backend::Text,
+            Type::Unit => Backend::Tuple(Vec::new()),
+            Type::Tuple(types) => Backend::Tuple(types.iter().map(ty).collect()),
+            Type::Seq(inner) => Backend::Seq(Box::new(ty(inner))),
+        }
+    }
+    umpire_tlc::Schema {
+        fields: module
+            .metadata
+            .fields
+            .iter()
+            .map(|field| (field.name.clone(), ty(&field.ty)))
+            .collect(),
+        observers: module
+            .metadata
+            .observer_types
+            .iter()
+            .map(|(name, value)| (name.clone(), ty(value)))
+            .collect(),
+    }
+}
+
+#[test]
+fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
+-> Result<(), Box<dyn std::error::Error>> {
+    use eager::optional_eager::World;
+    use umpire_dsl::Machine;
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let source =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/optional_eager.rs");
+    for site in 0..=2 {
+        let world = World::new(site, 0);
+        let report = umpire_checker::Checker::explore(&world, 8)?.verify_all()?.to_string();
+        assert!(report.contains("Refuted"), "site {site}: {report}");
+        assert!(report.contains("zero"), "site {site}: {report}");
+        let interpreted = umpire_checker::Interpreted::new(World::new(site, 0))?;
+        assert_eq!(
+            umpire_checker::Checker::explore(&interpreted, 8)?.verify_all()?.to_string(),
+            report
+        );
+        if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+            continue;
+        }
+        let binding = Binding {
+            world: vec![
+                ("site".into(), Literal::Int(i128::from(site))),
+                ("divisor".into(), Literal::Int(0)),
+            ],
+            starts: vec![vec![
+                ("value".into(), optional("Remaining", Some(1))),
+                ("done".into(), Literal::Bool(false)),
+            ]],
+            actions: vec![Concrete { action: "User::Read".into(), fields: Vec::new() }],
+        };
+        let lifted =
+            Lift::parse(&source.to_string_lossy(), include_str!("fixtures/optional_eager.rs"))?
+                .bind(&binding)?;
+        let module = Tla::emit(&lifted)?;
+        let tlc = umpire_tlc::Tlc::discover(&root)?;
+        let failure =
+            tlc.check_module(&module).err().ok_or("Some suppressed eager fallback error")?;
+        assert!(failure.to_string().contains("zero"), "site {site}: {failure}");
+        let safety = Tla::safety(&lifted)?;
+        let checked = tlc.check(&safety.name, &safety.tla, &safety.cfg, &safety_schema(&safety))?;
+        assert_eq!(
+            checked.properties["ArithmeticSafe"].verdict,
+            umpire_tlc::Verdict::Refuted,
+            "site {site}"
+        );
+        std::fs::write(
+            root.join(format!(".flow/tmp/fn2372-eager-safety-{site}.log")),
+            checked.output,
+        )?;
+    }
+    let world = World::new(1, 1);
+    let state = world.starts().remove(0);
+    let step = world.checked_step(&state, eager::optional_eager::User::Read.into())?;
+    assert_eq!(step[0].2.value, state.value);
     Ok(())
 }

@@ -116,9 +116,21 @@ pub mod countdown {
             check!(self.remaining.is_some() == selected.timeout.is_some());
         }
 
+        #[postcondition(after = Clock::Tick)]
+        fn never_decrements(&self, previous: &Self) {
+            check!(
+                self.remaining.unwrap_or(Remaining { ticks: 0 }).ticks
+                    == previous.remaining.unwrap_or(Remaining { ticks: 0 }).ticks
+            );
+        }
+
         #[progress]
         fn finishes(&self) -> LeadsTo {
-            path![self.started, ..=3, self.remaining.is_none() || self.remaining == REMAINING]
+            path![self.started, ..=3,
+                self.remaining.is_none() || Some(Remaining {
+                    ticks: self.remaining.unwrap_or(Remaining { ticks: 0 }).ticks,
+                }) == REMAINING
+            ]
         }
     }
 }

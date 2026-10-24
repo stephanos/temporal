@@ -6,7 +6,7 @@ mod counter {
     use umpire_dsl::{Action, Finite, State, World, check};
 
     #[derive(Finite, Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct Ticks(#[inputs(1..=3)] pub u8);
+    pub(super) struct Ticks(#[inputs(1..=3)] pub(super) u8);
 
     #[derive(::umpire_dsl::Finite, Clone, Copy, Debug, PartialEq, Eq, Hash)]
     struct Remaining {
@@ -15,23 +15,23 @@ mod counter {
     }
 
     #[derive(umpire_dsl::Finite, Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct Signed(#[inputs(0..=3)] pub i32);
+    pub(super) struct Signed(#[inputs(0..=3)] pub(super) i32);
 
     #[derive(World)]
-    pub struct World {
-        pub configured: Option<Ticks>,
+    pub(super) struct World {
+        pub(super) configured: Option<Ticks>,
     }
 
     #[derive(State)]
-    pub struct Model {
-        pub configured: Option<Ticks>,
-        pub raw: Ticks,
+    pub(super) struct Model {
+        pub(super) configured: Option<Ticks>,
+        pub(super) raw: Ticks,
         remaining: Option<Remaining>,
-        pub signed: Option<Signed>,
+        pub(super) signed: Option<Signed>,
     }
 
-    #[derive(Action)]
-    pub enum User {
+    #[derive(Action, Copy)]
+    pub(super) enum User {
         Tick,
     }
 
@@ -46,8 +46,10 @@ mod counter {
             }]
         }
         #[on(User)]
-        fn user(&mut self, _: User) {
-            self.configured = None;
+        fn user(&mut self, requested: User) {
+            match requested {
+                User::Tick => self.configured = None,
+            }
         }
         #[invariant]
         fn bounded(&self) {
@@ -120,4 +122,52 @@ fn scalar_accessors_reconstruct_both_shapes_and_leave_bounds_to_authored_claims(
             Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 0 })))
         )
     );
+}
+
+#[umpire_dsl::machine]
+mod native_wide {
+    use umpire_dsl::{Action, Finite, State};
+
+    #[derive(Finite)]
+    pub(super) struct PointerUnsigned(#[inputs(1..=3)] pub usize);
+    #[derive(Finite)]
+    pub(super) struct PointerSigned(#[inputs(1..=3)] pub isize);
+    #[derive(Finite)]
+    pub(super) struct WideUnsigned(#[inputs(1..=3)] pub u128);
+
+    #[derive(State)]
+    pub(super) struct Model {
+        on: bool,
+    }
+    #[derive(Action, Copy)]
+    pub(super) enum User {
+        Set,
+    }
+    impl Model {
+        #[on(User)]
+        fn user(&mut self, action: User) {
+            match action {
+                User::Set => self.on = true,
+            }
+        }
+    }
+}
+
+#[test]
+fn nominal_export_preserves_wider_native_only_declarations() {
+    let world = native_wide::world();
+    assert_eq!(world.step(&world.starts()[0], world.actions().remove(0)).len(), 1);
+    assert_eq!(
+        native_wide::PointerUnsigned(2).value(),
+        Value::Bounded { name: "PointerUnsigned", raw: 2 }
+    );
+    assert_eq!(
+        native_wide::PointerSigned(2).value(),
+        Value::Bounded { name: "PointerSigned", raw: 2 }
+    );
+    assert_eq!(
+        native_wide::WideUnsigned(2).value(),
+        Value::Bounded { name: "WideUnsigned", raw: 2 }
+    );
+    assert!(std::panic::catch_unwind(|| native_wide::WideUnsigned(u128::MAX).value()).is_err());
 }

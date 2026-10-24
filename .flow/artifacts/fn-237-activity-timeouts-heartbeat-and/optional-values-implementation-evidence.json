@@ -1,0 +1,45 @@
+{
+  "baseline": {
+    "baseline": "green",
+    "command": "make model-check",
+    "kernel_wait_status": 0,
+    "exit_code": 0,
+    "command_log": ".flow/tmp/fn2372-baseline-default.log",
+    "wrapper": "intentionally terminated after suspending orchestration only; queued required/time never started",
+    "prior_attempt": {
+      "command": "make model-check",
+      "exit_code": 2,
+      "observation": "inconclusive: nested shell omitted explicit cd and ran wrong surface; no credit"
+    }
+  },
+  "focused": {
+    "exit_code": 0,
+    "passed_summary_total": 335,
+    "command": "cd model && mise exec -- cargo test -p umpire-front -p umpire-ir -p umpire-dsl-macros -p umpire-dsl -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures -p umpire-apalache"
+  },
+  "strict_clippy": {
+    "exit_code": 0,
+    "all_targets": true,
+    "all_features": true
+  },
+  "semantic_mutants_detected": 7,
+  "canonical_imports": "exact core/std imports admitted by shared shadow helper; alias/glob/local-root controls refuse; F main and safety emission unchanged",
+  "cfg_mutation": "red101 invariant CFG certified another legal World; green requires identical emitted constants across main and isolated families",
+  "native_boundaries": "checked factory/binding reject malformed values; authored invariants refute direct invalid native starts/updates; no automatic Machine/Checker admission validation",
+  "snapshot_generation": {
+    "isolated_fixture": "optional_ticks",
+    "expected_files": 22,
+    "required_tlc": true,
+    "exit_code": 0
+  },
+  "preserved": {
+    "manifest_entries": 827,
+    "manifest_all_match": true,
+    "manifest_failures": [],
+    "compat_entries": 15,
+    "compat_all_match": true,
+    "compat_failures": []
+  },
+  "full_gates": "pending",
+  "primary_review": "pending"
+}

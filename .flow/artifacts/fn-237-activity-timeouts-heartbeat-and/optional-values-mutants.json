@@ -1,0 +1,72 @@
+[
+  {
+    "mutant": "native-lazy",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tla --test optional_ticks present_optional_keeps_eager_errors_in_guard_assignment_and_claim -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 1.7556617090012878,
+    "log": ".flow/tmp/fn2372-mutant-native-lazy.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-native-lazy.log.gz",
+    "sha256": "4be99676c5f6070f3a44ec9e4d26f76d2a48dcfadf39942f014880c6a28cdb66"
+  },
+  {
+    "mutant": "main-lazy",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tla --test optional_ticks present_optional_keeps_eager_errors_in_guard_assignment_and_claim -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 3.1604510430042865,
+    "log": ".flow/tmp/fn2372-mutant-main-lazy.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-main-lazy.log.gz",
+    "sha256": "4be6ba3a0db4af2017391a51a15fc9fa1aca0b1955a41bf571c1c10d228eaa2f"
+  },
+  {
+    "mutant": "safety-lazy",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tla --test optional_ticks present_optional_keeps_eager_errors_in_guard_assignment_and_claim -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 4.850708210011362,
+    "log": ".flow/tmp/fn2372-mutant-safety-lazy.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-safety-lazy.log.gz",
+    "sha256": "a617afa7aa1c171d2c081fbb995c026bfbbd7474988c3fe616d255300c1f397e"
+  },
+  {
+    "mutant": "prime-bounded",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures optional_ticks_required_tlc_replays_exact_countdown_witnesses -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 19.66460713399283,
+    "log": ".flow/tmp/fn2372-mutant-prime-bounded.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-bounded.log.gz",
+    "sha256": "f83e524525972ba232638a8957917d540d52069f151cbe8eb4927f5d092cf2e4"
+  },
+  {
+    "mutant": "prime-payload",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures optional_ticks_required_tlc_replays_exact_countdown_witnesses -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 23.007096553003066,
+    "log": ".flow/tmp/fn2372-mutant-prime-payload.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-payload.log.gz",
+    "sha256": "31c8d29c30ff08377aa43be9080fd2dd64699c7148ba5237fda8d662e12d85f2"
+  },
+  {
+    "mutant": "prime-some",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures optional_ticks_required_tlc_replays_exact_countdown_witnesses -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 16.920221216991195,
+    "log": ".flow/tmp/fn2372-mutant-prime-some.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-some.log.gz",
+    "sha256": "4866279267d5a611764d500e0f4329b51ec8a1fa5a2c1554c86e58ebb5bb5552"
+  },
+  {
+    "mutant": "prime-optional-or",
+    "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures optional_ticks_required_tlc_replays_exact_countdown_witnesses -- --nocapture",
+    "exit_code": 101,
+    "detected": true,
+    "seconds": 16.56394613199518,
+    "log": ".flow/tmp/fn2372-mutant-prime-optional-or.log",
+    "durable_log": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-optional-or.log.gz",
+    "sha256": "5f1a57fc1fdc312e39fb41af078f04d8570b695c89f0e27a5d213fde21823164"
+  }
+]

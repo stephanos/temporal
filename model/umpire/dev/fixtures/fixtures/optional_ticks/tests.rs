@@ -59,12 +59,12 @@ fn optional_ticks_exact_countdown_and_interpreted_parity() -> umpire_testing::Te
         let mut state = world.starts().remove(0);
         let started = world.checked_step(&state, Clock::Start.into())?;
         assert_eq!(started.len(), 1);
-        assert!(started[0].1.is_empty());
+        assert_eq!(started[0].1, Vec::<()>::new());
         state = started[0].2.clone();
         for remaining in (0..ticks).rev() {
             let step = world.checked_step(&state, Clock::Tick.into())?;
             assert_eq!(step.len(), 1);
-            assert!(step[0].1.is_empty());
+            assert_eq!(step[0].1, Vec::<()>::new());
             state = step[0].2.clone();
             assert_eq!(state.remaining, Some(Remaining { ticks: remaining }));
         }
@@ -202,13 +202,53 @@ fn optional_ticks_required_tlc_replays_exact_countdown_witnesses() -> umpire_tes
         );
         assert!(report.contains("claim decrements: Verified"), "{report}");
         assert!(report.contains("claim finishes: Verified"), "{report}");
+        assert!(report.contains(&format!(
+            "claim never_decrements: {}", if timeout.is_some() { "Refuted" } else { "Verified" }
+        )), "{report}");
         assert!(
             report.contains(&format!(
                 "counterexamples replayed: {}",
-                if timeout.is_some() { 2 } else { 1 }
+                if timeout.is_some() { 3 } else { 1 }
             )),
             "{report}"
         );
     }
+    Ok(())
+}
+
+#[test]
+fn optional_ticks_refuses_legal_world_swaps_in_each_cfg_family() -> umpire_testing::TestResult {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let module = bound_for(selected(Some(3))).lift(folder().join("model.rs"))?;
+    for family in ["main", "invariant", "postcondition", "negative", "progress"] {
+        let mut mutant = module.clone();
+        let cfg = match family {
+            "main" => &mut mutant.cfg,
+            "invariant" => &mut mutant.metadata.invariants[0].cfg,
+            "postcondition" => &mut mutant.metadata.postconditions[0].cfg,
+            "negative" => &mut mutant.metadata.negative[0].cfg,
+            _ => &mut mutant.metadata.progress[0].cfg,
+        };
+        let original = "CONSTANT __umpire_world_timeout = 4\n";
+        assert!(cfg.contains(original));
+        *cfg = cfg.replace(original, "CONSTANT __umpire_world_timeout = 0\n");
+        let error = bound_for(selected(Some(3)))
+            .check_module(&folder(), &mutant)
+            .err()
+            .ok_or_else(|| format!("{family} CFG certified another legal selected World"))?;
+        assert!(error.to_string().contains("selected World bindings differ"), "{family}: {error}");
+    }
+    Ok(())
+}
+
+#[test]
+fn optional_ticks_false_cross_step_claim_has_an_exact_native_witness() -> umpire_testing::TestResult {
+    let files = bound_for(selected(Some(1))).run()?;
+    assert!(files["report.txt"].contains("claim never_decrements: Refuted"));
+    let witness = files.get("paths/never_decrements.txt").ok_or("missing cross-step witness")?;
+    assert_eq!(witness.matches("Clock::Tick").count(), 1);
+    assert!(witness.contains("Some(Remaining { ticks: 0 })"), "{witness}");
     Ok(())
 }

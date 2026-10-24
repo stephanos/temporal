@@ -8,6 +8,9 @@ mod finite;
 mod machine;
 #[path = "../src/path.rs"]
 mod path;
+#[path = "../src/roots.rs"]
+#[allow(dead_code, reason = "expansion fixtures use admission without token root rewriting")]
+mod roots;
 #[path = "../src/state.rs"]
 mod state;
 #[path = "../src/world.rs"]

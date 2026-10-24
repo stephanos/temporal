@@ -108,3 +108,30 @@ fn unsupported_optional_sources_refuse_at_source_locations() {
         assert!(error.contains("optional_source.rs:"), "{error}");
     }
 }
+
+#[test]
+fn canonical_optional_imports_preserve_builtin_identity() {
+    for import in [
+        "use core::option::Option;",
+        "use std::option::Option;",
+        "use core::option::Option::{Some, None};",
+        "use std::option::{Option, Some, None};",
+        "use ::core::option::Option; use ::std::option::Option::{Some, None};",
+    ] {
+        let source = SOURCE.replace("use umpire_dsl::{", &format!("{import}\nuse umpire_dsl::{{"));
+        Lift::parse("optional_import.rs", &source)
+            .unwrap_or_else(|error| panic!("{import}: {error}"));
+    }
+    for import in [
+        "use core::option::Option as Option;",
+        "use core::option::Option::*;",
+        "use other::Option;",
+        "mod core {} use core::option::Option;",
+    ] {
+        let source = SOURCE.replace("use umpire_dsl::{", &format!("{import}\nuse umpire_dsl::{{"));
+        let error = Lift::parse("optional_import.rs", &source)
+            .err()
+            .unwrap_or_else(|| panic!("admitted {import}"));
+        assert!(error.line > 1 && error.column > 0, "{error}");
+    }
+}

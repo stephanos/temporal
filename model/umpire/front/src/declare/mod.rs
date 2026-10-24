@@ -580,17 +580,53 @@ fn optional_carrier(output: &syn::ReturnType) -> Option<&syn::Ident> {
 
 /// Refuse bindings that change a constructor path the bounded grammar resolves by identity.
 pub(crate) fn shadows(items: &[Item], name: &str) -> bool {
-    fn bound(tree: &syn::UseTree, name: &str) -> bool {
+    fn bound(
+        tree: &syn::UseTree,
+        name: &str,
+        prefix: &str,
+        absolute: bool,
+        items: &[Item],
+    ) -> bool {
         match tree {
-            syn::UseTree::Path(p) => bound(&p.tree, name),
-            syn::UseTree::Name(n) => n.ident == name,
+            syn::UseTree::Path(p) => {
+                bound(&p.tree, name, &format!("{prefix}{}::", p.ident), absolute, items)
+            }
+            syn::UseTree::Name(n) if n.ident == name => {
+                let path = format!("{prefix}{}", n.ident);
+                let canonical = match name {
+                    "Option" => {
+                        matches!(path.as_str(), "core::option::Option" | "std::option::Option")
+                    }
+                    "Some" => matches!(
+                        path.as_str(),
+                        "core::option::Some"
+                            | "std::option::Some"
+                            | "core::option::Option::Some"
+                            | "std::option::Option::Some"
+                    ),
+                    "None" => matches!(
+                        path.as_str(),
+                        "core::option::None"
+                            | "std::option::None"
+                            | "core::option::Option::None"
+                            | "std::option::Option::None"
+                    ),
+                    _ => false,
+                };
+                !canonical
+                    || (!absolute
+                        && prefix.split("::").next().is_some_and(|root| shadows(items, root)))
+            }
+            syn::UseTree::Name(_) => false,
             syn::UseTree::Rename(n) => n.rename == name,
-            syn::UseTree::Group(g) => g.items.iter().any(|t| bound(t, name)),
+            syn::UseTree::Group(g) => {
+                g.items.iter().any(|t| bound(t, name, prefix, absolute, items))
+            }
             syn::UseTree::Glob(_) => true,
         }
     }
     items.iter().any(|item| match item {
-        Item::Use(i) => bound(&i.tree, name),
+        Item::Use(i) => bound(&i.tree, name, "", i.leading_colon.is_some(), items),
         Item::Enum(i) => i.ident == name,
         Item::Struct(i) => i.ident == name,
         Item::Type(i) => i.ident == name,

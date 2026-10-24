@@ -338,7 +338,7 @@ fn nominal_values(items: &[Item]) -> Vec<TokenStream> {
             #[doc(hidden)]
             impl ::umpire_dsl::IntoValue for #name {
                 fn value(&self) -> ::umpire_dsl::Value {
-                    ::umpire_dsl::Value::Bounded { name: #label, raw: ::core::primitive::i128::from(self.#member) }
+                    ::umpire_dsl::Value::Bounded { name: #label, raw: <::core::primitive::i128 as ::core::convert::TryFrom<_>>::try_from(self.#member).unwrap_or_else(|_| ::core::panic!("nominal value exceeds the exported integer range")) }
                 }
             }
         })

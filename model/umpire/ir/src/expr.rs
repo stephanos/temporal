@@ -155,9 +155,7 @@ impl Expr {
                     && right.infallible()
             }
             ExprKind::If(a, b, c) => a.infallible() && b.infallible() && c.infallible(),
-            ExprKind::Append(a, b) | ExprKind::OptionalOr(a, b) => {
-                a.infallible() && b.infallible()
-            }
+            ExprKind::Append(a, b) | ExprKind::OptionalOr(a, b) => a.infallible() && b.infallible(),
             ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
                 values.iter().all(Self::infallible)
             }
