@@ -52,6 +52,45 @@ fn wire(model: &Model) -> Vec<u8> {
     bytes
 }
 
+fn retain_probe_bytes(requests: u64, stage: &str, expanded: &[u8], envelope: Option<&[u8]>) {
+    use std::io::Write as _;
+    use std::os::unix::fs::{OpenOptionsExt as _, PermissionsExt as _};
+    let Some(root) = std::env::var_os("GOMAD_WORLD_PROBE_EVIDENCE_DIR") else {
+        return;
+    };
+    let root = std::path::PathBuf::from(root);
+    let metadata = std::fs::symlink_metadata(&root).unwrap();
+    assert!(root.is_absolute() && metadata.is_dir() && metadata.permissions().mode() & 0o077 == 0);
+    assert!(matches!(requests, 20_000 | 200_000));
+    assert!(matches!(stage, "expanded" | "compressed"));
+    assert!(!expanded.is_empty() && expanded.len() <= 384 << 20);
+    for (kind, raw, maximum) in [
+        ("raw", Some(expanded), 384usize << 20),
+        ("envelope", envelope, (64usize << 20) + 64),
+    ] {
+        let Some(raw) = raw else { continue };
+        assert!(!raw.is_empty() && raw.len() <= maximum);
+        let path = root.join(format!("world-{requests}.{stage}.{kind}"));
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(&path)
+            .unwrap();
+        file.write_all(raw).unwrap();
+        file.sync_all().unwrap();
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            serde_json::json!({
+                "schema":"gomad.core-predicate-observation/v1",
+                "case":"world_probe_retained_bytes",
+                "inputs":{"requests":requests,"stage":stage,"kind":kind},
+                "observed":{"path":path,"bytes":raw.len(),"sha256":format!("{:x}",Sha256::digest(raw))}
+            })
+        );
+    }
+}
+
 fn measure(stage: &str, requests: u64, maximum_peak: Option<u64>) {
     let status = std::fs::read_to_string("/proc/self/status").unwrap();
     let value = |key: &str| {
@@ -125,6 +164,7 @@ fn world_owner_codec_measured_cardinality() {
     measure("decode_restore_canonical", requests, None);
     assert_eq!(wire(&model), encoded);
     measure("reencode_restore_canonical", requests, None);
+    retain_probe_bytes(requests, "expanded", &encoded, None);
     println!(
         "GOMAD_CORE_OBSERVATION {}",
         serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"world_owner_codec_measured_cardinality","inputs":{"requests":requests,"seed":7,"payload_bytes_per_request":32},"observed":{"expanded_sha256":format!("{:x}",Sha256::digest(&encoded)),"transcript_digest":super::digest::hex(&model.cardinality().transcript_digest),"expanded_bytes":encoded.len()}})
@@ -166,6 +206,7 @@ fn compressed_world_owner_measured_cardinality() {
     assert_eq!(cardinality.events, requests);
     assert_eq!(cardinality.transitions, requests * 3);
     measure("compressed_semantic_decode", requests, Some(2 << 30));
+    retain_probe_bytes(requests, "compressed", &expanded, Some(&envelope));
     println!(
         "GOMAD_CORE_OBSERVATION {}",
         serde_json::json!({"schema":"gomad.core-predicate-observation/v1","case":"compressed_world_owner_measured_cardinality","inputs":{"requests":requests,"seed":7,"payload_bytes_per_request":32},"observed":{"expanded_sha256":format!("{:x}",Sha256::digest(&expanded)),"envelope_sha256":format!("{:x}",Sha256::digest(&envelope)),"restored_sha256":format!("{:x}",Sha256::digest(&restored)),"transcript_digest":super::digest::hex(&cardinality.transcript_digest),"expanded_bytes":expanded.len(),"envelope_bytes":envelope.len()}})

@@ -335,6 +335,20 @@ fn current_corpus_inventory_refuses_tamper_omission_and_foreign_header() {
         corpus::Corpus::admit("network", &std::collections::BTreeMap::new(), &frozen, None)
             .is_err()
     );
+    let mut foreign = raw.clone();
+    let mut doc: Value = serde_json::from_slice(&foreign["fixture"]).unwrap();
+    doc["schema"] = json!("foreign");
+    foreign.insert("fixture".into(), serde_json::to_vec(&doc).unwrap());
+    let resealed = foreign
+        .iter()
+        .map(|(name, raw)| (name.clone(), sha(raw)))
+        .collect();
+    assert_eq!(
+        corpus::Corpus::admit("network", &foreign, &resealed, None)
+            .err()
+            .unwrap(),
+        "corpus name/schema"
+    );
     let mut changed = raw;
     changed.get_mut("fixture").unwrap().push(b' ');
     assert!(corpus::Corpus::admit("network", &changed, &frozen, None).is_err());
@@ -350,5 +364,34 @@ fn receive_genuine_corpora() {
         let admitted = load_corpus(kind);
         let raw = std::fs::read(root.join(format!("{kind}.log"))).unwrap();
         admitted.receive(&raw).unwrap();
+    }
+}
+
+#[test]
+#[ignore = "requires raw bytes retained by the genuine bounded 20k/200k World probes"]
+fn receive_genuine_measured_world_bytes() {
+    let root = std::path::PathBuf::from(
+        std::env::var("GOMAD_B06_MEASURED_INPUTS").expect("GOMAD_B06_MEASURED_INPUTS"),
+    );
+    for requests in [20_000, 200_000] {
+        let raw = std::fs::read(root.join(format!("world-{requests}.compressed.raw"))).unwrap();
+        let envelope =
+            std::fs::read(root.join(format!("world-{requests}.compressed.envelope"))).unwrap();
+        let expanded = measured(&raw, "", requests, &sha(&raw)).unwrap();
+        assert_eq!(
+            measured(
+                &envelope,
+                "gomad/world/compressed-snapshot/v2",
+                requests,
+                &sha(&envelope)
+            )
+            .unwrap(),
+            expanded
+        );
+        println!(
+            "B06_MEASURED_CONTROL requests={requests} raw_sha256={} envelope_sha256={} summary={expanded}",
+            sha(&raw),
+            sha(&envelope)
+        );
     }
 }
