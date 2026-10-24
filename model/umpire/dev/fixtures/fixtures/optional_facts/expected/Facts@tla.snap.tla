@@ -64,7 +64,7 @@ Signal_HelperReject == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Signa
 \* @type: Bool;
 Ordinary_Clear == ((((((value) > (0))) /\ (((value) < (5))))) /\ ((5) = (5)) /\ ((5 # value)) /\ (value' = 5) /\ (__umpire_action' = "Ordinary::Clear") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>)) \/ ((((~(((((value) > (0))) /\ (((value) < (5)))))) /\ (TRUE))) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Clear") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
 \* @type: Bool;
-Ordinary_Reject == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Reject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(NotFound)") /\ (__umpire_facts' = <<>>)) \/ ((FALSE) /\ ((value # value)) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Reject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Accepted") /\ (__umpire_facts' = <<>>))
+Ordinary_Reject == ((TRUE) /\ (value' = value) /\ (__umpire_action' = "Ordinary::Reject") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = "Outcome::Rejected(NotFound)") /\ (__umpire_facts' = <<>>))
 \* @type: Bool;
 ModelNext == (Signal_A) \/ (Signal_B) \/ (Signal_C) \/ (Signal_D) \/ (Signal_Overlap) \/ (Signal_ChangedNone) \/ (Signal_UnchangedNone) \/ (Signal_UnchangedSome) \/ (Signal_Stay) \/ (Signal_HelperReject) \/ (Ordinary_Clear) \/ (Ordinary_Reject)
 \* @type: Bool;
