@@ -97,6 +97,11 @@ roots ran/passed twice. Task fn-232.18 owns authenticated empty-package accounti
 keeping real skipped-test refusals strict. C99 is retained as INCOMPLETE/exit 1, with zero
 passing stage receipts and 95 unstarted stages. No qualification result is inferred.
 
+Task .18 is reviewed, integrated and done. The mandatory gate exited 0 on
+`211bdaaacf5ce22fdfb9bbc7beea9f5a41db7f7b`, including 586 driver tests.
+The empty-package fix covers both static and ordinary recursive receiving. The next
+fresh cycle uses the resulting clean candidate; C99 remains unchanged and incomplete.
+
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
 artifact detached/kill-resume families. Children load their driver configuration explicitly;
 role reads validate current source, features and compiler context while preserving original
@@ -410,11 +415,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.15](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.15.md) | Done | Go selector accounting; reviewed and integrated, mandatory gate green |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.17](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.17.md) | Done | Shared harness initialization; reviewed and integrated, mandatory gate green |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.16](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.16.md) | Done | Counterfactual declaration/reach and child configuration; reviewed and integrated |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.18](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.18.md) | 🚧 Running | Authenticate no-test Go packages without relaxing real test skips |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Parked | Retirement and .15–.17 merged; waits for .18, then one green full cycle |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement and .15–.18 merged; preparing fresh complete qualification cycle |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
