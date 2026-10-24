@@ -6,6 +6,8 @@ satisfies: [R2]
 ## Description
 Port the readers the .1 inventory keeps from receiving.py, core_*.py, cell_reader.py, runtime_gate.py, preparation.py and the typed receipt readers into Rust as the verb validation step, each with its mutation fixture from the inventory. Delete nothing here that .1 did not mark for deletion; record each deletion reason in the ledger. Golden/e2e first; a unit test names its invariant. Touches: tools/gomad/rust/gomad/src/cycle/readers/**.
 
+Before implementation, use .1's retained-check inventory to confirm this task fits one work iteration. Split oversized disjoint surfaces through Flow before dispatch, preserve every obligation, and make cutover wait for every successor.
+
 ## Acceptance
 - [ ] Every kept core/receiving/cell check has a Rust implementation and a fixture that fails when the checked fact is mutated
 - [ ] Deleted checks each cite their .1 deletion reason

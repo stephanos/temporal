@@ -33,11 +33,20 @@ Update only the actual onebox8MiB command/assertion mirrors. Authenticate fresh 
 - [ ] Fix all three retained-incarnation caller bounds from authenticated evidence limits with focused RED/GREEN, overdeclared descriptor refusal and unchanged identity/module/generic payload checks. No artifact or identity rewriting.
 - [ ] Pass the complete original inspection workload at8MiB with unchanged timers, retries, scenarios, assertions and expected results, plus detached/stopped/reopened replay/inspection; retain actual raw commands, numeric exits and genuine final-candidate identities.
 - [ ] Pass offline shim coverage, canonical worker/conductor merge gates and independent green-tree SHIP review before completion; preserve old corpus behavior and authenticate genuine changed source/model/runtime preparations.
-- [ ] Keep .13 full96/final145 and .22-.25 receiving pending until their actual fresh proof; .14 remains after .13.
+- [ ] Keep .13 full96/final145 and .22-.25 receiving pending until their actual fresh proof; remaining reach and final qualification execution follow the cleanup-first owner amendment in fn-246 after fn-242 and the full fn-240 scope.
 ## Done summary
-TBD
+Implemented bounded non-consuming pending-read readiness batching across the guest shim, Go oracle and Rust broker, preserving native accounting, wake order and strict wire refusals. Reused positive hints while reprobing stale-zero slots after intervening operations. Genuine corpus refresh retains all306 old behavioral cases apart from authenticated source bindings and adds one named case.
 
+Measured the original complete canary at4,718,416 broker bytes; the explicitly approved onebox-only8MiB budget passes the unchanged full workload and exact detached/reopened replay. The original1MiB pending-read regression passes separately at254,731 bytes. Old1MiB failures and16MiB diagnostic remain historical.
+
+Three replay callers now use matching authenticated incarnation evidence limits. Equal/+1 high-bound fixtures directly cover admission and inspection; the simulation runtime-choice reader retains existing ordinary-bound forced-runtime coverage. No high-bound third-reader fixture is claimed.
+
+Worker canonical gate and unchanged-source conductor canonical rerun exit0, including589 driver tests and final archcheck. Original conductor cache-failure gate remains exit2; isolated-cache archcheck and full gate pass without source changes, and the invalidating actor is unproved.
+
+Independent correctness/contracts/integration review finalized SHIP with zero findings on4043a1afcec6332fc45fe756ed70597078e21b32. Integrated all10 source commits on main at ef11210752f13b0ce1ffdb4ee6e078e279a7f2a3; verified identical full Rust, model, toolchain, cluster and fixture Git trees. Separate Flow/order and pending-acceptance docs edits require no repeated product gate. Formal review and canonical receipts are hash-bound in main-integration.json. The cleanup-first order supersedes the old .14-after-.13 sequencing clause: fn242 -> completefn240 -> fn246. Original qualification, receiving and reach acceptance remain pending; zero of the two allowed new full attempts has been used.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ef11210752f13b0ce1ffdb4ee6e078e279a7f2a3, 4043a1afcec6332fc45fe756ed70597078e21b32
+- Tests: make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism (conductor canonical-isolated.json exit0, unchanged clean4043), fresh original onebox8MiB full03 canary, detached/stopped/reopened exact replay (inspection-receipt.json), unchanged1MiB linked pending-read regression, offline shim, genuine corpus comparison (worker handoff.json), Independent 3-axis Codex implementation review SHIP, receipt.json SHA256 3c28628e53ba5441456da0a707fec1521df392070d2e5dbada7768c94be78d49
 - PRs:

@@ -7,7 +7,9 @@
     "fn-242-gomad-shrink-the-qualification.3",
     "fn-242-gomad-shrink-the-qualification.4",
     "fn-242-gomad-shrink-the-qualification.5",
-    "fn-242-gomad-shrink-the-qualification.6"
+    "fn-242-gomad-shrink-the-qualification.6",
+    "fn-242-gomad-shrink-the-qualification.9",
+    "fn-242-gomad-shrink-the-qualification.10"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.7",
   "priority": null,
@@ -15,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.7.md",
   "status": "todo",
   "title": "Cutover: delete the Python driver, repoint Make, CI, docs and the determinism inventory; record sizes",
-  "updated_at": "2026-10-24T15:44:35.571873Z"
+  "updated_at": "2026-10-24T17:00:47.142292Z"
 }

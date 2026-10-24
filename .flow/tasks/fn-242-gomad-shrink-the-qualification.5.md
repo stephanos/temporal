@@ -1,15 +1,16 @@
 ---
 satisfies: [R3]
 ---
-# fn-242-gomad-shrink-the-qualification.5 Parity-lane disposition: keep, fold or retire each lane; retire the Go baseline
+# fn-242-gomad-shrink-the-qualification.5 Dispose parity lanes and preserve required Go baseline inputs
 
 ## Description
-For every lane under tools/gomad/testdata/parity/ (about 100 Python files) and scripts/behavioral-parity and all-verb-parity: record keep (golden regression driven from outside), fold (into Rust tests) or retire (with the out-of-tree Go baseline at /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a). Carry out each disposition; update the Make parity target; note in fn-232 that R13 is satisfied by the kept lanes. Retired lanes must show where their checks live now. Touches: tools/gomad/testdata/parity/**, tools/gomad/scripts/**, tools/gomad/Makefile, .flow/artifacts/fn242-parity-dispositions.md.
+For every lane under tools/gomad/testdata/parity/ (about100 Python files) and scripts/behavioral-parity and all-verb-parity, record keep (golden regression driven from outside), fold (into Rust tests) or retire with explicit replacement coverage. Carry out each disposition and update the Make parity target. Inventory all pending R4/public18 consumers before removing any dependency. Preserve the independently usable frozen Go executable/helper/source/compiler/tool pins and raw proofs at /home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a and other receiving-owned roots until fn-246.6/.7 authenticate the original comparisons and release the inputs. A retained qualified reference lane may keep its baseline dependency while that acceptance is pending. Disposition paperwork and golden-only replacement do not themselves credit fn-232 R13 or fn185 R4. Record this pending ownership explicitly; do not complete source owners here. Touches: tools/gomad/testdata/parity/**, tools/gomad/scripts/**, tools/gomad/Makefile, possible folded Rust test destinations under tools/gomad/rust/{gomad,wasmhost}/src/** and tests/**, .flow/artifacts/fn242-parity-dispositions.md. The disposition inventory records exact Rust destinations before writes. This task runs after .2/.3/.4/.6/.9/.10 so folded tests cannot race their implementation surfaces; read-only disposition analysis may prepare earlier.
 
 ## Acceptance
-- [ ] Disposition table covers every lane file and both scripts
-- [ ] Kept lanes run from the Make target against the Rust binary only; folded lanes have Rust tests; retired lanes cite replacement coverage
-- [ ] Go baseline dependency removed from the kept lanes
+- [ ] Disposition table covers every lane file and both scripts, records exact Rust fold destinations, and performs writes only after the overlapping implementation tasks finish
+- [ ] Kept regression lanes run from the Make target; folded lanes have Rust tests; retired lanes cite replacement coverage without losing any pending fresh-reference comparison
+- [ ] Frozen Go executable/helper/source/compiler/tools and raw proof inputs remain independently usable until actual fn-246 R4/public18 receiving; consumer inventory names the owner and release condition
+- [ ] Record fn-232 R13 and fn185 R4 as pending actual proof; dispositions alone produce no qualification or behavioral-equivalence pass
 
 ## Done summary
 TBD

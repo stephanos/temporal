@@ -11,6 +11,6 @@
   "spec": "fn-242-gomad-shrink-the-qualification",
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.8.md",
   "status": "todo",
-  "title": "Requalification: one fresh full cycle under the verb with verdict parity",
-  "updated_at": "2026-10-24T15:44:35.877601Z"
+  "title": "Verify focused driver parity and hand off actual qualification to fn-246",
+  "updated_at": "2026-10-24T17:00:31.933620Z"
 }

@@ -1,16 +1,166 @@
 {
   "branch_name": "fn-242-gomad-shrink-the-qualification",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-23T21:28:16.764726Z",
-  "depends_on_epics": [
-    "fn-232-gomad-rewrite-the-host-side-in-rust",
-    "fn-233-gomad-intercept-the-go-command-so-make",
-    "fn-221-gomad-functional-suite-triage-sweep-on",
-    "fn-188-gomad-wasm-determinism-boundary-audit"
-  ],
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
   "id": "fn-242-gomad-shrink-the-qualification",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T17:01:46.669689Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "3ee2c3013e242c503c5f1818dc635cf9ded24aab136fd1bce07acd01720a6ecb",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a1cac0582f73fa761f797be535fb974d",
+            "classification": "introduced",
+            "findingId": "finding-a1cac0582f73fa761f797be535fb974d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-63769de68266aed6bd8e668341a7fad9",
+            "classification": "introduced",
+            "findingId": "finding-63769de68266aed6bd8e668341a7fad9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2d687202df004ecb22090bc81f3259d2",
+            "classification": "introduced",
+            "findingId": "finding-2d687202df004ecb22090bc81f3259d2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "classification": "introduced",
+            "findingId": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fdda17f7e9d67907ca82b0b3a3d5682af64a5e55",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 435412,
+      "output_sha256": "bfc93ecd6d05302cb0b228f6336aea967776bc264e9fc04ab271d1c3cc87d63e",
+      "reservation_id": "7052f15a391c427ebfbd477fd752522d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T16:57:45.215941Z",
+      "tool_calls": 33,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "cb7248debbe585313fc6f862e1c034bcc63c8e3cd7bcb3db2224f935683716b7",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a1cac0582f73fa761f797be535fb974d",
+            "classification": "introduced",
+            "findingId": "finding-a1cac0582f73fa761f797be535fb974d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-63769de68266aed6bd8e668341a7fad9",
+            "classification": "introduced",
+            "findingId": "finding-63769de68266aed6bd8e668341a7fad9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2d687202df004ecb22090bc81f3259d2",
+            "classification": "introduced",
+            "findingId": "finding-2d687202df004ecb22090bc81f3259d2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "classification": "introduced",
+            "findingId": "finding-f23d3e4d0f1f130bdc8b84b02c6a409a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ef11210752f13b0ce1ffdb4ee6e078e279a7f2a3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1013,
+      "output_sha256": "a4bd33c06b9c2cf4a9e59a78ded8701bc4939b050345c35c47fc62de02b5cef6",
+      "reservation_id": "efbd4dd9c8c840c3ac4d2ced245e1e9e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T17:01:46.663951Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-242-gomad-shrink-the-qualification.md",
   "status": "open",
   "title": "Gomad: shrink the qualification machinery and move the cycle driver into Rust",
@@ -25,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T21:33:51.527499Z"
+  "updated_at": "2026-10-24T17:01:46.671187Z"
 }
