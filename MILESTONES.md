@@ -512,10 +512,10 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 | [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
-| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
 | [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
 | [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |
 | [fn-242.10](.flow/tasks/fn-242-gomad-shrink-the-qualification.10.md) | ⬜ Todo | Rust producer adapters; preserve leaf commands and prove replacement contracts |
+| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
 | [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Zero-gap proof audit and cutover: remove Python, repoint commands/inventory, record sizes |
 | [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
 
@@ -550,13 +550,13 @@ Original acceptance closes from fn-246 receiving after fn-242 and fn-240. New ev
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⛔ Blocked | Original final acceptance; execution/receiving transferred to fn-246 after cleanup |
 | [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | ⛔ Blocked | Receive runtime and mandatory workload evidence |
 | [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | ⛔ Blocked | Receive retained/operator replay and ringpop proof; reconcile fn235 |
 | [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | ⛔ Blocked | Receive R4 preservation proof; reconcile fn185 |
 | [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | ⛔ Blocked | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | ⛔ Blocked | Original reach acceptance; fn-246.1 restores strict admission before final qualification |
 | [fn-232.31](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md) | ⛔ Blocked | Measure sqlite/multi-instance World transition budgets under enforced recording before the cycle reaches them; .13 depends on it |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⛔ Blocked | Original final acceptance; execution/receiving transferred to fn-246 after cleanup |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | ⛔ Blocked | Original reach acceptance; fn-246.1 restores strict admission before final qualification |
 | [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⛔ Blocked | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
 
 Historical closure plan, superseded by the cleanup-first amendment above: tasks .21–.26 were closure predecessors of the already-running .13. The conductor
