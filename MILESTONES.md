@@ -163,10 +163,15 @@ fixture defects; both are integrated, pass worker and conductor gates, and have 
 SHIP reviews. The combined source tree passes the canonical merge gate.
 Task .29 retains two matching diagnostic reproductions: repeated pending network polls
 exhaust correctly accounted broker transitions after 0.471 seconds of virtual time. Its
-diagnosis passed independent SHIP review; .30 owns the repair and complete original canary under
-the unchanged 1 MiB bound. The repair follows the diagnosis while the other fixes proceed
-independently. No bound, scenario, assertion or receiving
-obligation is waived. All96 stages and the final145 reader remain required on the repaired
+diagnosis passed independent SHIP review; .30 owns the polling repair and complete original canary.
+After the owner asked whether to raise its trace budget, a separately labelled16MiB diagnostic
+completed the original three-minute workflow and retained4718416 native broker transition bytes;
+idle calls alone required1060466 bytes. The conductor selected8MiB for this onebox canary with
+measured headroom, preserving generic1MiB capacity-refusal tests and all other workload bounds.
+Detached replay exposed a producer/reader mismatch between authenticated1154MiB evidence
+descriptors and fixed1GiB callers; .30 also owns that targeted repair. The diagnostic is not
+qualification. Original timers, retries, scenarios, assertions and receiving obligations remain.
+All96 stages and the final145 reader remain required on the repaired
 candidate. The deferred .26 review metadata is integrated separately as `c84db120f1`.
 
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
@@ -491,7 +496,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | Done | Handle tracked Gitlinks in onebox source inventory; worker/conductor gates and SHIP review passed |
 | [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | Done | Compiled-role fixture repair; full five-profile matrix, worker/conductor gates and SHIP review passed |
 | [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | Done | Capacity diagnosis authenticated and independently reviewed; actual defect remains assigned to .30 |
-| [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | 🚧 Running | Repair inspection polling capacity and prove the full original canary under the unchanged bound; follows .29 |
+| [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | 🚧 Running | Repair polling and retained replay; prove the original full canary with its measured8MiB trace budget; follows .29 |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
