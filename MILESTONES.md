@@ -102,13 +102,15 @@ through `umpire explore` with the Run as the only artifact. .4's required gate p
 (load average about 40, not steady state); inner loop 22.546s. fn-241 (one WorkflowService table
 plus per-feature claims) is complete. Four pre-existing live Testpilot failures, the canary and
 publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner deferred the Shim
-(.5) on 2026-10-23; .6 is next and .7 records R40 as deferred.
+(.5), superseded by fn-243. .6 is complete locally: the legacy Testpilot packages are retired with a
+coverage map, generic runtime 23,117 -> 1,647 and total 33,851 -> 3,317 non-test lines, the canary
+runs the activity Model through the Runner behind an allowlist fence, and every gate passed
+(572.0s gate, 8.9s inner loop). fn-244.2 and then .7 remain.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
-| fn-228.6 | 🔄 in progress | Code committed (96d635bc17..e689481277; generic 1,647 / total 3,317 lines); live tests, slice, default and required gates passed at `d23625a390` (572.0s gate); review owed. After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .6, fn-244.2 and fn-243.2; writes R40 in its final form (programmed workers): DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ### fn-244: Package layout of model/umpire: role directories, clear names, a crate map (model)

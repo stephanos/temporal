@@ -114,3 +114,56 @@ The next session should run each alone. `model-check` touches no deleted Go: its
 - **The Scala-era IR reader** (tools/umpire check, export, engine, interp, ir, realization; 17k lines) has no live IR. Its tests are red at the base. A follow-up spec should retire or re-home it.
 - **The Testpilot protocol protos and `api/testpilot/v1`** have no runtime consumer left. Their only users are `cmd/tools/getproto` and the protocol schema test.
 - **DESIGN.md "Runner and Run" counts (R7)** belong to fn-228.7. The numbers above are its input.
+
+## Review fixes (review.md, NEEDS_WORK)
+
+Commits:
+- d06dba6af6 fix(canary): fence by allowlist and pin the committed guest's hash
+- 61a00542e2 test(canary): cover the transport, symlink containment and published Runs
+
+By finding:
+
+1. **Fence bypass (major).** `within` is now an allowlist.
+   - **Unary:** Start, RequestCancel, Describe and Poll ActivityExecution.
+   - **Reads:** the `ObserveActivity` read instruction is unwrapped, and its inner request may only be Describe or Poll ActivityExecution.
+   - **Activity ID:** every admitted request must name the fenced activity. A Start is never admitted as a read.
+   - **Everything else is refused,** including SignalWithStart, ExecuteMultiOperation, CreateSchedule, StartBatchOperation and workflow starts.
+   - **Regression cases:**
+     - `TestTheFenceAdmitsOnlyItsOwnActivity`: a read that starts a workflow, a read that starts its own activity, a read of another activity, a signal-with-start, a multi-operation and a schedule.
+     - `TestARunCrossingItsFenceFailsAtItsBoundary`: a read instruction that starts a workflow, and a signal-with-start.
+2. **Guest-hash pin (major).** `TestTheCommittedPolicyPinsTheCommittedGuest` asserts `policy.Embedded().ModelHash == hex(sha256(temporal.Guest()))`. It passes today.
+3. **Raw namespace and queue (minor; the conductor accepts them as non-secret).**
+   - The `authority.Coordinates` comment now says a Run's World holds the namespace and task queue, and that nothing written holds the gRPC target.
+   - The live harness now sets a planted `UMPIRE_CANARY_API_KEY`, and `invoke` scans every file under the output directory for the gRPC target, its host and that key. stdout and stderr were already scanned.
+4. **Stale docs (minor).**
+   - Module map: the Lint row is deleted and folded into "Retired in fn-228.6", and the format 4.0 section is marked historical.
+   - `tools/umpire/README.md`: the lint entry is gone.
+   - `model/README.md`: the legacy-umbrella paragraph is rewritten.
+   - AGENTS.md is left for fn-244.
+5. **path.go (minor).**
+   - `TestMainResolvesSymlinksBeforeContainment` covers an output that links into the model, an output under a linked model, and a recovery path that links under the output.
+   - `TestResolveKeepsTheMissingTail` covers the not-yet-existing tail and the `within` edges.
+6. **Credential path (nit).**
+   - act: `TestATransportReplacesThePlaintextDefault`. Calls carry the Transport's interceptor, and options with no transport security cannot dial.
+   - authority: `TestTheDriverTransportSendsTheNamespaceAndTheCredential`, a real gRPC server asserting `temporal-namespace` and the per-RPC `authorization`.
+7. **Slice gate (nit).** The required list adds `TestTestpilotModelSlice/{CancelAfterCompletion,CancelBeforeWorkerStart,RetryThenComplete,Annotations}`.
+
+Left as instructed: review findings 6 (the dropped live tests, already mapped) and 8 (the Host count note, for fn-228.7).
+
+Gates, each run alone (logs in `.flow/tmp/fn-228.6/`):
+
+| Gate | Result |
+| --- | --- |
+| Focused `go test -tags test_dep ./tools/canary/... ./common/testing/testpilot/...` (`fix-focused.log`) | rc 0 |
+| The harness-tag tests | rc 0 |
+| `-race -count=3 ./tools/canary/...` (`fix-race.log`) | rc 0 |
+| golangci-lint v2.13.1, `.github/.golangci.yml` (`fix-lint.log`) | No finding in any file this task changed |
+| `make umpire-check-model-slice` (`fix-slice-gate.log`) | rc 0, 17 `TestTestpilotModelSlice/` passes, including the four newly required |
+| Live canary over the new fence, `^TestTestpilotCanary` (`fix-canary-live.log`) | rc 0, all subtests |
+
+About the lint run:
+- It covered the canary, testpilot, `tools/umpire/ir` and `./tests` packages under `test_dep,integration`, and the canary under `canary_harness`.
+- The remaining findings are pre-existing, elsewhere in `./tests`.
+- One pre-existing harness finding is unchanged from the base: `testharness.go:80` deep-exit, the crash hook.
+
+Not mine, left untouched: modified files from another session at 18:28. They are in `cmd/tools/check-dependencies`, `common/membership`, `common/persistence`, `common/searchattribute`, `tools/flakereport`, `tests/update_workflow_test.go`, `tools/umpire/check/transition_test.go` and `model/design/programmed-workers.md`, plus the fn-243 flow files.
