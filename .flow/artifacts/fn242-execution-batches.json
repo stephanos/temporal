@@ -7093,7 +7093,10 @@
       ],
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/readers/core_lifecycle/**",
-        "tools/gomad/rust/gomad/src/cycle/readers/core_world/**"
+        "tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
+        "tools/gomad/rust/wasmhost/src/linked_cluster.rs",
+        "tools/gomad/rust/wasmhost/src/world/retained.rs",
+        "tools/gomad/rust/wasmhost/src/linked_inspection.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.27": "**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
@@ -7388,7 +7391,17 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 3
+      "earliest_review_wave": 3,
+      "decoder_projection_extension": {
+        "files": [
+          "tools/gomad/rust/wasmhost/src/linked_cluster.rs",
+          "tools/gomad/rust/wasmhost/src/world/retained.rs",
+          "tools/gomad/rust/wasmhost/src/linked_inspection.rs"
+        ],
+        "purpose": "Return immutable admitted World/network/lifecycle facts through existing authoritative decoders, retaining wrappers and parser behavior. No second parser, mutable model exposure, extra dependency or Cargo change. linked_inspection narrow lifecycle projection reserved to B06; future B05 coordinates additive seam.",
+        "authority": "Owner aggressive provisional execution; conductor scope grant 2026-10-24",
+        "provisional_dependency": "B04 command/core codec API; no formal admission/integration/completion before .18/.21 actual done."
+      }
     },
     {
       "id": "B07",
@@ -9017,7 +9030,9 @@
         "tools/gomad/rust/gomad/src/cycle/producers/reference/**",
         "tools/gomad/rust/gomad/src/cycle/producers/sqlite_terminal/**",
         "tools/gomad/rust/gomad/src/cycle/producers/workload/**",
-        "tools/gomad/rust/gomad/src/cli/qualify.rs"
+        "tools/gomad/rust/gomad/src/cli/qualify.rs",
+        "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
+        "tools/gomad/internal/backends/wasm/QUALIFICATION.md"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9265,7 +9280,16 @@
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
-      "provisional_scope_extension": "B11 additionally owns exact tools/gomad/rust/gomad/src/cli/qualify.rs solely for fn-232.33 nonprovisional mandatory storage/network/clusters missing-compile-cache preflight (status 2, named reason, before expensive execution). Preserve provisional behavior and use existing installation admission/cache accessors. Producer installs pass --compile-cache ROOT/engine-cache; actual standalone within_budget and every nonfirst cache_hit proof remains required. This source extension supplies no fn-232.33 completion by itself; conductor reconciles actual evidence. Additional accessor changes require an exact seam declaration."
+      "provisional_scope_extension": "B11 additionally owns exact tools/gomad/rust/gomad/src/cli/qualify.rs solely for fn-232.33 nonprovisional mandatory storage/network/clusters missing-compile-cache preflight (status 2, named reason, before expensive execution). Preserve provisional behavior and use existing installation admission/cache accessors. Producer installs pass --compile-cache ROOT/engine-cache; actual standalone within_budget and every nonfirst cache_hit proof remains required. This source extension supplies no fn-232.33 completion by itself; conductor reconciles actual evidence. Additional accessor changes require an exact seam declaration.",
+      "source_and_cache_extension": {
+        "files": [
+          "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
+          "tools/gomad/internal/backends/wasm/QUALIFICATION.md"
+        ],
+        "purpose": "Extend existing source recipe/stage/verify for actual inspection-shard/workflow/onebox and smoke/frontend selections, unchanged frozen module closure and original transformations/limits/custody; no duplicate copier. Document fn232.33 compile cache.",
+        "admission": "Any nonprovisional cell installation without compile_cache_root refuses status2 namedreason, not only sqlite/multi-instance; provisional behavior preserved. Reuse existing installation accessor.",
+        "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
+      }
     },
     {
       "id": "B12",
@@ -11541,6 +11565,14 @@
     },
     "proof": "No completion or qualification credit before actual dependency receipts and green integrated source.",
     "risk_policy": "Larger coherent batches, provisional APIs, boundary integration fixes, shared fixture/build evidence, retire legacy-only work; preserve current behavior/custody/bounds/classification/replay.",
-    "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees."
+    "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees.",
+    "current_allocation": {
+      "B03": 1,
+      "B04": 1,
+      "B06": 1,
+      "B09": 1,
+      "B10": 1,
+      "B11": 1
+    }
   }
 }
