@@ -24,9 +24,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	model "umpire.local/model/host"
 	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	model "umpire.local/model/host"
 )
 
 type modelSliceAnnotations struct {

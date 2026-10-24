@@ -61,7 +61,7 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
         {
             let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse = __observed
                 .response()?;
-            return Self::describe(__response, state);
+            return self.describe(__response, state);
         }
         Err(
             ::umpire_runtime::protocol::Refusal::unsupported(

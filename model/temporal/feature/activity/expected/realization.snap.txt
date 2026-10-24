@@ -30,7 +30,7 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
   ignored info.schedule_time - Observed timestamps are outside the lifecycle projection
   ignored info.expiration_time - Observed timestamps are outside the lifecycle projection
   ignored info.close_time - Observed timestamps are outside the lifecycle projection
-  ignored info.last_failure - Lifecycle status alone supplies terminal evidence
+  mapped info.last_failure
   ignored info.last_worker_identity - Worker identity is outside the lifecycle projection
   ignored info.current_retry_interval - Retry policy is outside the six-phase Model
   ignored info.last_attempt_complete_time - Retry timing is outside the six-phase Model
@@ -50,7 +50,7 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
   ignored info.start_delay - Timing policy is outside the lifecycle projection
   ignored info.execution_time - Observed timestamps are outside the lifecycle projection
   ignored input - Application input is independent of the worker scenario
-  ignored outcome - Lifecycle projection reads status rather than result contents
+  mapped outcome
   ignored long_poll_token - Transport polling state is outside the Model
   ignored callbacks - Callback registration is outside the Model
 

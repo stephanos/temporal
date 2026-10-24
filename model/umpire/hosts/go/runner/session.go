@@ -147,7 +147,7 @@ func terminal(event *runv1.Event) *runv1.Verdict {
 		if refusal.Method == modelv1.Method_METHOD_PROPOSE && refusal.GetRefusal().GetCode() == modelv1.RefusalCode_REFUSAL_CODE_QUIESCENT {
 			return &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUIESCENT}}}
 		}
-		return refused(event.Sequence, fmt.Sprintf("model refused %s: %s", refusal.Method, refusal.GetRefusal().GetCode()))
+		return refused(event.Sequence, fmt.Sprintf("model refused %s: %s: %s", refusal.Method, refusal.GetRefusal().GetCode(), refusal.GetRefusal().GetMessage()))
 	case event.GetDriverFault() != nil:
 		return refused(event.Sequence, "driver fault: "+event.GetDriverFault().GetReason())
 	}
@@ -302,6 +302,9 @@ func (r *Runner) execute(ctx context.Context, mode Mode, iteration int, opts Opt
 	if err != nil {
 		s.fault(0, "driver: "+err.Error())
 		return s.finish(), nil
+	}
+	if recorder, ok := driver.(WorkerRecorder); ok {
+		s.run.Worker = proto.CloneOf(recorder.Worker())
 	}
 	if redactor, ok := driver.(Redactor); ok && s.opts.Redact == nil {
 		s.opts.Redact = redactor.Redact

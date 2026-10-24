@@ -134,8 +134,8 @@ impl Realization {
                 },
                 ::umpire_temporal::Field {
                     path: "info.last_failure",
-                    class: "ignored",
-                    reason: Some("Lifecycle status alone supplies terminal evidence"),
+                    class: "mapped",
+                    reason: None,
                 },
                 ::umpire_temporal::Field {
                     path: "info.last_worker_identity",
@@ -248,10 +248,8 @@ impl Realization {
                 },
                 ::umpire_temporal::Field {
                     path: "outcome",
-                    class: "ignored",
-                    reason: Some(
-                        "Lifecycle projection reads status rather than result contents",
-                    ),
+                    class: "mapped",
+                    reason: None,
                 },
                 ::umpire_temporal::Field {
                     path: "long_poll_token",

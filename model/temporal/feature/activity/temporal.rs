@@ -11,6 +11,7 @@ use activity::{Client, Phase, Worker};
 use umpire_dsl::{Machine, Outcome};
 use umpire_runtime::{Candidate, Projection, Proposal, google::protobuf::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
+    activity::v1::activity_execution_outcome::Value,
     common::v1::{Payload, Payloads},
     failure::v1::Failure,
     workflowservice::v1::{
@@ -111,6 +112,7 @@ impl Realization {
             namespace: context.start.namespace.clone(),
             activity_id: context.start.activity_id.clone(),
             run_id: context.run_id.clone(),
+            include_outcome: true,
             include_last_failure: true,
             ..Default::default()
         });
@@ -233,11 +235,10 @@ impl Realization {
     }
 
     #[observe(WorkflowService::DescribeActivityExecution,
-        reads(info.status, info.run_state, info.attempt),
+        reads(info.status, info.run_state, info.attempt, outcome, info.last_failure),
         ignores(
             run_id = "Run identity is outside the lifecycle projection",
             input = "Application input is independent of the worker scenario",
-            outcome = "Lifecycle projection reads status rather than result contents",
             long_poll_token = "Transport polling state is outside the Model",
             callbacks = "Callback registration is outside the Model",
             info.activity_id = "Activity identity is bound by the owning run",
@@ -256,7 +257,6 @@ impl Realization {
             info.schedule_time = "Observed timestamps are outside the lifecycle projection",
             info.expiration_time = "Observed timestamps are outside the lifecycle projection",
             info.close_time = "Observed timestamps are outside the lifecycle projection",
-            info.last_failure = "Lifecycle status alone supplies terminal evidence",
             info.last_worker_identity = "Worker identity is outside the lifecycle projection",
             info.current_retry_interval = "Retry policy is outside the six-phase Model",
             info.last_attempt_complete_time = "Retry timing is outside the six-phase Model",
@@ -278,12 +278,13 @@ impl Realization {
         )
     )]
     fn describe(
+        &self,
         response: DescribeActivityExecutionResponse,
         state: &activity::Model,
     ) -> Result<Projection<Action>, Refusal> {
         let info = response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
         let raw_attempt = info.attempt;
-        let phase = Phase::try_from(info)?;
+        let phase = Phase::try_from(info.clone())?;
         let attempt = u8::try_from(raw_attempt)
             .map_err(|_| Refusal::unsupported("Describe attempt is outside maximum_attempts"))?;
         if !(state.attempt..=3).contains(&attempt) {
@@ -292,10 +293,101 @@ impl Realization {
                 "Describe attempt does not match the current attempt",
             ));
         }
-        Ok(Self::project_phase(state, &activity::Model { phase, attempt }))
+        let mut terminal_retryable = false;
+        if let Some(context) = &self.context {
+            let scenario = context
+                .start
+                .header
+                .as_ref()
+                .and_then(|header| header.fields.get(SCENARIO_HEADER))
+                .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+                .ok_or_else(|| Refusal::malformed("Start scenario header is missing"))?;
+            if let Some(failure) = info.last_failure.as_ref() {
+                Self::programmed_failure(failure)?;
+            }
+            if let Some(Value::Failure(failure)) =
+                response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref())
+            {
+                Self::programmed_failure(failure)?;
+            }
+            if attempt > 1 {
+                let (action, expected) = Self::response(scenario, i32::from(attempt - 1))?;
+                if !matches!(action, Worker::RespondFailed { retryable: true }) {
+                    return Ok(Projection::steps([]));
+                }
+                let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+                if !Self::same_failure(info.last_failure.as_ref(), expected.failure.as_ref()) {
+                    return Ok(Projection::steps([]));
+                }
+            }
+            for skipped in state.attempt..attempt {
+                let (action, _) = Self::response(scenario, i32::from(skipped))?;
+                if !matches!(action, Worker::RespondFailed { retryable: true }) {
+                    return Ok(Projection::steps([]));
+                }
+            }
+            let (action, expected) = Self::response(scenario, raw_attempt)?;
+            match phase {
+                Phase::Completed => {
+                    let Some(Value::Result(result)) =
+                        response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref())
+                    else {
+                        return Ok(Projection::steps([]));
+                    };
+                    if !matches!(action, Worker::RespondCompleted) {
+                        return Ok(Projection::steps([]));
+                    }
+                    let expected: RespondActivityTaskCompletedRequest = expected.unpack()?;
+                    if expected.result.as_ref() != Some(result) {
+                        return Ok(Projection::steps([]));
+                    }
+                }
+                Phase::Failed => {
+                    let Some(Value::Failure(failure)) =
+                        response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref())
+                    else {
+                        return Ok(Projection::steps([]));
+                    };
+                    let Worker::RespondFailed { retryable } = action else {
+                        return Ok(Projection::steps([]));
+                    };
+                    terminal_retryable = retryable;
+                    let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+                    if !Self::same_failure(Some(failure), expected.failure.as_ref()) {
+                        return Ok(Projection::steps([]));
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(Self::project_phase(state, &activity::Model { phase, attempt }, terminal_retryable))
     }
 
-    fn project_phase(state: &activity::Model, observed: &activity::Model) -> Projection<Action> {
+    fn programmed_failure(failure: &Failure) -> Result<(), Refusal> {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+        if matches!(&failure.failure_info, Some(FailureInfo::ApplicationFailureInfo(info)) if info.r#type == "umpire.unprogrammed")
+        {
+            return Err(Refusal::unsupported("unprogrammed worker task"));
+        }
+        Ok(())
+    }
+
+    fn same_failure(observed: Option<&Failure>, expected: Option<&Failure>) -> bool {
+        fn content(failure: &Failure) -> Failure {
+            let mut failure = failure.clone();
+            failure.source.clear();
+            failure.stack_trace.clear();
+            failure.cause = failure.cause.map(|cause| Box::new(content(&cause)));
+            failure
+        }
+        observed.map(content) == expected.map(content)
+    }
+
+    fn project_phase(
+        state: &activity::Model,
+        observed: &activity::Model,
+        terminal_retryable: bool,
+    ) -> Projection<Action> {
         if state == observed {
             return Projection::Current;
         }
@@ -325,7 +417,10 @@ impl Realization {
                     phase = Phase::Completed;
                 }
                 Phase::Failed => {
-                    path.push(Action::from(Worker::RespondFailed { retryable: false }).into());
+                    path.push(
+                        Action::from(Worker::RespondFailed { retryable: terminal_retryable })
+                            .into(),
+                    );
                     phase = Phase::Failed;
                 }
                 _ if observed.attempt == state.attempt => return Projection::steps([]),

@@ -17,8 +17,12 @@ import (
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
+	"go.temporal.io/server/tools/umpire/temporaldriver"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	"umpire.local/model/host"
 	"umpire.local/model/runner"
 )
 
@@ -197,7 +201,29 @@ func newInvocation(config Config) *invocation {
 // openTemporalDriver makes the Temporal Driver's factory for the canary's namespace, queue and
 // transport; its release closes the factory.
 func (r *invocation) openTemporalDriver() (runner.NewDriver, func(context.Context) error, error) {
-	factory, err := act.NewFactory(act.Options{
+	ctx, cancel := context.WithTimeout(context.Background(), act.DefaultRPCTimeout)
+	defer cancel()
+	world, err := r.world("umpire-program")
+	if err != nil {
+		return nil, nil, err
+	}
+	guest, err := host.New(ctx, r.Scope.Guest)
+	if err != nil {
+		return nil, nil, err
+	}
+	reset, resetErr := guest.Reset(ctx, &modelv1.ResetRequest{Configuration: world})
+	if err := errors.Join(resetErr, guest.Close(ctx)); err != nil {
+		return nil, nil, err
+	}
+	if reset.GetProgram() == nil {
+		return nil, nil, errors.New("the Model returned no worker program")
+	}
+	program, err := proto.MarshalOptions{Deterministic: true}.Marshal(reset.GetProgram())
+	if err != nil {
+		return nil, nil, err
+	}
+	factory, err := temporaldriver.NewFactory(act.Options{
+		ExecutorKind: "sdk", Program: program,
 		Address: r.Transport.Target, Namespace: r.Namespace, TaskQueue: r.TaskQueue,
 		Transport: r.Transport.Driver(r.Namespace),
 	})

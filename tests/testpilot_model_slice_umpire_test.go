@@ -4,6 +4,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io/fs"
 	"net"
@@ -11,7 +12,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -20,21 +20,17 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/chasm/lib/activity"
-	"go.temporal.io/server/common/dynamicconfig"
-	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
-	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	runv1 "umpire.local/model/gen/umpire/run/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	"umpire.local/model/runner"
 	"umpire.local/temporal"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 // umpireSlice runs the umpire command as a separate process against one cluster.
@@ -131,26 +127,6 @@ func (s *umpireSlice) driverEnv(namespace, queue string) map[string]string {
 	return map[string]string{act.EnvAddress: s.address, act.EnvNamespace: namespace, act.EnvTaskQueue: queue}
 }
 
-// firstSeed is the smallest Run seed whose proposals at the given request numbers choose the
-// action other than Cancel: with two enabled actions the Model takes the one at seed % 2, and
-// Cancel is always first.
-func firstSeed(requests ...uint64) uint64 {
-	for seed := uint64(1); ; seed++ {
-		if !slices.ContainsFunc(requests, func(request uint64) bool { return runner.ProposalSeed(seed, request)%2 == 0 }) {
-			return seed
-		}
-	}
-}
-
-// firstCancelSeed is the smallest Run seed whose first action proposal is Cancel.
-func firstCancelSeed() uint64 {
-	for seed := uint64(1); ; seed++ {
-		if runner.ProposalSeed(seed, 2)%2 == 0 {
-			return seed
-		}
-	}
-}
-
 func explainedSteps(run *runner.Run) []string {
 	var steps []string
 	for _, event := range run.GetEvents() {
@@ -162,66 +138,20 @@ func explainedSteps(run *runner.Run) []string {
 	return steps
 }
 
-// proposedAction is the action of a Run's proposal for one request.
-func proposedAction(run *runner.Run, request uint64) string {
-	for _, event := range run.GetEvents() {
-		if event.GetRequest() == request && event.GetProposal() != nil {
-			return event.GetProposal().GetResponse().GetAction()
-		}
-	}
-	return ""
-}
-
-// requestSteps are the steps and outcomes explained while one request was pending.
-func requestSteps(run *runner.Run, request uint64) []string {
-	var steps []string
-	for _, event := range run.GetEvents() {
-		explanation := event.GetJudgment().GetResponse().GetExplained()
-		if event.GetRequest() != request {
+func judgmentPath(run *runner.Run) []string {
+	var path []string
+	for _, step := range explainedSteps(run) {
+		if step == "Client::Cancel Rejected(NotFound)" && len(path) > 0 && path[len(path)-1] == step {
 			continue
 		}
-		for i, step := range explanation.GetSteps() {
-			steps = append(steps, step+" "+explanation.GetOutcomes()[i])
-		}
+		path = append(path, step)
 	}
-	return steps
+	return path
 }
 
 func lastLine(text string) string {
 	lines := strings.Split(strings.TrimSpace(text), "\n")
 	return lines[len(lines)-1]
-}
-
-func answers(run *runner.Run) []*runv1.Event {
-	var found []*runv1.Event
-	for _, event := range run.GetEvents() {
-		if event.GetAnswer() != nil {
-			found = append(found, event)
-		}
-	}
-	return found
-}
-
-// readsAroundACallback reports whether one request has a continued read, then the Answer of a
-// callback, then a final Explained read.
-func readsAroundACallback(run *runner.Run) bool {
-	events := run.GetEvents()
-	for i, event := range events {
-		if event.GetAnswer() == nil || i == 0 {
-			continue
-		}
-		before, request := events[i-1].GetJudgment().GetResponse(), event.GetRequest()
-		if before.GetExplained() == nil || !before.GetContinuePolling() || events[i-1].GetRequest() != request {
-			continue
-		}
-		for _, after := range events[i+1:] {
-			judgment := after.GetJudgment().GetResponse()
-			if after.GetRequest() == request && judgment.GetExplained() != nil && !judgment.GetContinuePolling() {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func requireAllExplained(t *testing.T, invocation umpireInvocation) {
@@ -232,167 +162,262 @@ func requireAllExplained(t *testing.T, invocation umpireInvocation) {
 	}
 }
 
+func (s *umpireSlice) program(world string) string {
+	t := s.t
+	t.Helper()
+	output := filepath.Join(t.TempDir(), "program.binpb")
+	command := exec.Command(s.binary, "program", "--model", s.guest, "--world", world, "--out", output)
+	data, err := command.CombinedOutput()
+	require.NoError(t, err, "%s", data)
+	return output
+}
+
+func (s *umpireSlice) mutateProgram(path, mutation string) string {
+	t := s.t
+	t.Helper()
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	envelope := new(anypb.Any)
+	require.NoError(t, proto.Unmarshal(data, envelope))
+	program := new(temporalv1.WorkerProgram)
+	require.NoError(t, envelope.UnmarshalTo(program))
+	if mutation == "empty" {
+		program.Rules = nil
+	} else {
+		var completion *anypb.Any
+		for _, rule := range program.GetRules() {
+			key := new(temporalv1.ActivityTaskKey)
+			require.NoError(t, rule.GetKey().UnmarshalTo(key))
+			if key.GetScenario() == "Complete" {
+				completion = proto.CloneOf(rule.GetRespond()[0])
+				break
+			}
+		}
+		require.NotNil(t, completion)
+		changed := false
+		for _, rule := range program.GetRules() {
+			key := new(temporalv1.ActivityTaskKey)
+			require.NoError(t, rule.GetKey().UnmarshalTo(key))
+			switch {
+			case mutation == "complete-instead-of-fail" && key.GetScenario() == "Fail":
+				rule.Respond = []*anypb.Any{proto.CloneOf(completion)}
+				changed = true
+			case mutation == "wrong-result" && key.GetScenario() == "Complete":
+				response := new(workflowservice.RespondActivityTaskCompletedRequest)
+				require.NoError(t, completion.UnmarshalTo(response))
+				response.Result.Payloads[0].Data = []byte("Different")
+				rule.Respond = []*anypb.Any{modelSliceAny(t, response)}
+				changed = true
+			}
+		}
+		require.True(t, changed, "the control must change a response row")
+	}
+	data, err = proto.Marshal(modelSliceAny(t, program))
+	require.NoError(t, err)
+	output := filepath.Join(t.TempDir(), mutation+".binpb")
+	require.NoError(t, os.WriteFile(output, data, 0o600))
+	return output
+}
+
+func invocationRun(t *testing.T, invocation umpireInvocation, seed uint64) (string, *runner.Run) {
+	t.Helper()
+	for path, run := range invocation.runs {
+		if run.GetSeed() == seed {
+			return path, run
+		}
+	}
+	t.Fatalf("seed %d was not recorded", seed)
+	return "", nil
+}
+
+func requireWorkerRun(t *testing.T, run *runner.Run, kind, namespace, queue string) {
+	t.Helper()
+	require.Equal(t, kind, run.GetWorker().GetKind())
+	require.NotEmpty(t, run.GetWorker().GetVersion())
+	require.Equal(t, namespace, run.GetWorker().GetNamespace())
+	require.Equal(t, queue, run.GetWorker().GetTaskQueue())
+	require.NotNil(t, run.GetEvents()[0].GetReset_().GetResponse().GetProgram())
+	start := new(workflowservice.StartActivityExecutionRequest)
+	require.NoError(t, run.GetEvents()[1].GetProposal().GetResponse().GetRequest().UnmarshalTo(start))
+	require.Equal(t, "application-input", string(start.GetInput().GetPayloads()[0].GetData()))
+	require.Contains(t, []string{"Complete", "RetryThenComplete", "Fail"}, string(start.GetHeader().GetFields()["umpire-scenario"].GetData()))
+	for _, event := range run.GetEvents() {
+		require.Nil(t, event.GetAnswer(), "programmed workers never call Answer")
+		if proposal := event.GetProposal().GetResponse(); proposal != nil {
+			require.NotContains(t, proposal.GetAction(), "Worker::")
+			if proposal.GetRequest().MessageIs(new(temporalv1.ObserveActivity)) {
+				require.Equal(t, modelv1.ProposalKind_PROPOSAL_KIND_READ, proposal.GetKind())
+				require.Empty(t, proposal.GetAction())
+			}
+		}
+	}
+}
+
 func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
-	// Build before the cluster starts: the environment bounds the test's own deadline.
 	binary := buildCommand(t, "tools/umpire/cmd/umpire")
-	env := newTestpilotTestEnvironment(t,
-		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
-		testcore.WithDynamicConfig(activity.Enabled, true),
-		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true),
-		testcore.WithWorkerService("UMPIRE_TEMPORAL_CREATE deletes its namespace through the system delete-namespace workflow"),
-		testcore.WithDynamicConfig(dynamicconfig.TransferProcessorUpdateAckInterval, time.Second),
-		testcore.WithDynamicConfig(dynamicconfig.VisibilityProcessorUpdateAckInterval, time.Second),
-	)
+	env := activityEnvironment(t)
 	guest, err := filepath.Abs(filepath.Join("..", "model", "temporal", "hosts", "go", "umpire_temporal_guest.wasm"))
 	require.NoError(t, err)
 	committed, err := os.ReadFile(guest)
 	require.NoError(t, err)
-	require.Equal(t, temporal.Guest(), committed, "the command runs the embedded guest's committed bytes")
+	require.Equal(t, temporal.Guest(), committed)
 	s := &umpireSlice{t: t, root: t, binary: binary, guest: guest, address: env.FrontendGRPCAddress()}
-	service := env.SdkClient().WorkflowService()
 	namespace := env.Namespace().String()
-	const budget = "6"
-	explore := func(driverEnv map[string]string, world string, seed uint64) umpireInvocation {
-		return s.run(driverEnv, "explore", "--world", world, "--seed", strconv.FormatUint(seed, 10), "--budget", budget,
-			"--event-timeout", "60s", "--run-timeout", "2m")
-	}
-
-	var complete umpireInvocation
-	t.Run("Complete", func(t *testing.T) {
-		s.t = t
-		provisioned, queue := "umpire-slice-"+uuid.NewString(), "umpire-slice-"+uuid.NewString()
-		driverEnv := s.driverEnv(provisioned, queue)
-		driverEnv[act.EnvCreate] = "true"
-		seeds := max(firstSeed(2, 3), firstCancelSeed())
-		complete = explore(driverEnv, s.world(provisioned, queue, "Complete", 1), seeds)
-		requireAllExplained(t, complete)
-		require.Len(t, complete.runs, int(seeds))
-		require.Contains(t, complete.stdout, "explained: proposal_budget")
-		var callback, completed bool
-		for _, run := range complete.runs {
-			require.Equal(t, modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP, run.GetEvents()[1].GetProposal().GetResponse().GetKind())
-			callback = callback || readsAroundACallback(run)
-			completed = completed || slices.Contains(explainedSteps(run), "Worker::RespondCompleted Accepted")
-		}
-		require.True(t, callback, "a read continued, a callback was answered, and a final read was explained")
-		require.True(t, completed, "the completion was explained")
-		require.NotContains(t, complete.stderr, "cleanup")
-		// The delete returns once the namespace is renamed to `<name>-deleted-<id>`.
-		await.Requiref(t.Context(), t, func(t *await.T) {
-			_, err := service.DescribeNamespace(t.Context(), &workflowservice.DescribeNamespaceRequest{Namespace: provisioned})
-			var notFound *serviceerror.NamespaceNotFound
-			require.ErrorAs(t, err, &notFound)
-		}, 30*time.Second, 100*time.Millisecond, "the namespace %s the Driver provisioned was not deleted", provisioned)
-	})
-
-	t.Run("Cancellation", func(t *testing.T) {
-		var first, afterCompletion bool
-		for _, run := range complete.runs {
-			if proposedAction(run, 2) == "Client::Cancel" {
-				first = first || slices.Contains(requestSteps(run, 2), "Client::Cancel Accepted")
+	var raw umpireInvocation
+	var replayPath string
+	var replayRun *runner.Run
+	for _, kind := range []string{"raw", "sdk"} {
+		t.Run(kind, func(t *testing.T) {
+			s.t = t
+			queue := "umpire-slice-" + uuid.NewString()
+			world := s.world(namespace, queue, "application-input", 2)
+			driverEnv := s.driverEnv(namespace, queue)
+			driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = kind, s.program(world)
+			invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
+			requireAllExplained(t, invocation)
+			require.Len(t, invocation.runs, 21)
+			for _, run := range invocation.runs {
+				requireWorkerRun(t, run, kind, namespace, queue)
 			}
-			steps := explainedSteps(run)
-			if completedAt := slices.Index(steps, "Worker::RespondCompleted Accepted"); completedAt >= 0 {
-				afterCompletion = afterCompletion || slices.Contains(steps[completedAt:], "Client::Cancel Rejected(NotFound)")
+			t.Run("Complete", func(t *testing.T) {
+				path, run := invocationRun(t, invocation, 3)
+				require.Contains(t, explainedSteps(run), "Worker::RespondCompleted Accepted")
+				if kind == "raw" {
+					replayPath, replayRun = path, run
+				}
+			})
+			t.Run("Fail", func(t *testing.T) {
+				_, run := invocationRun(t, invocation, 1)
+				require.Contains(t, explainedSteps(run), "Worker::RespondFailed { retryable: false } Accepted")
+			})
+			t.Run("RetryThenComplete", func(t *testing.T) {
+				_, run := invocationRun(t, invocation, 21)
+				steps := explainedSteps(run)
+				failed := slices.Index(steps, "Worker::RespondFailed { retryable: true } Accepted")
+				require.GreaterOrEqual(t, failed, 0)
+				require.Contains(t, steps[failed+1:], "Worker::Poll(2) Accepted")
+				require.Contains(t, steps[failed+1:], "Worker::RespondCompleted Accepted")
+			})
+			t.Run("CancelBeforeWorkerStart", func(t *testing.T) {
+				_, run := invocationRun(t, invocation, 19)
+				instruction := new(temporalv1.TemporalInstruction)
+				require.NoError(t, run.GetEvents()[3].GetProposal().GetResponse().GetRequest().UnmarshalTo(instruction))
+				require.True(t, instruction.GetHoldWorkerPolls())
+				require.Equal(t, "Client::Cancel Accepted", explainedSteps(run)[0])
+				for _, step := range explainedSteps(run) {
+					require.NotContains(t, step, "Worker::")
+				}
+			})
+			t.Run("CancelAfterCompletion", func(t *testing.T) {
+				_, run := invocationRun(t, invocation, 3)
+				steps := explainedSteps(run)
+				completed := slices.Index(steps, "Worker::RespondCompleted Accepted")
+				require.GreaterOrEqual(t, completed, 0)
+				require.Contains(t, steps[completed+1:], "Client::Cancel Rejected(NotFound)")
+			})
+			if kind == "raw" {
+				raw = invocation
+			} else {
+				for _, seed := range []uint64{1, 3, 19, 21} {
+					_, rawRun := invocationRun(t, raw, seed)
+					_, sdkRun := invocationRun(t, invocation, seed)
+					require.Equal(t, judgmentPath(rawRun), judgmentPath(sdkRun), "seed %d has identical judgments", seed)
+				}
 			}
-		}
-		require.True(t, first, "a Run's first action was Cancel, accepted and explained")
-		require.True(t, afterCompletion, "a Cancel after completion was rejected NotFound and explained")
-	})
-
-	t.Run("RetryThenComplete", func(t *testing.T) {
-		s.t = t
-		queue := "umpire-slice-" + uuid.NewString()
-		seeds := firstSeed(2, 3, 4)
-		invocation := explore(s.driverEnv(namespace, queue), s.world(namespace, queue, "RetryThenComplete", 2), seeds)
-		requireAllExplained(t, invocation)
-		var retried bool
-		for _, run := range invocation.runs {
-			steps := explainedSteps(run)
-			retried = retried || len(answers(run)) == 2 && slices.Contains(steps, "Worker::RespondFailed { retryable: true } Accepted") &&
-				slices.Contains(steps, "Worker::RespondCompleted Accepted")
-		}
-		require.True(t, retried, "a Run answered both attempts and explained the retry and the completion")
-	})
-
-	t.Run("Fail", func(t *testing.T) {
-		s.t = t
-		queue := "umpire-slice-" + uuid.NewString()
-		invocation := explore(s.driverEnv(namespace, queue), s.world(namespace, queue, "Fail", 1), firstSeed(2))
-		requireAllExplained(t, invocation)
-		var failed bool
-		for _, run := range invocation.runs {
-			failed = failed || slices.Contains(explainedSteps(run), "Worker::RespondFailed { retryable: false } Accepted")
-		}
-		require.True(t, failed, "the failure was explained")
-	})
-
-	var refusedRun, refusedLine string
-	t.Run("HostRefusal", func(t *testing.T) {
-		s.t = t
-		queue := "umpire-slice-" + uuid.NewString()
-		world := s.world(namespace, queue, "HostRefusal", 1)
-		invocation := explore(s.driverEnv(namespace, queue), world, firstSeed(2))
-		require.Equal(t, runner.ExitRefused, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
-		require.Contains(t, invocation.stdout, "model refused METHOD_ANSWER: REFUSAL_CODE_UNSUPPORTED")
-		for path, run := range invocation.runs {
-			if run.GetVerdict().GetRefused() == nil {
-				continue
-			}
-			refusal := run.GetEvents()[run.GetVerdict().GetRefused().GetEvent()].GetRefusal()
-			require.Equal(t, modelv1.Method_METHOD_ANSWER, refusal.GetMethod())
-			require.Equal(t, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED, refusal.GetRefusal().GetCode())
-			refusedRun = path
-		}
-		require.NotEmpty(t, refusedRun)
-		refusedLine = lastLine(invocation.stdout)
-		start := new(workflowservice.StartActivityExecutionRequest)
-		data, err := os.ReadFile(world)
-		require.NoError(t, err)
-		packed := new(anypb.Any)
-		require.NoError(t, proto.Unmarshal(data, packed))
-		require.NoError(t, packed.UnmarshalTo(start))
-		described, err := service.DescribeActivityExecution(t.Context(), &workflowservice.DescribeActivityExecutionRequest{
-			Namespace: namespace, ActivityId: start.GetActivityId(),
+			t.Run("HostRefusal", func(t *testing.T) {
+				s.t = t
+				data, readErr := os.ReadFile(world)
+				require.NoError(t, readErr)
+				configuration := new(anypb.Any)
+				require.NoError(t, proto.Unmarshal(data, configuration))
+				start := new(workflowservice.StartActivityExecutionRequest)
+				require.NoError(t, configuration.UnmarshalTo(start))
+				start.ActivityId = ""
+				data, marshalErr := proto.Marshal(modelSliceAny(t, start))
+				require.NoError(t, marshalErr)
+				invalid := filepath.Join(t.TempDir(), "invalid-world.binpb")
+				require.NoError(t, os.WriteFile(invalid, data, 0o600))
+				refused := s.run(driverEnv, "explore", "--world", invalid, "--seed", "1", "--budget", "2")
+				require.Equal(t, runner.ExitRefused, refused.code, "%s%s", refused.stdout, refused.stderr)
+				_, run := invocationRun(t, refused, 1)
+				refusal := run.GetEvents()[run.GetVerdict().GetRefused().GetEvent()].GetRefusal()
+				require.Equal(t, modelv1.Method_METHOD_PROPOSE, refusal.GetMethod())
+				require.Equal(t, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, refusal.GetRefusal().GetCode())
+			})
 		})
-		require.NoError(t, err)
-		require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_TERMINATED, described.GetInfo().GetStatus(),
-			"Close terminated the activity; the Driver never answered the refused task itself")
+	}
+	t.Run("Controls", func(t *testing.T) {
+		for _, control := range []struct {
+			name string
+			code int
+		}{
+			{"complete-instead-of-fail", runner.ExitUnexplained},
+			{"wrong-result", runner.ExitUnexplained},
+			{"empty", runner.ExitRefused},
+		} {
+			t.Run(control.name, func(t *testing.T) {
+				s.t = t
+				queue := "umpire-control-" + uuid.NewString()
+				world := s.world(namespace, queue, "application-input", 2)
+				driverEnv := s.driverEnv(namespace, queue)
+				driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = "raw", s.mutateProgram(s.program(world), control.name)
+				invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "3", "--budget", "7")
+				require.Equal(t, control.code, invocation.code, "%s%s", invocation.stdout, invocation.stderr)
+				detected := false
+				for _, run := range invocation.runs {
+					if control.code == runner.ExitUnexplained && run.GetVerdict().GetUnexplained() != nil {
+						event := run.GetEvents()[run.GetVerdict().GetUnexplained().GetEvent()]
+						observation := new(realizationv1.Observation)
+						require.NoError(t, event.GetJudgment().GetRequest().GetObservation().UnmarshalTo(observation))
+						require.Equal(t, workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName, observation.GetMethod())
+						require.NotNil(t, event.GetJudgment().GetResponse().GetUnexplained())
+						response := new(workflowservice.DescribeActivityExecutionResponse)
+						require.NoError(t, observation.GetResponse().UnmarshalTo(response))
+						require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, response.GetInfo().GetStatus())
+						require.Len(t, response.GetOutcome().GetResult().GetPayloads(), 1)
+						expected := "Complete"
+						if control.name == "wrong-result" {
+							expected = "Different"
+						}
+						require.Equal(t, expected, string(response.GetOutcome().GetResult().GetPayloads()[0].GetData()))
+						detected = true
+					}
+					if control.name == "empty" && run.GetVerdict().GetRefused() != nil {
+						require.Contains(t, run.GetVerdict().GetRefused().GetReason(), "unprogrammed")
+						require.NotNil(t, run.GetEvents()[run.GetVerdict().GetRefused().GetEvent()].GetRefusal())
+						detected = true
+					}
+				}
+				require.True(t, detected, "the control must be detected by the Model")
+			})
+		}
 	})
-
 	t.Run("UnreachableEndpoint", func(t *testing.T) {
 		s.t = t
-		listener, err := net.Listen("tcp", "127.0.0.1:0")
-		require.NoError(t, err)
+		listener, listenErr := net.Listen("tcp", "127.0.0.1:0")
+		require.NoError(t, listenErr)
 		closed := listener.Addr().String()
 		require.NoError(t, listener.Close())
-		queue := "umpire-slice-" + uuid.NewString()
+		queue := "umpire-unreachable-" + uuid.NewString()
+		world := s.world(namespace, queue, "application-input", 2)
 		driverEnv := s.driverEnv(namespace, queue)
-		driverEnv[act.EnvAddress] = closed
-		invocation := explore(driverEnv, s.world(namespace, queue, "Complete", 1), 1)
+		driverEnv[act.EnvAddress], driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = closed, "raw", s.program(world)
+		invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "1")
 		require.Equal(t, runner.ExitRefused, invocation.code)
-		require.Contains(t, invocation.stdout, "refused at event 2: driver fault: the server did not answer")
-		require.Len(t, invocation.runs, 1)
+		require.Contains(t, invocation.stdout, "driver fault: the server did not answer")
 	})
-
 	t.Run("ReplayWithoutServer", func(t *testing.T) {
 		s.t = t
-		var replayed bool
-		for path, run := range complete.runs {
-			if len(answers(run)) == 0 {
-				continue
-			}
-			invocation := s.run(nil, "replay", "--run", path)
-			require.Equal(t, runner.ExitExplained, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
-			require.Contains(t, invocation.stdout, "explained: proposal_budget")
-			replayed = true
-			break
-		}
-		require.True(t, replayed, "a callback-bearing Run was replayed")
-		require.NotEmpty(t, refusedRun)
-		invocation := s.run(nil, "replay", "--run", refusedRun)
-		require.Equal(t, runner.ExitRefused, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
-		require.Contains(t, refusedLine, "model refused METHOD_ANSWER: REFUSAL_CODE_UNSUPPORTED")
-		require.Equal(t, refusedLine, lastLine(invocation.stdout), "replay reproduces the refusal at the same event")
+		require.NotEmpty(t, replayPath)
+		invocation := s.run(nil, "replay", "--run", replayPath)
+		require.Equal(t, runner.ExitExplained, invocation.code, "%s%s", invocation.stdout, invocation.stderr)
+		require.Equal(t, "explained: proposal_budget", lastLine(invocation.stdout))
+		replayed, replayErr := runner.New(temporal.Guest(), func(context.Context) (runner.Driver, error) {
+			t.Fatal("replay tried to make a Driver")
+			return nil, errors.New("no server")
+		}).Run(t.Context(), runner.ModeReplay, runner.Options{Recorded: replayRun})
+		require.NoError(t, replayErr)
+		require.True(t, proto.Equal(replayRun.GetWorker(), replayed.GetWorker()))
+		require.Equal(t, explainedSteps(replayRun), explainedSteps(replayed))
 	})
 }

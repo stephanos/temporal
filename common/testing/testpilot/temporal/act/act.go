@@ -1,8 +1,5 @@
-// Package act is the Runner's Temporal Driver. It sends what the Model proposed over the
-// generated WorkflowService API, reports what the server answered as correlated events, and lets
-// an in-process Go SDK worker take a task only when the Model's read instruction admits one,
-// delivering the Model's reply to it. It never decides what a message means: poll interval,
-// read timeout, backoff and worker tasks come from the instruction, the rest from Options.
+// Package act sends Model proposals and observes server responses. Independently
+// programmed workers use a Driver-owned transport with optional poll containment.
 package act
 
 import (
@@ -10,17 +7,19 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/worker"
+	sdklog "go.temporal.io/sdk/log"
+	"go.temporal.io/sdk/workflow"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -44,6 +43,13 @@ const (
 // Options configure the Driver. Namespace and TaskQueue must be the ones the Model's World names;
 // the Driver never reads the World.
 type Options struct {
+	ExecutorKind       string
+	Program            []byte
+	ExecutorVersion    string
+	ValidateProgram    func([]byte) error
+	Follow             func(context.Context, client.Client, []byte) error
+	ContextPropagators []workflow.ContextPropagator
+
 	// Address is the frontend's host:port.
 	Address string
 	// Namespace is where the worker polls and what Create provisions.
@@ -79,6 +85,8 @@ type Transport struct {
 
 // The environment Configure reads.
 const (
+	EnvExecutorKind      = "UMPIRE_TEMPORAL_EXECUTOR"
+	EnvProgram           = "UMPIRE_TEMPORAL_PROGRAM"
 	EnvAddress           = "UMPIRE_TEMPORAL_ADDRESS"
 	EnvNamespace         = "UMPIRE_TEMPORAL_NAMESPACE"
 	EnvTaskQueue         = "UMPIRE_TEMPORAL_TASK_QUEUE"
@@ -92,6 +100,13 @@ const (
 func Configure(getenv func(string) string) (Options, error) {
 	opts := Options{Address: getenv(EnvAddress), Namespace: getenv(EnvNamespace), TaskQueue: getenv(EnvTaskQueue)}
 	var err error
+	opts.ExecutorKind = getenv(EnvExecutorKind)
+	if path := getenv(EnvProgram); path != "" {
+		opts.Program, err = os.ReadFile(path)
+		if err != nil {
+			return opts, fmt.Errorf("%s: %w", EnvProgram, err)
+		}
+	}
 	if value := getenv(EnvCreate); value != "" {
 		if opts.Create, err = strconv.ParseBool(value); err != nil {
 			return opts, fmt.Errorf("%s: %w", EnvCreate, err)
@@ -114,6 +129,8 @@ func Configure(getenv func(string) string) (Options, error) {
 
 func (o Options) validate() error {
 	switch {
+	case o.ExecutorKind != "" && o.ExecutorKind != "raw" && o.ExecutorKind != "sdk":
+		return fmt.Errorf("unsupported executor %q", o.ExecutorKind)
 	case o.Address == "":
 		return fmt.Errorf("%s is required", EnvAddress)
 	case o.Namespace == "":
@@ -134,6 +151,9 @@ func (o Options) validate() error {
 }
 
 func (o Options) withDefaults() Options {
+	if o.ExecutorKind == "" {
+		o.ExecutorKind = "raw"
+	}
 	if o.RPCTimeout == 0 {
 		o.RPCTimeout = DefaultRPCTimeout
 	}
@@ -221,39 +241,88 @@ func dial(opts Options) (*grpc.ClientConn, error) {
 
 // Driver acts on one Temporal deployment for one Run.
 type Driver struct {
-	opts  Options
-	conn  *grpc.ClientConn
-	gate  *gate
-	calls atomic.Uint64
-
-	// ensureWorker starts the SDK worker; tests replace it to drive the gate themselves.
-	ensureWorker func(context.Context) error
-	workerMu     sync.Mutex
+	opts         Options
+	conn         *grpc.ClientConn
+	polls        *pollHold
 	sdk          client.Client
-	worker       worker.Worker
+	workerCancel context.CancelFunc
+	workerDone   chan struct{}
 	workerErr    error
-
-	// released is closed once Close has terminated what the Driver started; activities the Model
-	// did not answer are held until then.
-	released    chan struct{}
-	releaseOnce sync.Once
-
-	mu         sync.Mutex
-	exchanges  map[*exchange]bool
-	activities []*workflowservice.TerminateActivityExecutionRequest
-	teardowns  []error
-	// unanswered are the task tokens of the tasks held because the Model did not answer them.
-	unanswered map[string]bool
+	workerMu     sync.Mutex
+	closeOnce    sync.Once
+	closeErr     error
+	mu           sync.Mutex
+	exchanges    map[*exchange]bool
+	activities   []*workflowservice.TerminateActivityExecutionRequest
 }
 
 func newDriver(opts Options) (*Driver, error) {
+	if opts.Program != nil {
+		if opts.ValidateProgram == nil || opts.Follow == nil {
+			return nil, errors.New("programmed executor is not configured")
+		}
+		if err := opts.ValidateProgram(opts.Program); err != nil {
+			return nil, err
+		}
+	}
+
 	conn, err := dial(opts)
 	if err != nil {
 		return nil, err
 	}
-	d := &Driver{opts: opts, conn: conn, gate: newGate(opts.WorkerPollTimeout), exchanges: map[*exchange]bool{}, released: make(chan struct{}), unanswered: map[string]bool{}}
-	d.ensureWorker = d.startWorker
+	d := &Driver{opts: opts, conn: conn, exchanges: map[*exchange]bool{}}
+	if opts.Program != nil {
+		d.polls = newPollHold()
+		d.polls.timeout = opts.WorkerPollTimeout
+		if err := d.startWorker(); err != nil {
+			return nil, errors.Join(err, conn.Close())
+		}
+	}
 	return d, nil
+}
+
+func (d *Driver) startWorker() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	d.workerCancel = cancel
+	d.workerDone = make(chan struct{})
+	sdk, err := client.NewLazyClient(client.Options{
+		HostPort: d.opts.Address, Namespace: d.opts.Namespace, Credentials: d.opts.Transport.ClientCredentials,
+		Logger:             sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+		ContextPropagators: d.opts.ContextPropagators,
+		ConnectionOptions:  client.ConnectionOptions{TLS: d.opts.Transport.clientTLS(), DialOptions: append(slices.Clone(d.opts.Transport.DialOptions), grpc.WithChainUnaryInterceptor(d.polls.intercept))},
+	})
+	if err != nil {
+		cancel()
+		return err
+	}
+	d.sdk = sdk
+	go func() {
+		defer close(d.workerDone)
+		err := d.opts.Follow(ctx, sdk, d.opts.Program)
+		if ctx.Err() == nil {
+			d.workerMu.Lock()
+			if err == nil {
+				err = errors.New("executor stopped before the Run ended")
+			}
+			d.workerErr = err
+			d.workerMu.Unlock()
+		}
+	}()
+	return nil
+}
+
+func (d *Driver) executionError() error {
+	d.workerMu.Lock()
+	defer d.workerMu.Unlock()
+	return d.workerErr
+}
+
+func (d *Driver) Worker() *runv1.Worker {
+	kind, version := d.opts.ExecutorKind, d.opts.ExecutorVersion
+	if d.opts.Program == nil {
+		kind, version = "external", ""
+	}
+	return &runv1.Worker{Kind: kind, Version: version, Namespace: d.opts.Namespace, TaskQueue: d.opts.TaskQueue}
 }
 
 // Start sends the proposal and returns at once; its events report what happened.
@@ -299,20 +368,26 @@ func (d *Driver) started(request *anypb.Any, observation *realizationv1.Observat
 	})
 }
 
-func (d *Driver) teardown(err error) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	d.teardowns = append(d.teardowns, err)
+// Close cancels and joins workers before closing their connections or resources.
+func (d *Driver) Close() error {
+	d.closeOnce.Do(func() { d.closeErr = d.close() })
+	return d.closeErr
 }
 
-// Close cancels and joins the Driver's work. It refuses every held worker poll and cancels the
-// admitted one, closes the exchanges, terminates the activities it started that are still open,
-// and only then releases activities the Model did not answer, so the SDK's late response meets a
-// terminated activity. A response the SDK still completes is a teardown fault.
-func (d *Driver) Close() error {
+func (d *Driver) close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), d.opts.CloseTimeout)
 	defer cancel()
-	d.gate.stop()
+	if d.polls != nil {
+		d.polls.close()
+	}
+	if d.workerCancel != nil {
+		d.workerCancel()
+		<-d.workerDone
+	}
+	var errs []error
+	if d.sdk != nil {
+		d.sdk.Close()
+	}
 	d.mu.Lock()
 	exchanges := make([]*exchange, 0, len(d.exchanges))
 	for x := range d.exchanges {
@@ -321,7 +396,6 @@ func (d *Driver) Close() error {
 	activities := d.activities
 	d.activities = nil
 	d.mu.Unlock()
-	var errs []error
 	for _, x := range exchanges {
 		errs = append(errs, x.Close())
 	}
@@ -332,18 +406,6 @@ func (d *Driver) Close() error {
 			errs = append(errs, fmt.Errorf("terminate activity %s: %w", activity.GetActivityId(), err))
 		}
 	}
-	d.releaseOnce.Do(func() { close(d.released) })
-	d.workerMu.Lock()
-	if d.worker != nil {
-		d.worker.Stop()
-		d.sdk.Close()
-		d.worker, d.sdk = nil, nil
-	}
-	d.workerMu.Unlock()
-	d.mu.Lock()
-	errs = append(errs, d.teardowns...)
-	d.teardowns = nil
-	d.mu.Unlock()
 	return errors.Join(append(errs, d.conn.Close())...)
 }
 
@@ -353,3 +415,4 @@ func (d *Driver) Redact(event *runv1.Event) bool {
 }
 
 var _ runner.Redactor = (*Driver)(nil)
+var _ runner.WorkerRecorder = (*Driver)(nil)

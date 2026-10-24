@@ -2,9 +2,13 @@ use umpire_runtime::{
     google::protobuf::{Any, Duration},
     realization::{Observation, observation::Result as ResultValue},
 };
+use umpire_temporal::support::ApplicationFailure;
 use umpire_temporal_api::temporal::api::{
-    activity::v1::ActivityExecutionInfo,
-    common::v1::{ActivityType, Link, RetryPolicy, link},
+    activity::v1::{
+        ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome::Value,
+    },
+    common::v1::{ActivityType, Link, Payload, Payloads, RetryPolicy, link},
+    failure::v1::Failure,
     taskqueue::v1::TaskQueue,
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
@@ -48,17 +52,33 @@ pub(super) fn describe(attempt: i32, status: i32, run_state: i32) -> Observation
             namespace: "model-slice".into(),
             activity_id: "activity".into(),
             run_id: RUN.into(),
+            include_outcome: true,
             include_last_failure: true,
             ..Default::default()
         })),
         result: Some(ResultValue::Response(Any::pack(&DescribeActivityExecutionResponse {
             run_id: RUN.into(),
+            outcome: (status == 2).then(|| ActivityExecutionOutcome {
+                value: Some(Value::Result(Payloads {
+                    payloads: vec![Payload {
+                        metadata: std::collections::BTreeMap::from([(
+                            "encoding".into(),
+                            b"binary/plain".to_vec(),
+                        )]),
+                        data: b"Complete".to_vec(),
+                        ..Default::default()
+                    }],
+                })),
+                ..Default::default()
+            }),
             info: Some(ActivityExecutionInfo {
                 activity_id: "activity".into(),
                 run_id: RUN.into(),
                 attempt,
                 status,
                 run_state,
+                last_failure: (attempt > 1)
+                    .then(|| Failure::application("MiniActivityFailure", "Retry", false)),
                 ..Default::default()
             }),
             ..Default::default()

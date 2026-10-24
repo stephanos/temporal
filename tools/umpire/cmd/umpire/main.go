@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
+	"go.temporal.io/server/tools/umpire/temporaldriver"
 	"umpire.local/model/runner"
 )
 
@@ -35,7 +36,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 	drivers := map[string]runner.NewDriver{}
 	opts, err := act.Configure(getenv)
 	if err == nil {
-		factory, factoryErr := act.NewFactory(opts)
+		factory, factoryErr := temporaldriver.NewFactory(opts)
 		if factoryErr != nil {
 			err = factoryErr
 		} else {

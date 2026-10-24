@@ -46,7 +46,10 @@ fn configure(guest: &mut Guest<impl Dispatch>) -> protocol::ResetRequest {
     request
 }
 fn admit(guest: &mut Guest<impl Dispatch>) {
-    let bootstrap = propose(guest, 1);
+    admit_seed(guest, 0);
+}
+fn admit_seed(guest: &mut Guest<impl Dispatch>, seed: u64) {
+    let bootstrap = propose(guest, seed);
     assert_eq!(bootstrap.kind(), protocol::ProposalKind::Bootstrap);
     assert_eq!(bootstrap.action, "");
     let mut start = common::start(3);
@@ -286,7 +289,7 @@ fn read_proposals_correlate_observations_and_never_name_worker_actions() {
 fn read_finishes_when_retry_skips_started_and_the_next_read_waits_for_change() {
     let mut guest = Guest::new(annotation_runtime());
     configure(&mut guest);
-    admit(&mut guest);
+    admit_seed(&mut guest, 1);
     assert_eq!(propose(&mut guest, 1).kind(), protocol::ProposalKind::Read);
     let Some(Outcome::Judge(retry)) = judge(&mut guest, &common::describe(2, 1, 1)).outcome else {
         panic!("retry")

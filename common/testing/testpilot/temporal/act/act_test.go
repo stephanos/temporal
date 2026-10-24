@@ -10,10 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
-	deploymentpb "go.temporal.io/api/deployment/v1"
-	failurepb "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/sdk/temporal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -101,7 +98,6 @@ func testDriver(t *testing.T, address string, opts Options) *Driver {
 	opts.Address, opts.Namespace, opts.TaskQueue = address, "namespace", "queue"
 	d, err := newDriver(opts.withDefaults())
 	require.NoError(t, err)
-	d.ensureWorker = func(context.Context) error { return nil }
 	t.Cleanup(func() { _ = d.Close() })
 	return d
 }
@@ -289,40 +285,6 @@ func TestRespondRefusesWhatNoEventAwaits(t *testing.T) {
 	require.ErrorContains(t, x.Respond(t.Context(), event.ID, explained(false)), "closed")
 }
 
-func TestRepliesTheSDKCanDeliver(t *testing.T) {
-	payload := &commonpb.Payload{Data: []byte("Complete")}
-	got, err := deliverable(completedReply(t, payload))
-	require.NoError(t, err)
-	require.True(t, proto.Equal(payload, got.value.Payload()))
-	_, err = deliverable(completedReply(t, payload, payload))
-	require.ErrorContains(t, err, "one result payload")
-	failed := packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskFailedRequest{
-		Failure: &failurepb.Failure{Message: "Fail", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{
-			ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "MiniActivityFailure", NonRetryable: true},
-		}},
-	})})
-	got, err = deliverable(failed)
-	require.NoError(t, err)
-	var failure *temporal.ApplicationError
-	require.ErrorAs(t, got.err, &failure)
-	require.Equal(t, "MiniActivityFailure", failure.Type())
-	require.True(t, failure.NonRetryable())
-	_, err = deliverable(packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCanceledRequest{})}))
-	require.ErrorContains(t, err, "cannot send")
-	owned := packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
-		TaskToken: []byte("token"), Namespace: "namespace", Identity: "worker",
-		Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}},
-	})})
-	_, err = deliverable(owned)
-	require.NoError(t, err, "the SDK supplies task_token, namespace and identity itself")
-	versioned := packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
-		Result:            &commonpb.Payloads{Payloads: []*commonpb.Payload{payload}},
-		DeploymentOptions: &deploymentpb.WorkerDeploymentOptions{BuildId: "build"},
-	})})
-	_, err = deliverable(versioned)
-	require.ErrorContains(t, err, "the SDK cannot send the reply's deployment_options")
-}
-
 func TestRedactionRemovesNamedFieldsThroughPackedEvidence(t *testing.T) {
 	task := packed(t, &workflowservice.PollActivityTaskQueueResponse{TaskToken: []byte("secret"), ActivityId: "activity"})
 	event := &runv1.Event{Kind: &runv1.Event_Answer{Answer: &runv1.Answer{Request: &modelv1.AnswerRequest{
@@ -391,12 +353,6 @@ func TestStartRefusesAReadWithoutItsMechanics(t *testing.T) {
 	}
 }
 
-func completedReply(t *testing.T, payloads ...*commonpb.Payload) *anypb.Any {
-	return packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
-		Result: &commonpb.Payloads{Payloads: payloads},
-	})})
-}
-
 func TestProgrammedInstructionIsADriverFault(t *testing.T) {
 	server := newFakeServer(t, func(string) ([]byte, error) {
 		t.Error("an unsupported hold reached the server")
@@ -408,6 +364,7 @@ func TestProgrammedInstructionIsADriverFault(t *testing.T) {
 	}))
 	event := next(t, x)
 	require.Equal(t, runner.EventFault, event.Kind)
-	require.Contains(t, event.Fault, "programmed worker execution is unsupported")
-	requireClosed(t, x)
+	require.Contains(t, event.Fault, "worker poll hold is unsupported")
+	_, open := <-x.Events()
+	require.False(t, open)
 }

@@ -26,6 +26,12 @@ type Redactor interface {
 	Redact(event *runv1.Event) bool
 }
 
+// WorkerRecorder identifies the executor and deployment behind a Driver's worker actions.
+// The Runner copies the record into the Run before issuing proposals.
+type WorkerRecorder interface {
+	Worker() *runv1.Worker
+}
+
 // NewDriver makes a fresh Driver for one Run.
 type NewDriver func(ctx context.Context) (Driver, error)
 

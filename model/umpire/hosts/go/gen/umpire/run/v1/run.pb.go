@@ -95,6 +95,7 @@ type Run struct {
 	Seed          uint64   `protobuf:"varint,4,opt,name=seed,proto3" json:"seed,omitempty"`
 	Events        []*Event `protobuf:"bytes,5,rep,name=events,proto3" json:"events,omitempty"`
 	Verdict       *Verdict `protobuf:"bytes,6,opt,name=verdict,proto3" json:"verdict,omitempty"`
+	Worker        *Worker  `protobuf:"bytes,7,opt,name=worker,proto3" json:"worker,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -171,6 +172,82 @@ func (x *Run) GetVerdict() *Verdict {
 	return nil
 }
 
+func (x *Run) GetWorker() *Worker {
+	if x != nil {
+		return x.Worker
+	}
+	return nil
+}
+
+// The executor and deployment that produced the Run's worker actions.
+type Worker struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Namespace     string                 `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	TaskQueue     string                 `protobuf:"bytes,4,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Worker) Reset() {
+	*x = Worker{}
+	mi := &file_umpire_run_v1_run_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Worker) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Worker) ProtoMessage() {}
+
+func (x *Worker) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_run_v1_run_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Worker.ProtoReflect.Descriptor instead.
+func (*Worker) Descriptor() ([]byte, []int) {
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Worker) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *Worker) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *Worker) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *Worker) GetTaskQueue() string {
+	if x != nil {
+		return x.TaskQueue
+	}
+	return ""
+}
+
 type Event struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The event's position in the Run, from 0.
@@ -197,7 +274,7 @@ type Event struct {
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[1]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -209,7 +286,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[1]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -222,7 +299,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{1}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Event) GetSequence() uint64 {
@@ -379,7 +456,7 @@ type Reset struct {
 
 func (x *Reset) Reset() {
 	*x = Reset{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[2]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -391,7 +468,7 @@ func (x *Reset) String() string {
 func (*Reset) ProtoMessage() {}
 
 func (x *Reset) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[2]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -404,7 +481,7 @@ func (x *Reset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reset.ProtoReflect.Descriptor instead.
 func (*Reset) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{2}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Reset) GetRequest() *v1.ResetRequest {
@@ -431,7 +508,7 @@ type Proposal struct {
 
 func (x *Proposal) Reset() {
 	*x = Proposal{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[3]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -443,7 +520,7 @@ func (x *Proposal) String() string {
 func (*Proposal) ProtoMessage() {}
 
 func (x *Proposal) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[3]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +533,7 @@ func (x *Proposal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Proposal.ProtoReflect.Descriptor instead.
 func (*Proposal) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{3}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Proposal) GetRequest() *v1.ProposeRequest {
@@ -484,7 +561,7 @@ type Judgment struct {
 
 func (x *Judgment) Reset() {
 	*x = Judgment{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[4]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -496,7 +573,7 @@ func (x *Judgment) String() string {
 func (*Judgment) ProtoMessage() {}
 
 func (x *Judgment) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[4]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +586,7 @@ func (x *Judgment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Judgment.ProtoReflect.Descriptor instead.
 func (*Judgment) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{4}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Judgment) GetRequest() *v1.JudgeRequest {
@@ -539,7 +616,7 @@ type Answer struct {
 
 func (x *Answer) Reset() {
 	*x = Answer{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[5]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +628,7 @@ func (x *Answer) String() string {
 func (*Answer) ProtoMessage() {}
 
 func (x *Answer) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[5]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +641,7 @@ func (x *Answer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Answer.ProtoReflect.Descriptor instead.
 func (*Answer) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{5}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Answer) GetRequest() *v1.AnswerRequest {
@@ -598,7 +675,7 @@ type Annotation struct {
 
 func (x *Annotation) Reset() {
 	*x = Annotation{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[6]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +687,7 @@ func (x *Annotation) String() string {
 func (*Annotation) ProtoMessage() {}
 
 func (x *Annotation) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[6]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +700,7 @@ func (x *Annotation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Annotation.ProtoReflect.Descriptor instead.
 func (*Annotation) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{6}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Annotation) GetRequest() *v1.AnnotateRequest {
@@ -653,7 +730,7 @@ type Refusal struct {
 
 func (x *Refusal) Reset() {
 	*x = Refusal{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[7]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +742,7 @@ func (x *Refusal) String() string {
 func (*Refusal) ProtoMessage() {}
 
 func (x *Refusal) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[7]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +755,7 @@ func (x *Refusal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Refusal.ProtoReflect.Descriptor instead.
 func (*Refusal) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{7}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Refusal) GetMethod() v1.Method {
@@ -720,7 +797,7 @@ type DriverFault struct {
 
 func (x *DriverFault) Reset() {
 	*x = DriverFault{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[8]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -732,7 +809,7 @@ func (x *DriverFault) String() string {
 func (*DriverFault) ProtoMessage() {}
 
 func (x *DriverFault) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[8]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -745,7 +822,7 @@ func (x *DriverFault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DriverFault.ProtoReflect.Descriptor instead.
 func (*DriverFault) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{8}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DriverFault) GetReason() string {
@@ -769,7 +846,7 @@ type Verdict struct {
 
 func (x *Verdict) Reset() {
 	*x = Verdict{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[9]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -781,7 +858,7 @@ func (x *Verdict) String() string {
 func (*Verdict) ProtoMessage() {}
 
 func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[9]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +871,7 @@ func (x *Verdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
 func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{9}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Verdict) GetOutcome() isVerdict_Outcome {
@@ -865,7 +942,7 @@ type Explained struct {
 
 func (x *Explained) Reset() {
 	*x = Explained{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[10]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +954,7 @@ func (x *Explained) String() string {
 func (*Explained) ProtoMessage() {}
 
 func (x *Explained) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[10]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +967,7 @@ func (x *Explained) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Explained.ProtoReflect.Descriptor instead.
 func (*Explained) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{10}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Explained) GetTermination() Termination {
@@ -916,7 +993,7 @@ type Unexplained struct {
 
 func (x *Unexplained) Reset() {
 	*x = Unexplained{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[11]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -928,7 +1005,7 @@ func (x *Unexplained) String() string {
 func (*Unexplained) ProtoMessage() {}
 
 func (x *Unexplained) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[11]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -941,7 +1018,7 @@ func (x *Unexplained) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Unexplained.ProtoReflect.Descriptor instead.
 func (*Unexplained) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{11}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Unexplained) GetEvent() uint64 {
@@ -961,7 +1038,7 @@ type Refused struct {
 
 func (x *Refused) Reset() {
 	*x = Refused{}
-	mi := &file_umpire_run_v1_run_proto_msgTypes[12]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1050,7 @@ func (x *Refused) String() string {
 func (*Refused) ProtoMessage() {}
 
 func (x *Refused) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_run_v1_run_proto_msgTypes[12]
+	mi := &file_umpire_run_v1_run_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1063,7 @@ func (x *Refused) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Refused.ProtoReflect.Descriptor instead.
 func (*Refused) Descriptor() ([]byte, []int) {
-	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{12}
+	return file_umpire_run_v1_run_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Refused) GetEvent() uint64 {
@@ -1007,7 +1084,7 @@ var File_umpire_run_v1_run_proto protoreflect.FileDescriptor
 
 const file_umpire_run_v1_run_proto_rawDesc = "" +
 	"\n" +
-	"\x17umpire/run/v1/run.proto\x12\rumpire.run.v1\x1a\x19google/protobuf/any.proto\x1a\x1bumpire/model/v1/model.proto\"\xef\x01\n" +
+	"\x17umpire/run/v1/run.proto\x12\rumpire.run.v1\x1a\x19google/protobuf/any.proto\x1a\x1bumpire/model/v1/model.proto\"\x9e\x02\n" +
 	"\x03Run\x12\x1d\n" +
 	"\n" +
 	"model_hash\x18\x01 \x01(\tR\tmodelHash\x12)\n" +
@@ -1015,7 +1092,14 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
 	"\x05world\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\x05world\x12\x12\n" +
 	"\x04seed\x18\x04 \x01(\x04R\x04seed\x12,\n" +
 	"\x06events\x18\x05 \x03(\v2\x14.umpire.run.v1.EventR\x06events\x120\n" +
-	"\averdict\x18\x06 \x01(\v2\x16.umpire.run.v1.VerdictR\averdict\"\x83\x04\n" +
+	"\averdict\x18\x06 \x01(\v2\x16.umpire.run.v1.VerdictR\averdict\x12-\n" +
+	"\x06worker\x18\a \x01(\v2\x15.umpire.run.v1.WorkerR\x06worker\"s\n" +
+	"\x06Worker\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1c\n" +
+	"\tnamespace\x18\x03 \x01(\tR\tnamespace\x12\x1d\n" +
+	"\n" +
+	"task_queue\x18\x04 \x01(\tR\ttaskQueue\"\x83\x04\n" +
 	"\x05Event\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x04R\bsequence\x12\x18\n" +
 	"\arequest\x18\x02 \x01(\x04R\arequest\x12!\n" +
@@ -1089,68 +1173,70 @@ func file_umpire_run_v1_run_proto_rawDescGZIP() []byte {
 }
 
 var file_umpire_run_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_umpire_run_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_umpire_run_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_umpire_run_v1_run_proto_goTypes = []any{
 	(Termination)(0),            // 0: umpire.run.v1.Termination
 	(*Run)(nil),                 // 1: umpire.run.v1.Run
-	(*Event)(nil),               // 2: umpire.run.v1.Event
-	(*Reset)(nil),               // 3: umpire.run.v1.Reset
-	(*Proposal)(nil),            // 4: umpire.run.v1.Proposal
-	(*Judgment)(nil),            // 5: umpire.run.v1.Judgment
-	(*Answer)(nil),              // 6: umpire.run.v1.Answer
-	(*Annotation)(nil),          // 7: umpire.run.v1.Annotation
-	(*Refusal)(nil),             // 8: umpire.run.v1.Refusal
-	(*DriverFault)(nil),         // 9: umpire.run.v1.DriverFault
-	(*Verdict)(nil),             // 10: umpire.run.v1.Verdict
-	(*Explained)(nil),           // 11: umpire.run.v1.Explained
-	(*Unexplained)(nil),         // 12: umpire.run.v1.Unexplained
-	(*Refused)(nil),             // 13: umpire.run.v1.Refused
-	(*anypb.Any)(nil),           // 14: google.protobuf.Any
-	(*v1.ResetRequest)(nil),     // 15: umpire.model.v1.ResetRequest
-	(*v1.ResetResponse)(nil),    // 16: umpire.model.v1.ResetResponse
-	(*v1.ProposeRequest)(nil),   // 17: umpire.model.v1.ProposeRequest
-	(*v1.ProposeResponse)(nil),  // 18: umpire.model.v1.ProposeResponse
-	(*v1.JudgeRequest)(nil),     // 19: umpire.model.v1.JudgeRequest
-	(*v1.JudgeResponse)(nil),    // 20: umpire.model.v1.JudgeResponse
-	(*v1.AnswerRequest)(nil),    // 21: umpire.model.v1.AnswerRequest
-	(*v1.AnswerResponse)(nil),   // 22: umpire.model.v1.AnswerResponse
-	(*v1.AnnotateRequest)(nil),  // 23: umpire.model.v1.AnnotateRequest
-	(*v1.AnnotateResponse)(nil), // 24: umpire.model.v1.AnnotateResponse
-	(v1.Method)(0),              // 25: umpire.model.v1.Method
-	(*v1.Refusal)(nil),          // 26: umpire.model.v1.Refusal
+	(*Worker)(nil),              // 2: umpire.run.v1.Worker
+	(*Event)(nil),               // 3: umpire.run.v1.Event
+	(*Reset)(nil),               // 4: umpire.run.v1.Reset
+	(*Proposal)(nil),            // 5: umpire.run.v1.Proposal
+	(*Judgment)(nil),            // 6: umpire.run.v1.Judgment
+	(*Answer)(nil),              // 7: umpire.run.v1.Answer
+	(*Annotation)(nil),          // 8: umpire.run.v1.Annotation
+	(*Refusal)(nil),             // 9: umpire.run.v1.Refusal
+	(*DriverFault)(nil),         // 10: umpire.run.v1.DriverFault
+	(*Verdict)(nil),             // 11: umpire.run.v1.Verdict
+	(*Explained)(nil),           // 12: umpire.run.v1.Explained
+	(*Unexplained)(nil),         // 13: umpire.run.v1.Unexplained
+	(*Refused)(nil),             // 14: umpire.run.v1.Refused
+	(*anypb.Any)(nil),           // 15: google.protobuf.Any
+	(*v1.ResetRequest)(nil),     // 16: umpire.model.v1.ResetRequest
+	(*v1.ResetResponse)(nil),    // 17: umpire.model.v1.ResetResponse
+	(*v1.ProposeRequest)(nil),   // 18: umpire.model.v1.ProposeRequest
+	(*v1.ProposeResponse)(nil),  // 19: umpire.model.v1.ProposeResponse
+	(*v1.JudgeRequest)(nil),     // 20: umpire.model.v1.JudgeRequest
+	(*v1.JudgeResponse)(nil),    // 21: umpire.model.v1.JudgeResponse
+	(*v1.AnswerRequest)(nil),    // 22: umpire.model.v1.AnswerRequest
+	(*v1.AnswerResponse)(nil),   // 23: umpire.model.v1.AnswerResponse
+	(*v1.AnnotateRequest)(nil),  // 24: umpire.model.v1.AnnotateRequest
+	(*v1.AnnotateResponse)(nil), // 25: umpire.model.v1.AnnotateResponse
+	(v1.Method)(0),              // 26: umpire.model.v1.Method
+	(*v1.Refusal)(nil),          // 27: umpire.model.v1.Refusal
 }
 var file_umpire_run_v1_run_proto_depIdxs = []int32{
-	14, // 0: umpire.run.v1.Run.world:type_name -> google.protobuf.Any
-	2,  // 1: umpire.run.v1.Run.events:type_name -> umpire.run.v1.Event
-	10, // 2: umpire.run.v1.Run.verdict:type_name -> umpire.run.v1.Verdict
-	3,  // 3: umpire.run.v1.Event.reset:type_name -> umpire.run.v1.Reset
-	4,  // 4: umpire.run.v1.Event.proposal:type_name -> umpire.run.v1.Proposal
-	5,  // 5: umpire.run.v1.Event.judgment:type_name -> umpire.run.v1.Judgment
-	6,  // 6: umpire.run.v1.Event.answer:type_name -> umpire.run.v1.Answer
-	7,  // 7: umpire.run.v1.Event.annotation:type_name -> umpire.run.v1.Annotation
-	8,  // 8: umpire.run.v1.Event.refusal:type_name -> umpire.run.v1.Refusal
-	9,  // 9: umpire.run.v1.Event.driver_fault:type_name -> umpire.run.v1.DriverFault
-	15, // 10: umpire.run.v1.Reset.request:type_name -> umpire.model.v1.ResetRequest
-	16, // 11: umpire.run.v1.Reset.response:type_name -> umpire.model.v1.ResetResponse
-	17, // 12: umpire.run.v1.Proposal.request:type_name -> umpire.model.v1.ProposeRequest
-	18, // 13: umpire.run.v1.Proposal.response:type_name -> umpire.model.v1.ProposeResponse
-	19, // 14: umpire.run.v1.Judgment.request:type_name -> umpire.model.v1.JudgeRequest
-	20, // 15: umpire.run.v1.Judgment.response:type_name -> umpire.model.v1.JudgeResponse
-	21, // 16: umpire.run.v1.Answer.request:type_name -> umpire.model.v1.AnswerRequest
-	22, // 17: umpire.run.v1.Answer.response:type_name -> umpire.model.v1.AnswerResponse
-	23, // 18: umpire.run.v1.Annotation.request:type_name -> umpire.model.v1.AnnotateRequest
-	24, // 19: umpire.run.v1.Annotation.response:type_name -> umpire.model.v1.AnnotateResponse
-	25, // 20: umpire.run.v1.Refusal.method:type_name -> umpire.model.v1.Method
-	26, // 21: umpire.run.v1.Refusal.refusal:type_name -> umpire.model.v1.Refusal
-	11, // 22: umpire.run.v1.Verdict.explained:type_name -> umpire.run.v1.Explained
-	12, // 23: umpire.run.v1.Verdict.unexplained:type_name -> umpire.run.v1.Unexplained
-	13, // 24: umpire.run.v1.Verdict.refused:type_name -> umpire.run.v1.Refused
-	0,  // 25: umpire.run.v1.Explained.termination:type_name -> umpire.run.v1.Termination
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	15, // 0: umpire.run.v1.Run.world:type_name -> google.protobuf.Any
+	3,  // 1: umpire.run.v1.Run.events:type_name -> umpire.run.v1.Event
+	11, // 2: umpire.run.v1.Run.verdict:type_name -> umpire.run.v1.Verdict
+	2,  // 3: umpire.run.v1.Run.worker:type_name -> umpire.run.v1.Worker
+	4,  // 4: umpire.run.v1.Event.reset:type_name -> umpire.run.v1.Reset
+	5,  // 5: umpire.run.v1.Event.proposal:type_name -> umpire.run.v1.Proposal
+	6,  // 6: umpire.run.v1.Event.judgment:type_name -> umpire.run.v1.Judgment
+	7,  // 7: umpire.run.v1.Event.answer:type_name -> umpire.run.v1.Answer
+	8,  // 8: umpire.run.v1.Event.annotation:type_name -> umpire.run.v1.Annotation
+	9,  // 9: umpire.run.v1.Event.refusal:type_name -> umpire.run.v1.Refusal
+	10, // 10: umpire.run.v1.Event.driver_fault:type_name -> umpire.run.v1.DriverFault
+	16, // 11: umpire.run.v1.Reset.request:type_name -> umpire.model.v1.ResetRequest
+	17, // 12: umpire.run.v1.Reset.response:type_name -> umpire.model.v1.ResetResponse
+	18, // 13: umpire.run.v1.Proposal.request:type_name -> umpire.model.v1.ProposeRequest
+	19, // 14: umpire.run.v1.Proposal.response:type_name -> umpire.model.v1.ProposeResponse
+	20, // 15: umpire.run.v1.Judgment.request:type_name -> umpire.model.v1.JudgeRequest
+	21, // 16: umpire.run.v1.Judgment.response:type_name -> umpire.model.v1.JudgeResponse
+	22, // 17: umpire.run.v1.Answer.request:type_name -> umpire.model.v1.AnswerRequest
+	23, // 18: umpire.run.v1.Answer.response:type_name -> umpire.model.v1.AnswerResponse
+	24, // 19: umpire.run.v1.Annotation.request:type_name -> umpire.model.v1.AnnotateRequest
+	25, // 20: umpire.run.v1.Annotation.response:type_name -> umpire.model.v1.AnnotateResponse
+	26, // 21: umpire.run.v1.Refusal.method:type_name -> umpire.model.v1.Method
+	27, // 22: umpire.run.v1.Refusal.refusal:type_name -> umpire.model.v1.Refusal
+	12, // 23: umpire.run.v1.Verdict.explained:type_name -> umpire.run.v1.Explained
+	13, // 24: umpire.run.v1.Verdict.unexplained:type_name -> umpire.run.v1.Unexplained
+	14, // 25: umpire.run.v1.Verdict.refused:type_name -> umpire.run.v1.Refused
+	0,  // 26: umpire.run.v1.Explained.termination:type_name -> umpire.run.v1.Termination
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_umpire_run_v1_run_proto_init() }
@@ -1158,7 +1244,7 @@ func file_umpire_run_v1_run_proto_init() {
 	if File_umpire_run_v1_run_proto != nil {
 		return
 	}
-	file_umpire_run_v1_run_proto_msgTypes[1].OneofWrappers = []any{
+	file_umpire_run_v1_run_proto_msgTypes[2].OneofWrappers = []any{
 		(*Event_Reset_)(nil),
 		(*Event_Proposal)(nil),
 		(*Event_Judgment)(nil),
@@ -1167,7 +1253,7 @@ func file_umpire_run_v1_run_proto_init() {
 		(*Event_Refusal)(nil),
 		(*Event_DriverFault)(nil),
 	}
-	file_umpire_run_v1_run_proto_msgTypes[9].OneofWrappers = []any{
+	file_umpire_run_v1_run_proto_msgTypes[10].OneofWrappers = []any{
 		(*Verdict_Explained)(nil),
 		(*Verdict_Unexplained)(nil),
 		(*Verdict_Refused)(nil),
@@ -1178,7 +1264,7 @@ func file_umpire_run_v1_run_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_run_v1_run_proto_rawDesc), len(file_umpire_run_v1_run_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

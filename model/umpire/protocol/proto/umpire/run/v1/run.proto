@@ -18,6 +18,15 @@ message Run {
   uint64 seed = 4;
   repeated Event events = 5;
   Verdict verdict = 6;
+  Worker worker = 7;
+}
+
+// The executor and deployment that produced the Run's worker actions.
+message Worker {
+  string kind = 1;
+  string version = 2;
+  string namespace = 3;
+  string task_queue = 4;
 }
 
 message Event {

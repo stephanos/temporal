@@ -81,6 +81,7 @@ type decided struct {
 
 // fakeDriver acts on a scripted system. Its knobs inject each transport failure.
 type fakeDriver struct {
+	worker       *runv1.Worker
 	script       map[byte][]step
 	startErr     error
 	closeErr     error
@@ -132,6 +133,13 @@ func (d *fakeDriver) Start(ctx context.Context, request uint64, payload *anypb.A
 		go x.run(steps)
 	}
 	return x, nil
+}
+
+func (d *fakeDriver) Worker() *runv1.Worker {
+	if d.worker != nil {
+		return d.worker
+	}
+	return &runv1.Worker{Kind: "fake", Version: "1"}
 }
 
 func (d *fakeDriver) Redact(event *runv1.Event) bool {

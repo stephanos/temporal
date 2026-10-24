@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
@@ -23,8 +24,6 @@ type exchange struct {
 	cancel  context.CancelFunc
 	events  chan runner.Event
 	done    chan struct{}
-	// calls receives the worker's callback for a task this exchange let the worker take.
-	calls chan *workerCall
 
 	mu      sync.Mutex
 	next    uint64
@@ -40,7 +39,6 @@ type waiter struct {
 // decision is a Runner decision, with a callback's reply already converted for the SDK.
 type decision struct {
 	runner.Decision
-	delivery delivery
 }
 
 func newExchange(d *Driver, request uint64) *exchange {
@@ -48,7 +46,6 @@ func newExchange(d *Driver, request uint64) *exchange {
 	return &exchange{
 		driver: d, request: request, ctx: ctx, cancel: cancel,
 		events: make(chan runner.Event), done: make(chan struct{}),
-		calls:   make(chan *workerCall, 1),
 		waiting: map[uint64]*waiter{},
 	}
 }
@@ -69,11 +66,6 @@ func (x *exchange) Respond(_ context.Context, event uint64, d runner.Decision) e
 	switch {
 	case d.Refusal != nil:
 	case w.kind == runner.EventObservation && d.Judgment != nil:
-	case w.kind == runner.EventCallback && d.Reply != nil:
-		var err error
-		if resolved.delivery, err = deliverable(d.Reply); err != nil {
-			return fmt.Errorf("event %d: %w", event, err)
-		}
 	default:
 		return fmt.Errorf("event %d: the decision does not answer a %s", event, kindName(w.kind))
 	}
@@ -160,11 +152,14 @@ func (x *exchange) observe(ctx context.Context, observation *realizationv1.Obser
 }
 
 // unary sends one request and reports its single Observation.
-func (x *exchange) unary(request *anypb.Any) {
+func (x *exchange) unary(request *anypb.Any, held uint64) {
 	ctx, cancel := context.WithTimeout(x.ctx, x.driver.opts.RPCTimeout)
 	defer cancel()
 	observation, reached, err := call(ctx, x.driver.conn, request)
 	answered := reached.answered.Load()
+	if answered && held != 0 {
+		x.driver.polls.acknowledged(held)
+	}
 	switch {
 	case observation != nil:
 		x.driver.started(request, observation)
@@ -206,6 +201,10 @@ func (x *exchange) read(instruction *temporalv1.ObserveActivity) {
 	interval := time.Duration(instruction.GetPollIntervalMs()) * time.Millisecond
 	backoff := time.Duration(instruction.GetBackoffMs()) * time.Millisecond
 	for {
+		if err := x.driver.executionError(); err != nil {
+			x.fault("worker executor: %v", err)
+			return
+		}
 		observation, reached, err := call(ctx, x.driver.conn, instruction.GetRequest())
 		answered := reached.answered.Load()
 		switch {
@@ -257,9 +256,35 @@ func (x *exchange) sleep(ctx context.Context, d time.Duration) bool {
 func (x *exchange) run(request *anypb.Any) {
 	defer close(x.done)
 	defer close(x.events)
-	if request.MessageIs(&temporalv1.TemporalInstruction{}) {
-		x.fault("programmed worker execution is unsupported by this Driver")
+	if err := x.driver.executionError(); err != nil {
+		x.fault("worker executor: %v", err)
 		return
+	}
+	var held uint64
+	hold := false
+	if request.MessageIs(&temporalv1.TemporalInstruction{}) {
+		instruction := new(temporalv1.TemporalInstruction)
+		if err := request.UnmarshalTo(instruction); err != nil {
+			x.fault("instruction does not decode: %v", err)
+			return
+		}
+		hold = instruction.GetHoldWorkerPolls()
+		request = instruction.GetRequest()
+	}
+	if hold && x.driver.polls == nil {
+		x.fault("worker poll hold is unsupported for an external worker")
+		return
+	}
+	if x.driver.polls != nil && !request.MessageIs(&workflowservice.StartActivityExecutionRequest{}) {
+		var err error
+		held, err = x.driver.polls.prepare(hold)
+		if err != nil {
+			x.fault("worker poll hold is unsupported: %v", err)
+			return
+		}
+		if !hold {
+			held = 0
+		}
 	}
 	if request.MessageIs(&temporalv1.ObserveActivity{}) {
 		instruction := new(temporalv1.ObserveActivity)
@@ -270,7 +295,7 @@ func (x *exchange) run(request *anypb.Any) {
 		x.read(instruction)
 		return
 	}
-	x.unary(request)
+	x.unary(request, held)
 }
 
 // validStart reports why a proposal cannot be sent at all, or nil.

@@ -35,6 +35,7 @@ func (r *Runner) replayRun(ctx context.Context, opts Options) (_ *Run, err error
 		return nil, err
 	}
 	defer func() { err = s.close(ctx, err) }()
+	s.run.Worker = proto.CloneOf(recorded.GetWorker())
 	if reason := r.admit(recorded); reason != "" {
 		s.run.Verdict = refused(0, "replay: "+reason)
 	} else if ok, err := s.replay(ctx, recorded.GetEvents()); err != nil {
@@ -78,6 +79,9 @@ func (r *Runner) question(ctx context.Context, opts Options) (_ *Run, err error)
 		return nil, err
 	}
 	defer func() { err = s.close(ctx, err) }()
+	if opts.Recorded != nil {
+		s.run.Worker = proto.CloneOf(opts.Recorded.GetWorker())
+	}
 	if prefix != nil {
 		ok, err := s.replay(ctx, prefix)
 		if err != nil {
