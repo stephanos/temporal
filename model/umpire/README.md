@@ -9,6 +9,8 @@ protocol packages; `reference/kettle/` contains the independent Kettle integrati
 See [the crate map](../README.md#crate-map) for each crate's job and author-facing surface,
 and [the workspace guide](../README.md) for authoring and verification commands.
 
+The workspace guide owns the [exact assumption and World-selected fairness grammar](../README.md#writing-a-model).
+
 ## Bounded optional values
 
 Stored optional values admit `Option` of a source-local one-field integer wrapper derived

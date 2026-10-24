@@ -107,8 +107,8 @@ fn selected_leaves_keep_authored_world_identity_and_exact_fairness()
     let lifted = Lift::parse("selected.rs", source())?;
     for (maximum, fair) in [(1, vec![0, 1]), (2, vec![0, 1, 2]), (3, vec![0, 1, 2, 3])] {
         let bound = lifted.bind(&binding(maximum))?;
-        assert!(bound.assumptions.iter().all(|def| def.conditional.is_none()));
-        assert!(bound.progress.iter().all(|claim| claim.assumption.conditional.is_none()));
+        assert!(bound.assumptions.iter().all(umpire_front::tree::AssumptionDef::is_resolved));
+        assert!(bound.progress.iter().all(|claim| claim.assumption.is_resolved()));
         assert_eq!(bound.assumptions[0].name, "current");
         let module = Tla::emit(&bound)?;
         let claim = &module.metadata.progress[0];
@@ -256,5 +256,43 @@ fn source_plans_resolve_before_any_action_conversion() -> Result<(), Box<dyn std
         .err()
         .ok_or("unresolved registered plan admitted")?;
     assert!(error.contains("lacks World field"), "{error}");
+    Ok(())
+}
+
+#[test]
+fn rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::__lifted::Lifts;
+    for embedded in [false, true] {
+        let lifted = if embedded {
+            let path =
+                Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/world_fairness_binding.rs");
+            let embedded = Embedded {
+                file: path.to_string_lossy().into_owned(),
+                ..selected::World::__umpire_lifted()
+            };
+            Lift::embedded(Some(&embedded), &path)?
+        } else {
+            Lift::parse("selected.rs", source())?
+        };
+        for (first, second) in [(1, 3), (3, 1), (2, 2)] {
+            let original = lifted.bind(&binding(first))?;
+            let rebound = original.clone().bind(&binding(second))?;
+            let fresh = Tla::emit(&lifted.bind(&binding(second))?)?;
+            let rebound = Tla::emit(&rebound)?;
+            assert_eq!(rebound.tla, fresh.tla);
+            assert_eq!(rebound.cfg, fresh.cfg);
+            assert_eq!(
+                rebound.metadata.progress[0].fair_inputs,
+                fresh.metadata.progress[0].fair_inputs
+            );
+        }
+    }
+    let flat_source = changed(".assuming(Self::current(selected))", ".assuming(Self::spare())");
+    let flat_source = flat_source.replace("#[assumption]\n        fn current", "fn current");
+    let flat = Lift::parse("selected.rs", &flat_source)?;
+    assert!(flat.assumptions.iter().all(|scope| scope.conditional.is_none()));
+    let rebound = flat.bind(&binding(1))?.bind(&binding(3))?;
+    assert_eq!(Tla::emit(&rebound)?.metadata.progress[0].fair_inputs, [3]);
     Ok(())
 }

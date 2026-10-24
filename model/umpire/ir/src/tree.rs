@@ -157,13 +157,14 @@ pub struct AssumptionDef {
 #[derive(Clone, Debug, umpire_ir_derive::Print)]
 #[print_path(::umpire_dsl::__lifted::tree::ConditionalAssumption)]
 pub struct ConditionalAssumption {
+    pub resolved: bool,
     pub condition: Expr,
     pub yes: AssumptionDef,
     pub no: AssumptionDef,
     pub location: Diagnostic,
 }
 impl AssumptionDef {
-    /// Select a flat scope from validated, typed World fields under their authored names.
+    /// Select flat scope fields, retaining authored branches for later World re-selection.
     pub fn select(&self, world: &BTreeMap<String, Expr>) -> Result<Self, Diagnostic> {
         let Some(plan) = &self.conditional else { return Ok(self.clone()) };
         let condition = assumption_guard_value(&plan.condition, world)
@@ -176,6 +177,8 @@ impl AssumptionDef {
         };
         let mut selected = if condition { &plan.yes } else { &plan.no }.select(world)?;
         selected.name.clone_from(&self.name);
+        selected.conditional =
+            Some(Box::new(ConditionalAssumption { resolved: true, ..plan.as_ref().clone() }));
         Ok(selected)
     }
     /// Possible leaves, used only to reserve names before a World is selected.
@@ -187,27 +190,33 @@ impl AssumptionDef {
             None => vec![self],
         }
     }
+    /// Whether flat fields represent a selected scope, or an ordinary unconditional scope.
+    pub fn is_resolved(&self) -> bool {
+        self.conditional.as_ref().is_none_or(|plan| plan.resolved)
+    }
     pub fn same_scope(&self, other: &Self) -> bool {
+        if self.is_resolved() && other.is_resolved() {
+            return self.only == other.only
+                && self.without == other.without
+                && self.fair == other.fair;
+        }
         match (&self.conditional, &other.conditional) {
-            (Some(left), Some(right)) => {
+            (Some(left), Some(right)) if !left.resolved && !right.resolved => {
                 left.condition == right.condition
                     && left.yes.same_scope(&right.yes)
                     && left.no.same_scope(&right.no)
-            }
-            (None, None) => {
-                self.only == other.only && self.without == other.without && self.fair == other.fair
             }
             _ => false,
         }
     }
     /// Whether a concrete action is admitted, comparing exact values as native scopes do.
     pub fn allows(&self, action: &ActionRef) -> bool {
-        self.conditional.is_none()
+        self.is_resolved()
             && self.only.as_ref().is_none_or(|only| only.contains(action))
             && !self.without.contains(action)
     }
     pub fn is_fair(&self, action: &ActionRef) -> bool {
-        self.conditional.is_none() && self.fair.contains(action)
+        self.is_resolved() && self.fair.contains(action)
     }
 }
 

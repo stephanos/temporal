@@ -35,7 +35,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .assumptions
         .iter()
         .chain(model.progress.iter().map(|claim| &claim.assumption))
-        .any(|assumption| assumption.conditional.is_some())
+        .any(|assumption| !assumption.is_resolved())
     {
         return Err(Diagnostic::of(
             &model.file,

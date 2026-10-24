@@ -3,7 +3,9 @@
 use std::path::Path;
 
 use umpire_checker::Checker;
-use umpire_dsl::{__lifted::Lifts, ActionValues, CATALOG_LIMIT, Claim, Machine, Value, Values};
+use umpire_dsl::{
+    __lifted::Lifts, ActionValues, Assumption, CATALOG_LIMIT, Claim, Machine, Value, Values,
+};
 use umpire_tla::{Binding, Concrete, Literal, Module};
 
 /// A declared World whose derives export its own, its states' and its actions' values, and
@@ -94,14 +96,20 @@ impl<M: Declared> Bound<M> {
                 starts.push(state.clone());
             }
         }
-        if module.metadata.binding.as_ref().is_none_or(|actual| {
-            actual.world != expected.world
-                || actual.starts != starts
-                || actual.actions != expected.actions
-        }) {
+        let inputs =
+            M::__umpire_lifted().model.as_ref().is_ok_and(umpire_dsl::__lifted::Lifted::has_inputs)
+                || expected.actions.iter().any(|action| !action.fields.is_empty());
+        if module.metadata.catalog != if inputs { expected.actions.clone() } else { Vec::new() }
+            || module.metadata.binding.as_ref().is_none_or(|actual| {
+                actual.world != expected.world
+                    || actual.starts != starts
+                    || actual.actions != expected.actions
+            })
+        {
             return Err("emitted module differs from the selected World binding".into());
         }
         let (graph, files) = self.native()?;
+        self.check_progress_metadata(&graph, module, inputs)?;
         crate::backend::check_exploration(
             &self.world,
             &self.starts,
@@ -111,6 +119,49 @@ impl<M: Declared> Bound<M> {
             &files,
             Some(&concrete::<M>),
         )
+    }
+
+    fn check_progress_metadata(
+        &self,
+        graph: &umpire_checker::Result<M>,
+        module: &Module,
+        inputs: bool,
+    ) -> Result<(), String> {
+        let claims = self.world.progress();
+        if claims.len() != module.metadata.progress.len() {
+            return Err("emitted progress registrations differ from the compiled Model".into());
+        }
+        let catalog =
+            self.world.checked_catalog(CATALOG_LIMIT).map_err(|error| error.to_string())?;
+        for (claim, metadata) in claims.iter().zip(&module.metadata.progress) {
+            if claim.name != metadata.name {
+                return Err("emitted progress registration differs from the compiled Model".into());
+            }
+            if let Some(evaluate) = claim.evaluator {
+                for (_, state) in graph.states() {
+                    let evaluated = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        evaluate(&self.world, state)
+                    }))
+                    .map_err(|_| format!("progress `{}` metadata callback panicked", claim.name))?;
+                    scope_metadata::<M>(
+                        claim.assumption_override.as_ref().unwrap_or(&evaluated.assumption),
+                        claim.bound_override.or(evaluated.bound),
+                        catalog.actions(),
+                        inputs,
+                        metadata,
+                    )?;
+                }
+            } else {
+                scope_metadata::<M>(
+                    claim.assumption_override.as_ref().unwrap_or(&claim.scope),
+                    claim.bound_override.or(claim.bound),
+                    catalog.actions(),
+                    inputs,
+                    metadata,
+                )?;
+            }
+        }
+        Ok(())
     }
 
     fn native(
@@ -137,6 +188,52 @@ impl<M: Declared> Bound<M> {
 fn concrete<M: Declared>(action: &M::Action) -> Concrete {
     let (action, values) = ActionValues::<M>::action_value(action);
     Concrete { action: action.into(), fields: fields(values) }
+}
+
+fn scope_metadata<M: Declared>(
+    scope: &Assumption<M::Action>,
+    bound: Option<u32>,
+    actions: &[M::Action],
+    inputs: bool,
+    metadata: &umpire_tla::Progress,
+) -> Result<(), String> {
+    let mut allowed = Vec::new();
+    let mut fair = Vec::new();
+    let mut allowed_inputs = Vec::new();
+    let mut fair_inputs = Vec::new();
+    for (ordinal, action) in actions.iter().enumerate() {
+        if !scope.allows(action) {
+            continue;
+        }
+        let name = ActionValues::<M>::action_value(action).0.to_owned();
+        if !allowed.contains(&name) {
+            allowed.push(name);
+        }
+        if inputs && !actions[..ordinal].contains(action) {
+            allowed_inputs.push(ordinal);
+            if scope.is_fair(action) {
+                fair_inputs.push(ordinal);
+            }
+        }
+    }
+    for action in &scope.fair {
+        let name = ActionValues::<M>::action_value(action).0.to_owned();
+        if !fair.contains(&name) {
+            fair.push(name);
+        }
+    }
+    if metadata.allowed != allowed
+        || metadata.fair != fair
+        || metadata.allowed_inputs != allowed_inputs
+        || metadata.fair_inputs != fair_inputs
+        || metadata.bound != bound.map(u64::from)
+    {
+        return Err(format!(
+            "emitted progress `{}` metadata differs from the compiled scope",
+            metadata.name
+        ));
+    }
+    Ok(())
 }
 
 fn fields(values: Vec<(&'static str, Value)>) -> Vec<(String, Literal)> {

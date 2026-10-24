@@ -43,6 +43,7 @@ impl Environment {
                 let no = self.assumption(no, actions, locals, depth + 1)?;
                 Ok(AssumptionDef {
                     conditional: Some(Box::new(ConditionalAssumption {
+                        resolved: false,
                         condition,
                         yes,
                         no,
