@@ -23,6 +23,7 @@ import (
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -156,6 +157,18 @@ func lastLine(text string) string {
 
 func requireAllExplained(t *testing.T, invocation umpireInvocation) {
 	t.Helper()
+	for _, run := range invocation.runs {
+		if run.GetVerdict().GetUnexplained() != nil {
+			data, err := protojson.Marshal(run)
+			require.NoError(t, err)
+			t.Logf("deviation run=%s", data)
+			for _, event := range run.Events {
+				if event.GetProposal() != nil || event.GetSequence()+3 >= run.GetVerdict().GetUnexplained().GetEvent() {
+					t.Logf("deviation event=%v", event)
+				}
+			}
+		}
+	}
 	require.Equal(t, runner.ExitExplained, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
 	for path, run := range invocation.runs {
 		require.NotNil(t, run.GetVerdict().GetExplained(), "%s: %v", path, run.GetVerdict())

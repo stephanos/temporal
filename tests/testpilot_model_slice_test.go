@@ -16,10 +16,12 @@ import (
 	"testing"
 	"time"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	model "umpire.local/model/host"
 	"umpire.local/model/runner"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	temporalmodel "umpire.local/temporal"
@@ -43,7 +45,13 @@ func modelSliceProgrammedTransport(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, host.Close(context.Background())) }()
 	annotations := &modelSliceAnnotations{host: host}
-	conn, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(annotations.intercept))
+	intercept := func(ctx context.Context, method string, request, response any, conn *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		if _, ok := request.(proto.Message); !ok {
+			return invoke(ctx, method, request, response, conn, opts...)
+		}
+		return annotations.intercept(ctx, method, request, response, conn, invoke, opts...)
+	}
+	conn, err := grpc.NewClient(env.FrontendGRPCAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept))
 	require.NoError(t, err)
 	defer func() { require.NoError(t, conn.Close()) }()
 	for _, kind := range []string{"raw", "sdk"} {
@@ -60,13 +68,38 @@ func modelSliceProgrammedTransport(t *testing.T) {
 			program, err := proto.Marshal(reset.GetProgram())
 			require.NoError(t, err)
 			factory, err := temporaldriver.NewFactory(act.Options{Address: env.FrontendGRPCAddress(), Namespace: start.Namespace, TaskQueue: start.TaskQueue.Name, ExecutorKind: kind, Program: program,
-				Transport: act.Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(annotations.intercept)}},
+				Transport: act.Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept)}},
 			})
 			require.NoError(t, err)
 			run, err := runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, Seed: seed, Budget: 7, RunTimeout: time.Minute})
 			require.NoError(t, err)
+			if run.GetVerdict().GetExplained() == nil {
+				data, err := protojson.Marshal(run)
+				require.NoError(t, err)
+				t.Logf("transport run=%s", data)
+			}
 			require.NotNil(t, run.GetVerdict().GetExplained(), "kind=%s seed=%d verdict=%v", kind, seed, run.GetVerdict())
 			require.NoError(t, factory.Close(t.Context()))
+			for _, event := range run.GetEvents() {
+				packed := event.GetJudgment().GetRequest().GetObservation()
+				if packed == nil {
+					continue
+				}
+				observation := new(realizationv1.Observation)
+				require.NoError(t, packed.UnmarshalTo(observation))
+				for _, response := range []bool{false, true} {
+					message := observation.GetRequest()
+					if response {
+						message = observation.GetResponse()
+					}
+					if message == nil {
+						continue
+					}
+					decoded, err := message.UnmarshalNew()
+					require.NoError(t, err)
+					require.NoError(t, annotations.annotate(observation.Method, response, decoded))
+				}
+			}
 			_, err = workflowservice.NewWorkflowServiceClient(conn).PollActivityExecution(t.Context(), &workflowservice.PollActivityExecutionRequest{Namespace: start.Namespace, ActivityId: start.ActivityId})
 			require.NoError(t, err)
 		}

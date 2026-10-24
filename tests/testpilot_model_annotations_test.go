@@ -167,6 +167,29 @@ func (a *modelSliceAnnotations) annotate(method string, response bool, value any
 	return nil
 }
 
+var modelSliceTransportMethods = []string{
+	workflowservice.WorkflowService_StartActivityExecution_FullMethodName,
+	workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
+	workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName,
+	workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName,
+	workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName,
+	workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName,
+	workflowservice.WorkflowService_PollActivityExecution_FullMethodName,
+}
+
+func (a *modelSliceAnnotations) missingCoverage() []string {
+	var missing []string
+	for _, method := range modelSliceTransportMethods {
+		for _, response := range []bool{false, true} {
+			key := fmt.Sprintf("method=%s response=%t scope=validated", method, response)
+			if a.coverage[key] == 0 {
+				missing = append(missing, key)
+			}
+		}
+	}
+	return missing
+}
+
 func (a *modelSliceAnnotations) assert(t *testing.T) {
 	t.Helper()
 	a.mu.Lock()
@@ -181,20 +204,8 @@ func (a *modelSliceAnnotations) assert(t *testing.T) {
 		t.Logf("actual transport coverage %s attempts=%d", key, a.coverage[key])
 	}
 	require.Empty(t, a.failures, "annotation failures retained through shutdown")
-	for _, method := range []string{
-		workflowservice.WorkflowService_StartActivityExecution_FullMethodName,
-		workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
-		workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName,
-		workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName,
-		workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName,
-		workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName,
-		workflowservice.WorkflowService_PollActivityExecution_FullMethodName,
-	} {
-		for _, response := range []bool{false, true} {
-			prefix := fmt.Sprintf("method=%s response=%t scope=validated", method, response)
-			require.Contains(t, keys, prefix, "missing validated transport coverage")
-		}
-	}
+	require.Empty(t, a.missingCoverage(), "missing validated transport coverage")
+
 }
 
 // modelSliceRunID derives a valid run ID that names the request which produced it.
@@ -469,4 +480,20 @@ func modelSliceAnnotationControls(t *testing.T, wasm []byte) {
 			require.NotEmpty(t, request.GetRequestId())
 		}
 	})
+}
+
+func TestModelSliceCoverageRejectsMissingWorkerTraffic(t *testing.T) {
+	a := &modelSliceAnnotations{coverage: map[string]int{}}
+	for _, method := range modelSliceTransportMethods {
+		for _, response := range []bool{false, true} {
+			a.coverage[fmt.Sprintf("method=%s response=%t scope=validated", method, response)] = 1
+		}
+	}
+	require.Empty(t, a.missingCoverage())
+	for _, method := range []string{workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName} {
+		key := fmt.Sprintf("method=%s response=true scope=validated", method)
+		delete(a.coverage, key)
+		a.coverage[fmt.Sprintf("method=%s response=true scope=out_of_scope:missing instrumentation", method)] = 1
+		require.Contains(t, a.missingCoverage(), key)
+	}
 }
