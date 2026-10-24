@@ -82,17 +82,46 @@ fn actual_pending_reads_complete_and_replay_under_one_mib() {
     );
     let configuration = bind(&producer, &scenario, 7);
     assert_eq!(configuration.broker.transition_bytes, Some(1 << 20));
-    let (execution, proof) = observe_execution(&producer, &configuration);
-    publication_diagnostic(&producer, "pending", "execution", &proof);
+    let prepared =
+        crate::fixture_cluster::prepare_configuration(&configuration, &modules(&producer)).unwrap();
+    let activity = prepared.activity();
+    let execution = crate::backstop::within(prepared.wall_timeout(), || {
+        helper::execute_prepared(prepared).map_err(|error| error.to_string())
+    })
+    .unwrap();
+    let activity = activity.snapshot();
+    let incarnations = execution.incarnations.iter().map(|item| {
+        json!({"handle":item.handle,"outcome":item.execution.outcome,
+            "stdout_base64":item.execution.evidence.get("stdout").map(|raw| crate::campaign::exploration::base64(raw)),
+            "stderr_base64":item.execution.evidence.get("stderr").map(|raw| crate::campaign::exploration::base64(raw)),
+            "evidence":item.execution.evidence.iter().map(|(name,raw)|
+                (name,json!({"bytes":raw.len(),"sha256":canonical::digest(raw)})))
+                .collect::<BTreeMap<_,_>>()})
+    }).collect::<Vec<_>>();
+    publication_diagnostic(
+        &producer,
+        "pending",
+        "execution",
+        &json!({
+        "outcome":execution.outcome,"activity":activity,"incarnations":incarnations,
+        "executed_steps":execution.executed_steps}),
+    );
     fs::write(producer.root.join("broker-world.bin"), &execution.world).unwrap();
     assert_eq!(
         execution.outcome.termination, "exit",
-        "{:?}",
-        execution.outcome
+        "{}",
+        execution.outcome.message
     );
+    assert_eq!(activity.launched_stores, 1);
+    assert_eq!(activity.remote_callback_attempts, 0);
     assert_eq!(execution.incarnations.len(), 1);
     let guest = &execution.incarnations[0].execution;
-    assert_eq!(guest.outcome.exit_code, Some(0), "{:?}", guest.outcome);
+    assert_eq!(
+        guest.outcome.exit_code,
+        Some(0),
+        "{}",
+        guest.outcome.message
+    );
     let stdout = std::str::from_utf8(&guest.evidence["stdout"]).unwrap();
     assert_eq!(
         stdout,
