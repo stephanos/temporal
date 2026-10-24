@@ -19,6 +19,18 @@ func readinessFrame(ids ...uint64) []byte {
 	return data
 }
 
+func TestNetworkV2ReadinessProbePreservesLegacyUndefinedOpcode(t *testing.T) {
+	t.Parallel()
+	e := streamEnvironment(t, streamConfig())
+	encoded, err := json.Marshal(bytesOutput{Data: streamFrame(14, 1, 0, 0, 0, 0, nil)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.runtimeNetworkStream(encoded); err == nil || err.Error() != "WASI invalid: network v2 opcode" {
+		t.Fatalf("legacy invalid opcode result changed: %v", err)
+	}
+}
+
 func TestNetworkV2ReadinessProbe(t *testing.T) {
 	t.Parallel()
 	e := streamEnvironment(t, streamConfig())
@@ -125,7 +137,7 @@ func TestNetworkV2ReadinessProbeRejectsInvalidUnchanged(t *testing.T) {
 		{"inactive", func(_ *testing.T, e *Environment, b []byte) []byte { e.runtime.configured = false; return b }},
 		{"finished", func(_ *testing.T, e *Environment, b []byte) []byte { e.runtime.finished = true; return b }},
 	}
-	for _, offset := range []int{8, 16, 24, 32, 40, 44, 48, 52, 56, 60} {
+	for _, offset := range []int{16, 24, 32, 40, 44, 48, 52, 56, 60} {
 		cases = append(cases, struct {
 			name   string
 			mutate func(*testing.T, *Environment, []byte) []byte

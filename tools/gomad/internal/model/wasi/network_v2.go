@@ -154,7 +154,7 @@ func (e *Environment) runtimeNetworkStream(input json.RawMessage) (bytesOutput, 
 		return bytesOutput{Data: data}, nil
 	}
 	n := e.networkV2
-	if op == 14 {
+	if op == 14 && id == 0 {
 		if n == nil || e.runtime == nil || !e.runtime.configured || e.runtime.finished || !allZero(data[8:36]) || !allZero(data[40:64]) || count > 128 || len(data) != networkStreamHeader+8*int(count) {
 			return bytesOutput{}, invalid("network v2 readiness probe layout")
 		}

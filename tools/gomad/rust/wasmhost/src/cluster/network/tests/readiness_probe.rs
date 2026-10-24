@@ -78,6 +78,12 @@ fn readiness_probe_rejects_malformed_duplicate_foreign_stale_and_inactive_frames
     let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
     let mut a = endpoint(&shared, "a", 1, 1 << 20);
     let mut b = endpoint(&shared, "b", 2, 1 << 20);
+    let mut legacy = probe(&[]);
+    set_u64(&mut legacy, 8, 1);
+    assert_eq!(
+        b.serve(&mut legacy, 1, true),
+        Err(Failure::Invalid("network v2 opcode"))
+    );
     let (listener_a, _) = listener(&mut a);
     let (listener_b, _) = listener(&mut b);
     pending_accept(&mut a, 2, listener_a);

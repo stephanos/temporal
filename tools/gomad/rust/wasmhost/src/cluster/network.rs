@@ -892,7 +892,7 @@ impl Endpoint {
             stream_abi::query(&call, data.len()).map_err(|invalid| Failure::Invalid(invalid.0))?;
             return Ok(());
         }
-        if call.op == stream_abi::READINESS_PROBE_V1 {
+        if call.op == stream_abi::READINESS_PROBE_V1 && call.id == 0 {
             if !runtime {
                 return Err(Failure::Invalid("network v2 readiness probe v1 lifetime"));
             }
