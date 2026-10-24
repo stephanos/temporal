@@ -55,8 +55,12 @@ Go-owned network reference path. That path retains ordinary recording/replay
 support but supplies no inspection metadata; inspection is explicitly unsupported
 and direct low-level inspection refuses ownership before launching a helper.
 The one-box cell reuses the workflow prototype's established 4GiB memory,
-`1<<50` fuel, `1<<28` call and 30-minute execution bounds; these are enforced
-capacities, not measured consumption or a performance claim.
+`1<<50` fuel, `1<<28` call and 30-minute execution bounds. Its native World
+transition budget is 8MiB: the complete original workflow measured 4,718,416
+broker transition bytes, so the explicit canary budget provides about 78%
+headroom. The output bound remains 1MiB. The separate shard and workflow cells
+retain their 1MiB World budgets; generic capacity-refusal tests retain their
+original limits. These are enforced capacities, not a performance claim.
 Typed scenarios use the same whole-program maximum of 1GiB for each incarnation's
 choice trace; an explicit lower limit remains enforced. Recording may use the
 authenticated engine cache at `engine-cache`; retained cluster replay and
@@ -84,7 +88,7 @@ python3 tools/gomad/rust/workload_tools/temporal-inspection.py --owner all \
 | Owner | Release commands (each a fresh `gomad` process) | Bounds |
 | --- | --- | --- |
 | `shard`, `workflow` | `gomad install` (fuel 50,000,000,000, memory 1 GiB); `gomad --installation INST explore --json --seeds 7 --parallel 1 --choices --choice-bytes 8388608 --on-failure first --failure-budget 1 --env GOMAD_DEBUG_CANARY=1 ... go-test ./service/history/<staged> -- -test.run=^<selection>$ -test.v` (expected exit 1, one retained failure); detached `replay`; `replay --stop=failure --dump=stacks --dump=heap --dump=<owner snapshot> --probe=<owner probe> --debug-bytes 8388608 --dump-bytes 4194304` | campaign execution 5 min, overall 15 min, grace 1 s, output and World 1 MiB each; replay steps have no per-command bound below the stage timeout |
-| `onebox` | delegated to `testdata/parity/onebox-inspection-check.py`: `gomad install` (fuel `1<<50`, memory 4 GiB); `explore --scenario` (expected exit 1, one retained failure); detached `replay`; `replay --stop=failure --instance=history --incarnation=1 --dump=stacks --dump=heap --dump=temporal.mutable_states --dump=temporal.shards --probe=temporal.*.snapshot --debug-bytes 8388608 --dump-bytes 4194304`; reopened `replay` | install 600 s, explore 2,700 s (campaign execution 30 min, overall 45 min), each replay/inspection 1,800 s |
+| `onebox` | delegated to `testdata/parity/onebox-inspection-check.py`: `gomad install` (fuel `1<<50`, memory 4 GiB); `explore --scenario` (expected exit 1, one retained failure); detached `replay`; `replay --stop=failure --instance=history --incarnation=1 --dump=stacks --dump=heap --dump=temporal.mutable_states --dump=temporal.shards --probe=temporal.*.snapshot --debug-bytes 8388608 --dump-bytes 4194304`; reopened `replay` | install 600 s, explore 2,700 s (campaign execution 30 min, overall 45 min), output 1 MiB, native World transitions 8 MiB, each replay/inspection 1,800 s |
 
 The whole stage is bounded by the driver's 3,600 s `temporal-inspection` timeout
 and the unchanged 3,600 s cycle limit.
@@ -232,8 +236,8 @@ Inspection retains its preparation plan/artifact/provenance and complete raw
 overlay descriptor bytes. Its unchanged raw scenario witness is captured before
 and after recording, limited to the owner's 256 KiB bound, and authenticated
 against both the exact original boot/address/start-wait/fault envelope and typed
-prepared provenance. Exact install/explore argv retain the original campaign
-bounds, including the 1 MiB world-transition cap. Private compiler aliases use
+prepared provenance. Exact install/explore argv retain the declared campaign
+bounds, including the explicit 8 MiB onebox world-transition cap. Private compiler aliases use
 a fresh inspection preparation cache; the requested original cache remains bound
 to the candidate inventory. Its explicit compiler/runtime/cache alias roots define
 a typed inventory view: stock files and runtime inputs compare by their declared
