@@ -33,9 +33,18 @@ Run the existing broad-stage, live reach, counterfactual receiving and executed-
 - [ ] Focused producer/reader regressions pass; .14 retains reach closure and .13 retains the actual 96-stage cycle/evidence obligation.
 
 ## Done summary
-TBD
+Absent executed-divergence declarations now remain explicit UNEXECUTED, uncredited reach gaps under the owner's report-only policy. Broad diagnostics and the final reach reader independently preserve those facts. Enabling reach completeness refuses absence. Declared malformed, failed, corrupted or mismatched bindings remain strict refusals.
 
+Declared child execution now receives explicit configuration through the existing verified loader. Dry-run roles without verified configuration refuse; ordinary frozen-role behavior remains supported. The synchronized broad-build boundary from .17 is unchanged.
+
+The retained regressions failed before implementation. All 71 focused checks pass, including independent diagnostics/credit tampering and real child-CLI configuration admission. The mandatory combined gate passed on b15d9b5e0eb0c044612c8fb28db9a701aeea25de, with all 583 Python driver tests passing. Log: /home/agent/wt/evidence/fn232-split-closure/counterfactual-integration-gate.log.
+
+stage: wave-dispatch - ran (model: gpt-6.1-sol)
+stage: impl-review - ran: SHIP across correctness, contracts and integration (model: gpt-6.1-sol)
+stage: plan-sync - skipped(config: disabled)
+
+Review receipt: /home/agent/wt/evidence/fn232-split-closure/counterfactual-review.json. Source and review commits remain reachable from gomad. The actual 96-stage cycle remains owned by .13; remaining reach ports and strict completeness restoration remain owned by .14. Tracker sync: n/a (bridge inactive). No push or PR.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 645e00f0613d5bf7e5fe35005b2b02fd95588e8e, b15d9b5e0eb0c044612c8fb28db9a701aeea25de, 7b5556210f
+- Tests: timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_executed_divergence.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_broad_stages.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_live.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_broad_harness.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_dry_run.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_dry_run_readiness.py, timeout 600 env PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_live_backend_roles.py, git diff --check, PATH=<stock-Go1.27.1>/bin:$PATH GOCACHE=/home/agent/.cache/go-build-fn232-corpus CARGO_TARGET_DIR=<workspace>/.build-cache/fn232-composition-target CARGO_BUILD_JOBS=2 make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism; exit0 onb15d9b5e0eb0c044612c8fb28db9a701aeea25de; 583 driver tests pass
 - PRs:

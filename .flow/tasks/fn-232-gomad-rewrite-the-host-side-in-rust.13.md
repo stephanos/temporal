@@ -277,3 +277,10 @@ Append three narrowly scoped fix tasks; preserve fn-232.1 through .12 as done an
 Execution wave one is .15 and .17. Task .16 depends on .17 because both change `broad_stages.py`. Task .13 depends on all three fixes and remains the actual green 96-stage cycle plus unchanged correctness, replay, determinism, identity, memory, capacity, documentation, size and retained-evidence obligations under the owner's existing performance deferral. Focused fix tests cannot substitute for that cycle.
 
 Task .14 explicitly follows .13; encode that dependency while preserving its existing reach-closure scope. Until .14, absent counterfactual reach may be reported only as explicit unexecuted, uncredited reach with `REACH_GAPS_BLOCK=false`; declared malformed or failed bindings remain strict refusals. These tasks neither close the reach gaps nor claim a cycle pass.
+
+
+### Closure fixes integrated (2026-10-24)
+
+Tasks .15, .16 and .17 are implemented, independently reviewed SHIP, integrated into gomad and verified done in Flow. Their focused regressions and full mandatory gates pass; the final combined gate on b15d9b5e0eb0c044612c8fb28db9a701aeea25de passed all 583 driver tests. Evidence and review receipts: /home/agent/wt/evidence/fn232-split-closure/.
+
+The next actual cycle uses launch-next.py in that evidence directory, with an explicit current clean HEAD and fresh output tag. It authenticates reusable semantic inputs without changing their original build provenance and genuinely regenerates the R4 bridge-helper receipt for the executed commit. C4 remains a failed validate attempt with zero passing stage receipts. This task remains open until the actual green 96-stage cycle and all existing receiving/size/evidence reconciliation obligations are satisfied.
