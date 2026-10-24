@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:09:22.411588Z",
+  "depends_on": [
+    "fn-246-realization-as-a-checked-refinement-a.1"
+  ],
+  "id": "fn-246-realization-as-a-checked-refinement-a.4",
+  "priority": null,
+  "spec": "fn-246-realization-as-a-checked-refinement-a",
+  "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.4.md",
+  "status": "todo",
+  "title": "Protocol Model of the standalone-activity API and the Refinement fixture consumer; the activity Model declares refines",
+  "updated_at": "2026-10-24T16:09:22.411588Z"
+}
