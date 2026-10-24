@@ -1,0 +1,588 @@
+{
+  "schema": "gomad.fn242-cycle-foundation-leaf-proof/v1",
+  "task": "fn-242-gomad-shrink-the-qualification.11",
+  "base_commit": "85c7e8053967b850ac0d7e8f30c6d608b610c194",
+  "source_commit": "f5f1a27342642407f6faa35c2fd67089482d99a1",
+  "status": "executed focused control/mutation evidence; review pending; no qualification credit",
+  "original_evidence": "Initial parent-directory evidence remains immutable",
+  "original_source_commit": "c53c2a7a05",
+  "original_schema": "gomad.fn242-stage-inventory/v1",
+  "golden": {
+    "path": ".flow/artifacts/fn242-stage-table.json",
+    "sha256": "03adbaca3601a01b1be71a9e80e0a155d99e543fa3b6d7e8411fd83c33afed79"
+  },
+  "inventory": {
+    "path": ".flow/artifacts/fn242-obligation-inventory.json",
+    "sha256": "21b500b6272f5b303c22e921225235ef6917d87f141a41d1429641f9d81bd4e3"
+  },
+  "original_leaf_sources": {
+    "tools/gomad/rust/driver/static_stages.py": "3bc7379bbbc4c8d4eb0a6b0ab4437bee111533e0f3e9d7d8ebd59ffcb7ba8f2d",
+    "tools/gomad/rust/driver/primary_stages.py": "dbdd8c4c1b74d869b2fa1f31ef6486d1e13e56c864dd4cb270913a0a67bdcac2",
+    "tools/gomad/rust/driver/ordinary_receiving.py": "46f523d1c56e43ad49afa2cb70c59f4055ba6dffec0f5366e3a28a2b2c25a90b",
+    "tools/gomad/rust/driver/broad_harness.py": "bb3f3ac489a768ddfce8f77d1bc07516c78782b136f75ea8975f45f8d5f3a518",
+    "tools/gomad/rust/driver/runtime_gate.py": "8301343450ed38a58a4c7d55e33c70372d9a96ee42ef7e3aebebb5e2af7c45c7",
+    "tools/gomad/rust/driver/adapters.py": "b97ca282c5d16156e06573d2546e09c3cb3be812d509c518f6abf7a9f533401f",
+    "tools/gomad/rust/driver/installed_lifecycle_families.py": "5c28edb62120576955ed91a9cbf266ac02da28ba27e1e62213c5b4ef0d7c415c"
+  },
+  "source_bindings": [
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf/broad.rs",
+      "sha256": "73784592f349a97e7f7d554753366b7eaca786be245b27836b1648c0433e1018"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs",
+      "sha256": "eae7f5b699dd3636c25ba87fe9791bd41c7ba48a1c2fc2fdb15d07afedc9182b"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf/ordinary.rs",
+      "sha256": "530362f89a93a8a81d4d8dec7218ccc69b9d2f5084cf5ff3383657f2053337a8"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf/primary.rs",
+      "sha256": "f1f27987c34a960d032ce421680e1560316b9b4d968567b3f5a855d878fb80cc"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
+      "sha256": "443dfcf2771a532365367aec35a8a5e3e0565c65ae29efc52876a842737eb00e"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/leaf_tests.rs",
+      "sha256": "e274660e91533e331a8ccea818f65190fbdff3c92b5107a4eed17eaf3c8d54eb"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+      "sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782"
+    },
+    {
+      "path": "tools/gomad/rust/gomad/src/cycle/plan/tests.rs",
+      "sha256": "914353778391254212fbfeb71e80c3c2a1513eb4c75b53fe1cc87097957a57a1"
+    }
+  ],
+  "proofs": [
+    {
+      "id": "orchestration:driver:83",
+      "original": {
+        "id": "orchestration:driver:83",
+        "source": "tools/gomad/rust/driver/driver.py",
+        "function": "mapping",
+        "line": 83,
+        "end_line": 83,
+        "kind": "require",
+        "predicate": "len(labels) == len(set(labels)) == 96",
+        "message": "'missing/duplicate semantic stage'",
+        "path_conditions": [],
+        "failure": "mapping: predicate false: len(labels) == len(set(labels)) == 96",
+        "disposition": "pending_regression",
+        "proof_refs": [],
+        "owner": "fn-242.2",
+        "required_regression": {
+          "name": "rust_driver_83_isolated_refusal",
+          "mutation": "Pass earlier guards, then violate this exact predicate: len(labels) == len(set(labels)) == 96",
+          "assertion": "Observe this check itself refusing before publication/dispatch or preserving its scheduler exclusion.",
+          "reason": "No passing selected test directly caught this check in the traced execution; source-only or ancestor-call evidence is insufficient."
+        },
+        "source_expression": "require(len(labels) == len(set(labels)) == 96, 'missing/duplicate semantic stage')",
+        "source_sha256": "153c0a969c57bfe983c2b22412c56c88618afc1eb5b00ed9e795ea6fa64c78de",
+        "predicate_semantics": "Evaluate this exact local expression under each structured ancestor expression and required_value. Never concatenate unparenthesized branches or erase else polarity.",
+        "trust_boundary_ref": "driver",
+        "semantic_family_ref": "semantic"
+      },
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+      "rust_source_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+      "actual_rust_binding": "cycle::plan::validate_mapping",
+      "test": "cycle::plan::tests::rust_driver_83_isolated_refusal",
+      "control": "accepted",
+      "input_mutation": "exact owned semantic-label or mode violation",
+      "mutation_outcome": "exact expected error asserted",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::",
+        "--",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-tests.log",
+      "log_sha256": "7a158bc5f87999a007b376c91f3c7af65db471003a91db0c9a7c8b5596e03de6",
+      "source_countermutation": {
+        "id": "orchestration:driver:83",
+        "mutation": "disable exact guard",
+        "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+        "original_rust_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+        "mutated_rust_sha256": "ca671b1e1c272917b1eae71bb10a99b6e51cf4d65db6d95547280f2a568de28f",
+        "command": [
+          "timeout",
+          "600",
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::plan::tests::rust_driver_83_isolated_refusal",
+          "--",
+          "--exact",
+          "--nocapture",
+          "--test-threads=2"
+        ],
+        "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+        "numeric_exit": 101,
+        "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-83.log",
+        "log_sha256": "e754c8a76acb64147b6126b73968e3d7de38a02d065e5d3fac6b53cd6c1f553d",
+        "elapsed_seconds": 14.393343448638916,
+        "restored": true
+      }
+    },
+    {
+      "id": "orchestration:driver:84",
+      "original": {
+        "id": "orchestration:driver:84",
+        "source": "tools/gomad/rust/driver/driver.py",
+        "function": "mapping",
+        "line": 84,
+        "end_line": 84,
+        "kind": "require",
+        "predicate": "set(labels) == set(scheduler.load_dag(DAG))",
+        "message": "'semantic stage/DAG mismatch'",
+        "path_conditions": [],
+        "failure": "mapping: predicate false: set(labels) == set(scheduler.load_dag(DAG))",
+        "disposition": "pending_regression",
+        "proof_refs": [],
+        "owner": "fn-242.2",
+        "required_regression": {
+          "name": "rust_driver_84_isolated_refusal",
+          "mutation": "Pass earlier guards, then violate this exact predicate: set(labels) == set(scheduler.load_dag(DAG))",
+          "assertion": "Observe this check itself refusing before publication/dispatch or preserving its scheduler exclusion.",
+          "reason": "No passing selected test directly caught this check in the traced execution; source-only or ancestor-call evidence is insufficient."
+        },
+        "source_expression": "require(set(labels) == set(scheduler.load_dag(DAG)), 'semantic stage/DAG mismatch')",
+        "source_sha256": "153c0a969c57bfe983c2b22412c56c88618afc1eb5b00ed9e795ea6fa64c78de",
+        "predicate_semantics": "Evaluate this exact local expression under each structured ancestor expression and required_value. Never concatenate unparenthesized branches or erase else polarity.",
+        "trust_boundary_ref": "driver",
+        "semantic_family_ref": "semantic"
+      },
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+      "rust_source_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+      "actual_rust_binding": "cycle::plan::validate_mapping",
+      "test": "cycle::plan::tests::rust_driver_84_isolated_refusal",
+      "control": "accepted",
+      "input_mutation": "exact owned semantic-label or mode violation",
+      "mutation_outcome": "exact expected error asserted",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::",
+        "--",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-tests.log",
+      "log_sha256": "7a158bc5f87999a007b376c91f3c7af65db471003a91db0c9a7c8b5596e03de6",
+      "source_countermutation": {
+        "id": "orchestration:driver:84",
+        "mutation": "disable exact guard",
+        "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+        "original_rust_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+        "mutated_rust_sha256": "e4a451cc89385a95e082107323912956543e3399e2ead1b027227182f2bba1a5",
+        "command": [
+          "timeout",
+          "600",
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::plan::tests::rust_driver_84_isolated_refusal",
+          "--",
+          "--exact",
+          "--nocapture",
+          "--test-threads=2"
+        ],
+        "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+        "numeric_exit": 101,
+        "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-84.log",
+        "log_sha256": "0deee9bc23cec2a93b7c018a6059a01ff5723e9ebd0f4f4b704df7af4526de3d",
+        "elapsed_seconds": 15.112772941589355,
+        "restored": true
+      }
+    },
+    {
+      "id": "orchestration:driver:89",
+      "original": {
+        "id": "orchestration:driver:89",
+        "source": "tools/gomad/rust/driver/driver.py",
+        "function": "stage_commands",
+        "line": 89,
+        "end_line": 89,
+        "kind": "require",
+        "predicate": "mode in ('serial', 'parallel')",
+        "message": "'unknown mode'",
+        "path_conditions": [],
+        "failure": "stage_commands: predicate false: mode in ('serial', 'parallel')",
+        "disposition": "pending_regression",
+        "proof_refs": [],
+        "owner": "fn-242.2",
+        "required_regression": {
+          "name": "rust_driver_89_isolated_refusal",
+          "mutation": "Pass earlier guards, then violate this exact predicate: mode in ('serial', 'parallel')",
+          "assertion": "Observe this check itself refusing before publication/dispatch or preserving its scheduler exclusion.",
+          "reason": "No passing selected test directly caught this check in the traced execution; source-only or ancestor-call evidence is insufficient."
+        },
+        "source_expression": "require(mode in ('serial', 'parallel'), 'unknown mode')",
+        "source_sha256": "153c0a969c57bfe983c2b22412c56c88618afc1eb5b00ed9e795ea6fa64c78de",
+        "predicate_semantics": "Evaluate this exact local expression under each structured ancestor expression and required_value. Never concatenate unparenthesized branches or erase else polarity.",
+        "trust_boundary_ref": "driver",
+        "semantic_family_ref": "semantic"
+      },
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/model.rs",
+      "rust_source_sha256": "90e5a5f83e4e631dfd2140b8884fe556ad23002fb006c2e450182049c68909b1",
+      "actual_rust_binding": "cycle::model::Mode::from_str",
+      "test": "cycle::plan::tests::rust_driver_89_isolated_refusal",
+      "control": "accepted",
+      "input_mutation": "exact owned semantic-label or mode violation",
+      "mutation_outcome": "exact expected error asserted",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::",
+        "--",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-tests.log",
+      "log_sha256": "7a158bc5f87999a007b376c91f3c7af65db471003a91db0c9a7c8b5596e03de6",
+      "source_countermutation": {
+        "id": "orchestration:driver:89",
+        "mutation": "disable exact guard",
+        "rust_source": "tools/gomad/rust/gomad/src/cycle/model.rs",
+        "original_rust_sha256": "90e5a5f83e4e631dfd2140b8884fe556ad23002fb006c2e450182049c68909b1",
+        "mutated_rust_sha256": "e977f25d61b172d4b18e2b91271bff1c6e9c3d38b7316703f453fa7f829e2136",
+        "command": [
+          "timeout",
+          "600",
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::plan::tests::rust_driver_89_isolated_refusal",
+          "--",
+          "--exact",
+          "--nocapture",
+          "--test-threads=2"
+        ],
+        "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+        "numeric_exit": 101,
+        "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-89.log",
+        "log_sha256": "8ede368c8007d30fd74ccce7e2c50fc8aa97ac7945b40702d869aaf02d6dc8ba",
+        "elapsed_seconds": 14.822950601577759,
+        "restored": true
+      }
+    }
+  ],
+  "leaf_proof": {
+    "actual_rust_binding": "cycle::model::Stage::{leaf_commands,validate_leaf_commands}",
+    "implementation": "tools/gomad/rust/gomad/src/cycle/plan/leaf/",
+    "control": "all 235 fixed recipes on all 88 applicable stage rows compare argv and every original recipe metadata field",
+    "fixed_recipes": 235,
+    "fixed_rows": 88,
+    "modes": [
+      "parallel",
+      "serial"
+    ],
+    "binding_sets": 2,
+    "total_fixed_recipe_comparisons": 940,
+    "dynamic_empty_rows": 8,
+    "dynamic_contract": "exact RuntimeAggregate(32), Corpus(false/true), SqliteSelection(0..3), SqliteCatalogue variants",
+    "runtime_expansions": "all 32 exact RuntimeShard(index,25 instances,1 replay,600 seconds) variants",
+    "binding_rules": "Only declared exact path values, Repo/Root descendant prefixes and named GOLANGCI_LINT/ERRORTYPE composite values may rebind. No arbitrary normalization. Explicit selected installation/spec paths may be unrelated directories. Prefix substitution uses only the pinned 38-entry endpoint ledger; all other leaf tokens stay exact.",
+    "mutated_input": "portable fixed leaf argument -timeout=20m replaced by -timeout=19m while the Stage.argv wrapper is asserted unchanged",
+    "mutation_outcome": "Stage::validate_leaf_commands returns changed leaf command contract",
+    "command": [
+      "timeout",
+      "600",
+      "cargo",
+      "+1.99.1",
+      "test",
+      "--locked",
+      "-p",
+      "gomad",
+      "--lib",
+      "cycle::plan::",
+      "--",
+      "--nocapture",
+      "--test-threads=2"
+    ],
+    "numeric_exit": 0,
+    "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-tests.log",
+    "log_sha256": "7a158bc5f87999a007b376c91f3c7af65db471003a91db0c9a7c8b5596e03de6",
+    "source_countermutation": {
+      "id": "R2:preserved-leaf-argument",
+      "mutation": "change portable leaf -timeout=20m to -timeout=19m without changing outer wrapper",
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
+      "original_rust_sha256": "443dfcf2771a532365367aec35a8a5e3e0565c65ae29efc52876a842737eb00e",
+      "mutated_rust_sha256": "90dc9397375c2e72ff4b78f7d7aa5e160019a8497de4a6f2595cc5c2ca2affbf",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::leaf_tests::all_235_fixed_leaf_recipes_match_independent_golden",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 101,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-leaf-argument.log",
+      "log_sha256": "12e9367a538af3d2b111673e259954a3fe7e09a9209dac7d56e72cfd3929f821",
+      "elapsed_seconds": 13.417145490646362,
+      "restored": true
+    }
+  },
+  "verification": [
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--all"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "fmt-check",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/fmt-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-tests",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::",
+        "--",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-tests.log",
+      "log_sha256": "7a158bc5f87999a007b376c91f3c7af65db471003a91db0c9a7c8b5596e03de6"
+    },
+    {
+      "name": "final-clippy",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/final-clippy.log",
+      "log_sha256": "8001824a949cb682c6e6510b59190134e1c3670ebb32806811a80b5ae457557c"
+    }
+  ],
+  "raw_source_mutations": [
+    {
+      "id": "orchestration:driver:83",
+      "mutation": "disable exact guard",
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+      "original_rust_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+      "mutated_rust_sha256": "ca671b1e1c272917b1eae71bb10a99b6e51cf4d65db6d95547280f2a568de28f",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::tests::rust_driver_83_isolated_refusal",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 101,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-83.log",
+      "log_sha256": "e754c8a76acb64147b6126b73968e3d7de38a02d065e5d3fac6b53cd6c1f553d",
+      "elapsed_seconds": 14.393343448638916,
+      "restored": true
+    },
+    {
+      "id": "orchestration:driver:84",
+      "mutation": "disable exact guard",
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/mod.rs",
+      "original_rust_sha256": "9c521635016573d58bf80c8dec4990c7bbc71bb2f1e4b048e3b866ed9102f782",
+      "mutated_rust_sha256": "e4a451cc89385a95e082107323912956543e3399e2ead1b027227182f2bba1a5",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::tests::rust_driver_84_isolated_refusal",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 101,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-84.log",
+      "log_sha256": "0deee9bc23cec2a93b7c018a6059a01ff5723e9ebd0f4f4b704df7af4526de3d",
+      "elapsed_seconds": 15.112772941589355,
+      "restored": true
+    },
+    {
+      "id": "orchestration:driver:89",
+      "mutation": "disable exact guard",
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/model.rs",
+      "original_rust_sha256": "90e5a5f83e4e631dfd2140b8884fe556ad23002fb006c2e450182049c68909b1",
+      "mutated_rust_sha256": "e977f25d61b172d4b18e2b91271bff1c6e9c3d38b7316703f453fa7f829e2136",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::tests::rust_driver_89_isolated_refusal",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 101,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-89.log",
+      "log_sha256": "8ede368c8007d30fd74ccce7e2c50fc8aa97ac7945b40702d869aaf02d6dc8ba",
+      "elapsed_seconds": 14.822950601577759,
+      "restored": true
+    },
+    {
+      "id": "R2:preserved-leaf-argument",
+      "mutation": "change portable leaf -timeout=20m to -timeout=19m without changing outer wrapper",
+      "rust_source": "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
+      "original_rust_sha256": "443dfcf2771a532365367aec35a8a5e3e0565c65ae29efc52876a842737eb00e",
+      "mutated_rust_sha256": "90dc9397375c2e72ff4b78f7d7aa5e160019a8497de4a6f2595cc5c2ca2affbf",
+      "command": [
+        "timeout",
+        "600",
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--locked",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::plan::leaf_tests::all_235_fixed_leaf_recipes_match_independent_golden",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=2"
+      ],
+      "cwd": "/home/agent/wt/fn242-rust-cycle/tools/gomad/rust",
+      "numeric_exit": 101,
+      "log": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/mutant-leaf-argument.log",
+      "log_sha256": "12e9367a538af3d2b111673e259954a3fe7e09a9209dac7d56e72cfd3929f821",
+      "elapsed_seconds": 13.417145490646362,
+      "restored": true
+    }
+  ],
+  "qualification": {
+    "full_attempts_used": 0,
+    "full_attempts_remaining": 2,
+    "actual_endpoint_execution": "pending assigned successor owners"
+  },
+  "shared_guidance": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.git/flow-notes/fn242-20261024T1800-cycle-wave/leaf-command-authority.md",
+  "target_ownership": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn242-cycle-rust-target-v1",
+    "status": "released to conductor; all worker command sessions terminated"
+  },
+  "conductor_integration": {
+    "source_commit": "f5f1a27342642407f6faa35c2fd67089482d99a1",
+    "integrated_commit": "af38a745a9641c46cbe7de597ebdbc278cfe3315",
+    "original_proof": ".flow/artifacts/fn242-cycle-foundation-proof.json",
+    "worker_proof_map": "/home/agent/wt/evidence/fn242-cycle-foundation/leaf-review-fix/proof-map.json",
+    "worker_proof_map_sha256": "022332fc40fae3dce1e989fd2c6d437131a990311f2b25e5a48a984613cc677d",
+    "scope": "local foundation proof only; independent endpoints and qualification remain pending"
+  }
+}
