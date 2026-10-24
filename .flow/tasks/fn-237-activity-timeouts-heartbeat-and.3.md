@@ -11,7 +11,7 @@ This task is the activity-policy consumer of completed F (fn-237.1), O (fn-237.2
 **Size:** M after fn-227.3/F/O. One existing activity lifecycle extension using already-proved typed parameters, facts, source admission and replay. Native/TLC policy matrices, fairness and the existing refinement harness are substantial controls of that one extension. A newly required unsupported source construct returns to explicit support planning; it cannot be hidden by removing a law or using native-graph emission.
 **Dependencies:** Consume fn-237-activity-timeouts-heartbeat-and.1 (F) and fn-237-activity-timeouts-heartbeat-and.2 (O). Cross-spec prerequisite fn-227.3 (retries and the retained-lifecycle refinement harness), satisfied through this spec's dependency on fn-227. No dependency on fn-227.12 (T); live timeout and cancellation admission belongs to fn-237.4, which consumes this task; fn-237.5 follows it.
 **Files:** `model/temporal/feature/activity/{model.rs,tests.rs,temporal.rs,phase.rs}`; activity `expected/**`; the fn-227.3-owned `compatibility/**` projection/harness, without changing immutable old reference bytes; `model/temporal/realization/tests/realization.rs` only for compatibility with the new state/actions before fn-237.4's evidence implementation; `model/temporal/hosts/go/umpire_temporal_guest.wasm`; `model/README.md`.
-**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/README.md]
+**Touches:** [model/temporal/feature/activity/**, model/temporal/realization/src/live.rs, model/temporal/realization/tests/**, model/temporal/testing/**, model/temporal/hosts/go/umpire_temporal_guest.wasm, model/README.md]
 
 ### Approach
 
@@ -49,6 +49,10 @@ Consume the revised R2 matrix and retained independent public research. Tick sel
 
 
 Selected policy and provenance: `.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-contract.md`; exact live evidence limits are in `cancellation-boundary-evidence-shape.md`. Fresh plan review must pass before implementation.
+
+### Constructor compatibility owner (plan-review P2)
+
+This task owns minimal production constructor compatibility in `model/temporal/realization/src/live.rs` and the feature default-runtime constructors when the generated World gains fields, so its gates compile before .4 adds live admission. Preserve the exact pre-.4 admitted semantics: actual maximum_attempts plus atomic cancellation and the previous timeout-absent live defaults; do not enable cooperative mode, fabricate Start fields or admit nonzero timeout values here. The declared final offline compatibility World separately retains its one-tick deadlines and exact old projection. .4 later replaces the live defaults with validated request-derived fields and a pinned binding. Keep the existing unheld atomic scope refusal until .5 consumes .4's committed proof.
 ## Acceptance
 - [ ] Independently specify repeated cancellation while a cancellation request is pending from the approved domain/API contract before comparing implementation behavior. The retained server code 9 observation does not itself authorize Model semantics or a NotFound remapping; preserve a genuine disagreement as a finding.
 - [ ] All four deadline arming/reset/spanning and authored simultaneous-priority controls pass. Exact expiry facts, zero handling and disabled no-budget Tick survive native/TLC agreement and replay.
