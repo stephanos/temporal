@@ -1,0 +1,7 @@
+live-tests rc=0 755s
+model-slice rc=0 12s
+lint rc=2 76s
+model-check rc=0 486s
+model-time rc=0 581s
+gate total                       571.968s  (soft target 60s)
+inner loop                        8.864s  (soft target 10s)

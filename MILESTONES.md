@@ -59,7 +59,8 @@ inner loop 6.112s met 10s. Timeout and cooperative-cancellation work is schedule
 fn-238 is complete locally: one shared front end, and the interpreter as a differential check
 over every admitted Model the gate reaches. .6 kept the compiled checker as the default because
 its gate was not met (Kettle upper quartile 2.01x, sets unmeasurable); the reviewed switch is kept
-on `work/fn2386-interpreted-switch`, and .6's required timing gate on the merged tip is owed.
+on `work/fn2386-interpreted-switch`. Its required gate passed on the merged tip at `d23625a390`
+(572.0s gate, 8.9s inner loop, quiet machine).
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -107,7 +108,7 @@ publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner
 | Name | Status | What |
 | --- | --- | --- |
 | fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
-| fn-228.6 | 🔄 in progress | Code committed (96d635bc17..e689481277; generic 1,647 / total 3,317 lines); review and live, slice, lint and model gates owed. After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
+| fn-228.6 | 🔄 in progress | Code committed (96d635bc17..e689481277; generic 1,647 / total 3,317 lines); live tests, slice, default and required gates passed at `d23625a390` (572.0s gate); review owed. After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .6, fn-244.2 and fn-243.2; writes R40 in its final form (programmed workers): DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ### fn-244: Package layout of model/umpire: role directories, clear names, a crate map (model)
