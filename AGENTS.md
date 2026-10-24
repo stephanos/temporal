@@ -119,6 +119,11 @@ proves a retained guarantee; source binding does not require recompiling a sourc
 for every predicate. Use representative high-risk source mutants and focused changed-scope
 checks, preserving direct failure attribution and valid controls.
 
+The six source-writing lanes include nested implementation delegates. The conductor
+allocates those lanes across batches; a batch leader must reconcile all delegated work
+and remain its sole committer. Read-only support does not consume a writing lane.
+The two heavy build slots remain conductor-assigned, with one owner per target.
+
 Before fn-242 admission, implementation, review or resume, read the
 [execution batches](.flow/artifacts/fn242-execution-batches.md) and its machine-readable
 [manifest](.flow/artifacts/fn242-execution-batches.json). This owner-authorized policy

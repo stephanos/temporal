@@ -11233,12 +11233,14 @@
     "heavy_build_slots": 2,
     "review_lanes_suggested": 2,
     "rules": [
+      "The six source-writing lanes include nested implementation delegates. The conductor allocates them across batches; leaders remain sole committers and reconcile every delegate. Read-only support consumes no writing lane.",
       "Writers without a heavy slot continue source work, fixtures, small checks and proof mapping. Every Cargo build or test that causes a heavy compilation takes one of the two slots. Review retries and final gates use the same pool.",
       "Avoid simultaneous shared target mutations. Keep the current assigned target ownership and coordinate a dedicated target or existing target owner for each heavy wave. Do not blanket-delete shared caches.",
       "Run df -h . /home/agent before every heavy wave and after large runs. Follow AGENTS.md disk and worktree ownership rules.",
       "Dispatch B05/B06/B08/B09/B10/B11 as six independent source lanes once B03/B04 and admission dependencies permit; producer lanes need B03/B02 and can start before B04 finishes.",
       "Do not impose whole-wave completion barriers. Admit B07/B12/B13 as their own prerequisites finish and B14 as its own union dependencies finish. Reviews can overlap disjoint later writing."
-    ]
+    ],
+    "writer_lanes_include_nested_delegates": true
   },
   "first_dispatches": [
     {

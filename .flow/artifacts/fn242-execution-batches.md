@@ -240,7 +240,7 @@ Leader dependency additions: none.
 
 B01-B15 each receive one independent fresh-context whole-batch review. B16 receives three independent final cutover draws. The proposal requires 18 review draws in total. Child tasks consume evidence from the same actually reviewed implementation. They retain their own acceptance and proof IDs.
 
-Six writers may edit disjoint admitted unions. Only two heavy builds or compilation-causing tests may run at once, including reviewer verification and cutover checks. Review can overlap disjoint source work. Check disk before every heavy wave, respect current target ownership and preserve active/shared cache inputs.
+Six source writers total, including nested implementation delegates, may edit disjoint admitted unions. The conductor allocates those lanes across active batches; leaders remain the sole committers and reconcile every delegate. Read-only support does not consume a writing lane. Only two heavy builds or compilation-causing tests may run at once, including reviewer verification and cutover checks. Review can overlap disjoint source work. Check disk before every heavy wave, respect current target ownership and preserve active/shared cache inputs.
 
 ## Sizing and proof limits
 
