@@ -1,11 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use umpire_tla::{Module, Type as LiftType};
+use umpire_tla::{Literal, Module, Type as LiftType};
 
-use crate::{Refusal, Schema, Type, runner::split_cfg};
+use crate::{Refusal, Schema, Type, Value, runner::split_cfg};
 
 pub(crate) fn schema(module: &Module) -> Result<Schema, Refusal> {
     identifier(&module.name)?;
+    validate_binding(module)?;
     for parameter in &module.metadata.parameters {
         backend_type(&parameter.ty, 0)?;
     }
@@ -108,6 +109,91 @@ fn identifier(name: &str) -> Result<(), Refusal> {
         || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
     {
         return Err(Refusal(format!("invalid declared TLA+ identifier {name:?}")));
+    }
+    Ok(())
+}
+
+fn binding_value(ty: &LiftType, literal: &Literal) -> Result<Value, Refusal> {
+    let value = match (ty, literal) {
+        (LiftType::Bool, Literal::Bool(value)) => Value::Bool(*value),
+        (LiftType::Int { .. }, Literal::Int(value)) => Value::Int(*value),
+        (LiftType::Enum { .. }, Literal::Enum(value)) => Value::Text(value.clone()),
+        (LiftType::Bounded(bound), Literal::Bounded { name, raw }) if name == &bound.name => {
+            Value::Int(*raw)
+        }
+        (LiftType::Optional(_), Literal::Optional(None)) => Value::Int(0),
+        (LiftType::Optional(bound), Literal::Optional(Some(payload))) => {
+            let Literal::Bounded { name, raw } = payload.as_ref() else {
+                return Err(Refusal("invalid selected nominal payload".into()));
+            };
+            if name != &bound.name {
+                return Err(Refusal("selected nominal identity differs".into()));
+            }
+            Value::Int(
+                bound
+                    .encode(*raw)
+                    .ok_or_else(|| Refusal("invalid selected optional payload".into()))?,
+            )
+        }
+        _ => return Err(Refusal("selected World literal differs from its declared type".into())),
+    };
+    if !backend_type(ty, 0)?.accepts(&value)
+        || matches!(&value, Value::Int(raw) if !(0..=i128::from(i32::MAX)).contains(raw))
+    {
+        return Err(Refusal("selected World value is outside its declared CFG domain".into()));
+    }
+    Ok(value)
+}
+
+fn validate_binding(module: &Module) -> Result<(), Refusal> {
+    let parameters = &module.metadata.parameters;
+    let constants = constant_bindings(&module.cfg);
+    if parameters.is_empty() {
+        if !constants.is_empty()
+            || module.metadata.binding.as_ref().is_some_and(|binding| !binding.world.is_empty())
+        {
+            return Err(Refusal("unexpected selected World bindings".into()));
+        }
+        return Ok(());
+    }
+    let binding = module
+        .metadata
+        .binding
+        .as_ref()
+        .ok_or_else(|| Refusal("missing selected World binding".into()))?;
+    if binding.world.len() != parameters.len() {
+        return Err(Refusal("selected World fields differ from parameter declarations".into()));
+    }
+    let mut fields = BTreeMap::new();
+    let mut expected = BTreeMap::new();
+    let mut names = BTreeSet::new();
+    for parameter in parameters {
+        identifier(&parameter.symbol)?;
+        if !names.insert(&parameter.field)
+            || fields.insert(parameter.symbol.clone(), backend_type(&parameter.ty, 0)?).is_some()
+        {
+            return Err(Refusal("duplicate selected World parameter".into()));
+        }
+        let literal = binding
+            .world
+            .iter()
+            .find(|(name, _)| name == &parameter.field)
+            .map(|(_, value)| value)
+            .ok_or_else(|| Refusal(format!("missing selected World field {}", parameter.field)))?;
+        expected.insert(parameter.symbol.clone(), binding_value(&parameter.ty, literal)?);
+    }
+    let mut assignment = String::new();
+    for constant in constants {
+        let body = constant
+            .strip_prefix("CONSTANT ")
+            .ok_or_else(|| Refusal("invalid selected World assignment".into()))?;
+        assignment.push_str("/\\ ");
+        assignment.push_str(body);
+        assignment.push('\n');
+    }
+    let schema = Schema { fields, observers: BTreeMap::new() };
+    if crate::decode_state(&assignment, &schema)?.state != expected {
+        return Err(Refusal("selected World bindings differ in main CFG".into()));
     }
     Ok(())
 }

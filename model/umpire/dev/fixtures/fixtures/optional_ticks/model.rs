@@ -1,4 +1,4 @@
-//! A bounded optional countdown, independent of handler facts and activity policy.
+//! A bounded optional countdown, independent of handler facts.
 
 use umpire::dsl::machine;
 

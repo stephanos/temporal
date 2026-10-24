@@ -41,5 +41,37 @@
     "compat_failures": []
   },
   "full_gates": "pending",
-  "primary_review": "pending"
+  "primary_review": "pending",
+  "quality_audits": {
+    "correctness": {
+      "initial_findings": 1,
+      "fixed": "Main CFG assignment decoding is anchored to typed binding/parameters; coordinated unused-World-parameter mutation red101\u2192green0."
+    },
+    "standards": {
+      "initial_findings": 4,
+      "fixed": "Private value conversion and test modules extracted; optional guide moved to framework README."
+    },
+    "followup": "pending"
+  },
+  "post_audit_gates": [
+    {
+      "command": "mise exec -- cargo clippy -p umpire-front -p umpire-ir -p umpire-dsl-macros -p umpire-dsl -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures -p umpire-apalache --all-targets --all-features -- -D warnings",
+      "exit_code": 0,
+      "seconds": 4.49181391899765
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-front -p umpire-ir -p umpire-dsl-macros -p umpire-dsl -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures -p umpire-apalache",
+      "exit_code": 0,
+      "seconds": 42.70549356199626
+    }
+  ],
+  "guest": {
+    "freshness_exit_code": 0,
+    "sha256": "b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a",
+    "refreshed": false
+  },
+  "boundary": {
+    "passed": 2,
+    "exit_code": 0
+  }
 }

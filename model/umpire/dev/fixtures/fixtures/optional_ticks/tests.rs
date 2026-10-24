@@ -240,6 +240,24 @@ fn optional_ticks_refuses_legal_world_swaps_in_each_cfg_family() -> umpire_testi
             .ok_or_else(|| format!("{family} CFG certified another legal selected World"))?;
         assert!(error.to_string().contains("selected World bindings differ"), "{family}: {error}");
     }
+    let mut coordinated = module.clone();
+    let metadata = &mut coordinated.metadata;
+    for cfg in std::iter::once(&mut coordinated.cfg)
+        .chain(metadata.invariants.iter_mut().map(|claim| &mut claim.cfg))
+        .chain(metadata.postconditions.iter_mut().map(|claim| &mut claim.cfg))
+        .chain(metadata.negative.iter_mut().map(|claim| &mut claim.cfg))
+        .chain(metadata.progress.iter_mut().map(|claim| &mut claim.cfg))
+    {
+        let original = "CONSTANT __umpire_world_remaining = 0\n";
+        assert!(cfg.contains(original));
+        *cfg = cfg.replace(original, "CONSTANT __umpire_world_remaining = 2\n");
+    }
+    let error = bound_for(selected(Some(3)))
+        .check_module(&folder(), &coordinated)
+        .err()
+        .ok_or("coordinated CFGs certified another legal selected World")?;
+    assert!(error.to_string().contains("selected World bindings differ"), "{error}");
+
     Ok(())
 }
 
