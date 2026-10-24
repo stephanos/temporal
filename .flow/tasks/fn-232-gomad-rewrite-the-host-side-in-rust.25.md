@@ -17,6 +17,10 @@ Size M. Own the common receiving/identity/size ledger to avoid parallel edits. F
 ## Done summary
 TBD
 
+## Integrated source correction (2026-10-24)
+
+Grouping commit1f9a2ef58fa55fd88e8ada907b04c3890f99174c is integrated through0337bda4bbdd67a5d185807845ec6ba7100d58da. Independent audit and focused RED/GREEN confirm exactly three baseline host tests move from retained Go, totaling3files/12374bytes/312code lines; corrected table matches the independent script byte-for-byte. Candidate partitions, original raw counter and repository totals remain unchanged. Source/evidence hashes are in /home/agent/wt/evidence/fn232-size-grouping-correction/handoff.json and /home/agent/wt/evidence/fn232-split-closure/evidence-preparation/independent-size-audit-cycle5.json. The combined mandatory gate on clean0337 exits0 (589 driver tests plus Rust/WASM checks); implementation reviewers independently verified the classification correction. Preserve original reports/patches. Final current-source measurement, actual public/receiving proof and qualified ledger append remain pending; this task stays in_progress.
+
 ## Evidence
 - Commits:
 - Tests:

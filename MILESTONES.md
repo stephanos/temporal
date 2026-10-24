@@ -118,6 +118,26 @@ qualification, preserving the exact byte guard and all historical inputs.
 
 Task .20 is integrated and verified done: formatting, all 13 qualification Clippy modes, six focused tests, the combined mandatory gate (587 driver tests), and three-axis SHIP review pass. The next run uses the fresh-cohort controller after a final clean-source preflight; qualification remains pending.
 
+The subsequent C8d0a cycle on `5ef7c85c6d` is terminal INCOMPLETE/exit1:
+16 stages passed, workflow-lint failed before actionlint because its selector
+required intentionally deleted native smoke, and79 stages did not start. Source
+and protected input custody are unchanged. Task .21 repairs the selector and its
+module-directory boundary case; it is integrated and verified done after focused
+regressions, pinned actionlint, same-session SHIP rereview and the clean mandatory
+gate on `0337bda4bb` (589 driver tests). Task .25's independently audited size
+classifier correction is integrated; final evidence/ledger acceptance remains open.
+
+The next controller is `/home/agent/wt/evidence/fn232-split-closure/launch-reuse-strict.py`
+(SHA6690a6b5044c41dc1c97434319640585bea428a081f2b1844f393fbfb5f21fe4).
+It permits only reviewed Python/tracking changes, authenticates unchanged Rust,
+native and SQLite inputs while preserving original build provenance, and requires
+fresh public/live/install/R4/current-source bindings and a new complete cycle.
+It reuses the exact released Cargo context and retains both actual byte checks.
+Independent operational audit and clean read-only smoke preflight pass; final-head
+preflight and actual execution remain required. The older broad-allowlist launcher
+and all failed attempts remain preserved. Tasks .22–.25 own bounded receiving and
+closeout; .13 alone produces the cycle and owns final96/145 composition.
+
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
 artifact detached/kill-resume families. Children load their driver configuration explicitly;
 role reads validate current source, features and compiler context while preserving original
@@ -130,7 +150,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Prepare the fresh source-bound build cohort after completed fn-232.20, then run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
+1. Authenticate current bindings after completed fn-232.21 using the strict reuse controller, then run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -432,7 +452,6 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle5 terminal16PASS/1workflowFAIL/79unstarted |
-| [fn-232.21](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.21.md) | 🚧 Running | Repair strict producer/reader lint selection for the current workflows |
 | [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | Todo | Receive runtime and mandatory workload evidence |
 | [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | Todo | Receive retained/operator replay and ringpop proof; reconcile fn235 |
 | [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | Todo | Receive R4 preservation proof; reconcile fn185 |
