@@ -1,0 +1,11 @@
+{
+  "all_verified_files_match": true,
+  "file_count": 17,
+  "verified_source_commit": "5a451ad9edf5bf0b2cd649af86d9b5f67fadd8b0",
+  "checks_reused": [
+    "25 native guest_identity controls passed, exit 0",
+    "scoped clippy with warnings denied passed, exit 0",
+    "cargo deny bans passed, exit 0"
+  ],
+  "scope": "unchanged reviewed sources; no redundant post-SHIP suite run"
+}

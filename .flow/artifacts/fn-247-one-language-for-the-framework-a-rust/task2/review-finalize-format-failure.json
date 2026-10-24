@@ -1,0 +1,6 @@
+{
+  "exit_code": 2,
+  "success": false,
+  "error": "--merge-plan cannot parse draw correctness; use --merged-file to repair its format",
+  "resolution": "documented merged-file format repair; same rid, no redispatch; finalizer exit 0 SHIP"
+}

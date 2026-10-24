@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-247-one-language-for-the-framework-a-rust.2",
+  "verdict": "SHIP",
+  "session_id": "01a17048-f38a-7572-8fc8-db985ef7d90f",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "All three axes reported no surviving findings. The primary draw required a structural format repair; this document retains its verdict and coverage.\n\nNo blocking introduced findings.\n\nBoth Quick commands were blocked by the read-only filesystem when Cargo opened its build lock. Three read-only controls passed using the existing test binary. Committed evidence records 25 passing tests and clean Clippy; recorded source hashes match the reviewed files.\n\nDependency inventories confirm unchanged existing features and edges, no new packages in the six guest closures, and `serde_json/preserve_order` disabled.\n\n## Requirements coverage\n\nCoverage reflects task .2\u2019s scope; remaining epic obligations belong to other tasks.\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Process extraction and supervision are outside this task. |\n| R2 | partial | Native lock/compiler drivers, deterministic schemas, publication and failure controls implemented; remaining helpers follow later. |\n| R3 | partial | Native counterparts cover lock/compiler responsibilities; Python entrypoints remain as explicitly required until orchestration switches. |\n| R4 | partial | README documents native contracts; dependency inventories and control ledger supplied. Integrated evidence follows later. |\n| R5 | deferred | Canonical validation orchestration is outside this task. |\n| R6 | deferred | Process syscall and scratch migration belongs to task .9. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17048-f38a-7572-8fc8-db985ef7d90f",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17048-f385-72e1-a772-e601d72f577e",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17048-f37e-7bb1-a9a1-04a50284da46",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 0,
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}
