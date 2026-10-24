@@ -107,7 +107,7 @@ publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner
 | Name | Status | What |
 | --- | --- | --- |
 | fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
-| fn-228.6 | 🔄 in progress | After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
+| fn-228.6 | 🔄 in progress | Code committed (96d635bc17..e689481277; generic 1,647 / total 3,317 lines); review and live, slice, lint and model gates owed. After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .6 and fn-244.2; records R40 as superseded: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ### fn-242: Length arithmetic parity across compiled, interpreted and TLC (model)
