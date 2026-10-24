@@ -1,0 +1,48 @@
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "",
+  "claimed_at": "2026-10-24T17:48:20.255236Z",
+  "created_at": "2026-10-21T21:36:52.603826Z",
+  "depends_on": [
+    "fn-237-activity-timeouts-heartbeat-and.1",
+    "fn-237-activity-timeouts-heartbeat-and.2",
+    "fn-237-activity-timeouts-heartbeat-and.6"
+  ],
+  "id": "fn-237-activity-timeouts-heartbeat-and.3",
+  "priority": null,
+  "spec": "fn-237-activity-timeouts-heartbeat-and",
+  "spec_path": ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.3.md",
+  "status": "done",
+  "title": "Activity deadlines, cooperative cancellation and final lifecycle refinement",
+  "updated_at": "2026-10-24T20:05:46.387058Z",
+  "evidence": {
+    "base_commit": "88f3f2098e434cdcd3078f8afe792ae1e64b0fe7",
+    "commits": [
+      "40b9cb9ff15c1c24d69de9171dea0d2b340053e1",
+      "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98",
+      "67a7c6af38c12cba9842e89932fb36d3c87a715a",
+      "53a9c9ccbdbbc9ab4b006acd05deefdf711cdc4c",
+      "505bc5013ab2e95ac12b3b6e84f9b76935ff7e43",
+      "45c5a5a04c61994f1e41e3a15c1d9a77d5a4b4d0",
+      "1ef0402c102a79ef1926c24ecd025372ad1bf123",
+      "9d69325e2c366bc39c3782cef92cba507f81260f",
+      "49ef7069fc4ef5cab58c87504fd20b523462ed68"
+    ],
+    "prs": [],
+    "tests": [
+      "make model-check",
+      "UMPIRE_BACKENDS=require make model-check",
+      "make model-time",
+      "make umpire-check-model-slice",
+      "make umpire-check-model-gaps",
+      "GATE_SKIPPED:model-check:green-receipt 1ef0402c",
+      "GATE_SKIPPED:model-check-required:green-receipt 1ef0402c",
+      "GATE_SKIPPED:model-time:green-receipt 1ef0402c"
+    ]
+  },
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}

@@ -45,9 +45,19 @@ The retained Python process suite runs at this intermediate checkpoint using its
 - [ ] Cargo/lock graph changes only add the local process crate and consumer edges; Python remains explicitly temporary until its replacement passes.
 
 ## Done summary
-TBD
+Backend consumers now share `umpire-backend-process`, preserving the existing implementation and TLA/TLC compatibility exports. Both ownership maps identify the new owner and explicitly retain the Python supervisor until task 4.
 
+Admission, all 752 artifact hashes, 48 retained control mappings, package/features and observed API corpus evidence are in `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task1/`. Both moved sources compare byte-for-byte with `cf339e835809cca4ce3cc06a9dda5d66948e02eb`; guest SHA-256 remains `eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0`. The predecessor's canonical status is done, and its implementation/review/closure commits are ancestors. Cargo adds only the local crate, its existing thiserror dependency and three consumer edges; all existing packages, versions, checksums and feature sets are unchanged.
+
+baseline: green (159 focused Rust tests and 6 Python process controls before edits). An initial focused launch lost its host-result handle and was inconclusive; one observed rerun supplied exit 0. The post-change exact task Quick command passed the same 159 Rust test identities, including 8 controls in the new process owner. The retained Python discovery suite passed all 6 controls. Format, scoped Clippy and scoped rustdoc with warnings denied passed. Compatibility and direct-owner invocation stdout/stderr compare exactly against the recorded pre-edit corpus. Verification used those observed post-change exits at the reviewed source commit and wrote a green focused unittest receipt; no source changes followed the passes.
+
+Three explicit `codex:gpt-6.1-sol:high` draws returned SHIP; dispatcher and finalizer each exited 0. Reviewers are from the same model family as the writer. Their Cargo reruns were blocked by read-only build-lock permissions; they verified the retained passing logs, source equality and hash/corpus evidence. Linux descendant controls ran; native macOS execution is unclaimed. Full Model/backend/live gates and timing remain assigned to the spec's final task. Rust supervisor and Python removal remain assigned to task 4. No source worktree or remote operation was created.
+
+stage: impl-review - ran (three SHIP draws; finalizer SHIP; receipt retained in task1/review-receipt.json)
+Tier: session (jev-unavailable(no_key)); AGENTS implementer pin applies. Judge once already recorded .flow/tmp/fn2471-judge.json; no key retry/reroute.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4615afe62d8795f12c04b0cbc8e5522b23580678
+- Tests: cd model && mise exec -- cargo test -p umpire-backend-process -p umpire-tla -p umpire-tlc -p umpire-apalache --locked, python3 -m unittest discover -s model/scripts/tests -p 'test_backend_process.py' -v, cd model && mise exec -- cargo fmt --all --check, cd model && mise exec -- cargo clippy -p umpire-backend-process -p umpire-tla -p umpire-tlc -p umpire-apalache --all-targets --locked -- -D warnings, cd model && RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc -p umpire-backend-process -p umpire-tla -p umpire-tlc -p umpire-apalache --no-deps --locked, python3 .flow/tmp/fn2471/verify-extraction.py, python3 .flow/tmp/fn2471/run-corpus.py post; cmp .flow/tmp/fn2471/baseline-corpus.stdout .flow/tmp/fn2471/post-corpus.stdout; cmp .flow/tmp/fn2471/baseline-corpus.stderr .flow/tmp/fn2471/post-corpus.stderr, python3 .flow/tmp/fn2471/run-corpus.py post direct; cmp .flow/tmp/fn2471/baseline-corpus.stdout .flow/tmp/fn2471/post-direct-corpus.stdout; cmp .flow/tmp/fn2471/baseline-corpus.stderr .flow/tmp/fn2471/post-direct-corpus.stderr
 - PRs:
