@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "tasks": [
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust.4",
+      "title": "Replace the extracted supervisor and process controls with allocation-free Rust ownership"
+    },
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust.5",
+      "title": "Replace embedded guest Python and freshness policy with native xtask orchestration"
+    },
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust.6",
+      "title": "Port Apalache installation with exact archive, publication and concurrency controls"
+    },
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust.7",
+      "title": "Port retired-name filtering and immutable original-artifact verification to Rust"
+    }
+  ]
+}

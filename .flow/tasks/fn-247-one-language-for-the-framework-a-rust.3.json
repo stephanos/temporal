@@ -4,13 +4,14 @@
   "claimed_at": null,
   "created_at": "2026-10-24T16:42:25.813503Z",
   "depends_on": [
-    "fn-247-one-language-for-the-framework-a-rust.2"
+    "fn-247-one-language-for-the-framework-a-rust.2",
+    "fn-247-one-language-for-the-framework-a-rust.7"
   ],
   "id": "fn-247-one-language-for-the-framework-a-rust.3",
   "priority": null,
   "spec": "fn-247-one-language-for-the-framework-a-rust",
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.md",
   "status": "todo",
-  "title": "Python removed from prerequisites and docs; DESIGN records the one-language rule; model-time",
-  "updated_at": "2026-10-24T16:42:25.813503Z"
+  "title": "Complete Rust-only gate wiring, documentation and integrated parity evidence",
+  "updated_at": "2026-10-24T18:51:31.742144Z"
 }

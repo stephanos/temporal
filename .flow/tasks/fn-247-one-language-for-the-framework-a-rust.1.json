@@ -9,6 +9,6 @@
   "spec": "fn-247-one-language-for-the-framework-a-rust",
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.1.md",
   "status": "todo",
-  "title": "umpire-backend-process: move process support out of umpire-tla and reimplement the supervisor in Rust with libc promoted under R18",
-  "updated_at": "2026-10-24T16:42:25.812340Z"
+  "title": "Extract shared process support and retain the post-predecessor equivalence baseline",
+  "updated_at": "2026-10-24T18:51:24.133796Z"
 }

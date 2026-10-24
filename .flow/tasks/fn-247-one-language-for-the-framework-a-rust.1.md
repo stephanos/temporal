@@ -1,13 +1,48 @@
 ---
-satisfies: [R1]
+satisfies: [R1, R4]
 ---
-# fn-247-one-language-for-the-framework-a-rust.1 umpire-backend-process: move process support out of umpire-tla and reimplement the supervisor in Rust with libc promoted under R18
+# fn-247-one-language-for-the-framework-a-rust.1 Extract shared process support and retain the post-predecessor equivalence baseline
 
 ## Description
-Create `model/umpire/backends/process` (`umpire-backend-process`), move `Limits`, `Refusal`, `Scratch`, `java_command`, `pinned_java`, `run_process`, `run_process_cancelled` and `bounded_text` from `model/umpire/backends/tla/src/process.rs`, and replace the embedded `process.py` with a Rust supervisor: Linux subreaper (`prctl`), new session, process-group kill, descendant reaping via `waitpid(-1)` and `/proc/self/task/<pid>/children`; macOS new session, process-group kill, `RLIMIT_NPROC` pre-exec restriction, root refused; other platforms refuse at admission. Promote `libc` 0.2.191 (already in the lockfile) to a direct dependency; one unsafe module; `cargo deny` green. `umpire-tla`, `umpire-tlc` (`runner.rs`) and `umpire-apalache` (`lib.rs`) depend on the new crate; `umpire-tlc`'s re-export of `Limits`/`Refusal` comes from it; `umpire-tla` has no process code. Port `model/scripts/tests/test_backend_process.py` to Cargo tests and add the orphan-grandchild control (spawn a child that spawns into a new process group, cancel, assert both gone). Gates: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `UMPIRE_APALACHE=require` controls; TLC and Apalache outputs byte-identical. Update the `model/README.md` crate map rows for `tla` and `process` so each names one job.
+
+Extract process support and establish the post-predecessor equivalence baseline (R1). Keep its existing supervisor until the appended Rust-supervisor task replaces it. This bounds import/ownership changes separately from fork-safety work.
+
+**Size:** M
+**Files:** `model/umpire/backends/{process,tla,tlc,apalache}`, `model/Cargo.toml`, `model/Cargo.lock`, `model/scripts/tests/test_backend_process.py`, `model/README.md`, `.plans/UMPIRE_MODULES.md`.
+**Touches:** [model/umpire/backends/process/**, model/umpire/backends/tla/**, model/umpire/backends/tlc/**, model/umpire/backends/apalache/**, model/Cargo.toml, model/Cargo.lock, model/scripts/tests/test_backend_process.py, model/README.md, .plans/UMPIRE_MODULES.md]
+
+## Approach
+
+- Admission first: verify committed fn-237.3 implementation and Flow closure ancestors; record integrated source commit and exact current guest/golden/original hashes under task-owned evidence. Reanchor this plan's `94e47d7878` source references to that tip. Never use a pre-.3 guest baseline.
+- Record deterministic process/API control outputs and a one-to-one Python/Rust-control inventory before changing owners. This recorded-invocation corpus is the refactor equivalence harness; source tests alone are not an observed baseline.
+- Move the existing process module and supervisor without algorithm changes, update all imports/reexports and direct workspace dependencies, preserving the caller contracts in the parent spec. Adjust the existing Python test import until the next task ports it.
+- Update process/TLA ownership in both active maps. Keep Cargo/lock edits in this serial owner; existing package coordinates/checksums cannot change.
+
+## Investigation targets
+
+**Required** (reanchor before coding):
+- `model/umpire/backends/tla/src/process.rs:18` — public items, failures, capture and lifecycle.
+- `model/umpire/backends/tla/src/lib.rs:10` — reexports.
+- `model/umpire/backends/tlc/src/runner.rs:17` — shared imports and admission.
+- `model/umpire/backends/apalache/src/lib.rs:15` — separate consumer.
+- `model/scripts/tests/test_backend_process.py:23` — live control ownership.
+**Optional**:
+- `.plans/UMPIRE_MODULES.md:25` — current ownership map.
+
+## Quick commands
+
+```bash
+cd model && mise exec -- cargo test -p umpire-backend-process -p umpire-tla -p umpire-tlc -p umpire-apalache --locked
+```
+
+The retained Python process suite runs at this intermediate checkpoint using its existing discovery entrypoint; record that result before deleting it in the supervisor task. Do not run a full model gate here.
 
 ## Acceptance
-- [ ] TBD
+
+- [ ] Committed predecessor admission and exact post-.3 baseline evidence recorded before source changes; the named tests/control corpus has old outputs/statuses and hashes.
+- [ ] Focused backend tests pass after the extraction; public names/signatures, compatibility reexports, error text and deterministic corpus compare equal.
+- [ ] Process support has one owner; TLA+ retains only its emitter/admission work; Apalache has no TLC dependency; both active ownership maps match.
+- [ ] Cargo/lock graph changes only add the local process crate and consumer edges; Python remains explicitly temporary until its replacement passes.
 
 ## Done summary
 TBD

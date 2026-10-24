@@ -1,13 +1,53 @@
 ---
-satisfies: [R4]
+satisfies: [R3, R4]
 ---
-# fn-247-one-language-for-the-framework-a-rust.3 Python removed from prerequisites and docs; DESIGN records the one-language rule; model-time
+# fn-247-one-language-for-the-framework-a-rust.3 Complete Rust-only gate wiring, documentation and integrated parity evidence
 
 ## Description
-After .2. Remove Python from `model/GUEST_BUILDS.md`, the Makefile preflight and `model/README.md`; add the `xtask` and `process` crates to the crate map; in `model/DESIGN.md` record the one-language rule (Rust for Model and framework, Go only where the host demands it), the `libc` promotion under R18 with the fn-211.3 precedent, and the supervisor's platform contract; paste `make model-time`. MILESTONES remains root-owned. Full gates: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`.
+
+Complete current-tool documentation, aggregate no-Python proof and final integrated gates (R3, R4). Preserve existing .3 ID; it follows every port and retains its original .2 prerequisite.
+
+**Size:** M
+**Files:** `Makefile`, `model/{README.md,GUEST_BUILDS.md,DESIGN.md}`, `.plans/UMPIRE_MODULES.md`, completed Rust test harness/gate wiring.
+**Touches:** [Makefile, model/README.md, model/GUEST_BUILDS.md, model/DESIGN.md, .plans/UMPIRE_MODULES.md, model/dev/xtask/**, model/umpire/backends/process/**]
+
+## Approach
+
+- Reconcile the complete14-file and embedded-Python inventory against the Rust counterpart ledger. No missing check can be classified as obsolete merely because its implementation was Python. Preserve historical evidence commands outside the active toolchain and all frozen content.
+- Replace the Makefile unittest gate with the process/xtask Cargo controls, retaining every existing gate responsibility. Ensure ordinary defaults need no Python, while Rust tools remain host-only and wasm checks still cover only their intended crates.
+- Update current prerequisite/command/alias/wrapper/identity/platform/ownership documentation. Record libc and any separately approved R18 decision accurately; do not describe unapproved dependency work or simulated platform tests as completed.
+- Run the final default gate, required TLC gate, required Apalache controls and model-time serially using conductor-owned caches/leases. Compare the exact retained baseline hashes/bytes, ordinary deterministic goldens and guest before declaring equivalence; do not accept snapshots or refresh guest bytes.
+- Record actual command/results, tools/platform, old/new control mapping, guest hashes and measured timing once. Report soft-target overruns and absent native Darwin evidence. MILESTONES remains root-owned.
+
+## Investigation targets
+
+**Required**:
+- `Makefile:1277` — complete gate ordering and tool calls.
+- `model/GUEST_BUILDS.md:6` — current prerequisites and wrapper details.
+- `model/GUEST_BUILDS.md:94` — control commands/preflight.
+- `model/README.md:17` — active crate map and prerequisites.
+- `model/DESIGN.md:245` — retained reproduction evidence.
+**Optional**:
+- `.plans/UMPIRE_MODULES.md:25` — active module ownership.
+
+## Quick commands
+
+```bash
+make model-check
+UMPIRE_BACKENDS=require make model-check
+UMPIRE_APALACHE=require make model-check
+make model-time
+git ls-files 'model/*.py' 'model/**/*.py'
+```
+
+The last command must produce no paths after deletion is staged. Also inspect tracked active Model executable source for Python invocations/heredocs; historical prose is not an executable dependency. Use fresh actual output as evidence; no commands were run during planning.
 
 ## Acceptance
-- [ ] TBD
+
+- [ ] Complete14-file/embedded-source inventory maps every old control to a passing named Rust counterpart; staged tracked model Python inventory is empty and ordinary gate execution invokes no Python.
+- [ ] Current docs/maps/preflight match Rust ownership, entrypoints, host-only build choreography, platform policy and approved dependency decisions; historical evidence remains accurate.
+- [ ] Default, TLC-required, Apalache-required and model-time commands pass with exact recorded output/platform/timing, or retain a concrete failed obligation rather than claiming closure.
+- [ ] Guest/golden/original hashes and bytes match the exact post-predecessor baseline; no fixture acceptance, pin refresh, frozen modification or feature-semantic change occurs.
 
 ## Done summary
 TBD
