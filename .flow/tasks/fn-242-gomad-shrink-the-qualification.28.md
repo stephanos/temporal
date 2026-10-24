@@ -21,6 +21,7 @@ cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check
 
 Run from this task worktree, with its assigned exclusive build target. Required genuine-fixture features may be added and recorded. A final test filter selecting zero tests proves nothing.
 
+Crate amendment (owner, 2026-10-24): port `static_stages.py:rust_code()` (comment/string blanking) as `proc-macro2` tokenization, or `ra_ap_rustc_lexer` if exact token positions are needed, not as a regex lexer. Workflow-routing patterns use `regex`.
 ## Acceptance
 - [ ] Genuine bounded static/ordinary routes run; omitted/duplicated test, forged command/output and unknown owner fail. Static composition stays prep-composition-owned.
 - [ ] Resolve every assigned pending_regression using an actually executed normal-return valid control and targeted catching mutation against current Rust code. Port retained keep-row catchers. Record original IDs/source SHA256, current source binding, exact input hashes/bytes, commands, outputs, numeric exits and direct intended predicate attribution.
@@ -28,7 +29,7 @@ Run from this task worktree, with its assigned exclusive build target. Required 
 - [ ] Run genuine controlled Rust and approved Go guest/model/tool behavior. Preserve strict JSON/custody, documented current command semantics, all96 stages/145 semantic obligations and3600s stop_at_deadline=False timing-only policy. No Python bridge, placeholder pass, full qualification dispatch or spent attempt.
 - [ ] Provide documented current Rust callable interfaces and update actual route consumers together. Retain endpoint/function mappings and fail closed for missing/unmapped routes until implemented.
 - [ ] Quick filters select at least one actual test; retain nonzero selected count and numeric exits. Add existing feature flags required by the genuine family fixtures. If work exceeds one roughly100k-token iteration, create a further exact partition before dispatch and extend integration dependencies.
-
+- [ ] The static Rust-source scan uses a real tokenizer (`proc-macro2` or `ra_ap_rustc_lexer`); no regex-based Rust lexer.
 ## Done summary
 TBD
 

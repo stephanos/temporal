@@ -1,0 +1,20 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:04:15.582795Z",
+  "depends_on": [
+    "fn-247-gomad-protobuf-host-side-evidence.2",
+    "fn-247-gomad-protobuf-host-side-evidence.3",
+    "fn-247-gomad-protobuf-host-side-evidence.4",
+    "fn-247-gomad-protobuf-host-side-evidence.5",
+    "fn-247-gomad-protobuf-host-side-evidence.6"
+  ],
+  "id": "fn-247-gomad-protobuf-host-side-evidence.7",
+  "priority": null,
+  "spec": "fn-247-gomad-protobuf-host-side-evidence",
+  "spec_path": ".flow/tasks/fn-247-gomad-protobuf-host-side-evidence.7.md",
+  "status": "todo",
+  "title": "Regenerate changed identities and goldens once",
+  "updated_at": "2026-10-24T22:04:15.582795Z"
+}

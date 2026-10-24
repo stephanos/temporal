@@ -14,7 +14,7 @@ Receive fn-232 tasks .13, .14, .22-.25, .31 and .32, and the actual full-cycle e
 
 There is no successful fn-232 closing cycle to use as a green reference. Preserve failed cycles as history. During cleanup, compare the preserved stage plan, independent expectations, real fixtures and mutation outcomes. Final acceptance requires the actual new run. Preserve the independently usable frozen Go baseline, original source/compiler/helper inputs and raw evidence until all pending public-verb and R4 consumers have completed their comparisons.
 
-No synthetic success, identity normalization, old-artifact migration or regeneration of behavioral goldens can fill a missing result. New source, crate layouts, helper/model implementations and runtime preparations require genuine new bindings. Expected deliberate application failures stay distinct from capacity, infrastructure and replay failures.
+No synthetic success, identity normalization, old-artifact migration or regeneration of behavioral goldens can fill a missing result. Exception (owner, 2026-10-24): goldens and identities whose bytes change only because of fn-247 (protobuf host-side evidence formats and `flate2` compression) or because CLI message text moved to `clap`/`thiserror` (fn-240) are regenerated once, before the fn-246 candidate is bound, and carry no qualification credit by themselves. New source, crate layouts, helper/model implementations and runtime preparations require genuine new bindings. Expected deliberate application failures stay distinct from capacity, infrastructure and replay failures.
 
 ## Acceptance Criteria
 

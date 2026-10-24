@@ -21,6 +21,7 @@ cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check
 
 Run from this task worktree, with its assigned exclusive build target. Required genuine-fixture features may be added and recorded. A final test filter selecting zero tests proves nothing.
 
+Crate amendment (owner, 2026-10-24): read the installed cluster cache metadata archive with the `zip` crate (pinned `=`), not a hand-written zip reader; keep the existing bounds and digest checks.
 ## Acceptance
 - [ ] Catch changed context/candidate/preparation/protocol/asymmetric failure/original source/result bindings using genuinely produced bounded outputs.
 - [ ] Resolve every assigned pending_regression using an actually executed normal-return valid control and targeted catching mutation against current Rust code. Port retained keep-row catchers. Record original IDs/source SHA256, current source binding, exact input hashes/bytes, commands, outputs, numeric exits and direct intended predicate attribution.
@@ -28,7 +29,7 @@ Run from this task worktree, with its assigned exclusive build target. Required 
 - [ ] Run genuine controlled Rust and approved Go guest/model/tool behavior. Preserve strict JSON/custody, documented current command semantics, all96 stages/145 semantic obligations and3600s stop_at_deadline=False timing-only policy. No Python bridge, placeholder pass, full qualification dispatch or spent attempt.
 - [ ] Provide documented current Rust callable interfaces and update actual route consumers together. Retain endpoint/function mappings and fail closed for missing/unmapped routes until implemented.
 - [ ] Quick filters select at least one actual test; retain nonzero selected count and numeric exits. Add existing feature flags required by the genuine family fixtures. If work exceeds one roughly100k-token iteration, create a further exact partition before dispatch and extend integration dependencies.
-
+- [ ] Zip reading uses the `zip` crate.
 ## Done summary
 TBD
 

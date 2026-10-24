@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:16:25.435609Z",
+  "depends_on": [
+    "fn-249-gomad-retire-the-go-reference-models.1",
+    "fn-249-gomad-retire-the-go-reference-models.2"
+  ],
+  "id": "fn-249-gomad-retire-the-go-reference-models.4",
+  "priority": null,
+  "spec": "fn-249-gomad-retire-the-go-reference-models",
+  "spec_path": ".flow/tasks/fn-249-gomad-retire-the-go-reference-models.4.md",
+  "status": "todo",
+  "title": "Delete the stdio helper protocol path; in-process linked API only",
+  "updated_at": "2026-10-24T22:16:25.435609Z"
+}

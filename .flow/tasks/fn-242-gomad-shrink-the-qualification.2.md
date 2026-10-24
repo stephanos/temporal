@@ -14,6 +14,7 @@ Consume every mandatory retained-unproved pending_regression contract assigned t
 
 **Touches:** tools/gomad/rust/gomad/src/cycle/**, tools/gomad/rust/gomad/src/cli/**, tools/gomad/rust/gomad/src/main.rs, tools/gomad/rust/gomad/src/lib.rs, tools/gomad/CLI.md
 
+Crate amendment (owner, 2026-10-24): the cycle verb parses argv with `clap` (derive), uses `tempfile` for scratch directories and `regex` where the Python driver used `re`. All pinned `=` in the workspace.
 ## Acceptance
 - [ ] Every assigned pending_regression row has actual executed catching/control proof with inventory IDs, commands, outcomes, numeric exits and current Rust source bindings; future test names and unexecuted fixtures supply no proof
 - [ ] Dry-run plan preserves all 96 stage contracts, unchanged leaf argv, bounds/resources/isolation exactly; every orchestration substitution matches .1's ledger and an undeclared substitution or altered leaf argument fails a catching fixture
@@ -21,7 +22,7 @@ Consume every mandatory retained-unproved pending_regression contract assigned t
 - [ ] A deterministic overrun regression preserves stop_at_deadline=False, complete final-reader evidence, elapsed-time reporting and deferred-perf success for an otherwise passing run; actual correctness/resource/replay/infrastructure failures retain their original exits
 - [ ] Per-stage exits/signals and identities retained; no Python added
 - [ ] Deterministic regressions catch ambiguous spawn charge loss, journal re-enrollment/reset and omission of any45GiB HOST/20GiB overlay/12GiB inner reservation-time floor; no full attempt is dispatched by these tests
-
+- [ ] Cycle verb argv goes through `clap`; scratch directories through `tempfile`.
 ## Done summary
 Blocked:
 The design-only worker returned with no product changes and no live commands. The approved decomposition requires .11–.15 and genuine endpoint integration .52 before this original acceptance aggregate can execute. Retain every original acceptance/proof requirement; no completion or failure credit. Resume this aggregate after its actual prerequisites pass.

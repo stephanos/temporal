@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-249-gomad-retire-the-go-reference-models",
+  "created_at": "2026-10-24T22:16:07.615268Z",
+  "depends_on_epics": [],
+  "id": "fn-249-gomad-retire-the-go-reference-models",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-249-gomad-retire-the-go-reference-models.md",
+  "status": "open",
+  "title": "Gomad: retire the Go reference models and the stdio helper protocol",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T22:16:07.618627Z"
+}

@@ -12,13 +12,14 @@ Size M. Port every retained stage producer/adapter named by .1, including primar
 
 Consume every mandatory retained-unproved pending_regression contract assigned to this task by .1. Implement and actually execute its catching fixture or controlled mutation and valid control against the Rust check, preserving the original concrete failure and trust boundary. Retain the inventory IDs, source bindings, exact commands, observed outcomes and numeric exits for .7's proof audit. A named future test, an assertion in source or an unexecuted fixture does not resolve proof. A shared fixture may cover multiple rows only when the evidence maps its catching outcome to each original failure/trust boundary. This task cannot claim its assigned proof complete while any assigned row is unresolved; split oversized surfaces through Flow before implementation and make cutover wait for every proof-producing successor. No full qualification dispatch belongs to this proof work.
 
+Complexity amendment (owner, 2026-10-24): fold the `gomad-measure` producers into the cycle verb's producers instead of keeping a parallel binary. Delete `bin/measure.rs` and the measurement drivers the cycle producers replace (`warm_driver`, `namespace_driver`, `cluster_driver`, `stress_driver` where `stress/` already does the work). Map each deleted producer to its cycle replacement under R1.
 ## Acceptance
 - [ ] Every assigned pending_regression row has actual executed catching/control proof with inventory IDs, commands, outcomes, numeric exits and current Rust source bindings; future test names and unexecuted fixtures supply no proof
 - [ ] Every retained Python producer/adapter slated for deletion has a surviving executable Rust route and explicit original-contract mapping, with no Python bridge or placeholder endpoint.
 - [ ] Each replacement has a catching execution/mutation test; representative genuine bounded producer paths run from .9 preparation through dispatch, publication and retained-result validation.
 - [ ] Exact unchanged leaf argv/inputs/assertions/bounds and correctness/canary/infrastructure/replay semantics remain; stale roles, unmapped endpoints and mutated results are refused.
 - [ ] Retain focused commands/exits/identities and the fn-246.4 final-production handoff; no full96 or expensive final production cohort is dispatched.
-
+- [ ] The `gomad-measure` binary is deleted, or a recorded reason keeps it; no measurement driver duplicates a cycle producer or `stress/`.
 ## Done summary
 TBD
 
