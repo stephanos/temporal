@@ -98,16 +98,17 @@ supervision leaves the TLA+ emitter, and then asked why Python exists at all ("y
 policy and for build glue without a Cargo home. `umpire-backend-process` at `backends/process` takes the
 process support with a Rust supervisor (`libc` promoted under R18, the fn-211.3 precedent); a `dev/xtask`
 binary crate replaces every script with identical arguments and output; Python leaves the prerequisites.
-No behaviour change; guest bytes and goldens identical. Its seven-task plan passed primary review,
-including cold freshness admission before xtask bootstrap. Placed before fn-246.1, which depends on it,
+No behaviour change; guest bytes and goldens identical. Its eight-task plan passed primary review,
+including cold freshness admission before xtask bootstrap and the owner-approved single-pass validation.
+Shared process support is extracted; the supervisor replacement and helper ports remain queued. Placed before fn-246.1, which depends on it,
 since fn-246 and fn-240 build on the process crate. Scope includes the retained-original verifier's
 Rust port, preserving its independent authority and artifacts.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.1 | 🔄 in progress | Committed fn-237.3 prerequisite verified: extract shared process support and retain the exact equivalence baseline (R1, R4) |
-| fn-247.4 | ⬜ todo | After .1: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
+| fn-247.8 | 🔄 in progress | After committed .1: one timed required-backend validation pipeline, focused default-mode controls and unchanged legacy commands (R4, R5) |
+| fn-247.4 | ⬜ todo | After .8: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
 | fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
 | fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission and unchanged guest bytes (R2, R3) |
 | fn-247.6 | ⬜ todo | After .5: pinned Apalache installer, archive/publication/concurrency controls (R2, R3) |
