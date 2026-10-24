@@ -1,5 +1,8 @@
 """Pure catalog and synthetic artifact mutations; no native evidence is produced."""
 import copy
+import json
+import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -12,6 +15,143 @@ from driver import Refusal
 
 
 class BroadHarness(unittest.TestCase):
+    def test_failed_or_interrupted_initializer_leaves_strict_partial_root(self):
+        for failure in (Refusal('initializer failed'), KeyboardInterrupt()):
+            with self.subTest(failure=type(failure).__name__), tempfile.TemporaryDirectory() as scratch:
+                config = {'root': scratch, 'python': sys.executable, '_config_path': '/synthetic/config'}
+                with patch.object(broad, 'guard'), patch.object(broad, 'source_inputs'), \
+                        patch.object(broad, 'fixed') as fixed, patch.object(broad, 'command', side_effect=failure), \
+                        patch.object(broad, 'build_evidence', return_value={}):
+                    fixed.return_value.environment.return_value = {}
+                    with self.assertRaises(type(failure)):
+                        broad.execute_build(config)
+                    self.assertTrue(broad.owned_root(config).is_dir())
+                    with self.assertRaises(FileNotFoundError):
+                        broad.execute_build(config)
+
+    def test_killed_initializer_releases_lock_but_does_not_authorize_partial_root(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            script = """import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import broad_harness
+with broad_harness.initialization_lock({'root': sys.argv[2]}):
+    broad_harness.owned_root({'root': sys.argv[2]}).mkdir()
+    print('root-created', flush=True)
+    sys.stdin.read()
+"""
+            with subprocess.Popen([sys.executable, '-c', script, str(Path(broad.__file__).parent), scratch],
+                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as process:
+                try:
+                    self.assertEqual(process.stdout.readline().strip(), 'root-created')
+                finally:
+                    process.kill()
+                    self.assertEqual(process.wait(timeout=5), -9)
+            with patch.object(broad, 'guard'), patch.object(broad, 'source_inputs'), \
+                    patch.object(broad, 'build_evidence', return_value={}):
+                with self.assertRaises(FileNotFoundError):
+                    broad.execute_build({'root': scratch})
+
+    def test_initialization_wait_is_bounded_and_lock_substitution_refuses(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            config = {'root': scratch}
+            with patch.object(broad.fcntl, 'flock', side_effect=BlockingIOError()), \
+                    patch.object(broad.time, 'monotonic', side_effect=[0, 3601]):
+                with self.assertRaisesRegex(Refusal, 'timed out'):
+                    with broad.initialization_lock(config):
+                        self.fail('contended lock admitted')
+            original_flock = broad.fcntl.flock
+
+            def substitute(fd, operation):
+                original_flock(fd, operation)
+                path = Path(scratch) / 'broad-harness.lock'
+                path.rename(path.with_suffix('.old'))
+                path.write_text('substituted lock')
+                path.chmod(0o600)
+
+            with patch.object(broad.fcntl, 'flock', side_effect=substitute):
+                with self.assertRaisesRegex(Refusal, 'lock changed'):
+                    with broad.initialization_lock(config):
+                        self.fail('substituted lock admitted')
+
+    def test_shared_initialization_refuses_foreign_lock_or_root(self):
+        for mutation in ('lock-symlink', 'lock-hardlink', 'lock-mode', 'lock-directory', 'root-symlink'):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as scratch:
+                config = {'root': scratch}
+                root = broad.owned_root(config)
+                lock = root.with_name(root.name + '.lock')
+                other = Path(scratch) / 'foreign'
+                if mutation == 'root-symlink':
+                    other.mkdir()
+                    root.symlink_to(other, target_is_directory=True)
+                elif mutation == 'lock-directory':
+                    lock.mkdir()
+                else:
+                    other.write_text('foreign')
+                    other.chmod(0o600)
+                    if mutation == 'lock-symlink':
+                        lock.symlink_to(other)
+                    elif mutation == 'lock-hardlink':
+                        os.link(other, lock)
+                    else:
+                        lock.write_text('foreign')
+                        lock.chmod(0o644)
+                with patch.object(broad, 'guard'), patch.object(broad, 'source_inputs'):
+                    with self.assertRaises((Refusal, OSError)):
+                        broad.execute_build(config)
+
+    def test_shared_reuse_reauthenticates_receipts_identities_and_admission(self):
+        for mutation in ('none', 'source', 'config', 'missing-build', 'changed-build', 'missing-admission',
+                         'changed-admission', 'executable', 'producer'):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as scratch:
+                config = {'root': scratch, 'python': sys.executable, '_config_path': '/synthetic/config',
+                          'source_sha256': 'source-a', '_config_sha256': 'config-a'}
+                root = broad.owned_root(config)
+                (root / 'admitted').mkdir(parents=True)
+                evidence = dict(schema=broad.SCHEMA, source_sha256='source-a', config_sha256='config-a', roles={})
+                roles = {}
+                for role in broad.Role:
+                    path = root / 'admitted' / role.value
+                    path.write_bytes(b'synthetic never executed')
+                    path.chmod(0o755)
+                    source = str(root / 'cargo' / role.value)
+                    evidence['roles'][role.value] = dict(executable=source, executable_sha256=broad.sha(path))
+                    roles[role.value] = dict(cargo_artifact=source, cargo_artifact_sha256=broad.sha(path),
+                                             executable=str(path), executable_sha256=broad.sha(path))
+                broad.write(root / 'build-receipt.json', evidence)
+                broad.write(root / 'admission.json', dict(schema=broad.ADMISSION, build_receipt=str(root / 'build-receipt.json'),
+                            build_receipt_sha256=broad.sha(root / 'build-receipt.json'), roles=roles))
+                if mutation in ('source', 'config'):
+                    config['source_sha256' if mutation == 'source' else '_config_sha256'] = 'foreign'
+                elif mutation in ('missing-build', 'missing-admission'):
+                    (root / ('build-receipt.json' if mutation == 'missing-build' else 'admission.json')).unlink()
+                elif mutation in ('changed-build', 'changed-admission'):
+                    (root / ('build-receipt.json' if mutation == 'changed-build' else 'admission.json')).write_text('{}')
+                elif mutation == 'executable':
+                    (root / 'admitted' / 'helper-lib').write_bytes(b'changed')
+
+                def reopened(config):
+                    return dict(evidence, source_sha256=config['source_sha256'], config_sha256=config['_config_sha256'])
+
+                def producer(*args):
+                    if mutation == 'producer':
+                        raise Refusal('synthetic raw process authentication failed')
+                    return {}, {}
+
+                original_read = broad.native_roles.read
+                with patch.object(broad, 'guard'), patch.object(broad, 'source_inputs'), \
+                        patch.object(broad, 'build_evidence', side_effect=reopened), \
+                        patch.object(broad, 'fixed') as fixed, patch.object(broad, 'producer', side_effect=producer), \
+                        patch.object(broad.native_roles, 'read', side_effect=lambda path:
+                            {} if str(path).endswith('.command.json') else original_read(path)), \
+                        patch('primary_stages.enclose_child'):
+                    fixed.return_value.environment.return_value = {}
+                    if mutation == 'none':
+                        self.assertEqual(broad.execute_build(config), evidence)
+                    else:
+                        with self.assertRaises((Refusal, OSError)):
+                            broad.execute_build(config)
+
     def test_stages_and_roles_are_closed(self):
         for unknown in ('cluster-provider', 'retained-cluster', 'PASS', None):
             with self.assertRaises(Refusal):

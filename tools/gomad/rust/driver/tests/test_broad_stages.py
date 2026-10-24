@@ -1,5 +1,8 @@
 """Synthetic coordinator controls; these fixtures are never native process evidence."""
 import json
+import fcntl
+from concurrent.futures import ThreadPoolExecutor
+import threading
 from pathlib import Path
 import sys
 import tempfile
@@ -15,6 +18,75 @@ from driver import Refusal
 
 
 class BroadStages(unittest.TestCase):
+    def test_three_stages_wait_for_authenticated_shared_build(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            config = {'root': scratch, 'source_sha256': 'synthetic', '_config_sha256': 'synthetic', 'identity': {}}
+            config.update(python=sys.executable, _config_path=str(Path(scratch) / 'config.json'))
+            created, release = threading.Event(), threading.Event()
+            observed = [threading.Event(), threading.Event()]
+            followers = {}
+            partial_reads, builds = [], []
+            executing = threading.Barrier(3, timeout=5)
+            original_flock = fcntl.flock
+
+            def flock(fd, operation):
+                try:
+                    return original_flock(fd, operation)
+                except BlockingIOError:
+                    observed[followers[threading.get_ident()]].set()
+                    raise
+
+            def command(*args, **kwargs):
+                builds.append(1)
+                created.set()
+                if not release.wait(5):
+                    raise RuntimeError('test initializer was not released')
+                (harness.owned_root(config) / 'ready').write_text('synthetic authenticated receipt')
+
+            def read_build(config):
+                if not (harness.owned_root(config) / 'ready').exists():
+                    partial_reads.append(threading.get_ident())
+                    observed[followers[threading.get_ident()]].set()
+                    raise Refusal('receipt missing while initializer owns root')
+                return {'synthetic': 'authenticated'}
+
+            def execute(config, stage):
+                destination = harness.stage_root(config, stage)
+                destination.mkdir()
+                executing.wait()
+
+            def run(stage, index=None):
+                if index is not None:
+                    followers[threading.get_ident()] = index
+                root = Path(scratch) / 'stages' / stage.value
+                root.mkdir(parents=True, exist_ok=True)
+                return broad.run(config, stage.value, root)
+
+            with patch.object(broad, 'preflight'), patch.object(harness, 'guard'), \
+                    patch.object(harness, 'source_inputs'), patch.object(harness, 'fixed') as fixed, \
+                    patch.object(harness, 'command', side_effect=command), \
+                    patch.object(harness, 'read_build', side_effect=read_build), \
+                    patch.object(harness, 'execute', side_effect=execute), \
+                    patch.object(broad, 'collect', return_value={'complete': True, 'subgates': [], 'reader_errors': {}}), \
+                    patch.object(wire, 'collect'), patch.dict(sys.modules, {'counterfactual_receiving': SimpleNamespace(run=lambda config: None)}), \
+                    patch.object(fcntl, 'flock', side_effect=flock), ThreadPoolExecutor(max_workers=3) as pool:
+                fixed.return_value.environment.return_value = {}
+                first = pool.submit(run, harness.Stage.PROVIDER)
+                self.assertTrue(created.wait(5))
+                rest = [pool.submit(run, stage, index) for index, stage in enumerate(
+                    (harness.Stage.FUNCTIONAL, harness.Stage.RETAINED))]
+                try:
+                    for event in observed:
+                        self.assertTrue(event.wait(5))
+                    self.assertEqual(partial_reads, [])
+                finally:
+                    release.set()
+                for future in [first, *rest]:
+                    self.assertEqual(future.result(timeout=5), {'complete': True, 'subgates': [], 'reader_errors': {}})
+                self.assertEqual(builds, [1])
+                self.assertEqual({path.name for path in harness.owned_root(config).iterdir() if path.is_dir()},
+                                 {'cluster-provider', 'cluster-functional', 'retained-cluster'})
+
     def test_closed_original_stage_inventory(self):
         config = {'root': '/owned'}
         for label, count in broad.COUNTS.items():
@@ -143,7 +215,7 @@ class BroadStages(unittest.TestCase):
             config = {'root': scratch, 'source_sha256': 'synthetic', '_config_sha256': 'synthetic', 'identity': {}}
             build_root = harness.owned_root(config)
             def build(config):
-                build_root.mkdir()
+                build_root.mkdir(exist_ok=True)
             def facts(config, label, root):
                 return {'schema': broad.SCHEMA, 'label': label, 'complete': False,
                         'reader_errors': {}, 'subgates': [{'id': 'unreceived', 'status': 'REFUSED'}]}
@@ -158,7 +230,7 @@ class BroadStages(unittest.TestCase):
                     retained = json.loads((root / 'broad-diagnostics.json').read_text())
                     self.assertFalse(retained['complete'])
                     self.assertEqual(retained['subgates'][0]['status'], 'REFUSED')
-                fresh.assert_called_once_with(config)
+                self.assertEqual(fresh.call_count, 2)
                 reference.assert_called_once_with(config, produce=True)
                 self.assertEqual([call.args[1] for call in execute.call_args_list], [harness.Stage.PROVIDER, harness.Stage.RETAINED])
 
@@ -169,7 +241,7 @@ class BroadStages(unittest.TestCase):
             root = Path(scratch) / 'stages' / label
             root.mkdir(parents=True)
             harness.owned_root(config).mkdir()
-            with patch.object(broad, 'preflight'), patch.object(harness, 'read_build'), \
+            with patch.object(broad, 'preflight'), patch.object(harness, 'execute_build'), \
                     patch.object(harness, 'execute'), patch.object(wire, 'collect', side_effect=Refusal('original six did not execute')):
                 with self.assertRaises(Refusal):
                     broad.run(config, label, root)
