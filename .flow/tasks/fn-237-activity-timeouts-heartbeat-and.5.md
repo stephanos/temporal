@@ -38,6 +38,13 @@ Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, 
 ### Addendum (2026-10-24)
 
 Also record the heartbeat and cancellation-acknowledgement program rows and the hold fault's role in the held attempt and schedule-to-start expiry, pointing at fn-243's DESIGN.md text rather than repeating it.
+
+### Boundary-policy documentation proposal for fresh review
+
+Document the revised independent R2 boundary matrix and its public-evidence/design-inference provenance. Separate complete offline native/TLC coverage from actually admitted live evidence, naming any predeclared exact-expiry-cause gap. Retain every original mandatory live proof and fn-243.5 final R40 obligation; no coverage-gap note or refusal substitutes for them.
+
+
+Selected policy and provenance: `.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-contract.md`; exact live evidence limits are in `cancellation-boundary-evidence-shape.md`. Fresh plan review must pass before implementation.
 ## Acceptance
 - [ ] Consume committed fn-243.5 unheld cancellation admission/live/replay evidence and final R40 status so this final timeout/cancellation write-up reflects the actual supported scope.
 - [ ] DESIGN documents facts, bounded optional values, the extended activity World/state table, deadline and cancellation laws, the fair-worker assumption and the final compatibility projection, each backed by completed fn-237 tasks.
