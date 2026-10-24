@@ -4,7 +4,7 @@ Package `umpire.local/model/host` runs the generated model v1 contract using waz
 with Go 1.27.0 and `CGO_ENABLED=0`. It uses wazero's interpreter with experimental
 WebAssembly exception handling enabled for Rust unwinding. It has no dependency
 on the server module.
-The protobuf sources are under `../../proto/umpire/{model,realization,annotations,run}/v1`;
+The protobuf sources are under `../../protocol/proto/umpire/{model,realization,annotations,run}/v1`;
 generated Go under `gen/umpire/` uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
 Build the stock and generic control guests with the unwind profile before running:
@@ -107,7 +107,7 @@ Run's events and marks them redacted, unless `Options.Redact` is set. Redaction 
 refused call's request, which a Refusal holds as bytes (decoded by its method, redacted and
 re-encoded, or removed when it cannot be), and the Run's world, which is its own copy.
 
-`umpire.run.v1.Run` (`../../proto/umpire/run/v1/run.proto`) is the only artifact. It records
+`umpire.run.v1.Run` (`../../protocol/proto/umpire/run/v1/run.proto`) is the only artifact. It records
 the model hash (SHA-256 of the guest bytes), protocol version, world, seed, every Reset,
 Propose, Judge, Answer and Annotate request and response or Refusal in publication order with
 its request and Driver correlation, every DriverFault, and the verdict. The first terminal
