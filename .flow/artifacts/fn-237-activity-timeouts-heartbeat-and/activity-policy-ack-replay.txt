@@ -1,0 +1,1660 @@
+ACK label=current-first world=World { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true } reachable_before=Model { phase: Started, attempt: 1, cancel_requested: true, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None } ordinal=8 native=[(Accepted, [], Model { phase: Canceled, attempt: 1, cancel_requested: false, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })] trace=Trace {
+    states: [
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    1,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Canceled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    8,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    1,
+                ),
+            },
+        },
+    ],
+    back_to: Some(
+        4,
+    ),
+}
+ACK_REPLAY_PASS:current-first:edges=3
+ACK label=current-cap world=World { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true } reachable_before=Model { phase: Started, attempt: 3, cancel_requested: true, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None } ordinal=10 native=[(Accepted, [], Model { phase: Canceled, attempt: 3, cancel_requested: false, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })] trace=Trace {
+    states: [
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    1,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    2,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    3,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Canceled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    10,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    1,
+                ),
+            },
+        },
+    ],
+    back_to: Some(
+        8,
+    ),
+}
+ACK_REPLAY_PASS:current-cap:edges=7
+ACK label=stale-scheduled world=World { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true } reachable_before=Model { phase: Scheduled, attempt: 3, cancel_requested: false, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None } ordinal=8 native=[(Rejected(NotFound), [], Model { phase: Scheduled, attempt: 3, cancel_requested: false, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })] trace=Trace {
+    states: [
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    1,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    2,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    8,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Rejected(NotFound)",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    1,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    8,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Rejected(NotFound)",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    2,
+                ),
+            },
+        },
+    ],
+    back_to: None,
+}
+ACK_REPLAY_PASS:stale-scheduled:edges=6
+ACK label=stale-pending world=World { maximum_attempts: 3, schedule_to_start: None, start_to_close: None, schedule_to_close: None, heartbeat_timeout: None, asynchronous_cancel: true } reachable_before=Model { phase: Started, attempt: 3, cancel_requested: true, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None } ordinal=8 native=[(Rejected(NotFound), [], Model { phase: Started, attempt: 3, cancel_requested: true, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })] trace=Trace {
+    states: [
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    1,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    1,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    2,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    2,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Scheduled",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondFailed",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    6,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    false,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::Poll",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    3,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    0,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Client::Cancel",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    0,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Accepted",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    0,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    true,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    8,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Rejected(NotFound)",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    1,
+                ),
+            },
+        },
+        TraceState {
+            state: {
+                "attempt": Int(
+                    3,
+                ),
+                "cancel_requested": Bool(
+                    true,
+                ),
+                "heartbeat_remaining": Int(
+                    0,
+                ),
+                "phase": Text(
+                    "Phase::Started",
+                ),
+                "schedule_to_close_remaining": Int(
+                    0,
+                ),
+                "schedule_to_start_remaining": Int(
+                    0,
+                ),
+                "start_to_close_remaining": Int(
+                    0,
+                ),
+            },
+            observers: {
+                "__umpire_action": Text(
+                    "Worker::RespondCanceled",
+                ),
+                "__umpire_choice": Int(
+                    0,
+                ),
+                "__umpire_edge_tick": Bool(
+                    false,
+                ),
+                "__umpire_facts": Seq(
+                    [],
+                ),
+                "__umpire_input": Int(
+                    8,
+                ),
+                "__umpire_outcome": Text(
+                    "Outcome::Rejected(NotFound)",
+                ),
+                "__umpire_pending": Int(
+                    1,
+                ),
+                "__umpire_steps": Int(
+                    2,
+                ),
+            },
+        },
+    ],
+    back_to: None,
+}
+ACK_REPLAY_PASS:stale-pending:edges=8

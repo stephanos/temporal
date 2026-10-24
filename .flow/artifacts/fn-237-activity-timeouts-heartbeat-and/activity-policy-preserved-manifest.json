@@ -1,5 +1,5 @@
 {
-  "scope": "All tracked current active non-activity expected files, snapshots, stderr, binpb/wire; activity frozen originals, verifier, manifest, fn227 original hash authority; retained fn243 evidence and approved cancellation contracts",
+  "scope": "All tracked current active non-activity expected files, snapshots, stderr, binpb/wire; activity frozen originals, verifier, manifest, fn227 original hash authority; retained fn243 evidence and approved cancellation contracts; the exact root-authorized authored realization expansion mirror is excluded and pinned separately",
   "files": {
     ".flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256": {
       "sha256": "5799233527eff38f1a342d5189436b3f2d4346217244aa5afd5ff47052412d9d",
@@ -3452,6 +3452,12 @@
     "model/umpire/reference/kettle/tests/ui/omitted_method.stderr": {
       "sha256": "f5cd5ebf70a13da9b93c1d4b594880754080442fc2113cfbfcadac0874dde906",
       "bytes": 809
+    }
+  },
+  "authorized_expansion_mirror_before": {
+    "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization-authored.snap": {
+      "sha256": "c2fdb1c6747abdcc15cce6296f8f1fb33ebe0f1f24729de6ee91f8aac122a7c4",
+      "bytes": 20835
     }
   }
 }

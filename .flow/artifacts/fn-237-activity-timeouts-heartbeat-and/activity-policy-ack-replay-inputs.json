@@ -1,0 +1,86 @@
+{
+  "compile_argv": [
+    "mise",
+    "exec",
+    "--",
+    "rustc",
+    "--edition=2024",
+    "--crate-name",
+    "fn2373_ack_replay",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay.rs",
+    "-L",
+    "dependency=/home/agent/.cache/codex-build/cargo-target/debug/deps",
+    "-o",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2373-ack-replay",
+    "--extern",
+    "umpire_temporal=/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_temporal-3b00bcec88f7dd2c.rlib",
+    "--extern",
+    "umpire_dsl=/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_dsl-dfa7a6ba2bb08292.rlib",
+    "--extern",
+    "umpire_testing=/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_testing-690e17fe49120b89.rlib",
+    "--extern",
+    "umpire_tla=/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_tla-39468e4407f665ac.rlib",
+    "--extern",
+    "umpire_tlc=/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_tlc-3f494a61a0ed3744.rlib"
+  ],
+  "inputs": {
+    "model/temporal/feature/activity/model.rs": {
+      "sha256": "9c38a75a8d09fa73f53a26012b655765d439aa9edbdafce1b2ffb85840de2be3",
+      "bytes": 28989
+    },
+    "model/Cargo.lock": {
+      "sha256": "b4aa14b1e181450cdeacef312d3577276fff5b6f61a2f3711792c6a9a5fe7d2f",
+      "bytes": 29173
+    },
+    ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay.rs": {
+      "sha256": "8ac1cf6ba1068f699ac68f8e036f156f3123b67e768a85be359a3ab003250f5b",
+      "bytes": 10275
+    },
+    "/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_dsl-dfa7a6ba2bb08292.rlib": {
+      "sha256": "6ab5c0ff23a50a4dc9c349b122217c05d73d0d2f24d920e207db0cb32950b6aa",
+      "bytes": 2226036
+    },
+    "/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_tla-39468e4407f665ac.rlib": {
+      "sha256": "de694df3766b22f94ec92976d436a78938381441423637b56b786092d69fc7b9",
+      "bytes": 22343066
+    },
+    "/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_tlc-3f494a61a0ed3744.rlib": {
+      "sha256": "7e3206ab122bf0b1488bb23d0b054f916b5c79b06cf394f8c2b0062dbafbe35b",
+      "bytes": 9959962
+    },
+    "/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_testing-690e17fe49120b89.rlib": {
+      "sha256": "96e8f5a19393b44669a2ced248913d4d8f0750c8d5132f9c2c85b38d376b7867",
+      "bytes": 8425308
+    },
+    "/home/agent/.cache/codex-build/cargo-target/debug/deps/libumpire_temporal-3b00bcec88f7dd2c.rlib": {
+      "sha256": "7a0dda874789fd40d630bceea9366768bfd60b7d7c8abe1b686ac65f0a8b44fa",
+      "bytes": 139622696
+    }
+  },
+  "rustc_version": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "packages_added": 0,
+  "model_transition_changes": 0,
+  "compile_exit": 0,
+  "compile_seconds": 2.988,
+  "binary_sha256": "9ee3ad2946d123e95bef9c1a34f5da61c676ca90eb370692536c5231c3053452",
+  "run_argv": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2373-ack-replay",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal"
+  ],
+  "run_exit": 0,
+  "run_seconds": 10.952,
+  "cases": [
+    "ACK_REPLAY_PASS:current-first:edges=3",
+    "ACK_REPLAY_PASS:current-cap:edges=7",
+    "ACK_REPLAY_PASS:stale-scheduled:edges=6",
+    "ACK_REPLAY_PASS:stale-pending:edges=8"
+  ],
+  "proof_boundary": "Offline actual committed Model/source/TLC and native replay only; live SUT acknowledgement proof remains fn237.4/fn243.5.",
+  "library_selection": "Exact compiler-artifact records from cached Cargo --no-run; no new Cargo package or package/version change.",
+  "durable_trace": {
+    "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay.txt",
+    "sha256": "bdedff3d102b532062ed843627bfe5512068f8ed50ad91520a8d4514a0b689f6",
+    "bytes": 48488
+  },
+  "native_model_commit": "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98"
+}

@@ -1,0 +1,129 @@
+{
+  "task": "fn-237-activity-timeouts-heartbeat-and.3",
+  "base_commit": "88f3f2098e434cdcd3078f8afe792ae1e64b0fe7",
+  "source_commit": "e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98",
+  "metadata_head_before_review": "1ef0402c102a79ef1926c24ecd025372ad1bf123",
+  "gates": [
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "exit_code": 0,
+      "seconds": 455.374
+    },
+    {
+      "gate": "model-check-required",
+      "command": "UMPIRE_BACKENDS=require make model-check",
+      "exit_code": 0,
+      "seconds": 960.602
+    },
+    {
+      "gate": "model-time",
+      "command": "make model-time",
+      "exit_code": 0,
+      "seconds": 373.928
+    },
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "exit_code": 0,
+      "seconds": 441.325,
+      "reason": "fresh run after external non-.flow metadata invalidated earlier receipt"
+    }
+  ],
+  "live_checks": [
+    {
+      "gate": "slice",
+      "command": "make umpire-check-model-slice",
+      "exit_code": 0,
+      "seconds": 98.727
+    },
+    {
+      "gate": "gaps",
+      "command": "make umpire-check-model-gaps",
+      "exit_code": 0,
+      "seconds": 362.102
+    }
+  ],
+  "rust_counts": {
+    "model-check-stable-head": {
+      "groups": 176,
+      "passed": 722,
+      "failed": 0,
+      "ignored": 4
+    },
+    "model-check-required": {
+      "groups": 176,
+      "passed": 722,
+      "failed": 0,
+      "ignored": 4
+    }
+  },
+  "model_time": {
+    "wall_seconds": 373.928,
+    "gate_seconds": 367.163,
+    "inner_seconds": 6.566,
+    "gate_soft_target_met": false,
+    "inner_soft_target_met": true
+  },
+  "first_gate_orchestration_hold": {
+    "shell_pid": 138627,
+    "make_pid": 138674,
+    "stopped_monotonic": 133992.998822967,
+    "reason": "root fn247 primary/finalizer Flow exclusivity; Make child remains running",
+    "resumed_monotonic": 134396.996968826,
+    "resumed_unix": 1792868619.7104218,
+    "make_status_at_resume": "Z",
+    "log_last_modified_unix": 1792868577.5384357,
+    "coordinator_stop_seconds": 403.998
+  },
+  "guest_sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0",
+  "protected_files": 863,
+  "host_subagents": 6,
+  "primary_review": "pending",
+  "scope_exceptions": {
+    "authored_mirror_before": {
+      "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__activity-realization-authored.snap": {
+        "sha256": "c2fdb1c6747abdcc15cce6296f8f1fb33ebe0f1f24729de6ee91f8aac122a7c4",
+        "bytes": 20835
+      }
+    },
+    "lock_before": {
+      "base_commit": "88f3f2098e434cdcd3078f8afe792ae1e64b0fe7",
+      "path": "model/Cargo.lock",
+      "sha256": "9e8dedc88be7b424369f8471c37db544fb8655d6772da5737343fd2c8c683af7",
+      "bytes": 29142
+    },
+    "go_before": {
+      "model/temporal/hosts/go/allocation_test.go": {
+        "sha256": "baf4fbf38cd629d140a14f26da2d0295e8df3ea6601c3cd03c367b1d88686f96",
+        "bytes": 10623
+      },
+      "model/temporal/hosts/go/parity_test.go": {
+        "sha256": "55bb299b9ddb2772894cb0bbfea605e4ffb2097a9d65f9c3547f55b61c0917ec",
+        "bytes": 22391
+      },
+      "model/temporal/hosts/go/annotations_test.go": {
+        "sha256": "b2227c8dcd558aa3bb96b60770f98d4d0314364e580a82a74674b2eb78b8fd2f",
+        "bytes": 2396
+      }
+    }
+  },
+  "external_metadata_commits": [
+    "40b9cb9ff15c1c24d69de9171dea0d2b340053e1",
+    "67a7c6af38",
+    "53a9c9ccbd",
+    "505bc5013a",
+    "45c5a5a04c",
+    "1ef0402c10"
+  ],
+  "limitations": [
+    "Broader archived Scala/IR Go umbrella remains inherited red; no all-repository green claim.",
+    "Offline cancellation and deadline proof does not grant live timeout/cooperative admission.",
+    "First default gate wrapper wall includes deferred receipt coordination; exact Make-only wall was not observed. Stable-head rerun is authoritative."
+  ],
+  "execution_archive": {
+    "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-execution-evidence.tar.gz",
+    "sha256": "e3672a13f747ad0cf9aa7ca6aac2869fc038d2862e13d27192930a10d2554862",
+    "files": 108
+  }
+}
