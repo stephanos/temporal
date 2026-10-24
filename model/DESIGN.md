@@ -799,8 +799,11 @@ return programmed results/failures; an unknown key refuses startup and an unmatc
 task fails nonretryably as `umpire.unprogrammed`. No worker calls Umpire or embeds a
 Model. The hold fault contains worker polls until the proposed request is acknowledged;
 it replaces the worker gate and is not a program delay. Unsupported holds are
-DriverFaults. The [programmed-worker design](design/programmed-workers.md) records the
-owner's replacement of the Shim and callback architecture.
+DriverFaults. The [programmed-worker design of record](design/programmed-workers.md)
+supersedes the Shim and Temporal callback architecture and links the shipped code and
+wire goldens. Workers in any language follow the Model-issued program contract; the
+proved live checkpoint currently covers Go raw and SDK executors, with the non-Go
+offline gap and unheld-cancellation proof recorded below.
 
 ### Run, replay and publication
 
