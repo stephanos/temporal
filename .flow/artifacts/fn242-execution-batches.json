@@ -11321,5 +11321,6 @@
     "fn-242-gomad-shrink-the-qualification.8": "fn-242-gomad-shrink-the-qualification.5"
   },
   "activation_verified_at": "2026-10-24T20:16:28.271363+00:00",
-  "activation_flow_calls": 102
+  "activation_flow_calls": 102,
+  "inflight_transition": "Preserve existing implementations and reviews already in flight. Task .12 finalized three SHIP draws; task .13 finishes its current implementation and receives one fresh high-effort independent review. The 16 batches begin after .13 is actually done."
 }

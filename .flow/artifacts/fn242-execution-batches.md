@@ -1,6 +1,6 @@
 # fn-242 execution batches — owner decision, 2026-10-24
 
-Use 16 batches for the remaining 47 original tasks. Keep six writer lanes and two heavy build slots. Keep the current .12/.13 execution and reviews unchanged. This policy changes execution grouping and Flow admission, preserving product acceptance.
+Use 16 batches for the remaining 47 original tasks. Keep six writer lanes and two heavy build slots. Finish the existing .12/.13 implementations without restarting them. Preserve any review already in flight; subsequent reviews follow this owner-authorized policy. This policy changes execution grouping and Flow admission, preserving product acceptance.
 
 The original 267-edge task DAG and the additive leader graph are acyclic. No dependency is removed and no task is created. Independent review barriers fall from 47 task gates to 16 batch gates. The equal-duration review critical path falls from 17 to 7 barriers; the widest earliest wave has six batches. These are graph counts, not a wall-time forecast.
 
