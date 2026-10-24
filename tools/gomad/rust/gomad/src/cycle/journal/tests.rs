@@ -635,3 +635,142 @@ pub(crate) fn floor_cases(owner: &super::super::process::CycleOwner) {
         "POLICY policy-reservation-resource-floors exact=45/20/12GiB executed-exit=0 charged=1 reopened=1"
     );
 }
+
+pub(crate) fn serving_filesystem_cases(owner: &super::super::process::CycleOwner) {
+    use super::super::{
+        admission::{Admission, Bindings, Filesystem, Probe},
+        process::Environment,
+    };
+    use std::{collections::BTreeMap, time::Duration};
+    #[derive(Debug)]
+    struct Facts {
+        change: Option<(PathBuf, String)>,
+    }
+    impl Probe for Facts {
+        fn filesystem(&self, path: &Path) -> Result<Filesystem, String> {
+            Ok(Filesystem {
+                kind: self
+                    .change
+                    .as_ref()
+                    .filter(|(p, _)| p == path)
+                    .map_or_else(|| "overlayfs".into(), |(_, kind)| kind.clone()),
+                available_bytes: 64 << 30,
+            })
+        }
+    }
+    let mut incorrectly_accepted = Vec::new();
+    for role in ["evidence", "declared overlay"] {
+        for kind in ["fuse", "ext4"] {
+            let f = Fixture::new();
+            for name in ["repo", "host", "overlay"] {
+                std::fs::create_dir(f.root.join(name)).unwrap();
+            }
+            let mut journal = f.enroll();
+            let mut runner = Runner::create(owner, &f.root.join("registry"), None).unwrap();
+            let facts = Facts { change: None };
+            let prepare = |output: PathBuf, suffix: &str| {
+                let scratch = f.root.join(format!("scratch-{suffix}"));
+                Admission::prepare(
+                    Bindings {
+                        repo: f.root.join("repo"),
+                        evidence: output,
+                        scratch: scratch.clone(),
+                        temporary_paths: BTreeMap::from([
+                            ("TMPDIR".into(), scratch.join("tmp")),
+                            ("GOTMPDIR".into(), scratch.join("go")),
+                        ]),
+                        environment: BTreeMap::new(),
+                        config_sha256: digest(),
+                        host: f.root.join("host"),
+                        overlay: f.root.join("overlay"),
+                    },
+                    &facts,
+                )
+                .unwrap()
+            };
+            let command = || Command {
+                argv: vec!["/bin/true".into()],
+                cwd: "/".into(),
+                environment: Environment::Exact(BTreeMap::new()),
+                declared_environment: BTreeMap::new(),
+                temporary_paths: BTreeMap::new(),
+                accepted: vec![0],
+                timeout: Duration::from_secs(3),
+                private_context: None,
+            };
+            let control_output = f.output("control");
+            let control = prepare(control_output.clone(), "control");
+            let done = journal
+                .start(
+                    &mut runner,
+                    "control",
+                    command(),
+                    &AtomicBool::new(false),
+                    &digest(),
+                    &control_output,
+                    &control,
+                    &facts,
+                )
+                .unwrap()
+                .wait(&AtomicBool::new(false))
+                .unwrap();
+            assert!(done.accepted());
+            for pid in [done.pid, done.supervisor_pid] {
+                assert!(!Path::new(&format!("/proc/{pid}")).exists());
+                println!("JOURNAL_PID {pid} CLEANED");
+            }
+            assert_eq!(journal.charged().unwrap(), 1);
+            let output = f.output("mutation");
+            let admission = prepare(output.clone(), "mutation");
+            let path = if role == "evidence" {
+                output.clone()
+            } else {
+                f.root.join("overlay")
+            };
+            let changed = Facts {
+                change: Some((path, kind.into())),
+            };
+            let count = std::fs::read_dir(f.root.join("registry")).unwrap().count();
+            match journal.start(
+                &mut runner,
+                "mutation",
+                command(),
+                &AtomicBool::new(false),
+                &digest(),
+                &output,
+                &admission,
+                &changed,
+            ) {
+                Err(error) => {
+                    assert_eq!(error, format!("actual overlay {role} is required"));
+                    assert_eq!(journal.charged().unwrap(), 1);
+                    assert!(!output.join(".cycle-attempt-started").exists());
+                    assert_eq!(
+                        std::fs::read_dir(f.root.join("registry")).unwrap().count(),
+                        count
+                    );
+                    let control = format!("{facts:?}");
+                    let input = format!("{changed:?}");
+                    println!(
+                        "PROOF_JSON {}",
+                        serde_json::json!({"id":format!("servingfs:reservation:{role}:{kind}"),"control":control,"input":input,"control_sha256":canonical::digest(control.as_bytes()),"input_sha256":canonical::digest(input.as_bytes()),"control_result":"executed exit0 charged1 cleaned","result":"refused before new charge/registration/spawn/marker","failure":error})
+                    );
+                }
+                Ok(running) => {
+                    let done = running.wait(&AtomicBool::new(false)).unwrap();
+                    assert!(done.accepted());
+                    for pid in [done.pid, done.supervisor_pid] {
+                        assert!(!Path::new(&format!("/proc/{pid}")).exists());
+                        println!("JOURNAL_PID {pid} CLEANED");
+                    }
+                    println!("SERVING_FS_BAD_ACCEPTED reservation role={role} kind={kind}");
+                    incorrectly_accepted.push((role, kind));
+                }
+            }
+        }
+    }
+    assert!(
+        incorrectly_accepted.is_empty(),
+        "forbidden reservation filesystems accepted: {incorrectly_accepted:?}"
+    );
+}

@@ -11,7 +11,15 @@ fn main() {
         return;
     }
     let owner = cycle::process::CycleOwner::initialize_exclusive().unwrap();
+    if matches!(
+        std::env::args().nth(1).as_deref(),
+        Some("serving" | "serving-only")
+    ) {
+        cycle::journal::tests::serving_filesystem_cases(&owner);
+        return;
+    }
     cycle::journal::tests::owner_cases(&owner);
     cycle::journal::tests::floor_cases(&owner);
-    println!("JOURNAL_OWNER_CASES 2 PASS");
+    cycle::journal::tests::serving_filesystem_cases(&owner);
+    println!("JOURNAL_OWNER_CASES 3 PASS");
 }

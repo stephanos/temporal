@@ -357,3 +357,56 @@ fn memory_original_166_176_179_187_194_198_201_203() {
     }
     refused(admit_memory("1", "linux", Broken), "fixture I/O error");
 }
+
+#[test]
+fn serving_filesystems_require_overlay_at_preparation() {
+    let mut incorrectly_accepted = Vec::new();
+    for role in ["evidence", "declared overlay"] {
+        for kind in ["fuse", "ext4"] {
+            let f = Fixture::new();
+            let control = f.prepare();
+            control.recheck(&Facts::default()).unwrap();
+            drop(control);
+            for path in f.bindings.temporary_paths.values() {
+                fs::remove_dir(path).unwrap();
+            }
+            fs::remove_dir(&f.bindings.scratch).unwrap();
+            let path = if role == "evidence" {
+                &f.bindings.evidence
+            } else {
+                &f.bindings.overlay
+            };
+            let facts = Facts {
+                change: Some((
+                    path.clone(),
+                    Filesystem {
+                        kind: kind.into(),
+                        available_bytes: 64 * GIB,
+                    },
+                )),
+                fail: false,
+            };
+            let expected = format!("actual overlay {role} is required");
+            match Admission::prepare(f.bindings.clone(), &facts) {
+                Err(error) => {
+                    assert_eq!(error, expected);
+                    assert!(!f.bindings.scratch.exists());
+                    proof(
+                        &format!("servingfs:prepare:{role}:{kind}"),
+                        (&f.bindings, Facts::default()),
+                        (&f.bindings, &facts),
+                        &error,
+                    );
+                }
+                Ok(_) => {
+                    println!("SERVING_FS_BAD_ACCEPTED preparation role={role} kind={kind}");
+                    incorrectly_accepted.push((role, kind));
+                }
+            }
+        }
+    }
+    assert!(
+        incorrectly_accepted.is_empty(),
+        "forbidden preparation filesystems accepted: {incorrectly_accepted:?}"
+    );
+}
