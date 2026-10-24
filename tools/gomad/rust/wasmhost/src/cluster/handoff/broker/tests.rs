@@ -14,6 +14,9 @@ use std::path::PathBuf;
 #[path = "corpus.rs"]
 mod corpus;
 
+#[path = "readiness_probe_tests.rs"]
+mod readiness_probe_tests;
+
 fn directory() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders")
 }

@@ -994,3 +994,6 @@ fn native_wat_publication_replays_with_absent_and_present_oracle_reports() {
     }
     fs::remove_dir_all(root).unwrap();
 }
+
+#[path = "pending_reads_guest_tests.rs"]
+mod pending_reads_guest_tests;
