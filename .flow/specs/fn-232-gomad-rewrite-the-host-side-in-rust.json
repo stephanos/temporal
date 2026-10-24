@@ -17,7 +17,7 @@
     "fn-232-gomad-rewrite-the-host-side-in-rust.18": 0,
     "fn-232-gomad-rewrite-the-host-side-in-rust.19": 0,
     "fn-232-gomad-rewrite-the-host-side-in-rust.20": 0,
-    "fn-232-gomad-rewrite-the-host-side-in-rust.21": 1
+    "fn-232-gomad-rewrite-the-host-side-in-rust.21": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -729,6 +729,50 @@
       "task": "fn-232-gomad-rewrite-the-host-side-in-rust.21",
       "timestamp": "2026-10-24T08:32:46.962612Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b0e378b8ad45ac7c124faa15bbdbece1f458423844c715f3aa202f332f839025",
+      "backend": "codex",
+      "base_sha": "5ef7c85c6dba49ece97b536dfa7b0d86f4d5a286",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-571a8c8714b369d22b41304b57e93fd7",
+            "classification": "introduced",
+            "findingId": "finding-571a8c8714b369d22b41304b57e93fd7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f29f4abc42389a6f686e1254be9ad29759cb265d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1019,
+      "output_sha256": "fd05bfda0519f096aa96ad609ff6b196d36503aa0e6d5ed6c077154b6b5e5467",
+      "reservation_id": "cd3900b1e2e64853b4cb9d4eb7b3d2c0",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.21",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.21",
+      "timestamp": "2026-10-24T08:36:46.112792Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -738,6 +782,7 @@
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.18": 1,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.19": 1,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.20": 1,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.21": 1,
     "plan": 6,
     "plan#completion": 0
   },
@@ -767,5 +812,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T08:32:46.964140Z"
+  "updated_at": "2026-10-24T08:36:46.114501Z"
 }
