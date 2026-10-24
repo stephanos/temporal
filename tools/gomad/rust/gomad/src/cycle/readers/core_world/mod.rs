@@ -7,6 +7,8 @@ use gomad_wasmhost::linked_cluster::{self as codec, BrokerConfig, NetworkModel, 
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+pub(crate) mod corpus;
+
 pub(crate) const INITIAL_TIME: u64 = 946_684_800_000_000_000;
 
 pub(crate) fn require(ok: bool, reason: &str) -> Result<(), String> {

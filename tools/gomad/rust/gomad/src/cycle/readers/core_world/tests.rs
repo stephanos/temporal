@@ -271,3 +271,84 @@ fn receive_genuine_world_owner_and_targeted_workload_mutations() {
         assert!(measured(&changed, "", 3, &sha(&changed)).is_err(), "{at}");
     }
 }
+
+fn load_corpus(kind: &str) -> corpus::Corpus {
+    let folder = match kind {
+        "world" => "world_conformance",
+        "clock" => "clock_conformance",
+        "network" => "network_cluster_cases",
+        "broker" => "broker_orders",
+        _ => panic!("kind"),
+    };
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../wasmhost/tests/testdata")
+        .join(folder);
+    let raw = std::fs::read_dir(root)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().is_some_and(|s| s == "json"))
+        .map(|p| {
+            (
+                p.file_stem().unwrap().to_str().unwrap().to_owned(),
+                std::fs::read(&p).unwrap(),
+            )
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let frozen = raw
+        .iter()
+        .map(|(name, raw)| (name.clone(), sha(raw)))
+        .collect();
+    corpus::Corpus::admit(kind, &raw, &frozen, None).unwrap()
+}
+
+#[test]
+fn current_corpus_inventory_refuses_tamper_omission_and_foreign_header() {
+    let raw=std::collections::BTreeMap::from([("fixture".to_owned(),br#"{"schema":"gomad.network-cluster-corpus/v1","name":"fixture","creation_error":"invalid","steps":[]}"#.to_vec())]);
+    let frozen = raw
+        .iter()
+        .map(|(name, raw)| (name.clone(), sha(raw)))
+        .collect();
+    let admitted = corpus::Corpus::admit("network", &raw, &frozen, None).unwrap();
+    let row = json!({"schema":"gomad.core-predicate-observation/v1","case":"network.corpus.creation","inputs":{"name":"fixture"},"observed":{"error":"invalid"}});
+    let text = format!("GOMAD_CORE_OBSERVATION {row}\n");
+    admitted.receive(text.as_bytes()).unwrap();
+    let mut changed = row;
+    changed["observed"]["error"] = json!("substituted");
+    assert_eq!(
+        admitted
+            .receive(format!("GOMAD_CORE_OBSERVATION {changed}\n").as_bytes())
+            .unwrap_err(),
+        "network corpus API response/state"
+    );
+    assert_eq!(
+        admitted.receive(b"").unwrap_err(),
+        "corpus harness omitted cases"
+    );
+    assert!(
+        admitted
+            .receive(format!("{text}{text}").as_bytes())
+            .err()
+            .unwrap()
+            .contains("duplicate")
+    );
+    assert!(
+        corpus::Corpus::admit("network", &std::collections::BTreeMap::new(), &frozen, None)
+            .is_err()
+    );
+    let mut changed = raw;
+    changed.get_mut("fixture").unwrap().push(b' ');
+    assert!(corpus::Corpus::admit("network", &changed, &frozen, None).is_err());
+}
+
+#[test]
+#[ignore = "requires independently captured genuine World, clock, network and broker corpus logs"]
+fn receive_genuine_corpora() {
+    let root = std::path::PathBuf::from(
+        std::env::var("GOMAD_B06_CORPUS_LOGS").expect("GOMAD_B06_CORPUS_LOGS"),
+    );
+    for kind in ["world", "clock", "network", "broker"] {
+        let admitted = load_corpus(kind);
+        let raw = std::fs::read(root.join(format!("{kind}.log"))).unwrap();
+        admitted.receive(&raw).unwrap();
+    }
+}
