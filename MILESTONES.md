@@ -512,9 +512,9 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.17](.flow/tasks/fn-242-gomad-shrink-the-qualification.17.md) | ⬜ Todo | Freeze authenticated role and configuration bindings |
+| [fn-242.17](.flow/tasks/fn-242-gomad-shrink-the-qualification.17.md) | 🚧 Running | Freeze authenticated role and configuration bindings |
 | [fn-242.19](.flow/tasks/fn-242-gomad-shrink-the-qualification.19.md) | ⬜ Todo | Compose fixed stages and surviving endpoint bindings |
-| [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | ⬜ Todo | Validate command, artifact and preparation custody |
+| [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | 🚧 Running | Validate command, artifact and preparation custody |
 | [fn-242.21](.flow/tasks/fn-242-gomad-shrink-the-qualification.21.md) | ⬜ Todo | Validate retained storage and engine codecs |
 | [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | ⬜ Todo | Validate actual guest and preparation observations |
 | [fn-242.25](.flow/tasks/fn-242-gomad-shrink-the-qualification.25.md) | ⬜ Todo | Validate inspection decoding, search and refused mappings |
