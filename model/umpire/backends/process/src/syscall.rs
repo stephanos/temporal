@@ -59,7 +59,7 @@ mod supported {
                 platform_policy(std::env::consts::OS, libc::getuid(), libc::geteuid())?;
             }
             let mut prepared = Prepared::new(command, fallback_directory)?;
-            let (owner_read, owner_write) = std::io::pipe()?;
+            let (owner_read, owner_write) = io::pipe()?;
             let null = File::open("/dev/null")?;
             let input = duplicate(owner_read.as_raw_fd())?;
             let output = duplicate(out.as_raw_fd())?;
@@ -75,7 +75,7 @@ mod supported {
             if pid == 0 {
                 // SAFETY: context points to immutable prepared tables and one
                 // uniquely owned parsing buffer in this process's private memory.
-                unsafe { child_main(&context, &mask.original) }
+                unsafe { child_main(&raw const context, &raw const mask.original) }
             }
             if pid < 0 {
                 let error = io::Error::last_os_error();
@@ -110,10 +110,6 @@ mod supported {
             }
         }
 
-        #[cfg(test)]
-        pub(crate) fn pid(&self) -> u32 {
-            self.pid.cast_unsigned()
-        }
     }
 
     impl Drop for Running {
@@ -145,8 +141,8 @@ mod supported {
     struct Prepared {
         directory: CString,
         executable: CString,
-        arguments: Vec<CString>,
-        environment: Vec<CString>,
+        _arguments: Vec<CString>,
+        _environment: Vec<CString>,
         argv: Vec<*const libc::c_char>,
         envp: Vec<*const libc::c_char>,
         buffer: Box<[u8; BUFFER_BYTES]>,
@@ -201,16 +197,13 @@ mod supported {
             };
             Ok(Self {
                 default_action, stop_action, all_signals, empty_signals,
-                directory: cstring(directory.as_os_str())?, executable, arguments, environment,
+                directory: cstring(directory.as_os_str())?, executable, _arguments: arguments, _environment: environment,
                 argv, envp, buffer: Box::new([0; BUFFER_BYTES]), close_limit, signal_limit,
                 launch_error,
             })
         }
 
         fn context(&mut self, input: RawFd, output: RawFd, errors: RawFd, null: RawFd) -> ChildContext {
-            // Keeping the string owners alongside the pointer tables is the
-            // lifetime invariant used by both child entry points.
-            let _owners = (&self.arguments, &self.environment);
             ChildContext {
                 directory: self.directory.as_ptr(), executable: self.executable.as_ptr(),
                 argv: self.argv.as_ptr(), envp: self.envp.as_ptr(),
@@ -256,13 +249,17 @@ mod supported {
             let candidate = directory.join(entry).join(program);
             let candidate = cstring(candidate.as_os_str())?;
             // SAFETY: the candidate is a live NUL-terminated pathname.
-            if unsafe { libc::access(candidate.as_ptr(), libc::X_OK) } == 0 {
+            if unsafe { libc::faccessat(libc::AT_FDCWD, candidate.as_ptr(), libc::X_OK, libc::AT_EACCESS) } == 0 {
                 if std::fs::metadata(OsStr::from_bytes(candidate.as_bytes())).is_ok_and(|m| m.is_file()) {
                     return Ok((candidate, 0));
                 }
                 failure = libc::EACCES;
-            } else if io::Error::last_os_error().raw_os_error() == Some(libc::EACCES) {
-                failure = libc::EACCES;
+            } else {
+                match io::Error::last_os_error().raw_os_error() {
+                    Some(libc::EACCES) => failure = libc::EACCES,
+                    Some(libc::ENOENT | libc::ENOTDIR) => {}
+                    _ => return Ok((candidate, 0)),
+                }
             }
         }
         Ok((cstring(program)?, failure))
@@ -533,7 +530,7 @@ mod supported {
                 let mut offset = 0;
                 while offset < count {
                     let byte = *buffer.offset(offset);
-                    if byte >= b'0' && byte <= b'9' {
+                    if byte.wrapping_sub(b'0') <= 9 {
                         let digit = libc::pid_t::from(byte - b'0');
                         if pid > (libc::pid_t::MAX - digit) / 10 { return false; }
                         pid = pid * 10 + digit;
@@ -654,6 +651,7 @@ mod supported {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
+#[allow(unused_imports)]
 pub(crate) use supported::Running;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 #[allow(unused_imports)]
