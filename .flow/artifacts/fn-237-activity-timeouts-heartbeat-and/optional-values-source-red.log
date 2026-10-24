@@ -1,0 +1,19 @@
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.91s
+     Running tests/optional_ticks.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/optional_ticks-ea9854d93525c04f)
+
+running 1 test
+test source_local_optional_ticks_are_admitted ... FAILED
+
+failures:
+
+---- source_local_optional_ticks_are_admitted stdout ----
+Error: Diagnostic { file: "optional_ticks.rs", line: 7, column: 46, message: "unsupported type `Option<Ticks>`" }
+
+
+failures:
+    source_local_optional_ticks_are_admitted
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-tla --test optional_ticks`

@@ -190,6 +190,26 @@ fn encode(ty: &Type, place: &TokenStream) -> TokenStream {
     match ty {
         Type::Bool => quote!(__UmpireValue::Bool(#place)),
         Type::Int { .. } => quote!(__UmpireValue::Int(::core::primitive::i128::from(#place))),
+        Type::Bounded(bounded) => {
+            let member = bounded.field.as_ref().map_or_else(
+                || quote!(0),
+                |name| {
+                    let name = ident(name);
+                    quote!(#name)
+                },
+            );
+            quote!(__UmpireValue::Int(::core::primitive::i128::from((#place).#member)))
+        }
+        Type::Optional(bounded) => {
+            let inner = encode(&Type::Bounded(bounded.clone()), &quote!((*__umpire_payload)));
+            quote!(__UmpireValue::Int(match &(#place) {
+                ::core::option::Option::None => 0,
+                ::core::option::Option::Some(__umpire_payload) => match #inner {
+                    __UmpireValue::Int(raw) => raw + 1,
+                    _ => ::core::unreachable!(),
+                },
+            }))
+        }
         Type::Enum { variants, .. } => {
             let arms = variants.iter().enumerate().map(|(index, name)| {
                 let pattern = variant(ty, name);
@@ -231,6 +251,28 @@ fn decode(ty: &Type, value: &TokenStream) -> TokenStream {
             );
             quote!(match #value {
                 __UmpireValue::Int(value) => #target(*value).unwrap_or_else(|_| #mismatch),
+                _ => #mismatch,
+            })
+        }
+        Type::Bounded(bounded) => {
+            let name = ident(&bounded.name);
+            let backing = ident(&bounded.backing);
+            let raw = quote!(<#backing as ::core::convert::TryFrom<i128>>::try_from(*raw).unwrap_or_else(|_| #mismatch));
+            let construct = bounded.field.as_ref().map_or_else(
+                || quote!(#name(#raw)),
+                |field| {
+                    let field = ident(field);
+                    quote!(#name { #field: #raw })
+                },
+            );
+            quote!(match #value { __UmpireValue::Int(raw) => #construct, _ => #mismatch })
+        }
+        Type::Optional(bounded) => {
+            let inner =
+                decode(&Type::Bounded(bounded.clone()), &quote!(&__UmpireValue::Int(*code - 1)));
+            quote!(match #value {
+                __UmpireValue::Int(0) => ::core::option::Option::None,
+                __UmpireValue::Int(code) => ::core::option::Option::Some(#inner),
                 _ => #mismatch,
             })
         }

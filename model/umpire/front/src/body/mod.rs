@@ -114,7 +114,12 @@ impl Environment {
                 }
                 Type::Tuple(types) => types.iter().for_each(|ty| enums(ty, out)),
                 Type::Seq(inner) => enums(inner, out),
-                Type::Bool | Type::Int { .. } | Type::Text | Type::Unit => {}
+                Type::Bool
+                | Type::Int { .. }
+                | Type::Bounded(_)
+                | Type::Optional(_)
+                | Type::Text
+                | Type::Unit => {}
             }
         }
         let mut known = BTreeMap::new();

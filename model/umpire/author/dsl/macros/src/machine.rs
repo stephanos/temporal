@@ -285,6 +285,7 @@ fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
         }
     }
     let enums = enum_values(machine);
+    let nominal = nominal_values(items);
     let actions = action_values(&actors);
     let failures = machine.starts().is_none().then(|| {
         quote! {
@@ -310,7 +311,36 @@ fn value_exports(machine: &Machine, items: &mut [Item]) -> TokenStream {
                 #failures
             }
         });
-    quote!(#world #actions #(#enums)*)
+    quote!(#world #actions #(#enums)* #(#nominal)*)
+}
+
+fn nominal_values(items: &[Item]) -> Vec<TokenStream> {
+    items.iter().filter_map(|item| {
+        let Item::Struct(item) = item else { return None };
+        let input = syn::DeriveInput {
+            attrs: item.attrs.clone(), vis: item.vis.clone(), ident: item.ident.clone(),
+            generics: item.generics.clone(),
+            data: syn::Data::Struct(syn::DataStruct {
+                struct_token: item.struct_token, fields: item.fields.clone(), semi_token: item.semi_token,
+            }),
+        };
+        let derives_finite = item.attrs.iter().filter(|attr| attr.path().is_ident("derive"))
+            .any(|attr| attr.parse_args_with(syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated)
+                .is_ok_and(|paths| paths.iter().any(|path| path.is_ident("Finite"))));
+        if !derives_finite || !input.generics.params.is_empty() { return None; }
+        let declare::Finite::Newtype { field, .. } = declare::finite(&input).ok()? else { return None };
+        let name = &item.ident;
+        let label = name.to_string();
+        let member = field.map_or_else(|| quote!(0), |field| quote!(#field));
+        Some(quote! {
+            #[doc(hidden)]
+            impl ::umpire_dsl::IntoValue for #name {
+                fn value(&self) -> ::umpire_dsl::Value {
+                    ::umpire_dsl::Value::Bounded { name: #label, raw: ::core::primitive::i128::from(self.#member) }
+                }
+            }
+        })
+    }).collect()
 }
 
 /// A local fieldless enum, as the lifter admits it, exports its variant as a value unless its

@@ -136,7 +136,7 @@ fn bounds(attr: &Attribute, ty: &Type) -> syn::Result<(Expr, Expr)> {
     Ok(((**low).clone(), (**high).clone()))
 }
 
-fn literal(bound: &Expr) -> Option<i128> {
+pub(crate) fn literal(bound: &Expr) -> Option<i128> {
     match bound {
         Expr::Lit(syn::ExprLit { lit: syn::Lit::Int(value), .. }) => value.base10_parse().ok(),
         Expr::Unary(syn::ExprUnary { op: syn::UnOp::Neg(_), expr, .. }) => {

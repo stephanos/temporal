@@ -1,0 +1,13 @@
+{
+  "baseline": "green",
+  "command": "make model-check",
+  "kernel_wait_status": 0,
+  "exit_code": 0,
+  "command_log": ".flow/tmp/fn2372-baseline-default.log",
+  "wrapper": "intentionally terminated after suspending orchestration only; queued required/time never started",
+  "prior_attempt": {
+    "command": "make model-check",
+    "exit_code": 2,
+    "observation": "inconclusive: nested shell omitted explicit cd and ran wrong surface; no credit"
+  }
+}

@@ -30,6 +30,14 @@ pub enum ExprKind {
     If(Box<Expr>, Box<Expr>, Box<Expr>),
     Tuple(Vec<Expr>),
     Sequence(Vec<Expr>),
+    /// Construct a nominal wrapper without introducing a finite-domain runtime guard.
+    Bounded(Box<Expr>),
+    /// Read a nominal wrapper's integer member.
+    Payload(Box<Expr>),
+    /// Encode a present nominal payload as its scalar ordinal.
+    Some(Box<Expr>),
+    /// Read a present payload or an eagerly evaluated nominal fallback.
+    OptionalOr(Box<Expr>, Box<Expr>),
     Length(Box<Expr>),
     Append(Box<Expr>, Box<Expr>),
     GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
@@ -135,7 +143,11 @@ impl Expr {
             ExprKind::Local(_) | ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
             ExprKind::Unary(Unary::Not, value)
             | ExprKind::Length(value)
-            | ExprKind::Check(_, value) => value.infallible(),
+            | ExprKind::Check(_, value)
+            | ExprKind::Bounded(value)
+            | ExprKind::Payload(value) => value.infallible(),
+            ExprKind::Some(_) => false,
+            ExprKind::OptionalOr(value, fallback) => value.infallible() && fallback.infallible(),
             ExprKind::Binary(op, left, right) => {
                 !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
                     && left.infallible()

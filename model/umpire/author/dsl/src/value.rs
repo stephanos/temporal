@@ -7,6 +7,15 @@ pub enum Value {
     Bool(bool),
     /// An integer of any admitted width.
     Int(i128),
+    /// An authored nominal wrapper and its raw integer member; export does not validate it.
+    Bounded {
+        /// Authored type name.
+        name: &'static str,
+        /// Raw integer member.
+        raw: i128,
+    },
+    /// An exported optional field, retaining its payload's nominal identity.
+    Optional(Option<Box<Value>>),
     /// A fieldless enum's qualified variant, such as `Phase::Open`.
     Enum(&'static str),
     /// Ordered elements.
@@ -104,4 +113,10 @@ pub struct StartFailure {
     pub prefix: Vec<(&'static str, Value)>,
     /// The original native panic payload, kept for arithmetic classification by the caller.
     pub panic: Box<dyn std::any::Any + Send>,
+}
+
+impl<T: IntoValue> IntoValue for Option<T> {
+    fn value(&self) -> Value {
+        Value::Optional(self.as_ref().map(|value| Box::new(value.value())))
+    }
 }
