@@ -1,0 +1,9 @@
+0: Model { attempt: 1, ready: false, closed: false }
+1: Model { attempt: 1, ready: true, closed: false }
+2: Model { attempt: 2, ready: false, closed: false }
+3: Model { attempt: 1, ready: true, closed: true }
+4: Model { attempt: 2, ready: true, closed: false }
+5: Model { attempt: 3, ready: false, closed: false }
+6: Model { attempt: 2, ready: true, closed: true }
+7: Model { attempt: 3, ready: true, closed: false }
+8: Model { attempt: 3, ready: true, closed: true }

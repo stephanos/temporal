@@ -1,0 +1,3 @@
+start: Model { attempt: 1, ready: false, closed: false }
+1: Worker::Poll(1) choice=0 -> Model { attempt: 1, ready: true, closed: false }
+2: Worker::Close choice=0 -> Model { attempt: 1, ready: true, closed: true }

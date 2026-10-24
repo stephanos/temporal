@@ -1,0 +1,111 @@
+---- MODULE Retry ----
+EXTENDS Integers, TLC, Sequences
+CONSTANT \* @type: Int;
+__umpire_world_maximum
+\* @type: (Int, Int) => Int;
+__umpire_Div(__umpire_a, __umpire_b) ==
+    IF Assert(__umpire_b # 0, "Rust integer division by zero") /\ Assert(~(__umpire_a = (-2147483647 - 1) /\ __umpire_b = -1), "Rust integer division overflow")
+    THEN IF __umpire_b = (-2147483647 - 1)
+         THEN IF __umpire_a = (-2147483647 - 1) THEN 1 ELSE 0
+         ELSE IF __umpire_a < 0
+              THEN LET (* @type: Int; *) __umpire_d == IF __umpire_b < 0 THEN -__umpire_b ELSE __umpire_b
+                       (* @type: Int; *) __umpire_n == -(__umpire_a + 1)
+                       (* @type: Int; *) __umpire_q == __umpire_n \div __umpire_d
+                       (* @type: Int; *) __umpire_r == __umpire_n - __umpire_q * __umpire_d
+                       (* @type: Int; *) __umpire_negative == -__umpire_q - (IF __umpire_r = __umpire_d - 1 THEN 1 ELSE 0)
+                   IN IF __umpire_b < 0 THEN -__umpire_negative ELSE __umpire_negative
+              ELSE IF __umpire_b < 0 THEN -(__umpire_a \div (-__umpire_b)) ELSE __umpire_a \div __umpire_b
+    ELSE 0
+
+VARIABLE \* @type: Int;
+attempt
+VARIABLE \* @type: Bool;
+ready
+VARIABLE \* @type: Bool;
+closed
+VARIABLE \* @type: Bool;
+__umpire_edge_tick
+VARIABLE \* @type: Int;
+__umpire_pending
+VARIABLE \* @type: Int;
+__umpire_steps
+VARIABLE \* @type: Str;
+__umpire_action
+VARIABLE \* @type: Int;
+__umpire_choice
+VARIABLE \* @type: Seq(Int);
+__umpire_outcome
+VARIABLE \* @type: Seq(Seq(Int));
+__umpire_facts
+VARIABLE \* @type: Int;
+__umpire_input
+\* @type: <<Int, Bool, Bool, Bool, Int, Int, Str, Int, Seq(Int), Seq(Seq(Int)), Int>>;
+vars == <<attempt, ready, closed, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts, __umpire_input>>
+\* @type: <<Int, Bool, Bool>>;
+ModelVars == <<attempt, ready, closed>>
+
+\* @type: Bool;
+Init == (((attempt = 1) /\ (ready = FALSE) /\ (closed = FALSE))) /\ (__umpire_edge_tick = FALSE) /\ (__umpire_pending = 0) /\ (__umpire_steps = 0) /\ (__umpire_action = "") /\ (__umpire_choice = 0) /\ (__umpire_outcome = <<>>) /\ (__umpire_facts = <<>>) /\ (__umpire_input = 0)
+
+\* @type: Seq(<<Int, Int>>);
+Worker_Poll_Inputs == <<<<0, 1>>, <<1, 2>>, <<2, 3>>>>
+\* @type: Int => Bool;
+Worker_Poll_At(__umpire_i) == LET (* @type: Int; *) __umpire_input_0 == Worker_Poll_Inputs[__umpire_i][2] IN ((((((~(ready)) /\ (~(closed)))) /\ (((__umpire_input_0) = (attempt))))) /\ ((TRUE) = (TRUE)) /\ ((attempt # attempt) \/ (TRUE # ready) \/ (closed # closed)) /\ (attempt' = attempt) /\ (ready' = TRUE) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((((~(ready)) /\ (~(closed)))) /\ (((__umpire_input_0) = (attempt)))))) /\ (((~(ready)) /\ (~(closed)))))) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1])) \/ ((((~(((((((~(ready)) /\ (~(closed)))) /\ (((__umpire_input_0) = (attempt))))) \/ (((~(ready)) /\ (~(closed))))))) /\ (TRUE))) /\ ((attempt # attempt) \/ (ready # ready) \/ (closed # closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Poll") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = Worker_Poll_Inputs[__umpire_i][1]))
+\* @type: Bool;
+Worker_Poll == \E __umpire_i \in DOMAIN Worker_Poll_Inputs : Worker_Poll_At(__umpire_i)
+\* @type: Bool;
+Worker_Retry == (LET (* @type: Int; *) __umpire_l1 == (IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))) IN (((((ready) /\ (~(closed)))) /\ (((attempt) < (__umpire_world_maximum))))) /\ (((IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1)))) = ((IF Assert(((attempt) + (1)) \in (0..255), "checked Rust integer overflow") THEN ((attempt) + (1)) ELSE ((attempt) + (1))))) /\ ((FALSE) = (FALSE)) /\ ((__umpire_l1 # attempt) \/ (FALSE # ready) \/ (closed # closed)) /\ (attempt' = __umpire_l1) /\ (ready' = FALSE) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Retry") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 3)) \/ ((((~(((((ready) /\ (~(closed)))) /\ (((attempt) < (__umpire_world_maximum)))))) /\ (TRUE))) /\ ((attempt # attempt) \/ (ready # ready) \/ (closed # closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Retry") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 3))
+\* @type: Bool;
+Worker_Close == ((((ready) /\ (~(closed)))) /\ ((TRUE) = (TRUE)) /\ ((attempt # attempt) \/ (ready # ready) \/ (TRUE # closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = TRUE) /\ (__umpire_action' = "Worker::Close") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 4)) \/ ((((~(((ready) /\ (~(closed))))) /\ (TRUE))) /\ ((attempt # attempt) \/ (ready # ready) \/ (closed # closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Close") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 4))
+\* @type: Bool;
+Worker_Heartbeat == ((~(closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Heartbeat") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 5)) \/ ((((~(~(closed))) /\ (TRUE))) /\ ((attempt # attempt) \/ (ready # ready) \/ (closed # closed)) /\ (attempt' = attempt) /\ (ready' = ready) /\ (closed' = closed) /\ (__umpire_action' = "Worker::Heartbeat") /\ (__umpire_choice' = 0) /\ (__umpire_outcome' = <<>>) /\ (__umpire_facts' = <<>>) /\ (__umpire_input' = 5))
+\* @type: Bool;
+ModelNext == (Worker_Poll) \/ (Worker_Retry) \/ (Worker_Close) \/ (Worker_Heartbeat)
+\* @type: Bool;
+ModelEdge == __umpire_edge_tick' # __umpire_edge_tick
+\* @type: Bool;
+Edge == ModelNext /\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\ UNCHANGED <<__umpire_pending, __umpire_steps>>
+\* @type: Bool;
+Complete == ~ENABLED ModelNext /\ UNCHANGED vars
+\* @type: Bool;
+Next == Edge \/ Complete
+\* @type: Bool;
+Spec == Init /\ [][Next]_vars
+
+\* @type: Bool;
+Invariant_bounded == (<<((((attempt) >= (1))) /\ (((attempt) <= (__umpire_world_maximum)))), ((~(closed)) \/ (ready))>> = <<TRUE, TRUE>>)
+\* @type: Bool;
+Post_monotonic == [][~(ModelEdge) \/ ((<<((attempt') >= (attempt)), ((~(closed)) \/ (closed'))>> = <<TRUE, TRUE>>))]_vars
+\* @type: Bool;
+Negative_never_closed == ~(closed)
+\* @type: Bool;
+Assumption_selected_polls == (Worker_Poll) \/ (Worker_Retry) \/ (Worker_Close) \/ (Worker_Heartbeat)
+\* @type: Bool;
+Scoped_closes == Assumption_selected_polls
+\* @type: Bool;
+Activate_closes == (__umpire_pending = 0) /\ (~(closed)) /\ ~(closed) /\ (__umpire_pending' = 1) /\ (__umpire_steps' = 0) /\ UNCHANGED <<ModelVars, __umpire_edge_tick, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts, __umpire_input>>
+\* @type: Bool;
+Monitor_closes == (__umpire_edge_tick' = ~__umpire_edge_tick) /\ (__umpire_pending' = (IF closed' THEN 2 ELSE 1)) /\ (__umpire_steps' = 0)
+\* @type: Bool;
+ActiveEdge_closes == (__umpire_pending = 1) /\ Scoped_closes /\ Monitor_closes
+\* @type: Bool;
+PrefixEdge_closes == (__umpire_pending = 0) /\ Edge
+\* @type: Bool;
+Complete_closes == ((__umpire_pending = 2) \/ ((__umpire_pending = 1) /\ ~ENABLED Scoped_closes) \/ ((__umpire_pending = 0) /\ ~ENABLED ModelNext)) /\ UNCHANGED vars
+\* @type: Bool;
+ProgressNext_closes == PrefixEdge_closes \/ Activate_closes \/ ActiveEdge_closes \/ Complete_closes
+\* @type: Bool;
+Fair_closes_Worker_Poll_1 == (__umpire_pending = 1) /\ Worker_Poll_At(1) /\ Monitor_closes
+\* @type: Bool;
+Fair_closes_Worker_Poll_2 == (__umpire_pending = 1) /\ Worker_Poll_At(2) /\ Monitor_closes
+\* @type: Bool;
+Fair_closes_Worker_Poll_3 == (__umpire_pending = 1) /\ Worker_Poll_At(3) /\ Monitor_closes
+\* @type: Bool;
+Fair_closes_Worker_Close == (__umpire_pending = 1) /\ Worker_Close /\ Monitor_closes
+\* @type: Bool;
+ProgressSpec_closes == Init /\ [][ProgressNext_closes]_vars /\ WF_vars(Fair_closes_Worker_Poll_1) /\ WF_vars(Fair_closes_Worker_Poll_2) /\ WF_vars(Fair_closes_Worker_Poll_3) /\ WF_vars(Fair_closes_Worker_Close)
+\* @type: Bool;
+Maximal_closes == (([]<>__umpire_edge_tick) /\ ([]<>(~__umpire_edge_tick))) \/ (<>[]((__umpire_pending = 1) /\ ~ENABLED Scoped_closes))
+\* @type: Bool;
+Progress_closes == (Maximal_closes => ((__umpire_pending = 1) ~> (__umpire_pending = 2)))
+====
