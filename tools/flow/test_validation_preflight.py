@@ -235,6 +235,12 @@ sys.exit(92)
                 result = self.preflight()
                 self.assertNotEqual(0, result.returncode)
                 self.assertRegex((result.stdout + result.stderr).lower(), "validation|config")
+                if invalid == "missing":
+                    guidance = result.stdout + result.stderr
+                    self.assertIn("Can these validation gates be sped up without reducing coverage?", guidance)
+                    self.assertIn("--validation-review-file", guidance)
+                    self.assertIn(".flow/artifacts/" + self.spec + "/validation-cost-review.json", guidance)
+                    self.assertIn("commit", guidance.lower())
                 self.assertEqual(head, self.git("rev-parse", "HEAD"))
                 self.assertEqual(lifecycle, [self.spec_path.read_bytes(), self.task_path.read_bytes()])
                 self.assertFalse(any("add" in row or "commit" in row for row in self.calls("git")))

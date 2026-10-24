@@ -16,7 +16,7 @@
          # fn-83.4 — NO `gate` key here: the plan-sync skip-gate was proven
          # non-viable (fn-83.6 cross-repo verdict FAIL; decision record
          # plan-sync-skip-gate-not-viable-2026-07-03.md) and its machinery
-@@ -37764,6 +37766,147 @@
+@@ -37764,6 +37766,177 @@
      _time.sleep(seconds)
  
  
@@ -142,6 +142,35 @@
 +        os.close(parent)
 +
 +
++def _cost_review_guidance(spec_id: str) -> str:
++    return (
++        "Can these validation gates be sped up without reducing coverage? "
++        "Assess existing gates and review overhead, then supply a v1 report with "
++        "--validation-review-file <repo-file> (automated close expects "
++        f".flow/artifacts/{spec_id}/validation-cost-review.json). "
++        "Close copies it into .flow/artifacts; commit the report artifact and "
++        "its .gitattributes with the normal closure changes."
++    )
++
++
++def _preserve_cost_review_bytes(repo_root: Path, artifact: Path) -> None:
++    attributes = artifact.with_name(".gitattributes")
++    rule = b" -text -filter -working-tree-encoding -ident\n"
++    _publish_cost_review(repo_root, attributes, b"validation-cost-review-*.json" + rule + b".gitattributes" + rule)
++    keys = ("text", "filter", "working-tree-encoding", "ident")
++    paths = (artifact.as_posix(), attributes.as_posix())
++    rc, out, err = _export_run_git(["check-attr", "-z", *keys, "--", *paths], cwd=repo_root)
++    fields = out.split("\0")[:-1]
++    expected = {(path, key, "unset") for path in paths for key in keys}
++    actual = set(zip(fields[0::3], fields[1::3], fields[2::3]))
++    if rc or len(fields) != len(expected) * 3 or actual != expected:
++        raise ValueError(
++            "Git attributes must preserve exact validation report and .gitattributes bytes; "
++            "remove conversion overrides for these paths (including .git/info/attributes). "
++            + err.strip()
++        )
++
++
 +def _prepare_cost_review(flow_dir: Path, spec_id: str, filename: str) -> tuple[dict, Path]:
 +    repo_root = get_repo_root().resolve()
 +    source = Path(filename)
@@ -157,6 +186,7 @@
 +    _validate_cost_review(data, spec_id)
 +    digest = hashlib.sha256(raw).hexdigest()
 +    artifact = flow_dir.relative_to(repo_root) / "artifacts" / spec_id / f"validation-cost-review-{digest}.json"
++    _preserve_cost_review_bytes(repo_root, artifact)
 +    _publish_cost_review(repo_root, artifact, raw)
 +    return {"path": artifact.as_posix(), "sha256": digest, "schema_version": 1}, repo_root / artifact
 +
@@ -164,7 +194,7 @@
  def cmd_spec_close(args: argparse.Namespace) -> None:
      """Close a spec (all tasks must be done)."""
      if not ensure_flow_exists():
-@@ -37807,6 +37950,23 @@
+@@ -37807,6 +37980,20 @@
      with _review_sidecar_lock(flow_dir, args.id):
          spec_data = load_json_or_exit(spec_path, f"Spec {args.id}", use_json=args.json)
          modified_paths = [spec_path]
@@ -173,22 +203,19 @@
 +                required = _spec_close_validation_required(flow_dir)
 +                filename = getattr(args, "validation_review_file", None)
 +                if required and not filename:
-+                    raise ValueError(
-+                        "Can these validation gates be sped up without reducing coverage? "
-+                        "Assess existing gates and review overhead, then supply a v1 report with "
-+                        "--validation-review-file <repo-file>. Close copies it into .flow/artifacts; "
-+                        "commit the report artifact with the normal closure changes."
-+                    )
-+                if filename:
++                    raise ValueError(_cost_review_guidance(args.id))
++                if filename is not None:
 +                    reference, artifact = _prepare_cost_review(flow_dir, args.id, filename)
 +                    spec_data["validation_review"] = reference
-+                    modified_paths.append(artifact)
++                    modified_paths.extend([artifact, artifact.with_name(".gitattributes")])
++            except FileNotFoundError as exc:
++                error_exit(f"Validation review refused: {exc}. {_cost_review_guidance(args.id)}", use_json=args.json)
 +            except (OSError, ValueError, UnicodeError, RecursionError, OverflowError) as exc:
 +                error_exit(f"Validation review refused: {exc}", use_json=args.json)
          # Validate the whole spec before publishing any final task status. Keep
          # runtime claims and evidence local; only the status must travel with git.
          for task_file, definition, status in final_tasks:
-@@ -57682,6 +57842,7 @@
+@@ -57682,6 +57869,7 @@
              "id", help=f"{noun.capitalize()} ID (e.g., fn-1, fn-1-add-auth)"
          )
          p_close.add_argument("--json", action="store_true", help="JSON output")

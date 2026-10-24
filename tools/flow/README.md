@@ -62,7 +62,12 @@ Run `flowctl spec close <id> --validation-review-file <repo-file> --json`.
 The exact validated bytes are copied to
 `.flow/artifacts/<id>/validation-cost-review-<sha256>.json`; the spec JSON records
 `validation_review` with `path`, `sha256`, and `schema_version`. Commit every
-returned `modified_paths` entry with the normal closure changes. The input may
+returned `modified_paths` entry with the normal closure changes, including the
+companion `.gitattributes`. Its two narrow rules preserve report and attribute
+bytes through Git text, filter, encoding and ident conversions. Close checks the
+effective attributes locally before lifecycle writes; conflicting higher-priority
+attributes or a differing existing companion file refuse without overwriting
+user policy. No conversion command is executed. The input may
 be uncommitted or staged; there is no preliminary report commit or clean-HEAD
 requirement. For make-pr's automatic close, put the input at
 `.flow/artifacts/<id>/validation-cost-review.json`; preflight forwards it only

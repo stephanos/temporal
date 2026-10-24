@@ -131,13 +131,21 @@ class ValidationReview(unittest.TestCase):
         self.config_path.write_text("{broken")
         self.close("--validation-review-file", "missing.json")
         self.assertEqual(ref, json.loads(self.spec_path.read_text())["validation_review"])
-        data = json.loads(self.spec_path.read_text()); data["status"] = "open"
-        self.spec_path.write_text(json.dumps(data)); self.config(True)
+        self.config(True)
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Reopened task", "--json")["id"]
+        self.assertEqual(ref, json.loads(self.spec_path.read_text())["validation_review"])
+        path = self.repo / ".flow/tasks" / (task + ".json")
+        data = json.loads(path.read_text()); data["status"] = "done"
+        path.write_text(json.dumps(data))
         self.assert_refusal(text="Can these validation gates be sped up")
         result = self.close("--validation-review-file", str(self.input))
         self.assertIn(str(self.repo / ref["path"]), result["modified_paths"])
 
     def test_bad_reports_leave_lifecycle_unchanged(self):
+        task = self.flow("task", "create", "--spec", self.id, "--title", "Done runtime", "--json")["id"]
+        runtime = self.repo / ".git/flow-state/tasks" / (task + ".state.json")
+        runtime.parent.mkdir(parents=True, exist_ok=True)
+        runtime.write_text(json.dumps({"status": "done"}))
         cases = [
             ("version", lambda r: r.update(schema_version=True)),
             ("wrong spec", lambda r: r.update(spec_id="fn-999-other")),
@@ -171,6 +179,7 @@ class ValidationReview(unittest.TestCase):
             with self.subTest(raw=raw):
                 self.config_path.write_text(raw); self.assert_refusal(text="config")
         self.config(False)
+        self.assert_refusal("--validation-review-file", "")
         self.input.write_text("invalid")
         self.assert_refusal("--validation-review-file", str(self.input))
         self.config_path.write_text("{}")
@@ -191,9 +200,46 @@ class ValidationReview(unittest.TestCase):
         self.assertEqual(b"corrupt", artifact.read_bytes())
         artifact.unlink(); artifact.symlink_to(self.input)
         self.assert_refusal("--validation-review-file", str(self.input))
-        artifact.unlink(); artifact.parent.rmdir()
+        artifact.unlink(); (artifact.parent / ".gitattributes").unlink(); artifact.parent.rmdir()
         artifact.parent.symlink_to(self.input.parent, target_is_directory=True)
         self.assert_refusal("--validation-review-file", str(self.input))
+
+    def test_git_conversion_preserves_exact_committed_bytes(self):
+        original = self.spec_path.read_bytes()
+        for mode in ("input", "true", "clean-filter"):
+            with self.subTest(mode=mode):
+                self.spec_path.write_bytes(original)
+                self.git("config", "core.autocrlf", "input" if mode == "clean-filter" else mode)
+                self.report["source_basis"] = mode
+                raw = (json.dumps(self.report, indent=2) + "\n").replace("\n", "\r\n").encode()
+                self.input.write_bytes(raw)
+                if mode == "clean-filter":
+                    (self.repo / ".gitattributes").write_text(".flow/artifacts/** text filter=cost-clean ident working-tree-encoding=UTF-8\n")
+                    self.git("config", "filter.cost-clean.clean", "tr a-z A-Z")
+                result = self.close("--validation-review-file", str(self.input))
+                ref = json.loads(self.spec_path.read_text())["validation_review"]
+                self.git("add", "--", *result["modified_paths"])
+                self.git("commit", "-m", "Close with Git conversion enabled")
+                committed = subprocess.check_output(["git", "show", "HEAD:" + ref["path"]], cwd=self.repo)
+                self.assertEqual(raw, committed)
+                self.assertEqual(hashlib.sha256(committed).hexdigest(), ref["sha256"])
+                attributes = Path(ref["path"]).with_name(".gitattributes")
+                self.assertIn(str(self.repo / attributes), result["modified_paths"])
+                committed_attributes = subprocess.check_output(["git", "show", "HEAD:" + attributes.as_posix()], cwd=self.repo)
+                self.assertEqual((self.repo / attributes).read_bytes(), committed_attributes)
+
+    def test_git_attribute_conflicts_preserve_user_policy_and_lifecycle(self):
+        artifact_dir = self.repo / ".flow/artifacts" / self.id
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        attributes = artifact_dir / ".gitattributes"
+        attributes.write_text("unrelated.json text\n")
+        self.assert_refusal("--validation-review-file", str(self.input), text="different bytes")
+        self.assertEqual("unrelated.json text\n", attributes.read_text())
+        attributes.unlink()
+        override = self.repo / ".git/info/attributes"
+        override.write_text("*.json text\n")
+        self.assert_refusal("--validation-review-file", str(self.input), text="Git attributes")
+        self.assertEqual("*.json text\n", override.read_text())
 
     def test_publication_failure_and_retry_commit_fence(self):
         module = self.load_module()
@@ -257,9 +303,14 @@ class ValidationReview(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 self.invoke(module)
         self.assertEqual(before, self.snapshot())
+        real_run = module.subprocess.run
+        def local_attributes_only(command, *args, **kwargs):
+            self.assertEqual(["git", "check-attr"], command[:2])
+            return real_run(command, *args, **kwargs)
         with patch.object(module, "get_repo_root", return_value=self.repo), \
-             patch.object(module.subprocess, "run", side_effect=AssertionError("unexpected subprocess")):
+             patch.object(module.subprocess, "run", side_effect=local_attributes_only) as calls:
             reference, artifact = module._prepare_cost_review(self.repo / ".flow", self.id, str(self.input))
+        self.assertEqual(1, calls.call_count)
         self.assertEqual(self.input.read_bytes(), artifact.read_bytes())
         self.assertEqual(hashlib.sha256(self.input.read_bytes()).hexdigest(), reference["sha256"])
 
