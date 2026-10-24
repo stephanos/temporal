@@ -56,7 +56,6 @@ fn prepared_cluster_fueled(
             })
         })
         .collect();
-    #[cfg_attr(not(feature = "determinism-fixture"), expect(unused_mut))]
     let mut prepared = cluster::prepare(cluster::Request {
         nodes: Vec::new(),
         broker: cluster::BrokerConfig {
@@ -81,8 +80,7 @@ fn prepared_cluster_fueled(
         evidence_bytes: 1 << 20,
     })
     .unwrap();
-    #[cfg(feature = "determinism-fixture")]
-    prepared.conditions(linked::Conditions::DeterminismFixtureReplay);
+    prepared.conditions(linked::Conditions::compiled());
     prepared
 }
 
@@ -314,7 +312,6 @@ fn live_peer_cluster() -> cluster::Prepared {
         step(Wait, "a"),
         step(Wait, "b"),
     ];
-    #[cfg_attr(not(feature = "determinism-fixture"), expect(unused_mut))]
     let mut prepared = cluster::prepare(cluster::Request {
         nodes: Vec::new(),
         broker: cluster::BrokerConfig {
@@ -339,8 +336,7 @@ fn live_peer_cluster() -> cluster::Prepared {
         evidence_bytes: 1 << 20,
     })
     .unwrap();
-    #[cfg(feature = "determinism-fixture")]
-    prepared.conditions(linked::Conditions::DeterminismFixtureReplay);
+    prepared.conditions(linked::Conditions::compiled());
     prepared
 }
 
