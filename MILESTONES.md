@@ -58,25 +58,45 @@ The owner asked, "why aren't we focused on fn-232 to get merged?" and approved t
 
 No other milestone work starts before fn-232.13 closes. This changes ordering only: no stage, bound or acceptance item is waived.
 
-### Stop state (2026-10-24, owner: "wrap up the current tasks and then stop")
+### Current handover (2026-10-24)
 
-`gomad` is at the merge of A's flake fixes and E's reach fixes. Its merge gate passed. Nothing is running.
+fn-232.13 remains open: the full 96-stage cycle has not run. The current integration input is
+`fn232-composition` at `4e4b8b51a5b65d76868712b588b2ed1067ee82cd`, containing `gomad`
+base `318427522b009f5a27eeeb3c7c17b211b0ce2c34`. Its driver suite (567 tests) and full
+mandatory worker merge gate exited 0; the independent implementation re-review returned
+SHIP. The conductor's full merge gate exited 0 on the same commit, which is now integrated
+on `gomad`. Its first cold-cache attempt failed because an offline Go closure lacked modules;
+after declared dependency downloads, the unchanged-source full gate passed. These checks
+supply no cycle result. The retained launch controller is
+`/home/agent/wt/evidence/fn232-resume-launch/launch.py`; it prepares fresh candidate bindings
+and runs `driver.py parallel` without a formal freeze ceremony.
+Current evidence: `/home/agent/wt/evidence/fn232-resume-composition/`.
 
-Unmerged branches, each gate-green on its own:
-- `fn232-composition` (f2d899ec74) is worker B's cycle composition. It contains the reach binding, the report-only reach switch (`live.REACH_GAPS_BLOCK`), fn-222 alongside inspection, stress removed, wall time deferred and the producers. It conflicts with `gomad` in `rust/driver/primary_stages.py`, its test and the fn-232.13 task file. Resolve those, gate, then merge. The cycle commands are in its fn-232.13 task-file handover.
-- `fn221-rust-sweep` (1f341b38b0) is worker C's sweep fixes and fn-221.2 launch plan. Before launching the full sweep, investigate a ~10× batch-test slowdown versus Go and exercise resume/verify.
-- `fn232-reach-fixes-2` (9a6a25980a) is worker E's fn-232.14 progress, not fully gated. 4 partial entries remain; see its fn-232.14 handover.
+The composition preserves the flake/reach fixes, operator cluster-failure checks and
+artifact detached/kill-resume families. Children load their driver configuration explicitly;
+role reads validate current source, features and compiler context while preserving original
+build provenance. Partial dry-run plans may execute bound families; final readers still
+refuse missing evidence. Remaining reach gaps, including named unexecuted slim roots, report
+under fn-232.14 until its completeness switch is reenabled.
+
+Other local inputs, using the rewritten refs:
+- `fn221-rust-sweep` (`911833fb481f8f51d3af6dd20699fc435032c78a`): sweep fixes and fn-221.2 launch plan. Before the full sweep, investigate the historical batch-test slowdown versus Go and exercise resume/verify.
+- `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Merge the composition and run the full 96-stage cycle on `gomad` (closes fn-232.13).
-2. Merge the sweep and launch fn-221.2.
-3. Run stress and the fn-233 rerun.
-4. Finish fn-232.14.
+1. Run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities; one green cycle closes fn-232.13.
+2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
+3. Finish fn-232.14 and restore strict reach completeness.
 
-Known issues:
-- Gate tests with deadlines flake under load (run_guest admission, publish timeouts, wasmhost watchdog).
-- 6 gomad lib loop runs ended silently. OOM is ruled out; capture exit statuses on a clean tree.
-- About 350 MB of accidentally committed `.wire` blobs remain in local, unpushed history at d2d312737f. They are deleted at the tip; rewriting history needs owner approval.
+The owner-authorized history cleanup removed the oversized generated `.wire` blobs from all
+11 affected local refs. Main and composition file trees were unchanged by that cleanup, and
+nothing was pushed. Exact ref mapping, reachability check and backup custody:
+`/home/agent/wt/evidence/fn232-history-cleanup/applied.json`. Historical task/evidence SHAs
+remain provenance; use the rewritten refs for current commands.
+
+Historical deadline flakes and silent loop exits remain recorded in fn-232.13's handovers.
+Capture actual exits/signals on subsequent runs. Timing-only results stay deferred to the
+quiet-host window; correctness, replay/determinism, identities and memory/capacity bounds stay binding.
 
 ### Opportunistic merge (owner decision, 2026-10-24)
 

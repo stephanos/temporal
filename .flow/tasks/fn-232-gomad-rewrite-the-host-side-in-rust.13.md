@@ -227,3 +227,44 @@ Stopped on owner instruction. No cycle run was started.
   3. When B reports a resolving composition, run the full cycle with `driver.py parallel` on gomad head. Record every stage process's exit status and signal; treat a silent end as a real failure until shown otherwise; record timing-only failures as deferred-perf. Include the Rust sweep on a real guest and fn-233's launcher, shim and Make lanes.
   4. Map `TestInstalledOperatorAsymmetricGuestFailureEndsPromptly` once `installed_cluster_failure` is wired into a stage.
 - **Retained:** worktree `/home/agent/wt/fn232-cycle-closure` (branches fn232-cycle-closure, fn232-gap-ports, fn232-lint-flake, fn232-shim-etxtbsy, fn232-flake-class); cargo target `/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-cycle-closure-target`; gate logs under `/home/agent/wt/evidence/fn232-*-gate/`. No background processes remain.
+
+
+### Current composition handover (2026-10-24)
+
+This supersedes the earlier stop/launch instructions above; their commands, failures and
+SHAs remain historical provenance. fn-232.13 is still in_progress and no full 96-stage
+cycle has run. The current reviewed composition is `4e4b8b51a5b65d76868712b588b2ed1067ee82cd`,
+with `gomad` base `318427522b009f5a27eeeb3c7c17b211b0ce2c34`. Its 567-test driver suite
+and full mandatory worker merge gate exited 0. Independent re-review returned SHIP with
+no remaining findings. The conductor's full merge gate exited 0 on the same commit, and
+`gomad` was fast-forwarded to that reviewed composition. Its first cold-cache attempt failed
+on missing offline Go modules after cache cleanup; declared dependency prefetch resolved
+that environment failure without changing the source. Numeric gate exit and raw log:
+`/home/agent/wt/evidence/fn232-resume-composition/root-ready-gate.{exit.json,log}`.
+Full evidence and retained launch risks:
+`/home/agent/wt/evidence/fn232-resume-composition/{summary.md,evidence.json}`.
+
+The fix retains the operator and artifact lifecycle producer/readers, passes sealed driver
+configuration to installed/public-parity children, restores real private-capture source and
+binary pins, validates each role's actual compiler/features/current implementation source,
+and retains shared counterfactual context. Original build_head provenance is distinct from
+current execution custody. Source-matching role reuse is permitted; a formal 13-role rebuild
+is not required. Partial dry-run bindings execute their owned stages while final collection
+still refuses missing groups. Named unexecuted slim roots report fn-232.14-owned reach gaps
+through REACH_GAPS_BLOCK; reenabling completeness restores refusal.
+
+After the conductor's gate and merge, assemble a fresh identity-bound configuration for the
+actual current `gomad` candidate and run `tools/gomad/rust/driver/driver.py parallel --config
+CURRENT_DRIVER_CONFIG`. Preserve all stage exits/signals and raw candidate/source/compiler/
+helper/runtime/module bindings. Timing is measured and deferred; correctness, replay,
+determinism, identities, memory and capacity remain strict. A green source gate is not the
+cycle. Rerun the retained source-size counter on the final integrated candidate and append
+its row without replacing the historical comparison. Stress, fn-233 rerun and fn-221 sweep
+follow the cycle under MILESTONES.
+
+Owner-authorized history cleanup removed oversized generated `.wire` blobs from all 11
+local refs without pushing or changing the main/composition trees. Mapping and backup:
+`/home/agent/wt/evidence/fn232-history-cleanup/applied.json`. Current remaining branch inputs:
+sweep `911833fb481f8f51d3af6dd20699fc435032c78a`; reach `1f85fbfcf95604757a6742d54a934e13395c2bc4`.
+
+Launch controller: `/home/agent/wt/evidence/fn232-resume-launch/launch.py --execute --tag resume-4e4-cycle1`. Its preflight validates 57 retained inputs; fresh role records are authenticated before assembly. The source must remain unchanged throughout preparation and execution. This handover records readiness, not a cycle pass.
