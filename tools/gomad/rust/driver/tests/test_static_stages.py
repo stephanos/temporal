@@ -306,7 +306,8 @@ class StaticStageContract(unittest.TestCase):
 
         mutations = [
             ('listing reason', result['listing'], listed.replace(b'[no test files]', b'[no tests to run]')),
-            ('listing identity', result['listing'], listed.replace(b'?   \tempty\t', b'?   \tforeign\t')),
+            ('listing classification', result['listing'], listing() + empty.replace(b'"skip"', b'"pass"')),
+            ('listing identity', result['listing'], listed.replace(rb'?   \tempty\t', rb'?   \tforeign\t')),
             ('listing missing terminal', result['listing'], listing() + events([dict(Action='output', Package='empty', Output='?   \tempty\t[no test files]\n')])),
             ('listing duplicate terminal', result['listing'], listed + events([dict(Action='skip', Package='empty')])),
             ('listed tests', result['listing'], listed + events([dict(Action='output', Package='empty', Output='TestHidden\n')])),

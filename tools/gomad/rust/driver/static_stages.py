@@ -289,18 +289,37 @@ def go_listing_argv(argv):
     return [*argv[:2], '-json', '-list', selector or '.', *argv[2:]]
 
 
-def parse_go_inventory(raw):
-    names = {}
+def go_empty_output(package):
+    return '?   \t' + package + '\t[no test files]\n'
+
+
+def parse_go_packages(raw):
+    names, packages, terminals, output = {}, set(), {}, {}
     for line in raw.decode().splitlines():
         row = json.loads(line)
-        if row.get('Action') == 'output':
+        package, action = row['Package'], row.get('Action')
+        packages.add(package)
+        require(not row.get('Test') and action != 'fail', 'failed or test-bearing Go listing')
+        if action in ('pass', 'skip'):
+            require(package not in terminals, 'duplicate listed Go package terminal')
+            terminals[package] = action
+        if action == 'output':
+            output[package] = output.get(package, '') + row.get('Output', '')
             name = row.get('Output', '').strip()
             if re.fullmatch(r'(?:Test\w+|Fuzz\w+|Example\w*)', name):
-                key = (row['Package'], name)
+                key = (package, name)
                 require(key not in names, 'duplicate listed Go root')
                 names[key] = 0
     require(names, 'empty Go root inventory')
-    return names
+    require(set(terminals) == packages, 'missing listed Go package terminal')
+    empty = {package for package, action in terminals.items() if action == 'skip'}
+    require(all(output.get(package) == go_empty_output(package) for package in empty)
+            and not ({package for package, _ in names} & empty), 'changed Go no-test package listing')
+    return dict(roots=names, packages=packages, empty_packages=empty)
+
+
+def parse_go_inventory(raw):
+    return parse_go_packages(raw)['roots']
 
 
 GO_SCOPE_SOURCES = {
@@ -324,24 +343,35 @@ def go_scope_exclusions(inventory):
                  replacement='go.temporal.io/server => ../..', nested_backend_modules=[], status='UNEXECUTED')]
 
 
-def verify_go(raw, expected, repeats, exclusions=()):
-    passes, runs, skips, packages, output = dict(expected), dict(expected), dict(expected), set(), {}
+def verify_go(raw, expected, repeats, exclusions=(), package_inventory=None):
+    packages = package_inventory['packages'] if package_inventory is not None else {pkg for pkg, _ in expected}
+    empty = package_inventory['empty_packages'] if package_inventory is not None else set()
+    passes, runs, skips, terminals, output = dict(expected), dict(expected), dict(expected), {}, {}
     allowed = {(row['package'], row['name']): row for row in exclusions}
     require(set(allowed) <= set(expected), 'unlisted Go scope exclusion')
     for line in raw.decode().splitlines():
         row = json.loads(line)
         action, test = row.get('Action'), row.get('Test')
-        key = (row.get('Package'), test)
+        package = row.get('Package')
+        key = (package, test)
+        require(package in packages, 'unlisted Go package ran')
+        require(not test or package not in empty, 'test ran in Go no-test package')
         require(action != 'fail', 'failed Go package or subtest')
         if action == 'output' and test:
             output[key] = output.get(key, '') + row.get('Output', '')
-        if action == 'skip':
+        if action == 'output' and not test and package in empty:
+            output[key] = output.get(key, '') + row.get('Output', '')
+        if action == 'skip' and test:
             require(key in allowed and allowed[key]['reason'] in output.get(key, ''),
                     'unknown skipped Go package/subtest or changed exclusion reason')
             skips[key] += 1
         if not test:
-            if action == 'pass':
-                packages.add(row['Package'])
+            if action in ('pass', 'skip'):
+                require(package not in terminals, 'duplicate Go package terminal')
+                require(action == ('skip' if package in empty else 'pass'), 'unexpected Go package terminal')
+                if package in empty:
+                    require(output.get(key) == go_empty_output(package), 'changed Go no-test package output')
+                terminals[package] = action
             continue
         if '/' not in test and action in ('run', 'pass'):
             require(key in expected, 'unlisted Go root ran')
@@ -350,7 +380,9 @@ def verify_go(raw, expected, repeats, exclusions=()):
     require(all(runs[key] == repeats and passes[key] == (0 if key in allowed else repeats)
                 and skips[key] == (repeats if key in allowed else 0) for key in expected),
             'missing/duplicate Go root execution or scope exclusion')
-    require({pkg for pkg, _ in expected} <= packages, 'Go package did not terminate successfully')
+    require(set(terminals) == packages, 'Go package did not terminate successfully')
+    require(all(output.get((package, None)) == go_empty_output(package) for package in empty),
+            'changed Go no-test package output')
     return [dict(package=pkg, name=name, repetitions=repeats) for pkg, name in sorted(expected) if (pkg, name) not in allowed]
 
 
@@ -448,10 +480,10 @@ class Execution:
         argv = action['argv']
         listing = self.call(go_listing_argv(argv), action['cwd'], env)
         listing_name = self.rows[-1]['name']
-        inventory = parse_go_inventory(listing)
+        inventory = parse_go_packages(listing)
         raw = self.call([*argv[:2], '-json', *argv[2:]], action['cwd'], env)
-        exclusions = go_scope_exclusions(inventory)
-        roots = verify_go(raw, inventory, action.get('repeats', 1), exclusions)
+        exclusions = go_scope_exclusions(inventory['roots'])
+        roots = verify_go(raw, inventory['roots'], action.get('repeats', 1), exclusions, inventory)
         return dict(kind='go-tests', roots=roots, listing=listing_name, run=self.rows[-1]['name'],
                     repetitions=action.get('repeats', 1), scope_exclusions=exclusions, inventory_sha256=hashlib.sha256(listing).hexdigest())
 
@@ -665,10 +697,10 @@ def authenticate_result(plan_path, label):
                                     GOMAD_REPLAY_PLAN_CORPUS_DIR=str(root / ('replay-generation-' + str(result_index))))
                 consume(row['listing'], owned, go_listing_argv(argv), recipe_row['cwd'], go_extra)
                 consume(row['run'], owned, [*argv[:2], '-json', *argv[2:]], recipe_row['cwd'], go_extra)
-                inventory = parse_go_inventory(raw(row['listing'], owned))
-                exclusions = go_scope_exclusions(inventory)
+                inventory = parse_go_packages(raw(row['listing'], owned))
+                exclusions = go_scope_exclusions(inventory['roots'])
                 require(row['scope_exclusions'] == exclusions, 'changed Go exclusion witness')
-                observed = verify_go(raw(row['run'], owned), inventory, row['repetitions'], exclusions)
+                observed = verify_go(raw(row['run'], owned), inventory['roots'], row['repetitions'], exclusions, inventory)
                 scope_exclusions.extend(exclusions)
                 require(observed == row['roots'], 'Go roots differ from raw execution')
                 for line in raw(row['run'], owned).decode().splitlines():
