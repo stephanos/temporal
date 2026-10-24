@@ -16,6 +16,7 @@ import (
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 // fakeWorkflow answers only the two calls provisioning makes. Any other call panics on the nil
@@ -283,10 +284,9 @@ func TestReadyActivityWaitsForTheExactHistoryAndMatchingTargets(t *testing.T) {
 				matching: func(ctx context.Context, got *workflowservice.DescribeTaskQueueRequest) error {
 					matching++
 					require.Equal(t, 2, history, "matching follows proof that history knows the namespace")
-					require.Equal(t, request.GetNamespace(), got.GetNamespace())
-					require.Equal(t, request.GetTaskQueue().GetName(), got.GetTaskQueue().GetName())
-					require.Equal(t, enumspb.TASK_QUEUE_TYPE_ACTIVITY, got.GetTaskQueueType())
-					require.Equal(t, enumspb.DESCRIBE_TASK_QUEUE_MODE_UNSPECIFIED, got.GetApiMode())
+					require.True(t, proto.Equal(&workflowservice.DescribeTaskQueueRequest{
+						Namespace: request.GetNamespace(), TaskQueue: request.GetTaskQueue(), TaskQueueType: enumspb.TASK_QUEUE_TYPE_ACTIVITY,
+					}, got), "matching probe must use the exact queue, activity type and default API mode")
 					if matching == 1 {
 						return normalize(serviceerror.NewNamespaceNotFound("namespace"))
 					}
