@@ -252,6 +252,21 @@ a direct `reject!` in an optional handler fails Rust return typing. A completed 
 result after an unchanged rejecting helper retains both the rejection and the fact.
 An ordinary step clears earlier facts; observer-only backend steps preserve them.
 
+Stored optional values admit `Option` of a source-local one-field integer wrapper derived
+with `Finite`. Its single `#[inputs(low..=high)]` range supplies checked `try_new` and
+`contains` operations and the nominal source type. The source subset supports canonical
+`None`/`Some`, equality, presence, eager `unwrap_or`, and tuple/named payload reads.
+Backend decoding preserves the wrapper's standard Debug spelling and distinguishes absent
+values from exhausted zero payloads. Nested options, arbitrary inner types, pattern matching
+and Option combinators remain outside this subset.
+
+The shared `optional_ticks` fixture uses positive `Ticks(1..=3)` and zero-inclusive
+`Remaining(0..=3)` independently of handler facts. Its explicit checked factory validates
+configuration and starts by field. `World::new` and native exploration remain infallible
+ownership operations: directly forged wrapper values bypass the factory, source binding
+refuses them, and an authored bounds invariant refutes invalid native starts or updates.
+These mechanisms supply bounded values; they define no activity timeout policy.
+
 ### Fixed parameters and computed starts
 
 A module may declare one named-field `#[derive(World)] struct World`. Its fields stay fixed

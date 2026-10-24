@@ -301,10 +301,17 @@ fn kettle_tree() -> Result<Lifted, String> {
 fn rewrite(expr: &mut Expr, change: &mut dyn FnMut(&mut ExprKind)) {
     change(&mut expr.kind);
     let children: Vec<&mut Expr> = match &mut expr.kind {
-        ExprKind::Unary(_, value) | ExprKind::Length(value) | ExprKind::Check(_, value) => {
+        ExprKind::Unary(_, value)
+        | ExprKind::Length(value)
+        | ExprKind::Check(_, value)
+        | ExprKind::Bounded(value)
+        | ExprKind::Payload(value)
+        | ExprKind::Some(value) => {
             vec![value]
         }
-        ExprKind::Binary(_, left, right) | ExprKind::Append(left, right) => vec![left, right],
+        ExprKind::Binary(_, left, right)
+        | ExprKind::Append(left, right)
+        | ExprKind::OptionalOr(left, right) => vec![left, right],
         ExprKind::If(first, second, third) | ExprKind::GetOr(first, second, third) => {
             vec![first, second, third]
         }
