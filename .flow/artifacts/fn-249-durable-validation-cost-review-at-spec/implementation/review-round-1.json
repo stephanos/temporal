@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-249-durable-validation-cost-review-at-spec.1",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a17015-90ac-7c52-8c69-5bf42b9c1d58",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The saved SHA-256 describes the working-tree bytes, but ordinary closure staging can transform those bytes\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The saved SHA-256 describes the working-tree bytes, but ordinary closure staging can transform those bytes. With CRLF JSON and `core.autocrlf=true`, Git normalizes the artifact to LF, so the committed report no longer matches its filename or recorded digest. A read-only `git hash-object --path` check reproduced this mismatch. Current tests write LF input and miss it.\n- **Suggestion**: Exempt report artifacts from Git text conversion and applicable clean filters. Add a focused CRLF control that compares committed bytes and their SHA-256 against the input.\n- **File:Line**: tools/flow/validation-review.patch:158\n- **R-IDs**: R2\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Automated close always supplies the conventional filename, bypassing the `required and not filename` guidance branch\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Automated close always supplies the conventional filename, bypassing the `required and not filename` guidance branch. When that file is missing, the refusal is only `Validation review refused: [Errno 2] No such file or directory: 'validation-cost-review.json'`. It omits the required speedup question and report/commit instructions. The missing-input test accepts any message containing \u201cvalidation,\u201d so it misses this contract gap.\n- **Suggestion**: Return the actionable guidance for missing report files, including the expected input path, and assert that guidance in the preflight test.\n- **File:Line**: tools/flow/validation-review.patch:227\n- **R-IDs**: R1\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17015-90ac-7c52-8c69-5bf42b9c1d58",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17015-90af-71e2-835d-de10be59066c",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17015-909f-74e2-8030-55fc0fcdaf54",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

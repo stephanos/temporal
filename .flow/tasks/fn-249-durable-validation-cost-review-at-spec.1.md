@@ -42,9 +42,25 @@ Deliver the parent contract in one implementation iteration through the existing
 
 
 ## Done summary
-TBD
+Opted-in spec closure now requires a structured validation-cost assessment and durably records its exact bytes in the ordinary closure commit. Direct close and make-pr preserve opt-out and already-done behavior, validate before lifecycle writes, and include the report plus narrow self-preserving Git attributes in every successful new close manifest, including retry.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-24T22:43:43.623327Z..2026-10-24T22:52:29.810075Z], NEEDS_WORK -> SHIP, codex:gpt-6.1-sol:high, same family as writer
+
+baseline: green. Four existing dependency controls passed before edits in 6.654s. No baseline handoff or broad Model gate was used.
+
+R1-R4 verification: final installed controls passed 4 dependency tests in 6.695s, 13 close/installation tests in 21.603s, and 4 preflight tests in 9.966s. The close harness covers schema/cost modes/bounds, paths/symlinks, unreadable input, exact bytes/hash/manifest, unchanged lifecycle refusals, real reopen, retained done references, publication failure and retry, existing partial task publication, and installer mismatch/backups. Preflight checks actual retry through its close/commit fence, missing report/config refusal before staging and branch mutation, default-off/done/dry-run/body-only behavior, and no additional network/test/model work. Git conversion controls first failed for CRLF and a transforming clean filter, then verified exact committed bytes and the committed attribute companion. Missing-input guidance likewise has an observed red-to-green control.
+
+The classifier returned FULL for .flow/config.json. Verification followed this task's scoped Python controls. No Rust/Go/model full gate, fabricated skip, or full-suite receipt was issued. The final scoped suites were already running when the conductor requested reuse of existing green results; they completed once and were not restarted.
+
+Durable implementation evidence, exact captured outputs, installation hashes/stack proof, round-1 findings and the final SHIP receipt are under .flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/. The nontrivial Git conversion fix was captured in .flow/memory/bug/data/preserve-git-conversion-policy-for-2026-10-24.md.
+
+Installed integration attribution: only /home/agent/.codex/scripts/flowctl.py and make-pr-preflight.sh changed outside the repository. Current SHA-256 values are 54dfae3d50c17b143157f38585229154ab0c979b0be68e0ddf183c6172ff5976 and 5ca5f8cee23b096aa83a4df7d2b10350d4c909fe56858c4588ea6f653d133336 respectively. The complete repository-owned validation-review.patch reproduces these files from the captured pre-feature installation with committed-dependencies.patch retained. Backups remain at /home/agent/.codex/backups/fn2491-validation-review-20261024T2243 and /home/agent/.codex/backups/fn2491-validation-review-fix-20261024T2251. Both installs checked all baselines first and rechecked each file immediately before replacement. This project's policy was enabled after the first compatible pair passed installed checks; other repositories retain default-off behavior. Per-file atomic replacement and existing lifecycle partial-write semantics remain the limits.
+
+Changed routes: flowctl spec close and make-pr's automatic close. Parent spec closure and MILESTONES.md remain conductor-owned. The conforming assessment input is .flow/tmp/fn2491-validation-cost-review.json; the conductor can close with `python3 /home/agent/.codex/scripts/flowctl.py spec close fn-249-durable-validation-cost-review-at-spec --validation-review-file .flow/tmp/fn2491-validation-cost-review.json --json`, then commit every returned modified_paths entry together. Assessment authoring reused existing evidence and ran no new gate or model.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0885749c879d8ea08d784a5befaacd60755d2a99, 0646629ab844f6a54d474c6cf33c1857e846070f
+- Tests: FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py python3 tools/flow/test_committed_dependencies.py, PYTHONDONTWRITEBYTECODE=1 FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py python3 tools/flow/test_validation_review.py, PYTHONDONTWRITEBYTECODE=1 FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py MAKE_PR_PREFLIGHT=/home/agent/.codex/scripts/make-pr-preflight.sh python3 tools/flow/test_validation_preflight.py
 - PRs:
