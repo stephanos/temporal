@@ -24,9 +24,19 @@ Runs after fn-244.2, which moves the Go Runner out of the generated protobuf tre
 - [ ] model-time pasted
 
 ## Done summary
-TBD
+Documented Runner and Run, earned R33–R39 discharge, final package names, protocol/replay/publication/progress contracts, comparable package counts and attributed Model/live timings. Final R40/fn-228 R7 remains open in fn-243.5 after independent fn-237 cooperative semantics/binding; the exact unheld cancellation refusal, original counterexample and non-Go recorded-not-proven gap remain explicit. Both parent specs are open.
 
+Tier: session (jev-unavailable(no_key)). No actual implementer-model claim inferred from dispatch. Primary reviewer gpt-6.1-sol/high is the writer family; no cross-family independence claim.
+
+Baseline: none (task/spec define no Quick commands). Documentation-only manual scope: DESIGN, README, MIGRATE and verification evidence, no executable edits. Independent checker verified 24 package counts, added local links/anchors, current crate names and the committed guest hash; git diff --check passed. CLI recount corrected helper60 to actual61; current expanded totals are6379/6748/7372/7405, original targets1759/3205 unchanged. Durable evidence: .flow/artifacts/fn-228.7/verification.md.
+
+Classifier: exit1 FULL/unmatched for MIGRATE.md, model/DESIGN.md and model/README.md, not a tier-B pass. Explicit bounded docs-only scope exception: no new Model/live run; no fabricated GATE_SKIPPED or green gate receipt, and no baseline receipt reuse past the roadmap commit. Existing required model-time/live results are attributed only to committed fad276 source evidence; broad legacy tooling stays inherited red. The primary reviewers checked this checkpoint without new Model/live execution.
+
+stage: impl-review - ran (first-round three-axis codex:gpt-6.1-sol:high; all SHIP, zero findings; finalized receipt /tmp/impl-review-receipt-8f37faba39e2-fn-228-runner-and-run-the-one-go-host-loop.7.json)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+No source lanes/worktrees created; no push, PR, history rewrite or MILESTONES edit. This task is the documentation checkpoint, not either parent spec's closure.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cdf3abf909e55eaaf6786659cc2332a5e5aeb3fb, f68fbe6b44693ccc884fc2d079df3ec6e542d1b7
+- Tests: python3 .flow/tmp/fn2287-check.py (exit 0: 24 package counts, added links/anchors, names, guest hash), git diff --check (exit 0), flowctl gate classify --base 62fc6611eeaa2b39330263c2e5c4fa9eb25c6a55 (exit 1: FULL unmatched documentation paths; bounded manual docs-only scope exception recorded)
 - PRs:
