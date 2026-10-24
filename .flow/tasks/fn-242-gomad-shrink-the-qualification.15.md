@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.15 Fixed global attempt journal and reservation-time admission floors
 
-Touches: tools/gomad/rust/gomad/src/cycle/admission/**, tools/gomad/rust/gomad/src/cycle/journal/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/admission/**, tools/gomad/rust/gomad/src/cycle/journal/**
 
 ## Description
 fixed global two-attempt journal and reservation floors

@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.12 DAG and resource scheduling with executed mutation proofs
 
-Touches: tools/gomad/rust/gomad/src/cycle/scheduler/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/scheduler/**
 
 ## Description
 DAG and resource scheduling semantics

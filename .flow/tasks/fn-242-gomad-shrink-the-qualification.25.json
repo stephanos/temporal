@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T18:15:16.318318Z",
+  "depends_on": [
+    "fn-242-gomad-shrink-the-qualification.1",
+    "fn-242-gomad-shrink-the-qualification.18",
+    "fn-242-gomad-shrink-the-qualification.21"
+  ],
+  "id": "fn-242-gomad-shrink-the-qualification.25",
+  "priority": null,
+  "spec": "fn-242-gomad-shrink-the-qualification",
+  "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.25.md",
+  "status": "todo",
+  "title": "Validate inspection decoding, search and refused mappings",
+  "updated_at": "2026-10-24T18:16:38.666266Z"
+}

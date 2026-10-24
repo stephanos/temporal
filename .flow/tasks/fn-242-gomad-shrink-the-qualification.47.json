@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T18:15:16.319289Z",
+  "depends_on": [
+    "fn-242-gomad-shrink-the-qualification.1",
+    "fn-242-gomad-shrink-the-qualification.18",
+    "fn-242-gomad-shrink-the-qualification.41"
+  ],
+  "id": "fn-242-gomad-shrink-the-qualification.47",
+  "priority": null,
+  "spec": "fn-242-gomad-shrink-the-qualification",
+  "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.47.md",
+  "status": "todo",
+  "title": "Validate public verb lanes, identity and executed divergence",
+  "updated_at": "2026-10-24T18:16:44.710529Z"
+}

@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.13 Real process custody, accounting, busy workers and cleanup
 
-Touches: tools/gomad/rust/gomad/src/cycle/process/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/process/**
 
 ## Description
 real child custody, accounting, gate and cleanup

@@ -5,7 +5,13 @@
   "created_at": "2026-10-24T17:00:29.726411Z",
   "depends_on": [
     "fn-242-gomad-shrink-the-qualification.1",
-    "fn-242-gomad-shrink-the-qualification.2"
+    "fn-242-gomad-shrink-the-qualification.2",
+    "fn-242-gomad-shrink-the-qualification.14",
+    "fn-242-gomad-shrink-the-qualification.17",
+    "fn-242-gomad-shrink-the-qualification.19",
+    "fn-242-gomad-shrink-the-qualification.16",
+    "fn-242-gomad-shrink-the-qualification.40",
+    "fn-242-gomad-shrink-the-qualification.28"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.9",
   "priority": null,
@@ -13,5 +19,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.9.md",
   "status": "todo",
   "title": "Replace fresh candidate configuration composition and input preparation in Rust",
-  "updated_at": "2026-10-24T17:14:48.951104Z"
+  "updated_at": "2026-10-24T18:16:07.296125Z"
 }

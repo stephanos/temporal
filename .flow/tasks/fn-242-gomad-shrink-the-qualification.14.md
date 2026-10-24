@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.14 Strict cycle configuration and frozen source/build authentication
 
-Touches: tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/custody/**, tools/gomad/rust/gomad/src/cycle/build/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/custody/**, tools/gomad/rust/gomad/src/cycle/build/**
 
 ## Description
 strict configuration and frozen source/build authentication
