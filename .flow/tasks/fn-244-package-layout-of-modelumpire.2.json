@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-244-package-layout-of-modelumpire",
   "spec_path": ".flow/tasks/fn-244-package-layout-of-modelumpire.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go module split into host, runner and gen; Kettle Go under reference/kettle",
   "updated_at": "2026-10-24T00:15:04.919077Z"
 }

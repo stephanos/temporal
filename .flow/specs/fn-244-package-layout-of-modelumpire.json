@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-244-package-layout-of-modelumpire",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-24T05:39:13.118017Z",
   "created_at": "2026-10-24T00:09:30.020754Z",
   "default_impl": null,
   "default_review": null,
@@ -192,20 +192,58 @@
       "task": "fn-244-package-layout-of-modelumpire.1",
       "timestamp": "2026-10-24T05:18:23.940690Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9dc7290c10446656846ab250a1222731c4f6efcfa9a592f3ae81e1091dee3048",
+      "backend": "codex",
+      "base_sha": "f7043429349781a2c8d0269cd7d156c6f15fddb8",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6e19f65f32d0391cc6d8e67c9c020d4b52013a34",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1585518,
+      "output_sha256": "54f8a2fab7038a606a3aa2fb1f3a07a5ff1e110d8cf4ddd09df5833baa207d01",
+      "reservation_id": "1551c286020f4cbc91948a6f2725812a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T05:39:13.069373Z",
+      "tool_calls": 34,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-244-package-layout-of-modelumpire.1": 1,
-    "impl:fn-244-package-layout-of-modelumpire.2": 1
+    "impl:fn-244-package-layout-of-modelumpire.2": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-244-package-layout-of-modelumpire.1": 0,
     "impl:fn-244-package-layout-of-modelumpire.2": 0
   },
   "spec_path": ".flow/specs/fn-244-package-layout-of-modelumpire.md",
-  "status": "open",
+  "status": "done",
   "title": "Package layout of model/umpire: consistent nesting, clear names, a crate map",
   "tracker": {
     "baseHashFlow": null,
@@ -218,5 +256,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T05:18:23.987854Z"
+  "updated_at": "2026-10-24T05:41:51.625407Z"
 }
