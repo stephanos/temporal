@@ -277,6 +277,18 @@ def plan_config(path, label):
     return plan, config
 
 
+def go_listing_argv(argv):
+    selector = '.'
+    for index, arg in enumerate(argv[2:], 2):
+        if arg == '-run':
+            require(index + 1 < len(argv), 'missing Go run selector')
+            selector = argv[index + 1]
+        elif arg.startswith('-run='):
+            selector = arg[len('-run='):]
+    require('/' not in selector, 'unsupported Go subtest selector in static inventory')
+    return [*argv[:2], '-json', '-list', selector or '.', *argv[2:]]
+
+
 def parse_go_inventory(raw):
     names = {}
     for line in raw.decode().splitlines():
@@ -434,8 +446,7 @@ class Execution:
 
     def go(self, action, env=None):
         argv = action['argv']
-        # List uses exactly the same selectors/build tags, without executing a root.
-        listing = self.call([*argv[:2], '-json', '-list', '.', *argv[2:]], action['cwd'], env)
+        listing = self.call(go_listing_argv(argv), action['cwd'], env)
         listing_name = self.rows[-1]['name']
         inventory = parse_go_inventory(listing)
         raw = self.call([*argv[:2], '-json', *argv[2:]], action['cwd'], env)
@@ -652,7 +663,7 @@ def authenticate_result(plan_path, label):
                 if kind == 'replay-regeneration':
                     go_extra.update(GOMAD_REPLAY_PLAN_CORPUS_REGENERATE='1',
                                     GOMAD_REPLAY_PLAN_CORPUS_DIR=str(root / ('replay-generation-' + str(result_index))))
-                consume(row['listing'], owned, [*argv[:2], '-json', '-list', '.', *argv[2:]], recipe_row['cwd'], go_extra)
+                consume(row['listing'], owned, go_listing_argv(argv), recipe_row['cwd'], go_extra)
                 consume(row['run'], owned, [*argv[:2], '-json', *argv[2:]], recipe_row['cwd'], go_extra)
                 inventory = parse_go_inventory(raw(row['listing'], owned))
                 exclusions = go_scope_exclusions(inventory)

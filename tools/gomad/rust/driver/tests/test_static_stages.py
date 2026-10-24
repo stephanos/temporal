@@ -275,12 +275,12 @@ class StaticStageContract(unittest.TestCase):
                         path = evidence/(name + '.command.json')
                         original = driver.read(path)
                         forged = dict(original, argv=original['argv'] + ['-run=TestSibling'])
-                        driver.write(path, forged)
+                        path.write_text(json.dumps(forged))
                         row['argv'] = forged['argv']
                         row['command_sha256'] = driver.sha(path)
                         with self.assertRaisesRegex(driver.Refusal, 'changed command argv'):
                             check()
-                        driver.write(path, original)
+                        path.write_text(json.dumps(original))
                         row['argv'] = original['argv']
                         row['command_sha256'] = driver.sha(path)
 
