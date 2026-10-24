@@ -6684,6 +6684,11 @@
           "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
         ],
         "purpose": "B04 additionally owns exactly build/identity.rs to make helper_identity crate-visible and build/mod.rs to re-export it crate-visibly. Reuse this existing authoritative helper identity implementation from the command receiver and remove the duplicate include. No source list, algorithm, schema, identity behavior or unrelated build code changes; no duplicate-mod lint exemption."
+      },
+      "current_command_admission_corrections": {
+        "real_roles": "Extract shared build::read_record from existing authoritative B01 validator; preserve DryRun guard/fallback, no B10 environment/Role import. authenticate_build retains only exact authenticated immutable role authority for command bytes/source rechecks, no arbitrary registration.",
+        "bounds": "Generic artifact output uses independently established installed global1GiB ceiling; measurement-specific256MiB remains in ReadLimits::for_request. Other existing module/metadata/engine bounds and same-fd checked reads remain. Generic read does not prove authenticated per-request lower bounds.",
+        "command_expectation": "Use existing process::Command reference for expected cwd/argv/accepted/timeouts/private context; no compatibility command_at wrapper."
       }
     },
     {
@@ -7096,7 +7101,8 @@
         "tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
         "tools/gomad/rust/wasmhost/src/linked_cluster.rs",
         "tools/gomad/rust/wasmhost/src/world/retained.rs",
-        "tools/gomad/rust/wasmhost/src/linked_inspection.rs"
+        "tools/gomad/rust/wasmhost/src/linked_inspection.rs",
+        "tools/gomad/rust/wasmhost/src/world/owner_preservation_tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.27": "**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
@@ -7401,7 +7407,8 @@
         "purpose": "Return immutable admitted World/network/lifecycle facts through existing authoritative decoders, retaining wrappers and parser behavior. No second parser, mutable model exposure, extra dependency or Cargo change. linked_inspection narrow lifecycle projection reserved to B06; future B05 coordinates additive seam.",
         "authority": "Owner aggressive provisional execution; conductor scope grant 2026-10-24",
         "provisional_dependency": "B04 command/core codec API; no formal admission/integration/completion before .18/.21 actual done."
-      }
+      },
+      "measured_fixture_retention": "Only existing measured20k/200k probes optionally export already-generated expanded/compressed bytes to private absolute evidence directory via create_new0600, sync and hashes; unchanged models/cardinality/bounds, no generator or public fixture API."
     },
     {
       "id": "B07",
@@ -8311,7 +8318,9 @@
         "tools/gomad/rust/Cargo.lock",
         "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
         "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
-        "tools/gomad/rust/gomad/src/cycle/plan/leaf_tests.rs"
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf_tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/readers/command/cargo.rs",
+        "tools/gomad/rust/gomad/src/cycle/readers/command/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.28": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**",
@@ -8562,7 +8571,8 @@
       "earliest_review_wave": 3,
       "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target.",
       "canonical_build_recipe_extension": "Exact static_commands.rs build-role leaves map explicitly to existing B01 DryRun/cargo_command semantics, ordinary-reference to reference-transport; no duplicate builder/parser, independent current expected argv in leaf_tests.rs, preserve stage IDs/resources/actual features/targets and offline policy (authenticated CARGO_NET_OFFLINE=true if needed). No wholesale catalog/golden regeneration or pinned raw discovery edits.",
-      "closed_consumer_control_extension": "A small fixed source-bound shell control under existing authenticated Bash via Runner may exercise actual pipe marker then closing read FD while current CLI is alive; retain real PID/status/source/argv/current retained failed-delivery integrity and whole supervisor descendant cleanup. No unsupervised host std::process launcher, new Cargo target or production Runner changes; genuine refusal/normal controls required."
+      "closed_consumer_control_extension": "A small fixed source-bound shell control under existing authenticated Bash via Runner may exercise actual pipe marker then closing read FD while current CLI is alive; retain real PID/status/source/argv/current retained failed-delivery integrity and whole supervisor descendant cleanup. No unsupervised host std::process launcher, new Cargo target or production Runner changes; genuine refusal/normal controls required.",
+      "dynamic_test_admission": "B09 owns new command/cargo.rs and only module/re-export lines in command/mod.rs for static Cargo-test artifact admission. Independently reopen genuine expected Cargo command/raw artifact output, frozen source/features/target/environment and binary bytes; reuse one pure static artifact parser, no producer PASS flag/arbitrary hash registration/second parser or generic guard weakening. B04 need not wait for B09-specific acceptance."
     },
     {
       "id": "B10",
@@ -9041,7 +9051,11 @@
         "tools/gomad/rust/gomad/src/cli/qualify.rs",
         "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
         "tools/gomad/internal/backends/wasm/QUALIFICATION.md",
-        "tools/gomad/rust/gomad/src/qualify/support/inspection.rs"
+        "tools/gomad/rust/gomad/src/qualify/support/inspection.rs",
+        "tools/gomad/rust/gomad/src/qualify/support.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection/recording.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver_tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9300,7 +9314,7 @@
         "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
       },
       "terminal_reuse": "Use existing three genuine terminal_controls test functions through authenticated counterfactual-harness; actual selected count/pass and command lineage required. No warm.rs visibility edit needed; preserve current timing/teardown guarantees.",
-      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate."
+      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate. Related exact inspection recording/driver/tests and support.rs Request/Gate, stage_commands/validate_stage/measured_stage/admit plus validate-inspection arm migrate coherently to common Runner/B04 admission. Preserve ordered actual eight-gate dispatch and source/compiler/preparation/detach/status/bounds/prefix/snapshot/heap/inventory guarantees; no dual dialect or publication-only support pass."
     },
     {
       "id": "B12",
@@ -11465,7 +11479,8 @@
         "B04": "command/RetainedSession family arm only"
       },
       "integration": "Conductor preserves both arms after isolated commits; no production scope overlap, no new test target or owner mechanism."
-    }
+    },
+    "non_timing_driver_profile": "For non-timing focused driver diagnostic compiles/tests, explicitly pass --config profile.release.package.gomad.opt-level=0; environment package knob is ignored. Genuine production release/native identities and timing controls retain actual release profile. Do not restart an already-live opt3 build solely for this optimization."
   },
   "first_dispatches": [
     {
