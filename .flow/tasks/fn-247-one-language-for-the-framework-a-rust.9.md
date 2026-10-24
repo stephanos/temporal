@@ -39,6 +39,11 @@ cd model && mise exec -- cargo clippy -p umpire-backend-process --all-targets --
 - [ ] Every existing process control (refusal, launch, timeout, cancellation, signal, owner EOF, Linux descendant cleanup, Darwin admission, scratch cleanup) passes with the same outcome; before/after inventory shows no new resolved package and no guest-closure change.
 
 
+
+## Preparation evidence
+
+Read-only research: `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/planning/parent-safe-adoption-research.md`. Use its parent/child boundary and exact resolved-API cautions; the lexical unsafe count is a reproducible source baseline, not an expanded-code or runtime proof. Existing guest build-tool reachability of rustix/tempfile is not a new guest runtime dependency; distinguish target/build contexts in closure accounting. No extra full gate or old-byte comparison is introduced.
+
 ## Done summary
 TBD
 

@@ -43,6 +43,11 @@ The task creates the named integration target. Run the retained behavioral corpu
 - [ ] Useful guest-lock/rustc responsibilities have named Rust controls, with Python-only quirks explicitly retired under owner permission, including closure propagation/unification, malformed/ambiguous inputs, build-std, macro collision, pipelining, previous-wrapper and inherited jobserver/loader environment.
 - [ ] Wrapper status and atomic publication/failure cleanup controls pass; unrelated host-only additions do not change normalized guest dependency identities.
 
+
+## Preparation evidence
+
+Read-only research: `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/planning/native-identity-research.md` and `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/planning/sha2-primary-sources.md`. These ground the existing scope, not extra acceptance gates. The before inventory and its source hashes may be reused only while those hashes still match; all-platform normal/build metadata is not a compiled guest-runtime closure proof.
+
 ## Done summary
 TBD
 
