@@ -36,10 +36,11 @@ def regular(path):
 def workflow_pair(repo):
     workflows = repo / '.github/workflows'
     expected = [workflows / name for name in ('gomad.yml', 'gomad-behavioral-parity.yml')]
+    module_path = re.compile(r'(?<![\w.-])tools/gomad(?![\w.-])')
     inventory = [path for path in workflows.glob('*') if path.suffix in ('.yml', '.yaml')
-                 and (path.name.startswith('gomad') or path.is_file() and 'tools/gomad/' in path.read_text())]
+                 and (path.name.startswith('gomad') or path.is_file() and module_path.search(path.read_text()))]
     require(set(inventory) == set(expected), 'missing/ambiguous current Gomad workflow inventory')
-    require(all('tools/gomad/' in regular(path).read_text() for path in expected), 'changed Gomad workflow module routing')
+    require(all(module_path.search(regular(path).read_text()) for path in expected), 'changed Gomad workflow module routing')
     return expected
 
 

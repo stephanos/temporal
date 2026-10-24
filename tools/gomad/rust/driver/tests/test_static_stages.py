@@ -180,6 +180,8 @@ class StaticStageContract(unittest.TestCase):
         paths = [workflows/name for name in ('gomad.yml', 'gomad-behavioral-parity.yml')]
         for path in paths:
             path.write_text('name: Gomad\njobs: # tools/gomad/\n')
+        paths[0].write_text('working-directory: tools/gomad\nrun: make validate\n')
+        (workflows/'other-modules.yml').write_text('working-directory: tools/gomad-other\n# tools/gomad3/\n')
         binary = root/'static-tools/actionlint'
         binary.parent.mkdir()
         binary.write_bytes(b'actionlint fixture')
@@ -194,6 +196,7 @@ class StaticStageContract(unittest.TestCase):
             ('legacy main', paths[0].with_name('gomad3.yml'), '# tools/gomad/\n'),
             ('ambiguous', paths[0].with_name('gomad-extra.yml'), '# tools/gomad/\n'),
             ('foreign name', paths[0].with_name('other.yml'), '# tools/gomad/\n'),
+            ('module directory', paths[0].with_name('reference-checks.yml'), 'working-directory: tools/gomad\nrun: make validate\n'),
             ('alternate extension', paths[0].with_name('gomad.yaml'), '# tools/gomad/\n'),
         ]
 
