@@ -11448,5 +11448,9 @@
     "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
   },
   "input_sha256_semantics": "Historical input snapshots for the original partition, not authentication of amended live task descriptions. On admission read current Flow task acceptance and the controlling compatibility policy.",
-  "validation_counts_interpretation": "Validator proves historical source-ID partition/DAG preservation; counts are not mandatory retained implementation totals after explicit compatibility retirements."
+  "validation_counts_interpretation": "Validator proves historical source-ID partition/DAG preservation; counts are not mandatory retained implementation totals after explicit compatibility retirements.",
+  "effective_obligation_policy": {
+    "path": ".flow/artifacts/fn242-effective-obligation-policy.json",
+    "sha256": "3cd9aac9ea1081095408fabe9401f697e3a77226ad3e1a4020183d544262784c"
+  }
 }

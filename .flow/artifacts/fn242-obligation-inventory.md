@@ -192,3 +192,5 @@ The start counter is `gomad-source-size/v1` at `4bdb81c48727c7ca280566c9f1136854
 Delivery remains fn-232.30 checkpoint → fn-242 Rust implementation/cutover → complete approved fn-240 tasks 1–13 → fn-246 actual final qualification and independent receiving. Original fn-232 acceptance remains open. Preserve frozen Go executable/helper/source/compiler/tool inputs and raw proofs until actual public18/R4 receiving passes. Historical failed cycles are not a green baseline.
 
 Artifact verification: `env PYTHONDONTWRITEBYTECODE=1 python3 .flow/tmp/fn242-verify-inventory.py` checks exact lists, every driver require site, module/source hashes, dispositions and proof references, endpoints, resource policies and byte-for-byte captured stage derivation output. The script/log remain in the retained task workspace.
+
+The JSON inventory is an immutable historical discovery fixture. Apply [effective dispositions and cutover policy](fn242-effective-obligation-policy.json) when deciding current acceptance.

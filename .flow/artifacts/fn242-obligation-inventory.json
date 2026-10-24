@@ -5,9 +5,8 @@
   "qualification_claim": false,
   "disposition_contract": {
     "keep": "At least one named EXISTING catching test or mutation. This is not exhaustive conjunct/field coverage.",
-    "pending_regression": "Retained current behavior/integrity/bound guarantee awaiting catching proof. A solely legacy-compatibility guarantee may instead be explicitly retired under the owner amendment.",
-    "delete": "Delete/fold redundant checks only with retained guarantee coverage; compatibility-only rows may retire without replacement under the owner amendment.",
-    "retired_compatibility": "Exact original ID with named waived legacy-only guarantee and owner-policy reference. No replacement implementation/catching test; not an execution pass."
+    "pending_regression": "MANDATORY retained obligation with no individually established catching proof. No deletion, waiver or implementation pass. Assigned port must add catching proof before cutover.",
+    "delete": "No delete/fold disposition authorized by this inventory."
   },
   "counts": {
     "modules": 73,
@@ -33889,7 +33888,7 @@
       "end_line": 38,
       "kind": "require",
       "failure": "'native writer lost original quoting/Unicode/empty/high-integer/binary witnesses'",
-      "source_expression": "require(record['arguments'] == ['quoted=\"tail\"', 'Unicode=\u2603'] and record['environment'] == {'EMPTY': ''}\n            and record['virtual_time_nanos'] == (1 << 64) - 8\n            and payloads['evidence/binary-writer-tail'] == bytes(range(256)) + b'\\0'\n            and payloads['target/module.wasm'] == b'(module)'\n            and payloads['output/stdout'] == b'foundation-output',\n            'native writer lost original quoting/Unicode/empty/high-integer/binary witnesses')",
+      "source_expression": "require(record['arguments'] == ['quoted=\"tail\"', 'Unicode=☃'] and record['environment'] == {'EMPTY': ''}\n            and record['virtual_time_nanos'] == (1 << 64) - 8\n            and payloads['evidence/binary-writer-tail'] == bytes(range(256)) + b'\\0'\n            and payloads['target/module.wasm'] == b'(module)'\n            and payloads['output/stdout'] == b'foundation-output',\n            'native writer lost original quoting/Unicode/empty/high-integer/binary witnesses')",
       "disposition": "pending_regression",
       "path_conditions": [],
       "execution_context": [],
@@ -33898,7 +33897,7 @@
       "condition_semantics": "Exact local predicate; branch polarity belongs exclusively to path_conditions.",
       "proof_refs": [],
       "owner": "fn-242.3",
-      "predicate": "record['arguments'] == ['quoted=\"tail\"', 'Unicode=\u2603'] and record['environment'] == {'EMPTY': ''}\n            and record['virtual_time_nanos'] == (1 << 64) - 8\n            and payloads['evidence/binary-writer-tail'] == bytes(range(256)) + b'\\0'\n            and payloads['target/module.wasm'] == b'(module)'\n            and payloads['output/stdout'] == b'foundation-output'",
+      "predicate": "record['arguments'] == ['quoted=\"tail\"', 'Unicode=☃'] and record['environment'] == {'EMPTY': ''}\n            and record['virtual_time_nanos'] == (1 << 64) - 8\n            and payloads['evidence/binary-writer-tail'] == bytes(range(256)) + b'\\0'\n            and payloads['target/module.wasm'] == b'(module)'\n            and payloads['output/stdout'] == b'foundation-output'",
       "predicate_semantics": "Evaluate this exact local expression under each structured ancestor expression and required_value. Never concatenate unparenthesized branches or erase else polarity.",
       "trust_boundary_ref": "behavior",
       "semantic_family_ref": "process",
@@ -116299,7 +116298,7 @@
         "status": "pending_regression",
         "owner": "fn-242.4",
         "controlled_mutation": "Pass endpoint name a/b (path separator), then separately empty string, None and integer1 to re_full_name; do not dispatch their pinned reader argv.",
-        "valid_control": "Names final_20-profiles and \u00e92 satisfy the original Unicode isalnum-or-hyphen/underscore rule; their callers may proceed to pinned reader validation.",
+        "valid_control": "Names final_20-profiles and é2 satisfy the original Unicode isalnum-or-hyphen/underscore rule; their callers may proceed to pinned reader validation.",
         "expected_classification": "The helper returns a falsy value and collect raises Refusal invalid final endpoint name before running the invalid endpoint. Preserve the empty-string falsy behavior and Unicode alphanumeric acceptance; do not claim an ASCII-only contract.",
         "actual_evidence_needed": "Run the unmodified source-bound controls and negatives in a focused predicate/caller fixture; retain exact command, numeric exit, source hash, input and direct explicit assertion/refusal. No execution claimed here."
       },
@@ -125376,7 +125375,7 @@
         "status": "pending_regression",
         "owner": "fn-242.4",
         "controlled_mutation": "Change soft-assertion artifact outcome.exit_code from0 to1 while retaining original PASS stdout and soft-assertions.json.",
-        "valid_control": "Original own/late \u00d7 report_only false/true cells have actual exit0; policy changes success versus target_failure classification only.",
+        "valid_control": "Original own/late × report_only false/true cells have actual exit0; policy changes success versus target_failure classification only.",
         "authority": {
           "file": "tools/gomad/testdata/parity/live-backend-softassert.py",
           "source_sha256": "4c6473332fe7a5a72c055301717f765d0ff290d932f182edda6ebfd5bbf12a4e",
@@ -148627,7 +148626,7 @@
     "raw_report": ".flow/tmp/fn242-source-size-start.json",
     "raw_sha256": "cbcf3a22b099a5b53b17d3bfb63f90c819bcb2e9ededcb0e01e94a859a05fd62"
   },
-  "cutover_gate": "Every retained endpoint has an executable current Rust route and catching proof; zero unresolved retained guarantees. Explicitly retired compatibility-only rows/endpoints need dispositions, not replacement code/proof. Original source expressions and IDs remain discovery history.",
+  "cutover_gate": "No endpoint deletion before assigned Rust replacement has executable catching proof and inventory has zero pending rows, including launcher policies. Global R1 remains unproven until that gate.",
   "execution_policy": {
     "deadline_seconds": 3600,
     "stop_at_deadline": false,
@@ -160684,12 +160683,5 @@
     "retained_report": ".flow/tmp/fn242-proof-control-audit.json",
     "retained_report_sha256": "c1f5896f9808350eea26121eed2d0cf026c3517a82600490b5b2327f2a4e4b41"
   },
-  "keep_proof_rule": "Final keep credit requires an explicit intended source refusal plus an exception-free normal RETURN valid control traversing that exact check in the same passing test. Incidental missing-config exceptions, mocked replacements and unverified controls do not earn credit. Initial 600-second observation timed out exit124 and is inconclusive; only bounded recovery exit0/175passing tests contributes final control proof.",
-  "compatibility_amendment": {
-    "path": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
-    "sha256": "e82e4802edec9f6c64af9215e5750ded802bc3f95c2e9561c0fa775d30dd5e1d",
-    "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
-    "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
-  },
-  "counts_interpretation": "Historical discovery and ownership counts; retained acceptance excludes explicitly retired_compatibility rows."
+  "keep_proof_rule": "Final keep credit requires an explicit intended source refusal plus an exception-free normal RETURN valid control traversing that exact check in the same passing test. Incidental missing-config exceptions, mocked replacements and unverified controls do not earn credit. Initial 600-second observation timed out exit124 and is inconclusive; only bounded recovery exit0/175passing tests contributes final control proof."
 }
