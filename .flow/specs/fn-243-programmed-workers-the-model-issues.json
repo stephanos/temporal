@@ -10,7 +10,7 @@
   "id": "fn-243-programmed-workers-the-model-issues",
   "impl_review_rounds": {
     "fn-243-programmed-workers-the-model-issues.1": 0,
-    "fn-243-programmed-workers-the-model-issues.2": 1
+    "fn-243-programmed-workers-the-model-issues.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -147,10 +147,71 @@
       "timestamp": "2026-10-24T10:02:12.812378Z",
       "tool_calls": 19,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d790c2ba58ad7de71896aa08e93a4c7e5807d022abfef8c4ff7ff7064be96398",
+      "backend": "codex",
+      "base_sha": "8c82fb4ff3ee4c8f694b9067d7f6652803b50428",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c397305e869d96f9d4ddfb2e03a7e92a",
+            "classification": "introduced",
+            "findingId": "finding-c397305e869d96f9d4ddfb2e03a7e92a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f432315732adc9599a5d1f1f75d744fd",
+            "classification": "introduced",
+            "findingId": "finding-f432315732adc9599a5d1f1f75d744fd",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c503911935308b1fdd14c8dd97529461",
+            "classification": "introduced",
+            "findingId": "finding-c503911935308b1fdd14c8dd97529461",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "35c0807ac205014067d980f584318e7246a27914",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1231,
+      "output_sha256": "95a9c258b3004f1d5ae554bfbee55d2ddec72d1ce518face7ce6fa6ecc0d4539",
+      "reservation_id": "6bedb442ff274b0fb292baa594552cc3",
+      "round_consumed": true,
+      "scope": "impl:fn-243-programmed-workers-the-model-issues.2",
+      "superseded_by": null,
+      "task": "fn-243-programmed-workers-the-model-issues.2",
+      "timestamp": "2026-10-24T10:23:40.028252Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-243-programmed-workers-the-model-issues.1": 1,
+    "impl:fn-243-programmed-workers-the-model-issues.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -175,5 +236,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T10:18:26.528775Z"
+  "updated_at": "2026-10-24T10:23:40.033945Z"
 }
