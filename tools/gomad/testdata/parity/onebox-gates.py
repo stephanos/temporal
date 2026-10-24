@@ -37,8 +37,12 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def read(path, maximum=32 << 20):
-    with Path(path).open('rb') as stream:
+def read(path, maximum=32 << 20, *, regular=False):
+    stream = (os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb')
+              if regular else Path(path).open('rb'))
+    with stream:
+        if regular and not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ValueError(f'source requires a regular file: {path}')
         raw = stream.read(maximum + 1)
     if len(raw) > maximum:
         raise ValueError(f'input exceeds {maximum} bytes: {path}')
@@ -325,9 +329,22 @@ class Onebox:
         self.preparations = {}
         self.installations = {}
         self.source = getattr(args, 'source_manifest', None) or self.root / 'integrated-source.sha256'
-        files = subprocess.check_output(['git', '-C', str(args.repo), 'ls-files', '-z']).split(b'\0')
-        self.inputs = {str(args.repo / os.fsdecode(name)): digest(read(args.repo / os.fsdecode(name), 512 << 20))
-                       for name in sorted(files) if name}
+        files = subprocess.check_output(['git', '-C', str(args.repo), 'ls-files', '--stage', '-z']).split(b'\0')
+        self.inputs = {}
+        self.regular_sources = set()
+        for entry in sorted(files):
+            if not entry:
+                continue
+            metadata, name = entry.split(b'\t', 1)
+            mode, identity, stage = metadata.split(b' ')
+            if stage != b'0' or mode not in (b'100644', b'100755', b'120000', b'160000'):
+                raise ValueError('unsupported or unmerged tracked source entry')
+            if mode == b'160000':
+                continue
+            path = str(args.repo / os.fsdecode(name))
+            if mode != b'120000':
+                self.regular_sources.add(path)
+            self.inputs[path] = digest(read(path, 512 << 20, regular=path in self.regular_sources))
         self.inputs.update({str(path): digest(read(path, 512 << 20)) for path in
                            [args.binary, args.support, args.compiler, Path(sys.executable).resolve(), args.smoke_config, args.frontend_config,
                             args.inspection_config, Path(__file__).resolve(), args.inspection]})
@@ -344,7 +361,7 @@ class Onebox:
         if time.monotonic() >= self.commands.deadline:
             raise ValueError('onebox 3600-second outer bound exhausted')
         for path, expected in self.inputs.items():
-            if digest(read(path, 512 << 20)) != expected:
+            if digest(read(path, 512 << 20, regular=path in self.regular_sources)) != expected:
                 raise ValueError(f'frozen source/candidate changed: {path}')
 
     def gate(self, cell, name, command, commands, **fields):
