@@ -111,7 +111,7 @@ and their identity/custody ledgers remain preserved; no cycle pass is claimed.
 
 The C2f97 run on `ea26efc078` is terminal INCOMPLETE/exit1: 11 stages passed,
 `rust-lint` and `default-build` failed, and 83 did not start. Task .20 repairs the
-strict Clippy time-unit finding. The default build succeeded but differed from the
+strict Clippy time-unit finding and the test-only findings exposed by the complete lint matrix, preserving all cases and assertions. The default build succeeded but differed from the
 selected binary because the builds embed different Cargo target paths. The next
 source-bound cohort will use one fresh target/context for release preparation and
 qualification, preserving the exact byte guard and all historical inputs.
@@ -128,7 +128,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Complete fn-232.18, then run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
+1. Complete fn-232.20, prepare the fresh source-bound build cohort, then run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
