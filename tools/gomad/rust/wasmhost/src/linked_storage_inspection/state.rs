@@ -4,6 +4,57 @@ use std::collections::BTreeMap;
 
 mod strict;
 
+#[derive(Debug)]
+pub struct StateObservation<'a> {
+    version: u32,
+    sections: Vec<&'a [u8]>,
+    snapshots: serde_json::Value,
+    history: serde_json::Value,
+    enumerations: serde_json::Value,
+    contexts: Option<serde_json::Value>,
+}
+
+impl<'a> StateObservation<'a> {
+    #[must_use]
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+    #[must_use]
+    pub fn sections(&self) -> &[&'a [u8]] {
+        &self.sections
+    }
+    #[must_use]
+    pub fn snapshots(&self) -> &serde_json::Value {
+        &self.snapshots
+    }
+    #[must_use]
+    pub fn history(&self) -> &serde_json::Value {
+        &self.history
+    }
+    #[must_use]
+    pub fn enumerations(&self) -> &serde_json::Value {
+        &self.enumerations
+    }
+    #[must_use]
+    pub fn contexts(&self) -> Option<&serde_json::Value> {
+        self.contexts.as_ref()
+    }
+    #[must_use]
+    pub fn image_digest(&self) -> Option<&'a str> {
+        if self.version == 2 {
+            None
+        } else {
+            self.sections
+                .get(3)
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        }
+    }
+    #[must_use]
+    pub fn failed_stage(&self) -> Option<u8> {
+        (self.version == 2).then(|| self.sections[5][0])
+    }
+}
+
 fn native_digest(value: &str) -> bool {
     value.strip_prefix("sha256:").is_some_and(|digest| {
         digest.len() == 64
@@ -65,6 +116,15 @@ pub(super) fn validate(
     log: &[u8],
     maximum: u64,
 ) -> Result<(), String> {
+    decode(input, raw, log, maximum).map(|_| ())
+}
+
+pub(super) fn decode<'a>(
+    input: &StorageInput,
+    raw: &'a [u8],
+    log: &[u8],
+    maximum: u64,
+) -> Result<StateObservation<'a>, String> {
     let (version, sections) = sections(raw, maximum)?;
     let binding = sections[4];
     if binding.len() != 40
@@ -86,10 +146,27 @@ pub(super) fn validate(
     let history: BTreeMap<String, Vec<Operation>> = strict::decode(sections[1])?;
     validate_snapshots(&descriptor.model, &snapshots, &history)?;
     let enumerations = read_enumerations(version, &sections, descriptor, &snapshots)?;
-    if version == 3 {
-        validate_contexts(sections[5], &snapshots, &history, enumerations.as_ref())?;
-    }
-    Ok(())
+    let contexts = if version == 3 {
+        Some(validate_contexts(
+            sections[5],
+            &snapshots,
+            &history,
+            enumerations.as_ref(),
+        )?)
+    } else {
+        None
+    };
+    Ok(StateObservation {
+        version,
+        sections,
+        snapshots: serde_json::to_value(snapshots).map_err(|error| error.to_string())?,
+        history: serde_json::to_value(history).map_err(|error| error.to_string())?,
+        enumerations: serde_json::to_value(enumerations).map_err(|error| error.to_string())?,
+        contexts: contexts
+            .map(serde_json::to_value)
+            .transpose()
+            .map_err(|error| error.to_string())?,
+    })
 }
 
 fn validate_snapshots(
@@ -205,7 +282,7 @@ fn validate_contexts(
     snapshots: &[crate::volume::VolumeSnapshot],
     history: &BTreeMap<String, Vec<Operation>>,
     enumerations: Option<&BTreeMap<String, crate::volume::CrashEnumeration>>,
-) -> Result<(), String> {
+) -> Result<BTreeMap<String, StorageCrashContext>, String> {
     let contexts: BTreeMap<String, StorageCrashContext> = strict::decode(raw)?;
     if contexts.len() != snapshots.len() {
         return Err("retained storage evidence: crash context".into());
@@ -264,7 +341,7 @@ fn validate_contexts(
             }
         }
     }
-    Ok(())
+    Ok(contexts)
 }
 
 #[cfg(test)]
@@ -310,6 +387,78 @@ mod tests {
         let evidence = storage_transport::evidence(&mut namespace, &descriptor);
         assert_eq!(evidence.failure, None);
         (input, evidence)
+    }
+
+    #[test]
+    fn admitted_state_projection_retains_typed_sections_and_common_refusals() {
+        let (input, evidence) = actual();
+        let observed = crate::linked_storage_inspection::decode_state(
+            &input,
+            &evidence.state,
+            &evidence.log,
+            8 << 20,
+        )
+        .unwrap();
+        assert_eq!(observed.version(), 3);
+        let (_, raw_sections) = sections(&evidence.state, 8 << 20).unwrap();
+        assert_eq!(observed.sections(), raw_sections.as_slice());
+        assert_eq!(observed.snapshots()[0]["ID"], "data");
+        assert_eq!(observed.history()["data"][0]["Kind"], "alloc");
+        assert!(observed.enumerations()["data"].is_object());
+        assert!(observed.contexts().unwrap()["data"]["Operations"].is_array());
+        assert_eq!(observed.image_digest().unwrap().as_bytes(), raw_sections[3]);
+        assert_eq!(observed.failed_stage(), None);
+        for stage in [1, 2] {
+            let partial = storage_transport::encode_state_sections(
+                raw_sections[0],
+                raw_sections[1],
+                raw_sections[2],
+                "",
+                &evidence.log,
+                Some(stage),
+                None,
+            );
+            let failed = crate::linked_storage_inspection::decode_state(
+                &input,
+                &partial,
+                &evidence.log,
+                8 << 20,
+            )
+            .unwrap();
+            assert_eq!(failed.version(), 2);
+            assert_eq!(failed.failed_stage(), Some(stage));
+            assert_eq!(failed.image_digest(), None);
+            assert_eq!(failed.contexts(), None);
+        }
+        println!(
+            "GOMAD_CORE_OBSERVATION {}",
+            json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-state-projection","inputs":{"storage":input,"state_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&evidence.state),"log_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&evidence.log)},"observed":{"version":observed.version(),"snapshots":observed.snapshots(),"history":observed.history(),"enumerations":observed.enumerations(),"contexts":observed.contexts(),"image_digest":observed.image_digest()}})
+        );
+        for (name, bytes, maximum) in [
+            (
+                "trailing",
+                [evidence.state.as_slice(), &[0]].concat(),
+                8 << 20,
+            ),
+            (
+                "oversized",
+                evidence.state.clone(),
+                evidence.state.len() as u64 - 1,
+            ),
+            ("malformed", vec![0; 56], 8 << 20),
+        ] {
+            let error = crate::linked_storage_inspection::decode_state(
+                &input,
+                &bytes,
+                &evidence.log,
+                maximum,
+            )
+            .unwrap_err();
+            println!(
+                "GOMAD_CORE_OBSERVATION {}",
+                json!({"schema":"gomad.core-predicate-observation/v1","case":"storage.admitted-state-refusal","inputs":{"mutation":name,"storage":input,"state_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&bytes),"log_base64":base64::Engine::encode(&base64::engine::general_purpose::STANDARD,&evidence.log),"maximum":maximum},"observed":{"error":error}})
+            );
+        }
     }
 
     #[test]
