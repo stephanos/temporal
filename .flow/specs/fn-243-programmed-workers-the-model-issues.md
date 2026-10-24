@@ -49,9 +49,9 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 
 ## API Contracts
 
-- `umpire.model.v1`: `ResetResponse.program` (Any, optional, tag 1); `PROPOSAL_KIND_READ = 3`. Existing tags preserved; wire goldens pin both. `METHOD_ANSWER` stays for other systems; `Realize::answer` gains a refusing default and the Temporal Realization drops its implementation.
+- `umpire.model.v1`: `ResetResponse.program` (Any, optional, tag 1); `PROPOSAL_KIND_READ = 3`. Current tags/layouts may change; regenerate wire goldens and consumers together. `METHOD_ANSWER` stays for other systems; `Realize::answer` gains a refusing default and the Temporal Realization drops its implementation.
 - `umpire.temporal.v1`: `WorkerProgram { namespace, task_queue, repeated Rule rules }`, `Rule { Any key; repeated Any respond }`, `ActivityTaskKey { scenario, attempt, activity_type }`, the hold instruction field beside the poll fields, and the header name `umpire-scenario` documented on the envelope. `ObserveActivity.worker_tasks` removed.
-- `umpire.run.v1.Run` gains a worker record (executor kind, executor version, namespace, task queue) at a fresh tag; existing tags preserved; wire goldens pin it. The fake Driver fills it with its own kind. `Event.answer` stays for other systems.
+- `umpire.run.v1.Run` gains a worker record (executor kind, executor version, namespace, task queue) in the current format; regenerate wire goldens and consumers together. The fake Driver fills it with its own kind. `Event.answer` stays for other systems.
 - `umpire program --model <guest.wasm> --world <cfg> --out <file>`: performs a Reset against a fresh guest and writes the program.
 - Go `runner.Driver.Start` unchanged; the Driver factory takes the executor kind and the program bytes from `UMPIRE_TEMPORAL_*` configuration and records the kind in the Run.
 - Worker interface, Go: `Follow(ctx, conn, program) error` in `raw` and `sdk`; both import only the Temporal API or SDK and `umpire.temporal.v1`.
@@ -94,11 +94,14 @@ The current activity Model cancels atomically. An actual retained SDK Run demons
 
 Task .2 completes the admitted held-before-start and terminal-cancellation slice. It explicitly refuses unheld cancellation of an open activity with `unheld cancellation of an open activity is outside the atomic cancellation Model`; the refusal publishes no cancellation proposal and causes no Cancel RPC. Ordinary supported Runs retain strict explanation and program-deviation controls.
 
-The original unheld-race requirement stays open under R2. Task .5 consumes the independently specified cooperative semantics and committed live binding from fn-237, restores only justified admission, and proves actual raw/SDK races. The original counterexample and original guest identity remain preserved and replay as their original finding; later Model support is a separate proof.
+The original unheld-race requirement stays open under R2. Task .5 consumes the independently specified cooperative semantics and committed live binding from fn-237, restores only justified admission, and proves actual raw/SDK races. The original counterexample retains its semantic finding and provenance, including historical guest identity; later Model support is a separate proof. Current readers need not load its historical format; old binary/hash replay is not a gate.
 
 Task .4 and fn-228.7 document the delivered worker architecture and this admission boundary. Neither closes this spec or claims the deferred behavior passed. Task .5 updates the final R40 status and fn-228 R7 evidence after its live and offline-replay proof passes. Both parent obligations remain open until that committed evidence exists. The CLI supports native dependencies only within a spec. Cross-spec prerequisites use explicit blocked tasks and conductor admission checks against committed closures, without whole-spec edges that would block the producer of the cooperative semantics.
 
 ## Decision Context
+
+2026-10-24, owner amendment: "can we drop byte-for-byte compatability from open tasks to speed things up? we don't need backwards compatabiltiy". Remaining work may change guest/wire/API formats and regenerate bindings/goldens together. Old-format readers, old-byte/hash pins and historical-layout preservation are unnecessary. Preserve semantic Model/refinement obligations, the meaning and provenance of original lifecycle/counterexample evidence, current source/guest freshness and identity, deterministic replay within the current format, actual raw/native-SDK live proofs and discriminating negative controls. This supersedes older compatibility-only restrictions without changing completed task records.
+
 
 2026-10-23: the owner deferred the Shim and asked for pre-programmed workers; worker actions are the evidence, a misbehaving worker must fail the Model's judgment.
 
@@ -111,7 +114,7 @@ Also settled: the envelope is feature-agnostic with per-feature key types; no fa
 
 ## Verification adoption
 
-Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved original semantic counterexample evidence. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Current focused commands remain available. No TLC batching, caching or reduced case coverage is introduced.
 
 ## Requirement coverage
 

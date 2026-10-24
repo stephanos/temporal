@@ -5,7 +5,7 @@ satisfies: [R3]
 
 ## Description
 
-Extract R3's shared entity lens and filler-driven probe plumbing after capabilities, registry and catalog contracts land. Preserve activity semantics through a compatibility adapter until .3 switches the feature declaration.
+Extract R3's shared entity lens and filler-driven probe plumbing after capabilities, registry and catalog contracts land. Preserve activity semantics through a migration adapter until .3 switches the feature declaration.
 
 **Size:** M
 **Files:** existing Temporal live/support/probes owners and their tests, shared lens/probes/support modules, crate exports and guest imports.
@@ -15,7 +15,7 @@ Extract R3's shared entity lens and filler-driven probe plumbing after capabilit
 
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
-1. Pin serialized old-vs-new Reset/Propose/Judge responses, receipt transitions, freeze behavior, actual evidence validation, read finality, hold instructions and probe inventory at the integrated prerequisite tip. Use exact existing fixture/live captures as an equivalence harness with a closed dynamic-value projection where necessary.
+1. Compare semantic Reset/Propose/Judge results, receipt transitions, freeze behavior, evidence validation, read finality, hold instructions and probe inventory against the integrated prerequisite behavior. Use actual fixture/live captures with semantic field/proof comparison; serialization and report layouts may change.
 2. Move admission, immutable receipt/evidence, whole-Runtime replacement, correlation, read scheduling/finality, hold and program-envelope assembly through the existing owners. Keep complete request/response/evidence validation before feature delegation. Preserve publication/commit and failed-allocation behavior. Do not create a sibling lens lifecycle or decision interpreter.
 3. Parameterize shared mechanics by declared entity identity/bootstrap/read and assembled capabilities. Keep current activity adapter compiling. Move protocol API names freely but reject imports of feature modules, hard-coded feature phase/World rules and scenario identities through a focused boundary control.
 4. Make baseline/catalog probes call registered fillers; consume catalog's exact inventory reconciliation rather than reproducing gap logic. Keep generic raw mutation generation and Kettle unchanged. Keep the journal/gates and cooperative actual-worker live evidence owned by future fn-237.4; the moved executor continuation capability has its own task.
@@ -38,10 +38,10 @@ From model/: `mise exec -- cargo test -p umpire-temporal -p umpire-temporal-test
 
 ## Acceptance
 
-- [ ] Before/after serialized judgments, receipt/freeze/Reset, pending correlation, read finality, hold/program envelope and exact probe inventory agree through the named equivalence harness.
+- [ ] Before/after semantic judgments, receipt/freeze/Reset, pending correlation, read finality, hold/program envelope and exact probe inventory agree through the named equivalence harness.
 - [ ] Failed publication/allocation and wrong/missing/crossed evidence leave state unchanged; only successful publication commits. Existing correlation and actual worker-evidence validation retain their precedence.
 - [ ] Shared modules import no feature module and contain no feature-phase/World/scenario policy. API/domain Activity names remain allowed; planted feature-coupling controls fail deterministically.
-- [ ] Filler-driven probes and compatibility adapter compile across guest/host consumers. Focused Rust/Go parity, boundary, fmt and strict clippy pass without Cargo dependencies outside fn-210 R18 or claimed future fn-237.4 evidence.
+- [ ] Filler-driven probes and migration adapter compile across guest/host consumers. Focused Rust/Go parity, boundary, fmt and strict clippy pass without Cargo dependencies outside fn-210 R18 or claimed future fn-237.4 evidence.
 
 ## Done summary
 TBD

@@ -8,7 +8,7 @@ Implement **Probe engine (B1)**: `umpire_catalog::generic_probe::{Engine, ProbeS
 
 ## Acceptance
 - [ ] One engine; Kettle and Temporal implement `ProbeSystem` only.
-- [ ] Probe goldens hold; unknown method, bad prerequisite and unapplicable cases refuse as before.
+- [ ] Semantic probe checks and reviewed regenerated goldens pass; unknown method, bad prerequisite and unapplicable cases still refuse. Old output bytes, ordering and generated IDs need not match; identities remain consistent under the new contract.
 - [ ] Re-accept goldens after reviewing their diffs; `make model-check` passes.
 
 

@@ -94,6 +94,17 @@ the conductor clears each only after the named prerequisite's closure is committ
 
 Sections follow the remaining execution order (first open task first); deferred specs come last.
 
+### fn-249: Review validation cost at actual spec completion (Flow tooling)
+
+Flow-tooling work, independent of the Model order: an opted-in project records a durable validation-cost report when a
+spec closes, enforced by `spec close`. Its plan review passed, including failure/retry durability controls.
+No dependencies; scheduled before the remaining helper ports. It reuses existing evidence and adds no validation run.
+[Spec](.flow/specs/fn-249-durable-validation-cost-review-at-spec.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-249.1 | ⬜ todo | Opt-in close-time report, content-addressed artifact, repository-owned patch and controls (R1–R4) |
+
 ### fn-247: One language for the framework: Rust process supervisor and xtask replace the Python helpers (model)
 
 Filed on 2026-10-24 after the owner asked why `backends/tla` and `backends/tlc` both exist, agreed that process
@@ -104,17 +115,16 @@ process support with a Rust supervisor (`libc` promoted under R18, the fn-211.3 
 binary crate replaces every script with the same arguments and behaviour; Python leaves the prerequisites.
 On 2026-10-24 the owner dropped byte-for-byte compatibility and allowed crates admitted under R18: the xtask uses `sha2`,
 plain `serde_json` and in-process `tar` + `flate2` for the Apalache archive, guest regeneration is allowed (old/new hashes recorded),
-and the process crate adopts `rustix` and `tempfile` after .4. Its eight-task plan passed primary review,
-including cold freshness admission before xtask bootstrap and the owner-approved single-pass validation.
+and the process crate adopts `rustix` and `tempfile` after .4. The nine-task plan now uses native driver contracts,
+minimal cold bootstrap and single-pass validation; its amended remaining scope requires fresh primary review.
 Shared process support is extracted and single-pass validation is delivered: one required gate plus benchmark
 passed in about 17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
-replacement is in progress; helper ports remain queued. Placed before fn-246.1, which depends on it,
+replacement is complete locally: 48 focused checks and the resumed review passed, with the closure committed. Helper ports remain queued. Placed before fn-246.1, which depends on it,
 since fn-246 and fn-240 build on the process crate. The retained-original hash integrity check is thrown away (verifier and `manifest.json` deleted); the originals stay in Git and the semantic lifecycle comparison stays.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-247.4 | 🔄 in progress | Committed .1 and .8 verified: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
 | fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
 | fn-247.9 | ⬜ todo | After .4: `rustix` safe wrappers for parent-side syscalls and `tempfile` scratch directories in the process crate (R6) |
 | fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission, guest regeneration with recorded hashes (R2, R3) |
@@ -206,10 +216,10 @@ traits, evidence kinds and a descriptor-generated WorkflowService catalog. Opaqu
 removed with exact per-probe accounting; independently justified name and retry-ordering rules remain.
 Target: per-feature mapping at most twice the Model's lines, re-measured on the workflow Model.
 The fourteen-task plan is committed and structurally validated; primary review remains pending.
-Ambiguous timer paths retain full state and evidence cursors; an opt-in versioned whole-prefix witness
-keeps later explanations consistent. Production metadata retention and actual SDK heartbeat delivery
-remain early implementation gates. The earlier worker codec capability moves here; fn-237.4 retains
-all original actual live proofs, with its downstream amendment still pending application.
+Ambiguous timer paths retain full state and evidence cursors; one current whole-prefix witness contract
+keeps later explanations consistent. Legacy readers, delta-mode fallback and Wasm marker machinery are dropped.
+Current guest/Host admission and actual SDK heartbeat delivery remain early implementation gates.
+The worker codec capability moves here; fn-237.4 retains all original actual live proofs in the amended plan.
 Placed after committed fn-243.4, fn-228.7, fn-237.3, all of fn-247, and (for throughput, 2026-10-24) all of fn-251 and fn-252, before fn-237.4.
 Reach reuses the suite's search core; strategy enumeration may use `itertools` under a budget.
 The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency remains.
@@ -220,11 +230,11 @@ The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency rem
 | fn-246.1 | ⬜ todo | After committed prerequisites: transactional bounded Reach and Kettle proof point (R1) |
 | fn-246.12 | ⬜ todo | After committed prerequisites: shared descriptor catalog, claims and exact probe accounting (R3, R4) |
 | fn-246.13 | ⬜ todo | After committed prerequisites: independent activity protocol Model and native/TLC invariants (R5) |
-| fn-246.14 | ⬜ todo | After committed prerequisites: compatible heartbeat key and actual raw/SDK continuation capability (R6) |
+| fn-246.14 | ⬜ todo | After committed prerequisites: current heartbeat key and actual raw/SDK continuation capability (R6) |
 | fn-246.7 | ⬜ todo | After .1: typed capabilities, fillers and internal evidence adapters (R2) |
-| fn-246.8 | ⬜ todo | After .7: opt-in guest proof metadata and immutable version admission (R1, R2) |
+| fn-246.8 | ⬜ todo | After .7: current default whole-prefix guest/Host contract (R1, R2) |
 | fn-246.11 | ⬜ todo | After .7: variant metadata and Temporal action/entity/read registry (R2, R3) |
-| fn-246.9 | ⬜ todo | After .8: whole-prefix Run recording, replay and generic presentation (R1, R5) |
+| fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .7 and .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | After .7, .10, .11, .12: shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13, .14: activity migration, exact probe parity and mapping count (R4, R7) |
@@ -292,16 +302,6 @@ shared `Literal` and `Schema`), and its .1 starts after fn-248.3's IR traversal 
 | fn-245.2 | ⬜ todo | After .1: front-end admission and method table, native value export, interpreter evaluation (R2, R3) |
 | fn-245.3 | ⬜ todo | After .1: TLA+ emission (subsets, functions with `Absent`, quantifiers, Head/Tail) and typed TLC decoding (R4) |
 | fn-245.4 | ⬜ todo | After .2, .3: the three fixtures with goldens, differential and TLC agreement, fn-238.6 sets measurement, DESIGN and README (R3 to R6) |
-
-### fn-249: Review validation cost at actual spec completion (Flow tooling)
-
-Flow-tooling work, independent of the Model order: an opted-in project records a durable validation-cost report when a
-spec closes, enforced by `spec close`. No dependencies.
-[Spec](.flow/specs/fn-249-durable-validation-cost-review-at-spec.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-249.1 | ⬜ todo | Opt-in close-time report, content-addressed artifact, repository-owned patch and controls (R1–R4) |
 
 ### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
 

@@ -1,13 +1,20 @@
 {
   "branch_name": "fn-250-shared-value-type-and-trace-layer-for",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-24T22:10:13.772213Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-248-off-the-shelf-crates-and-consolidation"
   ],
   "id": "fn-250-shared-value-type-and-trace-layer-for",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_reviewed_at": "2026-10-24T22:28:08.208543Z",
   "spec_path": ".flow/specs/fn-250-shared-value-type-and-trace-layer-for.md",
   "status": "open",
   "title": "Shared value, type and trace layer for the TLA+ back ends (model)",
@@ -22,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:11:04.289067Z"
+  "updated_at": "2026-10-24T22:28:08.719666Z"
 }

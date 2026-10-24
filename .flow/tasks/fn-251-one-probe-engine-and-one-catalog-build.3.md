@@ -7,7 +7,7 @@ satisfies: [R3, R7]
 Implement **Generated findings (B2)**: generate `request_findings(method, bytes)` per service with supplemental-catalog hooks; delete `Wire` in `temporal/realization/src/probes.rs:311-551`. Answer whether `mutate`/`mutate_start` can use the generated `mutate_workflow_request` and do it if so.
 
 ## Acceptance
-- [ ] No hand-written `Wire` enum; Temporal probe findings unchanged.
+- [ ] No hand-written `Wire` enum; Temporal probe findings retain their semantic coverage and accuracy under the new contract, with affected output goldens regenerated.
 - [ ] The `mutate` question is answered in the done summary.
 - [ ] Re-accept goldens after reviewing their diffs; `make model-check` passes.
 

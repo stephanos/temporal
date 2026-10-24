@@ -10,6 +10,10 @@
 
 Kettle (the reference system) and Temporal realization each implement the same probe engine, the same descriptor-to-Rust graph builder, the same annotation/probe transport dispatch and their own build-configuration layers; Temporal also hand-writes a `Wire` enum that walks catalogs the `#[derive(Catalog)]` `Inspect` impl already walks, and keeps two facade crates that only re-export umpire-catalog. This spec moves each into one system-neutral place in `model/umpire` so Kettle and Temporal provide only their system-specific parts. Estimated 850–950 lines and two crates removed. Byte-for-byte compatibility is not required (owner, 2026-10-24); goldens are re-accepted after review.
 
+## Compatibility policy for remaining work
+
+Owner, 2026-10-24: backward compatibility and equality with old output bytes are not required. Internal/wire formats, generated code, diagnostics, paths and snapshots may change where needed for this consolidation; update all affected in-tree producers/readers and regenerate current guests and goldens together. No legacy decoder, dual format or old-guest support is required. Validate the new native contract, semantic correctness, typed replay, reproducibility and safety. Existing artifact SHA/checksum integrity, strict type/domain checks and actual native/SDK proof obligations remain.
+
 ## Architecture & Data Models
 
 - **Descriptor graph (B3).** `umpire_catalog_syntax::proto::Graph::new(bytes, rust_root)` replaces `catalog/build/src/wire_schema.rs:136-330` (`Schema`: collect, kind, optional, map-entry member, oneof) and `temporal/annotate/syntax/src/realization.rs:467-556`. It removes the hardcoded `::umpire_temporal_api` (`realization.rs:168`), so `#[realization]` becomes system-neutral.
@@ -24,28 +28,28 @@ Kettle (the reference system) and Temporal realization each implement the same p
 - `umpire-catalog-syntax`: `proto::Graph`.
 - `umpire-catalog-build`: `System::generate`; generated `request_findings` and `annotate_<svc>` per service.
 - `umpire-catalog`: `generic_probe::{Engine, ProbeSystem}`; `AnnotationRuntime::with_probes`.
-- Protocol messages (`ProbeRequest`, `ProbeResponse`, `AnnotationRequest`, `AnnotationResponse`) unchanged; Go hosts unchanged.
+- Preserve the semantic operation/result contract of `ProbeRequest`, `ProbeResponse`, `AnnotationRequest` and `AnnotationResponse`. Their representations and affected Go readers may change where needed by consolidation; regenerate current hosts/guests together without an old-wire or old-guest adapter.
 - No Temporal detail enters `model/umpire` (owner rule): everything Temporal-specific stays behind `ProbeSystem` and the realization crate.
 
 ## Edge Cases & Constraints
 
-- Probe results (classification, predictions, Unchanged detection, OutOfScope) stay the same for Kettle and Temporal; the probe goldens are the oracle.
+- Kettle and Temporal retain semantic classification, prediction correlation, Unchanged detection and OutOfScope behavior. Verify these directly and review regenerated probe goldens; old serialization, ordering, generated IDs and wording are not the oracle. Keep deterministic ordering and consistent producer/consumer identity under the new contract.
 - Supplemental intent catalogs in Temporal keep their findings through the generated hooks.
-- Removing the facade crates must not change `#[derive(Catalog)]` diagnostics beyond path names; trybuild goldens are re-accepted.
+- Removing the facade crates retains strict `#[derive(Catalog)]` admission/refusal behavior and useful source locations. Diagnostic wording and rendered spans may change; review regenerated trybuild goldens and test the offending construct.
 
 ## Acceptance Criteria
 
 - **R1:** One descriptor graph builder serves catalog/build and realization; `#[realization]` names no Temporal crate.
 - **R2:** `System::generate` replaces the build-configuration layers and wrappers.
 - **R3:** Temporal's `Wire` enum is replaced by generated `request_findings`; the `mutate` question is answered in the task summary.
-- **R4:** One `Engine<S: ProbeSystem>` serves Kettle and Temporal; their probe goldens hold. Errors: unknown method, bad prerequisite and unapplicable cases refuse as before.
+- **R4:** One `Engine<S: ProbeSystem>` serves Kettle and Temporal; their semantic probe checks pass with reviewed regenerated goldens. Errors: unknown method, bad prerequisite and unapplicable cases refuse as before.
 - **R5:** Generated annotation dispatch and `AnnotationRuntime::with_probes` replace the three transport copies. Errors: unknown service prefix or method refuses as before.
 - **R6:** `temporal/annotate` and `temporal/annotate/macros` are gone from the workspace.
 - **R7:** `make model-check` passes, including Go host tests. No error surface beyond the gate.
 
 ## Boundaries
 
-- No protocol, Go host or probe semantics change.
+- No probe semantic change. Coordinate any representation changes with current Rust/Go readers and regenerated guests; no backward-compatibility gate is required.
 - No change to fn-246's action registry or refinement design; where fn-246 tasks touch the same files, the later spec rebases.
 
 ## Decision Context
@@ -53,3 +57,15 @@ Kettle (the reference system) and Temporal realization each implement the same p
 2026-10-24, owner: filed from the consolidation review. Placed after fn-248 (which changes catalog/syntax, catalog/build and annotate/syntax for `heck`, `darling` and `quote`). fn-246 (realization as checked refinement) touches Temporal realization too; doing this spec first gives fn-246 one probe engine to build on, and the owner orders the two.
 
 2026-10-24, owner (throughput ordering): consolidation lands before the feature work that would otherwise repeat each change in every copy. Order: fn-247 → fn-248 → fn-250, fn-251 and fn-252 as parallel lanes → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245; fn-240 and fn-211 stay deferred behind fn-250. fn-246 depends on this spec. fn-252.5 follows this spec's .6 where it touches `temporal/annotate`.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | One descriptor graph builder serves catalog/build and realization; `#[realization]` names no Temporal crate. | fn-251-one-probe-engine-and-one-catalog-build.1 | — |
+| R2 | `System::generate` replaces the build-configuration layers and wrappers. | fn-251-one-probe-engine-and-one-catalog-build.2 | — |
+| R3 | Temporal's `Wire` enum is replaced by generated `request_findings`; the `mutate` question is answered in the task summary. | fn-251-one-probe-engine-and-one-catalog-build.3 | — |
+| R4 | One `Engine<S: ProbeSystem>` serves Kettle and Temporal; their semantic probe checks pass with reviewed regenerated goldens. Errors: unknown method, bad prerequisite and unapplicable cases refuse as before. | fn-251-one-probe-engine-and-one-catalog-build.4 | — |
+| R5 | Generated annotation dispatch and `AnnotationRuntime::with_probes` replace the three transport copies. Errors: unknown service prefix or method refuses as before. | fn-251-one-probe-engine-and-one-catalog-build.5 | — |
+| R6 | `temporal/annotate` and `temporal/annotate/macros` are gone from the workspace. | fn-251-one-probe-engine-and-one-catalog-build.6 | — |
+| R7 | `make model-check` passes, including Go host tests. No error surface beyond the gate. | fn-251-one-probe-engine-and-one-catalog-build.1, fn-251-one-probe-engine-and-one-catalog-build.2, fn-251-one-probe-engine-and-one-catalog-build.3, fn-251-one-probe-engine-and-one-catalog-build.4, fn-251-one-probe-engine-and-one-catalog-build.5, fn-251-one-probe-engine-and-one-catalog-build.6 | — |

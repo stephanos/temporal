@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.7.md",
   "status": "todo",
   "title": "Port retired-name filtering to Rust and retire the original-artifact hash verifier",
-  "updated_at": "2026-10-24T22:17:04.885701Z"
+  "updated_at": "2026-10-24T22:27:55.592473Z"
 }

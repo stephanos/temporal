@@ -15,8 +15,8 @@ Port Apalache installation and its security/concurrency controls (R2, R3), after
 - Add R18-admitted host-only `tar` 0.4.46 (`default-features = false`, no xattr) and `flate2` 1.1.10 (miniz_oxide backend) to xtask; record before/after inventory with each new transitive package's R18 basis and no guest-closure change.
 - Verify the downloaded archive's SHA-256 (in-process `sha2`) before any parsing. Then stream it through `flate2::read::GzDecoder` and `tar::Archive`, select the one exact named member, require it to be a regular file, read its bytes in memory and verify the jar SHA-256. No system tar, member filtering, verbose listing, GNU/BSD parity proof or macOS receipt. No arbitrary caller-supplied archive grammar is introduced; duplicate/type7/gzip-trailer research cases cannot pass the archive hash and need no handling.
 - Keep one Rust pin authority for version/archive hash/jar hash; update the backend's source-include pin consistency control to reference it without copying a second authority.
-- Preserve download curl arguments, existing path/status interface, containment/component/symlink checks, partial/wrong installation refusal and private staging cleanup. Open the lock file with `O_NOFOLLOW`, require a regular file, and take the exclusive lock with std `File::lock()` (stable since Rust 1.89). Atomically publish only validated jar bytes; never unpack the archive to disk.
-- Port every mocked-download/malicious-lock/archive/staging/concurrency test to Rust, building fixture archives with `tar`/`flate2` in the test. Concurrent installers must still perform one publication and return the same admitted path. Switch only the installer Makefile caller, then remove its Python source/control.
+- Keep useful ordinary download/path invocation behavior and document native error/output changes; preserve curl safety, containment/component/symlink checks, partial/wrong installation refusal and private staging cleanup. Open the lock file with `O_NOFOLLOW`, require a regular file, and take the exclusive lock with std `File::lock()` (stable since Rust 1.89). Atomically publish only validated jar bytes; never unpack the archive to disk.
+- Port useful mocked-download/malicious-lock/archive/staging/concurrency responsibilities to Rust, explicitly retiring only pure Python quirks under owner permission, building fixture archives with `tar`/`flate2` in the test. Concurrent installers must still perform one publication and return the same admitted path. Switch only the installer Makefile caller, then remove its Python source/control.
 
 ### Investigation targets
 
@@ -38,8 +38,8 @@ Use controlled download/archive fixtures for installer tests; real required Apal
 
 ## Acceptance
 - [ ] Archive SHA-256 is verified before parsing; the exact named regular member is read in-process via `tar` + `flate2` and its jar SHA-256 verified before atomic publication; no system tar is invoked. Archive/jar hashes and version remain under one Rust pin authority. The real pinned release installs and the final gate's required Apalache run uses it.
-- [ ] Every old installer case has a Rust counterpart; wrong/partial/symlink/nonregular-lock/hash/missing-or-nonregular-member/cleanup controls fail and concurrent installers (std `File::lock()`) publish once.
-- [ ] Installer statuses and declared diagnostics match the old contract; dynamic curl/path output is validated structurally.
+- [ ] Every useful installer safety/control responsibility has a Rust counterpart; wrong/partial/symlink/nonregular-lock/hash/missing-or-nonregular-member/cleanup controls fail and concurrent installers (std `File::lock()`) publish once.
+- [ ] Installer callers and tests use the documented native status/error/output contract; useful ordinary invocations remain, with no exact Python diagnostics/API/byte parity requirement. Dynamic curl/path output is checked structurally.
 - [ ] `tar`/`flate2` admissions are recorded with R18 basis and no guest-closure change; Makefile and Apalache pin-consistency controls use Rust; installer Python/control removed after its Rust counterparts pass.
 
 

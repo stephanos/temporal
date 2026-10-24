@@ -1,11 +1,135 @@
 {
   "branch_name": "fn-249-durable-validation-cost-review-at-spec",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-24T22:02:36.599652Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-249-durable-validation-cost-review-at-spec",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-24T22:26:05.206253Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "ec549e8c429062ad70290681fe6ef56f11c214f9deee0448d1b7897465f4691f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3179a5de79f7eae059c9bfa9cffa7035",
+            "classification": "introduced",
+            "findingId": "finding-3179a5de79f7eae059c9bfa9cffa7035",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6ce0e96e087709bfaa9866aed109f977",
+            "classification": "introduced",
+            "findingId": "finding-6ce0e96e087709bfaa9866aed109f977",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "973925f09421a970130c31636779fd5f0fdc4269",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 187665,
+      "output_sha256": "168909cceab8adcbcb362659267a2c9dab8664963adca23ee795ce0f1573fdb8",
+      "reservation_id": "992e735ba22e4cd28af74649e1cecb01",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T22:24:29.358532Z",
+      "tool_calls": 14,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8a8b7904aa545e7c662d41939b7335e899fc640e073ae7807947366cf1a616b8",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3179a5de79f7eae059c9bfa9cffa7035",
+            "classification": "introduced",
+            "findingId": "finding-3179a5de79f7eae059c9bfa9cffa7035",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6ce0e96e087709bfaa9866aed109f977",
+            "classification": "introduced",
+            "findingId": "finding-6ce0e96e087709bfaa9866aed109f977",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "973925f09421a970130c31636779fd5f0fdc4269",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 671,
+      "output_sha256": "f3070a5e36bf8665279013bbb6146d698222b535ad1385e2a9eb1f4b1b539d3a",
+      "reservation_id": "e094e026b84c478bab6fab0829827c4a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T22:26:05.200382Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-249-durable-validation-cost-review-at-spec.md",
   "status": "open",
   "title": "Durable validation-cost review at spec completion",
@@ -20,5 +144,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:03:09.682094Z"
+  "updated_at": "2026-10-24T22:31:25.688320Z"
 }

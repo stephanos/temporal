@@ -16,7 +16,7 @@ Complete the deferred unheld-cancellation portion of R2 and its R5 documentation
 - Restore unheld open-state cancellation only for the supported binding and World. Retain explicit refusal before effects for unsupported combinations; do not silently replace a Cancel with Read or remap real statuses.
 - Reuse the ordinary Runner, executor identity, actual acknowledgments, Describe projection, compound evidence and replay controls. Use deterministic transport witnesses that demonstrate the intended interleavings rather than assuming a seed exercised them.
 - Prove successful unheld Cancel while Started, pending cancellation, completion/failure races, worker acknowledgment and repeated cancellation classification under the independent contract. A server disagreement remains a finding, not a reason to rewrite the Model.
-- Preserve the original atomic-Model counterexample and exact guest/hash replay as historical evidence. New supported Runs use their own Model identity and are a separate proof.
+- Preserve the original atomic-Model counterexample's semantic finding and source/guest provenance as historical evidence, without requiring current readers to load its old bytes. New supported Runs use their own Model identity and are a separate proof.
 - Update the temporary scope documentation, DESIGN R40 final status and fn-228 R7 evidence pointer only after the new proof passes. Keep malformed/cross-identity evidence, wrong-result/failure mutants, unprogrammed refusal and existing supported slices intact.
 
 ### Investigation targets
@@ -37,19 +37,19 @@ cd model && mise exec -- cargo test -p umpire-temporal --test program_history --
 ```
 
 ### Boundaries
-No change to frozen original compatibility artifacts or Model policy. No new program language, response kind or envelope work beyond what fn-237.4 already supplies. No reinterpretation of the original failing Run as passing.
+Preserve original lifecycle/counterexample evidence and independent Model policy semantically; current formats/goldens may regenerate. No new program language, response kind or envelope work beyond what fn-237.4 already supplies. No reinterpretation of the original failing Run as passing.
 
 ### Ordering note (2026-10-24)
 
 fn-246 (Realization as a checked refinement) is placed before fn-237.4 and rewrites the activity binding this task touches (`feature/activity/realization.rs` replaces `temporal.rs` and `phase.rs`; the entity lens and Reach replace the hand-written proposal correlation and projection). Write this task against that shape: the restored unheld admission is a proposal-policy change plus evidence predicates for the cooperative rows, not an edit to the retired hand projection. Reanchor the Files and Touches lists at execution.
 ### Verification adoption
 
-Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved original semantic counterexample evidence. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Current focused commands remain available. No TLC batching, caching or reduced case coverage is introduced.
 
 ## Acceptance
 - [ ] Committed fn-237.3/.4 independent semantics and binding justify restored unheld open-state admission; unsupported combinations remain explicitly refused before Cancel RPC.
 - [ ] Deterministic raw and SDK witnesses record actual Cancel requests/ACKs, pending state, completion/failure races, worker acknowledgment and repeated-request classification; judgments follow the independent contract and do not predict worker outcomes or remap code 9.
-- [ ] Original atomic counterexample/guest replay remains exact, new supported Runs replay without a server, and all existing held/terminal, scope, malformed-evidence, program-mutant and unprogrammed controls remain intact.
+- [ ] Original atomic counterexample retains its scientific meaning/provenance, new supported current-format Runs replay without a server, and all existing held/terminal, scope, malformed-evidence, program-mutant and unprogrammed controls remain intact.
 - [ ] Current support docs and final DESIGN R40/fn-228 R7 pointers reflect the committed proof; neither parent closes before it. Required gates, actual timing, guest/program identities and fresh review are recorded.
 
 

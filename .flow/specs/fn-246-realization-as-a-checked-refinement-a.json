@@ -16,7 +16,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_reviewed_at": "2026-10-24T22:28:05.628951Z",
   "ready": true,
   "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
   "status": "open",
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:12:33.399685Z"
+  "updated_at": "2026-10-24T22:28:06.143545Z"
 }

@@ -48,13 +48,13 @@ Document the revised independent R2 boundary matrix and its public-evidence/desi
 Selected policy and provenance: `.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-contract.md`; exact live evidence limits are in `cancellation-boundary-evidence-shape.md`. Fresh plan review must pass before implementation.
 ### Verification adoption
 
-Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved original semantic counterexample evidence. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Current focused commands remain available. No TLC batching, caching or reduced case coverage is introduced.
 
 ## Acceptance
 - [ ] Consume committed fn-243.5 unheld cancellation admission/live/replay evidence and final R40 status so this final timeout/cancellation write-up reflects the actual supported scope.
 - [ ] DESIGN documents facts, bounded optional values, the extended activity World/state table, deadline and cancellation laws, the fair-worker assumption and the final compatibility projection, each backed by completed fn-237 tasks.
 - [ ] Actual native/TLC counts per selected World, the live cancellation proof and final model-time output are retained with all misses and refusal boundaries explicit.
-- [ ] DESIGN remains within 1000 lines, existing documentation/formatting checks and full gates pass, and unrelated evidence/goldens and fn-232 status are preserved.
+- [ ] DESIGN remains within 1000 lines, existing documentation/formatting checks and full gates pass, and unrelated semantic evidence and fn-232 status are preserved; affected goldens may regenerate.
 
 
 ## Done summary

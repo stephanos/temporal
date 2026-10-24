@@ -1,0 +1,73 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "973925f09421a970130c31636779fd5f0fdc4269",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "973925f09421a970130c31636779fd5f0fdc4269",
+          "path": ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md",
+          "side": "head",
+          "startLine": 18
+        },
+        "body": "The manifest requirement covers newly published artifacts but leaves reused, uncommitted artifacts unspecified. A close can publish the report and then fail before any lifecycle write. On retry, the artifact already exists and is reused. Existing `make-pr-preflight.sh:217\u2013225` stages and commits only `modified_paths`, so following the stated manifest rule can commit a closed spec whose referenced report remains untracked. This defeats durable recording on the explicitly supported retry path.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-7755641698e6d65b5d9c3d6441150003da4dba0960619714516e4dafc16c015b",
+        "id": "finding-3179a5de79f7eae059c9bfa9cffa7035",
+        "lastSeenReceiptId": "review-3d4a5ad0af9a6020e90f2f03a96e2d54dea838bae8d93f4f721f36120854d57d",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R3"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Require every successful new closure to include its validated artifact in the commit manifest, including reused artifacts. Add a control that fails after artifact publication but before lifecycle writes, retries through the close/commit fence, and verifies that the committed tree contains the referenced bytes.",
+        "title": "The manifest requirement covers newly published artifacts but leaves reused, uncommitted artifacts unspecified"
+      },
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "973925f09421a970130c31636779fd5f0fdc4269",
+          "path": ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md",
+          "side": "head",
+          "startLine": 39
+        },
+        "body": "The blanket assertion that preflight invokes no network fetch conflicts with existing behavior that this plan preserves. `make-pr-preflight.sh:22` refreshes an explicit branch base, and line 43 refreshes a detected remote base. A harness recording the full preflight command sequence will therefore reject valid existing behavior.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-7755641698e6d65b5d9c3d6441150003da4dba0960619714516e4dafc16c015b",
+        "id": "finding-6ce0e96e087709bfaa9866aed109f977",
+        "lastSeenReceiptId": "review-3d4a5ad0af9a6020e90f2f03a96e2d54dea838bae8d93f4f721f36120854d57d",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Scope the prohibition to additional network operations introduced by validation-review handling, or assert it within the spec-close fence.",
+        "title": "The blanket assertion that preflight invokes no network fetch conflicts with existing behavior that this plan preserves"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-3d4a5ad0af9a6020e90f2f03a96e2d54dea838bae8d93f4f721f36120854d57d",
+    "supersedesReceiptId": "review-7755641698e6d65b5d9c3d6441150003da4dba0960619714516e4dafc16c015b"
+  },
+  "id": "fn-249-durable-validation-cost-review-at-spec",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nThe epic and task now require reused artifacts in every successful new closure\u2019s manifest, with a failure/retry test verifying committed report bytes. The network assertion now permits existing preflight fetches and prohibits additional fetches from report handling.\n\nNo remaining findings. The test strategy, iteration scope, dependency ordering, performance bounds and security safeguards remain stated and consistent. No new async/batch observability or privacy requirements arise.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "e094e026b84c478bab6fab0829827c4a",
+  "session_id": "01a17002-8de9-7480-a01c-2a97fb4bd701",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T22:26:05.199181Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

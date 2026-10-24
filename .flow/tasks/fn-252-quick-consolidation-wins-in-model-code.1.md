@@ -7,7 +7,7 @@ satisfies: [R1, R9]
 Implement **One search (A3)**: `space.rs:254` and `run.rs:123` use `pattern_search::Graph::shortest` over `Path::alternatives`; delete `search.rs`'s `Along`/`Through`/`arrive`/`trace`/`settled`. Reconcile the cut-frontier rule and `Unbridged.waypoint` mapping; measure speed (keep the old path if the default gate slows by more than 25 percent).
 
 ## Acceptance
-- [ ] `search.rs`'s parallel search is gone; witnesses and Unbridged reports unchanged.
+- [ ] `search.rs`'s parallel search is gone; witnesses are shortest valid Model paths that replay, and Unbridged reports identify the correct waypoint/cut-frontier failure. Equal-length path choice, numbering and report bytes need not match an old run.
 - [ ] Timing before/after recorded.
 - [ ] Re-accept goldens after reviewing their diffs; `make model-check` passes.
 

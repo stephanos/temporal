@@ -1,0 +1,265 @@
+{
+  "authority": "can we drop byte-for-byte compatability from open tasks to speed things up? we don't need backwards compatabiltiy",
+  "scope": "Remaining open work; completed task history unchanged; new current-contract formats and artifacts may regenerate",
+  "basis_commit": "973925f09421a970130c31636779fd5f0fdc4269",
+  "applied_markdown_ids": [
+    "fn-247-one-language-for-the-framework-a-rust",
+    "fn-247-one-language-for-the-framework-a-rust.2",
+    "fn-247-one-language-for-the-framework-a-rust.3",
+    "fn-247-one-language-for-the-framework-a-rust.5",
+    "fn-247-one-language-for-the-framework-a-rust.6",
+    "fn-247-one-language-for-the-framework-a-rust.7",
+    "fn-250-shared-value-type-and-trace-layer-for",
+    "fn-251-one-probe-engine-and-one-catalog-build",
+    "fn-251-one-probe-engine-and-one-catalog-build.3",
+    "fn-251-one-probe-engine-and-one-catalog-build.4",
+    "fn-252-quick-consolidation-wins-in-model-code",
+    "fn-252-quick-consolidation-wins-in-model-code.1",
+    "fn-252-quick-consolidation-wins-in-model-code.5",
+    "fn-237-activity-timeouts-heartbeat-and",
+    "fn-237-activity-timeouts-heartbeat-and.4",
+    "fn-237-activity-timeouts-heartbeat-and.5",
+    "fn-243-programmed-workers-the-model-issues",
+    "fn-243-programmed-workers-the-model-issues.5",
+    "fn-246-realization-as-a-checked-refinement-a",
+    "fn-246-realization-as-a-checked-refinement-a.1",
+    "fn-246-realization-as-a-checked-refinement-a.2",
+    "fn-246-realization-as-a-checked-refinement-a.3",
+    "fn-246-realization-as-a-checked-refinement-a.4",
+    "fn-246-realization-as-a-checked-refinement-a.5",
+    "fn-246-realization-as-a-checked-refinement-a.6",
+    "fn-246-realization-as-a-checked-refinement-a.7",
+    "fn-246-realization-as-a-checked-refinement-a.8",
+    "fn-246-realization-as-a-checked-refinement-a.9",
+    "fn-246-realization-as-a-checked-refinement-a.10",
+    "fn-246-realization-as-a-checked-refinement-a.13",
+    "fn-246-realization-as-a-checked-refinement-a.14"
+  ],
+  "source_sha256": {
+    ".flow/specs/fn-237-activity-timeouts-heartbeat-and.json": "bcfe76499f3ec87694e74720c7460161c840423bbc03249a16d3ffb6c9cbc838",
+    ".flow/specs/fn-237-activity-timeouts-heartbeat-and.md": "2beaf88f445ceaa0efa8e792f0ef3c2c7e42aba934739de1b3d3d671ce23989a",
+    ".flow/specs/fn-243-programmed-workers-the-model-issues.json": "e642e4ef77c37ea043295be93ee9e09f41f160d7cbafb09b38758972f98d964c",
+    ".flow/specs/fn-243-programmed-workers-the-model-issues.md": "b09f0fefce734ab3d24139ab8d241df6a15d242f0eacaacb5ffdaf47f18134cf",
+    ".flow/specs/fn-246-realization-as-a-checked-refinement-a.json": "b96babe42759f9d046937ed0493315569dc905b1b57bce805ccbe06b851fcfc3",
+    ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md": "b964c44126b1443814b263f981a0c7e81613719fb4ee8f4b0d1bea70e1b8e1d3",
+    ".flow/specs/fn-247-one-language-for-the-framework-a-rust.json": "6bc3e6106bfd98db3a57047fa441dda0bf1e9347c5cec838cf579d23e20cea33",
+    ".flow/specs/fn-247-one-language-for-the-framework-a-rust.md": "09d1fe427a9ea976664cf3f2c1a08eac6ccb13f0c1d2b69bb1470d981e24bea8",
+    ".flow/specs/fn-249-durable-validation-cost-review-at-spec.json": "03b30c33fd2235df5bef8f1f6e7d1e02c24ff1f483b216702d73ab93397a4a4e",
+    ".flow/specs/fn-249-durable-validation-cost-review-at-spec.md": "fee1891d23b68df8f7317aa2545fced8ce27b85e0846a5631eba8d35907e184b",
+    ".flow/specs/fn-250-shared-value-type-and-trace-layer-for.json": "eb241a0d5bc1dec126538907be85360db65ed1f4399e424013e854ada17658da",
+    ".flow/specs/fn-250-shared-value-type-and-trace-layer-for.md": "51629cb5c97ea7e28c66dba0c40268645d1faa71023cd812062f3bcb77316bca",
+    ".flow/specs/fn-251-one-probe-engine-and-one-catalog-build.json": "6e10b585665842e511321d08c78e9ba895fe3ada0bd4a02fbda847ce93c80cc4",
+    ".flow/specs/fn-251-one-probe-engine-and-one-catalog-build.md": "98e9add05e173a9a7b971ec1a254183edbe169869f392fee5360f69a29462e0d",
+    ".flow/specs/fn-252-quick-consolidation-wins-in-model-code.json": "63eb629c4efe62181e1de2cfc6bed469a3414660dc09736a7f8f0ada4a7afac4",
+    ".flow/specs/fn-252-quick-consolidation-wins-in-model-code.md": "65c4eace90cfc5cf748c3dbc5f54da7b3b6f28762ba5ac1d49786dc3c9bc9f45",
+    ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.4.json": "01bed3a1299a35efbf368cb1cb28412a41e3b23a183e27275adaf0bb028ad5c7",
+    ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.4.md": "4c1bb4f29f1ef10e47cc7f78f1afea2534f8eeee487a4eec3aa18a9e4579faa0",
+    ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.5.json": "bbdf87adaf0bd086f481caf0f75186dbce1b6576ad144fd53e7d9acec23a8709",
+    ".flow/tasks/fn-237-activity-timeouts-heartbeat-and.5.md": "0b52e7e268f40c1b899fa6ef7f30d0ab1bae0c5fbcab6d30e8aec75de16292bc",
+    ".flow/tasks/fn-243-programmed-workers-the-model-issues.5.json": "1f9253d6afdb1f842a1d368667e1c574ec75f05b7a67572e7aa8c2b5adb210d7",
+    ".flow/tasks/fn-243-programmed-workers-the-model-issues.5.md": "5a2bd0291d914a66f723e46a38cb0dc09e13dd24f65c02a0196da3745a5908a1",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.1.json": "f21674769c22f7eb1fab949d906c0407c3925f24b67307db5fb24d45a88780be",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.1.md": "2f2acd51fd97218af789d2eb2b329cc2c5bd2d7b3bb62dbcb06fcba4a4dca409",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.10.json": "e08981e1a3b953859a5ed0e422b32cae70107eab3a8c8db5d92979cf7a460bdf",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.10.md": "66e3f125c3bbfc891cb9ba361e12c0f461178f6442f895f7b118c60a705dc553",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.13.json": "f1e207b6d5c0d390b6d5379aed686f23de571f5dfd682cf2bac223c07dea75c9",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.13.md": "6044e84e8fbaa0496cdf3e4cafb2fc7ff919c810505c4dd0b62d7e3134f8bd8c",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.14.json": "40bbed7e6b4e1c6ad600cb82a7748075df8810d3b593e6426ed6119a9520b5f4",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.14.md": "c1a45f60d3c426dc2a142e74659380c481e77e933756e3ac95f9e5ddc3e879ce",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.2.json": "8722e45f0dcad665a2af89211debb185f40bef189247eedb8d843d4eff23e069",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.2.md": "7b1ead2d71d5cc294b52290b28a5debb3b412e93bff781b6781154c15a88f76f",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.3.json": "bc2ddc1a76c3fde44cdde68433d385fa1da4e0214004aa0e2477d3652fa66757",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.3.md": "e815f32d8fc9d8d2f09f8f0ee9f6035d92fd67aae2106052f346eedf177591f0",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.4.json": "5ec4e96999d3b3d8d0ddbbc436574ad839a58a80afd1ac53e39127d068709685",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.5.json": "dfa3d6ae5decca61b715974c7fd083c328ed301606e90dd0496e70b7b9afac41",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.5.md": "f457900ea0911f5da5b67cc2373cde14bcd7272ddfc59ceb73b76e94aa7070c8",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.6.json": "92fcbff54298058a7444cff4ac3fb346a425230893a58b2c00e463b29ac5c63c",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.6.md": "de84ba70bc158f09883e1682993f29e6303868193cd579be4d726d58962ce28c",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.7.json": "5c7a6ca1ccd64835df51a1de83aed90dec4157d556df90da8ba7abd5581f6118",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.7.md": "92ea136b057156229d2dcfb7b23067f1d603c624a9a173001e4c27baa4915eaa",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.8.json": "abdbb06dbc4bc4de185b9420294893f0af425c33b3a30fea2946965da4c88c71",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.8.md": "aa5d5fd9937c7b622ddf68710aefc8c7fb4d54a3a5443db961ad590e0624abd1",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.9.json": "b6cba07ccb4feb797a6d03090d0adbbcc4f0778870f8166c509b70aeb0ca6ef3",
+    ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.9.md": "b5de26a859dceab31428d363876a1a0508bd33d27c0cf7fc538b8c7f04ad1b0f",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.2.json": "119723f8cb17526d2a217733928f4be698a8e3e0d20ba1623e1bfaf7ce8e25ca",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.2.md": "f07e6cc1ebcbe72dc014db2d9fd48f2a30ab4de396852a5cb09b00e55f29ecc4",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.json": "9aaf815cdabd8ed20917894e8d8a275986c16ad6df987afde56a6c3cf60c8aab",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.3.md": "fbf24e346066653951ce99f13847b7bab062bdc94d0b08e1d2e484107d767b31",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.5.json": "d21cae0d7e3c0e710c2f2c30f1d434c661475d03f271846de10c271d8051d809",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.5.md": "32cc9d0227cdbee9ee24161b7fc532e87867163f5b69d1231a865cc5fb27f00c",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.6.json": "0d566f7d87f06cc2fb9c05e4412246e064a1b6c496eca178aca146f90c150531",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.6.md": "2c92066ae976d5e3edffa19452467000ef7ca5cc4a670afeea434c2f5ff153f1",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.7.json": "8c3711232c242f38c9ed09a0311309581417f0fa5ef2a20ebb9dd7a0769f584e",
+    ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.7.md": "1c1f3c80c0dd12c1a210e93aeeaebb2ee5acaa3fee193d458528f7db042cd8dc",
+    ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.json": "94dbc06a225109759cfd8aa54672f857b935b1746c8a80b1e5c7329a84c3e3fe",
+    ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md": "59f83c33f10f6808a97f62bb039c9b0ccb8bb9e5c049f97c61ab9c1a42873ac7",
+    ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.3.json": "0389ce2fd58e070a728a4def75fa1e858981faae74a1465b51a7c48ece66b484",
+    ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.3.md": "fa5b40bc0cd083b2668aff6fc3e2174fa58b40db08caf81de3bb37f97d76ecc0",
+    ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.4.json": "cf91a6967a3743d379142bbd265efe2a1249dd99505ffacf9a1fe207fee4e39a",
+    ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.4.md": "abc9b81115ba862df4822770acc0ed8c878e525b77e2c0bb3494c8cbb4fa4367",
+    ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.1.json": "c79226493fae2137ef70aadcb17370aa35a2c2602f0656d6edd171979d327cae",
+    ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.1.md": "1180d4334052837b3b815b2f33538cdc1a9b715080e02927064b37a0273fb65f",
+    ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.5.json": "da97007c17dfe49b3b1327eb48bfee9d2bd7c9f05b4e7b536d3307c1ec106d2b",
+    ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.5.md": "0e82f290c4c6018acbff1f4c340d452dcfdb5ff8390bdf52eef333edb7d31118",
+    "MILESTONES.md": "d1199837c31349af3d248950d5a077960859a064fd1e0b3291de4def9cae8272"
+  },
+  "validation": [
+    {
+      "id": "fn-237-activity-timeouts-heartbeat-and",
+      "command": "flowctl validate --spec fn-237-activity-timeouts-heartbeat-and --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 6
+    },
+    {
+      "id": "fn-243-programmed-workers-the-model-issues",
+      "command": "flowctl validate --spec fn-243-programmed-workers-the-model-issues --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 5
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a",
+      "command": "flowctl validate --spec fn-246-realization-as-a-checked-refinement-a --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 14
+    },
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust",
+      "command": "flowctl validate --spec fn-247-one-language-for-the-framework-a-rust --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 9
+    },
+    {
+      "id": "fn-250-shared-value-type-and-trace-layer-for",
+      "command": "flowctl validate --spec fn-250-shared-value-type-and-trace-layer-for --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 5
+    },
+    {
+      "id": "fn-251-one-probe-engine-and-one-catalog-build",
+      "command": "flowctl validate --spec fn-251-one-probe-engine-and-one-catalog-build --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 6
+    },
+    {
+      "id": "fn-252-quick-consolidation-wins-in-model-code",
+      "command": "flowctl validate --spec fn-252-quick-consolidation-wins-in-model-code --coverage --json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 8
+    }
+  ],
+  "dependencies_changed": false,
+  "task_statuses_changed": false,
+  "graph": [
+    {
+      "id": "fn-211-apalache-backend-for-umpire-in-rust",
+      "deps": [
+        "fn-210-rust-prototype-kettle-on-a-trait-engine",
+        "fn-212-tla-lifting-and-the-tlc-backend-for",
+        "fn-227-parameterized-models-declared-worlds",
+        "fn-250-shared-value-type-and-trace-layer-for"
+      ]
+    },
+    {
+      "id": "fn-237-activity-timeouts-heartbeat-and",
+      "deps": [
+        "fn-227-parameterized-models-declared-worlds"
+      ]
+    },
+    {
+      "id": "fn-240-symbolic-back-end-models-as-btor2",
+      "deps": [
+        "fn-245-finite-collections-sets-maps-and",
+        "fn-250-shared-value-type-and-trace-layer-for"
+      ]
+    },
+    {
+      "id": "fn-243-programmed-workers-the-model-issues",
+      "deps": []
+    },
+    {
+      "id": "fn-245-finite-collections-sets-maps-and",
+      "deps": [
+        "fn-237-activity-timeouts-heartbeat-and",
+        "fn-250-shared-value-type-and-trace-layer-for"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a",
+      "deps": [
+        "fn-247-one-language-for-the-framework-a-rust",
+        "fn-251-one-probe-engine-and-one-catalog-build",
+        "fn-252-quick-consolidation-wins-in-model-code"
+      ]
+    },
+    {
+      "id": "fn-247-one-language-for-the-framework-a-rust",
+      "deps": []
+    },
+    {
+      "id": "fn-248-off-the-shelf-crates-and-consolidation",
+      "deps": [
+        "fn-247-one-language-for-the-framework-a-rust"
+      ]
+    },
+    {
+      "id": "fn-249-durable-validation-cost-review-at-spec",
+      "deps": []
+    },
+    {
+      "id": "fn-250-shared-value-type-and-trace-layer-for",
+      "deps": [
+        "fn-248-off-the-shelf-crates-and-consolidation"
+      ]
+    },
+    {
+      "id": "fn-251-one-probe-engine-and-one-catalog-build",
+      "deps": [
+        "fn-248-off-the-shelf-crates-and-consolidation"
+      ]
+    },
+    {
+      "id": "fn-252-quick-consolidation-wins-in-model-code",
+      "deps": [
+        "fn-248-off-the-shelf-crates-and-consolidation"
+      ]
+    }
+  ],
+  "manual_gates": [
+    "fn237.4 after whole fn246",
+    "fn243.5 after whole fn246 and fn237.4",
+    "fn237.5 after fn243.5",
+    "fn252.5 after fn251.6 when touching annotate"
+  ],
+  "integrity_retained": [
+    "current artifact hashes and executable/archive/jar admission",
+    "contained atomic filesystem publication",
+    "current guest freshness and reproducibility",
+    "semantic Model/refinement/counterexample replay and negative controls"
+  ],
+  "prior_policy_checkpoint": "4e4acd3f4bb96552b619e8765e7417c9ea8be7ce",
+  "external_metadata_checkpoint": "156b4b858b726520cbfee28351c50a79078d9b9f",
+  "new_implementation": "No source, gate, guest, golden or runtime modification in this policy amendment",
+  "pending_plan_reviews": [
+    "fn-237-activity-timeouts-heartbeat-and",
+    "fn-243-programmed-workers-the-model-issues",
+    "fn-246-realization-as-a-checked-refinement-a",
+    "fn-247-one-language-for-the-framework-a-rust",
+    "fn-250-shared-value-type-and-trace-layer-for",
+    "fn-251-one-probe-engine-and-one-catalog-build",
+    "fn-252-quick-consolidation-wins-in-model-code"
+  ]
+}

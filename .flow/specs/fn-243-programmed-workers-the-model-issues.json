@@ -16,8 +16,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-24T10:02:12.820945Z",
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": "2026-10-24T22:28:04.323413Z",
   "review_attempts": [
     {
       "artifact_sha256": "59fad4b61dbd891ab5468bccddad49c635b3f891acde1e9f4af20bd1a57ef628",
@@ -312,5 +312,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T21:17:29.672144Z"
+  "updated_at": "2026-10-24T22:28:04.849860Z"
 }
