@@ -94,10 +94,7 @@ pub(super) fn decode(captures: &[Capture<'_>]) -> Result<Value, Failure> {
     let mut identity = None;
     let mut failures = Vec::new();
     for capture in captures {
-        let decoded = crate::profile::decode(capture.raw).and_then(|value| {
-            crate::profile::validate(&value)?;
-            Ok(value)
-        });
+        let decoded = crate::profile::decode(capture.raw);
         match decoded {
             Ok(profile) => {
                 let host = (

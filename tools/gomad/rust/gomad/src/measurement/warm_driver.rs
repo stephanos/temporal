@@ -544,6 +544,35 @@ fn terminal_measurement(
     )
 }
 
+fn validate_admission_report(
+    profile: &Value,
+    report: &Value,
+    executable: &workloads::Executable,
+    raw_request: &[u8],
+) -> Result<(), String> {
+    evidence::validate_admission_profile(profile)?;
+    if report["schema"] != "gomad.linked-profile-run/v1"
+        || report["host_sha256"] != executable.sha256
+        || report["request_sha256"] != canonical::digest(raw_request)
+        || report["features"] != json!(executable.role.features()?)
+        || report["diagnostic_only"] != true
+    {
+        return Err("admission control lost its actual helper/request/profile binding".into());
+    }
+    let refusal = &report["admission_refusal"];
+    if refusal["schema"] != "gomad.native-admission-refusal/v1"
+        || refusal["clock"] != "monotonic"
+        || refusal["terminal_to_return_nanos"]
+            .as_u64()
+            .is_none_or(|nanos| nanos == 0 || nanos > 1_000_000_000)
+    {
+        return Err(
+            "actual admission refusal exceeded cleanup bound or entered guest execution".into(),
+        );
+    }
+    Ok(())
+}
+
 #[expect(
     clippy::too_many_lines,
     reason = "Keep each actual admission control with its request, profile and cleanup predicates."
@@ -602,29 +631,8 @@ fn admission_refusal(
             &native_root.join("profile.json"),
             48 << 10,
         )?)?;
-        evidence::validate_admission_profile(&profile)?;
-        if report["schema"] != "gomad.linked-profile-run/v1"
-            || report["host_sha256"] != executable.sha256
-            || report["request_sha256"] != canonical::digest(&raw_request)
-            || report["features"] != json!(executable.role.features()?)
-            || report["diagnostic_only"] != true
-        {
-            return Err("admission control lost its actual helper/request/profile binding".into());
-        }
+        validate_admission_report(&profile, &report, executable, &raw_request)?;
         let refusal = &report["admission_refusal"];
-        if refusal["schema"] != "gomad.native-admission-refusal/v1"
-            || refusal["clock"] != "monotonic"
-            || refusal["terminal_to_return_nanos"]
-                .as_u64()
-                .is_none_or(|nanos| nanos == 0 || nanos > 1_000_000_000)
-            || ["instantiate", "execute"]
-                .into_iter()
-                .any(|phase| profile["phases"][phase]["count"] != 0)
-        {
-            return Err(
-                "actual admission refusal exceeded cleanup bound or entered guest execution".into(),
-            );
-        }
         if stage == "module-digest" {
             if refusal["stage"] != "request-admission"
                 || refusal["error"] != "module SHA-256 mismatch"
@@ -766,6 +774,97 @@ mod tests {
             fs::remove_dir_all(&self.0).unwrap();
         }
     }
+    #[cfg(feature = "helper-diagnostic-profile")]
+    #[test]
+    fn warm_admission_refusal_delegation_rejects_guest_counts() {
+        use std::os::unix::fs::OpenOptionsExt;
+
+        let directory = CacheDirectory::new();
+        let module = b"\0asm\x01\0\0\0\x01\x04\x01\x60\0\0\x03\x02\x01\0\x05\x03\x01\0\x02\x07\x13\x02\x06memory\x02\0\x06_start\0\0\x0a\x04\x01\x02\0\x0b";
+        let module_path = directory.0.join("input.wasm");
+        fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(&module_path)
+            .unwrap()
+            .write_all(module)
+            .unwrap();
+        let input = directory.0.join("input.json");
+        write(
+            &input,
+            &json!({"kind":"standalone","network":null,
+            "guest":{"module":module_path,"module_sha256":canonical::digest(module),
+                "limits":{"memory_bytes":65536,"fuel":10000,"wall_millis":5000,
+                    "output_bytes":1024,"evidence_bytes":1<<20},
+                "model":null,"namespace":null,"storage":null}}),
+        )
+        .unwrap();
+        let root = directory.0.join("refused");
+        super::super::execution::run(&input, &root).unwrap();
+        let raw_request = fs::read(root.join("request.json")).unwrap();
+        let report: Value =
+            serde_json::from_slice(&fs::read(root.join("report.json")).unwrap()).unwrap();
+        let profile: Value =
+            serde_json::from_slice(&fs::read(root.join("profile.json")).unwrap()).unwrap();
+        assert_eq!(
+            report["admission_refusal"]["stage"],
+            "loaded-module-descriptor"
+        );
+        assert_eq!(
+            report["admission_refusal"]["outcome"]["message"],
+            "initial guest memory exceeds limit"
+        );
+        let executable = workloads::Executable {
+            path: std::env::current_exe().unwrap(),
+            sha256: report["host_sha256"].as_str().unwrap().into(),
+            role: build::Role::Warm,
+            receipt: None,
+        };
+        validate_admission_report(&profile, &report, &executable, &raw_request).unwrap();
+        for phase in ["instantiate", "execute"] {
+            let mut mutated = profile.clone();
+            mutated["phases"][phase]["count"] = json!(1);
+            assert_eq!(
+                validate_admission_report(&mutated, &report, &executable, &raw_request)
+                    .unwrap_err(),
+                "diagnostic admission refusal entered guest execution",
+                "{phase}"
+            );
+        }
+        for field in [
+            "schema",
+            "host_sha256",
+            "request_sha256",
+            "features",
+            "diagnostic_only",
+        ] {
+            let mut mutated = report.clone();
+            mutated[field] = Value::Null;
+            assert_eq!(
+                validate_admission_report(&profile, &mutated, &executable, &raw_request)
+                    .unwrap_err(),
+                "admission control lost its actual helper/request/profile binding",
+                "{field}"
+            );
+        }
+        for (field, mutation) in [
+            ("schema", Value::Null),
+            ("clock", Value::Null),
+            ("terminal_to_return_nanos", json!(0)),
+            ("terminal_to_return_nanos", json!(1_000_000_001_u64)),
+        ] {
+            let mut mutated = report.clone();
+            mutated["admission_refusal"][field] = mutation;
+            assert_eq!(
+                validate_admission_report(&profile, &mutated, &executable, &raw_request)
+                    .unwrap_err(),
+                "actual admission refusal exceeded cleanup bound or entered guest execution",
+                "{field}"
+            );
+        }
+    }
+
     fn cache_manifest() -> Value {
         json!({"version":3,"module_sha256":"a".repeat(64),"helper_sha256":"b".repeat(64),
             "engine":"wasmtime-47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2",
