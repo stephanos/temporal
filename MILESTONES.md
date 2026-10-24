@@ -101,8 +101,8 @@ binary crate replaces every script with identical arguments and output; Python l
 No behaviour change; guest bytes and goldens identical. Its eight-task plan passed primary review,
 including cold freshness admission before xtask bootstrap and the owner-approved single-pass validation.
 Shared process support is extracted and single-pass validation is delivered: one required gate plus benchmark
-passed in about17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
-replacement and helper ports remain queued. Placed before fn-246.1, which depends on it,
+passed in about 17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
+replacement is in progress; helper ports remain queued. Placed before fn-246.1, which depends on it,
 since fn-246 and fn-240 build on the process crate. Scope includes the retained-original verifier's
 Rust port, preserving its independent authority and artifacts.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
