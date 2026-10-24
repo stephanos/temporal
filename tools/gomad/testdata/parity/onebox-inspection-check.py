@@ -311,7 +311,7 @@ def explore_command(binary, installation, root, repo, stage, scenario, guest_pro
     command = [binary, '--installation', installation, 'explore', '--json', '--seeds', '7', '--parallel', '1',
                '--execution-timeout', '30m', '--overall-timeout', '45m', '--terminate-grace', '1s',
                '--on-failure', 'first', '--failure-budget', '1', '--output-limit', str(1 << 20),
-               '--world-transition-limit', str(1 << 20), '--scenario', scenario,
+               '--world-transition-limit', str(8 << 20), '--scenario', scenario,
                '--artifacts', root / 'artifacts']
     for entry in ('GOMAD_DEBUG_CANARY=1', 'TEMPORAL_ROOT=/workspace', 'TMPDIR=/tmp', 'TEMPORAL_TEST_LOG_LEVEL=warn'):
         command += ['--env', entry]

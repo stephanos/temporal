@@ -66,7 +66,7 @@ fn explore(candidate: &Candidate, root: &Path, stage: &Path) -> Result<Vec<Strin
             "--output-limit",
             "1048576",
             "--world-transition-limit",
-            "1048576",
+            "8388608",
             "--scenario",
         ]
         .map(str::to_owned),
@@ -254,6 +254,7 @@ mod tests {
             .position(|arg| arg == "--world-transition-limit")
             .unwrap()
             + 1;
+        assert_eq!(argv[position], (8 << 20).to_string());
         let mut changed = observed.clone();
         changed["command"][position] = json!((2 << 20).to_string());
         changed["argv"] = changed["command"].clone();

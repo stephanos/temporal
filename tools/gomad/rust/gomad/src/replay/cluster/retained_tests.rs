@@ -442,6 +442,70 @@ fn retained_raw_authentication_binds_bytes_length_digest_and_path() {
     );
 }
 
+fn evidence_bound_fixture(bound: u64, declared: u64) -> ReaderFixture {
+    let mut publication = metadata_publication();
+    let mut inputs: Inputs = serde_json::from_slice(&publication.payloads[FILE]).unwrap();
+    inputs.configuration.limits.evidence_bytes = bound;
+    inputs.configuration.incarnations[0].limits.evidence_bytes = bound;
+    let file = "evidence/cluster/sqlite/2/stdout";
+    let bytes = b"ok";
+    inputs.retained[0].evidence.insert(
+        "stdout".into(),
+        Payload {
+            file: file.into(),
+            bytes: bytes.len() as u64,
+            sha256: canonical::digest(bytes),
+            limit: declared,
+        },
+    );
+    publication.payloads.insert(file.into(), bytes.to_vec());
+    publication
+        .payloads
+        .insert(FILE.into(), canonical::encode(&inputs).unwrap());
+    publication.record.limits = inputs.configuration.limits.clone();
+    publication.record.identity.configuration =
+        canonical::digest(&canonical::encode(&inputs.configuration).unwrap());
+    publication.record.execution_identity = publication.record.identity.digest().unwrap();
+    reseal_evidence(&mut publication);
+    ReaderFixture::new(publication)
+}
+
+#[test]
+fn retained_incarnation_uses_authenticated_evidence_bound() {
+    let bound = (1 << 30) + (2 << 20) + (128 << 20);
+    for excess in [0, 1] {
+        let fixture = evidence_bound_fixture(bound, bound + excess);
+        let opened = fixture.open();
+        opened.authenticate_all().unwrap();
+        let raw = opened.payload(FILE, 16 << 20).unwrap();
+        let inputs = super::inputs(&opened).unwrap();
+        super::bind(&opened, &inputs).unwrap();
+        let retained = &inputs.retained[0];
+        assert_eq!(retained.evidence["stdout"].bytes, 2);
+        assert_eq!(
+            retained.evidence["stdout"]
+                .read(&opened, 1 << 30)
+                .unwrap_err(),
+            "cluster payload exceeds caller bound or has invalid identity"
+        );
+        let result = super::authenticate_retained_incarnation(
+            &opened,
+            &inputs.configuration.incarnations[0],
+            retained,
+            None,
+        );
+        if excess == 0 {
+            assert_eq!(result, Ok(()));
+        } else {
+            assert_eq!(
+                result.unwrap_err(),
+                "cluster payload exceeds caller bound or has invalid identity"
+            );
+        }
+        assert_eq!(opened.payload(FILE, 16 << 20).unwrap(), raw);
+    }
+}
+
 /// Original `TestRetainedTargetModuleIsBoundedBeforeCopy`: the retained
 /// module's 512 MiB bound is checked from the listed size alone, before the
 /// manifest entry is consulted or any byte is read.

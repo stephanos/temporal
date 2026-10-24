@@ -330,7 +330,7 @@ class InspectionTests(unittest.TestCase):
                        Path('/repo'), Path('/repo/service/history/private'), Path('/scenario'))))
         for flag, value in (('--execution-timeout', '30m'), ('--overall-timeout', '45m'),
                             ('--terminate-grace', '1s'), ('--parallel', '1'), ('--output-limit', str(1 << 20)),
-                            ('--world-transition-limit', str(1 << 20))):
+                            ('--world-transition-limit', str(8 << 20))):
             self.assertEqual(command[command.index(flag) + 1], value)
         self.assertNotIn('--choices', command)
         self.assertNotIn('--choice-bytes', command)
