@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.29 Build and authenticate CLI and broad harness producers
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/producers/build/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/producers/build/**, tools/gomad/rust/gomad/src/cycle/producers/identity/**, tools/gomad/rust/gomad/src/cycle/producers/primary/**
 
 ## Description
 Port main_cli_build/broad_harness using real build/artifact/owner/lock/admission APIs and exact Cargo/Go command bytes. Preserve features/toolchain/raw output/executable identity.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B10 (build-primary-identity-producers)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.29, fn-242-gomad-shrink-the-qualification.40, fn-242-gomad-shrink-the-qualification.41. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

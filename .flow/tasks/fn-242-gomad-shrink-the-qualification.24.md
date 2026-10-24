@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.24 Validate actual guest and preparation observations
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_guests/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_guests/**, tools/gomad/rust/gomad/src/cycle/readers/core_inspection/**, tools/gomad/rust/gomad/src/cycle/readers/inspection/**
 
 ## Description
 Port core_guests raw configuration, grouped snapshots, soft oracle, case and preparation validators. Validate actual guest outputs and original preparation/role/source binding.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B05 (guest-inspection)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.24, fn-242-gomad-shrink-the-qualification.25, fn-242-gomad-shrink-the-qualification.35. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

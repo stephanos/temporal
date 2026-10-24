@@ -22,7 +22,8 @@
     "fn-242-gomad-shrink-the-qualification.50",
     "fn-242-gomad-shrink-the-qualification.44",
     "fn-242-gomad-shrink-the-qualification.20",
-    "fn-242-gomad-shrink-the-qualification.34"
+    "fn-242-gomad-shrink-the-qualification.34",
+    "fn-242-gomad-shrink-the-qualification.51"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.3",
   "priority": null,
@@ -30,5 +31,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.3.md",
   "status": "todo",
   "title": "Port the kept stage readers and receivers into the verb validation step (core, receiving, cells)",
-  "updated_at": "2026-10-24T18:16:01.297962Z"
+  "updated_at": "2026-10-24T20:15:40.069973Z"
 }

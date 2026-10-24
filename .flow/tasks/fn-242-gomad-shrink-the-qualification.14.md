@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.14 Strict cycle configuration and frozen source/build authentication
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/custody/**, tools/gomad/rust/gomad/src/cycle/build/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/build/**, tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/custody/**, tools/gomad/rust/gomad/src/cycle/preparation/inputs/**
 
 ## Description
 strict configuration and frozen source/build authentication
@@ -31,3 +31,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B01 (custody-inputs)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.14, fn-242-gomad-shrink-the-qualification.16. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

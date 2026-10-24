@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.44 Validate live families and transferred behavioral semantics
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/live/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/final_readers/reach_support/**, tools/gomad/rust/gomad/src/cycle/readers/integration/**, tools/gomad/rust/gomad/src/cycle/readers/live/**
 
 ## Description
 Port live command/role/planning/admission/raw proof/coverage/family readers and39 transferred semantic checkers. Reuse actual replay/inspection/cluster APIs when they enforce the same admitted fact.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B14 (live-reach-retained-integration)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.44, fn-242-gomad-shrink-the-qualification.49, fn-242-gomad-shrink-the-qualification.50. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

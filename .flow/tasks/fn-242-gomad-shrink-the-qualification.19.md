@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B03
+
+Implementation and independent review run under fn-242-gomad-shrink-the-qualification.17 with the complete batch scope in `.flow/artifacts/fn242-execution-batches.json`. This original task retains all acceptance and proof ownership. Its leader dependency prevents separate worker admission. After whole-batch SHIP, start and complete this receipt-only member in original topological order using the actual reviewed source, shared review receipt and its own executed proof.

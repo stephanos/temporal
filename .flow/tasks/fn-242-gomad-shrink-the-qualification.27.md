@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.27 Validate World, network, boot and cluster wire observations
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_world/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_lifecycle/**, tools/gomad/rust/gomad/src/cycle/readers/core_world/**
 
 ## Description
 Port core_world/core_network/core_boot_network/core_cluster_wire. Reuse engine-owned World/network codecs where exposed and retain independent Go-owner corpus comparison and incarnation/endpoint/transition facts.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B06 (world-lifecycle)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.27, fn-242-gomad-shrink-the-qualification.36. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

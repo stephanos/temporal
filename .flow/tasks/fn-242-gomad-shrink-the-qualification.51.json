@@ -23,7 +23,29 @@
     "fn-242-gomad-shrink-the-qualification.38",
     "fn-242-gomad-shrink-the-qualification.39",
     "fn-242-gomad-shrink-the-qualification.47",
-    "fn-242-gomad-shrink-the-qualification.49"
+    "fn-242-gomad-shrink-the-qualification.49",
+    "fn-242-gomad-shrink-the-qualification.6",
+    "fn-242-gomad-shrink-the-qualification.11",
+    "fn-242-gomad-shrink-the-qualification.12",
+    "fn-242-gomad-shrink-the-qualification.13",
+    "fn-242-gomad-shrink-the-qualification.14",
+    "fn-242-gomad-shrink-the-qualification.15",
+    "fn-242-gomad-shrink-the-qualification.16",
+    "fn-242-gomad-shrink-the-qualification.17",
+    "fn-242-gomad-shrink-the-qualification.19",
+    "fn-242-gomad-shrink-the-qualification.21",
+    "fn-242-gomad-shrink-the-qualification.24",
+    "fn-242-gomad-shrink-the-qualification.25",
+    "fn-242-gomad-shrink-the-qualification.28",
+    "fn-242-gomad-shrink-the-qualification.29",
+    "fn-242-gomad-shrink-the-qualification.30",
+    "fn-242-gomad-shrink-the-qualification.31",
+    "fn-242-gomad-shrink-the-qualification.32",
+    "fn-242-gomad-shrink-the-qualification.33",
+    "fn-242-gomad-shrink-the-qualification.40",
+    "fn-242-gomad-shrink-the-qualification.41",
+    "fn-242-gomad-shrink-the-qualification.45",
+    "fn-242-gomad-shrink-the-qualification.46"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.51",
   "priority": null,
@@ -31,5 +53,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.51.md",
   "status": "todo",
   "title": "Close final partitions and prove cluster admission edges",
-  "updated_at": "2026-10-24T18:16:45.827211Z"
+  "updated_at": "2026-10-24T20:15:39.462626Z"
 }

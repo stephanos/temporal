@@ -110,6 +110,22 @@ Before starting the implementation or review of any request, you MUST REVIEW the
   from retained evidence for its exact candidate, host, profile and workload. Native soak
   reports are historical and do not qualify the current WASM backend.
 
+### fn-242 execution policy
+
+Owner decision, 2026-10-24: prioritize throughput with coherent implementation batches,
+shared genuine fixtures and one independent review per batch. Accept larger changesets and
+resolve integration issues at batch boundaries. A directly catching test **or** mutation
+proves a retained guarantee; source binding does not require recompiling a source mutant
+for every predicate. Use representative high-risk source mutants and focused changed-scope
+checks, preserving direct failure attribution and valid controls.
+
+Before fn-242 admission, implementation, review or resume, read the
+[execution batches](.flow/artifacts/fn242-execution-batches.md) and its machine-readable
+[manifest](.flow/artifacts/fn242-execution-batches.json). This owner-authorized policy
+supersedes separate-worker/separate-review scheduling for each original task in a batch.
+Retain all original acceptance and proof ownership; complete each member only from the
+actual reviewed batch implementation and its own evidence.
+
 ## Worktrees and Scratch Directories
 
 - Create git worktrees only under `/home/agent/wt/<name>` (durable across restarts). Do not create

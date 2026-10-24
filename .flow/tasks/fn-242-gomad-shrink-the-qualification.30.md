@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.30 Execute workload, inspection, recovery and support adapters
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/producers/reference/**, tools/gomad/rust/gomad/src/cycle/producers/sqlite_terminal/**, tools/gomad/rust/gomad/src/cycle/producers/workload/**
 
 ## Description
 Port workload_tools producer/temporal-inspection/recovery/support and dynamic onebox-gates/inspection-check delegates. Reuse Rust qualify/support/replay and approved Go model/guest tools.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B11 (workload-reference-oracle-producers)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.30, fn-242-gomad-shrink-the-qualification.32, fn-242-gomad-shrink-the-qualification.33. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

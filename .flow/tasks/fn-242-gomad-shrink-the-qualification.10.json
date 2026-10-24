@@ -20,7 +20,8 @@
     "fn-242-gomad-shrink-the-qualification.32",
     "fn-242-gomad-shrink-the-qualification.33",
     "fn-242-gomad-shrink-the-qualification.28",
-    "fn-242-gomad-shrink-the-qualification.30"
+    "fn-242-gomad-shrink-the-qualification.30",
+    "fn-242-gomad-shrink-the-qualification.51"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.10",
   "priority": null,
@@ -28,5 +29,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.10.md",
   "status": "todo",
   "title": "Replace retained Python stage producer adapters with executable Rust paths",
-  "updated_at": "2026-10-24T18:16:10.705517Z"
+  "updated_at": "2026-10-24T20:15:40.631741Z"
 }

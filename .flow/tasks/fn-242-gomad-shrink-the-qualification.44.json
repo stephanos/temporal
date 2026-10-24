@@ -10,7 +10,13 @@
     "fn-242-gomad-shrink-the-qualification.36",
     "fn-242-gomad-shrink-the-qualification.24",
     "fn-242-gomad-shrink-the-qualification.25",
-    "fn-242-gomad-shrink-the-qualification.14"
+    "fn-242-gomad-shrink-the-qualification.14",
+    "fn-242-gomad-shrink-the-qualification.20",
+    "fn-242-gomad-shrink-the-qualification.26",
+    "fn-242-gomad-shrink-the-qualification.30",
+    "fn-242-gomad-shrink-the-qualification.34",
+    "fn-242-gomad-shrink-the-qualification.35",
+    "fn-242-gomad-shrink-the-qualification.45"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.44",
   "priority": null,
@@ -18,5 +24,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.44.md",
   "status": "todo",
   "title": "Validate live families and transferred behavioral semantics",
-  "updated_at": "2026-10-24T18:16:43.906218Z"
+  "updated_at": "2026-10-24T20:15:31.001270Z"
 }

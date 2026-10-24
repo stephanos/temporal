@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-242-gomad-shrink-the-qualification.1",
     "fn-242-gomad-shrink-the-qualification.18",
-    "fn-242-gomad-shrink-the-qualification.41"
+    "fn-242-gomad-shrink-the-qualification.41",
+    "fn-242-gomad-shrink-the-qualification.37"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.47",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.47.md",
   "status": "todo",
   "title": "Validate public verb lanes, identity and executed divergence",
-  "updated_at": "2026-10-24T18:16:44.710529Z"
+  "updated_at": "2026-10-24T20:15:28.647609Z"
 }

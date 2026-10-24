@@ -7,7 +7,8 @@
     "fn-242-gomad-shrink-the-qualification.1",
     "fn-242-gomad-shrink-the-qualification.19",
     "fn-242-gomad-shrink-the-qualification.13",
-    "fn-242-gomad-shrink-the-qualification.15"
+    "fn-242-gomad-shrink-the-qualification.15",
+    "fn-242-gomad-shrink-the-qualification.30"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.32",
   "priority": null,
@@ -15,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.32.md",
   "status": "todo",
   "title": "Execute frozen reference profile and public role preparation",
-  "updated_at": "2026-10-24T18:16:40.644043Z"
+  "updated_at": "2026-10-24T20:15:23.579797Z"
 }

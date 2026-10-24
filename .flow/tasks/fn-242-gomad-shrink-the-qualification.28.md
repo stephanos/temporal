@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.28 Execute static and broad adapters with raw publication
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/producers/installed/**, tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**
 
 ## Description
 Port static_stages execution/verification, broad_stages dispatch and ordinary_receiving function contracts. Consume production-owned fixed plan, execute exact leaf argv and publish raw command/build/test observations.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B09 (static-installed-producers)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.28, fn-242-gomad-shrink-the-qualification.31. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

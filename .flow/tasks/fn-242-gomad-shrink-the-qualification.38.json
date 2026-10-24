@@ -7,7 +7,8 @@
     "fn-242-gomad-shrink-the-qualification.1",
     "fn-242-gomad-shrink-the-qualification.18",
     "fn-242-gomad-shrink-the-qualification.31",
-    "fn-242-gomad-shrink-the-qualification.28"
+    "fn-242-gomad-shrink-the-qualification.28",
+    "fn-242-gomad-shrink-the-qualification.37"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.38",
   "priority": null,
@@ -15,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.38.md",
   "status": "todo",
   "title": "Validate original clusters, ringpop, counterfactual and ordinary evidence",
-  "updated_at": "2026-10-24T18:16:42.231560Z"
+  "updated_at": "2026-10-24T20:15:28.391522Z"
 }

@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.37 Validate installed cluster and interception readback
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/final_readers/installed/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/final_readers/clusters/**, tools/gomad/rust/gomad/src/cycle/final_readers/installed/**, tools/gomad/rust/gomad/src/cycle/final_readers/public/**
 
 ## Description
 Port installed_cluster_cache/failure/lifecycle_families and interception callback/streaming readback checks. producer-installed owns actual executable bodies.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B13 (installed-cluster-public-readers)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.37, fn-242-gomad-shrink-the-qualification.38, fn-242-gomad-shrink-the-qualification.47. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-242-gomad-shrink-the-qualification.1",
     "fn-242-gomad-shrink-the-qualification.18",
-    "fn-242-gomad-shrink-the-qualification.21"
+    "fn-242-gomad-shrink-the-qualification.21",
+    "fn-242-gomad-shrink-the-qualification.27"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.26",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.26.md",
   "status": "todo",
   "title": "Validate retained inputs, presence and mutation matrix",
-  "updated_at": "2026-10-24T18:16:38.936136Z"
+  "updated_at": "2026-10-24T20:15:18.521841Z"
 }

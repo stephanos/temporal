@@ -7,7 +7,8 @@
     "fn-242-gomad-shrink-the-qualification.1",
     "fn-242-gomad-shrink-the-qualification.18",
     "fn-242-gomad-shrink-the-qualification.13",
-    "fn-242-gomad-shrink-the-qualification.17"
+    "fn-242-gomad-shrink-the-qualification.17",
+    "fn-242-gomad-shrink-the-qualification.20"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.22",
   "priority": null,
@@ -15,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.22.md",
   "status": "todo",
   "title": "Implement retained, operator and ringpop final sections",
-  "updated_at": "2026-10-24T18:16:37.901645Z"
+  "updated_at": "2026-10-24T20:15:20.550607Z"
 }

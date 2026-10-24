@@ -506,44 +506,46 @@ Listed by spec dependencies and the current delivery order (2026-10-24): fn-242 
 
 Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 checkpoint, before the complete fn-240 extraction. Each retained check names a failure it catches; the Python cycle driver becomes a Rust `gomad` verb. Local completion proves implementation/cutover and focused handoff. Actual full-cycle qualification remains pending in fn-246 after both cleanup specs.
 
+Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-execution-batches.md): six coding lanes, two heavy build slots, shared genuine fixtures and one review per batch; final cutover receives three-axis review. Original task acceptance and proof ownership remain binding.
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-242.13](.flow/tasks/fn-242-gomad-shrink-the-qualification.13.md) | 🚧 Running | Real process custody, accounting, busy workers and cleanup |
 | [fn-242.14](.flow/tasks/fn-242-gomad-shrink-the-qualification.14.md) | ⬜ Todo | Strict cycle configuration and frozen source/build authentication |
-| [fn-242.15](.flow/tasks/fn-242-gomad-shrink-the-qualification.15.md) | ⬜ Todo | Fixed global attempt journal and reservation-time admission floors |
 | [fn-242.16](.flow/tasks/fn-242-gomad-shrink-the-qualification.16.md) | ⬜ Todo | Authenticate candidate, compiler, GNU and workload inputs |
+| [fn-242.15](.flow/tasks/fn-242-gomad-shrink-the-qualification.15.md) | ⬜ Todo | Fixed global attempt journal and reservation-time admission floors |
 | [fn-242.17](.flow/tasks/fn-242-gomad-shrink-the-qualification.17.md) | ⬜ Todo | Freeze authenticated role and configuration bindings |
-| [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | ⬜ Todo | Validate command, artifact and preparation custody |
 | [fn-242.19](.flow/tasks/fn-242-gomad-shrink-the-qualification.19.md) | ⬜ Todo | Compose fixed stages and surviving endpoint bindings |
-| [fn-242.20](.flow/tasks/fn-242-gomad-shrink-the-qualification.20.md) | ⬜ Todo | Validate runtime artifacts and forced replay aggregates |
+| [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | ⬜ Todo | Validate command, artifact and preparation custody |
 | [fn-242.21](.flow/tasks/fn-242-gomad-shrink-the-qualification.21.md) | ⬜ Todo | Validate retained storage and engine codecs |
-| [fn-242.22](.flow/tasks/fn-242-gomad-shrink-the-qualification.22.md) | ⬜ Todo | Implement retained, operator and ringpop final sections |
-| [fn-242.23](.flow/tasks/fn-242-gomad-shrink-the-qualification.23.md) | ⬜ Todo | Validate native command observations and role custody |
 | [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | ⬜ Todo | Validate actual guest and preparation observations |
 | [fn-242.25](.flow/tasks/fn-242-gomad-shrink-the-qualification.25.md) | ⬜ Todo | Validate inspection decoding, search and refused mappings |
-| [fn-242.26](.flow/tasks/fn-242-gomad-shrink-the-qualification.26.md) | ⬜ Todo | Validate retained inputs, presence and mutation matrix |
-| [fn-242.27](.flow/tasks/fn-242-gomad-shrink-the-qualification.27.md) | ⬜ Todo | Validate World, network, boot and cluster wire observations |
-| [fn-242.28](.flow/tasks/fn-242-gomad-shrink-the-qualification.28.md) | ⬜ Todo | Execute static and broad adapters with raw publication |
-| [fn-242.29](.flow/tasks/fn-242-gomad-shrink-the-qualification.29.md) | ⬜ Todo | Build and authenticate CLI and broad harness producers |
-| [fn-242.30](.flow/tasks/fn-242-gomad-shrink-the-qualification.30.md) | ⬜ Todo | Execute workload, inspection, recovery and support adapters |
-| [fn-242.31](.flow/tasks/fn-242-gomad-shrink-the-qualification.31.md) | ⬜ Todo | Execute installed lifecycle, interception and ringpop adapters |
-| [fn-242.32](.flow/tasks/fn-242-gomad-shrink-the-qualification.32.md) | ⬜ Todo | Execute frozen reference profile and public role preparation |
-| [fn-242.33](.flow/tasks/fn-242-gomad-shrink-the-qualification.33.md) | ⬜ Todo | Execute independent SQLite oracle and terminal controls |
-| [fn-242.34](.flow/tasks/fn-242-gomad-shrink-the-qualification.34.md) | ⬜ Todo | Validate mandatory Results, SQLite selections and Temporal histories |
 | [fn-242.35](.flow/tasks/fn-242-gomad-shrink-the-qualification.35.md) | ⬜ Todo | Validate installed inspection and recovery evidence |
+| [fn-242.27](.flow/tasks/fn-242-gomad-shrink-the-qualification.27.md) | ⬜ Todo | Validate World, network, boot and cluster wire observations |
 | [fn-242.36](.flow/tasks/fn-242-gomad-shrink-the-qualification.36.md) | ⬜ Todo | Validate lifecycle recovery, drain and capacity |
-| [fn-242.37](.flow/tasks/fn-242-gomad-shrink-the-qualification.37.md) | ⬜ Todo | Validate installed cluster and interception readback |
-| [fn-242.38](.flow/tasks/fn-242-gomad-shrink-the-qualification.38.md) | ⬜ Todo | Validate original clusters, ringpop, counterfactual and ordinary evidence |
-| [fn-242.39](.flow/tasks/fn-242-gomad-shrink-the-qualification.39.md) | ⬜ Todo | Validate terminal sidecars, compiler inputs, allocation and cost |
+| [fn-242.26](.flow/tasks/fn-242-gomad-shrink-the-qualification.26.md) | ⬜ Todo | Validate retained inputs, presence and mutation matrix |
+| [fn-242.34](.flow/tasks/fn-242-gomad-shrink-the-qualification.34.md) | ⬜ Todo | Validate mandatory Results, SQLite selections and Temporal histories |
+| [fn-242.45](.flow/tasks/fn-242-gomad-shrink-the-qualification.45.md) | ⬜ Todo | Validate durable cells and broad closure readback |
+| [fn-242.20](.flow/tasks/fn-242-gomad-shrink-the-qualification.20.md) | ⬜ Todo | Validate runtime artifacts and forced replay aggregates |
+| [fn-242.22](.flow/tasks/fn-242-gomad-shrink-the-qualification.22.md) | ⬜ Todo | Implement retained, operator and ringpop final sections |
+| [fn-242.23](.flow/tasks/fn-242-gomad-shrink-the-qualification.23.md) | ⬜ Todo | Validate native command observations and role custody |
+| [fn-242.28](.flow/tasks/fn-242-gomad-shrink-the-qualification.28.md) | ⬜ Todo | Execute static and broad adapters with raw publication |
+| [fn-242.31](.flow/tasks/fn-242-gomad-shrink-the-qualification.31.md) | ⬜ Todo | Execute installed lifecycle, interception and ringpop adapters |
+| [fn-242.29](.flow/tasks/fn-242-gomad-shrink-the-qualification.29.md) | ⬜ Todo | Build and authenticate CLI and broad harness producers |
 | [fn-242.40](.flow/tasks/fn-242-gomad-shrink-the-qualification.40.md) | ⬜ Todo | Execute primary, runtime, cell and corpus adapters |
 | [fn-242.41](.flow/tasks/fn-242-gomad-shrink-the-qualification.41.md) | ⬜ Todo | Execute identity and divergence harnesses |
+| [fn-242.30](.flow/tasks/fn-242-gomad-shrink-the-qualification.30.md) | ⬜ Todo | Execute workload, inspection, recovery and support adapters |
+| [fn-242.32](.flow/tasks/fn-242-gomad-shrink-the-qualification.32.md) | ⬜ Todo | Execute frozen reference profile and public role preparation |
+| [fn-242.33](.flow/tasks/fn-242-gomad-shrink-the-qualification.33.md) | ⬜ Todo | Execute independent SQLite oracle and terminal controls |
+| [fn-242.39](.flow/tasks/fn-242-gomad-shrink-the-qualification.39.md) | ⬜ Todo | Validate terminal sidecars, compiler inputs, allocation and cost |
 | [fn-242.42](.flow/tasks/fn-242-gomad-shrink-the-qualification.42.md) | ⬜ Todo | Validate frozen reference profile and public role readback |
 | [fn-242.43](.flow/tasks/fn-242-gomad-shrink-the-qualification.43.md) | ⬜ Todo | Validate independent SQLite catalogue and oracle readback |
-| [fn-242.44](.flow/tasks/fn-242-gomad-shrink-the-qualification.44.md) | ⬜ Todo | Validate live families and transferred behavioral semantics |
-| [fn-242.45](.flow/tasks/fn-242-gomad-shrink-the-qualification.45.md) | ⬜ Todo | Validate durable cells and broad closure readback |
 | [fn-242.46](.flow/tasks/fn-242-gomad-shrink-the-qualification.46.md) | ⬜ Todo | Validate current host, terminal attribution and profile resources |
-| [fn-242.47](.flow/tasks/fn-242-gomad-shrink-the-qualification.47.md) | ⬜ Todo | Validate public verb lanes, identity and executed divergence |
 | [fn-242.48](.flow/tasks/fn-242-gomad-shrink-the-qualification.48.md) | ⬜ Todo | Validate diagnostic, release and frozen reference preservation |
+| [fn-242.37](.flow/tasks/fn-242-gomad-shrink-the-qualification.37.md) | ⬜ Todo | Validate installed cluster and interception readback |
+| [fn-242.38](.flow/tasks/fn-242-gomad-shrink-the-qualification.38.md) | ⬜ Todo | Validate original clusters, ringpop, counterfactual and ordinary evidence |
+| [fn-242.47](.flow/tasks/fn-242-gomad-shrink-the-qualification.47.md) | ⬜ Todo | Validate public verb lanes, identity and executed divergence |
+| [fn-242.44](.flow/tasks/fn-242-gomad-shrink-the-qualification.44.md) | ⬜ Todo | Validate live families and transferred behavioral semantics |
 | [fn-242.49](.flow/tasks/fn-242-gomad-shrink-the-qualification.49.md) | ⬜ Todo | Validate actual reach proof and ordered two-cell support |
 | [fn-242.50](.flow/tasks/fn-242-gomad-shrink-the-qualification.50.md) | ⬜ Todo | Compose real retained reader sections and validate combined readback |
 | [fn-242.51](.flow/tasks/fn-242-gomad-shrink-the-qualification.51.md) | ⬜ Todo | Close final partitions and prove cluster admission edges |

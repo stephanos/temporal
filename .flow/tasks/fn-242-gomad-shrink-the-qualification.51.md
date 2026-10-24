@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.51 Close final partitions and prove cluster admission edges
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/final_readers/admission/**
+**Touches:** tools/gomad/CLI.md, tools/gomad/rust/gomad/src/**, tools/gomad/rust/gomad/src/cli/**, tools/gomad/rust/gomad/src/cycle/**, tools/gomad/rust/gomad/src/cycle/config/**, tools/gomad/rust/gomad/src/cycle/final/**, tools/gomad/rust/gomad/src/cycle/final_readers/**, tools/gomad/rust/gomad/src/cycle/final_readers/admission/**, tools/gomad/rust/gomad/src/cycle/preparation/**, tools/gomad/rust/gomad/src/cycle/producers/**, tools/gomad/rust/gomad/src/cycle/readers/**, tools/gomad/rust/gomad/src/cycle/routes/**, tools/gomad/rust/gomad/src/lib.rs, tools/gomad/rust/gomad/src/main.rs, tools/gomad/rust/gomad/tests/**
 
 ## Description
 Port final merge/partition/collection and21 concrete cluster mutations across four independent verify/storage-selections/reopen/replay edges. Reuse real existing APIs at each edge. Consume completed FinalSection reports after all actual reader sections exist.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B15 (routes-original-aggregates)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.51, fn-242-gomad-shrink-the-qualification.52, fn-242-gomad-shrink-the-qualification.2, fn-242-gomad-shrink-the-qualification.3, fn-242-gomad-shrink-the-qualification.4, fn-242-gomad-shrink-the-qualification.9, fn-242-gomad-shrink-the-qualification.10. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

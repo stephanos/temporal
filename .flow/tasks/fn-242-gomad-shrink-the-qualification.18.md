@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.18 Validate command, artifact and preparation custody
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**, tools/gomad/rust/gomad/src/cycle/readers/core_codec/**
 
 ## Description
 Port receiving common helpers and command/artifact/preparation/result admission, plus core_identity. Admit one bounded authenticated byte buffer per read. Reuse qualify::spec::strict and qualify Result/PublicationReceipt APIs for their actual schemas; retain alias, mode, size and change-during-read checks at every independent open.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B04 (reader-foundation)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.18, fn-242-gomad-shrink-the-qualification.21. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.

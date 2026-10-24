@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.20 Validate runtime artifacts and forced replay aggregates
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/runtime/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/final_readers/native/**, tools/gomad/rust/gomad/src/cycle/final_readers/retained/**, tools/gomad/rust/gomad/src/cycle/readers/runtime/**
 
 ## Description
 Port receiving runtime preparation/artifact/aggregate methods and runtime_gate. Preserve32 by25 fresh executions and32 forced full replays in production count validators, with bounded controls testing those validators.
@@ -34,3 +34,8 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
+## Owner-authorized batch B08 (runtime-retained-native)
+
+This task is the execution leader for fn-242-gomad-shrink-the-qualification.20, fn-242-gomad-shrink-the-qualification.22, fn-242-gomad-shrink-the-qualification.23. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
