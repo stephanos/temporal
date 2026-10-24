@@ -79,6 +79,15 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 ## Specs
 
+The 2026-10-24 cancellation counterexample adds a checkpoint boundary without moving the
+independently planned Model work forward. The remaining task order is fn-243.1-.3,
+fn-228.7, fn-243.4, fn-237.1-.4, fn-243.5, then fn-237.5. fn-243 and fn-228 remain
+open until fn-243.5 supplies the deferred unheld-cancellation proof and final R40 evidence.
+The current atomic Model explicitly refuses unheld cancellation of an open activity before
+a Cancel RPC. Held-before-start and terminal cancellation remain supported. The CLI cannot
+encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit blocked reasons;
+the conductor clears each only after the named prerequisite's closure is committed in `umpire`.
+
 ### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
 
 Captured on 2026-10-20, after fn-227. Files the post-verdict obligations R33 to R40 as one spec under
@@ -109,7 +118,7 @@ runs the activity Model through the Runner behind an allowlist fence, and every 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.7 | ⬜ todo | After .6, fn-244.2 and fn-243.2; writes R40 in its final form (programmed workers): DESIGN.md Runner and Run write-up; R33 to R40 discharged; R5 closed as superseded (R7) |
+| fn-228.7 | ⬜ todo | After committed .6, fn-244.2 and fn-243.2; Runner and Run write-up, earned R33-R39 discharge, R40 architecture and explicit unheld proof deferred to fn-243.5; R5 superseded (R7) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
@@ -128,7 +137,7 @@ schedule-to-start expiry use the hold fault, and task paths carry the fn-244 lay
 | fn-237.2 | ⬜ todo | Bounded nominal optional values through source binding, emission and decode (R1) |
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
-| fn-237.5 | ⬜ todo | After .4: DESIGN.md timeout and cancellation write-up (R5) |
+| fn-237.5 | ⏸️ blocked | After .4 and committed fn-243.5: final DESIGN.md timeout and cancellation write-up (R5) |
 
 ### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
 
@@ -144,16 +153,20 @@ Read proposal kind); a hold fault in the proposal's instruction replaces the Dri
 reads Describe's outcome and last failure; a deviation is Unexplained, an unprogrammed task is Refused.
 Supersedes the Shim (fn-228.5). Design of record:
 [programmed-workers.md](model/design/programmed-workers.md). Placed by the owner on 2026-10-24 after
-fn-228.6 and fn-244.2 and before fn-228.7, which writes R40 once in its final form; fn-237 needs the
-hold fault and follows.
+fn-228.6 and fn-244.2 and before fn-228.7's architecture write-up; fn-237 needs the
+hold fault and follows the fn-243.4 documentation checkpoint. The frozen atomic Model cannot
+explain acknowledged cancellation that remains pending on a started attempt. The current
+checkpoint refuses that unheld scope; fn-243.5 consumes fn-237's independent cooperative
+semantics and proves restored admission. This parent stays open until that follow-up passes.
 [Spec](.flow/specs/fn-243-programmed-workers-the-model-issues.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-243.1 | ✅ done | After fn-228.6 and fn-244.2: program on Reset, Read proposals, `WorkerProgram` envelope, activity rows, `umpire program` (R1) |
-| fn-243.2 | 🟨 in progress | After .1: raw and sdk executors, Driver hold fault, judgment from server history, live slice (R2, R3) |
-| fn-243.3 | ⬜ todo | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
-| fn-243.4 | ⬜ todo | After .2, .3 and fn-228.7: DESIGN.md R40 final form checked; design note points to code (R5) |
+| fn-243.2 | ✅ done | After .1: raw/sdk executors, hold, server-history judgment and admitted live slice; exact unheld open-state refusal until .5 (R2, R3) |
+| fn-243.3 | 🟨 in progress | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
+| fn-243.4 | ⬜ todo | After committed .2, .3 and fn-228.7: R40 architecture/current scope checked; code pointers and explicit .5 obligation (R5) |
+| fn-243.5 | ⏸️ blocked | After .4 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40/fn-228 R7 evidence (R2, R5) |
 
 ### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
 
