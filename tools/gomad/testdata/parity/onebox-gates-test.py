@@ -7,6 +7,7 @@ import tempfile
 import argparse
 import base64
 import json
+import hashlib
 import subprocess
 import sys
 from unittest.mock import patch
@@ -264,6 +265,90 @@ elif sys.argv[1] == 'publish':
             (repo / 'source.go').write_text('package changed\n')
             with self.assertRaisesRegex(ValueError, 'frozen source/candidate changed'):
                 driver.frozen()
+
+
+class SourceInventoryTest(unittest.TestCase):
+    def fixture(self, root):
+        repo = root / 'repo'
+        repo.mkdir()
+        (repo / 'source.go').write_bytes(b'package fixture\n')
+        (repo / 'odd\tname\nλ.go').write_bytes(b'package odd\n')
+        (repo / 'run.sh').write_bytes(b'#!/bin/sh\nexit 0\n')
+        (repo / 'run.sh').chmod(0o755)
+        (repo / 'source-link').symlink_to('source.go')
+        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+        subprocess.run(['git', '-C', str(repo), 'add', '.'], check=True)
+        subprocess.run(['git', '-C', str(repo), '-c', 'user.name=fixture',
+                        '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+        control = root / 'control'
+        control.write_bytes(b'#!/bin/sh\nexit 0\n')
+        output = root / 'run'
+        output.mkdir()
+        return argparse.Namespace(repo=repo, root=output, binary=control, support=control,
+            compiler=control, inspection=control, smoke_config=control, frontend_config=control,
+            inspection_config=control)
+
+    def test_gitlinks_skip_only_external_content_and_keep_tracked_bytes(self):
+        for checked_out, supplied in [(True, False), (False, True)]:
+            with self.subTest(checked_out=checked_out, supplied=supplied), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                args = self.fixture(root)
+                identity = subprocess.check_output(['git', '-C', str(args.repo), 'rev-parse', 'HEAD'], text=True).strip()
+                gitlink = args.repo / 'dash\tboards'
+                subprocess.run(['git', '-C', str(args.repo), 'update-index', '--add', '--cacheinfo',
+                                '160000,' + identity + ',' + gitlink.name], check=True)
+                if checked_out:
+                    gitlink.mkdir()
+                    (gitlink / 'external.go').write_bytes(b'not part of the superproject\n')
+                if supplied:
+                    args.source_manifest = root / 'supplied.sha256'
+                    args.source_manifest.write_bytes(b'unchanged supplied inventory\n')
+                driver = gates.Onebox(args)
+                frozen = json.loads((args.root / 'frozen-inputs.json').read_bytes())
+                actual = {name: value for name, value in frozen.items() if Path(name).is_relative_to(args.repo)}
+                expected = {'source.go': b'package fixture\n', 'source-link': b'package fixture\n',
+                            'odd\tname\nλ.go': b'package odd\n', 'run.sh': b'#!/bin/sh\nexit 0\n'}
+                self.assertEqual(actual, {str(args.repo / name): hashlib.sha256(raw).hexdigest()
+                                          for name, raw in expected.items()})
+                if supplied:
+                    self.assertEqual(args.source_manifest.read_bytes(), b'unchanged supplied inventory\n')
+                else:
+                    self.assertNotIn(str(gitlink).encode(), driver.source.read_bytes())
+                    for name, raw in expected.items():
+                        self.assertIn((hashlib.sha256(raw).hexdigest() + '  ' + str(args.repo / name) + '\n').encode(),
+                                      driver.source.read_bytes())
+                if checked_out:
+                    (gitlink / 'external.go').write_bytes(b'external content changed\n')
+                driver.frozen()
+                (args.repo / 'source.go').write_bytes(b'package changed\n')
+                with self.assertRaisesRegex(ValueError, 'frozen source/candidate changed'):
+                    driver.frozen()
+
+    def test_regular_source_type_changes_refuse_at_capture_and_recheck(self):
+        for phase in ['capture', 'frozen']:
+            for replacement in ['directory', 'missing', 'symlink']:
+                with self.subTest(phase=phase, replacement=replacement), tempfile.TemporaryDirectory() as directory:
+                    args = self.fixture(Path(directory))
+                    if phase == 'frozen':
+                        driver = gates.Onebox(args)
+                    source = args.repo / 'run.sh'
+                    source.unlink()
+                    if replacement == 'directory':
+                        source.mkdir()
+                    elif replacement == 'symlink':
+                        source.symlink_to(args.binary)
+                    with self.assertRaises((OSError, ValueError)):
+                        gates.Onebox(args) if phase == 'capture' else driver.frozen()
+
+    def test_unmerged_index_refuses_before_source_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.fixture(Path(directory))
+            identity = subprocess.check_output(['git', '-C', str(args.repo), 'rev-parse', 'HEAD'], text=True).strip()
+            subprocess.run(['git', '-C', str(args.repo), 'update-index', '--index-info'], check=True,
+                           input=('160000 ' + identity + ' 1\tconflicted-gitlink\n').encode())
+            (args.repo / 'conflicted-gitlink').write_bytes(b'not a resolved index entry\n')
+            with self.assertRaisesRegex(ValueError, 'unmerged'):
+                gates.Onebox(args)
 
 
 if __name__ == '__main__':
