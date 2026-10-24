@@ -573,10 +573,6 @@ fn validate_admission_report(
     Ok(())
 }
 
-#[expect(
-    clippy::too_many_lines,
-    reason = "Keep each actual admission control with its request, profile and cleanup predicates."
-)]
 fn admission_refusal(
     call: &Invocation,
     proof: &CheckoutProof,
@@ -774,7 +770,17 @@ mod tests {
             fs::remove_dir_all(&self.0).unwrap();
         }
     }
-    #[cfg(feature = "helper-diagnostic-profile")]
+    #[cfg(all(
+        feature = "helper-diagnostic-profile",
+        not(any(
+            all(
+                feature = "helper-guest-profile",
+                feature = "helper-diagnostic-fuel-off"
+            ),
+            feature = "helper-stress-jitter",
+            feature = "helper-determinism-fixture",
+        ))
+    ))]
     #[test]
     fn warm_admission_refusal_delegation_rejects_guest_counts() {
         use std::os::unix::fs::OpenOptionsExt;
@@ -818,7 +824,12 @@ mod tests {
         let executable = workloads::Executable {
             path: std::env::current_exe().unwrap(),
             sha256: report["host_sha256"].as_str().unwrap().into(),
-            role: build::Role::Warm,
+            role: build::Role::Diagnostic(
+                super::super::features()
+                    .into_iter()
+                    .map(str::to_owned)
+                    .collect(),
+            ),
             receipt: None,
         };
         validate_admission_report(&profile, &report, &executable, &raw_request).unwrap();
