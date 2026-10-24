@@ -99,6 +99,15 @@ pub enum Literal {
     Bool(bool),
     /// Integer checked against the independently admitted field type.
     Int(i128),
+    /// Nominal integer with its authored wrapper identity.
+    Bounded {
+        /// Authored wrapper name.
+        name: String,
+        /// Raw backing integer.
+        raw: i128,
+    },
+    /// Absent or present nominal payload.
+    Optional(Option<Box<Literal>>),
     /// Qualified variant of an independently admitted fieldless enum.
     Enum(String),
     /// Ordered elements of an admitted state sequence.

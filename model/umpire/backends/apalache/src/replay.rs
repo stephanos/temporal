@@ -289,12 +289,17 @@ where
             Ok(Ok(steps)) => {
                 let emitted =
                     steps.get(choice).ok_or_else(|| reject("disabled action or unknown choice"))?;
-                if fields(emitted.2.values())? != after.state {
+                if typed_native(
+                    emitted.2.values(),
+                    module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
+                )? != after.state
+                {
                     return Err(reject("native successor differs"));
                 }
-                if projected(emitted.0.value()) != after.observers[OUTCOME]
-                    || Value::Seq(emitted.1.iter().map(|f| projected(f.value())).collect())
-                        != after.observers[FACTS]
+                if projected(emitted.0.value())? != after.observers[OUTCOME]
+                    || Value::Seq(
+                        emitted.1.iter().map(|f| projected(f.value())).collect::<Result<_, _>>()?,
+                    ) != after.observers[FACTS]
                 {
                     return Err(reject("native outcome/facts differ"));
                 }
@@ -335,8 +340,12 @@ where
                         action: concrete::<M>(action),
                         ordinal,
                         choice,
-                        outcome: projected(emitted.0.value()),
-                        facts: emitted.1.iter().map(|f| projected(f.value())).collect(),
+                        outcome: projected(emitted.0.value())?,
+                        facts: emitted
+                            .1
+                            .iter()
+                            .map(|f| projected(f.value()))
+                            .collect::<Result<_, _>>()?,
                         state: after.state.clone(),
                     });
                 }
@@ -348,7 +357,10 @@ where
 
     fn binding(&self, module: &Module, parameters: &State, schema: &Schema) -> Result<(), Refusal> {
         let meta = &module.metadata;
-        let native_world = fields(self.world.values())?;
+        let native_world = typed_native(
+            self.world.values(),
+            meta.parameters.iter().map(|p| (p.field.as_str(), &p.ty)),
+        )?;
         if native_world.len() != meta.parameters.len() {
             return Err(reject("native World fields differ"));
         }
@@ -359,13 +371,23 @@ where
                 return Err(reject("crossed selected World binding"));
             }
         }
-        let starts =
-            self.starts.iter().map(|s| fields(s.values())).collect::<Result<Vec<_>, _>>()?;
+        let starts = self
+            .starts
+            .iter()
+            .map(|s| typed_native(s.values(), meta.fields.iter().map(|f| (f.name.as_str(), &f.ty))))
+            .collect::<Result<Vec<_>, _>>()?;
         for s in &starts {
             validate_fields(s, &schema.fields)?;
         }
         let actions = self.actions.iter().map(concrete::<M>).collect::<Vec<_>>();
         let expected = if let Some(binding) = &meta.binding {
+            validate_literals(
+                &binding.world,
+                meta.parameters.iter().map(|p| (p.field.as_str(), &p.ty)),
+            )?;
+            for row in &binding.starts {
+                validate_literals(row, meta.fields.iter().map(|f| (f.name.as_str(), &f.ty)))?;
+            }
             if literals(&binding.world)? != native_world {
                 return Err(reject("emitted World binding differs from native World"));
             }
@@ -473,6 +495,10 @@ where
             .iter()
             .find(|a| a.name == identity.action)
             .ok_or_else(|| reject("undeclared action"))?;
+        validate_literals(
+            &identity.fields,
+            declaration.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
+        )?;
         let payload = literals(&identity.fields)?;
         validate_fields(
             &payload,
@@ -566,6 +592,8 @@ fn kind(ty: &SourceType) -> Type {
     match ty {
         SourceType::Bool => Type::Bool,
         SourceType::Int { min, max } => Type::Int { min: *min, max: *max },
+        SourceType::Bounded(b) => Type::Int { min: b.low, max: b.high },
+        SourceType::Optional(b) => Type::OptionalInt { low: b.low, high: b.high },
         SourceType::Text => Type::Text,
         SourceType::Enum { variants, .. } => Type::Enum(variants.clone()),
         SourceType::Unit => Type::Tuple(vec![]),
@@ -575,6 +603,17 @@ fn kind(ty: &SourceType) -> Type {
 }
 fn schema(module: &Module) -> Result<Schema, Refusal> {
     let meta = &module.metadata;
+    for ty in meta
+        .fields
+        .iter()
+        .map(|f| &f.ty)
+        .chain(meta.parameters.iter().map(|p| &p.ty))
+        .chain(meta.observer_types.values())
+        .chain(meta.actions.iter().flat_map(|a| a.fields.iter().map(|f| &f.ty)))
+        .chain(std::iter::once(&meta.outcome_type))
+    {
+        validate_source_type(ty)?;
+    }
     let schema = Schema {
         fields: meta.fields.iter().map(|f| (f.name.clone(), kind(&f.ty))).collect(),
         observers: meta.observer_types.iter().map(|(n, t)| (n.clone(), kind(t))).collect(),
@@ -609,32 +648,117 @@ fn schema(module: &Module) -> Result<Schema, Refusal> {
     schema.validate_assignment()?;
     Ok(schema)
 }
-fn projected(v: umpire_dsl::Value) -> Value {
-    match v {
-        umpire_dsl::Value::Bool(v) => Value::Bool(v),
-        umpire_dsl::Value::Int(v) => Value::Int(v),
-        umpire_dsl::Value::Enum(v) => Value::Text(v.into()),
-        umpire_dsl::Value::Sequence(v) => Value::Seq(v.into_iter().map(projected).collect()),
+fn validate_source_type(ty: &SourceType) -> Result<(), Refusal> {
+    match ty {
+        SourceType::Bounded(b) if !b.valid() => return Err(reject("invalid bounded descriptor")),
+        SourceType::Optional(b) if !b.optional_valid() => {
+            return Err(reject("invalid optional descriptor"));
+        }
+        SourceType::Tuple(types) => {
+            for ty in types {
+                validate_source_type(ty)?;
+            }
+        }
+        SourceType::Seq(inner) => validate_source_type(inner)?,
+        _ => {}
     }
+    Ok(())
+}
+fn typed_literal(ty: &SourceType, value: &Literal) -> bool {
+    match (ty, value) {
+        (SourceType::Bounded(b), Literal::Bounded { name, raw }) => {
+            b.name == *name && b.contains(*raw)
+        }
+        (SourceType::Optional(b), Literal::Optional(None)) => b.optional_valid(),
+        (SourceType::Optional(b), Literal::Optional(Some(value))) => match value.as_ref() {
+            Literal::Bounded { name, raw } => b.name == *name && b.encode(*raw).is_some(),
+            _ => false,
+        },
+        (SourceType::Bounded(_) | SourceType::Optional(_), _) => false,
+        (SourceType::Seq(inner), Literal::Sequence(values)) => {
+            values.iter().all(|v| typed_literal(inner, v))
+        }
+        (SourceType::Tuple(types), Literal::Sequence(values)) => {
+            types.len() == values.len()
+                && types.iter().zip(values).all(|(t, v)| typed_literal(t, v))
+        }
+        (SourceType::Bool, Literal::Bool(_))
+        | (SourceType::Int { .. }, Literal::Int(_))
+        | (SourceType::Enum { .. }, Literal::Enum(_))
+        | (SourceType::Unit, Literal::Sequence(_)) => {
+            literal(value).is_ok_and(|value| kind(ty).accepts(&value))
+        }
+        _ => false,
+    }
+}
+fn validate_literals<'a>(
+    values: &[(String, Literal)],
+    types: impl Iterator<Item = (&'a str, &'a SourceType)>,
+) -> Result<(), Refusal> {
+    let types: BTreeMap<_, _> = types.collect();
+    if values.len() != types.len()
+        || values.iter().map(|(name, _)| name).collect::<BTreeSet<_>>().len() != values.len()
+        || values.iter().any(|(name, value)| {
+            types.get(name.as_str()).is_none_or(|ty| !typed_literal(ty, value))
+        })
+    {
+        return Err(reject("typed literal fields differ"));
+    }
+    Ok(())
+}
+fn typed_native<'a>(
+    values: Vec<(&'static str, umpire_dsl::Value)>,
+    types: impl Iterator<Item = (&'a str, &'a SourceType)>,
+) -> Result<State, Refusal> {
+    let types: BTreeMap<_, _> = types.collect();
+    if values.len() != types.len() {
+        return Err(reject("native field declarations differ"));
+    }
+    let mut result = State::new();
+    for (name, value) in values {
+        let value = native_literal(value);
+        if types.get(name).is_none_or(|ty| !typed_literal(ty, &value)) {
+            return Err(reject(format!("typed native field differs: {name}")));
+        }
+        if result.insert(name.into(), literal(&value)?).is_some() {
+            return Err(reject("duplicate native projected field"));
+        }
+    }
+    Ok(result)
+}
+fn projected(v: umpire_dsl::Value) -> Result<Value, Refusal> {
+    literal(&native_literal(v))
 }
 fn fields(values: Vec<(&'static str, umpire_dsl::Value)>) -> Result<State, Refusal> {
     let count = values.len();
-    let fields: State = values.into_iter().map(|(n, v)| (n.into(), projected(v))).collect();
+    let fields: State = values
+        .into_iter()
+        .map(|(n, v)| Ok((n.into(), projected(v)?)))
+        .collect::<Result<_, Refusal>>()?;
     if fields.len() != count {
         return Err(reject("duplicate native projected field"));
     }
     Ok(fields)
 }
-fn literal(v: &Literal) -> Value {
-    match v {
+fn literal(v: &Literal) -> Result<Value, Refusal> {
+    Ok(match v {
         Literal::Bool(v) => Value::Bool(*v),
         Literal::Int(v) => Value::Int(*v),
         Literal::Enum(v) => Value::Text(v.clone()),
-        Literal::Sequence(v) => Value::Seq(v.iter().map(literal).collect()),
-    }
+        Literal::Sequence(v) => Value::Seq(v.iter().map(literal).collect::<Result<_, _>>()?),
+        Literal::Bounded { raw, .. } => Value::Int(*raw),
+        Literal::Optional(None) => Value::Int(0),
+        Literal::Optional(Some(v)) => match v.as_ref() {
+            Literal::Bounded { raw, .. } => {
+                Value::Int(raw.checked_add(1).ok_or_else(|| reject("optional encoding overflow"))?)
+            }
+            _ => return Err(reject("optional payload is not bounded")),
+        },
+    })
 }
 fn literals(values: &[(String, Literal)]) -> Result<State, Refusal> {
-    let fields: State = values.iter().map(|(n, v)| (n.clone(), literal(v))).collect();
+    let fields: State =
+        values.iter().map(|(n, v)| Ok((n.clone(), literal(v)?))).collect::<Result<_, Refusal>>()?;
     if fields.len() != values.len() {
         return Err(reject("duplicate binding field"));
     }
@@ -654,6 +778,10 @@ fn native_literal(v: umpire_dsl::Value) -> Literal {
     match v {
         umpire_dsl::Value::Bool(v) => Literal::Bool(v),
         umpire_dsl::Value::Int(v) => Literal::Int(v),
+        umpire_dsl::Value::Bounded { name, raw } => Literal::Bounded { name: name.into(), raw },
+        umpire_dsl::Value::Optional(v) => {
+            Literal::Optional(v.map(|v| Box::new(native_literal(*v))))
+        }
         umpire_dsl::Value::Enum(v) => Literal::Enum(v.into()),
         umpire_dsl::Value::Sequence(v) => {
             Literal::Sequence(v.into_iter().map(native_literal).collect())
@@ -689,7 +817,8 @@ fn text<'a>(state: &'a TraceState, name: &str) -> Result<&'a str, Refusal> {
 fn default_value(ty: &Type) -> Value {
     match ty {
         Type::Bool => Value::Bool(false),
-        Type::Int { .. } => Value::Int(0),
+        Type::Int { min, max } => Value::Int(0.clamp(*min, *max)),
+        Type::OptionalInt { .. } => Value::Int(0),
         Type::Text => Value::Text(String::new()),
         Type::Enum(v) => Value::Text(v.first().cloned().unwrap_or_default()),
         Type::Seq(_) | Type::Set(_) => Value::Seq(vec![]),
@@ -724,4 +853,56 @@ fn stutter(before: &TraceState, after: &TraceState) -> Result<(), Refusal> {
         return Err(reject("tagged stutter changes state or event/history"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod optional_tests {
+    use super::*;
+
+    fn ticks() -> SourceType {
+        SourceType::Optional(umpire_dsl::__lifted::Bounded {
+            name: "Ticks".into(),
+            field: None,
+            backing: "u8".into(),
+            min: 0,
+            max: 255,
+            low: 1,
+            high: 3,
+        })
+    }
+
+    #[test]
+    fn nominal_optional_projection_refuses_wrong_names_and_malformed_payloads() {
+        let ty = ticks();
+        let present = |name: &str, raw| {
+            Literal::Optional(Some(Box::new(Literal::Bounded { name: name.into(), raw })))
+        };
+        assert!(typed_literal(&ty, &Literal::Optional(None)));
+        assert!(typed_literal(&ty, &present("Ticks", 1)));
+        for bad in [
+            present("Remaining", 1),
+            present("Ticks", 0),
+            present("Ticks", 4),
+            Literal::Int(2),
+            Literal::Optional(Some(Box::new(Literal::Int(1)))),
+            Literal::Optional(Some(Box::new(Literal::Optional(None)))),
+        ] {
+            assert!(!typed_literal(&ty, &bad), "accepted {bad:?}");
+        }
+        for bad in [
+            Literal::Optional(Some(Box::new(Literal::Int(1)))),
+            Literal::Optional(Some(Box::new(Literal::Optional(None)))),
+        ] {
+            assert!(literal(&bad).is_err());
+        }
+        assert!(
+            projected(umpire_dsl::Value::Optional(Some(Box::new(umpire_dsl::Value::Optional(
+                None
+            )))))
+            .is_err()
+        );
+        let SourceType::Optional(mut descriptor) = ty else { unreachable!() };
+        descriptor.max = 256;
+        assert!(validate_source_type(&SourceType::Optional(descriptor)).is_err());
+    }
 }

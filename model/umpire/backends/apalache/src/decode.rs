@@ -206,7 +206,7 @@ pub fn decode_itf(
 fn wire_type(kind: &Type) -> String {
     match kind {
         Type::Bool => "Bool".into(),
-        Type::Int { .. } => "Int".into(),
+        Type::Int { .. } | Type::OptionalInt { .. } => "Int".into(),
         Type::Text | Type::Enum(_) => "Str".into(),
         Type::Tuple(types) if types.is_empty() => "Seq(Int)".into(),
         Type::Tuple(types) => {
@@ -269,7 +269,7 @@ fn value(raw: &serde_json::Value, kind: &Type) -> Result<Value, Refusal> {
         Type::Text | Type::Enum(_) => {
             Value::Text(raw.as_str().ok_or_else(|| refuse("expected text/enum"))?.into())
         }
-        Type::Int { .. } => {
+        Type::Int { .. } | Type::OptionalInt { .. } => {
             keys(raw, &["#bigint"], &[])?;
             let s = get(raw, "#bigint")?.as_str().ok_or_else(|| refuse("bigint must be text"))?;
             if s.is_empty()

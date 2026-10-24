@@ -3,7 +3,7 @@ use crate::Type;
 pub(super) fn ty(value: &Type) -> String {
     match value {
         Type::Bool => "Bool".into(),
-        Type::Int { .. } => "Int".into(),
+        Type::Int { .. } | Type::Bounded(_) | Type::Optional(_) => "Int".into(),
         Type::Text | Type::Enum { .. } => "Str".into(),
         Type::Unit => "Seq(Int)".into(),
         Type::Seq(element) => format!("Seq({})", ty(element)),

@@ -18,6 +18,13 @@ pub enum Type {
         /// Inclusive upper bound.
         max: i128,
     },
+    /// An optional bounded integer, encoded as zero or payload plus one.
+    OptionalInt {
+        /// Inclusive raw payload lower bound.
+        low: i128,
+        /// Inclusive raw payload upper bound.
+        high: i128,
+    },
     /// A string.
     Text,
     /// One declared enum variant, encoded as a string.
@@ -76,6 +83,15 @@ impl Schema {
         if self.fields.is_empty() {
             return Err(Refusal("empty state schema".into()));
         }
+        self.validate_types()
+    }
+
+    fn validate_types(&self) -> Result<(), Refusal> {
+        for (name, kind) in self.fields.iter().chain(&self.observers) {
+            if !kind.valid() {
+                return Err(Refusal(format!("invalid declared type for {name}")));
+            }
+        }
         Ok(())
     }
 
@@ -87,7 +103,7 @@ impl Schema {
         if self.fields.is_empty() && self.observers.is_empty() {
             return Err(Refusal("empty assignment schema".into()));
         }
-        Ok(())
+        self.validate_types()
     }
 
     /// Validate and split a complete typed assignment, independent of its wire format.
@@ -116,11 +132,29 @@ impl Schema {
 }
 
 impl Type {
+    fn valid(&self) -> bool {
+        match self {
+            Self::Int { min, max } => min <= max,
+            Self::OptionalInt { low, high } => {
+                *low >= 0 && low <= high && *high < i128::from(i32::MAX)
+            }
+            Self::Seq(inner) | Self::Set(inner) => inner.valid(),
+            Self::Tuple(types) => types.iter().all(Self::valid),
+            Self::Record(fields) => fields.values().all(Self::valid),
+            Self::Bool | Self::Text | Self::Enum(_) => true,
+        }
+    }
     /// Whether a structurally decoded value inhabits this exact declared type.
     pub fn accepts(&self, value: &Value) -> bool {
         match (self, value) {
             (Self::Bool, Value::Bool(_)) | (Self::Text, Value::Text(_)) => true,
             (Self::Int { min, max }, Value::Int(number)) => (*min..=*max).contains(number),
+            (Self::OptionalInt { low, high }, Value::Int(number)) => {
+                *low >= 0
+                    && low <= high
+                    && *high < i128::from(i32::MAX)
+                    && (*number == 0 || (*low + 1..=*high + 1).contains(number))
+            }
             (Self::Enum(variants), Value::Text(value)) => variants.contains(value),
             (Self::Seq(kind), Value::Seq(values)) => values.iter().all(|value| kind.accepts(value)),
             (Self::Tuple(kinds), Value::Seq(values)) => {
