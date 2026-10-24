@@ -43,6 +43,14 @@ Starts after fn-244.1, the serialized layout freeze, so it works in the new crat
 ### Paths after fn-244.1 (2026-10-24)
 
 `model/umpire/dsl/macros` is `model/umpire/author/dsl/macros`; `model/umpire/lift` is `model/umpire/backends/tla` (crate `umpire-tla`); `model/umpire/tests/fixtures/<name>` is `model/umpire/dev/fixtures/fixtures/<name>` (crate `umpire-fixtures`, formerly `umpire-tests`); `model/umpire/testing` is `model/umpire/dev/testing`; `model/umpire/backends/tlc` is unchanged. Quick command crates: `-p umpire-dsl-macros -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures` as applicable.
+
+### Execution reanchor and resolved implementation choices (2026-10-24)
+
+fn-243.4's closure is committed in umpire before admission. The optional-fact contract remains independent of Activity policy and stored optional values. Required current owners include front declaration/SSA, IR, author macro generation, the typed Interprets bridge, the native interpreter, both main and safety TLA emitters, names traversal, and existing replay/schema consumers; the older five-owner estimate is not an exemption. Optional value task .2 remains serial because those owners overlap.
+
+Freeze the shared typed fact interface before parallel source lanes. Prefer one local Debug-only fieldless enum, Unit for legacy fact metadata, and typed Seq<Fact> branch expressions. No Clone/Copy/Finite requirement, TLS fact recorder, generic Option IR or new evaluator. Preserve existing outcome/fact independence: a completed Some after an unchanged rejecting unit helper retains that fact; rejection-after-mutation still fails. Evaluate authored tail conditions even when the unchanged handler is disabled, preserving Rust errors. Preserve all tracked old expansions and artifacts exactly; necessary hidden embedded IR constructor fields may be added. Canonical Option paths must be resolved by identity, not final-segment spelling.
+
+The task owner is the sole committer and owns integration/gates. After a compiling shared-interface checkpoint, disjoint lanes may own source/machine admission; typed bridge/interpreter; symbolic emitters; and new fixture/replay controls. Use isolated task-named worktrees for concurrent source writers, reconcile all lanes before generation and staging, and remove retired worktrees normally after preserving evidence. Read-only evidence checks may start earlier. The conductor retains MILESTONES.md.
 ## Acceptance
 - [ ] Public/private and unit/declared-World machines mix unit and optional handlers correctly. Unsupported returns, payload/discriminant/alias/nested carriers and mixed carriers fail the appropriate compile/source controls.
 - [ ] Native changed-None, unchanged-Some, ordinary empty, stay, rejection and invalid-mutation controls preserve enabledness and exact fact cardinality.

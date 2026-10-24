@@ -75,12 +75,12 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-243.4 → fn-237.1–.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-237.1–.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
 The 2026-10-24 cancellation counterexample adds a checkpoint boundary without moving the
-independently planned Model work forward. The remaining task order is fn-243.4, fn-237.1-.4, fn-243.5, then fn-237.5. fn-243 and fn-228 remain
+independently planned Model work forward. The remaining task order is fn-237.1-.4, fn-243.5, then fn-237.5. fn-243 and fn-228 remain
 open until fn-243.5 supplies the deferred unheld-cancellation proof and final R40 evidence.
 The current atomic Model explicitly refuses unheld cancellation of an open activity before
 a Cancel RPC. Held-before-start and terminal cancellation remain supported. The CLI cannot
@@ -112,7 +112,7 @@ schedule-to-start expiry use the hold fault, and task paths carry the fn-244 lay
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-237.1 | ⬜ todo | After fn-244.1: optional handler facts through native adapters and independent TLC replay (R1) |
+| fn-237.1 | 🔄 in progress | After fn-244.1: optional handler facts through native adapters and independent TLC replay (R1) |
 | fn-237.2 | ⬜ todo | Bounded nominal optional values through source binding, emission and decode (R1) |
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
@@ -133,7 +133,7 @@ reads Describe's outcome and last failure; a deviation is Unexplained, an unprog
 Supersedes the Shim (fn-228.5). Design of record:
 [programmed-workers.md](model/design/programmed-workers.md). Placed by the owner on 2026-10-24 after
 fn-228.6 and fn-244.2 and before fn-228.7's architecture write-up; fn-237 needs the
-hold fault and follows the fn-243.4 documentation checkpoint. The frozen atomic Model cannot
+hold fault and follows the completed fn-243.4 documentation checkpoint. The frozen atomic Model cannot
 explain acknowledged cancellation that remains pending on a started attempt. The current
 checkpoint refuses that unheld scope; fn-243.5 consumes fn-237's independent cooperative
 semantics and proves restored admission. This parent stays open until that follow-up passes.
@@ -141,7 +141,6 @@ semantics and proves restored admission. This parent stays open until that follo
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-243.4 | 🔄 in progress | After committed .2, .3 and fn-228.7: R40 architecture/current scope checked; code pointers and explicit .5 obligation (R5) |
 | fn-243.5 | ⏸️ blocked | After .4 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40/fn-228 R7 evidence (R2, R5) |
 
 ### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
