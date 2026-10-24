@@ -158,18 +158,21 @@ lane after fn-238.6, before fn-237.1.
 | --- | --- | --- |
 | fn-242.1 | 🔄 in progress | Parallel lane (worktree `work/fn2421-lengths`): `len()` parity or located refusal; TLC evaluation-error parsing (R1, R2) |
 
-### fn-244: Package layout of model/umpire: consistent nesting, clear names, a crate map (model)
+### fn-244: Package layout of model/umpire: role directories, clear names, a crate map (model)
 
-Filed on 2026-10-24 at the owner's request after a layout review. Mechanical, no behaviour change:
-nest `ir-derive` and `catalog-build` under their parents, make the `annotations` versus `catalog`
-split obvious (rename or merge), move the hand-written Go `runner` out of the generated protobuf
-tree, fix stale descriptions, and add a crate map to `model/README.md` saying which crates authors use.
+Filed on 2026-10-24 at the owner's request; the owner approved the aggressive layout and both open
+choices as recommended. Crates move into role directories (`author/`, `front/`, `ir/`, `backends/`,
+`protocol/`, `catalog/`, `hosts/go/`, `reference/kettle/`, `dev/`); `umpire-lift` becomes
+`umpire-tla` and owns the subprocess supervision TLC and Apalache share; `umpire-annotations` merges
+into `umpire-catalog`; a new `umpire` facade gives Model authors one dependency; the Go module splits
+into `host`, `runner` and `gen`; `model/README.md` gains a crate map. No behaviour change; goldens
+byte-identical except listed path-embedding snapshots; the guest is rebuilt.
 [Spec](.flow/specs/fn-244-package-layout-of-modelumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-244.1 | ⬜ todo | After fn-238 and fn-242 close: Rust nesting, annotations/catalog naming, descriptions, crate map (R1, R3) |
-| fn-244.2 | ⬜ todo | After fn-228.6, before fn-228.7: Go Runner out of the generated tree (R2) |
+| fn-244.1 | ⬜ todo | Serialized freeze after fn-238 and fn-242 close, before fn-237.1: Rust crates into role directories, `umpire-tla`, catalog merge, facade, crate map (R1, R3) |
+| fn-244.2 | ⬜ todo | After fn-228.6, before fn-228.7: Go module split into `host`, `runner`, `gen`; Kettle Go under `reference/kettle` (R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
@@ -182,7 +185,7 @@ on 2026-10-23, scheduled after fn-238.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-237.1 | ⬜ todo | Optional handler facts through native adapters and independent TLC replay (R1) |
+| fn-237.1 | ⬜ todo | After fn-244.1: optional handler facts through native adapters and independent TLC replay (R1) |
 | fn-237.2 | ⬜ todo | Bounded nominal optional values through source binding, emission and decode (R1) |
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |

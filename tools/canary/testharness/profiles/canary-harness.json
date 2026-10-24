@@ -1,1 +1,0 @@
-{"version":2,"name":"canary-harness","claim":"The Case's Contract held for one serial Run of the pinned canary Case against a test cluster standing in for the production-canary namespace and route.","trust":"test-cluster-harness","blockingKnownGaps":["capability","input","interpretation","claim"],"unsupportedRule":"rejected"}

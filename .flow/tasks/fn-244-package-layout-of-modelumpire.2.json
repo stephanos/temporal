@@ -9,6 +9,6 @@
   "spec": "fn-244-package-layout-of-modelumpire",
   "spec_path": ".flow/tasks/fn-244-package-layout-of-modelumpire.2.md",
   "status": "todo",
-  "title": "Go Runner out of the generated protobuf tree",
-  "updated_at": "2026-10-24T00:09:30.697940Z"
+  "title": "Go module split into host, runner and gen; Kettle Go under reference/kettle",
+  "updated_at": "2026-10-24T00:15:04.919077Z"
 }

@@ -9,6 +9,6 @@
   "spec": "fn-244-package-layout-of-modelumpire",
   "spec_path": ".flow/tasks/fn-244-package-layout-of-modelumpire.1.md",
   "status": "todo",
-  "title": "Rust crate layout: nesting, annotations/catalog naming, descriptions, crate map",
-  "updated_at": "2026-10-24T00:09:30.697822Z"
+  "title": "Rust crates into role directories; umpire-tla; annotations merged into catalog; facade",
+  "updated_at": "2026-10-24T00:15:04.502182Z"
 }

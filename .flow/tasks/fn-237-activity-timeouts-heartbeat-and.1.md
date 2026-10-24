@@ -36,6 +36,9 @@ Quick from `model/`: `mise exec -- cargo test -p umpire-dsl-macros -p umpire-lif
 
 Full from repository root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. If linked guest bytes change, run `make umpire-guest`, then the embedded slice/gap checks. Compare all pre-existing snapshots, including metadata, to the pinned original manifest; no activity or other old golden updates. Retain actual counts, replay traces and soft-budget misses.
 
+### Ordering note (2026-10-24)
+
+Starts after fn-244.1, the serialized layout freeze, so it works in the new crate paths (for example `author/dsl/macros` and `backends/tla`).
 ## Acceptance
 - [ ] Public/private and unit/declared-World machines mix unit and optional handlers correctly. Unsupported returns, payload/discriminant/alias/nested carriers and mixed carriers fail the appropriate compile/source controls.
 - [ ] Native changed-None, unchanged-Some, ordinary empty, stay, rejection and invalid-mutation controls preserve enabledness and exact fact cardinality.
