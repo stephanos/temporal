@@ -438,7 +438,7 @@ fn owner_death_terminates_and_reaps_separate_session_descendants() -> Result<(),
     let scratch = Scratch::new(&root()?)?;
     let output = fixture("lifecycle-harness").arg("owner-eof").arg(&scratch.0).output()?;
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
-    assert!(output.stderr.is_empty());
+    assert_eq!(output.stderr, b"");
     assert_reaped(&scratch.0.join("pids"))?;
     scratch.finish(Ok(()))
 }

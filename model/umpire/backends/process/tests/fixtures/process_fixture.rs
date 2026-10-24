@@ -29,9 +29,41 @@ mod fixture {
         Ok(status.lines().find_map(|line| line.strip_prefix("PPid:")).unwrap_or("").trim().into())
     }
 
+    fn owner(args: &[String]) -> Result<(), Box<dyn std::error::Error>> {
+        let directory = Path::new(&args[2]);
+        let mut target = Command::new(env::current_exe()?);
+        target.args(["tree", &args[3], &args[4]]);
+        if args.get(5).is_some_and(|mode| mode == "owner-eof") {
+            let ready = args[3].clone();
+            thread::spawn(move || {
+                for _ in 0..1000 {
+                    if fs::read_to_string(&ready).is_ok_and(|s| s.split_whitespace().count() == 2) {
+                        process::exit(0);
+                    }
+                    thread::sleep(Duration::from_millis(5));
+                }
+                process::exit(1);
+            });
+        }
+        let outcome = run_process_cancelled(
+            &mut target,
+            directory,
+            "owner",
+            Limits::default(),
+            None,
+            &AtomicBool::new(false),
+        );
+        let status = match outcome {
+            Ok((status, _)) => status.code().unwrap_or(-1).to_string(),
+            Err(error) => error.refusal.to_string(),
+        };
+        fs::write(directory.join("status"), status)?;
+        Ok(())
+    }
+
     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
         let args: Vec<_> = env::args().collect();
-        match args.get(1).map(String::as_str).unwrap_or("") {
+        match args.get(1).map_or("", String::as_str) {
             "started" => {
                 println!("started");
                 io::stdout().flush()?;
@@ -41,7 +73,7 @@ mod fixture {
             "tree" => {
                 let mut input = String::new();
                 io::stdin().read_to_string(&mut input)?;
-                assert!(input.is_empty());
+                assert_eq!(input, "");
                 let mut child = Command::new("setsid")
                     .arg(env::current_exe()?)
                     .arg("sleep")
@@ -52,38 +84,7 @@ mod fixture {
                 sleep();
                 child.wait()?;
             }
-            "owner" => {
-                let directory = Path::new(&args[2]);
-                let mut target = Command::new(env::current_exe()?);
-                target.args(["tree", &args[3], &args[4]]);
-                if args.get(5).is_some_and(|mode| mode == "owner-eof") {
-                    let ready = args[3].clone();
-                    thread::spawn(move || {
-                        for _ in 0..1000 {
-                            if fs::read_to_string(&ready)
-                                .is_ok_and(|s| s.split_whitespace().count() == 2)
-                            {
-                                process::exit(0);
-                            }
-                            thread::sleep(Duration::from_millis(5));
-                        }
-                        process::exit(1);
-                    });
-                }
-                let outcome = run_process_cancelled(
-                    &mut target,
-                    directory,
-                    "owner",
-                    Limits::default(),
-                    None,
-                    &AtomicBool::new(false),
-                );
-                let status = match outcome {
-                    Ok((status, _)) => status.code().unwrap_or(-1).to_string(),
-                    Err(error) => error.refusal.to_string(),
-                };
-                fs::write(directory.join("status"), status)?;
-            }
+            "owner" => owner(&args)?,
             #[cfg(target_os = "linux")]
             "lifecycle-harness" => lifecycle_harness(&args[2], Path::new(&args[3]))?,
             "policy" => {
@@ -227,8 +228,12 @@ mod fixture {
             }
             thread::sleep(Duration::from_millis(5));
         }
-        let owned = fs::read_to_string(&cleanup.pids)?;
-        assert_eq!(owned.split_whitespace().count(), 2, "target and escaped descendant readiness");
+        let descendants = fs::read_to_string(&cleanup.pids)?;
+        assert_eq!(
+            descendants.split_whitespace().count(),
+            2,
+            "target and escaped descendant readiness"
+        );
         let supervisor = fs::read_to_string(&cleanup.supervisor)?;
         match mode {
             "owner-group" | "owner-group-kill" => {
@@ -260,12 +265,12 @@ mod fixture {
             _ => unreachable!(),
         }
         let deadline = Instant::now();
-        while owned.split_whitespace().any(|pid| Path::new("/proc").join(pid).exists())
+        while descendants.split_whitespace().any(|pid| Path::new("/proc").join(pid).exists())
             && deadline.elapsed() < Duration::from_secs(2)
         {
             thread::sleep(Duration::from_millis(5));
         }
-        for pid in owned.split_whitespace() {
+        for pid in descendants.split_whitespace() {
             assert!(
                 !Path::new("/proc").join(pid).exists(),
                 "owned backend PID {pid} survived before harness fallback cleanup"
