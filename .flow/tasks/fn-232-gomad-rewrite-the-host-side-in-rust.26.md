@@ -10,9 +10,11 @@ Size M. Cycle6 C744b on d36e998c is terminal INCOMPLETE/exit1:22 bound PASS, rus
 
 Evidence: /home/agent/wt/evidence/fn232-split-closure/evidence-preparation/cycle6-diagnostic-failure-observation.json; cycle6-diagnostic-identity-diagnosis.json/md; diagnostic-conditions-binding-impact.json/md. Two src test files participate in helper identity hashing; preserve independent host/runtime versus helper identity distinctions. Main/source may move now that controller session49034 is terminal1. Use an isolated repair worktree and an exclusively assigned unsealed target; never compile changed source into old qualification targets. Parent owns integration, reviews, Flow completion and the new full cycle; .13 retains final96/145 and all receiving acceptance.
 
-### Fuel-off fixture follow-up
+### Profile-specific store setup follow-ups
 
 The changed-source five-profile matrix exposed another test setup mismatch: diagnostic-fuel-off allocation_receiving reports279 passed/1 failed/16 ignored because linked::streaming_tests::short_markers_are_forwarded_before_guest_waits_for_controller_release unconditionally calls store.set_fuel(10000) when the compiled engine intentionally has fuel disabled. Mirror the production linked.rs cfg(not(feature = "diagnostic-fuel-off")) guard on this test setup call only. Keep the test running, the original offered fuel/budget10000, all assertions, inputs and timeouts. Preserve the actual RED log and rerun all affected profiles. No production engine/admission or feature-matrix changes.
+
+#The subsequent guest-profile run reports280 passed/1 failed/16 ignored in the same direct-store test. Temporary diagnostic instrumentation captured the actual Wasmtime trap: interrupt before controller disconnection. The guest-profile engine enables epoch interruption; the fixture retains the default immediate deadline0, whereas production linked.rs sets store.set_epoch_deadline(1). Mirror that production setup in this test only, remove temporary diagnostic instrumentation, and retain all existing controller protocol, assertions, offered fuel, inputs and timeouts. Capture targeted guest and combined-profile RED/GREEN before the complete final five-profile matrix and canonical gate. Production engine/admission/epoch configuration remains unchanged.
 
 ### Quick commands
 
