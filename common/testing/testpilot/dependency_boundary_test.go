@@ -81,11 +81,11 @@ func TestTestpilotDependencyBoundary(t *testing.T) {
 	decoder := json.NewDecoder(bytes.NewReader(output))
 	for {
 		var pkg testpilotPackage
-		if err := decoder.Decode(&pkg); errors.Is(err, io.EOF) {
+		err := decoder.Decode(&pkg)
+		if errors.Is(err, io.EOF) {
 			break
-		} else {
-			require.NoError(t, err)
 		}
+		require.NoError(t, err)
 		packages, paths = append(packages, pkg), append(paths, pkg.ImportPath)
 	}
 	require.Contains(t, paths, actPackage)
