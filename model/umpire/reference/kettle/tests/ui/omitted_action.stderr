@@ -5,7 +5,7 @@ error[E0004]: non-exhaustive patterns: `Action::User(umpire_reference_kettle::ke
   |           ^^^^^^ pattern `Action::User(umpire_reference_kettle::kettle::User::DepressButton)` not covered
   |
 note: `Action` defined here
- --> ../../fixtures/fixtures/sample_kettle/model.rs
+ --> ../../dev/fixtures/fixtures/sample_kettle/model.rs
   |
   | #[machine]
   | ^^^^^^^^^^

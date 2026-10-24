@@ -2,9 +2,9 @@
   "base_commit": "9bb2ba62e6ecd05f5dedc326e7f8c579a6c06d9a",
   "protected_count": 1192,
   "summary": {
-    "identical": 863,
+    "identical": 862,
     "merged-catalog-expansion-root": 1,
-    "compiler-diagnostic-path": 4,
+    "compiler-diagnostic-path": 5,
     "snapshot-source-metadata": 321,
     "rebuilt-guest": 1,
     "facade-authored-input-path": 2
@@ -8148,8 +8148,8 @@
       "original": "model/umpire/reference/kettle/tests/ui/omitted_action.stderr",
       "current": "model/umpire/reference/kettle/tests/ui/omitted_action.stderr",
       "before_sha256": "a861e083e5b53ace18e7db54cc589db733e7f83cabf8f1a15139efc8ac11496f",
-      "after_sha256": "a861e083e5b53ace18e7db54cc589db733e7f83cabf8f1a15139efc8ac11496f",
-      "status": "identical"
+      "after_sha256": "029bb4629af6da92e17e6b2d66a9676390396d2ec61914510384d405fa6828e4",
+      "status": "compiler-diagnostic-path"
     },
     {
       "original": "model/umpire/reference/kettle/tests/ui/omitted_enum.stderr",
