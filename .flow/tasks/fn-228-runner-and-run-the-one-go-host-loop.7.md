@@ -13,6 +13,10 @@ Document the actual bootstrap and polling protocol, exact replay event schema, i
 ### Dependency change (2026-10-23)
 
 With fn-228.5 deferred by the owner, this task depends on .6 only. The write-up records R40 (the Shim) as deferred rather than discharged, superseded by fn-243 (programmed workers).
+
+### Ordering note (2026-10-24)
+
+Runs after fn-244.2, which moves the Go Runner out of the generated protobuf tree, so the write-up names its final path.
 ## Acceptance
 - [ ] DESIGN.md section and R33 to R40 rows updated
 - [ ] README and MIGRATE updated

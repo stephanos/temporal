@@ -104,7 +104,7 @@ publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner
 | --- | --- | --- |
 | fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
 | fn-228.6 | 🔄 in progress | After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
-| fn-228.7 | ⬜ todo | After .6; records R40 as deferred: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
+| fn-228.7 | ⬜ todo | After .6 and fn-244.2; records R40 as superseded: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 
@@ -157,6 +157,19 @@ lane after fn-238.6, before fn-237.1.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-242.1 | 🔄 in progress | Parallel lane (worktree `work/fn2421-lengths`): `len()` parity or located refusal; TLC evaluation-error parsing (R1, R2) |
+
+### fn-244: Package layout of model/umpire: consistent nesting, clear names, a crate map (model)
+
+Filed on 2026-10-24 at the owner's request after a layout review. Mechanical, no behaviour change:
+nest `ir-derive` and `catalog-build` under their parents, make the `annotations` versus `catalog`
+split obvious (rename or merge), move the hand-written Go `runner` out of the generated protobuf
+tree, fix stale descriptions, and add a crate map to `model/README.md` saying which crates authors use.
+[Spec](.flow/specs/fn-244-package-layout-of-modelumpire.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-244.1 | ⬜ todo | After fn-238 and fn-242 close: Rust nesting, annotations/catalog naming, descriptions, crate map (R1, R3) |
+| fn-244.2 | ⬜ todo | After fn-228.6, before fn-228.7: Go Runner out of the generated tree (R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
