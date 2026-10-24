@@ -324,7 +324,7 @@ impl DryRun {
         let role = role.ok_or("foreign dry-run build role")?;
         let binary = PathBuf::from(text(&record, "binary")?);
         let binary_digest = digest(&read_file(&binary, FILE_BOUND)?);
-        retained.insert(binary, binary_digest.clone());
+        retained.insert(binary.clone(), binary_digest.clone());
         require(
             binary_digest == record["binary_sha256"],
             "dry-run binary changed after its build",
@@ -419,11 +419,17 @@ impl DryRun {
             "dry-run Cargo artifact role differs",
         )?;
         let artifact = PathBuf::from(text(artifacts[0], "executable")?);
+        super::custody::clean_absolute(&artifact)?;
         require(
-            digest(&read_file(&artifact, FILE_BOUND)?) == binary_digest,
+            binary
+                == path
+                    .parent()
+                    .ok_or("build record parent missing")?
+                    .join(role.binary_name())
+                && record["cargo_artifact"]
+                    == json!({"executable":artifact,"sha256":binary_digest}),
             "dry-run published binary differs from actual Cargo artifact",
         )?;
-        retained.insert(artifact, binary_digest);
         let snapshot = Snapshot::observe(&repo, runner, cancelled, context)?;
         let (identity, runtime) = identities(&repo, &snapshot, role, &compiler_text, &target)?;
         require(
@@ -596,13 +602,17 @@ impl DryRun {
         let frames = frames(&captured.stdout)?;
         let (executable, observed) = build_observation(&frames, role, repo)?;
         let binary = output.join(role.binary_name());
-        directory.write(
-            role.binary_name(),
-            &read_file(Path::new(&executable), FILE_BOUND)?,
-            0o755,
+        let artifact_bytes = read_file(Path::new(&executable), FILE_BOUND)?;
+        let artifact_digest = digest(&artifact_bytes);
+        directory.write(role.binary_name(), &artifact_bytes, 0o755)?;
+        let binary_digest = digest(&read_file(&binary, FILE_BOUND)?);
+        require(
+            binary_digest == artifact_digest
+                && digest(&read_file(Path::new(&executable), FILE_BOUND)?) == artifact_digest,
+            "dry-run Cargo artifact changed during publication",
         )?;
         before.verify(repo, runner, cancelled, context)?;
-        let record = json!({"schema":SCHEMA,"role":role.0,"binary":binary,"binary_sha256":digest(&read_file(&binary,FILE_BOUND)?),"build_head":before.head,"build_dirty":dirty,"features":role.features(),"helper_features":role.helper_features(),"host_sha256":if role.helper(){None}else{observed.get("GOMAD_HOST_IMPLEMENTATION_SHA256")},"helper_sha256":observed.get("GOMAD_LINKED_IMPLEMENTATION_SHA256"),"runtime_implementation_sha256":if role.helper(){None}else{observed.get("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")},"argv":argv,"scope":"current-source cycle preparation; no qualification pass"});
+        let record = json!({"schema":SCHEMA,"role":role.0,"binary":binary,"binary_sha256":binary_digest,"cargo_artifact":{"executable":executable,"sha256":artifact_digest},"build_head":before.head,"build_dirty":dirty,"features":role.features(),"helper_features":role.helper_features(),"host_sha256":if role.helper(){None}else{observed.get("GOMAD_HOST_IMPLEMENTATION_SHA256")},"helper_sha256":observed.get("GOMAD_LINKED_IMPLEMENTATION_SHA256"),"runtime_implementation_sha256":if role.helper(){None}else{observed.get("GOMAD_RUNTIME_IMPLEMENTATION_SHA256")},"argv":argv,"scope":"current-source cycle preparation; no qualification pass"});
         let path = output.join("dry-build.json");
         directory.write(
             "dry-build.json",

@@ -218,6 +218,9 @@ pub(crate) fn run_cases(owner: &super::super::process::CycleOwner) -> Result<(),
     )?;
     let cancelled = AtomicBool::new(false);
     let repo = default_repo()?;
+    if std::env::var("GOMAD_BUILD_CASE_MULTI_HOST").is_ok_and(|value| value == "1") {
+        return shared_target_host_roles(&root, &target, &cargo, &mut runner, &cancelled, &repo);
+    }
     let mut dry = DryRun::default();
     dry.enable(&json!({}));
     let path = DryRun::build(
@@ -707,4 +710,174 @@ fn frame_mutation(bytes: &[u8], mutation: &str) -> Vec<u8> {
         out.push(b'\n');
     }
     out
+}
+
+fn shared_target_host_roles(
+    root: &Path,
+    target: &Path,
+    cargo: &Path,
+    runner: &mut Runner,
+    cancelled: &AtomicBool,
+    repo: &Path,
+) -> Result<(), String> {
+    let context = "cycle-build-proof";
+    let mut dry = DryRun::default();
+    let release = DryRun::build(
+        "release",
+        repo,
+        &root.join("roles"),
+        cargo,
+        target,
+        runner,
+        cancelled,
+        context,
+    )?;
+    let snapshot = Snapshot::observe(repo, runner, cancelled, context)?;
+    let initial = file_json(&release)?;
+    dry.enable(&json!({"dry_run":true,"repo":repo,"source_sha256":source_digest(&snapshot),"head":snapshot.head,"symlinks":snapshot.symlinks,"identity":{"host":initial["host_sha256"],"helper":initial["helper_sha256"]}}));
+    let first = dry.read_record(&release, None, Some("release"), runner, cancelled, context)?;
+    let release_binary = PathBuf::from(first["binary"].as_str().ok_or("release binary")?);
+    let shared = target.join("release/gomad");
+    let shared_before = witness(&shared);
+    assert_eq!(shared_before["sha256"], first["binary_sha256"]);
+    let fixture = DryRun::build(
+        "host-fixture",
+        repo,
+        &root.join("roles"),
+        cargo,
+        target,
+        runner,
+        cancelled,
+        context,
+    )?;
+    let shared_after = witness(&shared);
+    assert_ne!(
+        shared_before["sha256"], shared_after["sha256"],
+        "second host role must actually overwrite shared Cargo executable"
+    );
+    assert_eq!(witness(&release_binary)["sha256"], first["binary_sha256"]);
+    eprintln!(
+        "SHARED_TARGET_OVERWRITE {}",
+        json!({"shared_before":shared_before,"shared_after":shared_after,"release_record":witness(&release),"release_binary":witness(&release_binary),"fixture_record":witness(&fixture),"source_sha256":digest(include_bytes!("mod.rs")),"test_source_sha256":digest(include_bytes!("tests.rs"))})
+    );
+    let second = dry.read_record(
+        &fixture,
+        None,
+        Some("host-fixture"),
+        runner,
+        cancelled,
+        context,
+    )?;
+    let first_after =
+        dry.read_record(&release, None, Some("release"), runner, cancelled, context)?;
+    assert_eq!(first_after["binary_sha256"], first["binary_sha256"]);
+    assert_eq!(shared_after["sha256"], second["binary_sha256"]);
+    let mut files = first_after["inputs"]
+        .as_object()
+        .ok_or("release inputs")?
+        .clone();
+    for (path, sha) in second["inputs"].as_object().ok_or("fixture inputs")? {
+        if let Some(previous) = files.insert(path.clone(), sha.clone()) {
+            assert_eq!(previous, *sha, "role seals must coexist: {path}");
+        }
+    }
+    assert!(
+        !files.contains_key(shared.to_str().ok_or("shared target path")?),
+        "mutable Cargo executable must not enter role seals"
+    );
+    let candidate = json!({"repo":repo,"files":files,"source_sha256":first_after["source_sha256"],"head":first_after["head"],"symlinks":first_after["symlinks"],"identity":{"host":first_after["host_sha256"],"helper":first_after["helper_sha256"]},"binary":first_after["binary"],"binary_sha256":first_after["binary_sha256"]});
+    for (path, role) in [(&release, "release"), (&fixture, "host-fixture")] {
+        dry.read_record(
+            path,
+            Some(&candidate),
+            Some(role),
+            runner,
+            cancelled,
+            context,
+        )?;
+    }
+    published_copy_refusals(root, &release, &release_binary, &dry, runner, cancelled)?;
+    eprintln!(
+        "SHARED_TARGET_CONTROL {}",
+        json!({"roles":["release","host-fixture"],"shared_overwritten":true,"both_admitted_after_second":true,"both_sealed_together":true,"source_sha256":digest(include_bytes!("mod.rs")),"test_source_sha256":digest(include_bytes!("tests.rs"))})
+    );
+    Ok(())
+}
+
+fn published_copy_refusals(
+    root: &Path,
+    record: &Path,
+    binary: &Path,
+    dry: &DryRun,
+    runner: &mut Runner,
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
+    let original = read_file(record, JSON_BOUND)?;
+    let control = retain(root, "publication-control.json", &original);
+    for (field, value) in [
+        ("sha256", json!("0".repeat(64))),
+        ("executable", json!("/foreign/gomad")),
+    ] {
+        let mut mutant = strict_json(&original)?;
+        mutant["cargo_artifact"][field] = value;
+        let bytes = serde_json::to_vec(&mutant).map_err(|e| e.to_string())?;
+        let inputs = json!({"control":control,"mutant":retain(root,&format!("publication-{field}.json"),&bytes)});
+        fs::write(record, &bytes).map_err(|e| e.to_string())?;
+        let result = dry.read_record(
+            record,
+            None,
+            Some("release"),
+            runner,
+            cancelled,
+            "cycle-build-proof",
+        );
+        fs::write(record, &original).map_err(|e| e.to_string())?;
+        let error = result.unwrap_err();
+        assert!(
+            error.contains("published binary differs from actual Cargo artifact"),
+            "{error}"
+        );
+        dry.read_record(
+            record,
+            None,
+            Some("release"),
+            runner,
+            cancelled,
+            "cycle-build-proof",
+        )?;
+        eprintln!(
+            "SHARED_TARGET_REFUSAL {}",
+            json!({"mutation":field,"observed_error":error,"inputs":inputs,"input_sha256":digest(&crate::evidence::canonical::encode(&inputs).unwrap()),"source_sha256":digest(include_bytes!("mod.rs")),"test_source_sha256":digest(include_bytes!("tests.rs"))})
+        );
+    }
+    let original_binary = read_file(binary, FILE_BOUND)?;
+    let mut mutant = original_binary.clone();
+    mutant[0] ^= 1;
+    let inputs =
+        json!({"control":witness(binary),"mutant":retain(root,"private-binary-mutant",&mutant)});
+    fs::write(binary, &mutant).map_err(|e| e.to_string())?;
+    let result = dry.read_record(
+        record,
+        None,
+        Some("release"),
+        runner,
+        cancelled,
+        "cycle-build-proof",
+    );
+    fs::write(binary, &original_binary).map_err(|e| e.to_string())?;
+    let error = result.unwrap_err();
+    assert!(error.contains("binary changed after its build"), "{error}");
+    dry.read_record(
+        record,
+        None,
+        Some("release"),
+        runner,
+        cancelled,
+        "cycle-build-proof",
+    )?;
+    eprintln!(
+        "SHARED_TARGET_REFUSAL {}",
+        json!({"mutation":"private binary bytes","observed_error":error,"inputs":inputs,"input_sha256":digest(&crate::evidence::canonical::encode(&inputs).unwrap()),"source_sha256":digest(include_bytes!("mod.rs")),"test_source_sha256":digest(include_bytes!("tests.rs"))})
+    );
+    Ok(())
 }

@@ -50,7 +50,7 @@ fn elf_rejects_invalid_dynamic_and_interpreter_segments() {
         let mut raw = image(1);
         raw[64..68].copy_from_slice(&kind.to_le_bytes());
         raw[72..80].copy_from_slice(&u64::MAX.to_le_bytes());
-        raw[104..112].copy_from_slice(&1u64.to_le_bytes());
+        raw[96..104].copy_from_slice(&1u64.to_le_bytes());
         assert!(elf(&raw).is_err());
     }
 }
@@ -76,9 +76,11 @@ fn dynamic_image() -> Vec<u8> {
     raw[64..68].copy_from_slice(&1u32.to_le_bytes());
     raw[72..80].copy_from_slice(&240u64.to_le_bytes());
     raw[80..88].copy_from_slice(&0x1000u64.to_le_bytes());
+    raw[96..104].copy_from_slice(&32u64.to_le_bytes());
     raw[104..112].copy_from_slice(&32u64.to_le_bytes());
     raw[120..124].copy_from_slice(&2u32.to_le_bytes());
     raw[128..136].copy_from_slice(&176u64.to_le_bytes());
+    raw[152..160].copy_from_slice(&64u64.to_le_bytes());
     raw[160..168].copy_from_slice(&64u64.to_le_bytes());
     for (index, (tag, value)) in [(5u64, 0x1000u64), (10, 32), (1, 0), (29, 9)]
         .iter()
@@ -110,6 +112,61 @@ fn elf_extracts_and_bounds_dynamic_strings() {
     let mut unterminated = raw;
     unterminated[240..].fill(b'x');
     assert!(elf(&unterminated).is_err());
+}
+
+fn file_backed_refusal(case: &str, offset: usize, length: u64, expected: &str) {
+    let control = dynamic_image();
+    let accepted = elf(&control).unwrap().unwrap();
+    assert_eq!(accepted.needed, ["libc.so"]);
+    assert_eq!(accepted.search, ["/usr/lib"]);
+    let mutated = replace(&control, offset, &length.to_le_bytes());
+    let result = elf(&mutated);
+    println!(
+        "GNU_ELF_FILESZ_PROOF {}",
+        json!({
+            "case": case,
+            "control_raw_bytes": control,
+            "control_sha256": digest(&control),
+            "control_return": "Ok",
+            "mutation_raw_bytes": mutated,
+            "mutation_sha256": digest(&mutated),
+            "function_return": if result.is_ok() { "Ok" } else { "Err" },
+            "refusal": result.as_ref().err(),
+            "intended_predicate": expected,
+        })
+    );
+    assert_eq!(result.unwrap_err(), expected);
+}
+
+#[test]
+fn elf_rejects_strings_outside_file_backed_load_segment() {
+    file_backed_refusal(
+        "strings-in-memory-only",
+        96,
+        8,
+        "compiler ELF string table outside load segments",
+    );
+}
+
+#[test]
+fn elf_rejects_dynamic_entries_outside_file_backed_segment() {
+    file_backed_refusal(
+        "dynamic-entries-in-memory-only",
+        152,
+        16,
+        "compiler ELF string table missing",
+    );
+}
+
+#[test]
+fn elf_uses_file_size_when_memory_segment_exceeds_file() {
+    let control = dynamic_image();
+    let mutated = replace(
+        &replace(&control, 104, &4096u64.to_le_bytes()),
+        160,
+        &4096u64.to_le_bytes(),
+    );
+    assert_eq!(elf(&mutated).unwrap(), elf(&control).unwrap());
 }
 
 #[test]
@@ -322,15 +379,12 @@ pub(super) fn original_cases(
         "elf::segment",
         &segment,
         vec![
-            (
-                "out-of-range",
-                replace(&segment, 104, &121u64.to_le_bytes()),
-            ),
+            ("out-of-range", replace(&segment, 96, &121u64.to_le_bytes())),
             (
                 "overflow",
                 replace(
                     &replace(&segment, 72, &u64::MAX.to_le_bytes()),
-                    104,
+                    96,
                     &1u64.to_le_bytes(),
                 ),
             ),
@@ -367,7 +421,7 @@ pub(super) fn original_cases(
         &raw,
         vec![(
             "unaligned-dynamic",
-            replace(&raw, 160, &63u64.to_le_bytes()),
+            replace(&raw, 152, &63u64.to_le_bytes()),
         )],
         "malformed compiler ELF dynamic entries",
         |b| elf(b).map(|_| ()),
@@ -386,7 +440,7 @@ pub(super) fn original_cases(
         |b| elf(b).map(|_| ()),
     )?;
     let mut large = raw.clone();
-    large[104..112].copy_from_slice(&(65u64 << 20).to_le_bytes());
+    large[96..104].copy_from_slice(&(65u64 << 20).to_le_bytes());
     proof.raw(
         "elf:64:4",
         "elf",

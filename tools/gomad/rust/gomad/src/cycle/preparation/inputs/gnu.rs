@@ -90,7 +90,7 @@ pub(crate) fn elf(raw: &[u8]) -> Result<Option<Elf>, String> {
             u32::from_le_bytes(word(raw, pos)?),
             u64::from_le_bytes(word(raw, pos + 8)?),
             u64::from_le_bytes(word(raw, pos + 16)?),
-            u64::from_le_bytes(word(raw, pos + 40)?),
+            u64::from_le_bytes(word(raw, pos + 32)?),
         ));
     }
     let segment = |begin: u64, length: u64| -> Result<&[u8], String> {
