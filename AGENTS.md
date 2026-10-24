@@ -131,6 +131,23 @@ supersedes separate-worker/separate-review scheduling for each original task in 
 Retain all original acceptance and proof ownership; complete each member only from the
 actual reviewed batch implementation and its own evidence.
 
+## Spec completion hook: validation cost
+
+After closing each Flow spec and before starting the next spec, ask:
+**Can we speed up the validation gates for subsequent specs while preserving their guarantees?**
+
+Timebox this review to five minutes using the completed spec's existing logs and receipts.
+Look for repeated builds, redundant checks, excessive review rounds, reusable fixtures,
+unrelated full-suite reruns, and checks that would pass with the implementation broken.
+Prefer batching, shared compilation, directly catching tests, and checks scoped to changes;
+retain required independent receiving checks and final qualification.
+
+Report the largest avoidable cost and the concrete change to carry forward, or state that
+no justified reduction was found. Record the decision in the existing completion summary
+or handoff. Apply authorized workflow improvements before the next spec; ask the owner
+only when changing an acceptance guarantee requires a decision. This hook uses existing
+evidence and adds no build, test suite, review round, or separate approval gate.
+
 ## Worktrees and Scratch Directories
 
 - Create git worktrees only under `/home/agent/wt/<name>` (durable across restarts). Do not create
