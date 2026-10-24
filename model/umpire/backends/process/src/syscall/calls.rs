@@ -165,6 +165,32 @@ impl Api {
             if api.kill(libc::getpid(), 0) != 0 {
                 return Err(io::Error::last_os_error());
             }
+            #[cfg(target_os = "macos")]
+            {
+                // __fork's rare EINTR path uses cerror. Bind its cancellation
+                // query in the parent while cancellation is disabled; the child
+                // kernel flag then keeps pthread_exit unreachable on that path.
+                let set_cancel_state = resolve!(
+                    c"pthread_setcancelstate",
+                    darwin_set_cancel_state,
+                    unsafe extern "C" fn(libc::c_int, *mut libc::c_int) -> libc::c_int
+                );
+                let prime_cancel_error = resolve!(
+                    c"_pthread_exit_if_canceled",
+                    darwin_prime_cancel_error,
+                    unsafe extern "C" fn(libc::c_int)
+                );
+                let mut prior = 0;
+                let disabled = set_cancel_state(libc::PTHREAD_CANCEL_DISABLE, &raw mut prior);
+                if disabled != 0 {
+                    return Err(io::Error::from_raw_os_error(disabled));
+                }
+                prime_cancel_error(libc::EINTR);
+                let restored = set_cancel_state(prior, ptr::null_mut());
+                if restored != 0 {
+                    return Err(io::Error::from_raw_os_error(restored));
+                }
+            }
             Ok(api)
         }
     }
@@ -360,6 +386,10 @@ pub(super) unsafe fn pause(api: &Api) {
 
 #[cfg(target_os = "macos")]
 unsafe extern "C" {
+    #[link_name = "pthread_setcancelstate"]
+    fn darwin_set_cancel_state(state: libc::c_int, previous: *mut libc::c_int) -> libc::c_int;
+    #[link_name = "_pthread_exit_if_canceled"]
+    fn darwin_prime_cancel_error(error: libc::c_int);
     #[link_name = "__pthread_canceled"]
     fn darwin_cancel_state(action: libc::c_int) -> libc::c_int;
     #[link_name = "__fork"]

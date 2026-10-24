@@ -1,0 +1,80 @@
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/apple-exports_internal.h https://raw.githubusercontent.com/apple-oss-distributions/libpthread/42d026df5b07825070f60134b980a1ec2552dfee/src/exports_internal.h
+command_rc=0
+COMMAND: sed -n 112\,114p /tmp/fn2474-wrapper-audit/apple-exports_internal.h
+OS_EXPORT
+void
+_pthread_exit_if_canceled(int error);
+command_rc=0
+COMMAND: rg -n declare_symbol\\\(pthread_setcancelstate\\\) /tmp/fn2474-wrapper-audit/apple-exports_internal.h
+155:declare_symbol(pthread_setcancelstate);
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/apple-pthread.h https://raw.githubusercontent.com/apple-oss-distributions/libpthread/42d026df5b07825070f60134b980a1ec2552dfee/include/pthread/pthread.h
+command_rc=0
+COMMAND: rg -n PTHREAD_CANCEL_DISABLE\|PTHREAD_CANCEL_ENABLE\|pthread_setcancelstate /tmp/fn2474-wrapper-audit/apple-pthread.h
+141:#define PTHREAD_CANCEL_ENABLE        0x01  /* Cancel takes place at next cancellation point */
+142:#define PTHREAD_CANCEL_DISABLE       0x00  /* Cancel postponed */
+498:int pthread_setcancelstate(int , int * _Nullable)
+499:		__DARWIN_ALIAS(pthread_setcancelstate);
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/apple-pthread-cancellation.c https://raw.githubusercontent.com/apple-oss-distributions/libpthread/42d026df5b07825070f60134b980a1ec2552dfee/src/pthread_cancelable.c
+command_rc=0
+COMMAND: sed -n 120\,143p /tmp/fn2474-wrapper-audit/apple-pthread-cancellation.c
+pthread_setcancelstate(int state, int *oldstateptr)
+{
+	pthread_t self = pthread_self();
+
+	_pthread_validate_signature(self);
+
+	switch (state) {
+	case PTHREAD_CANCEL_ENABLE:
+		__pthread_canceled(1);
+		break;
+	case PTHREAD_CANCEL_DISABLE:
+		__pthread_canceled(2);
+		break;
+	default:
+		return EINVAL;
+	}
+
+	int oldstate = _pthread_update_cancel_state(self, _PTHREAD_CANCEL_STATE_MASK, state);
+	if (oldstateptr) {
+		*oldstateptr = oldstate & _PTHREAD_CANCEL_STATE_MASK;
+	}
+	return 0;
+}
+
+command_rc=0
+COMMAND: sed -n 207\,219p /tmp/fn2474-wrapper-audit/apple-pthread-cancellation.c
+_pthread_exit_if_canceled(int error)
+{
+	if ((error & 0xff) == EINTR && __pthread_canceled(0) == 0) {
+		pthread_t self = pthread_self();
+
+		_pthread_validate_signature(self);
+		self->cancel_error = error;
+		self->canceled = true;
+		pthread_exit(PTHREAD_CANCELED);
+	}
+}
+
+int
+command_rc=0
+COMMAND: sed -n 980\,995p /tmp/fn2474-wrapper-audit/apple-kern_sig.c
+	switch (action) {
+	case 1:
+		uth->uu_flag &= ~UT_CANCELDISABLE;
+		return 0;
+	case 2:
+		uth->uu_flag |= UT_CANCELDISABLE;
+		return 0;
+	case 0:
+	default:
+		if ((uth->uu_flag & (UT_CANCELDISABLE | UT_CANCEL | UT_CANCELED)) == UT_CANCEL) {
+			uth->uu_flag &= ~UT_CANCEL;
+			uth->uu_flag |= (UT_CANCELED | UT_NO_SIGMASK);
+			return 0;
+		}
+		return EINVAL;
+	}
+command_rc=0
+Source-only control: parent temporary DISABLE makes EINTR priming query return EINVAL without consuming pending cancellation; restoration returns normally in the inspected Darwin implementation. No native Darwin execution or link result is claimed.

@@ -63,7 +63,7 @@
     "model/umpire/backends/process/src/support.rs": "58126a8582f9e713f4ab1b69795b12f0438d0a0de81f49a626121513306ad189",
     "model/umpire/backends/process/src/lib.rs": "08d4412f777c7872fd50874ca53198a8f6691ccd76eee3b08755493207939d4b",
     "model/umpire/backends/process/src/syscall.rs": "5cd45c0b36476a0eb529bb2ccab7f9e5e2a4ac3dfaec6cba4c89b74cb664132c",
-    "model/umpire/backends/process/src/syscall/calls.rs": "5d1b254d45f55cb16d465f8b3fe06890b482493e34377ada81d5157bd57a7bef",
+    "model/umpire/backends/process/src/syscall/calls.rs": "1300cde9f479bd9a6c52e0b281b4091fe125bafa6e8615617a395f5735f418d7",
     "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "86cf0883273397351c88be4cd52372b2100d52073178c6dcbf4253edb3d9f4f2"
   },
   "failed_observations": [
@@ -75,5 +75,6 @@
     "initial cargo fmt exited1 for fixture-relative calls module path; explicit path fixed",
     "supplemental source fetch HTTP429/curl22 retained in wrapper-audit/extra-probe.log; later exact API/source fetches succeeded"
   ],
-  "scope": "No full Model gate here; final task3 retains one combined required backend pipeline. No source/Model/guest/golden meaning or bytes changed outside canonical process scope."
+  "scope": "No full Model gate here; final task3 retains one combined required backend pipeline. No source/Model/guest/golden meaning or bytes changed outside canonical process scope.",
+  "after_native_test_changes": "Only cfg(macos) cancellation/error-binding closure, formatting and evidence; native Linux active paths unchanged. Scoped Clippy observed exit0 after the final source edit; native Darwin remains unavailable."
 }

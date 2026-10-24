@@ -14,7 +14,7 @@ These are source observations, not native Darwin execution or SDK link receipts.
 
 | Child entry | Linux audit and implementation | Darwin audit and implementation |
 | --- | --- | --- |
-| fork | Raw SYS_clone(SIGCHLD, zero remaining parameters), bypassing application atfork callbacks. | Direct __fork assembler shim; Apple source normalizes its kernel return and resets cached PID. Private ABI limitation retained. |
+| fork | Raw SYS_clone(SIGCHLD, zero remaining parameters), bypassing application atfork callbacks. | Direct __fork assembler shim; parent primes its rare cerror/EINTR cancellation query under temporary cancellation disable. Each child immediately disables kernel cancellation, making the error unwind branch unreachable. Private ABI limitation retained. |
 | setpgid | Generated scalar non-cancelling stub in Linux syscalls.list. | Generated scalar non-cancelling stub in syscalls.master/create-syscalls.pl. |
 | sigaction reset | Public wrapper takes abort lock for SIGABRT and rejects NPTL-reserved signals. Replace ALL default resets with raw rt_sigaction and parent-prepared zero storage. Every kernel field zero means default handler, flags/mask/restorer zero. | Libc delegates to libplatform's scalar stack conversion to __sigaction; no allocation/lock in that conversion. Public fatal-signal restriction branch is compile-time conditional; no native certification. |
 | sigaction stop handlers | Four non-SIGABRT calls to libc wrapper: source bypasses abort lock, then scalar kernel action conversion/syscall. | Same scalar trampoline conversion; masks/structures already prepared in parent. |
@@ -98,3 +98,16 @@ not a passing audit observation. final-probe.py subsequently fetched the same
 v6.12 kernel sources through the official GitHub contents API, retained their
 blob SHAs, and observed exit zero for every fetch and inspection. No test suite
 was rerun to replace an unobserved result.
+
+Darwin rare-error binding is also prepared before fork. calls::Api::new resolves
+parent-only pthread_setcancelstate and the OS_EXPORT _pthread_exit_if_canceled.
+It temporarily disables cancellation, primes the EINTR query path, then restores
+the previous state, checking both POSIX return codes. With UT_CANCELDISABLE set,
+the kernel query returns EINVAL without consuming any pending cancellation, so
+no pthread_exit occurs. The inspected Darwin setter restores kernel/user state
+and returns normally; it has no glibc-style immediate asynchronous unwind branch.
+Both symbols and DISABLE=0/ENABLE=1 are verified by pinned Apple export/public
+headers. This does not add any child callback or library API. See
+priming-probe.sh/priming-probe.log (observed overall and per-command exit zero).
+The private Darwin syscall bindings and source-only/native-unavailable distinction
+remain explicit; no extra package, assembler path or platform certification was added.

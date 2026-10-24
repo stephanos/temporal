@@ -45,5 +45,5 @@ The fixed pre-edit base is 60c65fcb2922e953a558541343c65a4998519e2f. Root's sepa
 metadata-only commit 2c9a6959086b4ac4ce736fe3d14f276705bff6ab is included in the range and is
 not this worker's implementation. Task lane branches were integrated, and their clean
 worktrees/branches removed normally. No full Model validation belongs to this task; final
- task 3 retains its one combined TLC/Apalache required validation pipeline. Documentation
+task 3 retains its one combined TLC/Apalache required validation pipeline. Documentation
 that temporarily described Python ownership is also assigned to final task 3.
