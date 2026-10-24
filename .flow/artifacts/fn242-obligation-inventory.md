@@ -8,7 +8,7 @@ The reviewed plan amendment is `8b385f4234` (conductor original `3329b8b9db`); i
 
 | Surface | Rows | Existing catching proof | Retained, proof required |
 | --- | ---: | ---: | ---: |
-| Driver and frozen-scheduler checks | 3460 | 708 | 2752 |
+| Driver, frozen scheduler and delegated receipt checks | 3728 | 192 | 3536 |
 | Required final semantic subgates | 145 | 0 | 145 |
 | Launcher policy regressions | 3 | 0 | 3 |
 | Measurement duplicate candidates | 2 | 1 fold with existing catcher | 1 pending direct delegation catcher |
@@ -21,7 +21,7 @@ The checker inventory is intentionally finer than the 145 obligations: it record
 
 ## Semantic contracts and trust boundaries
 
-`semantic_failure_families` maps the raw predicate index many-to-one onto coverage, identity, custody, bounds, process witness, measured accounting, replay and original behavioral contracts. Every check carries `semantic_family_ref` and `trust_boundary_ref`. This is an index for shrinking the implementation, not a demand for 3,460 independent Rust tests or validators.
+`semantic_failure_families` maps the raw predicate index many-to-one onto coverage, identity, custody, bounds, process witness, measured accounting, replay and original behavioral contracts. Every check carries `semantic_family_ref` and `trust_boundary_ref`. This is an index for shrinking the implementation, not a demand for 3,728 independent Rust tests or validators.
 
 One authoritative validator and one catching table may resolve several source-site IDs when they check the same immutable input at the same trust boundary. Each resolved ID must cite that shared execution. File reopening, producer-to-receiver edges and distinct authenticated contexts retain their own validation. Grouping alone supplies no deletion reason or catching proof.
 
@@ -87,85 +87,97 @@ Only two local duplicates are supported by the independent measurement survey. `
 
 No broad 25k-line measurement deletion is supported. `read_profile_run`/reopen establish an independent retained-file trust boundary; stress/source manifests, mutable build-receipt validation and artifact custody remain necessary.
 
-## Complete module index
+## Complete module index (73 sources)
 
 | Source | Check rows | Existing catcher | Pending |
 | --- | ---: | ---: | ---: |
-| `.flow/artifacts/wasm-qualification-driver/parallel/scheduler.py` | 64 | 3 | 61 |
-| `tools/gomad/rust/driver/adapters.py` | 98 | 16 | 82 |
-| `tools/gomad/rust/driver/allocation_receiving.py` | 37 | 1 | 36 |
-| `tools/gomad/rust/driver/broad_harness.py` | 33 | 4 | 29 |
-| `tools/gomad/rust/driver/broad_stages.py` | 19 | 1 | 18 |
+| `.flow/artifacts/wasm-qualification-driver/parallel/scheduler.py` | 83 | 0 | 83 |
+| `tools/gomad/rust/driver/adapters.py` | 98 | 0 | 98 |
+| `tools/gomad/rust/driver/allocation_receiving.py` | 37 | 0 | 37 |
+| `tools/gomad/rust/driver/broad_harness.py` | 33 | 0 | 33 |
+| `tools/gomad/rust/driver/broad_stages.py` | 24 | 0 | 24 |
 | `tools/gomad/rust/driver/cell_reader.py` | 23 | 11 | 12 |
-| `tools/gomad/rust/driver/cluster_wire_reference.py` | 15 | 6 | 9 |
+| `tools/gomad/rust/driver/cluster_wire_reference.py` | 15 | 0 | 15 |
 | `tools/gomad/rust/driver/clusters_receiving.py` | 29 | 0 | 29 |
-| `tools/gomad/rust/driver/compose.py` | 33 | 5 | 28 |
+| `tools/gomad/rust/driver/compose.py` | 33 | 0 | 33 |
 | `tools/gomad/rust/driver/configure.py` | 33 | 0 | 33 |
-| `tools/gomad/rust/driver/core_boot_network.py` | 10 | 6 | 4 |
-| `tools/gomad/rust/driver/core_cluster_wire.py` | 9 | 1 | 8 |
-| `tools/gomad/rust/driver/core_codec.py` | 190 | 34 | 156 |
-| `tools/gomad/rust/driver/core_guest_retention.py` | 27 | 9 | 18 |
-| `tools/gomad/rust/driver/core_guests.py` | 129 | 45 | 84 |
-| `tools/gomad/rust/driver/core_identity.py` | 16 | 6 | 10 |
-| `tools/gomad/rust/driver/core_inspection.py` | 93 | 12 | 81 |
-| `tools/gomad/rust/driver/core_lifecycle.py` | 110 | 34 | 76 |
-| `tools/gomad/rust/driver/core_network.py` | 70 | 16 | 54 |
-| `tools/gomad/rust/driver/core_predicates.py` | 22 | 15 | 7 |
-| `tools/gomad/rust/driver/core_presence.py` | 30 | 12 | 18 |
-| `tools/gomad/rust/driver/core_retained.py` | 35 | 5 | 30 |
-| `tools/gomad/rust/driver/core_retained_inputs.py` | 69 | 16 | 53 |
-| `tools/gomad/rust/driver/core_retained_matrix.py` | 46 | 15 | 31 |
-| `tools/gomad/rust/driver/core_world.py` | 56 | 17 | 39 |
-| `tools/gomad/rust/driver/counterfactual_lineage.py` | 10 | 9 | 1 |
-| `tools/gomad/rust/driver/counterfactual_receiving.py` | 13 | 4 | 9 |
-| `tools/gomad/rust/driver/driver.py` | 66 | 10 | 56 |
-| `tools/gomad/rust/driver/dry_run.py` | 20 | 6 | 14 |
-| `tools/gomad/rust/driver/executed_divergence.py` | 42 | 7 | 35 |
-| `tools/gomad/rust/driver/final.py` | 13 | 4 | 9 |
-| `tools/gomad/rust/driver/final_profiles.py` | 245 | 52 | 193 |
-| `tools/gomad/rust/driver/final_public_verbs.py` | 44 | 6 | 38 |
-| `tools/gomad/rust/driver/final_retained.py` | 99 | 24 | 75 |
-| `tools/gomad/rust/driver/host_admission.py` | 16 | 5 | 11 |
-| `tools/gomad/rust/driver/identity_harness.py` | 31 | 9 | 22 |
-| `tools/gomad/rust/driver/installed_cluster_cache.py` | 14 | 6 | 8 |
+| `tools/gomad/rust/driver/core_boot_network.py` | 11 | 0 | 11 |
+| `tools/gomad/rust/driver/core_cluster_wire.py` | 10 | 0 | 10 |
+| `tools/gomad/rust/driver/core_codec.py` | 190 | 31 | 159 |
+| `tools/gomad/rust/driver/core_guest_retention.py` | 27 | 7 | 20 |
+| `tools/gomad/rust/driver/core_guests.py` | 130 | 18 | 112 |
+| `tools/gomad/rust/driver/core_identity.py` | 16 | 0 | 16 |
+| `tools/gomad/rust/driver/core_inspection.py` | 99 | 8 | 91 |
+| `tools/gomad/rust/driver/core_lifecycle.py` | 111 | 0 | 111 |
+| `tools/gomad/rust/driver/core_network.py` | 75 | 0 | 75 |
+| `tools/gomad/rust/driver/core_predicates.py` | 22 | 0 | 22 |
+| `tools/gomad/rust/driver/core_presence.py` | 30 | 5 | 25 |
+| `tools/gomad/rust/driver/core_retained.py` | 36 | 0 | 36 |
+| `tools/gomad/rust/driver/core_retained_inputs.py` | 77 | 15 | 62 |
+| `tools/gomad/rust/driver/core_retained_matrix.py` | 47 | 13 | 34 |
+| `tools/gomad/rust/driver/core_world.py` | 57 | 0 | 57 |
+| `tools/gomad/rust/driver/counterfactual_lineage.py` | 10 | 0 | 10 |
+| `tools/gomad/rust/driver/counterfactual_receiving.py` | 13 | 0 | 13 |
+| `tools/gomad/rust/driver/driver.py` | 69 | 0 | 69 |
+| `tools/gomad/rust/driver/dry_run.py` | 24 | 6 | 18 |
+| `tools/gomad/rust/driver/executed_divergence.py` | 42 | 0 | 42 |
+| `tools/gomad/rust/driver/final.py` | 14 | 0 | 14 |
+| `tools/gomad/rust/driver/final_profiles.py` | 246 | 0 | 246 |
+| `tools/gomad/rust/driver/final_public_verbs.py` | 44 | 0 | 44 |
+| `tools/gomad/rust/driver/final_retained.py` | 101 | 0 | 101 |
+| `tools/gomad/rust/driver/host_admission.py` | 16 | 0 | 16 |
+| `tools/gomad/rust/driver/identity_harness.py` | 31 | 0 | 31 |
+| `tools/gomad/rust/driver/installed_cluster_cache.py` | 14 | 0 | 14 |
 | `tools/gomad/rust/driver/installed_cluster_failure.py` | 58 | 7 | 51 |
 | `tools/gomad/rust/driver/installed_lifecycle_families.py` | 21 | 0 | 21 |
-| `tools/gomad/rust/driver/interception_callbacks.py` | 20 | 12 | 8 |
+| `tools/gomad/rust/driver/interception_callbacks.py` | 20 | 0 | 20 |
 | `tools/gomad/rust/driver/interception_streaming.py` | 30 | 8 | 22 |
 | `tools/gomad/rust/driver/launch.py` | 2 | 0 | 2 |
-| `tools/gomad/rust/driver/live.py` | 171 | 8 | 163 |
-| `tools/gomad/rust/driver/main_cli_build.py` | 45 | 2 | 43 |
-| `tools/gomad/rust/driver/native_gnu.py` | 50 | 9 | 41 |
-| `tools/gomad/rust/driver/native_observations.py` | 58 | 1 | 57 |
-| `tools/gomad/rust/driver/native_roles.py` | 30 | 13 | 17 |
-| `tools/gomad/rust/driver/onebox_receiving.py` | 52 | 16 | 36 |
+| `tools/gomad/rust/driver/live.py` | 172 | 0 | 172 |
+| `tools/gomad/rust/driver/main_cli_build.py` | 45 | 0 | 45 |
+| `tools/gomad/rust/driver/native_gnu.py` | 50 | 0 | 50 |
+| `tools/gomad/rust/driver/native_observations.py` | 59 | 0 | 59 |
+| `tools/gomad/rust/driver/native_roles.py` | 30 | 8 | 22 |
+| `tools/gomad/rust/driver/onebox_receiving.py` | 52 | 0 | 52 |
 | `tools/gomad/rust/driver/ordinary_receiving.py` | 12 | 0 | 12 |
-| `tools/gomad/rust/driver/original_ringpop.py` | 60 | 17 | 43 |
-| `tools/gomad/rust/driver/original_wire_cache.py` | 1 | 1 | 0 |
-| `tools/gomad/rust/driver/preparation.py` | 60 | 7 | 53 |
+| `tools/gomad/rust/driver/original_ringpop.py` | 60 | 0 | 60 |
+| `tools/gomad/rust/driver/original_wire_cache.py` | 1 | 0 | 1 |
+| `tools/gomad/rust/driver/preparation.py` | 60 | 0 | 60 |
 | `tools/gomad/rust/driver/primary_stages.py` | 88 | 0 | 88 |
-| `tools/gomad/rust/driver/public_roles.py` | 20 | 7 | 13 |
-| `tools/gomad/rust/driver/reach.py` | 11 | 3 | 8 |
-| `tools/gomad/rust/driver/receiving.py` | 312 | 74 | 238 |
+| `tools/gomad/rust/driver/public_roles.py` | 20 | 0 | 20 |
+| `tools/gomad/rust/driver/reach.py` | 11 | 0 | 11 |
+| `tools/gomad/rust/driver/receiving.py` | 313 | 35 | 278 |
 | `tools/gomad/rust/driver/receiving_cost.py` | 28 | 19 | 9 |
 | `tools/gomad/rust/driver/reference_profile.py` | 79 | 0 | 79 |
-| `tools/gomad/rust/driver/runtime_gate.py` | 51 | 23 | 28 |
-| `tools/gomad/rust/driver/sqlite.py` | 36 | 11 | 25 |
-| `tools/gomad/rust/driver/sqlite_oracle.py` | 55 | 11 | 44 |
-| `tools/gomad/rust/driver/static_stages.py` | 122 | 6 | 116 |
-| `tools/gomad/rust/driver/terminal_controls.py` | 17 | 5 | 12 |
-| `tools/gomad/rust/driver/terminal_inputs.py` | 16 | 3 | 13 |
-| `tools/gomad/rust/driver/terminal_module_receiving.py` | 46 | 13 | 33 |
+| `tools/gomad/rust/driver/runtime_gate.py` | 51 | 0 | 51 |
+| `tools/gomad/rust/driver/sqlite.py` | 36 | 0 | 36 |
+| `tools/gomad/rust/driver/sqlite_oracle.py` | 55 | 0 | 55 |
+| `tools/gomad/rust/driver/static_stages.py` | 122 | 0 | 122 |
+| `tools/gomad/rust/driver/terminal_controls.py` | 17 | 1 | 16 |
+| `tools/gomad/rust/driver/terminal_inputs.py` | 16 | 0 | 16 |
+| `tools/gomad/rust/driver/terminal_module_receiving.py` | 46 | 0 | 46 |
+| `tools/gomad/rust/workload_tools/producer.py` | 29 | 0 | 29 |
+| `tools/gomad/rust/workload_tools/source_custody.py` | 42 | 0 | 42 |
+| `tools/gomad/rust/workload_tools/temporal-inspection.py` | 11 | 0 | 11 |
+| `tools/gomad/rust/workload_tools/temporal-recovery.py` | 5 | 0 | 5 |
+| `tools/gomad/rust/workload_tools/temporal-support.py` | 1 | 0 | 1 |
+| `tools/gomad/rust/workload_tools/workloads.py` | 16 | 0 | 16 |
+| `tools/gomad/testdata/parity/onebox-gates.py` | 34 | 0 | 34 |
+| `tools/gomad/testdata/parity/onebox-inspection-check.py` | 66 | 0 | 66 |
 
-The 145 ordered subgate rows are `subgates[]`; their exact original list is retained as `required_final`. All 39 transferred roots, 84 admission mutation/entrypoint combinations and 22 remaining obligations stay required. Unexecuted source assertion contracts are context only and are never credited as a per-root catcher.
+The module index includes all64 driver modules, the frozen scheduler, six workload-tools modules and two delegated onebox readers. The 145 ordered subgate rows are `subgates[]`; their exact original list is retained as `required_final`. All 39 transferred roots, 84 admission mutation/entrypoint combinations and 22 remaining obligations stay required. Unexecuted source assertion contracts are context only and are never credited as a per-root catcher.
 
 ## Verification and size checkpoint
 
-Baseline: none; task and parent define no Quick commands. Focused fixture observations: driver 9 tests; configuration/composition/static/primary/final/adapters/host admission 84 tests; frozen scheduler 31 tests; reader proof audit 313 tests; final reader proof audit 52 tests; orchestration proof audit 43 selected negative tests. All passed. These are fixture/contract checks; no Go/Cargo build, canary, full profile matrix or qualification producer ran. Exact commands, numeric process exits, log/recorder hashes, observed proof traces and test/source SHA-256 bindings are retained in `execution_catalog`, `source_bindings`, proof objects and the handover.
+Baseline: none; task and parent define no Quick commands. Completed fixture observations: driver 9 tests; configuration/composition/static/primary/final/adapters/host admission 84; frozen scheduler 31; reader exception audit 313; final reader audit 52; orchestration exception audit 43. These observations passed, but an observed exception alone earns no final catching credit.
 
-Orchestration source-only correlations were replaced by actual direct-origin exception observations; unobserved claims were downgraded.
+The stronger proof/control audit first timed out at process exit124 and is explicitly INCONCLUSIVE. Its script/log are retained; it supplies no pass or proof. After the actual timeout, an optimized audit excluded mock-bearing modules, avoided repeated stack collection and passed175 existing fixture tests at numeric exit0. It rechecked all708 original credits:192 remain keep;516 lack a verified matching valid control and become mandatory pending rows. Each keep proof now includes a direct intended refusal and an exception-free normal RETURN traversing the same check in the same passing test. Incidental KeyError/missing configuration and mocked replacements do not count.
 
-The reader proof audit repeated once to correct ancestor-exception attribution; it did not rerun to scrape a green line. Only the immediate failing require/raise site receives catching credit. Final proof attribution excludes mock-injected exceptions.
+The expanded completeness verifier first failed with246 missing sites against the original ledger. After source-bound additions it passes across73 modules and3,589 explicit reject/boolean sites, with two individually explained nonpredicate-return exclusions (typed wire bool conversion and optional RSS aggregation). The ledger has3,728 rows because it also includes delegated guards, dispatch branches and status checks. All582 reader Return sites have inclusion/exclusion accounting. Conditions retain their exact local AST expression and structured true/false ancestor branches; no flattened branch conjunctions survive. Ten pure source/control probes pass, including unknown-kind, valid reset and timeout-dial port65536 counterexamples.
+
+All145 semantic rows now have concrete controlled mutation, valid control, expected classification, required execution evidence and bound original authority; none receives execution credit here. Seven additional error-receipt callsites bind exact expected diagnostic fragments. Referenced workload tools and delegated onebox receipt predicates are indexed individually.
+
+Exact commands, numeric process exits, log/recorder hashes, source/test SHA-256 and observed traces are retained in `execution_catalog`, `proof_control_audit`, `source_bindings` and the handover. No Go/Cargo build, canary, full profile matrix, qualification producer or full start ran. These are fixture/contract observations, not qualification proof.
 
 The start counter is `gomad-source-size/v1` at `4bdb81c48727c7ca280566c9f113685493e09b19`; counter SHA-256 `e9e4a58cbf7e3ddefebee91ea682bc57262fe5925b9d3f2a375b27ab9c0919ae`. Raw retained report and narrow summaries are in `source_size_at_start`. This is a start checkpoint, not a claimed before/after improvement. .7 owns the exact final comparison.
 
