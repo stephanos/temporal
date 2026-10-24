@@ -35,9 +35,16 @@ Actual production startup integration is B15, not supplied by a fixture. See `.f
 - [ ] Prove registry freshness, duplicate PID/registration refusal, accepted status semantics and every assigned predicate with valid controls. No attributable live child may survive tests or handoff.
 
 ## Done summary
-TBD
+
+Implemented actual bounded command launch, durable pre-exec registration, exact leaf wait4 accounting, honest parent identities, private observations, twelve real busy workers and complete descendant cleanup. An explicit CycleOwner claims the dedicated cycle process before children or threads; every Runner requires its PID-bound token. Supervisor loss aborts and drains every domain child/adoptee before returning a sticky failure. Timeout validation retains original 5400/7200 bounds; replaced stream/registration FIFOs refuse without blocking.
+
+Verified all 27 assigned original checks against final source. Integrated gates passed 24 standalone owner cases, 19 library cycle tests, strict Gomad library Clippy, formatting and diff checks. Both supervisor-death controls left no survivors before return; independent integrated audit found all 44 logged PIDs absent. Worker evidence audited 771 observed PIDs absent and 19 exact obsolete fixture paths removed. Historical source-mutant samples and initial failing/compile logs remain honestly bound to their original sources. Current proof: .flow/artifacts/fn242-cycle-process-review-fix-proof.json; raw evidence and integrated logs: /home/agent/wt/evidence/fn242-cycle-process/review-fix.
+
+Same-receipt independent gpt-6.1-sol high re-review returned SHIP, all three prior findings fixed and no new blockers; writer/reviewer are from the same family. Receipt retained in root-completion/review-receipt.json. Tier: session (jev-unavailable(no_key)); project pins retained.
+
+This completes the assigned process implementation. Actual CycleOwner CLI startup wiring remains required in B15; full qualification remains fn-246 after all fn-242 and fn-240 work. No full attempt, global enrollment or reservation ran. Policy/activity accounting remains 0/2; the absent fixed journal binding is not a verified durable counter.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fb706498e0, 2280efc245, 05e64987b0, 422f9360eb, 6a0f56791e
+- Tests: cargo +1.99.1 --config profile.release.package.gomad.opt-level=0 test --release --locked --manifest-path tools/gomad/rust/Cargo.toml -p gomad --test cycle_process_owner (exit0; /home/agent/wt/evidence/fn242-cycle-process/review-fix/root-integration/owner.log), cargo +1.99.1 --config profile.release.package.gomad.opt-level=0 test --release --locked --manifest-path tools/gomad/rust/Cargo.toml -p gomad --lib cycle:: -- --test-threads=1 --nocapture (exit0; /home/agent/wt/evidence/fn242-cycle-process/review-fix/root-integration/cycle.log), cargo +1.99.1 clippy --release --locked --manifest-path tools/gomad/rust/Cargo.toml -p gomad --lib --no-deps -- -D warnings (exit0; /home/agent/wt/evidence/fn242-cycle-process/review-fix/root-integration/clippy.log), cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check (exit0; /home/agent/wt/evidence/fn242-cycle-process/review-fix/root-integration/fmt.log)
 - PRs:
