@@ -484,3 +484,12 @@ fn launch_status_and_prepared_command_contracts_are_preserved() -> Result<(), Re
     }
     scratch.finish(Ok(()))
 }
+
+#[test]
+#[cfg(target_os = "linux")]
+fn pthread_atfork_handlers_do_not_run_in_supervisor_or_target() -> Result<(), Refusal> {
+    let scratch = Scratch::new(&root()?)?;
+    let output = fixture("poison-atfork").arg(&scratch.0).output()?;
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    scratch.finish(Ok(()))
+}
