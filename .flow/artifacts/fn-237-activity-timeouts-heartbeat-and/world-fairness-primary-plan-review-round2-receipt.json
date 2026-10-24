@@ -1,0 +1,58 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "d6306a579ff220f1abdfb35cd8abcc9b068e91e7",
+    "headSha": "aaed7e2f50b466a02ce23ae515a6f2602e6b3e2f",
+    "items": [
+      {
+        "body": "Adding heartbeat response kinds and a cancellation-bit key leaves the nonterminal execution contract undefined. Currently `worker/program.go` admits one response per row, `raw.Follow` selects once and resumes polling after responding, and the SDK handler selects once and returns. The plan does not specify initial key selection, retention of the current task after heartbeat, or re-selection using the actual heartbeat response. Following the existing execution shape would abandon the started task after heartbeat or return cancellation without establishing the required notification, preventing the mandatory heartbeat-then-acknowledgement witness.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-b2a2cf426ce9b053f933c12cbb0d2e13e8edb04cdd67d2b0249531a4cebe8800",
+        "id": "finding-8f0a2d449b0c182217e86441b47c434d",
+        "lastSeenReceiptId": "review-fed2d5b7f2f5eed65e118e91134894d2dfc98deb834b1ba6a4ec27a01dfe48a0",
+        "ordinal": 1,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify the bounded per-task continuation rule for both executors: initial key, heartbeat acknowledgement handling, cancellation-bit re-selection, terminal response selection, and error/cancellation behavior. Require executor tests covering both false and true notification bits before live verification.",
+        "title": "Adding heartbeat response kinds and a cancellation-bit key leaves the nonterminal execution contract undefined"
+      },
+      {
+        "body": "Tasks .1/.2 overlap on `model/README.md` and the guest; .1/.6 overlap on `model/README.md`. Neither pair has a dependency path. These overlaps force serial dispatch. The plan already explicitly selects serialization for .1/.2, so that pair is FYI; the .1/.6 overlap should also be recorded.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-b2a2cf426ce9b053f933c12cbb0d2e13e8edb04cdd67d2b0249531a4cebe8800",
+        "id": "finding-01f23ca3ef3c4a2556e9c36b46747f4e",
+        "lastSeenReceiptId": "review-fed2d5b7f2f5eed65e118e91134894d2dfc98deb834b1ba6a4ec27a01dfe48a0",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Make the overlap inventory explicit using the current mapped Touches paths. Preserve the owner\u2019s chosen dispatch arrangement.",
+        "title": "Tasks"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fed2d5b7f2f5eed65e118e91134894d2dfc98deb834b1ba6a4ec27a01dfe48a0",
+    "supersedesReceiptId": "review-b2a2cf426ce9b053f933c12cbb0d2e13e8edb04cdd67d2b0249531a4cebe8800"
+  },
+  "id": "fn-237-activity-timeouts-heartbeat-and",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior findings: all fixed\n\nThe P1 is resolved in task .4: it defines initial/false/true heartbeat keys, retains the task token and attempt, selects continuation from actual heartbeat completion, handles SDK cancellation delivery, and requires executor tests before live verification.\n\nThe P2 is resolved in the epic and task .6: both overlapping task pairs and their serial ownership are explicit.\n\nThe fixes remain consistent with R4. Test strategy, async evidence retention, dependency ordering, performance targets and privacy constraints remain stated. No new blocking findings.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "7a7c6f894aab4c58955bdb14cdcef643",
+  "session_id": "01a16e88-757c-7913-b290-32ca4edba697",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T15:37:23.706357Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}
