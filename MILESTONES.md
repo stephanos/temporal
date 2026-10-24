@@ -144,9 +144,10 @@ mismatches. Compilation passed; the actual diagnostic test binary reported
 264 passed,16 failed and16 ignored. Profile-neutral linked execution fixtures
 retained ordinary conditions instead of selecting their compiled role. Task .26
 corrects these test fixtures and the matching latent streaming cases while
-preserving strict admission, assertions, bounds and ignored status. Its focused
-five-profile matrix, integrated merge gate and independent review precede a
-fresh helper-bound cohort and the next complete cycle. C744b and all earlier
+preserving strict admission, assertions, bounds and ignored status. Task .26 is done: the five-profile matrix and both canonical merge gates passed
+on `5738907d3c`; three fresh Codex review contexts finalized SHIP with no findings.
+The repair is integrated. A fresh helper-bound cohort and the next complete cycle
+remain required. C744b and all earlier
 attempts remain unchanged; no receiving or final qualification pass is claimed.
 
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
@@ -161,7 +162,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Complete fn-232.26, refresh helper-dependent bindings for its changed source, then run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
+1. Refresh helper-dependent bindings for the integrated fn-232.26 repair, then run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -462,16 +463,16 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle5 terminal16PASS/1workflowFAIL/79unstarted |
-| [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | Todo | Receive runtime and mandatory workload evidence |
-| [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | Todo | Receive retained/operator replay and ringpop proof; reconcile fn235 |
-| [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | Todo | Receive R4 preservation proof; reconcile fn185 |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle6 terminal22PASS/1diagnosticFAIL/73unstarted; repair integrated |
+| [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | 🚧 Running | Receive runtime and mandatory workload evidence |
+| [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | 🚧 Running | Receive retained/operator replay and ringpop proof; reconcile fn235 |
+| [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | 🚧 Running | Receive R4 preservation proof; reconcile fn185 |
 | [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | 🚧 Running | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
-| [fn-232.26](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.26.md) | 🚧 Running | Bind profile-neutral execution fixtures to compiled conditions; preserve strict role admission |
+| [fn-232.26](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.26.md) | Done | Bind profile-neutral execution fixtures to compiled conditions; preserve strict role admission |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
-Tasks .21–.25 are closure predecessors of the already-running .13. The conductor
-launches one fresh cycle after .21 passes; .22–.25 prepare independently and finish
+Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
+launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish
 from its actual outputs. They do not depend on .13 being done. All original
 acceptance and post-cycle ordering remain unchanged; .13 owns final composition.
 Cycle5 failed before actionlint because native smoke was intentionally deleted
