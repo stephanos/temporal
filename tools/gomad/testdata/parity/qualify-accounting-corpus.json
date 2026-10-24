@@ -15,6 +15,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -32,6 +49,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -52,6 +70,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -72,6 +91,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -92,6 +112,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -160,6 +181,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 600000000001,
     "prepared": {
@@ -177,6 +215,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -197,6 +236,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -217,6 +257,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -237,6 +278,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -300,6 +342,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 600000000000,
     "prepared": {
@@ -317,6 +376,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -337,6 +397,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -357,6 +418,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -377,6 +439,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -440,6 +503,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -457,6 +537,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -477,6 +558,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -497,6 +579,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -517,6 +600,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -580,6 +664,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -597,6 +698,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -617,6 +719,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -637,6 +740,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -657,6 +761,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -720,6 +825,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -737,6 +859,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 268435457,
@@ -757,6 +880,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -777,6 +901,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -797,6 +922,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -860,6 +986,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -877,6 +1020,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -897,6 +1041,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -917,6 +1062,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -937,6 +1083,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1005,6 +1152,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1022,6 +1186,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1042,6 +1207,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1062,6 +1228,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1082,6 +1249,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1150,6 +1318,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1167,6 +1352,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1187,6 +1373,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1207,6 +1394,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1227,6 +1415,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1290,6 +1479,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1307,6 +1513,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1327,6 +1534,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1347,6 +1555,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1367,6 +1576,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1419,6 +1629,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1436,6 +1663,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1456,6 +1684,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1476,6 +1705,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1496,6 +1726,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1559,6 +1790,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1576,6 +1824,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1596,6 +1845,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 0,
@@ -1616,6 +1866,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1636,6 +1887,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1699,6 +1951,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1716,6 +1985,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1736,6 +2006,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1756,6 +2027,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1772,6 +2044,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1835,6 +2108,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1852,6 +2142,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1872,6 +2163,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1892,6 +2184,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1912,6 +2205,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -1975,6 +2269,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -1992,6 +2303,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2012,6 +2324,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2032,6 +2345,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2052,6 +2366,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2115,6 +2430,23 @@
       "user_nanos": 1000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2132,6 +2464,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2152,6 +2485,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2172,6 +2506,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2192,6 +2527,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2255,6 +2591,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2272,6 +2625,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2292,6 +2646,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2312,6 +2667,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2375,6 +2731,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2392,6 +2765,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2412,6 +2786,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2432,6 +2807,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2452,6 +2828,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2515,6 +2892,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2532,6 +2926,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2552,6 +2947,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2572,6 +2968,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2592,6 +2989,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2655,6 +3053,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2672,6 +3087,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2692,6 +3108,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2712,6 +3129,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2732,6 +3150,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2795,6 +3214,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2812,6 +3248,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2832,6 +3269,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2852,6 +3290,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2872,6 +3311,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2940,6 +3380,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -2957,6 +3414,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2978,6 +3436,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -2999,6 +3458,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3020,6 +3480,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3041,6 +3502,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3062,6 +3524,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3083,6 +3546,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3104,6 +3568,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3168,6 +3633,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -3185,6 +3667,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3206,6 +3689,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3227,6 +3711,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3248,6 +3733,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3269,6 +3755,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3290,6 +3777,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3311,6 +3799,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3332,6 +3821,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3353,6 +3843,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3374,6 +3865,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3395,6 +3887,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3416,6 +3909,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3480,6 +3974,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -3497,6 +4008,7 @@
     "resident_stores": 3,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3518,6 +4030,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3539,6 +4052,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3560,6 +4074,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3581,6 +4096,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3602,6 +4118,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3623,6 +4140,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3644,6 +4162,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3665,6 +4184,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3686,6 +4206,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3707,6 +4228,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3728,6 +4250,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3792,6 +4315,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -3809,6 +4349,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3830,6 +4371,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 268435457,
@@ -3851,6 +4393,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3872,6 +4415,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3893,6 +4437,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3914,6 +4459,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3935,6 +4481,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -3956,6 +4503,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4020,6 +4568,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -4037,6 +4602,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4058,6 +4624,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4079,6 +4646,7 @@
       "wall_nanos": 2000000001
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4100,6 +4668,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4121,6 +4690,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4142,6 +4712,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4163,6 +4734,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4184,6 +4756,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4248,6 +4821,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -4265,6 +4855,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4286,6 +4877,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4307,6 +4899,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4328,6 +4921,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4349,6 +4943,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4370,6 +4965,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4391,6 +4987,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4412,6 +5009,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4476,6 +5074,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -4493,6 +5108,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4514,6 +5130,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4535,6 +5152,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4556,6 +5174,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4577,6 +5196,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4598,6 +5218,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4619,6 +5240,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4640,6 +5262,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4704,6 +5327,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
     "prepared": {
@@ -4721,6 +5361,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4742,6 +5383,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4763,6 +5405,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4784,6 +5427,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4805,6 +5449,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4826,6 +5471,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4847,6 +5493,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4868,6 +5515,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 500,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4918,7 +5566,7 @@
    ]
   },
   {
-   "name": "phases-onebox-measured-5.78GiB-warm-pending",
+   "name": "phases-onebox-measured-5.78GiB-warm-exceeded",
    "observations": {
     "executed": {
      "children": {
@@ -4932,6 +5580,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -4950,6 +5615,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4971,6 +5637,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -4992,6 +5659,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5013,6 +5681,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5083,6 +5752,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5238,6 +5924,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5393,6 +6096,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5411,6 +6131,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5432,6 +6153,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5453,6 +6175,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5474,6 +6197,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5544,6 +6268,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 0,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5562,6 +6303,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5583,6 +6325,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5604,6 +6347,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5625,6 +6369,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5695,6 +6440,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5713,6 +6475,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5734,6 +6497,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5755,6 +6519,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5776,6 +6541,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5846,6 +6612,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 1073741824,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -5864,6 +6647,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5885,6 +6669,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5906,6 +6691,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5927,6 +6713,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -5991,6 +6778,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 1073741824,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6009,6 +6813,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6030,6 +6835,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6051,6 +6857,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6072,6 +6879,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6136,6 +6944,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6154,6 +6979,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6175,6 +7001,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6196,6 +7023,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6217,6 +7045,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6287,6 +7116,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 943718400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6305,6 +7151,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6326,6 +7173,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6347,6 +7195,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6368,6 +7217,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6438,6 +7288,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 419430400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6456,6 +7323,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6477,6 +7345,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6498,6 +7367,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6519,6 +7389,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6589,6 +7460,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 524288000,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6607,6 +7495,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6628,6 +7517,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6649,6 +7539,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6670,6 +7561,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6734,6 +7626,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 2147483649,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6752,6 +7661,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6773,6 +7683,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6794,6 +7705,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6815,6 +7727,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6885,6 +7798,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 2147483649,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -6903,6 +7833,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6924,6 +7855,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6945,6 +7877,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -6966,6 +7899,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7035,6 +7969,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 524288000,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7053,6 +8004,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7075,6 +8027,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7097,6 +8050,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7119,6 +8073,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7141,6 +8096,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7163,6 +8119,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7185,6 +8142,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7207,6 +8165,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7272,6 +8231,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 524288000,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7290,6 +8266,7 @@
     "resident_stores": 2,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7312,6 +8289,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7334,6 +8312,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7356,6 +8335,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7378,6 +8358,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7400,6 +8381,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7422,6 +8404,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7444,6 +8427,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7509,6 +8493,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 524288000,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7527,6 +8528,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7549,6 +8551,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7571,6 +8574,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7593,6 +8597,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7658,6 +8663,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 419430400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7676,6 +8698,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7697,6 +8720,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7718,6 +8742,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7739,6 +8764,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7803,6 +8829,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 3221225472,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7821,6 +8864,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7842,6 +8886,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7863,6 +8908,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7884,6 +8930,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7948,6 +8995,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 419430400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -7966,6 +9030,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -7987,6 +9052,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8008,6 +9074,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8029,6 +9096,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8093,6 +9161,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": null,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -8111,6 +9196,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8132,6 +9218,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8153,6 +9240,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8174,6 +9262,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8243,6 +9332,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": null,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -8261,6 +9367,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8282,6 +9389,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8303,6 +9411,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8324,6 +9433,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8394,6 +9504,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 419430400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -8412,6 +9539,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8433,6 +9561,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8454,6 +9583,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8475,6 +9605,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8545,6 +9676,23 @@
       "user_nanos": 10000000000
      }
     },
+    "initial_compiler_commands": [
+     [
+      "list",
+      "-json",
+      "./tests"
+     ],
+     [
+      "test",
+      "-c",
+      "-trimpath",
+      "-buildvcs=false",
+      "-o",
+      "/prepared/module.wasm",
+      "./tests"
+     ]
+    ],
+    "initial_preparation_compiled": true,
     "operator_peak_rss_bytes": 419430400,
     "operator_process_id": 4242,
     "preparation_wall_nanos": 40000000000,
@@ -8563,6 +9711,7 @@
     "resident_stores": 1,
     "samples": [
      {
+      "cache_hit": false,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8584,6 +9733,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8605,6 +9755,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,
@@ -8626,6 +9777,7 @@
       "wall_nanos": 2000000000
      },
      {
+      "cache_hit": true,
       "fuel_used": 1000,
       "guest_memory_limit_bytes": 268435456,
       "guest_peak_memory_bytes": 67108864,

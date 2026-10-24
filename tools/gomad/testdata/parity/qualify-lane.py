@@ -278,7 +278,7 @@ EXECUTION_STABLE = {'iteration', 'record', 'record_sha256', 'replay'}
 EXECUTION_VARIABLE = {'campaign_path', 'artifact_path'}
 OBSERVATIONS_STABLE = {'resident_stores', 'samples'}
 OBSERVATIONS_VARIABLE = {'operator_process_id', 'start', 'prepared', 'executed', 'preparation_wall_nanos',
-                         'operator_peak_rss_bytes'}
+                         'operator_peak_rss_bytes', 'initial_compiler_commands', 'initial_preparation_compiled'}
 BUDGET_STABLE = {'resident_stores', 'checks', 'violations'}
 BUDGET_VARIABLE = {'within_budget', 'pending'}
 CHECK_STABLE = {'name', 'quantity', 'limit', 'status'}

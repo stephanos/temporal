@@ -58,6 +58,13 @@ pub(crate) struct Observations {
     pub prepared: Option<Snapshot>,
     pub executed: Option<Snapshot>,
     pub preparation_wall_nanos: u64,
+    /// Compiler arguments of every command the cell's initial preparation
+    /// actually ran, in order; a compile-cache hit runs no build.
+    #[serde(default)]
+    pub initial_compiler_commands: Vec<Vec<String>>,
+    /// Whether that preparation compiled the module (Go `InitialPreparationCompiled`).
+    #[serde(default)]
+    pub initial_preparation_compiled: bool,
     pub samples: Vec<Sample>,
     /// The largest linked high water of the operator phases outside every
     /// store window, when phase attribution held for the whole interval.
@@ -298,12 +305,35 @@ fn yields(report: &Report) -> Result<(u64, u64), String> {
     Ok((outcomes.len() as u64, bugs.len() as u64))
 }
 
+/// Go `preparationCompiled`: a `go build` or `go test -c` command compiled the module.
+pub(crate) fn preparation_compiled(commands: &[Vec<String>]) -> bool {
+    commands.iter().any(|arguments| {
+        arguments.first().is_some_and(|verb| verb == "build")
+            || arguments.len() > 1 && arguments[0] == "test" && arguments[1] == "-c"
+    })
+}
+
+/// Go `measuredCost`: the retained cold/warm preparation flag must be the
+/// classification of the compiler commands that preparation actually ran.
+fn initial_preparation(observations: &Observations) -> Result<(), String> {
+    if observations.initial_compiler_commands.is_empty()
+        || preparation_compiled(&observations.initial_compiler_commands)
+            != observations.initial_preparation_compiled
+    {
+        return Err(
+            "initial preparation command classification differs from actual observations".into(),
+        );
+    }
+    Ok(())
+}
+
 /// Recomputes costs from raw observations and the canonical report.
 pub(crate) fn cost(observations: &Observations, report: &Report) -> Result<Cost, String> {
     let (start, prepared, executed) = interval(observations)?;
     if observations.preparation_wall_nanos == 0 {
         return Err("actual preparation wall measurement is required".into());
     }
+    initial_preparation(observations)?;
     let compiler_cpu_nanos = cpu(executed.children, start.children)?;
     if compiler_cpu_nanos == 0 || executed.children.peak_rss_bytes == 0 {
         return Err("actual compiler resource usage is unavailable".into());
@@ -421,6 +451,11 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
     if observations.preparation_wall_nanos == 0 || executed.children.peak_rss_bytes == 0 {
         return Err("measured budget requires preparation wall and compiler peak RSS".into());
     }
+    if warm_residents(&groups) != observations.resident_stores {
+        return Err(
+            "actual warm helper peak measurement is required for each resident guest".into(),
+        );
+    }
     let largest_wall = groups
         .iter()
         .map(|group| group.wall_nanos)
@@ -500,6 +535,22 @@ pub(crate) fn budget(observations: &Observations) -> Result<Budget, String> {
         violations,
         pending,
     })
+}
+
+/// Go `EvaluateBudget`: every resident guest needs an actual warm (cache-hit)
+/// helper measurement. A cluster cache-hit window measures every node it
+/// holds. Whether the warm peak itself is exact or only upper-bounded stays
+/// the warm check's status.
+fn warm_residents(groups: &[Group<'_>]) -> u64 {
+    let mut residents = BTreeSet::new();
+    for group in groups.iter().filter(|group| group.cache_hit == Some(true)) {
+        for store in &group.stores {
+            residents.insert(store.incarnation.as_deref().map_or("", |name| {
+                name.split_once('/').map_or(name, |(node, _)| node)
+            }));
+        }
+    }
+    residents.len() as u64
 }
 
 /// Maps process memory onto the ceilings that historically bounded each
@@ -830,6 +881,8 @@ mod warm_window_tests {
             prepared: Some(snapshot(1, 700 * MIB)),
             executed: Some(snapshot(9, cold)),
             preparation_wall_nanos: 1,
+            initial_compiler_commands: vec![vec!["test".into(), "-c".into()]],
+            initial_preparation_compiled: true,
             samples: vec![
                 sample("execute", 1, 1, (700 * MIB, cold, cold), hits[0]),
                 sample("execute", 2, 3, (cold, cold, warm), hits[1]),
@@ -866,19 +919,85 @@ mod warm_window_tests {
     }
 
     #[test]
-    fn a_cold_warm_window_still_exceeds_and_unreported_hits_stay_unattributed() {
+    fn a_cold_warm_window_still_exceeds() {
         let mut cold_replay = observations([Some(false), Some(true), Some(true), Some(true)]);
         cold_replay.samples[3].store_peak_rss_bytes = Some(5_600 * MIB);
         let budget = budget(&cold_replay).unwrap();
         assert_eq!(warm_check(&budget).status, "exceeded");
         assert!(!budget.within_budget);
-
-        let budget = budget_without_hits();
-        assert_eq!(warm_check(&budget).status, "unattributed");
-        assert!(!budget.within_budget);
     }
 
-    fn budget_without_hits() -> Budget {
-        budget(&observations([None; 4])).unwrap()
+    const WARM_REQUIRED: &str =
+        "actual warm helper peak measurement is required for each resident guest";
+
+    /// Go `EvaluateBudget`: without an actual cache-hit measurement the warm
+    /// ceiling is not met by an upper bound; the budget is refused.
+    #[test]
+    fn every_resident_guest_requires_an_actual_warm_measurement() {
+        for hits in [[None; 4], [Some(false); 4]] {
+            assert_eq!(budget(&observations(hits)), Err(WARM_REQUIRED.into()));
+        }
+        // A cache-hit window without its own attributed peak is a warm
+        // measurement whose peak stays only upper-bounded.
+        let mut unattributed = observations([Some(false), Some(true), Some(true), Some(true)]);
+        for sample in &mut unattributed.samples[1..] {
+            sample.store_peak_rss_bytes = None;
+        }
+        let budget = budget(&unattributed).unwrap();
+        assert_eq!(warm_check(&budget).status, "unattributed");
+    }
+
+    /// Go `measuredCost`: a cold flag needs an actual `go build`/`go test -c`
+    /// among the commands preparation ran, and a warm flag needs none.
+    #[test]
+    fn initial_preparation_flag_matches_its_actual_compiler_commands() {
+        let refused = Err(
+            "initial preparation command classification differs from actual observations".into(),
+        );
+        let classify = |commands: &[&[&str]], compiled: bool| {
+            let mut cell = observations([Some(false), Some(true), Some(true), Some(true)]);
+            cell.initial_compiler_commands = commands
+                .iter()
+                .map(|command| command.iter().map(|value| (*value).to_owned()).collect())
+                .collect();
+            cell.initial_preparation_compiled = compiled;
+            initial_preparation(&cell)
+        };
+        let listed: &[&str] = &["list", "-json", "./tests"];
+        for build in [
+            &["test", "-c", "-o", "m.wasm"][..],
+            &["build", "-o", "m.wasm"][..],
+        ] {
+            assert_eq!(classify(&[listed, build], true), Ok(()));
+            assert_eq!(classify(&[listed, build], false), refused);
+        }
+        assert_eq!(classify(&[listed], false), Ok(()));
+        assert_eq!(classify(&[listed], true), refused);
+        // `go test` without -c runs a test; it is not the module build.
+        assert_eq!(classify(&[&["test", "-run", "x"]], true), refused);
+        assert_eq!(classify(&[], false), refused);
+    }
+
+    /// A cluster cache-hit window measures every node it holds; a node only
+    /// ever measured cold is refused.
+    #[test]
+    fn cluster_warm_windows_must_cover_every_resident_node() {
+        let cluster = |warm_nodes: &[&str]| {
+            let mut cell = observations([Some(false), Some(true), Some(true), Some(true)]);
+            cell.resident_stores = 2;
+            let mut samples = Vec::new();
+            for (index, sample) in cell.samples.iter().enumerate() {
+                let nodes: &[&str] = if index == 0 { &["a", "b"] } else { warm_nodes };
+                for node in nodes {
+                    let mut store = sample.clone();
+                    store.incarnation = Some(format!("{node}/1"));
+                    samples.push(store);
+                }
+            }
+            cell.samples = samples;
+            budget(&cell)
+        };
+        assert!(cluster(&["a", "b"]).is_ok());
+        assert_eq!(cluster(&["a"]), Err(WARM_REQUIRED.into()));
     }
 }

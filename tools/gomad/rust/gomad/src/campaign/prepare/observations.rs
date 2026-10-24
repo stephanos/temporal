@@ -124,6 +124,15 @@ fn blob(cache: &Path, raw: &[u8]) -> Result<Blob, String> {
 }
 
 impl Observations {
+    /// Compiler arguments (after the executable) of every command this
+    /// preparation actually ran, in order.
+    pub(crate) fn compiler_arguments(&self) -> Vec<Vec<String>> {
+        self.commands
+            .iter()
+            .map(|command| command.argv.iter().skip(1).cloned().collect())
+            .collect()
+    }
+
     pub(crate) fn record(
         &mut self,
         name: &str,

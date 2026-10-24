@@ -448,7 +448,8 @@ require the test conformance helper and fail if it is unavailable.
 
 Archcheck inventories only retained Go models, generators, conformance oracles,
 runtime overlays, filesystem support and architecture checks. Default packages
-outside that set fail as `retired-host-source`. The Go CLI, runner and host
-qualification producers are absent from this prospective retirement source.
+outside that set fail as `retired-host-source`, and a default import of a retired
+Go host package fails as `retired-host-import`. The Go CLI, runner and host
+qualification producers are retired; the Rust `gomad` binary is the only host.
 The frozen fn-232 Go baseline and binaries remain independent reference custody
 until actual all-verb parity and final R12 qualification permit retirement.
