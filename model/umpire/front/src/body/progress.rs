@@ -2,8 +2,8 @@ use super::{Env, Environment, Result, tail};
 use crate::syntax::{has, path_name};
 use crate::{
     Diagnostic, Locate, Type,
-    expr::ExprKind,
-    tree::{ActionDef, ActionRef, AssumptionDef, ProgressDef},
+    expr::{ExprKind, Op},
+    tree::{ActionDef, ActionRef, AssumptionDef, ConditionalAssumption, ProgressDef},
 };
 use quote::ToTokens;
 use std::collections::BTreeSet;
@@ -28,6 +28,29 @@ impl Environment {
             return self.err(node, "recursive assumption helper");
         }
         match node {
+            RustExpr::Paren(value) => self.assumption(&value.expr, actions, locals, depth + 1),
+            RustExpr::Block(value) => {
+                self.assumption(tail(&value.block)?, actions, locals, depth + 1)
+            }
+            RustExpr::If(value) => {
+                self.assumption_guard(&value.cond, locals, depth)?;
+                let condition =
+                    self.expr(&value.cond, &Env::new(), locals, Some(&Type::Bool), depth)?;
+                let yes = self.assumption(tail(&value.then_branch)?, actions, locals, depth + 1)?;
+                let Some((_, no)) = &value.else_branch else {
+                    return self.err(node, "conditional assumption requires an exhaustive else");
+                };
+                let no = self.assumption(no, actions, locals, depth + 1)?;
+                Ok(AssumptionDef {
+                    conditional: Some(Box::new(ConditionalAssumption {
+                        condition,
+                        yes,
+                        no,
+                        location: Diagnostic::at(node, "conditional assumption"),
+                    })),
+                    ..AssumptionDef::default()
+                })
+            }
             RustExpr::Call(call) => {
                 let name = path_name(&call.func.to_token_stream().to_string());
                 if let Some(method) =
@@ -59,6 +82,9 @@ impl Environment {
             }
             RustExpr::MethodCall(call) => {
                 let mut value = self.assumption(&call.receiver, actions, locals, depth + 1)?;
+                if value.conditional.is_some() {
+                    return self.err(node, "assumption builders must be inside conditional leaves");
+                }
                 if call.args.len() != 1 {
                     return self.err(node, "assumption method requires an action list");
                 }
@@ -73,6 +99,70 @@ impl Environment {
             }
             _ => self.err(node, "unsupported named assumption expression"),
         }
+    }
+    fn assumption_guard(&self, node: &RustExpr, locals: &Env, depth: usize) -> Result<()> {
+        if depth > 32 {
+            return self.err(node, "assumption guard exceeds the helper-depth limit");
+        }
+        match node {
+            RustExpr::Paren(value) => return self.assumption_guard(&value.expr, locals, depth + 1),
+            RustExpr::Group(value) => return self.assumption_guard(&value.expr, locals, depth + 1),
+            RustExpr::Lit(value) if matches!(value.lit, syn::Lit::Bool(_) | syn::Lit::Int(_)) => {}
+            RustExpr::Path(path) => {
+                let name = path_name(&path.path.to_token_stream().to_string());
+                if !self.constants.get(&name).is_some_and(|value| {
+                    matches!(
+                        (&value.kind, &value.ty),
+                        (ExprKind::Bool(_), Type::Bool) | (ExprKind::Int(_), Type::Int { .. })
+                    )
+                }) {
+                    return self
+                        .err(node, "assumption guards require primitive literal source constants");
+                }
+            }
+            RustExpr::Field(_) => {
+                let name = path_name(&node.to_token_stream().to_string());
+                if !locals.get(&name).is_some_and(|value| {
+                    matches!(value.kind, ExprKind::World(_))
+                        && matches!(value.ty, Type::Bool | Type::Int { .. })
+                }) {
+                    return self
+                        .err(node, "assumption guards require primitive selected World fields");
+                }
+            }
+            RustExpr::Unary(value) if matches!(value.op, syn::UnOp::Not(_)) => {
+                self.assumption_guard(&value.expr, locals, depth + 1)?;
+            }
+            RustExpr::Unary(value)
+                if matches!(value.op, syn::UnOp::Neg(_))
+                    && matches!(value.expr.as_ref(), RustExpr::Lit(value) if matches!(value.lit, syn::Lit::Int(_))) =>
+                {}
+            RustExpr::Binary(value) => {
+                let Some(op) = super::typer::binary_op(&value.op) else {
+                    return self.err(node, "unsupported assumption guard operator");
+                };
+                if !matches!(
+                    op,
+                    Op::And | Op::Or | Op::Eq | Op::Ne | Op::Lt | Op::Le | Op::Gt | Op::Ge
+                ) {
+                    return self.err(node, "assumption guards do not admit arithmetic");
+                }
+                self.assumption_guard(&value.left, locals, depth + 1)?;
+                self.assumption_guard(&value.right, locals, depth + 1)?;
+                let typed = self.expr(node, &Env::new(), locals, Some(&Type::Bool), depth)?;
+                if let ExprKind::Binary(_, left, right) = &typed.kind
+                    && matches!(left.ty, Type::Int { .. })
+                    && !matches!(left.kind, ExprKind::Int(_))
+                    && !matches!(right.kind, ExprKind::Int(_))
+                {
+                    return self
+                        .err(node, "integer assumption comparisons require a primitive literal");
+                }
+            }
+            _ => return self.err(node, "unsupported World-only assumption guard"),
+        }
+        let _ = self.expr(node, &Env::new(), locals, None, depth)?;
+        Ok(())
     }
     fn action_list(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<Vec<ActionRef>> {
         let node = if let RustExpr::Reference(v) = node { v.expr.as_ref() } else { node };

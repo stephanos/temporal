@@ -1,4 +1,7 @@
-use crate::{Diagnostic, Type, expr::Expr};
+use crate::{
+    Diagnostic, Type,
+    expr::{Expr, ExprKind, Op, Unary},
+};
 use std::collections::BTreeMap;
 
 /// An admitted Model. Its typed expression tree has no public stability promise.
@@ -144,21 +147,120 @@ pub struct ProgressDef {
 #[derive(Clone, Debug, Default, umpire_ir_derive::Print)]
 #[print_path(::umpire_dsl::__lifted::tree::AssumptionDef)]
 pub struct AssumptionDef {
+    pub conditional: Option<Box<ConditionalAssumption>>,
     pub name: String,
     pub only: Option<Vec<ActionRef>>,
     pub without: Vec<ActionRef>,
     pub fair: Vec<ActionRef>,
 }
+/// An exhaustive source-authored choice between ordinary exact-action scopes.
+#[derive(Clone, Debug, umpire_ir_derive::Print)]
+#[print_path(::umpire_dsl::__lifted::tree::ConditionalAssumption)]
+pub struct ConditionalAssumption {
+    pub condition: Expr,
+    pub yes: AssumptionDef,
+    pub no: AssumptionDef,
+    pub location: Diagnostic,
+}
 impl AssumptionDef {
+    /// Select a flat scope from validated, typed World fields under their authored names.
+    pub fn select(&self, world: &BTreeMap<String, Expr>) -> Result<Self, Diagnostic> {
+        let Some(plan) = &self.conditional else { return Ok(self.clone()) };
+        let condition = assumption_guard_value(&plan.condition, world)
+            .map_err(|message| Diagnostic { message, ..plan.location.clone() })?;
+        let ExprKind::Bool(condition) = condition.kind else {
+            return Err(Diagnostic {
+                message: "assumption guard must be Bool".into(),
+                ..plan.location.clone()
+            });
+        };
+        let mut selected = if condition { &plan.yes } else { &plan.no }.select(world)?;
+        selected.name.clone_from(&self.name);
+        Ok(selected)
+    }
+    /// Possible leaves, used only to reserve names before a World is selected.
+    pub fn possible_scopes(&self) -> Vec<&Self> {
+        match &self.conditional {
+            Some(plan) => {
+                plan.yes.possible_scopes().into_iter().chain(plan.no.possible_scopes()).collect()
+            }
+            None => vec![self],
+        }
+    }
     pub fn same_scope(&self, other: &Self) -> bool {
-        self.only == other.only && self.without == other.without && self.fair == other.fair
+        match (&self.conditional, &other.conditional) {
+            (Some(left), Some(right)) => {
+                left.condition == right.condition
+                    && left.yes.same_scope(&right.yes)
+                    && left.no.same_scope(&right.no)
+            }
+            (None, None) => {
+                self.only == other.only && self.without == other.without && self.fair == other.fair
+            }
+            _ => false,
+        }
     }
     /// Whether a concrete action is admitted, comparing exact values as native scopes do.
     pub fn allows(&self, action: &ActionRef) -> bool {
-        self.only.as_ref().is_none_or(|only| only.contains(action))
+        self.conditional.is_none()
+            && self.only.as_ref().is_none_or(|only| only.contains(action))
             && !self.without.contains(action)
     }
     pub fn is_fair(&self, action: &ActionRef) -> bool {
-        self.fair.contains(action)
+        self.conditional.is_none() && self.fair.contains(action)
     }
+}
+
+fn assumption_guard_value(node: &Expr, world: &BTreeMap<String, Expr>) -> Result<Expr, String> {
+    let unsupported = || "unsupported primitive World assumption guard".to_owned();
+    let value = match &node.kind {
+        ExprKind::Bool(_) | ExprKind::Int(_) => node.clone(),
+        ExprKind::World(name) => world
+            .get(name)
+            .cloned()
+            .ok_or_else(|| format!("assumption guard lacks World field `{name}`"))?,
+        ExprKind::Unary(Unary::Not, value) => {
+            let value = assumption_guard_value(value, world)?;
+            let ExprKind::Bool(value) = value.kind else { return Err(unsupported()) };
+            Expr::bool(!value)
+        }
+        ExprKind::Binary(op, left, right) => {
+            let left = assumption_guard_value(left, world)?;
+            let right = assumption_guard_value(right, world)?;
+            if left.ty != right.ty {
+                return Err(unsupported());
+            }
+            let result = match (&left.kind, &right.kind) {
+                (ExprKind::Bool(left), ExprKind::Bool(right)) => match op {
+                    Op::And => *left && *right,
+                    Op::Or => *left || *right,
+                    Op::Eq => left == right,
+                    Op::Ne => left != right,
+                    _ => return Err(unsupported()),
+                },
+                (ExprKind::Int(left), ExprKind::Int(right)) => match op {
+                    Op::Eq => left == right,
+                    Op::Ne => left != right,
+                    Op::Lt => left < right,
+                    Op::Le => left <= right,
+                    Op::Gt => left > right,
+                    Op::Ge => left >= right,
+                    _ => return Err(unsupported()),
+                },
+                _ => return Err(unsupported()),
+            };
+            Expr::bool(result)
+        }
+        _ => return Err(unsupported()),
+    };
+    if node.ty != value.ty
+        || !match (&value.kind, &value.ty) {
+            (ExprKind::Bool(_), Type::Bool) => true,
+            (ExprKind::Int(value), Type::Int { min, max }) => value >= min && value <= max,
+            _ => false,
+        }
+    {
+        return Err(unsupported());
+    }
+    Ok(value)
 }
