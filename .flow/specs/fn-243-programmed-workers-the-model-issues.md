@@ -41,7 +41,7 @@ The in-process Go worker follows programs too, so the live Answer path for worke
 
 **Hold as a fault.** A proposal's instruction may ask the Driver to hold worker polls from reaching the server until the proposed request is acknowledged. The Realization fills it deterministically from the seed; the Model does not model it. The Driver implements it as transport mechanics on a connection it owns; for a worker it does not own, an unsupported hold is a DriverFault and the Run is Refused, never a verdict. This replaces the gate for cancel-before-start and is the mechanism fn-237's schedule-to-start timeout needs.
 
-**Hand-off to fn-237.** Heartbeat and cooperative cancellation need two more activity response kinds (`RecordActivityTaskHeartbeat`, `RespondActivityTaskCanceled`) and one more situation a worker can see (the cancel-requested bit a heartbeat response reveals) as a key field on a heartbeat rule. fn-237.4 adds them to the activity key and response types; the envelope does not change. The schedule-to-start timeout is realized with the hold (worker polls held past the budget), never with a delayed or sleeping worker.
+**Hand-off to fn-237.** Heartbeat and cooperative cancellation need two more activity response kinds (`RecordActivityTaskHeartbeat`, `RespondActivityTaskCanceled`) and one more situation a worker can see (the cancel-requested bit a heartbeat response reveals) as a key field on a heartbeat rule. Existing fn-246.14 implements the approved activity heartbeat key/codec/raw-and-SDK continuation capability earlier; fn-237.4 consumes its verified result and retains actual evidence/journal/gates, timeout/cooperative admission and every original mandatory raw/native-SDK live witness. The activity key and response types evolve there; the envelope does not change. The schedule-to-start timeout is realized with the hold (worker polls held past the budget), never with a delayed or sleeping worker.
 
 **Evidence and judgment.** Server history only. The Describe projection reads `outcome` and `info.last_failure` (the Realization's Describe request sets `include_last_failure`) and projects multi-step paths: a read that jumps from Scheduled to Completed is Poll then RespondCompleted. It projects nothing when the observed result or failure disagrees with the program row for that scenario and attempt; that observation is Unexplained, a finding about worker, SDK or server. The Run records which executor kind and version ran, next to the Driver's namespace and task queue, so a deviation is attributed correctly.
 
@@ -108,6 +108,10 @@ Also settled: the envelope is feature-agnostic with per-feature key types; no fa
 
 2026-10-24, conductor under the owner's standing autonomous-work instruction: preserve the frozen atomic Model and the actual cancellation counterexample. Scope-refuse unsupported unheld open-state cancellation in .2, keep its original R2 obligation in .5, and consume the already-approved fn-237 cooperative Model rather than fitting semantics to the server. The interleaving is .1-.3, fn-228.7, .4, fn-237.1-.4, .5, then fn-237.5.
 
+
+## Verification adoption
+
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
 
 ## Requirement coverage
 

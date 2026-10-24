@@ -29,7 +29,7 @@ Required before coding:
 - `model/DESIGN.md` and the existing programmed-worker design/support docs for the current admission boundary.
 
 ### Verification
-Focused native proposal/history tests and actual committed-guest controls must pass before live checks. Run both executor slices and deterministic no-hold race controls, retained mutants, strict scope checks and server-free replay. Refresh changed guest bytes through the normal build and repin only the canary artifact hash. Run the required full model gate/timing, affected Go/lint/dependency checks and fresh implementation review. Record actual soft-target misses and source identities.
+Focused native proposal/history tests and actual committed-guest controls must pass before live checks. Run both executor slices and deterministic no-hold race controls, retained mutants, strict scope checks and server-free replay. Refresh changed guest bytes through the normal build and repin only the canary artifact hash. Run `make model-validate` once for the required full model gate and one timing benchmark, plus affected Go/lint/dependency checks and fresh implementation review. Record actual soft-target misses and source identities.
 
 ### Quick commands
 ```bash
@@ -42,6 +42,10 @@ No change to frozen original compatibility artifacts or Model policy. No new pro
 ### Ordering note (2026-10-24)
 
 fn-246 (Realization as a checked refinement) is placed before fn-237.4 and rewrites the activity binding this task touches (`feature/activity/realization.rs` replaces `temporal.rs` and `phase.rs`; the entity lens and Reach replace the hand-written proposal correlation and projection). Write this task against that shape: the restored unheld admission is a proposal-policy change plus evidence predicates for the cooperative rows, not an edit to the retired hand projection. Reanchor the Files and Touches lists at execution.
+### Verification adoption
+
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+
 ## Acceptance
 - [ ] Committed fn-237.3/.4 independent semantics and binding justify restored unheld open-state admission; unsupported combinations remain explicitly refused before Cancel RPC.
 - [ ] Deterministic raw and SDK witnesses record actual Cancel requests/ACKs, pending state, completion/failure races, worker acknowledgment and repeated-request classification; judgments follow the independent contract and do not predict worker outcomes or remap code 9.

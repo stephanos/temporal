@@ -1,6 +1,6 @@
 > Preserved planning evidence from the earlier draft-only pass. Statements that no Flow calls or canonical writes ran describe that pass. The separate canonical authoring pass now records fourteen tasks. No implementation/build/probe or primary review has established feasibility. All source coordinates require final post-fn-237.3/fn-247 reanchor.
 
-> Pending conductor application. The fn-237 parent and task .4 remain unchanged. Apply this stage-ownership amendment against their fresh canonical content before future fn-237.4 admission, preserving original R2/R4 and all mandatory live witnesses.
+> Applied by the conductor's authorized metadata projection against fresh fn-237 parent/task .4 canonical content. Existing fn-246.14 owns the earlier approved capability implementation. Original R2/R4, every mandatory live witness and the max-one-heartbeat regression remain intact. Fresh plan review is still required before fn-237.4 and fn-246 implementation. The proposal and source-tagged decisions below remain historical evidence; their pending instructions describe the earlier draft.
 
 # Draft fn-237.4 description amendment after fn-246
 

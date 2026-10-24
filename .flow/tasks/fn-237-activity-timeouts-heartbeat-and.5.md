@@ -18,7 +18,7 @@ Record R5's delivered timeout and cancellation surface and measured evidence aft
 1. Reanchor fn-237.1 to fn-237.4, fn-237.6 World-selected fairness, and committed fn-243.5 receipts and actual implementation spellings. Keep DESIGN within its 1000-line limit, preserving unrelated architecture and the separate fn-232 failed certification result.
 2. Describe the opt-in `Option<F>` fact result and bounded nominal optional values, including the checked scalar construction boundary, without claiming generic World/state validation.
 3. Extend the activity World/state table with the timeouts, countdowns and `cancel_requested`. Record deadline priority and zero/reset laws, cooperative cancellation and its races, the exact-action fair-worker assumption and the schedule-to-close total-tick bound. Describe the final compatibility World's projection, including the Tick-to-deadline mapping, rather than claiming old activity byte equality. Record the timeout-to-tick table and the pinned cancellation binding.
-4. Obtain native/TLC counts per actually selected fixture and activity World and the actual live cancellation evidence from retained outputs. Execute model-time on the final tree and retain its full output. State soft-target misses honestly; a zero command exit does not mean a performance target was met.
+4. Obtain native/TLC counts per actually selected fixture and activity World and the actual live cancellation evidence from retained outputs. Execute make model-validate on the final tree and retain its full required-mode timing report, including its one inner-loop benchmark. State soft-target misses honestly; a zero command exit does not mean a performance target was met.
 
 ### Investigation targets
 
@@ -34,7 +34,7 @@ Required:
 
 Quick from model/: `mise exec -- cargo test -p umpire-dsl --doc`. Run formatting, documentation link checks and DESIGN line-count verification using existing commands.
 
-Full from root: `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`. No global model-update or stale counts. Preserve final timing output and prior evidence, including any unmet soft targets.
+Full from root: `make model-validate`. No global model-update or stale counts. Preserve final timing output and prior evidence, including any unmet soft targets.
 
 ### Addendum (2026-10-24)
 
@@ -46,6 +46,10 @@ Document the revised independent R2 boundary matrix and its public-evidence/desi
 
 
 Selected policy and provenance: `.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-contract.md`; exact live evidence limits are in `cancellation-boundary-evidence-shape.md`. Fresh plan review must pass before implementation.
+### Verification adoption
+
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+
 ## Acceptance
 - [ ] Consume committed fn-243.5 unheld cancellation admission/live/replay evidence and final R40 status so this final timeout/cancellation write-up reflects the actual supported scope.
 - [ ] DESIGN documents facts, bounded optional values, the extended activity World/state table, deadline and cancellation laws, the fair-worker assumption and the final compatibility projection, each backed by completed fn-237 tasks.

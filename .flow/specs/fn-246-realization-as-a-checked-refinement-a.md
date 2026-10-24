@@ -71,7 +71,7 @@ Per-executor capability/representability facts are explicit. Native SDK heartbea
 
 The conductor admits execution only after committed implementation and Flow closure records for fn-243.4, fn-228.7 and fn-237.3 are ancestors of umpire, retaining fn-237.3's fn-237.6 prerequisite, and the whole fn-247 Rust supervisor/xtask spec has committed completion. The current World/worker/evidence and Rust build-helper interfaces are reanchored then. A ready flag or uncommitted closure is insufficient. Preserve the whole-fn-247 dependency. Whole-fn-243 and whole-fn-237 dependencies would cycle with the accepted queue and are excluded. The approved order is fn-237.6, fn-237.3, fn-247, fn-246, fn-237.4, fn-243.5, fn-237.5 and fn-245. The conductor gates fn-237.4 on committed fn-246 closure; fn-243.5 follows committed fn-237.4 and retains the original unheld proof.
 
-The fn-237 parent and task .4 stage-ownership amendment remains pending as an owned artifact of this spec. The conductor applies it against their fresh canonical content before future fn-237.4 admission, preserving every original requirement and live witness. This plan authoring pass changes neither downstream canonical content nor MILESTONES. Final source fields, emitted graph, accessors, golden hashes and Rust helper owners remain pending reanchor after committed fn-237.3 and fn-247 closure.
+The conductor applied the owned fn-237 parent/task .4 stage-ownership amendment against fresh canonical content, preserving every original requirement and live witness. Existing task .14 owns only the approved earlier key/codec/raw-and-SDK capability implementation. Fresh plan review remains required before fn-237.4 and fn-246 implementation; metadata adoption is not a review verdict or capability proof. MILESTONES remains root-owned. Final source fields, emitted graph, accessors, golden hashes and Rust helper owners remain pending reanchor after committed fn-237.3 and fn-247 closure.
 
 Task DAG frontiers identify parallel candidates only. The conductor evaluates declared Touches globs, current source ownership and shared Cargo/schema/code-generation resources before dispatch. Overlapping source/export owners and Cargo/schema/code-generation mutations remain serial; independent task roots do not authorize four-way concurrent mutation or builds.
 
@@ -87,12 +87,10 @@ Task DAG frontiers identify parallel candidates only. The conductor evaluates de
 ## Quick commands
 
 ```bash
-make model-check
-UMPIRE_BACKENDS=require make model-check
+make model-validate
 make umpire-guest
 make umpire-check-model-slice
 make umpire-check-model-gaps
-make model-time
 ```
 
 Tasks carry focused crate commands. The integrated final gate records command exits, executed live rows, counts, bounds, guest hash/freshness, raw/SDK judgments and actual timing. R30's 10-second inner-loop and 60-second gate figures remain soft targets with measured overruns, never fabricated timings.
@@ -129,6 +127,10 @@ On 2026-10-24 the conductor supplied the global/heartbeat counterexample and sel
 ## Early carrier proof gate
 
 Direction A is conductor-selected. Pinned wazero source supports custom-section inspection, but the first producer task must prove actual mode-coupled metadata survives the production Rust/fn-247 xtask fat-LTO/strip build while default v1 artifacts remain unmarked. A missing/stripped prefix marker fails producer/freshness/hash controls; a genuinely unmarked legacy module remains version1. Updated readers support both known versions; unmodified old hosts cannot discover new metadata and are not supported readers for prefix2 artifacts. If production retention fails, surface the exact minimal carrier decision before changing schema/export shape.
+
+## Verification adoption
+
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved legacy counterexample proof. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Legacy commands remain available. No TLC batching, caching or reduced case coverage is introduced.
 
 ## Requirement coverage
 
