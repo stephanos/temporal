@@ -2,6 +2,8 @@
 
 use umpire::dsl::machine;
 
+#[expect(clippy::match_same_arms, reason = "the later overlapping arm detects priority drift")]
+#[expect(clippy::unused_self, reason = "effect helpers borrow the Model")]
 #[machine]
 pub mod facts {
     use umpire::dsl::{Action, Rejection, State, World, check, reject, stay};
@@ -45,10 +47,6 @@ pub mod facts {
     }
 
     impl Model {
-        #[expect(
-            clippy::match_same_arms,
-            reason = "the later overlapping arm detects priority drift"
-        )]
         #[on(Signal)]
         fn signal(&mut self, action: Signal, selected: &World) -> Option<Fact> {
             match action {
@@ -102,7 +100,6 @@ pub mod facts {
             }
         }
 
-        #[expect(clippy::unused_self, reason = "effect helpers borrow the Model")]
         #[effect]
         fn reject_helper(&mut self) {
             reject!(Rejection::Unavailable);
