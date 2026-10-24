@@ -20,7 +20,7 @@ fn unsupported_phase_rejection_and_law_forms_refuse_at_their_location()
     let mut refusals = Vec::new();
     for edits in [
         // A trait other than Umpire's Phase and Phased.
-        vec![("impl umpire_dsl::Phase for Phase", "impl umpire_dsl::Finite for Phase")],
+        vec![("impl umpire::dsl::Phase for Phase", "impl umpire::dsl::Finite for Phase")],
         // Phased for anything but the State.
         vec![("impl Phased for Model", "impl Phased for Phase")],
         vec![("type Phase = Phase;", "type Phase = u8;")],

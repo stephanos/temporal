@@ -306,11 +306,11 @@ fn hook_refusal_in_tests_rs_names_tests_rs() -> Result<(), Box<dyn std::error::E
 fn imports_that_can_rebind_a_macro_read_by_name_refuse() -> Result<(), Box<dyn std::error::Error>> {
     // The subset reads check!, stay!, reject!, unknown!, path! and matches! by name.
     for import in [
-        "use umpire_dsl::{Action, State, path}; use crate::support::check;",
-        "use umpire_dsl::{Action, State, check, path}; use crate::support::*;",
-        "use umpire_dsl::{Action, State, check, path, stay as matches};",
+        "use umpire::dsl::{Action, State, path}; use crate::support::check;",
+        "use umpire::dsl::{Action, State, check, path}; use crate::support::*;",
+        "use umpire::dsl::{Action, State, check, path, stay as matches};",
     ] {
-        let source = KETTLE.replace("use umpire_dsl::{Action, State, check, path};", import);
+        let source = KETTLE.replace("use umpire::dsl::{Action, State, check, path};", import);
         let error =
             Lift::parse("imports.rs", &source).err().ok_or("rebinding import was admitted")?;
         assert!(error.message.contains("can rebind a macro"), "{error}");
