@@ -311,23 +311,32 @@ impl Runner {
         if self.registry.exists(name)? {
             return Err("command process registration already exists".into());
         }
-        let executable = if Path::new(&command.argv[0]).is_absolute() {
-            PathBuf::from(&command.argv[0])
+        let executable_paths = if Path::new(&command.argv[0]).is_absolute() {
+            vec![PathBuf::from(&command.argv[0])]
         } else if command.argv[0].contains('/') {
-            command.cwd.join(&command.argv[0])
+            vec![command.cwd.join(&command.argv[0])]
         } else {
             command
                 .environment
                 .values()
                 .get("PATH")
-                .ok_or("relative command requires explicit PATH")?
+                .map_or("/bin:/usr/bin", String::as_str)
                 .split(':')
-                .filter(|part| Path::new(part).is_absolute())
-                .map(|part| Path::new(part).join(&command.argv[0]))
-                .find(|path| path.is_file())
-                .ok_or("command executable not found")?
+                .map(|part| {
+                    let path = Path::new(part);
+                    if path.is_absolute() {
+                        path.join(&command.argv[0])
+                    } else {
+                        command.cwd.join(path).join(&command.argv[0])
+                    }
+                })
+                .collect()
         };
-        let executable = CString::new(executable.as_os_str().as_bytes()).map_err(error)?;
+        let executable_paths = executable_paths
+            .iter()
+            .map(|path| CString::new(path.as_os_str().as_bytes()).map_err(error))
+            .collect::<Result<Vec<_>, _>>()?;
+        let executables: Vec<_> = executable_paths.iter().map(|path| path.as_ptr()).collect();
         let cwd = CString::new(command.cwd.as_os_str().as_bytes()).map_err(error)?;
         let arguments = command
             .argv
@@ -374,7 +383,7 @@ impl Runner {
             fds: owned.each_ref().map(AsRawFd::as_raw_fd),
             argv: &argv,
             env: &env,
-            executable: executable.as_ptr(),
+            executables: &executables,
             cwd: cwd.as_ptr(),
             timeout_ns: i64::try_from(command.timeout.as_nanos()).map_err(error)?,
             mask: admission_mask.previous,

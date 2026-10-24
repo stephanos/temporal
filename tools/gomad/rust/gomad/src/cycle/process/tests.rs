@@ -1036,3 +1036,31 @@ fn common_observation_binds_actual_parent_chain_and_authenticated_capture() {
     assert!(error.contains("streams changed"));
     assert!(runner.active_intervals().is_err());
 }
+#[test]
+fn exec_path_search_preserves_original_execvpe_environment_semantics() {
+    use std::os::unix::fs::PermissionsExt;
+    let fixture = Fixture::new();
+    let mut runner = fixture.runner();
+    let first = fixture.0.join("first");
+    let second = fixture.0.join("second");
+    std::fs::create_dir(&first).unwrap();
+    std::fs::create_dir(&second).unwrap();
+    std::fs::write(first.join("tool"), b"not executable").unwrap();
+    std::fs::set_permissions(first.join("tool"), std::fs::Permissions::from_mode(0o600)).unwrap();
+    std::fs::write(second.join("tool"), b"#!/bin/sh\necho resolved\n").unwrap();
+    std::fs::set_permissions(second.join("tool"), std::fs::Permissions::from_mode(0o700)).unwrap();
+    let mut explicit = command("exit 0");
+    explicit.argv = vec!["tool".into()];
+    explicit.environment = Environment::Exact(BTreeMap::from([(
+        "PATH".into(),
+        format!("{}:{}", first.display(), second.display()),
+    )]));
+    assert!(run(&mut runner, "path-search", explicit).accepted());
+    assert_eq!(
+        std::fs::read(fixture.0.join("path-search.stdout")).unwrap(),
+        b"resolved\n"
+    );
+    let mut default = command("exit 0");
+    default.argv = vec!["true".into()];
+    assert!(run(&mut runner, "default-path", default).accepted());
+}

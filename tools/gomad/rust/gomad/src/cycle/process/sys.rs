@@ -83,7 +83,7 @@ pub(super) struct Prepared<'a> {
     pub fds: [c_int; 7],
     pub argv: &'a [*const c_char],
     pub env: &'a [*const c_char],
-    pub executable: *const c_char,
+    pub executables: &'a [*const c_char],
     pub cwd: *const c_char,
     pub timeout_ns: i64,
     pub mask: [u64; 16],
@@ -178,12 +178,22 @@ fn child(prepared: &Prepared<'_>) -> ! {
         if chdir(prepared.cwd) != 0 {
             exec_failure(126);
         }
-        execve(
-            prepared.executable,
-            prepared.argv.as_ptr(),
-            prepared.env.as_ptr(),
-        );
-        exec_failure(127);
+        let mut failure = 2;
+        let mut first_error = 0;
+        for executable in prepared.executables {
+            execve(*executable, prepared.argv.as_ptr(), prepared.env.as_ptr());
+            failure = errno();
+            if first_error == 0 && failure != 2 && failure != 20 {
+                first_error = failure;
+            }
+        }
+        let failure = if first_error == 0 {
+            failure
+        } else {
+            first_error
+        };
+        send(9, &failure.to_ne_bytes());
+        _exit(127);
     }
 }
 fn exec_failure(code: c_int) -> ! {
