@@ -39,6 +39,19 @@ The batch critical path is B01 -> B04 -> B06 -> B07 -> B14 -> B15 -> B16. Earlie
 8. Original R1 requires a catching test OR mutation for every retained guarantee. Direct malformed/input mutation and valid control executions cover every retained guarantee with exact row/source/failure/trust-boundary/command/exit bindings. Use representative high-risk source mutants; do not require recompiling one source mutant per guard. Shared fixtures may prove several rows only when each row has a direct catching outcome. Hash-only, ancestor-only, future named tests and status rewrites do not prove a row.
 9. Keep the roughly 100k-token iteration guardrail. Check/function counts guide batching, not mandatory splits or proof waivers. If a real iteration does not fit, stop at a source/proof checkpoint within the batch and continue its next bounded iteration without inventing task closure or dropping proof. Repartition only by revising this manifest and revalidating both DAGs before dispatch.
 
+## Effort reduction within each batch
+
+Apply the owner's request to reduce fn-242 effort to both implementation and evidence work.
+
+- Group original check IDs by concrete failure and immutable trust boundary before writing fixtures. One executed catching case may cover several IDs when it directly exercises each guarantee. Add another case only for a distinct failure or boundary; preserve independent receiving opens and exact original-ID coverage.
+- Port the required behavior through existing Rust validators, codecs and process APIs. Fold duplicate Python helpers and bookkeeping checks into their actual enforcing boundary with an explicit inventory disposition. The Python module/function layout does not prescribe the Rust layout.
+- Keep one compact machine-readable proof map per batch. Derive source/input/log hashes and original-ID crosswalks from executed fixture output where possible. Reuse raw evidence by reference rather than copying it into separate per-task narratives or building another proof framework.
+- Reuse a worker's successful focused gate after integration when the conductor verifies identical tested source and relevant dependencies, exact command/environment, numeric exit and raw log bindings. Run additional checks for actual integration changes or uncovered interactions. Integration alone does not require repeating an identical build/test command.
+- Freeze a coherent source unit before compiling. Reuse compiled fixtures for input mutations and independent valid controls; reserve source recompilation for representative high-risk mutants. Keep the existing one-review-per-batch policy and the two heavy-build slots.
+
+These reductions preserve every original acceptance and proof obligation. Check IDs remain
+traceability entries; they do not each require their own test, source mutant or document.
+
 ## Bounds and final qualification
 
 - No batch dispatches a full qualification attempt. Both global attempts remain unused through fn-242. Preserve fixed journal binding, ambiguous-spawn charges and the immediately rechecked 45 GiB HOST / 20 GiB overlay / 12 GiB inner floors.
