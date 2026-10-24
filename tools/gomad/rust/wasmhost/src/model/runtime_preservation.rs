@@ -134,3 +134,59 @@ fn runtime_replay_forces_logical_identity_and_refuses_each_original_boundary_mis
         assert!(admitted(&malformed).is_err(), "{case}");
     }
 }
+
+/// Tamper half of original `TestPrototypeSchedulingDeterminism`: replaying a
+/// recorded schedule against a missing, an extra or an altered tape ends in
+/// the typed `tape_exhausted`, `tape_unconsumed` and `alternative_set`
+/// divergences, while the untampered tape replays exactly.
+#[test]
+fn tampered_runtime_tapes_end_in_their_typed_divergence_reasons() {
+    let mut recorded = model();
+    recorded.runtime("runtime_config", vec![0; 16]).unwrap();
+    for _ in 0..2 {
+        recorded
+            .runtime("runtime_decision", decision(false))
+            .unwrap();
+    }
+    recorded.runtime("runtime_finish", finish()).unwrap();
+    let trace = recorded.pending["choice"].clone();
+    let tape = admitted(&trace).unwrap().decisions;
+    assert_eq!(tape.len(), 2);
+    for (case, reason) in [
+        ("exact", None),
+        ("missing", Some("tape_exhausted")),
+        ("extra", Some("tape_unconsumed")),
+        ("altered", Some("alternative_set")),
+    ] {
+        let mut changed = tape.clone();
+        match case {
+            "missing" => drop(changed.pop()),
+            "extra" => changed.push(changed[1].clone()),
+            "altered" => changed[1].alternative_set_digest = Sha256::digest(b"tampered").into(),
+            _ => {}
+        }
+        let mut replayed = model();
+        replayed.config.mode = 2;
+        replayed.config.tape = Some(changed);
+        replayed.runtime("runtime_config", vec![0; 16]).unwrap();
+        let mut result = Ok(Vec::new());
+        for _ in 0..2 {
+            result = result.and_then(|_| replayed.runtime("runtime_decision", decision(false)));
+        }
+        let result = result.and_then(|_| replayed.runtime("runtime_finish", finish()));
+        match reason {
+            None => {
+                result.unwrap();
+                assert_eq!(replayed.pending["choice"], trace);
+            }
+            Some(reason) => {
+                assert!(result.is_err(), "{case}");
+                assert_eq!(
+                    replayed.divergence.as_ref().unwrap().reason_name(),
+                    reason,
+                    "{case}"
+                );
+            }
+        }
+    }
+}

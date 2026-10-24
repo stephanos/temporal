@@ -376,3 +376,137 @@ fn inspection_output_bound_includes_json_and_heap() {
     assert_eq!(result["dumps"][0]["status"], "truncated");
     assert!(diagnostics().bound(1).is_err());
 }
+
+fn debug_envelope(operation: u32, payload: &[u8]) -> Vec<u8> {
+    let mut bytes = operation.to_le_bytes().to_vec();
+    bytes.extend_from_slice(&u32::try_from(payload.len()).unwrap().to_le_bytes());
+    for value in [7u64, 9, 11] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    bytes.extend_from_slice(payload);
+    bytes
+}
+
+fn debug_frame(identity: u64, index: u32, function: &str, file: &str) -> Vec<u8> {
+    let mut bytes = identity.to_le_bytes().to_vec();
+    for value in [0u32, index] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    bytes.extend_from_slice(&0x1234u64.to_le_bytes());
+    for value in [42, function.len(), file.len()] {
+        bytes.extend_from_slice(&u32::try_from(value).unwrap().to_le_bytes());
+    }
+    bytes.extend_from_slice(function.as_bytes());
+    bytes.extend_from_slice(file.as_bytes());
+    bytes
+}
+
+fn debug_target() -> Handle {
+    Handle {
+        node: "a".into(),
+        incarnation: 1,
+    }
+}
+
+/// Original `TestDebugLibraryRecordsPreserveFailuresAndRawStrings`: each dump
+/// keeps its own failure status, a panicking check never becomes predicate
+/// truth, raw string bytes and host coordinates survive, and every malformed
+/// record is refused.
+#[test]
+fn debug_library_records_preserve_failures_raw_strings_and_coordinates() {
+    let record = |kind: u32, id: u32, status: u32, data: &[u8]| {
+        let mut bytes = Vec::new();
+        for value in [kind, id, status, u32::try_from(data.len()).unwrap()] {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        }
+        bytes.extend_from_slice(data);
+        debug_envelope(4, &bytes)
+    };
+    let raw = [
+        record(2, 3, 1, b"panic"),
+        record(2, 4, 2, b"partial"),
+        record(2, 5, 0, b"next dump"),
+        record(3, 6, 2, b""),
+        record(1, 7, 1, &[5, 2, 0, 0, 0, 0xff, 0]),
+    ]
+    .concat();
+    let output = debug_output(&raw, &debug_target(), &Registry::default(), 1 << 20)
+        .unwrap()
+        .output;
+    let dumps = output["dumps"].as_array().unwrap();
+    assert_eq!(dumps.len(), 3);
+    assert_eq!(
+        [&dumps[0]["status"], &dumps[1]["status"]],
+        ["panic", "truncated"]
+    );
+    assert_eq!(dumps[2]["data_base64"], STANDARD.encode(b"next dump"));
+    assert_eq!(output["checks"].as_array().unwrap().len(), 1);
+    assert_eq!(output["checks"][0]["status"], "panic");
+    let probes = output["probes"].as_array().unwrap();
+    assert_eq!(probes.len(), 1);
+    assert_eq!(
+        probes[0]["fields"][0]["bytes_base64"],
+        STANDARD.encode([0xff, 0])
+    );
+    assert_eq!(
+        (
+            &probes[0]["decision"],
+            &probes[0]["trace"],
+            &probes[0]["virtual_time_nanos"]
+        ),
+        (&json!(7), &json!(9), &json!(11))
+    );
+    for malformed in [
+        vec![4, 0, 0],
+        debug_envelope(99, &[]),
+        debug_envelope(4, &[1]),
+        record(1, 0, 1, &[3, 1, 0, 0, 0, 2]),
+        record(3, 0, 0, &[1]),
+    ] {
+        assert!(
+            debug_output(&malformed, &debug_target(), &Registry::default(), 1 << 20).is_err(),
+            "malformed debug record admitted: {malformed:x?}"
+        );
+    }
+}
+
+/// Original `TestDebugHeapProfileOpensInPprof`: the sampling policy, the
+/// goroutine stack and a gzip pprof profile whose `inuse_space` sample is the
+/// 3072 live bytes attributed to `main.workload`.
+#[test]
+fn debug_heap_profile_keeps_rate_stack_and_inuse_sample() {
+    let mut sample = Vec::new();
+    for value in [1u64, 4, 1, 4096, 1024] {
+        sample.extend_from_slice(&value.to_le_bytes());
+    }
+    sample.extend_from_slice(&0u32.to_le_bytes());
+    sample.extend_from_slice(&1u32.to_le_bytes());
+    sample.extend_from_slice(&0x1235u64.to_le_bytes());
+    let mut metadata = vec![0; 48];
+    metadata[..8].copy_from_slice(&1u64.to_le_bytes());
+    metadata[40..44].copy_from_slice(&u32::MAX.to_le_bytes());
+    let raw = [
+        debug_envelope(9, &metadata),
+        debug_envelope(9, &sample),
+        debug_envelope(11, &debug_frame(0, 0, "main.workload", "fixture.go")),
+        debug_envelope(8, &debug_frame(17, 0, "main.locked", "fixture.go")),
+    ]
+    .concat();
+    let diagnostics = debug_output(&raw, &debug_target(), &Registry::default(), 1 << 20).unwrap();
+    assert_eq!(diagnostics.output["heap_sample_rate"], 1);
+    let stacks = diagnostics.output["stacks"].as_array().unwrap();
+    assert_eq!(stacks.len(), 1);
+    assert_eq!(stacks[0]["goroutine"], 17);
+    assert_eq!(stacks[0]["frames"][0]["function"], "main.locked");
+    validate_heap_profile(&diagnostics.heap, 1 << 20).unwrap();
+    let (profile, _) = crate::world::gzip::decode(&diagnostics.heap, 1 << 20).unwrap();
+    // Sample values: alloc_objects 4, alloc_space 4096, inuse_objects 3,
+    // inuse_space 3072, packed as field 2 of the sample message.
+    let values = [0x12, 6, 4, 0x80, 0x20, 3, 0x80, 0x18];
+    assert!(profile.windows(values.len()).any(|window| window == values));
+    assert!(
+        profile
+            .windows(b"main.workload".len())
+            .any(|window| window == b"main.workload")
+    );
+}

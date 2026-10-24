@@ -623,6 +623,18 @@ fn apply(row: &RunSpec, mut input: Value, cache: &Path) -> Result<Value, String>
     }
     Ok(input)
 }
+/// The baseline role must compile into its own absolute cache, never the
+/// candidate's, or a matched pair would share compiled modules.
+pub(super) fn matched_baseline_cache(baseline: &str, candidate: &Path) -> Result<(), String> {
+    let path = Path::new(baseline);
+    if !path.is_absolute() {
+        return Err("GOMAD_WASM_MATCHED_BASELINE_CACHE must be an absolute directory".into());
+    }
+    if path.components().eq(candidate.components()) {
+        return Err("matched baseline and candidate roles require separate compiled caches".into());
+    }
+    Ok(())
+}
 pub(super) fn cache_directory(path: &Path) -> Result<(), String> {
     use std::os::unix::fs::DirBuilderExt;
     fs::DirBuilder::new()
@@ -994,6 +1006,15 @@ fn run_inner(call: &Invocation, proof: &CheckoutProof, root: &Path) -> Result<Pa
                 "{key} must explicitly bind an absolute native input (toolchain identity must be nonempty)"
             ));
         }
+    }
+    if call.name == "matched-suite" {
+        let candidate = value(call, "GOMAD_WASM_MATCHED_CACHE");
+        let candidate = if candidate.is_empty() {
+            root.join("compile-cache-candidate")
+        } else {
+            PathBuf::from(candidate)
+        };
+        matched_baseline_cache(value(call, "GOMAD_WASM_MATCHED_BASELINE_CACHE"), &candidate)?;
     }
     fs::create_dir_all(root).map_err(|error| error.to_string())?;
     require_external_evidence(call, proof, root)?;

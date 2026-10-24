@@ -76,47 +76,102 @@ pub(super) fn stage_broker(repo: &Path) -> Result<String, String> {
             "tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go",
         ),
     ];
+    // Every component beneath the checkout is opened without following links,
+    // so a linked source or staging directory cannot read or write outside it.
+    let anchor = fs::File::open(repo).map_err(|error| error.to_string())?;
     let bodies = sources
         .iter()
-        .map(|(_, path)| read(&repo.join(path), 8 << 20))
+        .map(|(_, path)| read_file(&open_beneath(&anchor, Path::new(path), false)?, 8 << 20))
         .collect::<Result<Vec<_>, _>>()?;
     let combined: Vec<_> = bodies.iter().flatten().copied().collect();
     let relative = PathBuf::from(".tmp/wasm-backend-temporal").join(format!(
         "temporal_broker-{}",
         &canonical::digest(&combined)[..16]
     ));
-    let destination = repo.join(&relative);
-    fs::create_dir_all(&destination).map_err(|error| error.to_string())?;
-    for entry in fs::read_dir(&destination).map_err(|error| error.to_string())? {
+    let destination = open_beneath(&anchor, &relative, true)?;
+    let mut listing =
+        rustix::fs::Dir::read_from(&destination).map_err(|error| error.to_string())?;
+    while let Some(entry) = listing.read() {
         let entry = entry.map_err(|error| error.to_string())?;
-        if !entry
-            .file_type()
-            .map_err(|error| error.to_string())?
-            .is_file()
-            || !sources.iter().any(|(name, _)| entry.file_name() == *name)
+        let name = entry.file_name().to_bytes();
+        if name == b"." || name == b".." {
+            continue;
+        }
+        if !sources.iter().any(|(source, _)| name == source.as_bytes())
+            || !open_beneath(
+                &destination,
+                Path::new(std::str::from_utf8(name).unwrap_or("")),
+                false,
+            )
+            .and_then(|file| file.metadata().map_err(|error| error.to_string()))
+            .is_ok_and(|metadata| metadata.is_file())
         {
             return Err("unexpected staged broker source entry".into());
         }
     }
     for ((name, _), body) in sources.iter().zip(bodies) {
-        let path = destination.join(name);
-        if path.exists() {
-            if read(&path, 8 << 20)? != body {
-                return Err("staged broker source differs from immutable original".into());
+        match rustix::fs::openat(
+            &destination,
+            *name,
+            rustix::fs::OFlags::RDONLY | rustix::fs::OFlags::NOFOLLOW | rustix::fs::OFlags::CLOEXEC,
+            rustix::fs::Mode::empty(),
+        ) {
+            Ok(existing) => {
+                if read_file(&fs::File::from(existing), 8 << 20)? != body {
+                    return Err("staged broker source differs from immutable original".into());
+                }
             }
-        } else {
-            write(&path, &body)?;
+            Err(rustix::io::Errno::NOENT) => write_beneath(&destination, name, &body)?,
+            Err(error) => return Err(format!("unsafe staged broker source: {error}")),
         }
     }
     Ok(format!("./{}", relative.to_string_lossy()))
 }
 
-fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
+/// Opens `relative` beneath `anchor` one component at a time without
+/// following links; directories are created when `directory` is set.
+fn open_beneath(anchor: &fs::File, relative: &Path, directory: bool) -> Result<fs::File, String> {
+    use rustix::fs::{Mode, OFlags, mkdirat, openat};
+    let parts = relative
+        .components()
+        .map(|part| match part {
+            std::path::Component::Normal(part) => Ok(part),
+            _ => Err("staged fixture path must stay beneath its anchor".to_string()),
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut current = anchor.try_clone().map_err(|error| error.to_string())?;
+    for (index, part) in parts.iter().enumerate() {
+        let parent = directory || index + 1 < parts.len();
+        let mut flags = OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW;
+        if parent {
+            flags |= OFlags::DIRECTORY;
+        }
+        let mut opened = openat(&current, *part, flags, Mode::empty());
+        if parent && matches!(opened, Err(rustix::io::Errno::NOENT)) {
+            match mkdirat(&current, *part, Mode::RWXU | Mode::RWXG | Mode::RWXO) {
+                Ok(()) | Err(rustix::io::Errno::EXIST) => {}
+                Err(error) => return Err(error.to_string()),
+            }
+            opened = openat(&current, *part, flags, Mode::empty());
+        }
+        current = opened.map(fs::File::from).map_err(|error| {
+            format!("staged fixture path is linked or not a regular entry: {error}")
+        })?;
+    }
+    Ok(current)
+}
+
+fn read_file(file: &fs::File, limit: u64) -> Result<Vec<u8>, String> {
     use std::io::Read;
-    let mut bytes = Vec::new();
-    fs::File::open(path)
+    if !file
+        .metadata()
         .map_err(|error| error.to_string())?
-        .take(limit + 1)
+        .is_file()
+    {
+        return Err("staged fixture source is not a regular file".into());
+    }
+    let mut bytes = Vec::new();
+    file.take(limit + 1)
         .read_to_end(&mut bytes)
         .map_err(|error| error.to_string())?;
     if bytes.len() as u64 > limit {
@@ -124,6 +179,22 @@ fn read(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     }
     Ok(bytes)
 }
+
+fn write_beneath(directory: &fs::File, name: &str, bytes: &[u8]) -> Result<(), String> {
+    use rustix::fs::{Mode, OFlags, openat};
+    use std::io::Write;
+    let mut file = openat(
+        directory,
+        name,
+        OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
+        Mode::RUSR | Mode::WUSR,
+    )
+    .map(fs::File::from)
+    .map_err(|error| error.to_string())?;
+    file.write_all(bytes).map_err(|error| error.to_string())?;
+    file.sync_all().map_err(|error| error.to_string())
+}
+
 fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     use std::{io::Write, os::unix::fs::OpenOptionsExt};
     let mut file = fs::OpenOptions::new()

@@ -399,4 +399,64 @@ mod tests {
         assert!(observed.contains_key(&misnamed));
         assert!(!observed.keys().any(|path| path.starts_with(GO_CACHE_ROOT)));
     }
+
+    /// Original `backend.TestSelectedRuntimeOverlayInputsInvalidateBuildIdentity`:
+    /// a selected runtime file replaced by the overlay binds both its original
+    /// and effective bytes, a virtual overlay-only file binds its added source,
+    /// and a change to any of the three changes the build identity input.
+    #[test]
+    fn selected_runtime_overlay_inputs_invalidate_build_identity() {
+        let root = process::Temporary::new(&std::env::temp_dir()).unwrap();
+        let directory = root.0.join("runtime");
+        fs::create_dir(&directory).unwrap();
+        let original = directory.join("runtime.go");
+        let effective = directory.join("effective.go");
+        let virtual_file = directory.join("gomad_wasm.go");
+        let added = directory.join("added.go");
+        for (path, data) in [
+            (&original, "original runtime"),
+            (&effective, "effective runtime"),
+            (&added, "added runtime hook"),
+        ] {
+            fs::write(path, data).unwrap();
+        }
+        let listed = serde_json::to_vec(&serde_json::json!({
+            "Dir": directory,
+            "GoFiles": ["runtime.go", "gomad_wasm.go"],
+        }))
+        .unwrap();
+        let replacements = BTreeMap::from([
+            (
+                original.to_string_lossy().into_owned(),
+                effective.to_string_lossy().into_owned(),
+            ),
+            (
+                virtual_file.to_string_lossy().into_owned(),
+                added.to_string_lossy().into_owned(),
+            ),
+        ]);
+        let identity = || {
+            let inputs = sources(&listed, &root.0, &replacements)
+                .expect("selected virtual runtime file was not captured through its overlay");
+            assert_eq!(
+                inputs.keys().cloned().collect::<Vec<_>>(),
+                [added.clone(), effective.clone(), original.clone()],
+                "runtime inventory must bind original and effective inputs"
+            );
+            canonical::digest(&canonical::encode(&inputs).unwrap())
+        };
+        let initial = identity();
+        for path in [&original, &effective, &added] {
+            let prior = fs::read(path).unwrap();
+            fs::write(path, "changed runtime input").unwrap();
+            assert_ne!(
+                identity(),
+                initial,
+                "changed {} reused build identity",
+                path.display()
+            );
+            fs::write(path, prior).unwrap();
+        }
+        assert_eq!(identity(), initial);
+    }
 }

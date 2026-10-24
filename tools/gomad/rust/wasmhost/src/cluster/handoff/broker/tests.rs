@@ -1525,3 +1525,59 @@ fn native_world_configuration_requires_every_explicit_capacity() {
         );
     }
 }
+
+/// Original `TestTemporalStorageBrokerPayloadAccounting`: the request bound is
+/// checked before the payload bound, each registration accounts its 32-byte
+/// payload digest once per World copy (64 bytes), never the raw callback
+/// input, and a refused registration leaves the World unchanged.
+#[test]
+fn registration_checks_requests_before_payload_and_refusal_keeps_world() {
+    let payload = b"storage".repeat(128);
+    for (name, payload_bytes, accepted, dimension) in [
+        ("request-first", 192, 3, "requests"),
+        ("payload-double-accounting", 191, 2, "payload-bytes"),
+    ] {
+        let mut config = broker_config();
+        config.limits.max_requests = 3;
+        config.limits.max_payload_bytes = payload_bytes;
+        let broker = Broker::new(&config, &["a".into()], None, None).unwrap();
+        for _ in 0..accepted {
+            broker.register(0, "storage", &payload).unwrap();
+            broker.ready(0, "storage").unwrap();
+        }
+        let before = lock(&broker.inner).world.cardinality();
+        assert_eq!(
+            (before.requests, before.events, before.payload_bytes),
+            (accepted, accepted, accepted * 64),
+            "{name}: broker payload accounting"
+        );
+        let refused = broker.register(0, "storage", &payload);
+        assert!(
+            matches!(refused, Err(Failure::Exhausted { dimension: actual, .. }) if actual == dimension),
+            "{name}: broker boundary, want {dimension} capacity"
+        );
+        assert_eq!(
+            lock(&broker.inner).world.cardinality(),
+            before,
+            "{name}: rejected request changed World"
+        );
+    }
+}
+
+/// Original `TestHelperPreservesInspectionFailuresWithoutFullTapeFinish`: an
+/// inspection failure the broker raises keeps its own termination, stops the
+/// run as an inspection stop and is not replaced by a later abort.
+#[test]
+fn inspection_failures_keep_their_termination_and_stop_inspection() {
+    for termination in [
+        "instrumentation_divergence",
+        "debug_error",
+        "probe_fuel_limit",
+    ] {
+        let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+        broker.abort(termination, "inspection".into());
+        broker.abort("trap", "later".into());
+        assert_eq!(broker.failure().map(|(kind, _)| kind), Some(termination));
+        assert!(broker.inspection_stopped(), "{termination}");
+    }
+}
