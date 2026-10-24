@@ -19,6 +19,10 @@ cargo +1.99.1 fmt --manifest-path tools/gomad/rust/Cargo.toml --all -- --check
 
 Run from this task worktree, with its assigned exclusive build target. Required genuine-fixture features may be added and recorded. A final test filter selecting zero tests proves nothing.
 
+## Required B15 startup integration — explicit cycle process owner
+
+Wire fn-242.13's actual exclusive CycleOwner initialization at cycle CLI startup before any child or worker thread. All cycle Runner/busy/build/producer spawn paths require that same real PID-bound domain token. Missing/mixed ownership refuses; unrelated CLI commands never initialize the domain. Verify whole-domain abort/drain after supervisor loss through the actual integrated route. A standalone .13 fixture supplies no production startup credit. Preserve all original aggregate and route acceptance. See `.flow/artifacts/fn242-process-custody-decision.md`.
+
 ## Acceptance
 - [ ] Execute all84 semantic IDs through their real edge with controls; one edge cannot stand in for another. Exact145 final ownership is enforced and missing/duplicate/foreign/synthetic/skipped/unexecuted rows refuse.
 - [ ] Resolve every assigned pending_regression using an actually executed normal-return valid control and targeted catching mutation against current Rust code. Port retained keep-row catchers. Record original IDs/source SHA256, current source binding, exact input hashes/bytes, commands, outputs, numeric exits and direct intended predicate attribution.
