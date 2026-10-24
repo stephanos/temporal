@@ -1,6 +1,6 @@
 {
   "schema": "gomad.fn242-b02-review-fix/v1",
-  "status": "tested-awaiting-same-receipt-review",
+  "status": "independently-reviewed-SHIP",
   "source_commits": [
     "e00f6468e4",
     "2722976d77"
@@ -73,5 +73,8 @@
     "reused_gate_reason": "Integrated source hashes exactly equal the already executed worker final gate; no source or dependency change in integration."
   },
   "gate_reuse": "Verified tested source hashes and all relevant Rust dependency/build inputs unchanged on integration; reused worker numeric-zero focused gates.",
-  "review_receipt": "/tmp/impl-review-receipt-1e77a535c1fd-fn-242-gomad-shrink-the-qualification.15.json"
+  "review_receipt": "/tmp/impl-review-receipt-1e77a535c1fd-fn-242-gomad-shrink-the-qualification.15.json",
+  "review_session": "01a16fcd-9123-7ec1-a7b3-94958e714e02",
+  "review_verdict": "SHIP",
+  "review_receipt_sha256": "0d9d63bb3be174187271aa39d4f78ea99702790fb961f41c5dae67002dba796d"
 }

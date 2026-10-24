@@ -27,14 +27,17 @@ B02 also owns the two exact scheduler files listed in Touches for a narrow share
 - [ ] Actually execute all24 check proofs and all policy fixtures/control cases using deterministic filesystem/process seams and temporary fixture-only journal roots. Preserve the actual global journal and zero-used/two-remaining state untouched.
 
 ## Done summary
-TBD
+Implemented fixed, locked attempt enrollment and journal accounting with authenticated no-child refunds, charged ambiguous/created outcomes, strict byte admission and immediate reservation-floor rechecks. Evidence and declared overlay paths require overlayfs at preparation and reservation. All24 original check IDs and three policy guarantees have executed controls/catching proof. Eight filesystem regressions reproduce the reviewed defect before the fix and refuse after it.
 
+Validation: 30 cycle library tests and three strict process-owner fixture groups passed; scoped Gomad Clippy, formatting and diff checks exited0. The conductor verified exact integrated source/dependency equivalence and reused those gates. Independent same-receipt re-review returned SHIP. All31 logged child PIDs and24 fixture roots independently absent.
+
+No full qualification or operational journal mutation occurred. The real binding remains absent; fn246 owns verified initial enrollment and final qualification after fn242/fn240. CLI startup integration remains B15. Proof: .flow/artifacts/fn242-attempt-admission-proof.json and fn242-attempt-admission-review-fix-proof.json.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3d942494c8, e00f6468e4, 2722976d77, f1f6471fff
+- Tests: cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture, cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' clippy --locked --release -p gomad --lib --no-deps -- -D warnings, cargo +1.99.1 fmt --all -- --check, git diff --check, same-receipt independent review SHIP session 01a16fcd-9123-7ec1-a7b3-94958e714e02
 - PRs:
-
-
 ## Owner-authorized batch B02 (attempt-admission)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.15. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
