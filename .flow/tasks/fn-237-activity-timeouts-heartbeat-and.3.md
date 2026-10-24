@@ -71,9 +71,28 @@ This task owns minimal production constructor compatibility in `model/temporal/r
 
 
 ## Done summary
-TBD
+Implemented the approved activity timeout, heartbeat, retry and cooperative cancellation policy, with exact selected fairness, native and TLC replay controls, and a byte-exact retained lifecycle projection. Live constructors retain atomic cancellation and absent timeouts; live cooperative admission and actual SUT ACK evidence remain assigned to later tasks.
 
+Tier: session (jev-unavailable(no_key)); AGENTS implementer gpt-6.1-sol medium / reviewer gpt-6.1-sol high.
+
+Baseline was green before edits after the handoff failed closed on an external MILESTONES commit. The fixed pre-edit base is 88f3f2098e434cdcd3078f8afe792ae1e64b0fe7. Source implementation is e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98. External fn247/fn246 planning and root MILESTONES metadata in the range retain their original authorship and receive no implementation credit here.
+
+Actual final exits were zero for make model-check (stable-head rerun 441.325s), UMPIRE_BACKENDS=require make model-check (960.602s), make model-time (373.928s), make umpire-check-model-slice (98.727s), and make umpire-check-model-gaps (362.102s). Both full model-check variants measured 722 Rust tests passed, zero failed, four inherited ignored, plus host checks. model-time inner work was 6.566s; its 367.163s gate exceeded the soft 60s target. An earlier default pass was invalidated by external MILESTONES changes and was not reused. Its 455.374s wrapper included deferred receipt coordination; exact Make-only wall was unobserved.
+
+Focused policy and proof checks cover every budget, priority, pending failure boolean, cancellation race, current/stale action and selected fairness premise. Actual ACK witness replay retained four traces with 3, 7, 6 and 8 edges, against the committed Model and checked_step APIs. This is source/TLC proof, not actual SUT ACK proof. Compatibility remains exactly one start, six states and eleven old edges, with the changed-edge negative control. All 863 unrelated protected files remain byte-exact, including the task6 world_fairness artifacts and immutable originals. Guest SHA256 is eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0.
+
+Six host subagents supplied four isolated implementation lanes and fresh correctness/standards audits. The one standards finding was fixed; both final audits have no remaining findings. All four owned worktrees and branches were removed normally after recovery verification. Shared caches were preserved. No attributable command remains running at handover.
+
+Detailed evidence, exact commands, measured counts, initial failures, traces, scope exception hashes and recovery material are under .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md and activity-policy-implementation-evidence.json. The execution archive and durable activity-policy-ack-replay.txt retain the raw proofs. The broader archived Scala/IR Go umbrella remains inherited red; this is not an all-repository green claim.
+
+stage: impl-review - ran [2026-10-24T20:00:08.892841Z..2026-10-24T20:04:55.079940Z] (SHIP; three actual codex:gpt-6.1-sol:high draws, same-family disclosed; dispatcher/finalizer exits zero)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive)
+
+GATE_SKIPPED:model-check:green-receipt 1ef0402c
+GATE_SKIPPED:model-check-required:green-receipt 1ef0402c
+GATE_SKIPPED:model-time:green-receipt 1ef0402c
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 40b9cb9ff15c1c24d69de9171dea0d2b340053e1, e04f0dc1a3a28d33c18ebd94b6e45ac039b01b98, 67a7c6af38c12cba9842e89932fb36d3c87a715a, 53a9c9ccbdbbc9ab4b006acd05deefdf711cdc4c, 505bc5013ab2e95ac12b3b6e84f9b76935ff7e43, 45c5a5a04c61994f1e41e3a15c1d9a77d5a4b4d0, 1ef0402c102a79ef1926c24ecd025372ad1bf123, 9d69325e2c366bc39c3782cef92cba507f81260f, 49ef7069fc4ef5cab58c87504fd20b523462ed68
+- Tests: make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps, GATE_SKIPPED:model-check:green-receipt 1ef0402c, GATE_SKIPPED:model-check-required:green-receipt 1ef0402c, GATE_SKIPPED:model-time:green-receipt 1ef0402c
 - PRs:
