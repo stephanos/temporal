@@ -135,3 +135,45 @@ fn canonical_optional_imports_preserve_builtin_identity() {
         assert!(error.line > 1 && error.column > 0, "{error}");
     }
 }
+
+#[test]
+fn optional_spellings_remain_ordinary_scalar_names_without_bounded_types() {
+    let mut refusals = Vec::new();
+    for name in ["Some", "None"] {
+        let source = format!(
+            r"#[machine] mod ordinary {{
+                use umpire_dsl::{{State, Action, check}};
+                const {name}: bool = true;
+                #[derive(State)] struct Model {{ active: bool }}
+                #[derive(Action)] enum User {{ Set }}
+                impl Model {{
+                    #[on(User)] fn user(&mut self, action: User) {{
+                        match action {{ User::Set => self.active = {name} }}
+                    }}
+                    #[invariant] fn ordinary(&self) {{ check!({name}); }}
+                }}
+            }}"
+        );
+        if let Err(error) = Lift::parse("ordinary.rs", &source) {
+            refusals.push(format!("{name}: {error}"));
+        }
+    }
+    assert!(refusals.is_empty(), "{}", refusals.join("\n"));
+}
+
+#[test]
+fn option_remains_an_ordinary_fieldless_enum_without_bounded_types() {
+    let source = r"#[machine] mod ordinary {
+        use umpire_dsl::{State, Action};
+        #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+        enum Option { #[default] Off, On }
+        #[derive(State)] struct Model { mode: Option }
+        #[derive(Action)] enum User { Set }
+        impl Model {
+            #[on(User)] fn user(&mut self, action: User) {
+                match action { User::Set => self.mode = Option::On }
+            }
+        }
+    }";
+    Lift::parse("ordinary.rs", source).unwrap_or_else(|error| panic!("{error}"));
+}

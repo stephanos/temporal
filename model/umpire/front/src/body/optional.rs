@@ -60,6 +60,9 @@ impl Environment {
     }
 
     pub(super) fn optional_type(&self, ty: &syn::Type) -> Result<Option<Type>> {
+        if self.bounded.is_empty() {
+            return Ok(None);
+        }
         let syn::Type::Path(path) = ty else { return Ok(None) };
         let names = path.path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<_>>();
         if !matches!(
@@ -112,6 +115,9 @@ impl Environment {
         expected: Option<&Type>,
         depth: usize,
     ) -> Result<Option<Expr>> {
+        if self.bounded.is_empty() {
+            return Ok(None);
+        }
         let names = path.path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<_>>();
         let name = names.join("::");
         if !matches!(

@@ -82,5 +82,58 @@
   "continuation_scoped": {
     "strict_clippy_exit_code": 0,
     "focused_tests_exit_code": 0
+  },
+  "pre_compatibility_full_gates": [
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "exit_code": 0,
+      "kernel_wait_status": 0,
+      "seconds": 518.190215826995,
+      "timing_basis": "process boot-time start through observed zombie, 0.2s polling",
+      "added_timeout": false,
+      "passed_summary_total": 677,
+      "log": ".flow/tmp/fn2372-full-model-check.log",
+      "orchestration_adjustment": "wrapper paused to prevent its added timeout; gate never interrupted; wrapper terminated after gate exit",
+      "receipt_exit_code": 0,
+      "source_commit": "785651730b",
+      "checkpoint": "before compatibility repair"
+    },
+    {
+      "gate": "model-check-required",
+      "command": "UMPIRE_BACKENDS=require make model-check",
+      "exit_code": 0,
+      "seconds": 582.4408851949993,
+      "timed_out": false,
+      "added_timeout": false,
+      "passed_summary_total": 677,
+      "log": ".flow/tmp/fn2372-full-model-check-required.log",
+      "receipt_exit_code": 0,
+      "source_commit": "785651730b",
+      "checkpoint": "before compatibility repair"
+    },
+    {
+      "gate": "model-time",
+      "command": "make model-time",
+      "exit_code": 0,
+      "seconds": 372.27909117701347,
+      "timed_out": false,
+      "added_timeout": false,
+      "passed_summary_total": 0,
+      "log": ".flow/tmp/fn2372-full-model-time.log",
+      "observation": "green: actual make exit 0; timing output records all gate steps and inner-loop execution",
+      "wrapper_observation": "inconclusive: generic test-summary counter does not apply to timing output; wrapper exit 2 is distinct from make exit 0",
+      "gate_seconds": 363.055,
+      "inner_seconds": 9.076,
+      "source_commit": "785651730b",
+      "checkpoint": "before compatibility repair"
+    }
+  ],
+  "compatibility_repair": {
+    "red_exit": 101,
+    "red_cases": 2,
+    "green_exit": 0,
+    "green_cases": 5,
+    "scope": "optional grammar only active when at least one bounded nominal descriptor exists; ordinary unit Model scalar constants Some/None and fieldless enum Option preserved"
   }
 }
