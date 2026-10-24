@@ -16,7 +16,7 @@ def group(path):
         return 'retained-go-model-oracle-toolchain-support'
     if rel.startswith('internal/backends/native/'):
         return 'go-native-backend (fn-223)'
-    if any(rel.startswith(h) for h in HOST) or (rel.count('/') == 2 and rel.startswith(('internal/backends/', 'internal/backends/wasm/')) and rel.endswith('.go')):
+    if any(rel.startswith(h) for h in HOST) or (rel.rsplit('/', 1)[0] in {'internal/backends', 'internal/backends/wasm'} and rel.endswith('.go')):
         return 'go-host (retired by fn-232)'
     if rel.startswith('internal/backends/wasm/wasi/') or rel.startswith('internal/model/wasi/'):
         return 'go-wasi-reference (moved to internal/model/wasi)'
