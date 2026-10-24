@@ -1,0 +1,236 @@
+{
+  "task": "fn-237-activity-timeouts-heartbeat-and.6",
+  "base_commit": "52b2ed61b90e16090e5a4ebc2a4c037786de9388",
+  "source_commit": "94e47d78789bb4de8bd2c372027e7785baa30545",
+  "gate_head": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+  "recorded_utc": "2026-10-24T17:25:54.638644+00:00",
+  "baseline": [
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "exit": 0,
+      "seconds": 493.93840136000654
+    },
+    {
+      "gate": "model-check-required",
+      "command": "UMPIRE_BACKENDS=require make model-check",
+      "exit": 0,
+      "seconds": 697.3277307899989
+    },
+    {
+      "gate": "model-time",
+      "command": "make model-time",
+      "exit": 0,
+      "seconds": 401.69706627499545
+    }
+  ],
+  "full_gates": [
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "head_at_start": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "exit_code": 0,
+      "seconds": 497.28778644499835,
+      "finished_utc": "2026-10-24T17:00:55.775002+00:00",
+      "log": ".flow/tmp/fn2376-final-model-check.log",
+      "check_exit": 1,
+      "head_at_end": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "receipt_exit": 0,
+      "receipt_path": ".flow/tmp/fn2376-final-model-check-receipt.json",
+      "rust_results": {
+        "summaries": 176,
+        "passed": 702,
+        "failed": 0,
+        "ignored": 4
+      }
+    },
+    {
+      "gate": "model-check-required",
+      "command": "UMPIRE_BACKENDS=require make model-check",
+      "head_at_start": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "exit_code": 0,
+      "seconds": 582.112510152001,
+      "finished_utc": "2026-10-24T17:10:38.595123+00:00",
+      "log": ".flow/tmp/fn2376-final-model-check-required.log",
+      "check_exit": 1,
+      "head_at_end": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "receipt_exit": 0,
+      "receipt_path": ".flow/tmp/fn2376-final-model-check-required-receipt.json",
+      "rust_results": {
+        "summaries": 176,
+        "passed": 702,
+        "failed": 0,
+        "ignored": 4
+      }
+    },
+    {
+      "gate": "model-time",
+      "command": "make model-time",
+      "head_at_start": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "exit_code": 0,
+      "seconds": 352.38804379300564,
+      "finished_utc": "2026-10-24T17:16:31.752528+00:00",
+      "log": ".flow/tmp/fn2376-final-model-time.log",
+      "check_exit": 1,
+      "head_at_end": "01e2fee46829b3464088b9ba8d5bbdc26f10d8c1",
+      "receipt_exit": 0,
+      "receipt_path": ".flow/tmp/fn2376-final-model-time-receipt.json"
+    }
+  ],
+  "timing": {
+    "wall_seconds": 352.38804379300564,
+    "gate_seconds": 343.787,
+    "inner_seconds": 8.454,
+    "gate_soft_target_seconds": 60,
+    "gate_soft_target_met": false,
+    "inner_soft_target_seconds": 10,
+    "inner_soft_target_met": true
+  },
+  "fixture": {
+    "status": "dirty-ready-for-root-integration",
+    "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fixture",
+    "source_files": 2,
+    "new_expected_files": 18,
+    "counts": [
+      {
+        "maximum": 1,
+        "states": 3,
+        "edges": 4,
+        "fair_values": 2,
+        "allowed_values": 4
+      },
+      {
+        "maximum": 2,
+        "states": 6,
+        "edges": 11,
+        "fair_values": 3,
+        "allowed_values": 5
+      },
+      {
+        "maximum": 3,
+        "states": 9,
+        "edges": 20,
+        "fair_values": 4,
+        "allowed_values": 6
+      }
+    ],
+    "tests": [
+      {
+        "command": "mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness_selected_worlds_agree_compiled_embedded_and_readmitted -- --nocapture",
+        "exit_code": 101,
+        "observation": "red: compiled closes Verified, unresolved interpreted closes Refuted; 1 collected",
+        "log": ".flow/tmp/fn2376-fixture-red.log"
+      },
+      {
+        "command": "mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness -- --nocapture",
+        "exit_code": 0,
+        "observation": "7 passed, 1 temporary snapshot test ignored; 0.05s test time",
+        "log": ".flow/tmp/fn2376-fixture-focused.log"
+      },
+      {
+        "command": "UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness -- --nocapture --test-threads=1",
+        "exit_code": 0,
+        "observation": "7 passed, 1 temporary snapshot test ignored; 44.19s test time",
+        "log": ".flow/tmp/fn2376-fixture-required.log"
+      },
+      {
+        "command": "INSTA_UPDATE=always UMPIRE_BACKENDS=require UMPIRE_WORLD_FAIRNESS_GOLDEN_ROOT=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2376-fixture-goldens mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness_scoped_goldens -- --ignored --nocapture",
+        "exit_code": 0,
+        "observation": "1 passed; normal discovery/runner generates new fixture only, 9.55s; temporary test and discovery links removed",
+        "log": ".flow/tmp/fn2376-fixture-goldens.log",
+        "command_path_evidence": "The absolute temporary root appears in the captured TLC output."
+      },
+      {
+        "command": "mise exec -- cargo clippy -p umpire-fixtures --tests -- -D warnings",
+        "exit_code": 0,
+        "observation": "strict clippy passed, 6.58s",
+        "log": ".flow/tmp/fn2376-fixture-clippy.log"
+      },
+      {
+        "command": "mise exec -- rustfmt --check --edition 2024 --config-path model/rustfmt.toml model/umpire/dev/fixtures/fixtures/world_fairness/model.rs model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs",
+        "exit_code": 0
+      }
+    ],
+    "proof": {
+      "required_worlds": [
+        1,
+        2,
+        3
+      ],
+      "baseline_replayed_counterexamples_each": 1,
+      "wf_mutants": [
+        "missing_close",
+        "missing_current",
+        "stale_payload",
+        "variant_union"
+      ],
+      "wf_mutant_outcome": "expected closes Refuted/TLC vs Verified/native after typed replay",
+      "raw_lassos": [
+        "missing_close: ready=true/closed=false, Heartbeat input5, choice0, unit outcome/facts",
+        "missing_current: attempt3/ready=false/closed=false, stale Poll input0-or1, choice0, unit outcome/facts"
+      ],
+      "cfg_swap_refusals": [
+        "main",
+        "invariant",
+        "postcondition",
+        "negative",
+        "progress",
+        "coordinated all"
+      ],
+      "metadata_mutations": [
+        "fair_inputs",
+        "name",
+        "allowed",
+        "fair",
+        "allowed_inputs",
+        "bound",
+        "typed catalog"
+      ]
+    },
+    "commands_running": false,
+    "commits_created": false,
+    "limitations": [
+      "Initial attempt to feed TLA-renamed readmitted tree to native interpreter was a test-setup error; final tests use embedded native interpretation and independent source/TLC admission.",
+      "Full gates remain root-owned."
+    ]
+  },
+  "preservation": {
+    "manifest_entries": 849,
+    "manifest_all_match": true,
+    "manifest_failures": [],
+    "compat_entries": 15,
+    "compat_all_match": true,
+    "compat_failures": []
+  },
+  "guest_sha256": "b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a",
+  "proof_boundaries": "world-fairness-proof-boundaries.md",
+  "quality": {
+    "correctness_findings": 0,
+    "standards_initial_findings": 2,
+    "standards_followup_findings": 0,
+    "reports": [
+      "world-fairness-quality-correctness.md",
+      "world-fairness-quality-standards.md",
+      "world-fairness-quality-standards-followup.md"
+    ],
+    "same_family": true
+  },
+  "primary_review": {
+    "status": "not_dispatched",
+    "requested_spec": "codex:gpt-6.1-sol:high",
+    "same_family": true
+  },
+  "host_subagents": 4,
+  "task_worktrees_remaining": 0,
+  "execution_archive": {
+    "path": "world-fairness-execution-logs.tar.gz",
+    "files": 74,
+    "sha256": "6dcdcd498787850e6c25cfbf8b62a332f01fbd53c9553974c5062cd8fe2577df"
+  },
+  "limitations": [
+    "Empty graphs do not invoke or establish agreement for unevaluated progress callbacks.",
+    "Generic fixture uses embedded interpretation plus independently admitted source/TLC; raw-front interpreted coverage at all three Worlds is owned by the TLA integration test.",
+    "Broader archived Scala/IR Go umbrella remains inherited red and is not covered by this active-gate claim."
+  ],
+  "concurrent_metadata": "Source-free Flow/MILESTONES planning and closure commits from other sessions are preserved in the range without task implementation credit."
+}
