@@ -85,6 +85,8 @@ fn absolute(tokens: &[TokenTree], index: usize) -> bool {
             for before in (0..index - 1).rev() {
                 if let TokenTree::Punct(mark) = &tokens[before] {
                     match mark.as_char() {
+                        '>' if matches!(before.checked_sub(1).map(|head| &tokens[head]), Some(TokenTree::Punct(prefix)) if prefix.as_char() == '-' && prefix.spacing() == proc_macro2::Spacing::Joint) =>
+                            {}
                         '>' => depth += 1,
                         '<' => depth -= 1,
                         _ => {}
