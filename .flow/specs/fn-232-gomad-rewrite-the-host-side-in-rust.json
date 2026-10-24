@@ -12,6 +12,7 @@
   "id": "fn-232-gomad-rewrite-the-host-side-in-rust",
   "impl_review_rounds": {
     "fn-232-gomad-rewrite-the-host-side-in-rust.15": 0,
+    "fn-232-gomad-rewrite-the-host-side-in-rust.16": 0,
     "fn-232-gomad-rewrite-the-host-side-in-rust.17": 0
   },
   "next_task": 1,
@@ -451,20 +452,57 @@
       "task": "fn-232-gomad-rewrite-the-host-side-in-rust.17",
       "timestamp": "2026-10-24T04:20:31.012226Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f783fc6b3e83a37a5caa33e2e5c26521d982f4207b1ffe330e1717fb22f2076c",
+      "backend": "codex",
+      "base_sha": "beccf3e8db82003e5280648673706dfd72939611",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b15d9b5e0eb0c044612c8fb28db9a701aeea25de",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "53af75b96c7241b9b15acb1c84127e75",
+      "round_consumed": true,
+      "scope": "impl:fn-232-gomad-rewrite-the-host-side-in-rust.16",
+      "superseded_by": null,
+      "task": "fn-232-gomad-rewrite-the-host-side-in-rust.16",
+      "timestamp": "2026-10-24T04:41:22.388198Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 4,
-    "plan#completion": 0,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.15": 1,
-    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 1
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.16": 1,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 1,
+    "plan": 4,
+    "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "plan": 0,
     "impl:fn-232-gomad-rewrite-the-host-side-in-rust.15": 0,
-    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 0
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.16": 0,
+    "impl:fn-232-gomad-rewrite-the-host-side-in-rust.17": 0,
+    "plan": 0
   },
   "spec_path": ".flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md",
   "status": "open",
@@ -480,5 +518,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T04:20:31.013849Z"
+  "updated_at": "2026-10-24T04:41:22.389229Z"
 }
