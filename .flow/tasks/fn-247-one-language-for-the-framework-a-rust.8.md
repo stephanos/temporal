@@ -50,9 +50,21 @@ Add the actual focused orchestration/mode-control invocation to evidence after i
 
 
 ## Done summary
-TBD
+Added `make model-validate`, reusing the existing timer for exactly one TLC-required gate and one edited-checker benchmark. Required mode survives environment, command-line and MAKEFLAGS conflicts; legacy modes, independent Apalache selection, failure diagnostics/statuses, cleanup and soft warnings retain focused controls. Current command guidance is updated, README is 999 lines, and no Model/protocol/Go/guest/golden/hash/package or milestone content changed.
 
+baseline: green (existing timing controls and selected-complete-goldens consumer test). New actual-Make/timer controls failed first for the absent target, then passed; the ordinary timing-controls stage executes them. Actual generic and Temporal fixture entry tests passed with TLC absent and explicitly skipped, with Java resolution/execution sentinels untouched. Initial wrong-directory/lost-handle observations and the absent external timer were inconclusive and are recorded honestly in the durable evidence.
+
+The ONE real `BASH_ENV=/dev/null make model-validate` invocation exited 0 at executable commit `3e38c6080db279521afb1267f3964f96cdd9f9f9`: all 19 existing stages, required TLC agreement/semantic/mutant/selected-golden checks, wasm/guest and all three Go host parity stages, followed by one benchmark. Gate 1007.800 s, benchmark 9.272 s, wall 1017.380 s; the 60 s gate target warned and the 10 s benchmark target did not. Required timings are separate from historical defaults. Retained workspace output totals 720 passed, zero failed and four existing ignored controls across 177 suite summaries. Shared fixtures: 47 passed; Temporal fixtures: 33 passed/one ignored. Linux/aarch64, GNU Make 4.4.1, Rust/Cargo 1.99.1, Go 1.27.0 and Temurin 27 were observed. No native macOS execution is claimed. Apalache remains independently opt-in; final task .3 retains its combined-backend run.
+
+Durable stage/test/mode/tool/hash evidence and review receipts are under `.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task8/`. The guest remains SHA-256 `eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0`. After measurement only current-command prose and Flow evidence changed; executable-byte identity against the measured commit, shell syntax and diff checks passed. The classifier reported FULL/unmatched, so no docs-only skip or repeated full run is claimed; the recorded full receipt remains tied to the measured executable commit.
+
+Three explicit `codex:gpt-6.1-sol:high` draws returned SHIP; dispatcher and finalizer each exited 0. Reviewers are from the same model family as the writer. Read-only reviewer sandboxes blocked mktemp runtime reruns; they checked shell syntax, source contracts and retained passing evidence. The primary freeze was released only after both commands terminated. No source worktree or remote operation was created.
+
+stage: impl-review - ran (three SHIP draws; finalizer SHIP; task8/review-receipt.json)
+Tier: session (jev-unavailable(no_key)); AGENTS implementer pin applies. One judge dispatch already recorded in .flow/tmp/fn2478-judge.json; no retry.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3e38c6080db279521afb1267f3964f96cdd9f9f9, d5ccc400dc0c67109273ccae0a69d04f38a986f4
+- Tests: BASH_ENV=/dev/null bash model/scripts/test-time-gate.sh, BASH_ENV=/dev/null bash model/scripts/test-model-validate.sh, cd model && mise exec -- cargo test -p umpire-testing --test consumers skipped_backend_requires_selected_complete_goldens -- --exact, cd model && env -u UMPIRE_BACKENDS mise exec -- cargo test -p umpire-fixtures -p umpire-temporal-tests --test fixtures fixtures -- --exact --nocapture, cd model && UMPIRE_BACKENDS=skip mise exec -- cargo test -p umpire-fixtures -p umpire-temporal-tests --test fixtures fixtures -- --exact --nocapture, BASH_ENV=/dev/null make model-validate, bash -n model/scripts/time-gate.sh model/scripts/test-time-gate.sh model/scripts/test-model-validate.sh, git diff --check
 - PRs:
