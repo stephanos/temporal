@@ -71,6 +71,11 @@ Leader dependency additions: none.
 - `tools/gomad/rust/gomad/src/cycle/admission/**`
 - `tools/gomad/rust/gomad/src/cycle/journal/**`
 
+Conductor integration extension: B02 owns the exact scheduler parser and re-export files below. Preserve one strict byte parser and the existing GiB wrapper; run existing scheduler tests. Original acceptance and proof ownership are unchanged.
+
+- `tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs`
+- `tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs`
+
 ### B03 bindings-composition
 
 Freeze role bindings and compose the fixed executable plan without waiting for reader implementations.

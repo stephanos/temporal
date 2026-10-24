@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-242-gomad-shrink-the-qualification.15 Fixed global attempt journal and reservation-time admission floors
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/admission/**, tools/gomad/rust/gomad/src/cycle/journal/**
+**Touches:** tools/gomad/rust/gomad/src/cycle/admission/**, tools/gomad/rust/gomad/src/cycle/journal/**, tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs, tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs
 
 ## Description
 fixed global two-attempt journal and reservation floors
@@ -14,6 +14,10 @@ Description: preserve host/scratch filesystem admission and strict live-memory p
 
 
 Proof ownership: `.flow/artifacts/fn242-cycle-proof-ownership.json`, group `cycle-admission`; inventory source binding and exact ID list remain authoritative. Keep original .2 aggregate acceptance; this task produces evidence, not qualification credit. Reuse existing validation and fold same-boundary bookkeeping only with a named surviving guarantee and executed catching/control proof.
+
+## Shared parser integration
+
+B02 also owns the two exact scheduler files listed in Touches for a narrow shared-parser refactor. Add `parse_mem_available_bytes` as the single strict unsigned-byte authority with checked KiB conversion and malformed/duplicate/unsupported-field refusal. Keep the existing floating-point GiB API as a wrapper and preserve normal scheduler behavior. Admission consumes the byte API without a second parser. The reviewed scheduler implementation is already present in this batch base; run its existing tests alongside the admission tests. This extends integration scope, preserving every original acceptance and proof owner.
 
 ## Acceptance
 - [ ] Host/evidence/scratch canonical containment, distinct explicit temporary children, forbidden serving filesystems and fixed probe failure behavior retain original thresholds and custody. Strict decimal/MemAvailable bounded parsing rejects overflow, missing/duplicate/non-kB/unsupported/error/below-bound observations.

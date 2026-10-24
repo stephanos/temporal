@@ -5901,7 +5901,9 @@
       ],
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/admission/**",
-        "tools/gomad/rust/gomad/src/cycle/journal/**"
+        "tools/gomad/rust/gomad/src/cycle/journal/**",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.15": "**Touches:** tools/gomad/rust/gomad/src/cycle/admission/**, tools/gomad/rust/gomad/src/cycle/journal/**"
@@ -5954,7 +5956,15 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 1
+      "earliest_review_wave": 1,
+      "conductor_authorized_integration_touch_additions": {
+        "paths": [
+          "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs",
+          "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs"
+        ],
+        "reason": "Single strict byte parser shared by admission and existing scheduler GiB wrapper; original acceptance unchanged",
+        "base_contains_reviewed_producer": "fn-242.12 DONE before B02 admission"
+      }
     },
     {
       "id": "B03",
