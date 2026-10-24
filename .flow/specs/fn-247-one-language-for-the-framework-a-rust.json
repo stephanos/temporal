@@ -1,0 +1,32 @@
+{
+  "branch_name": "fn-247-one-language-for-the-framework-a-rust",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T16:42:25.537897Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-247-one-language-for-the-framework-a-rust",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-247-one-language-for-the-framework-a-rust.md",
+  "status": "open",
+  "title": "One language for the framework: a Rust process supervisor and an xtask crate replace the Python helpers (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T16:42:26.128732Z"
+}
