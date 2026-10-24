@@ -1,0 +1,153 @@
+{
+  "schema": "fn242-b01-review-fix-integration/v1",
+  "source_commit": "03832e4d5db43f63a6a1e3db8243412086865b30",
+  "worker_source_commit": "28c02f4fb1186250220da9d2fbbf43c8eda85c59",
+  "delta_proof": {
+    "path": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/proof-map.json",
+    "sha256": "bf51dc5796efca8bb91e20c3fbc52474d676e8b3481d244d14231a72f8048ce6"
+  },
+  "source_freeze": {
+    "path": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/freeze-final.json",
+    "sha256": "a82e26b130db9622982f02d3c46185897d5ef56244bf07bf7e97fb0962843302",
+    "files": 19
+  },
+  "matched_source_files": 19,
+  "entire_tracked_rust_tree_equal_to_worker": true,
+  "current_gates": [
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "clippy",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "family": null,
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/clippy-final.log",
+      "log_sha256": "5ec9a8ec0209141dba81f55ac7a9ca88cf07cb7ea86ecf0774ae0a0967210cd2",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/freeze-final.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "family": null,
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/unit-final.log",
+      "log_sha256": "75bfcf9607dd36810f58c472c185f57204f2f362b00d03c02279a32e9bfce3da",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/freeze-final.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--test",
+        "cycle_custody_owner",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "family": "source",
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/source-owner-final.log",
+      "log_sha256": "2a9be0d99ceb67e3ea46f657cf5a487f961be02f632cab06560c930101103677",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/freeze-final.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/fmt-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/diff-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--test",
+        "cycle_custody_owner",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "family": "inputs",
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/inputs-owner-final.log",
+      "log_sha256": "66f6d574bda92da85901da832e163161cd08fee6701785bcc9c16b1e39fa9b7f",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/review-fix/freeze-final.json"
+    }
+  ],
+  "audit": {
+    "raw_process_records_checked": 690,
+    "reconstructed_recorded_pids_checked_absent": 1385,
+    "worker_new_recorded_pids_absent": 1411
+  },
+  "full_qualification_dispatches": 0,
+  "operational_binding_absent": true,
+  "review": "same-receipt single re-review pending",
+  "gate_reuse": "Worker current Rust tree, Cargo manifests/lock, fixtures and exact nonzero selected focused tests match integrated tree. No source/dependency changes after gate; metadata-only merges do not justify duplicate compilation."
+}
