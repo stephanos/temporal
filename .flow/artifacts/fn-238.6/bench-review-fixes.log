@@ -1,0 +1,15 @@
+commit be59562661-dirty  2026-10-23T17:50:57-07:00  load: 28.22 24.70 22.32  nproc 12
+ model/DESIGN.md                                    |  26 +++--
+ model/README.md                                    |  11 +-
+ model/design/shared-front-end.md                   |   4 +
+ model/temporal/feature/activity/tests.rs           |   4 +-
+ model/umpire/checker/src/interpret.rs              |  66 +++++++++++-
+ .../fixtures/fixtures/action_inputs/tests.rs       |   2 +-
+ .../fixtures/fixtures/parameterized_world/tests.rs |   2 +-
+ model/umpire/fixtures/interpreted.rs               | 118 ++++++++++++++++-----
+ model/umpire/testing/src/lib.rs                    |  29 +++--
+ 9 files changed, 206 insertions(+), 56 deletions(-)
+kettle: 4000 interleaved pairs, median compiled 90.792µs, interpreted 175.458µs; per-pair ratio median 1.94 (p10 1.79, p25 1.89, p75 2.01, p90 2.21)
+wide: 800 interleaved pairs, median compiled 1.507ms, interpreted 2.696459ms; per-pair ratio median 1.77 (p10 1.06, p25 1.68, p75 2.00, p90 3.30)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 6.42s
+load after: 27.89 24.69 22.33

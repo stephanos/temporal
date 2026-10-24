@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-23.
+As of 2026-10-24.
 
 ## Keeping this page current
 
@@ -56,6 +56,10 @@ fn-227 is complete locally: all 13 tasks and the parent completion review passed
 Worlds, finite inputs, activity retries, retained-lifecycle refinement and actual SDK retry
 proof are delivered. Final required gate passed in 582.209s against its 60s soft target;
 inner loop 6.112s met 10s. Timeout and cooperative-cancellation work is scheduled in fn-237 after fn-238.
+fn-238 is complete locally: one shared front end, and the interpreter as a differential check
+over every admitted Model the gate reaches. .6 kept the compiled checker as the default because
+its gate was not met (Kettle upper quartile 2.01x, sets unmeasurable); the reviewed switch is kept
+on `work/fn2386-interpreted-switch`, and .6's required timing gate on the merged tip is owed.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -105,45 +109,6 @@ publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner
 | fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
 | fn-228.6 | 🔄 in progress | After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
 | fn-228.7 | ⬜ todo | After .6 and fn-244.2; records R40 as superseded: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
-
-### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
-
-Filed on 2026-10-21 at the owner's direction: both checkers share all code except the back end. The
-native checker executes the Model and the lifter emits TLA+ (and later Apalache); the owner accepts
-the risk of a shared misreading. Typed counterexample replay stays as the cross-check. Runs after
-fn-227.14 and .8, before fn-227.11, so later constructs are built once.
-The design ([shared-front-end.md](model/design/shared-front-end.md)) measured about 1,000 duplicated
-lines per side and recommends one shared admission crate first (Option A, .2-.4), then the
-interpreted checker behind a measured gate (Option B, .5-.6); the guest and replay stay compiled.
-.2 is complete locally: `umpire-front` owns admission, goldens and IR unchanged; timing was
-measured under concurrent load (119.6s); idle re-measurements since are 50-54s.
-.8 is complete locally: guest identities hash only each crate's lockfile closure, so unrelated
-workspace crates no longer stale the guest; timing 50.199s gate, 6.128s inner loop.
-.3 is complete locally: the macros read Models only through `umpire-front` (dsl/macros
-3,306 -> 2,153 lines). Net size was flat because most measured lifter "duplication" was lowering
-rustc does natively; .4's deletion of the source re-read and re-validation is where lines drop.
-.4's review found Option A met its structure (one reading, one diagnostic, cheap new back ends)
-but not its size (about +336 lines against -850 to -1,600 promised), and that it halves cost only
-for declaration-level constructs. Option B adds work for body-level constructs; the owner
-reactivated .5 and .6 on 2026-10-23, scheduled after fn-228 with their measured gates intact.
-.4 is complete locally: the macro embeds the admitted Model and the lifter emits from it, with
-no `model.rs` re-read; core crates 8,297 lines against 8,190 before .2; timing 47.6s gate, 7.3s inner loop.
-.7 recorded the boundary and measurements in [DESIGN.md](model/DESIGN.md#front-end-and-back-ends-fn-238).
-The approved IR token-printer cleanup (.9) is complete locally before fn-227.16 adds IR
-constructs. All 782 golden/snapshot/refusal files and the 26-Model IR/token comparisons
-are exact; slice, gaps and required-TLC gates passed, and all three review draws returned
-SHIP. Production Rust shrank 60 lines against the roughly 190-line estimate. Required gate
-532.677s exceeded its 60s soft target; inner loop 9.272s met 10s. .5 is complete locally, run as a parallel lane: `Interpreted<M>` evaluates the embedded tree
-and the differential check requires identical states, rows, outcomes, claim verdicts and paths for
-every admitted Model the gate reaches, with six seeded mutants caught and all 800 protected files
-byte-identical. Interpreted runs 2.6x slower than compiled (Kettle and the wide shape), above .6's
-2x limit as built. Its required gate passed at 2448.226s from a cold cache at load average 30-44,
-not representative; inner loop 30.502s. .6 is next in the parallel lane.
-[Spec](.flow/specs/fn-238-shared-front-end-one-model-reading-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-238.6 | 🔄 in progress | After .5: interpreted checker by default behind the 2x / 25% gate (R2, R3) |
 
 ### fn-242: Length arithmetic parity across compiled, interpreted and TLC (model)
 

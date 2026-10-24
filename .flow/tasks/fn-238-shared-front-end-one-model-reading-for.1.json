@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Design: shared admission front end versus shared interpreted IR, measured against today's duplication",
   "updated_at": "2026-10-21T21:58:26.576079Z"
 }

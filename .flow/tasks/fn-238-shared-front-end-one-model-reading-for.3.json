@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Macros read through umpire-front; one diagnostic per unsupported form",
   "updated_at": "2026-10-21T23:44:17.321369Z"
 }

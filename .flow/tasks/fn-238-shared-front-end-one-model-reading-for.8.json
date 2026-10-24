@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Guest build identity hashes only the guest's dependency closure, not the whole workspace lockfile",
   "updated_at": "2026-10-22T00:04:10.747907Z"
 }

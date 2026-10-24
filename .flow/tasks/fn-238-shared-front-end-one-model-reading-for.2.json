@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "umpire-front: move the lifter's admission into a shared crate, no behaviour change",
   "updated_at": "2026-10-21T23:44:17.321279Z"
 }

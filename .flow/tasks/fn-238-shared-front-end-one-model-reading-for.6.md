@@ -16,9 +16,14 @@ Follow the preservation plan in `model/design/shared-front-end.md` (Migration): 
 - [ ] `make model-time` within soft targets.
 
 ## Done summary
-TBD
+Gate not met; compiled stays the default, per the task. Landed (merge b22ae08cd1): `#[machine]` generates one callback per claim (no claim cap; expansion snapshots byte-identical), interpreted fields are read directly (no per-evaluation cache), and each match guard is evaluated once (first-match semantics preserved). With `Interpreted::new` counted as every run pays it, on a loaded host: Kettle per-pair median 1.94x (p75 2.01x), wide shape 1.77x (p90 3.3x). The sets half of the gate (at most 25% above Option A) cannot be measured: no set construct is admitted; the owner has not accepted deferring it. The reviewed switch and its follow-ups are preserved on local branch `work/fn2386-interpreted-switch` (be59562661, 6deb7dcb9d). Stop record in DESIGN.md (a5d25c1e17).
 
+Review: fresh-context round (Opus, same family) NEEDS_WORK on the switch (gate not met, wide ratio unstable, benchmark omitted setup cost, switch coverage gaps); commits 1-3 judged correct and landable. Follow-ups addressed on the preserved branch.
+
+Gates: worktree default `make model-check` rc 0 (831 s) after the follow-ups; all 800 protected files byte-identical. Not run, owed: `UMPIRE_BACKENDS=require make model-time` on the merged tip (wrap-up under the owner's usage limit, 2026-10-24); the guard-fallback and claim-count tests from 6deb7dcb9d are on the preserved branch, not on `umpire`.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: db9df02bb0, e9f71b00ae, 39cdae2691, b22ae08cd1, a5d25c1e17
+- Tests: make model-check (worktree)
 - PRs:

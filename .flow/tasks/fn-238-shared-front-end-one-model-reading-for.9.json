@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Derive the IR token printer instead of hand-writing it",
   "updated_at": "2026-10-22T19:36:28.733609Z"
 }

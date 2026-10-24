@@ -62,7 +62,7 @@
     "impl:fn-238-shared-front-end-one-model-reading-for.9": 0
   },
   "spec_path": ".flow/specs/fn-238-shared-front-end-one-model-reading-for.md",
-  "status": "open",
+  "status": "done",
   "title": "Shared front end: one Model reading for the native checker and the lifter (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -75,5 +75,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T02:34:40.431576Z"
+  "updated_at": "2026-10-24T01:09:09.693970Z"
 }

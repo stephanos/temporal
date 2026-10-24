@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-238-shared-front-end-one-model-reading-for",
   "spec_path": ".flow/tasks/fn-238-shared-front-end-one-model-reading-for.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Front end / back end boundary write-up and measurements",
   "updated_at": "2026-10-21T23:44:17.321648Z"
 }
