@@ -53,3 +53,7 @@ B03 additionally owns the workspace/host Cargo manifests and Cargo.lock solely t
 ## Exclusive-owner bindings fixture
 
 B03 additionally owns the exact existing custody/owner_fixture.rs solely to dispatch CUSTODY_FAMILY=bindings to bindings::run_cases with the existing real CycleOwner token. Preserve source/inputs/build families, the sole exclusive initializer and all Cargo targets; no new process or production ownership API.
+
+## Current public roles and genuine native fixture
+
+The public binding contract uses authenticated current release and diagnostic roles where their current behavior/noninterference is required; the historical seven-role public inventory/cardinality is not an acceptance requirement. Additional current roles may be supplied, but every supplied or actually referenced role must be authenticated/sealed, and missing roles consumed by selected cases/stages must refuse. This does not make complete StageBindings optional or earn unexecuted qualification credit. Use representative genuine public controls rather than compile unrelated roles solely for legacy labels. Existing native measurement BuildReceipt isolation remains unchanged: B03 slot1 may transfer serially from its shared target to fresh native-helper targets under HOST .build-cache/fn242-b03-native-controls, with the shared target idle; preserve original executable/log/receipt inputs, explicit leases and resource floors. Do not refactor measurement/build.rs merely to share a mutable target.
