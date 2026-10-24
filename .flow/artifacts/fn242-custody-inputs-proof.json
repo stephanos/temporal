@@ -1,0 +1,272 @@
+{
+  "schema": "fn242-b01-proof/v1",
+  "status": "green integrated implementation; independent batch review pending",
+  "batch": "B01",
+  "members": [
+    "fn-242-gomad-shrink-the-qualification.14",
+    "fn-242-gomad-shrink-the-qualification.16"
+  ],
+  "worker_commits": [
+    "cc07eeee9585c0c704679efe295e1490da9297cd"
+  ],
+  "integrated_source_commit": "dbbfe21ac2cc3994c24a5241ecef3aef8ee31298",
+  "proof_counts": {
+    "original_checks": 221,
+    "original_functions": 54,
+    "original_endpoints": 5
+  },
+  "evidence": {
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/handoff.json": "33e7400a62eedb9de726297a9d0f610eca089bc02c3eb14e89bba8dd7b6724dd",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/batch-proof-map.json": "d7d0ba30b282f1f19dc608cfdf3d67656562ce233353251ba8749dcb702a5db8",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/freeze-4/source.json": "1bee0336148feca43563de454fb90d20bea4ea707d4e522c455684faae549a8b",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/api.md": "ea5842bbae574165647f5378556a9d2c6c780566ef5112ec7f89eff064491f98",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/process-audit-final.json": "14f2a078aeb3e1622e708ea6f92b6fbab175971a83fb774b531a398afee40ff8",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-handoff-audit.json": "a71eccb791cb7df1c718650b326d319194356f01125f8fb6a21bea7c2f049d55",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-integration-4/run.py": "c93f19f9f86a693469bba34f18aebd9033fcf3e453235921ca884a02dd11a9c8",
+    "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-integration-4/results.json": "10d4aa4d9a8f2e37960007064cd4a6aeea753869e9524aa0d73bfb163841e12c"
+  },
+  "source_hashes": {
+    "tools/gomad/rust/gomad/Cargo.toml": "fe42b82cccebc86ea7dd39a56eef02dcf12613a0e51a1dba04f169ae27646a11",
+    "tools/gomad/rust/gomad/src/campaign/prepare/inventory.rs": "31946707f0588c3111652cda7f75b74baaf2968f88a74e13a12c5dbba07aa3d5",
+    "tools/gomad/rust/gomad/src/cycle/build/identity.rs": "42c0166e946b8f5d4c61e1abf07f21845835f2eaa217b64e6310abd261317256",
+    "tools/gomad/rust/gomad/src/cycle/build/mod.rs": "301b9e5642b0747cdc0f0c94be9a5640cf94e63631e607413a648fb750ba0e0e",
+    "tools/gomad/rust/gomad/src/cycle/build/tests.rs": "d85f1b97d3bc024a9ccafeaf4a068d37fe9081b16a51e7651502536ba5cd79b3",
+    "tools/gomad/rust/gomad/src/cycle/config/mod.rs": "f7525ee055455788d79756271666646450e64c32dd21d1b50bdc2926449372f9",
+    "tools/gomad/rust/gomad/src/cycle/config/tests.rs": "f2c9d95f51c9204dd631a09ab8a8a156515d159602e4f58d7b7d1e5e84feae57",
+    "tools/gomad/rust/gomad/src/cycle/custody/mod.rs": "7e5f7b03794a0b91586752a20a164145e82aef488f0850d65e5d736d45abc6ad",
+    "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs": "f0e2387cdeff0d1dc016f3de901cda3bf6a8aa60ef4bd86839ac29c4b0f4fe5a",
+    "tools/gomad/rust/gomad/src/cycle/custody/tests.rs": "d347c7833bdfdf5bd2df41263d3de342b166e867e15c3f0cf392701cc2ceb2d0",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/gnu.rs": "bb51d46662a7327b44026d9f91d76c37ffc21b6bc5ba1e78cde66673d707cd42",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/gnu_tests.rs": "f37b9be21c3817edd04a7ecb38d8f786d4afe7bf518cf54010ab7947407384f4",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/inventory.rs": "bea230f589cba8258ab607a8bd41ee634a4e007410f040f5219cde4b3f8af575",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/mod.rs": "11300a4ac25c744fbeef21e114ca25acaac830451eabdd1dc2bd4ccea319bf03",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs": "f16fbb7aad5204c321e1dfa8d82cbbb47c12c3ccee3a57ab9f72fb975645b279",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source_tests.rs": "94a2865982aed6b0ef84606d7b52d7daf8838278b4e05ebdd0f139a4dc2b231a",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/tests.rs": "7394ce996568fcd025f8997491ae665ff887afe735cab0635fd88c972bbb99de",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/workloads.rs": "8ffb71e11664ab12b84ff7bc1eda59eeb70463ea7687a1a85b3d98852864ecfb",
+    "tools/gomad/rust/gomad/src/cycle/preparation/inputs/workloads_tests.rs": "0df49304215a89dbdfce5e00bd44a8271f85dcc6f53e5aff756f5c38a2ba9034"
+  },
+  "integrated_gates": [
+    {
+      "gate": "cycle-custody",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--locked",
+        "--release",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "--test",
+        "cycle_custody_owner",
+        "cycle::",
+        "--",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 3.5464838769985363,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-integration-4/cycle-custody.log",
+      "sha256": "572ac15b2598784e0662ace7a28262cbb61769f5ec13873e80d1568d0e13ac21"
+    },
+    {
+      "gate": "clippy",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "clippy",
+        "--locked",
+        "--release",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 12.255390756006818,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-integration-4/clippy.log",
+      "sha256": "915ea1330642379c6bc633d6ffbcce47c5e19b0a4215af140d5c1df500bef751"
+    },
+    {
+      "gate": "fmt",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.395892083994113,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/root-integration-4/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "worker_gates": [
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "clippy",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "family": null,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/clippy-9.log",
+      "log_sha256": "fbeb160912d163945bab082b79a7a62bcbc83649ed07060d291ff2192caafd09",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/freeze-4/source.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "cycle::",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "family": null,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/unit-5.log",
+      "log_sha256": "aecb6a255c187e7c956c8197c8ff0b532ccfab1dfaaf67903059a9c3db4e48f0",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/freeze-4/source.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--test",
+        "cycle_custody_owner",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "family": "source",
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/source-owner-5.log",
+      "log_sha256": "735fe32a83784ee754e95833e7b81f3ff1efbeffcad96f544cba60ccf2f29bc0",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/freeze-4/source.json"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/fmt-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/diff-final.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--test",
+        "cycle_custody_owner",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "family": "inputs",
+      "log": "/home/agent/wt/evidence/fn242-b01-custody-inputs/inputs-owner-5.log",
+      "log_sha256": "ad9281aa5fa540a7df940fa276905cf1656778b948146cd8de2fee33805426c5",
+      "source_freeze": "/home/agent/wt/evidence/fn242-b01-custody-inputs/freeze-4/source.json"
+    }
+  ],
+  "process_cleanup": {
+    "runner_records": 1346,
+    "unique_recorded_pids": 2797,
+    "alive": 0,
+    "active_records": 0,
+    "cleanup_complete": 1346,
+    "historical_inconclusive_records": 3,
+    "go_metadata_files": 24
+  },
+  "cargo_integration": "Preserved additive cycle_custody_owner and cycle_journal_owner targets; all 18 non-Cargo source bytes equal worker freeze-4.",
+  "compatibility_policy": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
+  "effective_obligation_policy": ".flow/artifacts/fn242-effective-obligation-policy.json",
+  "limitations": [
+    "No full96/final145/global-attempt/full qualification executed.",
+    "Original endpoints have real callable Rust family modes; actual main CLI startup/routing remains B15.",
+    "PreparedInputs is post-preparation compiler/source inventory, not a full pre-freeze bundle.",
+    "Fixed operational journal binding absent; 0/2 is activity/policy accounting, not a verified durable counter.",
+    "Known fn232.33 compilecache prerequisite remains for B10/B11/fn246.",
+    "Strict Clippy covers changed Gomad lib --no-deps; earlier full-dependency lint failed inherited wasmhost stream_abi.rs105 debt tracked for fn240 R12.",
+    "Owner removed backwards legacy byte/CLI compatibility during execution; completed comparisons remain observations. Same-candidate identity/determinism/current-format validation retained."
+  ],
+  "full_qualification_dispatches": 0,
+  "operational_binding_absent": true,
+  "historical_launcher_sha256": "0ec5a6d93495b883952daa6df284224ef94d70be45251133e65eb17b39d7d143"
+}
