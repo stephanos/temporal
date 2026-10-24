@@ -6097,7 +6097,10 @@
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/preparation/bindings/**",
         "tools/gomad/rust/gomad/src/cycle/preparation/composition/**",
-        "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs"
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs",
+        "tools/gomad/rust/Cargo.toml",
+        "tools/gomad/rust/gomad/Cargo.toml",
+        "tools/gomad/rust/Cargo.lock"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.17": "**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**",
@@ -6233,6 +6236,16 @@
           "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs"
         ],
         "purpose": "Expose read-only access to existing endpoint map only; no duplicated catalog or changed recipes; final partition descriptors remain composition-owned"
+      },
+      "tokenizer_dependency_extension": {
+        "files": [
+          "tools/gomad/rust/Cargo.toml",
+          "tools/gomad/rust/gomad/Cargo.toml",
+          "tools/gomad/rust/Cargo.lock"
+        ],
+        "crate": "proc-macro2",
+        "exact_version": "1.0.107",
+        "purpose": "Use owner-required existing locked tokenizer for static source scan; no unrelated Cargo changes."
       }
     },
     {

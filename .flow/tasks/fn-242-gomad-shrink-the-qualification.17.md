@@ -5,7 +5,7 @@ satisfies: [R2]
 
 **Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**, tools/gomad/rust/gomad/src/cycle/preparation/composition/**, tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs
+**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**, tools/gomad/rust/gomad/src/cycle/preparation/composition/**, tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs, tools/gomad/rust/Cargo.toml, tools/gomad/rust/gomad/Cargo.toml, tools/gomad/rust/Cargo.lock
 
 ## Description
 Port configure cell/native/live/SQLite/runtime input helpers and freeze. Authenticate roles, public bindings, installations and source/input seals. Consume endpoint descriptors from foundation without requiring endpoint implementations to exist yet.
@@ -45,3 +45,7 @@ This task is the execution leader for fn-242-gomad-shrink-the-qualification.17, 
 ## Shared endpoint catalog integration
 
 B03 additionally owns the exact leaf module file in Touches solely to expose read-only access to the existing endpoint mapping. Reuse that single catalog in composition; preserve all mappings, recipe argv and production derivation. Keep final partition descriptors in the owned composition module. Existing plan/leaf goldens remain the regression check. This authorizes no implementation before B01 completion and changes no original acceptance or proof owner.
+
+## Tokenizer dependency integration
+
+B03 additionally owns the workspace/host Cargo manifests and Cargo.lock solely to add the owner-required proc-macro2 tokenizer used by the static Rust-source scan. Reuse the already locked 1.0.107 version with an exact workspace pin and host workspace dependency. Do not add an alternate lexer, unrelated dependencies, features or test targets. Freeze dependency changes before concurrent builds and preserve existing Cargo owner-test targets. No implementation before B01 completion.
