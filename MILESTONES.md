@@ -576,7 +576,7 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | ⬜ Todo | Obligation inventory and the 96-stage table the verb must reproduce |
+| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | 🚧 Running | Exhaustive check inventory, actual proof catalog and explicit gaps; exact stage contracts |
 | [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
@@ -584,7 +584,7 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 | [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
 | [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |
 | [fn-242.10](.flow/tasks/fn-242-gomad-shrink-the-qualification.10.md) | ⬜ Todo | Rust producer adapters; preserve leaf commands and prove replacement contracts |
-| [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Cutover: delete the Python driver, repoint Make, CI, docs, inventory; sizes |
+| [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Zero-gap proof audit and cutover: remove Python, repoint commands/inventory, record sizes |
 | [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
 
 ### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)

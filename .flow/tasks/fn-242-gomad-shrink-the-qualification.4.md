@@ -8,7 +8,10 @@ Same contract as .3 for final_profiles.py, final_retained.py, terminal_module_re
 
 Before implementation, use .1's retained-check inventory to confirm this task fits one work iteration. Split oversized disjoint surfaces through Flow before dispatch, preserve every obligation, and make cutover wait for every successor.
 
+Consume every mandatory retained-unproved pending_regression contract assigned to this task by .1. Implement and actually execute its catching fixture or controlled mutation and valid control against the Rust check, preserving the original concrete failure and trust boundary. Retain the inventory IDs, source bindings, exact commands, observed outcomes and numeric exits for .7's proof audit. A named future test, an assertion in source or an unexecuted fixture does not resolve proof. A shared fixture may cover multiple rows only when the evidence maps its catching outcome to each original failure/trust boundary. This task cannot claim its assigned proof complete while any assigned row is unresolved; split oversized surfaces through Flow before implementation and make cutover wait for every proof-producing successor. No full qualification dispatch belongs to this proof work.
+
 ## Acceptance
+- [ ] Every assigned pending_regression row has actual executed catching/control proof with inventory IDs, commands, outcomes, numeric exits and current Rust source bindings; future test names and unexecuted fixtures supply no proof
 - [ ] Every kept final check has a Rust implementation and a mutation fixture
 - [ ] Reach reader reports uncredited gaps before actual fn-246.1 proof and strictly refuses gap/partial/missing/invalid bindings after that proof; old fn-232.14 Flow status cannot deadlock or substitute for proof
 - [ ] Support-list production and validation reproduce the fn222 two-cell gate exactly
