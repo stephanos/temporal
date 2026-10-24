@@ -39,7 +39,7 @@ func readLintPolicy(t *testing.T) ([]lintPolicyRule, []string) {
 		}
 	}
 	require.NoError(t, yaml.Unmarshal(data, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 19)
+	require.Len(t, policy.Linters.Exclusions.Rules, 17)
 	return policy.Linters.Exclusions.Rules, policy.Linters.Exclusions.Paths
 }
 

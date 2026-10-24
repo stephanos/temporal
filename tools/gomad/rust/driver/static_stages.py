@@ -222,7 +222,7 @@ def recipe(plan, label):
         return [step('exit', go_common + ['-exec', plan['tools']['true'], '-run', '^$', './...']),
                 step('exit', common + ['--workspace', '--no-run'])]
     if label == 'lint-router':
-        return [step('go-tests', go_common + ['./cmd/tools/lintcode'], cwd=plan['repo'])]
+        return [step('go-tests', go_common + ['./cmd/tools/lintcode'], cwd=plan['repo'], lint_policy=True)]
     if label == 'lint-router-vet':
         return [step('exit', [go, 'vet', '-tags', 'test_dep', './cmd/tools/lintcode'], cwd=plan['repo'])]
     if label == 'actionlint-build':
@@ -430,6 +430,8 @@ def reference_environment(plan, config):
 
 def action_environment(plan, config, action):
     extra = reference_environment(plan, config) if action.get('reference') else {}
+    if action.get('lint_policy'):
+        extra['LINT_POLICY_GOLANGCI'] = plan['tools']['golangci']
     if action.get('all_platforms'):
         extra['GOMAD_ARCH_ALL_PLATFORMS'] = '1'
     return extra

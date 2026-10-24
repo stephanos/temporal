@@ -42,6 +42,30 @@ class StaticStageContract(unittest.TestCase):
         with self.assertRaises(driver.Refusal):
             static.recipe(plan, 'ordinary')
 
+    def test_lint_router_binds_pinned_policy_linter_in_producer_and_reader(self):
+        plan = dict(repo='/source', lint_base='a'*40, tools={key: '/pinned/'+key for key in static.TOOLS})
+        action, = static.recipe(plan, 'lint-router')
+        extra = dict(LINT_POLICY_GOLANGCI='/pinned/golangci')
+        self.assertEqual(static.action_environment(plan, {}, action), extra)
+        for label in ('lint-router-vet', 'default-vet'):
+            self.assertEqual(static.action_environment(plan, {}, static.recipe(plan, label)[0]), {})
+        root, evidence, command, report, check = self.reader_fixture('lint-router', action)
+        names = ('TestLintPolicyRealGolangci',)
+        listed = command(static.go_listing_argv(action['argv']), listing(names), extra)
+        run = command([*action['argv'][:2], '-json', *action['argv'][2:]], execution(names), extra)
+        report['actions'][0]['results'] = [dict(kind='go-tests', listing=listed, run=run, repetitions=1,
+            scope_exclusions=[], roots=[dict(package='model', name=names[0], repetitions=1)])]
+        self.assertEqual(len(check()['testcases']), 1)
+        row = report['commands'][-1]
+        row['environment'].pop('LINT_POLICY_GOLANGCI')
+        path = evidence/(run+'.command.json')
+        receipt = driver.read(path)
+        receipt['environment'] = row['environment']
+        path.write_text(json.dumps(receipt))
+        row['command_sha256'] = driver.sha(path)
+        with self.assertRaisesRegex(driver.Refusal, 'recipe environment'):
+            check()
+
     def test_assembler_binds_only_owned_stages_and_refuses_changed_tools(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

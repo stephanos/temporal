@@ -216,8 +216,8 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 			repo.write("tools/gomad/internal/backends/wasm/testdata/environment/main.go", "package main\n")
 			repo.make(target)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
@@ -279,6 +279,43 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 	}
 }
 
+func TestLintRelocatedWASIFixtureBoundaries(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		relative, disposition string
+		uncovered             bool
+	}{
+		{"source.go", "", false},
+		{"testdata_extra/source.go", "", false},
+		{".hidden/source.go", "", true},
+		{"_hidden/source.go", "", true},
+		{"testdata/source.go", "", true},
+		{"testdata/runtime_cost_extra/source.go", "", true},
+		{"testdata/namespace_owner_extra/source.go", "", true},
+		{"testdata/runtime_cost/main.go", "WASM productionization fixture", false},
+		{"testdata/runtime_cost/_hidden/source.go", "WASM productionization fixture", false},
+		{"testdata/namespace_owner/main.go", "WASM productionization fixture", false},
+	} {
+		t.Run(tc.relative, func(t *testing.T) {
+			t.Parallel()
+			path := gomadModule + "/internal/model/wasi/" + tc.relative
+			policy := ownership{fixtures: []string{"internal/model/wasi/testdata"}}
+			entry, err := policy.classify(path, []string{gomadModule, "."})
+			if tc.uncovered {
+				require.EqualError(t, err, "uncovered Gomad host source "+path)
+				require.Equal(t, source{path: path}, entry)
+				return
+			}
+			require.NoError(t, err)
+			want := source{path: path, disposition: tc.disposition}
+			if tc.disposition == "" {
+				want.module = gomadModule
+			}
+			require.Equal(t, want, entry)
+		})
+	}
+}
+
 func TestWASMLintRoutesSoftAssertionFixtureToItsServerOwner(t *testing.T) {
 	t.Parallel()
 	for _, path := range []string{"tests/gomadfunctional/testdata/softassert/softassert_test.go", "tests/gomadfunctional/testdata/softassert_extra/softassert_test.go"} {
@@ -331,8 +368,8 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 				repo.write("tools/gomad/internal/backends/wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
 				repo.make(target)
 				require.Equal(t, []lintCall{
-					{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
-					{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
+					{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
+					{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
 				}, repo.calls())
 			})
 		}
@@ -359,8 +396,8 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
@@ -376,8 +413,8 @@ func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
 			}, repo.calls())
 		})
 		t.Run(fixture+"/nested-module", func(t *testing.T) {
@@ -415,8 +452,8 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 			}
 			require.NoError(t, err, output)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
@@ -454,7 +491,7 @@ func TestWASMLintAdmitsDeclaredFixtureModules(t *testing.T) {
 			if extra != "" {
 				return
 			}
-			packages := []string{"./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner"}
+			packages := []string{"./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner"}
 			calls := repo.calls()
 			require.Len(t, calls, 4)
 			for _, call := range calls {
@@ -490,7 +527,7 @@ func TestFastLintRoutesHistoricalDeletions(t *testing.T) {
 		packages                              []string
 	}{
 		{"retired fixture", "tools/gomad-legacy/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go", "", "", "", nil},
-		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad/internal/model/wasi/clock.go", "tools/gomad", "", []string{"./internal/archcheck", "./internal/model/wasi", "./internal/model/cluster", "./internal/runner"}},
+		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad/internal/model/wasi/clock.go", "tools/gomad", "", []string{"./internal/archcheck", "./internal/model/cluster", "./internal/model/wasi", "./internal/runner"}},
 		{"surviving package", "ordinary/deleted.go", "", ".", "", []string{"./ordinary"}},
 		{"surviving package lint failure", "ordinary/deleted.go", "", ".", "golangci", []string{"./ordinary"}},
 	} {
@@ -704,7 +741,7 @@ func TestCINestedLintSteps(t *testing.T) {
 		workflow, job, step, module string
 		packages                    []string
 	}{
-		{"gomad.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad", []string{"./internal/archcheck", "./internal/model/cluster", "./internal/runner"}},
+		{"gomad.yml", "reference-tools-linux", "Lint Gomad host module", "tools/gomad", []string{"./internal/archcheck", "./internal/model/cluster", "./internal/runner"}},
 		{"linters.yml", "golangci", "lint mixedbrain module", "tests/mixedbrain", []string{"."}},
 	} {
 		t.Run(tc.workflow, func(t *testing.T) {

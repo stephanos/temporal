@@ -383,9 +383,16 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM guest admission failure fixture"
 	case within(path, wasmBackend+"/testdata/ringpop"):
 		entry.disposition = "WASM ringpop scenario fixture"
+	case within(path, gomadModule+"/internal/model/wasi/testdata/runtime_cost"), within(path, gomadModule+"/internal/model/wasi/testdata/namespace_owner"):
+		entry.disposition = "WASM productionization fixture"
 	case within(path, wasmBackend):
 		relative := strings.TrimPrefix(path, wasmBackend+"/")
 		if err := p.validateWASMHostSource(path, relative); err != nil {
+			return entry, err
+		}
+	case within(path, gomadModule+"/internal/model/wasi"):
+		relative := strings.TrimPrefix(path, gomadModule+"/")
+		if err := p.validateGomadHostSource(path, relative); err != nil {
 			return entry, err
 		}
 	case within(path, gomadModule):
