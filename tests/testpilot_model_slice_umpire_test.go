@@ -234,7 +234,7 @@ func requireAllExplained(t *testing.T, invocation umpireInvocation) {
 
 func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 	// Build before the cluster starts: the environment bounds the test's own deadline.
-	binary := buildUmpireCommand(t, "umpire")
+	binary := buildCommand(t, "tools/umpire/cmd/umpire")
 	env := newTestpilotTestEnvironment(t,
 		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
 		testcore.WithDynamicConfig(activity.Enabled, true),
