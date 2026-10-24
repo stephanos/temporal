@@ -14505,12 +14505,5 @@
       },
       "tier": 2
     }
-  ],
-  "compatibility_amendment": {
-    "path": ".flow/artifacts/legacy-compatibility-policy-2026-10-24.md",
-    "sha256": "e82e4802edec9f6c64af9215e5750ded802bc3f95c2e9561c0fa775d30dd5e1d",
-    "precedence": "Overrides legacy-only compatibility requirements in historical task acceptance and discovery inventories; preserves current behavior/authentication/deterministic replay.",
-    "retirement": "Exact-ID retired_compatibility disposition requires named legacy-only guarantee and owner decision, no replacement proof; mixed rows retain noncompatibility terms."
-  },
-  "acceptance_interpretation": "Original argv/DAG is historical migration evidence, not legacy byte/CLI compatibility acceptance. Current contracts retain supported behavior, selections, resource bounds and deterministic current-candidate execution."
+  ]
 }
