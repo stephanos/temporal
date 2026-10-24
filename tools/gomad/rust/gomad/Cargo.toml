@@ -52,3 +52,8 @@ harness = true
 name = "cycle_process_owner"
 path = "src/cycle/process/owner_fixture.rs"
 harness = false
+
+[[test]]
+name = "cycle_journal_owner"
+path = "src/cycle/journal/owner_fixture.rs"
+harness = false

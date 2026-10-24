@@ -148,32 +148,49 @@ pub(crate) fn can_start(
     Ok(true)
 }
 
-pub(crate) fn parse_mem_available(text: &str) -> Result<f64, String> {
+pub(crate) fn parse_mem_available_bytes(text: &str) -> Result<u64, String> {
     let mut available = None;
     for line in text.lines() {
-        if let Some(value) = line.strip_prefix("MemAvailable:") {
-            if available.is_some() {
-                return Err("duplicate MemAvailable observation".into());
-            }
-            let fields: Vec<_> = value.split_whitespace().collect();
-            if fields.len() != 2
-                || fields[1] != "kB"
-                || !fields[0].bytes().all(|b| b.is_ascii_digit())
-            {
-                return Err("invalid MemAvailable observation".into());
-            }
-            let kib = fields[0]
-                .parse::<u64>()
-                .map_err(|_| "invalid MemAvailable observation")?;
-            #[allow(
-                clippy::cast_precision_loss,
-                reason = "GiB admission follows reference f64 peak accounting."
-            )]
-            let gib = kib as f64 / 1_048_576.0;
-            available = Some(gib);
+        let fields: Vec<_> = line.split_whitespace().collect();
+        if !fields.first().is_some_and(|field| {
+            field
+                .split(':')
+                .next()
+                .is_some_and(|name| name.eq_ignore_ascii_case("MemAvailable"))
+        }) {
+            continue;
         }
+        if available.is_some()
+            || fields.len() != 3
+            || fields[0] != "MemAvailable:"
+            || fields[2] != "kB"
+        {
+            return Err("unique exact MemAvailable field in kB required".into());
+        }
+        if fields[1].is_empty()
+            || fields[1].len() > 20
+            || !fields[1].bytes().all(|b| b.is_ascii_digit())
+        {
+            return Err("invalid MemAvailable observation".into());
+        }
+        let kib = fields[1]
+            .parse::<u64>()
+            .map_err(|_| "invalid MemAvailable observation")?;
+        available = Some(
+            kib.checked_mul(1024)
+                .ok_or("MemAvailable byte conversion overflow")?,
+        );
     }
     available.ok_or_else(|| "MemAvailable missing".into())
+}
+
+pub(crate) fn parse_mem_available(text: &str) -> Result<f64, String> {
+    #[allow(
+        clippy::cast_precision_loss,
+        reason = "GiB admission follows reference f64 peak accounting."
+    )]
+    let gib = parse_mem_available_bytes(text)? as f64 / 1_073_741_824.0;
+    Ok(gib)
 }
 
 pub(crate) fn mem_available_gib() -> Result<f64, String> {

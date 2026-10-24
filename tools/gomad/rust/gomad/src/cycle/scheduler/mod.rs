@@ -16,7 +16,7 @@ use admission::can_start;
     unused_imports,
     reason = "Shared Linux sampler is consumed by cycle admission integration."
 )]
-pub(crate) use admission::{mem_available_gib, parse_mem_available};
+pub(crate) use admission::{mem_available_gib, parse_mem_available, parse_mem_available_bytes};
 #[allow(
     unused_imports,
     reason = "Public scheduler executor seam is consumed by cycle process integration."
