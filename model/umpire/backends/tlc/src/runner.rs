@@ -120,18 +120,18 @@ impl Tlc {
             let mut digest = Command::new("shasum");
             digest.args(["-a", "256"]).arg(&jar).current_dir(&root);
             let (status, output) =
-                run_process(&mut digest, &scratch.0, "digest", Limits::default(), None)?;
+                run_process(&mut digest, scratch.path(), "digest", Limits::default(), None)?;
             if !status.success() || output.split_whitespace().next() != Some(JAR_SHA256) {
                 return Err(Refusal(format!(
                     "pinned jar integrity/version mismatch: {}",
                     jar.display()
                 )));
             }
-            let java = pinned_java(&root, &scratch.0)?;
+            let java = pinned_java(&root, scratch.path())?;
             let mut version = java_command(&java);
             version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(&root);
             let (status, output) =
-                run_process(&mut version, &scratch.0, "tlc-version", Limits::default(), None)?;
+                run_process(&mut version, scratch.path(), "tlc-version", Limits::default(), None)?;
             if status.code() != Some(1) || !output.contains(TLC_VERSION) {
                 return Err(Refusal(format!("wrong TLC version: {output}")));
             }
@@ -165,8 +165,8 @@ impl Tlc {
         let (base_cfg, properties) = split_cfg(cfg)?;
         let scratch = Scratch::new(&self.root)?;
         let result = (|| -> Result<TlcResult, Error> {
-            fs::write(scratch.0.join(format!("{name}.tla")), tla)?;
-            let (output, dump) = self.execute(name, &base_cfg, &scratch.0, None, schema)?;
+            fs::write(scratch.path().join(format!("{name}.tla")), tla)?;
+            let (output, dump) = self.execute(name, &base_cfg, scratch.path(), None, schema)?;
             let exploration_messages = messages(&output)?;
             let count = distinct_count(&exploration_messages)?;
             let states = decode_dump(&dump, count, schema)?;
@@ -179,7 +179,7 @@ impl Tlc {
             for (kind, property) in properties {
                 let property_cfg = format!("{base_cfg}\n{kind} {property}\n");
                 let (output, _) =
-                    self.execute(name, &property_cfg, &scratch.0, Some(&property), schema)?;
+                    self.execute(name, &property_cfg, scratch.path(), Some(&property), schema)?;
                 let messages = messages(&output)?;
                 let violated = messages
                     .iter()
@@ -770,8 +770,8 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let result = (|| {
-            let fake = scratch.0.join("repo");
-            let outside = scratch.0.join("outside");
+            let fake = scratch.path().join("repo");
+            let outside = scratch.path().join("outside");
             fs::create_dir_all(fake.join("model"))?;
             fs::create_dir(&outside)?;
             std::os::unix::fs::symlink(&outside, fake.join("model/build"))?;
@@ -787,7 +787,7 @@ mod tests {
             let mut fetch = Command::new("bash");
             fetch.arg(&script).current_dir(&fake);
             let (status, output) =
-                run_process(&mut fetch, &scratch.0, "fetch-symlink", Limits::default(), None)?;
+                run_process(&mut fetch, scratch.path(), "fetch-symlink", Limits::default(), None)?;
             assert!(!status.success());
             assert!(output.contains("TLC cache escapes repository"), "{output}");
             assert!(
@@ -804,31 +804,36 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let result = (|| {
-            let error = Tlc::discover(&scratch.0)
+            let error = Tlc::discover(scratch.path())
                 .err()
                 .ok_or_else(|| Refusal("missing jar admitted".into()))?;
             assert!(error.0.contains("missing pinned jar"));
-            fs::create_dir_all(scratch.0.join("model/build/tlc"))?;
-            fs::write(scratch.0.join("model/build/tlc/tla2tools-1.7.4.jar"), b"wrong version")?;
-            fs::write(scratch.0.join("mise.toml"), "java = \"temurin-27\"\n")?;
-            let error = Tlc::discover(&scratch.0)
+            fs::create_dir_all(scratch.path().join("model/build/tlc"))?;
+            fs::write(
+                scratch.path().join("model/build/tlc/tla2tools-1.7.4.jar"),
+                b"wrong version",
+            )?;
+            fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
+            let error = Tlc::discover(scratch.path())
                 .err()
                 .ok_or_else(|| Refusal("wrong jar admitted".into()))?;
             assert!(error.0.contains("integrity/version mismatch"));
             let mut command = Command::new("sleep");
             command.arg("2");
             let limits = Limits { timeout: Duration::from_millis(5), ..Limits::default() };
-            assert!(run_process(&mut command, &scratch.0, "timeout", limits, None).is_err());
+            assert!(run_process(&mut command, scratch.path(), "timeout", limits, None).is_err());
             let mut command = Command::new("printf");
             command.arg("too much output");
             let limits = Limits { output_bytes: 2, ..Limits::default() };
-            assert!(run_process(&mut command, &scratch.0, "output", limits, None).is_err());
-            let dump = scratch.0.join("oversized.dump");
+            assert!(run_process(&mut command, scratch.path(), "output", limits, None).is_err());
+            let dump = scratch.path().join("oversized.dump");
             fs::write(&dump, "excess")?;
             let mut command = Command::new("sleep");
             command.arg("2");
             let limits = Limits { dump_bytes: 2, ..Limits::default() };
-            assert!(run_process(&mut command, &scratch.0, "dump", limits, Some(&dump)).is_err());
+            assert!(
+                run_process(&mut command, scratch.path(), "dump", limits, Some(&dump)).is_err()
+            );
             Ok(())
         })();
         scratch.finish(result)

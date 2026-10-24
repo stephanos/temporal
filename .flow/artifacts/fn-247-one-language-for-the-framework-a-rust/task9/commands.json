@@ -1,0 +1,113 @@
+[
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked",
+    "exit_code": 0,
+    "output": "baseline-test.log",
+    "passed_tests": 25
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo clippy -p umpire-backend-process --all-targets -- -D warnings",
+    "exit_code": 0,
+    "output": "baseline-clippy.log"
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked scratch_owns_private_unique_directories_and_preserves_finish_results",
+    "exit_code": 101,
+    "output": "scratch-red.log",
+    "note": "Expected compile-red: proposed path accessor did not exist; ownership assertions subsequently executed in process-final.log. This is API-red, not a behavioral mutation proof."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --offline",
+    "exit_code": 101,
+    "output": "process-first.log",
+    "note": "Initial implementation compile failure: WaitStatus lacks PartialEq and Pid uses as_raw_pid; corrected. This command updated the lock with only two existing package edges."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked",
+    "exit_code": 101,
+    "output": "process-second.log",
+    "note": "Mechanical accessor migration compile failure: two assert_reaped calls needed a borrow of joined PathBuf; corrected."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked",
+    "exit_code": 0,
+    "output": "process-third.log",
+    "passed_tests": 26
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked owned_child_reaping_includes_other_process_groups",
+    "exit_code": 101,
+    "output": "any-child-mutant-red.log",
+    "note": "Intentional waitpid(None) source mutant failed because it missed the child in another process group. Correct wait(empty) restored before subsequent checks."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked",
+    "exit_code": 0,
+    "output": "process-fourth.log",
+    "passed_tests": 29
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo clippy -p umpire-backend-process --all-targets -- -D warnings",
+    "exit_code": 101,
+    "output": "clippy-first.log",
+    "note": "Fixture dispatcher exceeded existing too_many_lines by one line; new reaping fixture extracted to its own small helper, with no lint suppression."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo clippy -p umpire-backend-process --all-targets -- -D warnings",
+    "exit_code": 0,
+    "output": "clippy-second.log"
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-tlc -p umpire-apalache --lib --locked",
+    "exit_code": 0,
+    "output": "backend-lib-first.log",
+    "passed_tests": 21
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-tlc --test controls --locked real_tlc_initial_invariant_has_a_typed_counterexample -- --exact",
+    "exit_code": 0,
+    "output": "real-tlc.log",
+    "passed_tests": 1,
+    "note": "MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false UMPIRE_BACKENDS=require; real pinned TLC control, not skipped"
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-apalache --test controls --locked real_postcondition_filter_excludes_unrelated_actions -- --exact",
+    "exit_code": 0,
+    "output": "real-apalache.log",
+    "passed_tests": 1,
+    "note": "MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false UMPIRE_APALACHE=require; three actual pinned Apalache property runs"
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo test -p umpire-backend-process --locked",
+    "exit_code": 0,
+    "output": "process-final.log",
+    "passed_tests": 29,
+    "note": "Final process source after fixture extraction; 9 unit and20 integration tests. Zero doc tests is expected and does not count toward29."
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo clippy -p umpire-tlc -p umpire-apalache --all-targets -- -D warnings",
+    "exit_code": 0,
+    "output": "backend-clippy.log"
+  },
+  {
+    "cwd": "model",
+    "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target mise exec -- cargo fmt -p umpire-backend-process -p umpire-tlc -p umpire-apalache -- --check",
+    "exit_code": 0,
+    "output": "format-check.log"
+  }
+]

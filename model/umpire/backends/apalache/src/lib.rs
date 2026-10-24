@@ -137,23 +137,23 @@ impl Apalache {
                 return Err(Refusal("Apalache jar escapes workspace build root".into()));
             }
             let mut digest = Command::new("shasum");
-            digest.args(["-a", "256"]).arg(&jar).current_dir(&scratch.0);
+            digest.args(["-a", "256"]).arg(&jar).current_dir(scratch.path());
             let (status, output) =
-                run_process(&mut digest, &scratch.0, "digest", Limits::default(), None)?;
+                run_process(&mut digest, scratch.path(), "digest", Limits::default(), None)?;
             if !status.success() || output.split_whitespace().next() != Some(JAR_SHA256) {
                 return Err(Refusal("Apalache integrity mismatch".into()));
             }
-            let java = pinned_java(&root, &scratch.0)?;
+            let java = pinned_java(&root, scratch.path())?;
             let tool = Self {
                 root: root.clone(),
                 jar,
                 java,
                 limits: Limits { timeout: CHECK_TIMEOUT, ..Limits::default() },
             };
-            let mut command = tool.command(&scratch.0);
+            let mut command = tool.command(scratch.path());
             command.arg("version");
             let (status, output) =
-                run_process(&mut command, &scratch.0, "version", tool.limits, None)?;
+                run_process(&mut command, scratch.path(), "version", tool.limits, None)?;
             validate_version(status.success(), &output)?;
             Ok(tool)
         })();
@@ -208,15 +208,15 @@ impl Apalache {
             }
             let scratch = Scratch::new_in(&self.root, "model/build/apalache")?;
             let checked = (|| {
-                let file = scratch.0.join(format!("{}.tla", module.name));
+                let file = scratch.path().join(format!("{}.tla", module.name));
                 fs::write(&file, &module.tla)?;
-                let cfg = scratch.0.join("model.cfg");
+                let cfg = scratch.path().join("model.cfg");
                 fs::write(&cfg, &module.cfg)?;
-                let out = scratch.0.join("out");
-                let mut command = self.command(&scratch.0);
+                let out = scratch.path().join("out");
+                let mut command = self.command(scratch.path());
                 command
                     .arg(format!("--out-dir={}", out.display()))
-                    .arg(format!("--run-dir={}", scratch.0.join("results").display()))
+                    .arg(format!("--run-dir={}", scratch.path().join("results").display()))
                     .arg("check")
                     .arg("--no-deadlock")
                     .arg(format!("--config={}", cfg.display()))
@@ -225,15 +225,15 @@ impl Apalache {
                     .arg(&file);
                 match umpire_backend_process::run_process_cancelled(
                     &mut command,
-                    &scratch.0,
+                    scratch.path(),
                     "check",
                     self.limits,
-                    Some(&scratch.0),
+                    Some(scratch.path()),
                     cancelled,
                 ) {
                     Ok((status, output)) => {
                         let mut traces = Vec::new();
-                        match collect_itf(&scratch.0, &mut traces, self.limits.dump_bytes) {
+                        match collect_itf(scratch.path(), &mut traces, self.limits.dump_bytes) {
                             Ok(()) => {
                                 Ok(parse_output(status.code(), output, traces, invariant, length))
                             }
@@ -398,12 +398,12 @@ mod tests {
     fn fake(script: &str) -> Result<(Scratch, Apalache), Refusal> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new_in(&root, "model/build/apalache")?;
-        let java = scratch.0.join("java");
+        let java = scratch.path().join("java");
         fs::write(&java, format!("#!/bin/sh\n{script}\n"))?;
         fs::set_permissions(&java, fs::Permissions::from_mode(0o700))?;
         let tool = Apalache {
-            root: scratch.0.clone(),
-            jar: scratch.0.join("fake.jar"),
+            root: scratch.path().to_path_buf(),
+            jar: scratch.path().join("fake.jar"),
             java,
             limits: Limits::default(),
         };
@@ -430,14 +430,14 @@ mod tests {
     fn traces_have_one_aggregate_budget_and_deterministic_order() -> Result<(), Refusal> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new_in(&root, "model/build/apalache")?;
-        fs::write(scratch.0.join("z.itf.json"), "zz")?;
-        fs::write(scratch.0.join("a.itf.json"), "aa")?;
-        assert!(collect_itf(&scratch.0, &mut Vec::new(), 3).is_err());
+        fs::write(scratch.path().join("z.itf.json"), "zz")?;
+        fs::write(scratch.path().join("a.itf.json"), "aa")?;
+        assert!(collect_itf(scratch.path(), &mut Vec::new(), 3).is_err());
         let mut traces = Vec::new();
-        collect_itf(&scratch.0, &mut traces, 4)?;
+        collect_itf(scratch.path(), &mut traces, 4)?;
         assert_eq!(traces, ["aa", "zz"]);
-        std::os::unix::fs::symlink("/", scratch.0.join("escape"))?;
-        let error = collect_itf(&scratch.0, &mut Vec::new(), 1024)
+        std::os::unix::fs::symlink("/", scratch.path().join("escape"))?;
+        let error = collect_itf(scratch.path(), &mut Vec::new(), 1024)
             .err()
             .ok_or_else(|| Refusal("output symlink followed".into()))?;
         assert!(error.0.contains("symlink"));
@@ -522,7 +522,7 @@ mod tests {
             };
             let answer = tool.check(&module, "ArithmeticSafe", 1)?;
             assert!(matches!(answer, Bounded::NotRun { .. }), "{script}: {answer:?}");
-            let cache = scratch.0.join("model/build/apalache");
+            let cache = scratch.path().join("model/build/apalache");
             assert_eq!(fs::read_dir(cache)?.count(), 0);
             assert!(tool.check(&module, "undeclared", 1).is_err());
             assert!(tool.check(&module, "ArithmeticSafe", usize::MAX).is_err());
@@ -539,18 +539,18 @@ mod tests {
         use std::os::unix::fs::symlink;
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
         let scratch = Scratch::new_in(&root, "model/build/apalache")?;
-        assert!(Apalache::discover(&scratch.0).is_err());
-        let installation = scratch.0.join(format!("model/build/apalache/apalache-{VERSION}"));
+        assert!(Apalache::discover(scratch.path()).is_err());
+        let installation = scratch.path().join(format!("model/build/apalache/apalache-{VERSION}"));
         fs::create_dir_all(installation.join("lib"))?;
         fs::write(installation.join("lib/apalache.jar"), "wrong release")?;
-        fs::write(scratch.0.join("mise.toml"), "java = \"temurin-27\"\n")?;
-        let error = Apalache::discover(&scratch.0)
+        fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
+        let error = Apalache::discover(scratch.path())
             .err()
             .ok_or_else(|| Refusal("wrong release admitted".into()))?;
         assert!(error.0.contains("integrity"));
         fs::rename(installation.join("lib"), installation.join("elsewhere"))?;
         symlink(installation.join("elsewhere"), installation.join("lib"))?;
-        let error = Apalache::discover(&scratch.0)
+        let error = Apalache::discover(scratch.path())
             .err()
             .ok_or_else(|| Refusal("symlink admitted".into()))?;
         assert!(error.0.contains("symlink"));

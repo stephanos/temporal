@@ -34,12 +34,14 @@ mod supported {
         ffi::{CString, OsStr, OsString},
         io::PipeWriter,
         os::{
-            fd::{AsRawFd, FromRawFd, OwnedFd, RawFd},
+            fd::{AsFd, AsRawFd, OwnedFd, RawFd},
             unix::{ffi::OsStrExt, process::ExitStatusExt},
         },
         ptr,
         sync::atomic::{AtomicI32, Ordering},
     };
+
+    use rustix::process::{self, Pid, Resource, WaitOptions};
 
     const BUFFER_BYTES: usize = 4096;
     #[cfg(target_os = "linux")]
@@ -51,7 +53,7 @@ mod supported {
     static STOP_SIGNAL: AtomicI32 = AtomicI32::new(0);
 
     pub(crate) struct Running {
-        pid: libc::pid_t,
+        pid: Pid,
         owner: Option<PipeWriter>,
         status: Option<ExitStatus>,
     }
@@ -63,17 +65,18 @@ mod supported {
             out: &File,
             err: &File,
         ) -> io::Result<Self> {
-            // SAFETY: identity syscalls have no pointer arguments or side effects.
-            unsafe {
-                platform_policy(std::env::consts::OS, libc::getuid(), libc::geteuid())?;
-            }
+            platform_policy(
+                std::env::consts::OS,
+                process::getuid().as_raw(),
+                process::geteuid().as_raw(),
+            )?;
             let mut prepared = Prepared::new(command, fallback_directory)?;
             let (owner_read, owner_write) = io::pipe()?;
             let null = File::open("/dev/null")?;
-            let input = duplicate(owner_read.as_raw_fd())?;
-            let output = duplicate(out.as_raw_fd())?;
-            let errors = duplicate(err.as_raw_fd())?;
-            let null = duplicate(null.as_raw_fd())?;
+            let input = duplicate(&owner_read)?;
+            let output = duplicate(out)?;
+            let errors = duplicate(err)?;
+            let null = duplicate(&null)?;
             let context = prepared.context(
                 input.as_raw_fd(),
                 output.as_raw_fd(),
@@ -94,6 +97,7 @@ mod supported {
                 mask.restore()?;
                 return Err(error);
             }
+            let pid = Pid::from_raw(pid).ok_or_else(|| io::Error::other("invalid child PID"))?;
             let running = Self { pid, owner: Some(owner_write), status: None };
             mask.restore()?;
             Ok(running)
@@ -104,20 +108,15 @@ mod supported {
                 return Ok(self.status);
             }
             loop {
-                let mut status = 0;
-                // SAFETY: pid is this object's unreaped child; status is writable.
-                let result = unsafe { libc::waitpid(self.pid, &raw mut status, libc::WNOHANG) };
-                if result == self.pid {
-                    let status = ExitStatus::from_raw(status);
-                    self.status = Some(status);
-                    return Ok(Some(status));
-                }
-                if result == 0 {
-                    return Ok(None);
-                }
-                let error = io::Error::last_os_error();
-                if error.kind() != io::ErrorKind::Interrupted {
-                    return Err(error);
+                match process::waitpid(Some(self.pid), WaitOptions::NOHANG) {
+                    Ok(Some((_, status))) => {
+                        let status = ExitStatus::from_raw(status.as_raw());
+                        self.status = Some(status);
+                        return Ok(Some(status));
+                    }
+                    Ok(None) => return Ok(None),
+                    Err(rustix::io::Errno::INTR) => {}
+                    Err(error) => return Err(error.into()),
                 }
             }
         }
@@ -127,28 +126,16 @@ mod supported {
         fn drop(&mut self) {
             drop(self.owner.take());
             if self.status.is_none() {
-                loop {
-                    // SAFETY: a null status pointer is permitted by waitpid.
-                    let result = unsafe { libc::waitpid(self.pid, ptr::null_mut(), 0) };
-                    if result >= 0
-                        || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted
-                    {
-                        break;
-                    }
-                }
+                while matches!(
+                    process::waitpid(Some(self.pid), WaitOptions::empty()),
+                    Err(rustix::io::Errno::INTR)
+                ) {}
             }
         }
     }
 
-    fn duplicate(fd: RawFd) -> io::Result<OwnedFd> {
-        // SAFETY: fcntl returns a new uniquely owned descriptor. Keeping all
-        // inputs above 9 makes the child's four dup2 operations non-overlapping.
-        let duplicate = unsafe { libc::fcntl(fd, libc::F_DUPFD_CLOEXEC, 10) };
-        if duplicate < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: fcntl succeeded and ownership has not been assigned elsewhere.
-        Ok(unsafe { OwnedFd::from_raw_fd(duplicate) })
+    fn duplicate(fd: impl AsFd) -> io::Result<OwnedFd> {
+        rustix::io::fcntl_dupfd_cloexec(fd, 10).map_err(Into::into)
     }
 
     struct Prepared {
@@ -332,12 +319,9 @@ mod supported {
     }
 
     fn close_limit() -> io::Result<RawFd> {
-        // SAFETY: getrlimit initializes the supplied writable structure.
-        let mut limit = unsafe { std::mem::zeroed::<libc::rlimit>() };
-        if unsafe { libc::getrlimit(libc::RLIMIT_NOFILE, &raw mut limit) } != 0 {
-            return Err(io::Error::last_os_error());
-        }
-        let mut maximum = i32::try_from(limit.rlim_cur).unwrap_or(i32::MAX);
+        let limit = process::getrlimit(Resource::Nofile);
+        let mut maximum =
+            limit.current.and_then(|value| i32::try_from(value).ok()).unwrap_or(i32::MAX);
         // Existing descriptors can exceed a subsequently lowered soft limit.
         for entry in std::fs::read_dir("/dev/fd")? {
             let entry = entry?;
@@ -848,38 +832,25 @@ mod supported {
 
     #[allow(dead_code)]
     pub(crate) fn parent_identity() -> (u32, bool) {
-        // SAFETY: these scalar process-identity queries have no pointer arguments.
-        unsafe {
-            let parent = libc::getppid();
-            (parent.cast_unsigned(), libc::getpgid(parent) == parent)
-        }
+        process::getppid().map_or((0, false), |parent| {
+            (parent.as_raw_pid().cast_unsigned(), process::getpgid(Some(parent)) == Ok(parent))
+        })
     }
 
     #[cfg(target_os = "linux")]
     #[allow(dead_code)]
     pub(crate) fn set_subreaper() -> io::Result<()> {
-        // SAFETY: this option takes only integer arguments and modifies the caller.
-        if unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) } == 0 {
-            Ok(())
-        } else {
-            Err(io::Error::last_os_error())
-        }
+        process::set_child_subreaper(Some(Pid::INIT)).map_err(Into::into)
     }
 
     #[cfg(target_os = "linux")]
     #[allow(dead_code)]
     pub(crate) fn reap_owned_children() -> io::Result<()> {
         loop {
-            // SAFETY: null status is permitted; the isolated harness owns all children.
-            if unsafe { libc::waitpid(-1, ptr::null_mut(), 0) } >= 0 {
-                continue;
-            }
-            let error = io::Error::last_os_error();
-            if error.raw_os_error() == Some(libc::ECHILD) {
-                return Ok(());
-            }
-            if error.kind() != io::ErrorKind::Interrupted {
-                return Err(error);
+            match process::wait(WaitOptions::empty()) {
+                Ok(_) | Err(rustix::io::Errno::INTR) => {}
+                Err(rustix::io::Errno::CHILD) => return Ok(()),
+                Err(error) => return Err(error.into()),
             }
         }
     }
@@ -905,6 +876,38 @@ mod supported {
             fs, thread,
             time::{Duration, Instant},
         };
+
+        #[test]
+        fn duplicated_descriptors_are_private_and_close_on_exec() -> io::Result<()> {
+            let file = File::open("/dev/null")?;
+            let descriptor = duplicate(&file)?;
+            assert!(descriptor.as_raw_fd() >= 10);
+            assert!(rustix::io::fcntl_getfd(&descriptor)?.contains(rustix::io::FdFlags::CLOEXEC));
+            Ok(())
+        }
+
+        #[test]
+        fn close_limit_retains_descriptors_above_lowered_soft_limit() -> io::Result<()> {
+            const CONTROL: &str = "UMPIRE_CLOSE_LIMIT_CONTROL";
+            if std::env::var_os(CONTROL).is_none() {
+                let output = Command::new(std::env::current_exe()?)
+                    .args(["--exact", "syscall::supported::tests::close_limit_retains_descriptors_above_lowered_soft_limit"])
+                    .env(CONTROL, "1").output()?;
+                assert!(
+                    output.status.success(),
+                    "{}{}",
+                    String::from_utf8_lossy(&output.stdout),
+                    String::from_utf8_lossy(&output.stderr)
+                );
+                return Ok(());
+            }
+            let file = File::open("/dev/null")?;
+            let high = rustix::io::fcntl_dupfd_cloexec(&file, 128)?;
+            let prior = process::getrlimit(Resource::Nofile);
+            process::setrlimit(Resource::Nofile, process::Rlimit { current: Some(64), ..prior })?;
+            assert!(close_limit()? > high.as_raw_fd());
+            Ok(())
+        }
 
         #[test]
         fn supervisor_owner_eof_returns_125() -> io::Result<()> {

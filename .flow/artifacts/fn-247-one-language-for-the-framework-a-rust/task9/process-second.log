@@ -1,0 +1,40 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+error[E0308]: mismatched types
+   --> umpire/backends/process/tests/process.rs:443:23
+    |
+443 |         assert_reaped(scratch.path().join("pids"))?;
+    |         ------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&Path`, found `PathBuf`
+    |         |
+    |         arguments to this function are incorrect
+    |
+note: function defined here
+   --> umpire/backends/process/tests/process.rs:55:4
+    |
+ 55 | fn assert_reaped(pids: &Path) -> Result<(), Refusal> {
+    |    ^^^^^^^^^^^^^ -----------
+help: consider borrowing here
+    |
+443 |         assert_reaped(&scratch.path().join("pids"))?;
+    |                       +
+
+error[E0308]: mismatched types
+   --> umpire/backends/process/tests/process.rs:456:19
+    |
+456 |     assert_reaped(scratch.path().join("pids"))?;
+    |     ------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&Path`, found `PathBuf`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: function defined here
+   --> umpire/backends/process/tests/process.rs:55:4
+    |
+ 55 | fn assert_reaped(pids: &Path) -> Result<(), Refusal> {
+    |    ^^^^^^^^^^^^^ -----------
+help: consider borrowing here
+    |
+456 |     assert_reaped(&scratch.path().join("pids"))?;
+    |                   +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `umpire-backend-process` (test "process") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

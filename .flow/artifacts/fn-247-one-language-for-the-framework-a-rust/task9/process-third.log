@@ -1,0 +1,46 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/umpire_backend_process-4737ecfeffb13d76)
+
+running 7 tests
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::supported::tests::raw_clone_normalizes_sparc_child_identity ... ok
+test syscall::supported::tests::raw_clone_prefix_preserves_flags_and_null_stack ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/process-c16a89beae5b1093)
+
+running 19 tests
+test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+test java_environment_is_clean_and_supervisor_group_is_private ... ok
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test installer_containment_preflight_requires_no_descendants ... ok
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test scratch_owns_private_unique_directories_and_preserves_finish_results ... ok
+test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+test path_search_tries_candidates_after_exec_errors ... ok
+test launch_status_and_prepared_command_contracts_are_preserved ... ok
+test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test substituted_log_symlink_cannot_modify_an_external_file ... ok
+test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+test parent_allocator_threads_do_not_deadlock_forked_supervisors ... ok
+test direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+test timeout_cleans_descendants_before_return ... ok
+test bounded_reads_dump_and_scratch_fail_closed ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

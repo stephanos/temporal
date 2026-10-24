@@ -1,0 +1,13 @@
+{
+  "observed_utc": "2026-10-24T23:42:40.796261+00:00",
+  "platform": "Linux-7.0.14-aarch64-with-glibc2.43",
+  "libc": [
+    "glibc",
+    "2.43"
+  ],
+  "uid": 1000,
+  "euid": 1000,
+  "base_commit": "fb25091a0e73d3c25a2569cd811f78ac31d2eb5f",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent",
+  "target": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target"
+}

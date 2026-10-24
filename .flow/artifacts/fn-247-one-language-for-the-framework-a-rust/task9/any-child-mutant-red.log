@@ -1,0 +1,32 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.22s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/umpire_backend_process-4737ecfeffb13d76)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/process-c16a89beae5b1093)
+
+running 1 test
+test owned_child_reaping_includes_other_process_groups ... FAILED
+
+failures:
+
+---- owned_child_reaping_includes_other_process_groups stdout ----
+
+thread 'owned_child_reaping_includes_other_process_groups' (635750) panicked at umpire/backends/process/tests/process.rs:578:5:
+any-child wait failed: exit status: 101: 
+thread 'main' (635752) panicked at umpire/backends/process/tests/fixtures/process_fixture.rs:130:17:
+owned child in another process group was not reaped
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    owned_child_reaping_includes_other_process_groups
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-backend-process --test process`

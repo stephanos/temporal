@@ -1,0 +1,4 @@
+    Checking libc v0.2.191
+    Checking thiserror v2.0.21
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.76s

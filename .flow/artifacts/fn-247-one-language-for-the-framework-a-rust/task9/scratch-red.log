@@ -1,0 +1,21 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/process)
+error[E0599]: no method named `path` found for struct `Scratch` in the current scope
+   --> umpire/backends/process/tests/process.rs:536:28
+    |
+536 |     let first_path = first.path().to_path_buf();
+    |                            ^^^^ method not found in `Scratch`
+
+error[E0599]: no method named `path` found for struct `Scratch` in the current scope
+   --> umpire/backends/process/tests/process.rs:537:30
+    |
+537 |     let second_path = second.path().to_path_buf();
+    |                              ^^^^ method not found in `Scratch`
+
+error[E0599]: no method named `path` found for struct `Scratch` in the current scope
+   --> umpire/backends/process/tests/process.rs:547:30
+    |
+547 |     let failed_path = failed.path().to_path_buf();
+    |                              ^^^^ method not found in `Scratch`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `umpire-backend-process` (test "process") due to 3 previous errors

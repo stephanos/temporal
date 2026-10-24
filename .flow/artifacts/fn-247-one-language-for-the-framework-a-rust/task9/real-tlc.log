@@ -1,0 +1,19 @@
+   Compiling smallvec v1.16.3
+   Compiling syn v2.0.119
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/tlc)
+   Compiling proc-macro-utils v0.10.0
+   Compiling manyhow-macros v0.14.1
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/author/dsl/macros)
+   Compiling enum-iterator-derive v1.5.0
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2479-parent/model/umpire/backends/native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.82s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target/debug/deps/controls-dfdf0211a2b9dfdb)
+
+running 1 test
+test real_tlc_initial_invariant_has_a_typed_counterexample ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 1.65s
+
