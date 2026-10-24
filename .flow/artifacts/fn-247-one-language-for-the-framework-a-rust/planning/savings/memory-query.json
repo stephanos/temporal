@@ -1,0 +1,1051 @@
+{
+  "success": true,
+  "query": "model timing validation required backend gate exit diagnostics soft target",
+  "matches": [
+    {
+      "entry_id": "bug/build-errors/package-only-model-headers-need-normal-2026-10-06",
+      "title": "Package-only Model headers need normal compilation in every caller",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "Makefile",
+      "tags": [
+        "model",
+        "scala",
+        "bloop",
+        "header"
+      ],
+      "score": 15.0,
+      "snippet": "...its no TASTy. Bloop reports NoInput for it in Model compilation. The first implementation fixed Model packaging, tests, classpath and scalaf...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/package-only-model-headers-need-normal-2026-10-06.md"
+    },
+    {
+      "entry_id": "bug/integration/nested-admission-diagnostics-must-2026-09-05",
+      "title": "Nested admission diagnostics must retain exact source coordinates",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Property/Check.lean",
+      "tags": [
+        "umpire",
+        "property",
+        "diagnostics",
+        "provenance"
+      ],
+      "score": 13.0,
+      "snippet": "## Problem Nested guarded Property diagnostics retained only a path even though every authored declaration carried a complete `So...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/nested-admission-diagnostics-must-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/required-numeric-generation-must-sample-2026-10-21",
+      "title": "Required numeric generation must sample present candidates",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/annotations/src/value.rs",
+      "tags": [
+        "umpire",
+        "annotations",
+        "generation",
+        "presence"
+      ],
+      "score": 10.0,
+      "snippet": "...and then refuses if it is absent. With seed3, required Number fill sampled zero twice and returned Invalid although nonzero values satisfied...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/required-numeric-generation-must-sample-2026-10-21.md"
+    },
+    {
+      "entry_id": "bug/integration/paired-level-validators-must-check-each-2026-10-06",
+      "title": "Paired level validators must check each artifact independently",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/irgen/src/main/scala/modelir/lint/Structure.scala",
+      "tags": [
+        "umpire",
+        "model",
+        "structure-lint",
+        "refinement",
+        "ownership"
+      ],
+      "score": 9.5,
+      "snippet": "...examples when Product and System machine-name validation short-circuited through a shared conditional, and it did not reject a System level...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/paired-level-validators-must-check-each-2026-10-06.md"
+    },
+    {
+      "entry_id": "bug/build-errors/ci-job-timeout-must-exceed-a-gates-go-2026-09-26",
+      "title": "CI job timeout must exceed a gate's Go -timeout or output is lost",
+      "track": "bug",
+      "category": "build-errors",
+      "module": ".github/workflows/umpire.yml",
+      "tags": [
+        "ci",
+        "timeout",
+        "live-tests"
+      ],
+      "score": 9.0,
+      "snippet": "...explicit `-timeout 30m` to the live Testpilot gate's `go test` left the CI job that runs it (umpire.yml `portability`) at `timeout-minutes:...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/ci-job-timeout-must-exceed-a-gates-go-2026-09-26.md"
+    },
+    {
+      "entry_id": "bug/build-errors/resolve-model-impl-identity-in-its-2026-10-19",
+      "title": "Resolve Model impl identity in its original lexical and trait context",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "model/umpire/dsl/macros/src/machine.rs",
+      "tags": [
+        "rust",
+        "proc-macros",
+        "readonly",
+        "type-identity"
+      ],
+      "score": 9.0,
+      "snippet": "...# Problem  The machine macro accepted mutable Model methods outside on/effect when their impl used a qualified path or appeared in a helper...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/resolve-model-impl-identity-in-its-2026-10-19.md"
+    },
+    {
+      "entry_id": "bug/security/retain-backend-capture-handles-across-2026-10-23",
+      "title": "Retain backend capture handles across untrusted process execution",
+      "track": "bug",
+      "category": "security",
+      "module": "model/umpire/backends/tlc/src/process.rs",
+      "tags": [
+        "subprocess",
+        "containment",
+        "output",
+        "lifecycle"
+      ],
+      "score": 9.0,
+      "snippet": "## Problem Review found that reopening backend-writable log paths could follow a substituted symlink or block on a FIFO. Pipe-reader...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/security/retain-backend-capture-handles-across-2026-10-23.md"
+    },
+    {
+      "entry_id": "bug/integration/behavior-neutral-refactors-must-not-2026-09-04",
+      "title": "Behavior-neutral refactors must not strengthen validation",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Observation/Evaluation/Admission.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "refactor",
+        "compatibility"
+      ],
+      "score": 9.0,
+      "snippet": "...ss-check and its changed-behavior fixture so `model/Umpire/Observation/Evaluation/Admission.lean` contains the original validator unchanged....",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/behavior-neutral-refactors-must-not-2026-09-04.md"
+    },
+    {
+      "entry_id": "bug/integration/portable-model-plans-need-exact-2026-09-03",
+      "title": "Portable model plans need exact artifacts and checked obligations",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Temporal/Tool/PortableEvaluationContract.lean",
+      "tags": [
+        "umpire",
+        "portable-plan",
+        "artifact-identity",
+        "obligations"
+      ],
+      "score": 9.0,
+      "snippet": "...roblem Lean-generated portable plans retained model artifact checksums while reconstructing identity-bearing ExperimentSpec fields from loss...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/portable-model-plans-need-exact-2026-09-03.md"
+    },
+    {
+      "entry_id": "bug/build-errors/glossary-renames-can-reintroduce-names-2026-09-13",
+      "title": "Glossary renames can reintroduce names the vocabulary gate retired",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "tools/umpire/internal/retiredvocabulary/check.go",
+      "tags": [
+        "umpire",
+        "testpilot",
+        "rename",
+        "vocabulary"
+      ],
+      "score": 7.5,
+      "snippet": "...low the new word after the retired-vocabulary gate had already passed. fn-82 had retired that exact compound in `tools/umpire/internal/retir...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/glossary-renames-can-reintroduce-names-2026-09-13.md"
+    },
+    {
+      "entry_id": "bug/integration/preserve-explicit-replay-bindings-when-2026-10-13",
+      "title": "Preserve explicit replay bindings when sharing a Model",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/check/checking.go",
+      "tags": [
+        "umpire",
+        "replay",
+        "sharing"
+      ],
+      "score": 7.5,
+      "snippet": "...d the unused one.  ## What Didn't Work A same-Model pointer check at the start of `checker.again` bypassed the caller's `fresh` binding. Rep...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-explicit-replay-bindings-when-2026-10-13.md"
+    },
+    {
+      "entry_id": "knowledge/decisions/host-verified-model-provenance-without-2026-09-03",
+      "title": "Host-verified model provenance without protocol signatures",
+      "track": "knowledge",
+      "category": "decisions",
+      "module": "Umpire PortableTestPlan provenance",
+      "tags": [
+        "umpire",
+        "grpc",
+        "provenance"
+      ],
+      "score": 7.5,
+      "snippet": "Fn-52 model-compiled plans carry exact model/compiler bindings and a deterministic checksum, but no...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/knowledge/decisions/host-verified-model-provenance-without-2026-09-03.md"
+    },
+    {
+      "entry_id": "bug/test-failures/gate-retry-polling-before-observing-2026-10-22",
+      "title": "Gate retry polling before observing Scheduled evidence",
+      "track": "bug",
+      "category": "test-failures",
+      "module": "tests/testpilot_model_slice_test.go",
+      "tags": [
+        "umpire",
+        "retry",
+        "polling",
+        "evidence",
+        "synchronization"
+      ],
+      "score": 6.5,
+      "snippet": "...hen releases Poll permission. The independent Model remains unchanged.  ## Prevention Keep the delayed-observation control. Verify that conc...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/test-failures/gate-retry-polling-before-observing-2026-10-22.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/reject-async-methods-before-discarding-2026-10-19",
+      "title": "Reject async methods before discarding generated call results",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/umpire/dsl/macros/src/machine.rs",
+      "tags": [
+        "rust",
+        "proc-macros",
+        "async",
+        "handlers"
+      ],
+      "score": 5.5,
+      "snippet": "...syncness` before checking the return type in `model/umpire/dsl/macros/src/machine.rs`. The `machine_handler_async` trybuild fixture first co...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/reject-async-methods-before-discarding-2026-10-19.md"
+    },
+    {
+      "entry_id": "bug/test-failures/differentials-must-enumerate-every-2026-09-28",
+      "title": "Differentials must enumerate every search caller, not only declarations",
+      "track": "bug",
+      "category": "test-failures",
+      "module": "model/Umpire/Search/Tests/Differential.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "search",
+        "fn-88"
+      ],
+      "score": 5.0,
+      "snippet": "## Problem The fn-88.9 backend differential first swept only `query` declarations and treated Queries whose admission...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/test-failures/differentials-must-enumerate-every-2026-09-28.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/replay-rejection-lost-to-2026-09-27",
+      "title": "Replay rejection lost to finalizePlanning's unsatisfiable-Scenario priority",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/Umpire/Search.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "search",
+        "fn-88"
+      ],
+      "score": 5.0,
+      "snippet": "...oblem fn-88.6 added kernel replay in `finalizeBackendResult`: a rejected witness became a `BackendResult.invalid` termination. For a Query w...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/replay-rejection-lost-to-2026-09-27.md"
+    },
+    {
+      "entry_id": "bug/performance/canonical-identity-embeds-whole-2026-09-09",
+      "title": "Canonical identity embeds whole generated schema (27MB per payload)",
+      "track": "bug",
+      "category": "performance",
+      "module": "model/Umpire/Operation/Canonical.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "identity",
+        "canonical",
+        "generated-api",
+        "fn-77"
+      ],
+      "score": 5.0,
+      "snippet": "...tity encoding delivered in tasks 1/4/5. Every model payload identity built from a real generated `Temporal.API` schema is a multi-megabyte s...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/performance/canonical-identity-embeds-whole-2026-09-09.md"
+    },
+    {
+      "entry_id": "bug/integration/preserve-scalar-bound-identities-when-2026-10-22",
+      "title": "Preserve scalar bound identities when naming shared IR expressions",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/front/src/body/vector.rs",
+      "tags": [
+        "rust",
+        "ir",
+        "admission",
+        "compatibility"
+      ],
+      "score": 5.0,
+      "snippet": "...local references and their limited state. See model/umpire/front/src/body/vector.rs.  ## Prevention Keep positive direct, chained and same-o...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-scalar-bound-identities-when-2026-10-22.md"
+    },
+    {
+      "entry_id": "bug/integration/schema-closure-tests-must-compile-2026-10-09",
+      "title": "Schema closure tests must compile imported generated declarations",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/check/test/Gate.test.scala",
+      "tags": [
+        "umpire",
+        "protobuf",
+        "scalapb",
+        "codegen"
+      ],
+      "score": 5.0,
+      "snippet": "...it tests.  ## What Didn't Work  The synthetic gate repository logged arguments and touched the expected jar. That covered closure ordering,...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/schema-closure-tests-must-compile-2026-10-09.md"
+    },
+    {
+      "entry_id": "bug/build-errors/preserve-generic-declaration-context-in-2026-10-21",
+      "title": "Preserve generic declaration context in generated adapters",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "model/umpire/dsl/macros/src/machine/declared.rs",
+      "tags": [
+        "rust",
+        "proc-macros",
+        "generics"
+      ],
+      "score": 4.0,
+      "snippet": "...pes. Readonly checks also copied parent-local Model bounds into child scopes.  ## What Didn't Work  Passing generic derive-only tests did no...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/preserve-generic-declaration-context-in-2026-10-21.md"
+    },
+    {
+      "entry_id": "bug/build-errors/track-schema-inputs-before-reusing-2026-09-07",
+      "title": "Track schema inputs before reusing generated Lean modules",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "model/lakefile.lean",
+      "tags": [
+        "lean",
+        "protobuf",
+        "lake",
+        "codegen"
+      ],
+      "score": 4.0,
+      "snippet": "...## What Didn't Work  Adding bare `input_file` targets as library dependencies waited for those jobs without propagating their traces into th...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/track-schema-inputs-before-reusing-2026-09-07.md"
+    },
+    {
+      "entry_id": "bug/integration/channel-catalogs-and-visible-results-2026-09-30",
+      "title": "Channel catalogs and visible results must survive source lifting",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/scalav2/lifter/Lift.scala",
+      "tags": [
+        "modelir",
+        "channels",
+        "refinement",
+        "source-admission"
+      ],
+      "score": 4.0,
+      "snippet": "...outcome projection through native refinement, modelir and lifting; a stutter may emit neither a projected fact nor outcome. A supported Int...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/channel-catalogs-and-visible-results-2026-09-30.md"
+    },
+    {
+      "entry_id": "bug/integration/coverage-findings-must-retain-2026-09-05",
+      "title": "Coverage findings must retain independent obligations and evidence",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Planning/CaseAnalysis.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "case-coverage",
+        "evidence"
+      ],
+      "score": 4.0,
+      "snippet": "...eded to explain the witness.  ## Solution In `model/Umpire/Planning/CaseAnalysis.lean`, emit missing replacement whenever the parent applies...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/coverage-findings-must-retain-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/dual-purpose-coverage-maps-need-per-2026-09-09",
+      "title": "Dual-purpose coverage maps need per-entry admissibility",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Observation/Projection/Coverage.lean",
+      "tags": [
+        "lean",
+        "coverage",
+        "observation",
+        "lowering"
+      ],
+      "score": 4.0,
+      "snippet": "## Problem A coverage map that binds modeled field coordinates to declared Observations was reused for two different jobs: naming a...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/dual-purpose-coverage-maps-need-per-2026-09-09.md"
+    },
+    {
+      "entry_id": "bug/integration/full-integration-gates-must-select-the-2026-09-04",
+      "title": "Full integration gates must select the complete migrated suite",
+      "track": "bug",
+      "category": "integration",
+      "module": "Makefile",
+      "tags": [
+        "umpire",
+        "integration",
+        "ci",
+        "baseline"
+      ],
+      "score": 4.0,
+      "snippet": "## Problem The Umpire Make and CI live-test gates selected only one relocated generated test, so other relocated Run Evaluation, HTTP/gRPC...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/full-integration-gates-must-select-the-2026-09-04.md"
+    },
+    {
+      "entry_id": "bug/integration/keep-raw-semantics-behind-checked-input-2026-09-05",
+      "title": "Keep raw semantics behind checked input boundaries",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Property/Evaluation.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "admission",
+        "public-api"
+      ],
+      "score": 4.0,
+      "snippet": "...epresent missing input as an empty list and negate the resulting false value into true, bypassing the required diagnostic boundary.  ## What...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/keep-raw-semantics-behind-checked-input-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/portable-carriers-must-keep-the-checked-2026-09-09",
+      "title": "Portable carriers must keep the checked namespace and type rules",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Testpilot/Scoped.lean",
+      "tags": [
+        "umpire",
+        "portable",
+        "captures",
+        "admission",
+        "types"
+      ],
+      "score": 4.0,
+      "snippet": "...ures and a correlation reproduced the checked model's shapes but not its two namespace/type guarantees. `ScopedCaptureRef` names a retained...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/portable-carriers-must-keep-the-checked-2026-09-09.md"
+    },
+    {
+      "entry_id": "bug/integration/transition-table-reads-must-omit-2026-10-06",
+      "title": "Transition-table reads must omit realization-only refinement metadata",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/model/compose.go",
+      "tags": [
+        "umpire",
+        "composition",
+        "lint",
+        "refinement"
+      ],
+      "score": 4.0,
+      "snippet": "...ly field metadata.  ## Solution `tools/umpire/model/compose.go:162` reads through the existing checking binding, which omits realization met...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/transition-table-reads-must-omit-2026-10-06.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/finite-ir-admission-must-count-work-2026-09-30",
+      "title": "Finite IR admission must count work before listing catalogs",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/scalav2/goir",
+      "tags": [
+        "umpire",
+        "admission",
+        "bounds",
+        "identity"
+      ],
+      "score": 3.5,
+      "snippet": "## Problem The fn107 IR review found validation helpers listing large catalogs and class products before applying interpreter ceili...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/finite-ir-admission-must-count-work-2026-09-30.md"
+    },
+    {
+      "entry_id": "bug/performance/authoring-comparisons-must-force-equal-2026-09-06",
+      "title": "Authoring comparisons must force equal checker work",
+      "track": "bug",
+      "category": "performance",
+      "module": "model/Temporal/Feature/Nexus2/AuthoringTests.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "authoring",
+        "measurement",
+        "lsp"
+      ],
+      "score": 3.5,
+      "snippet": "...on performed equal work.  ## What Didn't Work Timing declaration elaboration alone treated deferred constructor admission as if it had alrea...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/performance/authoring-comparisons-must-force-equal-2026-09-06.md"
+    },
+    {
+      "entry_id": "bug/integration/correlate-pending-proposals-with-2026-10-23",
+      "title": "Correlate pending proposals with operation completion evidence",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/temporal/feature/activity/temporal.rs",
+      "tags": [
+        "umpire",
+        "proposal",
+        "correlation",
+        "retry"
+      ],
+      "score": 3.5,
+      "snippet": "...ution The realization completes delivery when Model-validated state reaches Started for the selected attempt or advances beyond that attempt...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/correlate-pending-proposals-with-2026-10-23.md"
+    },
+    {
+      "entry_id": "bug/integration/keyed-capture-operands-must-be-checked-2026-09-09",
+      "title": "Keyed capture operands must be checked against their declaration",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Property/Check.lean",
+      "tags": [
+        "lean",
+        "property",
+        "captures",
+        "scoped",
+        "admission"
+      ],
+      "score": 3.5,
+      "snippet": "...n to check the operand against.  ## Solution `model/Umpire/Property/Check.lean:validateFieldComparison` now receives the declared `PropertyS...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/keyed-capture-operands-must-be-checked-2026-09-09.md"
+    },
+    {
+      "entry_id": "bug/integration/preserve-rust-expression-and-inference-2026-10-20",
+      "title": "Preserve Rust expression and inference contracts in path macros",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/dsl/macros/src/path.rs",
+      "tags": [
+        "rust",
+        "macros",
+        "type-inference",
+        "expression-semantics"
+      ],
+      "score": 3.5,
+      "snippet": "...cts, nested closure inference, wildcard field validation and generic/helper declarations also had gaps.  ## What Didn't Work Wrapping user e...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-rust-expression-and-inference-2026-10-20.md"
+    },
+    {
+      "entry_id": "bug/integration/consolidated-extractor-dropped-a-2026-09-27",
+      "title": "Consolidated extractor dropped a caller's nonempty-field rejection",
+      "track": "bug",
+      "category": "integration",
+      "module": "common/testing/testpilot/temporal/driver.go",
+      "tags": [
+        "testpilot",
+        "refactor",
+        "validation"
+      ],
+      "score": 3.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/consolidated-extractor-dropped-a-2026-09-27.md"
+    },
+    {
+      "entry_id": "bug/integration/output-relocation-must-scope-shared-2026-10-11",
+      "title": "Output relocation must scope shared readers and publication",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/cmd/umpire-gen-cases",
+      "tags": [
+        "paths",
+        "feature-selection",
+        "publication"
+      ],
+      "score": 3.0,
+      "snippet": "## Problem Colocating generated model outputs left shared readers, standalone Make entrypoints and scoped fixture compilation...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/output-relocation-must-scope-shared-2026-10-11.md"
+    },
+    {
+      "entry_id": "bug/integration/separate-archived-scan-roots-from-2026-10-18",
+      "title": "Separate archived scan roots from historical source paths",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/ir",
+      "tags": [
+        "migration",
+        "layout",
+        "scanner"
+      ],
+      "score": 3.0,
+      "snippet": "## Problem  Moving the Rust workspace to model/ and freezing Scala under model/archived/ broke Go layout assertions and changed scanner...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/separate-archived-scan-roots-from-2026-10-18.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/field-alterations-must-range-over-2026-09-28",
+      "title": "Field alterations must range over structure fields, not the reachable catalog",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/Umpire/Command/Predicate.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "property",
+        "compose",
+        "fn-92"
+      ],
+      "score": 2.5,
+      "snippet": "...2.7) changed one state field by searching the Model's own state catalog for a state holding every other field unchanged. Two valid claims fa...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/field-alterations-must-range-over-2026-09-28.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/monitor-closure-must-honor-cancellation-2026-09-04",
+      "title": "Monitor closure must honor cancellation without rebuilding proofs",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "tools/umpire/verification",
+      "tags": [
+        "umpire",
+        "cancellation",
+        "monitor"
+      ],
+      "score": 2.5,
+      "snippet": "...erve commit. Close polls context during event validation, performs a final cancellation check, and transfers the already prepared frozen Ver...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/monitor-closure-must-honor-cancellation-2026-09-04.md"
+    },
+    {
+      "entry_id": "bug/integration/a-checked-artifact-cannot-supply-its-2026-09-28",
+      "title": "A checked artifact cannot supply its own completeness universe",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Command/ComposeProofs.lean",
+      "tags": [
+        "compose",
+        "kernel",
+        "decide",
+        "proof",
+        "fn-92"
+      ],
+      "score": 2.5,
+      "snippet": "...of its own completeness check.  ## Solution `model/Umpire/Command/ComposeProofs.lean`: `composedTableAgrees members candidates literal` tak...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/a-checked-artifact-cannot-supply-its-2026-09-28.md"
+    },
+    {
+      "entry_id": "bug/integration/check-unbounded-lean-numbers-before-2026-09-07",
+      "title": "Check unbounded Lean numbers before protobuf narrowing",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Case/Compiler.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "protobuf",
+        "numeric-bounds"
+      ],
+      "score": 2.5,
+      "snippet": "...de the protobuf numeric ranges.  ## Solution `model/Umpire/Case/Compiler.lean` now narrows numeric values through checked helpers that retur...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/check-unbounded-lean-numbers-before-2026-09-07.md"
+    },
+    {
+      "entry_id": "bug/integration/default-empty-extensions-must-preserve-2026-09-05",
+      "title": "Default-empty extensions must preserve canonical fingerprints",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Property/Check.lean",
+      "tags": [
+        "canonicalization",
+        "compatibility",
+        "fingerprint"
+      ],
+      "score": 2.5,
+      "snippet": "...hen it had no semantic content.  ## Solution `model/Umpire/Property/Check.lean` omits the temporal field when the list is empty and emits it...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/default-empty-extensions-must-preserve-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/every-scenario-command-scenario-carries-2026-09-27",
+      "title": "Every scenario-command Scenario carries ordering; pinned schedules decide it",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Search/Product/Scenario.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "scenario",
+        "fn-88"
+      ],
+      "score": 2.5,
+      "snippet": "...lowering by `admits` on the pinned schedule (`model/Umpire/Search/Product/Scenario.lean`, `pinnedSchedule`). Only free-schedule `ordering`/`...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/every-scenario-command-scenario-carries-2026-09-27.md"
+    },
+    {
+      "entry_id": "bug/integration/facade-admission-must-normalize-dsl-2026-10-24",
+      "title": "Facade admission must normalize DSL prefixes through grouped imports",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/author/dsl/macros/src/roots.rs",
+      "tags": [
+        "rust",
+        "facade",
+        "macro",
+        "admission"
+      ],
+      "score": 2.5,
+      "snippet": "## Problem A Model importing DSL names with `use author_kit::{dsl::{Action, State, check}}` compiled native...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/facade-admission-must-normalize-dsl-2026-10-24.md"
+    },
+    {
+      "entry_id": "bug/integration/feature-modules-must-import-temporal-2026-09-28",
+      "title": "Feature modules must import Temporal conventions or IDs change family",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Temporal/Case/Conventions.lean",
+      "tags": [
+        "definition-id",
+        "conventions",
+        "feature-module"
+      ],
+      "score": 2.5,
+      "snippet": "...so importing the module beside other Temporal Models later does not correct them. fn-92.1's worker module shipped this way until review.  ##...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/feature-modules-must-import-temporal-2026-09-28.md"
+    },
+    {
+      "entry_id": "bug/integration/homogeneous-owner-index-blocked-mixed-2026-09-09",
+      "title": "Homogeneous owner index blocked mixed-schema field Properties",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Property/Evaluation.lean",
+      "tags": [
+        "lean",
+        "property",
+        "fields",
+        "type-index"
+      ],
+      "score": 2.5,
+      "snippet": "...xture must instantiate at least two of them; `model/Umpire/Property/Tests/Fields.lean` now binds model state and semantic events to a second...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/homogeneous-owner-index-blocked-mixed-2026-09-09.md"
+    },
+    {
+      "entry_id": "bug/integration/joint-conflict-scopes-require-realized-2026-09-05",
+      "title": "Joint conflict scopes require realized trigger identity",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Umpire/Planning/CaseAnalysis.lean",
+      "tags": [
+        "umpire",
+        "lean",
+        "joint-analysis",
+        "temporal"
+      ],
+      "score": 2.5,
+      "snippet": "...analysis grouped temporal obligations only by modeled prefix, transition, prior state, and selected Action. Distinct observation occurrences...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/joint-conflict-scopes-require-realized-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/match-complete-macro-invocations-when-2026-10-19",
+      "title": "Match complete macro invocations when selecting machine outcomes",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/dsl/macros/src/machine.rs",
+      "tags": [
+        "rust",
+        "proc-macros",
+        "tokenization"
+      ],
+      "score": 2.5,
+      "snippet": "...equires the full literal invocation shape in `model/umpire/dsl/macros/src/machine.rs`: identifier, bang and a delimited argument group. Recu...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/match-complete-macro-invocations-when-2026-10-19.md"
+    },
+    {
+      "entry_id": "bug/integration/match-terminal-failure-and-retained-2026-10-24",
+      "title": "Match terminal failure and retained retry history separately",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/temporal/feature/activity/temporal.rs",
+      "tags": [
+        "umpire",
+        "programmed-workers",
+        "describe",
+        "failure-history"
+      ],
+      "score": 2.5,
+      "snippet": "...distinct from authored response content. The Model is unchanged.  ## Prevention Keep a regression that changes only info.last_failure while...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/match-terminal-failure-and-retained-2026-10-24.md"
+    },
+    {
+      "entry_id": "bug/integration/preserve-property-categories-and-bound-2026-10-23",
+      "title": "Preserve property categories and bound native start-failure replay",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/backends/apalache/src/replay.rs",
+      "tags": [
+        "replay",
+        "typed-identity",
+        "arithmetic"
+      ],
+      "score": 2.5,
+      "snippet": "...ty's category. Collecting all failed prefixes required unbounded work before matching one witness, and an empty terminal visitor stopped con...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-property-categories-and-bound-2026-10-23.md"
+    },
+    {
+      "entry_id": "bug/integration/reconciliation-must-preserve-authority-2026-09-05",
+      "title": "Reconciliation must preserve authority, IDs, and references",
+      "track": "bug",
+      "category": "integration",
+      "module": ".plans/UMPIRE4_SPEC.md",
+      "tags": [
+        "umpire",
+        "documentation",
+        "conformance"
+      ],
+      "score": 2.5,
+      "snippet": "...elationships so empty collections cannot make required evidence disappear.",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/reconciliation-must-preserve-authority-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/integration/rejected-delivery-steps-must-not-2026-10-22",
+      "title": "Rejected delivery steps must not authorize callback replies",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/temporal/feature/activity/temporal.rs",
+      "tags": [
+        "umpire",
+        "realization",
+        "rejection",
+        "callback"
+      ],
+      "score": 2.5,
+      "snippet": "...m Adding stale Poll rejection to the activity Model changed delivery from a disabled action to a rejected self-loop. After valid attempt-one...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/rejected-delivery-steps-must-not-2026-10-22.md"
+    },
+    {
+      "entry_id": "bug/integration/reusable-cases-need-run-coordinates-and-2026-09-05",
+      "title": "Reusable Cases need run coordinates and event-aligned captures",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/Temporal/CaseRuntime.lean",
+      "tags": [
+        "umpire",
+        "case-runtime",
+        "correlation"
+      ],
+      "score": 2.5,
+      "snippet": "...projected history fields. Repeated Runs could target the same Temporal execution, while fields from different History Events could accidenta...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/reusable-cases-need-run-coordinates-and-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/data/joined-composition-keys-must-be-checked-2026-09-28",
+      "title": "Joined composition keys must be checked injective before keying rows",
+      "track": "bug",
+      "category": "data",
+      "module": "model/Umpire/Command/Compose.lean",
+      "tags": [
+        "compose",
+        "umpire",
+        "lean",
+        "fn-92"
+      ],
+      "score": 2.5,
+      "snippet": "...says nothing about sync names.  ## Solution `model/Umpire/Command/Compose.lean` `candidates`: refuse member state keys containing `_` (`und...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/data/joined-composition-keys-must-be-checked-2026-09-28.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/workflow-replay-must-complete-2026-09-05",
+      "title": "Workflow replay must complete unfinished admissions once",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "tools/umpire/temporal/worker",
+      "tags": [
+        "umpire",
+        "replay",
+        "reservation"
+      ],
+      "score": 1.5,
+      "snippet": "...uction, and terminal idempotence in the state model.",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/workflow-replay-must-complete-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/performance/build-counterexample-paths-only-for-2026-10-18",
+      "title": "Build counterexample paths only for failing predicates",
+      "track": "bug",
+      "category": "performance",
+      "module": "model2/framework/checker/src/explore.rs",
+      "tags": [
+        "checker",
+        "paths",
+        "complexity"
+      ],
+      "score": 1.5,
+      "snippet": "...re the fix and linear work afterward, without timing thresholds.",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/performance/build-counterexample-paths-only-for-2026-10-18.md"
+    },
+    {
+      "entry_id": "bug/integration/portable-schemas-must-preserve-source-2026-09-03",
+      "title": "Portable schemas must preserve source semantic kinds and cardinalities",
+      "track": "bug",
+      "category": "integration",
+      "module": "proto/internal/temporal/server/api/umpire/v1/portable_test_plan.proto",
+      "tags": [
+        "umpire",
+        "protobuf",
+        "admission"
+      ],
+      "score": 1.5,
+      "snippet": "...exact checkpoints, canonical collections, and model result reservations.  ## Prevention For protocol successors, derive every field type and...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/portable-schemas-must-preserve-source-2026-09-03.md"
+    },
+    {
+      "entry_id": "bug/integration/program-admission-must-validate-2026-09-04",
+      "title": "Program admission must validate producer kinds and bound repeated lookups",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/internal/execution",
+      "tags": [
+        "umpire",
+        "admission",
+        "bounds"
+      ],
+      "score": 1.5,
+      "snippet": "...d a local ancestor but did not check that the target produced a compatible Nexus operation handle. RPC authorization repeatedly scanned endp...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/program-admission-must-validate-2026-09-04.md"
+    },
+    {
+      "entry_id": "bug/integration/use-file-snapshots-for-reviewable-2026-10-18",
+      "title": "Use file snapshots for reviewable external insta goldens",
+      "track": "bug",
+      "category": "integration",
+      "module": "model2/framework/samples/tests/kettle.rs",
+      "tags": [
+        "insta",
+        "goldens",
+        "review"
+      ],
+      "score": 1.5,
+      "snippet": "...ry snapshots with text payloads and metadata. Required report.txt and counterexample paths are symlinks to their .snap.txt payloads, so read...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/use-file-snapshots-for-reviewable-2026-10-18.md"
+    },
+    {
+      "entry_id": "bug/integration/validate-protobuf-descriptor-structure-2026-09-05",
+      "title": "Validate protobuf descriptor structure before accepting same-name responses",
+      "track": "bug",
+      "category": "integration",
+      "module": "tools/umpire/internal/ir/runtime_value.go",
+      "tags": [
+        "umpire",
+        "protobuf",
+        "types"
+      ],
+      "score": 1.5,
+      "snippet": "...ccepted work and one-less rejection so schema validation cannot bypass execution bounds.  Repeated scalar fields have no protobuf default Va...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/validate-protobuf-descriptor-structure-2026-09-05.md"
+    },
+    {
+      "entry_id": "bug/build-errors/isolate-scala-cli-author-builds-after-2026-10-16",
+      "title": "Isolate Scala CLI author builds after local macro jar changes",
+      "track": "bug",
+      "category": "build-errors",
+      "module": "model/framework/README.md",
+      "tags": [
+        "scala-cli",
+        "macros",
+        "cache"
+      ],
+      "score": 1.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/isolate-scala-cli-author-builds-after-2026-10-16.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/finite-search-requires-injective-2026-09-30",
+      "title": "Finite search requires injective identity and bounded admission",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/go/umpire",
+      "tags": [
+        "umpire",
+        "identity",
+        "search",
+        "replay"
+      ],
+      "score": 1.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/finite-search-requires-injective-2026-09-30.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04",
+      "title": "Interface nil checks must cover every nil-capable kind",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "tools/umpire/temporal/nexus/runner.go",
+      "tags": [
+        "umpire",
+        "go",
+        "interfaces"
+      ],
+      "score": 1.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04.md"
+    },
+    {
+      "entry_id": "bug/runtime-errors/reconstruct-crash-resets-and-budget-2026-10-16",
+      "title": "Reconstruct crash resets and budget updates atomically",
+      "track": "bug",
+      "category": "runtime-errors",
+      "module": "model/framework/dsl/StateField.scala",
+      "tags": [
+        "native",
+        "crash",
+        "atomic-update"
+      ],
+      "score": 1.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/reconstruct-crash-resets-and-budget-2026-10-16.md"
+    },
+    {
+      "entry_id": "bug/integration/preserve-arithmetic-evaluation-roots-2026-10-23",
+      "title": "Preserve arithmetic evaluation roots across empty domains and unused values",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/umpire/lift/src/safety.rs",
+      "tags": [
+        "rust",
+        "apalache",
+        "arithmetic",
+        "initialization"
+      ],
+      "score": 1.0,
+      "snippet": "## Problem",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/preserve-arithmetic-evaluation-roots-2026-10-23.md"
+    },
+    {
+      "entry_id": "bug/integration/prove-result-shape-before-propagating-2026-10-21",
+      "title": "Prove result shape before propagating generated-enum coverage",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/temporal/annotate/syntax/src/realize.rs",
+      "tags": [
+        "rust",
+        "proc-macros",
+        "type-identity",
+        "exhaustiveness"
+      ],
+      "score": 1.0,
+      "snippet": "...expression results are Unknown; explicit cast targets and typed bindings establish coverage through the shared type analysis. Tuple and vari...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/prove-result-shape-before-propagating-2026-10-21.md"
+    },
+    {
+      "entry_id": "bug/integration/realized-controls-constrain-admission-2026-09-30",
+      "title": "Realized controls constrain admission evidence compatibility",
+      "track": "bug",
+      "category": "integration",
+      "module": "model/scalav2/specimens/activity.md",
+      "tags": [
+        "evidence",
+        "causal-order",
+        "admission"
+      ],
+      "score": 1.0,
+      "snippet": "Removing an internal admission-commit observation does not automatically make an activity pause race inconclusive. A realized hold-before-di...",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/integration/realized-controls-constrain-admission-2026-09-30.md"
+    }
+  ],
+  "count": 66,
+  "rerank": "bm25",
+  "rerank_reason": "no_key",
+  "stage_line": "memory: bm25 (jev-unavailable(no_key))"
+}

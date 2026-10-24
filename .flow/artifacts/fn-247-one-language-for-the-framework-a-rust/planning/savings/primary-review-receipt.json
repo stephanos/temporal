@@ -1,0 +1,41 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "2715797a4508d49ff33ac87c4b54c026140fda54",
+    "items": [
+      {
+        "body": "Freshness prerequisite checks move inside xtask, but the plan does not explain how they run before xtask can be built. On a cold checkout missing mise, pinned Rust, or Cargo, bootstrap fails before reaching the required local warning/skip policy. Disabling automatic installation inside xtask is also too late for bootstrap. The existing `test_missing_prerequisites_skip_only_with_ci_unset` explicitly covers these missing tools; running its replacement against an already-built binary would miss this regression.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-c0323af35ae46a01c203f6dc24182cd08168936e542511265b615dbef5df16af",
+        "id": "finding-5556564af4b954dfe424949a4e6bb0e9",
+        "lastSeenReceiptId": "review-fb8ab282847ae9303485ef88dc0c780875b95a4ffb8e9e9ecf14f74ff657a3ef",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Specify admission before native-tool bootstrap, including where automatic installation is disabled. Preserve local skip versus empty-CI failure, distinguish missing prerequisites from probe/build failures, and test the actual freshness entrypoint with no cached xtask and each bootstrap prerequisite absent.",
+        "title": "Freshness prerequisite checks move inside xtask, but the plan does not explain how they run before xtask can be built"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 4,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fb8ab282847ae9303485ef88dc0c780875b95a4ffb8e9e9ecf14f74ff657a3ef",
+    "supersedesReceiptId": "review-30e5883c2dd334bde15142d2ab0ae9dc4d5e00136f030e7ae8158095c9eddebd"
+  },
+  "id": "fn-247-one-language-for-the-framework-a-rust",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\n\nThe epic and task .5 still require admission before xtask bootstrap, disable auto-install before probing, preserve missing-prerequisite versus error handling, and require cold-entrypoint tests.\n\nNo new blocking findings. Epic/task alignment, dependency ordering, Touches declarations, test strategy, diagnostic/timing observability, and performance/security constraints remain consistent. Task objectives remain bounded for individual iterations.\n\nmaintainability:\n  duplication: Prerequisite and pin-consistency checks occur in both Bash admission and xtask; post-bootstrap revalidation is explicitly required.\n  structure: none identified\n\n```json\n{\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "f5f0503be4414e83be4f83068f1fb4be",
+  "session_id": "01a16f45-59e1-7b30-9dde-b0e188f40ded",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T20:33:00.612292Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

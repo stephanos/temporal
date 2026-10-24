@@ -14,7 +14,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-24T19:02:53.838178Z",
+  "plan_reviewed_at": "2026-10-24T20:33:00.620486Z",
   "ready": true,
   "review_attempts": [
     {
@@ -140,11 +140,99 @@
       "task": "fn-247-one-language-for-the-framework-a-rust.1",
       "timestamp": "2026-10-24T20:16:34.287488Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b539e1ac53a4bfcb78c3601c9ca6a6177ebbcb2725c3b8ec9f9a6427743fdb12",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "classification": "introduced",
+            "findingId": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2715797a4508d49ff33ac87c4b54c026140fda54",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 764,
+      "output_sha256": "648cfa285593a4f244c80db6aae9a6dbb355d45273f25294dafbf5997136733a",
+      "reservation_id": "d96f35b1f6c949a19732ce0533c8564f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T20:28:46.677246Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f76b0647358d59fc0345a632d47783a88f2656c722529d4690db70eb986c9aba",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "classification": "introduced",
+            "findingId": "finding-5556564af4b954dfe424949a4e6bb0e9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "2715797a4508d49ff33ac87c4b54c026140fda54",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 723,
+      "output_sha256": "29718b423c8227ebab85a2e23e7a77c54b9ff8c6ea0d56809d76842e74ac0841",
+      "reservation_id": "f5f0503be4414e83be4f83068f1fb4be",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-24T20:33:00.614342Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-247-one-language-for-the-framework-a-rust.1": 1,
-    "plan": 1,
+    "plan": 3,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -167,5 +255,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T20:16:34.292610Z"
+  "updated_at": "2026-10-24T20:33:00.621507Z"
 }

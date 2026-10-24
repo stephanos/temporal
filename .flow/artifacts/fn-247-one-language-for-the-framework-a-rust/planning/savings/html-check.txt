@@ -1,0 +1,2 @@
+OK: self-contained; inline CSS/JS; resolved anchors; eight task statuses/edges; five covered R-IDs; JS syntax; light A4 print CSS; one source marker
+/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/spec.html

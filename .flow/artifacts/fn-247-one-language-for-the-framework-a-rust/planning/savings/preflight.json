@@ -1,0 +1,236 @@
+{
+  "success": true,
+  "key": null,
+  "value": {
+    "memory": {
+      "enabled": true
+    },
+    "planSync": {
+      "enabled": false,
+      "crossSpec": false
+    },
+    "review": {
+      "backend": "claude:claude-fable-5-1:high",
+      "maxIterations": 8
+    },
+    "scouts": {
+      "github": false
+    },
+    "tracker": {
+      "version": 1,
+      "enabled": false,
+      "type": null,
+      "provenance": null,
+      "perEvent": {
+        "capture": "off",
+        "interview": "off",
+        "plan": "off",
+        "work": {
+          "firstClaim": "off",
+          "done": "off"
+        },
+        "makePr": "off",
+        "resolvePr": "off",
+        "completionReview": "off",
+        "qa": "off",
+        "land": {
+          "merged": "off"
+        }
+      },
+      "charts": "off",
+      "perTracker": {
+        "teamId": null,
+        "projectId": null,
+        "labelMap": {},
+        "priorityMap": {},
+        "project": null,
+        "host": null,
+        "baseUrl": null,
+        "projectKey": null,
+        "authScheme": null,
+        "apiVersion": null,
+        "sslVerify": true,
+        "statusMap": {}
+      },
+      "staleAfterHours": 24,
+      "conflictTiebreak": "always-ask",
+      "readyState": null,
+      "specIds": "flow"
+    },
+    "land": {
+      "patienceMinutes": 30,
+      "mergeVerdictCommand": ""
+    },
+    "artifacts": {
+      "html": {
+        "enabled": true
+      }
+    },
+    "pipeline": {
+      "qa": "off",
+      "chainStages": "off"
+    },
+    "judge": {
+      "enabled": true
+    },
+    "chart": {
+      "maxDecisions": 12,
+      "claimStaleAfter": 24
+    },
+    "features": {
+      "staleAfterCommits": 50
+    },
+    "pilot": {
+      "autonomy": "ready",
+      "gateClasses": []
+    },
+    "$schema": "https://flow-next.dev/schema/flow-config.schema.json"
+  },
+  "probes": {
+    "config": {
+      "status": "ok",
+      "value": {
+        "success": true,
+        "key": null,
+        "value": {
+          "memory": {
+            "enabled": true
+          },
+          "planSync": {
+            "enabled": false,
+            "crossSpec": false
+          },
+          "review": {
+            "backend": "claude:claude-fable-5-1:high",
+            "maxIterations": 8
+          },
+          "scouts": {
+            "github": false
+          },
+          "tracker": {
+            "version": 1,
+            "enabled": false,
+            "type": null,
+            "provenance": null,
+            "perEvent": {
+              "capture": "off",
+              "interview": "off",
+              "plan": "off",
+              "work": {
+                "firstClaim": "off",
+                "done": "off"
+              },
+              "makePr": "off",
+              "resolvePr": "off",
+              "completionReview": "off",
+              "qa": "off",
+              "land": {
+                "merged": "off"
+              }
+            },
+            "charts": "off",
+            "perTracker": {
+              "teamId": null,
+              "projectId": null,
+              "labelMap": {},
+              "priorityMap": {},
+              "project": null,
+              "host": null,
+              "baseUrl": null,
+              "projectKey": null,
+              "authScheme": null,
+              "apiVersion": null,
+              "sslVerify": true,
+              "statusMap": {}
+            },
+            "staleAfterHours": 24,
+            "conflictTiebreak": "always-ask",
+            "readyState": null,
+            "specIds": "flow"
+          },
+          "land": {
+            "patienceMinutes": 30,
+            "mergeVerdictCommand": ""
+          },
+          "artifacts": {
+            "html": {
+              "enabled": true
+            }
+          },
+          "pipeline": {
+            "qa": "off",
+            "chainStages": "off"
+          },
+          "judge": {
+            "enabled": true
+          },
+          "chart": {
+            "maxDecisions": 12,
+            "claimStaleAfter": 24
+          },
+          "features": {
+            "staleAfterCommits": 50
+          },
+          "pilot": {
+            "autonomy": "ready",
+            "gateClasses": []
+          },
+          "$schema": "https://flow-next.dev/schema/flow-config.schema.json"
+        }
+      }
+    },
+    "strategy": {
+      "status": "ok",
+      "value": {
+        "success": true,
+        "exists": false,
+        "husk": false,
+        "sections_filled": 0,
+        "total_sections": 5,
+        "last_updated": null,
+        "file_path": null,
+        "generator": null,
+        "generator_match": false
+      }
+    },
+    "glossary": {
+      "status": "ok",
+      "value": {
+        "success": true,
+        "groups": [],
+        "file_count": 0,
+        "total_terms": 0
+      }
+    },
+    "decisions": {
+      "status": "ok",
+      "value": {
+        "entry_count": 1
+      }
+    },
+    "tracker": {
+      "status": "ok",
+      "value": {
+        "success": true,
+        "active": false,
+        "type": null,
+        "ops": {}
+      }
+    },
+    "review_backend": {
+      "status": "ok",
+      "value": {
+        "success": true,
+        "backend": "codex",
+        "spec": "codex:gpt-6.1-sol:medium",
+        "source": "env",
+        "model": "gpt-6.1-sol",
+        "effort": "medium"
+      }
+    },
+    "memory_enabled": {
+      "status": "ok",
+      "value": true
+    }
+  }
+}
