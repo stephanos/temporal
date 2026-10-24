@@ -47,14 +47,16 @@
       "initial_findings": 1,
       "fixed": "Main CFG assignment decoding is anchored to typed binding/parameters; coordinated unused-World-parameter mutation red101\u2192green0.",
       "followup_1_remaining": 1,
-      "continuation_fix": "Actual main continuation override red101; all five continuation families green0 after rejecting noncanonical emitted CFG lines."
+      "continuation_fix": "Actual main continuation override red101; all five continuation families green0 after rejecting noncanonical emitted CFG lines.",
+      "final_remaining": 0
     },
     "standards": {
       "initial_findings": 4,
       "fixed": "Private value conversion and test modules extracted; optional guide moved to framework README.",
-      "followup_remaining": 0
+      "followup_remaining": 0,
+      "final_remaining": 0
     },
-    "followup": "pending"
+    "followup": "both axes zero remaining and zero new findings"
   },
   "post_audit_gates": [
     {
