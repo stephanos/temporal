@@ -1,11 +1,182 @@
 {
   "branch_name": "fn-249-gomad-retire-the-go-reference-models",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-24T22:16:07.615268Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-249-gomad-retire-the-go-reference-models",
+  "impl_review_rounds": {
+    "fn-249-gomad-retire-the-go-reference-models.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "52cc6c7319dca2e3704dd999fcfd37ed81e8abae5359362b7c9f29a5fd99128e",
+      "backend": "codex",
+      "base_sha": "c35e6787952119af53286006ee8e628ffaec9035",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ab81a5f526abefea4c62eed097fbc5fc",
+            "classification": "introduced",
+            "findingId": "finding-ab81a5f526abefea4c62eed097fbc5fc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-91be6fc33fa0ea0f8a18c9737633849d",
+            "classification": "introduced",
+            "findingId": "finding-91be6fc33fa0ea0f8a18c9737633849d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-be760d2b0a3a2e2d1dac594a40ec2628",
+            "classification": "introduced",
+            "findingId": "finding-be760d2b0a3a2e2d1dac594a40ec2628",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f3abc18c38df8d01be5c8f26c70a150b",
+            "classification": "introduced",
+            "findingId": "finding-f3abc18c38df8d01be5c8f26c70a150b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9c1a2ddbfc80de8c72f95906d9f396bd",
+            "classification": "introduced",
+            "findingId": "finding-9c1a2ddbfc80de8c72f95906d9f396bd",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dc76222c8a3a6a9e67170e019b9f7f7eefd8cc87",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 4550,
+      "output_sha256": "3f3a3e2cc4c30764b19be817d5946bc36d552a50a1a5697ffd52fa62b01d818b",
+      "reservation_id": "969c793e0aa045fb8a95c8cccf9290fd",
+      "round_consumed": true,
+      "scope": "impl:fn-249-gomad-retire-the-go-reference-models.1",
+      "superseded_by": null,
+      "task": "fn-249-gomad-retire-the-go-reference-models.1",
+      "timestamp": "2026-10-24T22:35:31.713279Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "38376b21e2623fdfd4a9fb0026d8e0fa07fe88394dbe43ee964f5a1c8582d422",
+      "backend": "codex",
+      "base_sha": "c35e6787952119af53286006ee8e628ffaec9035",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ab81a5f526abefea4c62eed097fbc5fc",
+            "classification": "introduced",
+            "findingId": "finding-ab81a5f526abefea4c62eed097fbc5fc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-91be6fc33fa0ea0f8a18c9737633849d",
+            "classification": "introduced",
+            "findingId": "finding-91be6fc33fa0ea0f8a18c9737633849d",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-be760d2b0a3a2e2d1dac594a40ec2628",
+            "classification": "introduced",
+            "findingId": "finding-be760d2b0a3a2e2d1dac594a40ec2628",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f3abc18c38df8d01be5c8f26c70a150b",
+            "classification": "introduced",
+            "findingId": "finding-f3abc18c38df8d01be5c8f26c70a150b",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9c1a2ddbfc80de8c72f95906d9f396bd",
+            "classification": "introduced",
+            "findingId": "finding-9c1a2ddbfc80de8c72f95906d9f396bd",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3fed756bb13f03aa2687ea0d192f8fde9579d875",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1185,
+      "output_sha256": "cc8721a3ea962cd41350701186d52615e2ef4d8bb1b2e2b43808e6d8e30c1a96",
+      "reservation_id": "15f6473da1674cf88937bf7e886cf8fa",
+      "round_consumed": true,
+      "scope": "impl:fn-249-gomad-retire-the-go-reference-models.1",
+      "superseded_by": null,
+      "task": "fn-249-gomad-retire-the-go-reference-models.1",
+      "timestamp": "2026-10-24T22:39:09.707549Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-249-gomad-retire-the-go-reference-models.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-249-gomad-retire-the-go-reference-models.1": 0
+  },
   "spec_path": ".flow/specs/fn-249-gomad-retire-the-go-reference-models.md",
   "status": "open",
   "title": "Gomad: retire the Go reference models and the stdio helper protocol",
@@ -20,5 +191,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:16:07.618627Z"
+  "updated_at": "2026-10-24T22:39:09.710430Z"
 }

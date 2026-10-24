@@ -1,0 +1,744 @@
+{
+  "source_revision": "dc76222c8a3a6a9e67170e019b9f7f7eefd8cc87",
+  "sources": {
+    "tools/gomad/rust/gomad/src/cycle/plan/declarations.rs": "069f707292184aad4d0aeea8dd1286db026aa132c1a8c476e9faf435c62edba4",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/broad.rs": "73784592f349a97e7f7d554753366b7eaca786be245b27836b1648c0433e1018",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs": "eae7f5b699dd3636c25ba87fe9791bd41c7ba48a1c2fc2fdb15d07afedc9182b",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/ordinary.rs": "530362f89a93a8a81d4d8dec7218ccc69b9d2f5084cf5ff3383657f2053337a8",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/primary.rs": "f1f27987c34a960d032ce421680e1560316b9b4d968567b3f5a855d878fb80cc",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs": "443dfcf2771a532365367aec35a8a5e3e0565c65ae29efc52876a842737eb00e"
+  },
+  "stages": [
+    {
+      "label": "validate",
+      "dependencies": [],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "portable",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "default-build",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "default-vet",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "compile-only",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "lint-router",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "lint-router-vet",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "actionlint-build",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "actionlint-version",
+      "dependencies": [
+        "actionlint-build"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workflow-lint",
+      "dependencies": [
+        "actionlint-version"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "lint-module",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "architecture",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "lint-root",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "test-harness",
+      "dependencies": [
+        "compile-only"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "world-race",
+      "dependencies": [
+        "compile-only"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-lint",
+      "dependencies": [
+        "validate"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-default-test",
+      "dependencies": [
+        "rust-lint"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-conformance-unit",
+      "dependencies": [
+        "rust-default-test"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-diagnostic-test",
+      "dependencies": [
+        "rust-conformance-unit"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-fuel-off-test",
+      "dependencies": [
+        "rust-diagnostic-test"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-guest-profile-test",
+      "dependencies": [
+        "rust-fuel-off-test"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "rust-combined-test",
+      "dependencies": [
+        "rust-guest-profile-test"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "helper-corpus-regen-1",
+      "dependencies": [
+        "rust-combined-test"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "helper-corpus-regen-2",
+      "dependencies": [
+        "helper-corpus-regen-1"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "wasmmeasure-build",
+      "dependencies": [
+        "validate",
+        "portable",
+        "default-build",
+        "default-vet",
+        "compile-only",
+        "lint-router",
+        "lint-router-vet",
+        "workflow-lint",
+        "lint-module"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "terminal-controls",
+      "dependencies": [
+        "compile-only"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "helper-build",
+      "dependencies": [
+        "wasmmeasure-build",
+        "validate",
+        "portable",
+        "default-build",
+        "default-vet",
+        "compile-only",
+        "lint-router",
+        "lint-router-vet",
+        "workflow-lint",
+        "lint-module"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "conformance-helper-build",
+      "dependencies": [
+        "wasmmeasure-build",
+        "validate",
+        "portable",
+        "default-build",
+        "default-vet",
+        "compile-only",
+        "lint-router",
+        "lint-router-vet",
+        "workflow-lint",
+        "lint-module"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "ordinary-helper-publication",
+      "dependencies": [
+        "helper-build",
+        "conformance-helper-build"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "ordinary",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "retained-durable-restart",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "cluster-provider",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "cluster-functional",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "busy-boundaries",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "busy-grouped",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "network-streams",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "retained-cluster",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "terminal-module",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "terminal-host-admission",
+      "dependencies": [
+        "terminal-module"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "terminal-exit",
+      "dependencies": [
+        "terminal-host-admission"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-aggregate",
+      "dependencies": [
+        "runtime-0",
+        "runtime-1",
+        "runtime-2",
+        "runtime-3",
+        "runtime-4",
+        "runtime-5",
+        "runtime-6",
+        "runtime-7",
+        "runtime-8",
+        "runtime-9",
+        "runtime-10",
+        "runtime-11",
+        "runtime-12",
+        "runtime-13",
+        "runtime-14",
+        "runtime-15",
+        "runtime-16",
+        "runtime-17",
+        "runtime-18",
+        "runtime-19",
+        "runtime-20",
+        "runtime-21",
+        "runtime-22",
+        "runtime-23",
+        "runtime-24",
+        "runtime-25",
+        "runtime-26",
+        "runtime-27",
+        "runtime-28",
+        "runtime-29",
+        "runtime-30",
+        "runtime-31"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "artifact",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "operator",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "storage",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "temporal-inspection",
+      "dependencies": [
+        "helper-build"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "network",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "clusters",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-fixture-controlled-success",
+      "dependencies": [
+        "clusters"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-fixture-controlled-canary",
+      "dependencies": [
+        "workload-fixture-controlled-success"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-fixture-cooperative-success",
+      "dependencies": [
+        "workload-fixture-controlled-canary"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-fixture-cooperative-canary",
+      "dependencies": [
+        "workload-fixture-cooperative-success"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-sqlite-cooperative-success",
+      "dependencies": [
+        "clusters"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-sqlite-cooperative-canary",
+      "dependencies": [
+        "workload-sqlite-cooperative-success"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-onebox-cooperative-success",
+      "dependencies": [
+        "clusters"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-onebox-cooperative-canary",
+      "dependencies": [
+        "workload-onebox-cooperative-success"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-multi-instance-cooperative-success",
+      "dependencies": [
+        "clusters"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-multi-instance-cooperative-canary",
+      "dependencies": [
+        "workload-multi-instance-cooperative-success"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "workload-corpus",
+      "dependencies": [
+        "workload-fixture-cooperative-canary",
+        "workload-sqlite-cooperative-canary",
+        "workload-onebox-cooperative-canary",
+        "workload-multi-instance-cooperative-canary"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "sqlite-selection-0",
+      "dependencies": [
+        "workload-corpus"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "sqlite-selection-1",
+      "dependencies": [
+        "sqlite-selection-0"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "sqlite-selection-2",
+      "dependencies": [
+        "sqlite-selection-1"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "sqlite-selection-3",
+      "dependencies": [
+        "sqlite-selection-2"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "workload-corpus-after-relocation",
+      "dependencies": [
+        "sqlite-selection-3"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "sqlite-catalogue",
+      "dependencies": [
+        "workload-corpus-after-relocation"
+      ],
+      "impact": "direct source/corpus or oracle-reader reach"
+    },
+    {
+      "label": "runtime-0",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-1",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-2",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-3",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-4",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-5",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-6",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-7",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-8",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-9",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-10",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-11",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-12",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-13",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-14",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-15",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-16",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-17",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-18",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-19",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-20",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-21",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-22",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-23",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-24",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-25",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-26",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-27",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-28",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-29",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-30",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    },
+    {
+      "label": "runtime-31",
+      "dependencies": [
+        "ordinary-helper-publication"
+      ],
+      "impact": "dependency-only; preserve existing guarantee"
+    }
+  ]
+}

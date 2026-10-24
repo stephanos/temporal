@@ -6266,7 +6266,10 @@
       ],
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/readers/command/**",
-        "tools/gomad/rust/gomad/src/cycle/readers/core_codec/**"
+        "tools/gomad/rust/gomad/src/cycle/readers/core_codec/**",
+        "tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs",
+        "tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs",
+        "tools/gomad/rust/wasmhost/src/volume/image.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.18": "**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**",
@@ -6632,7 +6635,16 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 2
+      "earliest_review_wave": 2,
+      "decoder_integration_extension": {
+        "files": [
+          "tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs",
+          "tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs",
+          "tools/gomad/rust/wasmhost/src/volume/image.rs"
+        ],
+        "purpose": "Expose admitted immutable storage projections through existing decoders; no duplicate parser or mutable model API. B06 World/network scope unchanged.",
+        "advisory": ".git/flow-notes/fn242-20261024T1800-cycle-wave/b04-decoder-seam.md"
+      }
     },
     {
       "id": "B05",
