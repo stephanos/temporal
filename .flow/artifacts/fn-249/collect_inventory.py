@@ -95,13 +95,19 @@ def main():
     args=parser.parse_args()
     result=collect()
     path=OUT/'coverage.json'
+    if path.exists():
+        result['source_revision']=json.loads(path.read_text())['source_revision']
     if args.check:
         old=json.loads(path.read_text())
         result['source_revision']=old['source_revision']
         assert result==old, 'Source census changed: regenerate and review inventory'
         print('coverage matches:',len(result['packages']),'packages,',len(result['test_sources']),'test/support sources,',len(result['tests']),'test functions,',len(result['fixtures']),'JSON fixtures')
     else:
-        path.write_text(json.dumps(result,indent=2)+'\n')
+        parts=[]
+        for key,value in result.items():
+            encoded='[\n'+',\n'.join(json.dumps(row,separators=(',',':')) for row in value)+'\n]' if isinstance(value,list) else json.dumps(value)
+            parts.append(json.dumps(key)+':'+encoded)
+        path.write_text('{\n'+',\n'.join(parts)+'\n}\n')
         lines=['# Test entrypoint disposition index', '', 'Part of [inventory.md](inventory.md). Source: `'+result['source_revision']+'`. Named contracts are source assertions, not executed mutations. See [coverage.json](coverage.json) for exact assertion sites, body hashes, delegated calls and disposition reasons. Conversion is a future obligation, not completed coverage.', '']
         for src in result['test_sources']:
             lines += ['## '+src['file'], '']
