@@ -310,6 +310,10 @@ fn map_endpoint(row: &mut LeafCommand, b: &LeafBindings) -> Result<(), String> {
     Ok(())
 }
 
+pub(crate) fn endpoint_catalog() -> &'static [(&'static str, &'static str)] {
+    ENDPOINTS
+}
+
 const ENDPOINTS: &[(&str, &str)] = &[
     (
         "tools/gomad/rust/driver/allocation_receiving.py",
