@@ -1,5 +1,7 @@
 # Realization as a checked refinement
 
+> Local HTML render lens: open `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/spec.html` locally — regenerable; Markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-24), on the activity Realization's size: "that's way too much. are there ways we can dramatically reduce that? also separate shared code that more/most models need as separate."
