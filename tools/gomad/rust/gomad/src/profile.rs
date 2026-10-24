@@ -386,6 +386,7 @@ mod attribution_tests {
     use serde_json::{Value, json};
 
     const CLOCK: &str = "wasi_snapshot_preview1.clock_time_get";
+    type InvalidAttribution = (&'static str, &'static str, fn(&mut Value));
 
     fn fixture() -> Value {
         let mut profile = json!({"schema":"gomad.wasm-profile/v2","diagnostic_only":true,"backend":"cranelift-jit","host_os":"linux","host_arch":"aarch64",
@@ -420,6 +421,107 @@ mod attribution_tests {
         value.as_object_mut().unwrap().remove(field);
     }
 
+    const INVALID_ATTRIBUTIONS: [InvalidAttribution; 23] = [
+        ("unknown-op", "unknown series", |d| {
+            let op = d["abi_ops"][CLOCK].clone();
+            remove(&mut d["abi_ops"], CLOCK);
+            d["abi_ops"]["wasi_snapshot_preview1.fd_invented"] = op;
+        }),
+        ("unknown-owner", "unknown series", |d| {
+            d["owners"]["kernel"] = d["owners"]["clock"].clone();
+        }),
+        (
+            "unknown-served-owner",
+            "missing serving owner: kernel",
+            |d| {
+                d["abi_ops"][CLOCK]["served_by"] = json!({"kernel":1});
+            },
+        ),
+        ("missing-op-field", "field inventory", |d| {
+            remove(&mut d["abi_ops"][CLOCK], "p99_nanos");
+        }),
+        ("missing-reconciliation-field", "field inventory", |d| {
+            remove(&mut d["reconciliation"], "tolerance_nanos");
+        }),
+        ("missing-counter", "span_errors", |d| {
+            remove(d, "span_errors");
+        }),
+        ("missing-thread-field", "field inventory", |d| {
+            d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1}]);
+        }),
+        ("served-exceeds-calls", "calls without owner", |d| {
+            d["abi_ops"][CLOCK]["served_by"] = json!({"clock":2});
+        }),
+        (
+            "ops-differ-from-buckets",
+            "differ from legacy buckets",
+            |d| {
+                d["abi_ops"][CLOCK]["count"] = json!(2);
+            },
+        ),
+        ("exclusive-exceeds-wall", "invalid series: clock", |d| {
+            d["owners"]["clock"]["exclusive_wall_nanos"] = json!(31);
+        }),
+        ("unordered-distribution", "invalid series", |d| {
+            d["abi_ops"][CLOCK]["median_nanos"] = json!(31);
+        }),
+        (
+            "execute-row-mismatch",
+            "guest residual plus outer host",
+            |d| {
+                d["reconciliation"]["execute_wall_nanos"] = json!(99);
+            },
+        ),
+        ("unattributed-import", "attribution errors", |d| {
+            d["unattributed_imports"] = json!(1);
+        }),
+        ("unframed-import", "attribution errors", |d| {
+            d["unframed_imports"] = json!(1);
+        }),
+        ("span-error", "attribution errors", |d| {
+            d["span_errors"] = json!(1);
+        }),
+        ("threads-omitted", "attribution errors", |d| {
+            d["threads_omitted"] = json!(1);
+        }),
+        ("op-without-owner", "calls without owner", |d| {
+            d["abi_ops"][CLOCK]["served_by"] = json!({});
+        }),
+        (
+            "missing-serving-owner",
+            "missing serving owner: clock",
+            |d| {
+                remove(&mut d["owners"], "clock");
+            },
+        ),
+        ("owner-wall-short", "totals differ", |d| {
+            d["owners"]["clock"]["execute_exclusive_wall_nanos"] = json!(29);
+        }),
+        ("row-disagrees", "row differs from recomputed", |d| {
+            d["reconciliation"]["difference_nanos"] = json!(3);
+        }),
+        ("thread-miss", "reconciliation miss", |d| {
+            d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1_000_000,"attributed_host_wall_nanos":100_000,"guest_residual_wall_nanos":800_000,"outer_host_wall_nanos":200_000,"difference_nanos":100_000,"tolerance_nanos":50_000}]);
+            d["wall_basis"] =
+                json!("aggregate store thread-time; overlapping spans are not elapsed shares");
+        }),
+        (
+            "guest-gaps-do-not-telescope",
+            "guest residual plus outer host",
+            |d| {
+                d["reconciliation"]["outer_host_wall_nanos"] = json!(33);
+            },
+        ),
+        ("reconciliation-miss", "reconciliation miss", |d| {
+            let execute = 20_000_000;
+            d["phases"]["execute"]["wall_nanos"] = json!(execute);
+            d["residual"]["execute_wall_nanos"] = json!(execute - 30);
+            d["reconciliation"] = json!({"execute_wall_nanos":execute,"attributed_host_wall_nanos":30,
+                "guest_residual_wall_nanos":execute - 200_000,"outer_host_wall_nanos":200_000,
+                "difference_nanos":200_000 - 30,"tolerance_nanos":100_000,"distribution_relative_error_ppm":62500});
+        }),
+    ];
+
     /// Original `TestDiagnosticAttributionRequiresEveryImportAndReconciliation`:
     /// a v2 profile is attributed only when every import has a known serving
     /// owner, every distribution and row is consistent, no attribution error
@@ -430,107 +532,7 @@ mod attribution_tests {
         let mut v1 = fixture();
         v1["schema"] = json!("gomad.wasm-profile/v1");
         assert!(validate(&v1).unwrap_err().contains("attribution schema"));
-        let cases: [(&str, &str, fn(&mut Value)); 23] = [
-            ("unknown-op", "unknown series", |d| {
-                let op = d["abi_ops"][CLOCK].clone();
-                remove(&mut d["abi_ops"], CLOCK);
-                d["abi_ops"]["wasi_snapshot_preview1.fd_invented"] = op;
-            }),
-            ("unknown-owner", "unknown series", |d| {
-                d["owners"]["kernel"] = d["owners"]["clock"].clone();
-            }),
-            (
-                "unknown-served-owner",
-                "missing serving owner: kernel",
-                |d| {
-                    d["abi_ops"][CLOCK]["served_by"] = json!({"kernel":1});
-                },
-            ),
-            ("missing-op-field", "field inventory", |d| {
-                remove(&mut d["abi_ops"][CLOCK], "p99_nanos");
-            }),
-            ("missing-reconciliation-field", "field inventory", |d| {
-                remove(&mut d["reconciliation"], "tolerance_nanos");
-            }),
-            ("missing-counter", "span_errors", |d| {
-                remove(d, "span_errors")
-            }),
-            ("missing-thread-field", "field inventory", |d| {
-                d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1}]);
-            }),
-            ("served-exceeds-calls", "calls without owner", |d| {
-                d["abi_ops"][CLOCK]["served_by"] = json!({"clock":2});
-            }),
-            (
-                "ops-differ-from-buckets",
-                "differ from legacy buckets",
-                |d| {
-                    d["abi_ops"][CLOCK]["count"] = json!(2);
-                },
-            ),
-            ("exclusive-exceeds-wall", "invalid series: clock", |d| {
-                d["owners"]["clock"]["exclusive_wall_nanos"] = json!(31);
-            }),
-            ("unordered-distribution", "invalid series", |d| {
-                d["abi_ops"][CLOCK]["median_nanos"] = json!(31);
-            }),
-            (
-                "execute-row-mismatch",
-                "guest residual plus outer host",
-                |d| {
-                    d["reconciliation"]["execute_wall_nanos"] = json!(99);
-                },
-            ),
-            ("unattributed-import", "attribution errors", |d| {
-                d["unattributed_imports"] = json!(1);
-            }),
-            ("unframed-import", "attribution errors", |d| {
-                d["unframed_imports"] = json!(1);
-            }),
-            ("span-error", "attribution errors", |d| {
-                d["span_errors"] = json!(1)
-            }),
-            ("threads-omitted", "attribution errors", |d| {
-                d["threads_omitted"] = json!(1);
-            }),
-            ("op-without-owner", "calls without owner", |d| {
-                d["abi_ops"][CLOCK]["served_by"] = json!({});
-            }),
-            (
-                "missing-serving-owner",
-                "missing serving owner: clock",
-                |d| {
-                    remove(&mut d["owners"], "clock");
-                },
-            ),
-            ("owner-wall-short", "totals differ", |d| {
-                d["owners"]["clock"]["execute_exclusive_wall_nanos"] = json!(29);
-            }),
-            ("row-disagrees", "row differs from recomputed", |d| {
-                d["reconciliation"]["difference_nanos"] = json!(3);
-            }),
-            ("thread-miss", "reconciliation miss", |d| {
-                d["threads"] = json!([{"slot":1,"incarnation":2,"execute_wall_nanos":1_000_000,"attributed_host_wall_nanos":100_000,"guest_residual_wall_nanos":800_000,"outer_host_wall_nanos":200_000,"difference_nanos":100_000,"tolerance_nanos":50_000}]);
-                d["wall_basis"] =
-                    json!("aggregate store thread-time; overlapping spans are not elapsed shares");
-            }),
-            (
-                "guest-gaps-do-not-telescope",
-                "guest residual plus outer host",
-                |d| {
-                    d["reconciliation"]["outer_host_wall_nanos"] = json!(33);
-                },
-            ),
-            ("reconciliation-miss", "reconciliation miss", |d| {
-                let execute = 20_000_000;
-                d["phases"]["execute"]["wall_nanos"] = json!(execute);
-                d["residual"]["execute_wall_nanos"] = json!(execute - 30);
-                d["reconciliation"] = json!({"execute_wall_nanos":execute,"attributed_host_wall_nanos":30,
-                    "guest_residual_wall_nanos":execute - 200_000,"outer_host_wall_nanos":200_000,
-                    "difference_nanos":200_000 - 30,"tolerance_nanos":100_000,"distribution_relative_error_ppm":62500});
-            }),
-        ];
-        let mismatched: Vec<_> = cases
+        let mismatched: Vec<_> = INVALID_ATTRIBUTIONS
             .into_iter()
             .filter_map(|(name, expected, mutate)| {
                 let mut profile = fixture();

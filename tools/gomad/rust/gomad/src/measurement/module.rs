@@ -131,7 +131,7 @@ pub fn qualified_request(repo: &Path, selection: &str, module: &Path) -> Result<
         repo,
         "tests",
         &arguments,
-        std::time::Duration::from_secs(1800),
+        std::time::Duration::from_mins(30),
     )?;
     request_for_module(module, &digest, &recipe, 0)
 }

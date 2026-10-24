@@ -435,7 +435,11 @@ mod tests {
             assert_eq!(m.config.entropy_key, [0; 32]);
             m.entropy_offset = offset;
             let bytes = m.random(1, length).unwrap();
-            let hex: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
+            let hex = bytes.iter().fold(String::new(), |mut hex, byte| {
+                use std::fmt::Write as _;
+                write!(&mut hex, "{byte:02x}").unwrap();
+                hex
+            });
             assert_eq!(hex, expected, "entropy at {offset}");
             assert_eq!(m.entropy_offset, offset + length as u64);
         }
@@ -638,35 +642,47 @@ mod tests {
             assert_eq!(get64(diagnostics, ordinal * 96), ordinal as u64);
         }
     }
+    fn runnable_decision_v1() -> Vec<u8> {
+        let (a, b): ([u8; 32], [u8; 32]) =
+            (Sha256::digest(b"a").into(), Sha256::digest(b"b").into());
+        let mut data = vec![0; 96];
+        set32(&mut data, 0, 1);
+        set32(&mut data, 4, 1);
+        set64(&mut data, 8, 10);
+        set32(&mut data, 20, 2);
+        data[32..64].copy_from_slice(&a);
+        data[64..96].copy_from_slice(&b);
+        data
+    }
+    fn runnable_decision_v2() -> Vec<u8> {
+        let mut data = runnable_decision_v1();
+        set32(&mut data, 0, 2);
+        let mut first = [0; 16];
+        set64(&mut first, 0, 5);
+        let mut second = [0; 16];
+        second[8] = 4;
+        data.extend_from_slice(&first);
+        data.extend_from_slice(&second);
+        data
+    }
+    fn assert_runnable_decision_records_creation_sites() {
+        let mut accepted = model();
+        accepted.config.limit = 8192;
+        bootstrap(&mut accepted);
+        accepted
+            .runtime("runtime_decision", runnable_decision_v2())
+            .unwrap();
+        let trace = &accepted.pending["choice"];
+        assert_eq!(accepted.records, 3);
+        assert_eq!(trace.len(), 3 * 96);
+        assert_eq!((get64(trace, 192), trace[192 + 8]), (2, 1));
+    }
     /// Original `TestRuntimeDecisionRefusesMalformedHeaderV2Layouts`: header
     /// v2 widens only runnable decisions; every other layout, and any creation
     /// site the helper refuses, is an invalid boundary that records nothing,
     /// and creation records count against the trace capacity.
     #[test]
     fn runtime_decision_refuses_malformed_header_v2_layouts_without_recording() {
-        let (a, b): ([u8; 32], [u8; 32]) =
-            (Sha256::digest(b"a").into(), Sha256::digest(b"b").into());
-        let v1 = |kind: u32| {
-            let mut data = vec![0; 96];
-            set32(&mut data, 0, 1);
-            set32(&mut data, 4, kind);
-            set64(&mut data, 8, 10);
-            set32(&mut data, 20, 2);
-            data[32..64].copy_from_slice(&a);
-            data[64..96].copy_from_slice(&b);
-            data
-        };
-        let valid = || {
-            let mut data = v1(1);
-            set32(&mut data, 0, 2);
-            let mut first = [0; 16];
-            set64(&mut first, 0, 5);
-            let mut second = [0; 16];
-            second[8] = 4;
-            data.extend_from_slice(&first);
-            data.extend_from_slice(&second);
-            data
-        };
         let header = "WASI invalid: runtime decision header";
         let layout = "WASI invalid: runtime decision alternatives or layout";
         let site = "WASI invalid: runtime creation site";
@@ -674,7 +690,7 @@ mod tests {
             (
                 "header-3",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     set32(&mut d, 0, 3);
                     d
                 },
@@ -683,7 +699,7 @@ mod tests {
             (
                 "v2-runnable-without-sites",
                 {
-                    let mut d = v1(1);
+                    let mut d = runnable_decision_v1();
                     set32(&mut d, 0, 2);
                     d
                 },
@@ -692,7 +708,7 @@ mod tests {
             (
                 "v1-runnable-with-sites",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     set32(&mut d, 0, 1);
                     d
                 },
@@ -701,7 +717,7 @@ mod tests {
             (
                 "v2-select-poll-with-sites",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     set32(&mut d, 4, 2);
                     d
                 },
@@ -710,7 +726,7 @@ mod tests {
             (
                 "truncated-site",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     d.pop();
                     d
                 },
@@ -719,7 +735,7 @@ mod tests {
             (
                 "site-flag",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     d[96 + 8] = 1;
                     d
                 },
@@ -728,7 +744,7 @@ mod tests {
             (
                 "site-padding",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     d[96 + 15] = 1;
                     d
                 },
@@ -737,7 +753,7 @@ mod tests {
             (
                 "missing-site-offset",
                 {
-                    let mut d = valid();
+                    let mut d = runnable_decision_v2();
                     d[96 + 16 + 7] = 1;
                     d
                 },
@@ -753,19 +769,14 @@ mod tests {
             assert_eq!(m.records, 0, "{name} recorded a refused decision");
             assert!(m.pending.get("choice").is_none_or(Vec::is_empty), "{name}");
         }
-        let mut accepted = model();
-        accepted.config.limit = 8192;
-        bootstrap(&mut accepted);
-        accepted.runtime("runtime_decision", valid()).unwrap();
-        let trace = &accepted.pending["choice"];
-        assert_eq!(accepted.records, 3);
-        assert_eq!(trace.len(), 3 * 96);
-        assert_eq!((get64(trace, 192), trace[192 + 8]), (2, 1));
+        assert_runnable_decision_records_creation_sites();
         // Room for two records, but the decision needs three.
         let mut capacity = model();
         capacity.config.limit = 64 + 2 * 96;
         bootstrap(&mut capacity);
-        let error = capacity.runtime("runtime_decision", valid()).unwrap_err();
+        let error = capacity
+            .runtime("runtime_decision", runnable_decision_v2())
+            .unwrap_err();
         assert_eq!(error.to_string(), "WASI capacity: runtime-choice-bytes");
         assert_eq!(capacity.records, 0);
         assert!(capacity.pending.get("choice").is_none_or(Vec::is_empty));

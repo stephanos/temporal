@@ -638,13 +638,13 @@ fn matched_fixture(cell: &str) -> QualificationResult {
 /// success row it was measured against.
 #[test]
 fn support_success_and_canary_must_be_matched_cells() {
+    type Change = fn(&mut Manifest);
     let success = matched_fixture("success");
     let policy = json!({"policy": "fixture"});
     let pair = |canary: &QualificationResult, policy_b: &Value, bytes: u64| {
         paired((&success, &policy, 9), (canary, policy_b, bytes))
     };
     assert_eq!(pair(&matched_fixture("canary"), &policy, 9), Ok(()));
-    type Change = fn(&mut Manifest);
     let unmatched: [Change; 9] = [
         |m| m.workload = "sqlite".into(),
         |m| m.integrated_source_sha256 = canonical::digest(b"other"),
