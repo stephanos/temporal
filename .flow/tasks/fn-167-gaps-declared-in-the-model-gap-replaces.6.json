@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Held sweep: gap-aware lint matching, inheritance and expiry",
   "updated_at": "2026-10-11T21:59:13.414727Z"
 }

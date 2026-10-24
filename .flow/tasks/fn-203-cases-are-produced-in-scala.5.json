@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-203-cases-are-produced-in-scala",
   "spec_path": ".flow/tasks/fn-203-cases-are-produced-in-scala.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Temporal adapter: descriptors, settlements, waits, rejection codes, exhaustive evidence",
   "updated_at": "2026-10-18T17:16:42.640173Z"
 }

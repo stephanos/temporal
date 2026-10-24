@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-206-apalache-backend-in-scala",
   "spec_path": ".flow/tasks/fn-206-apalache-backend-in-scala.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "TLA+ emitter over the lifted tree with finite monitor automata",
   "updated_at": "2026-10-18T17:16:43.243515Z"
 }

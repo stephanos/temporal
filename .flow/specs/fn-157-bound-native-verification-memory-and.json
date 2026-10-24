@@ -62,7 +62,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-157-bound-native-verification-memory-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Bound native verification memory and scratch storage",
   "tracker": {
     "baseHashFlow": null,
@@ -75,5 +75,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:30.622222Z"
+  "updated_at": "2026-10-24T03:57:03.065324Z"
 }

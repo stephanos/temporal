@@ -10,7 +10,7 @@
   "priority": 6,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rewrite the six samples; budget moves to the checker; regenerate oracles; equivalence",
   "updated_at": "2026-10-17T01:16:44.139677Z"
 }

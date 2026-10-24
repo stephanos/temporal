@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.20.md",
-  "status": "todo",
+  "status": "done",
   "title": "Capture ordinary Rules and construct complete isolated binding contributions",
   "updated_at": "2026-10-15T02:41:32.180904Z"
 }

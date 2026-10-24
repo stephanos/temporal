@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-149-safety-and-liveness-groups-for-object",
   "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce safety and liveness declaration placement",
   "updated_at": "2026-10-11T13:40:50.966717Z"
 }

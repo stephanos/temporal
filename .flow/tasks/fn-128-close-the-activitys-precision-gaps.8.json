@@ -10,7 +10,7 @@
   "priority": 52,
   "spec": "fn-128-close-the-activitys-precision-gaps",
   "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bind a caller-owned bounded Profile for pauseResume evidence",
   "updated_at": "2026-10-18T17:30:42.509955Z"
 }

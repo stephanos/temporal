@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Model Make targets run without held API generation (cached API jar)",
   "updated_at": "2026-10-12T19:16:05.805359Z"
 }

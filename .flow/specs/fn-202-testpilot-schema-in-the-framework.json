@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-202-testpilot-schema-in-the-framework.md",
-  "status": "open",
+  "status": "done",
   "title": "Testpilot schema in the framework, Temporal-agnostic",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:47.188105Z"
+  "updated_at": "2026-10-24T03:57:12.555365Z"
 }

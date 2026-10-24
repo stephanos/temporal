@@ -26,8 +26,9 @@ Coordinate the sole compiler/toolchain lane with the conductor and .21/.2. Indep
 - [ ] Record module size/load time and 100,000-call in-host latency on the real module when reachable, with exact workload/versions/warmup and matched JVM answers; otherwise explicitly identify which prior blocker prevents each measurement. Preserve unchanged Bank/strict flags, immutable evidence, all attempts and terminal handles. Report simulation and live-sidecar outcomes independently; no production adoption or final go decision here.
 
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

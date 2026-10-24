@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retain and construct native composed action references in isolation",
   "updated_at": "2026-10-14T14:11:18.738227Z"
 }

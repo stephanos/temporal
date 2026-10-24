@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Unbounded-arithmetic lint kind",
   "updated_at": "2026-10-18T17:43:07.168648Z"
 }

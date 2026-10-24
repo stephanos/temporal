@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-201-the-ir-is-internal-the-lift-module-no",
   "spec_path": ".flow/tasks/fn-201-the-ir-is-internal-the-lift-module-no.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "fn-192 recut: builtins held to the checker and each Scala emitter",
   "updated_at": "2026-10-18T17:16:42.065347Z"
 }

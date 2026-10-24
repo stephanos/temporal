@@ -55,7 +55,7 @@
     "impl:fn-125-represent-dynamic-configuration-in-the.1": 0
   },
   "spec_path": ".flow/specs/fn-125-represent-dynamic-configuration-in-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Represent dynamic configuration in the Models",
   "tracker": {
     "baseHashFlow": null,
@@ -68,5 +68,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:19.153127Z"
+  "updated_at": "2026-10-24T03:56:57.935405Z"
 }

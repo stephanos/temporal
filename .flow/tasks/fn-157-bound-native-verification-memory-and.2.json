@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-157-bound-native-verification-memory-and",
   "spec_path": ".flow/tasks/fn-157-bound-native-verification-memory-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Repair the measured private native owner with isolation proof",
   "updated_at": "2026-10-10T00:15:13.761368Z"
 }

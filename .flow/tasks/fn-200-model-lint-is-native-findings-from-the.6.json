@@ -12,7 +12,7 @@
   "priority": 4,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Samples lint in the framework check; delete the IR lint and acceptance files",
   "updated_at": "2026-10-18T17:16:41.756694Z"
 }

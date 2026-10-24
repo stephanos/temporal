@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-206-apalache-backend-in-scala",
   "spec_path": ".flow/tasks/fn-206-apalache-backend-in-scala.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Spike: Apalache as a Maven artifact and in-process run",
   "updated_at": "2026-10-18T17:16:43.243657Z"
 }

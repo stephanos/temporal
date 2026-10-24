@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-202-testpilot-schema-in-the-framework",
   "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move the Testpilot protos under model/framework/proto; generate Go and Scala from there",
   "updated_at": "2026-10-18T17:16:42.353111Z"
 }

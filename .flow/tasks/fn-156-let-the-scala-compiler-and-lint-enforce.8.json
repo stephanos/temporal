@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-156-let-the-scala-compiler-and-lint-enforce",
   "spec_path": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Report Draft capture confinement from an isolated baseline",
   "updated_at": "2026-10-10T15:37:59.510243Z"
 }

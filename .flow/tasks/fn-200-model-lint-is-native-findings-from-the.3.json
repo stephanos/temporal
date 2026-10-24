@@ -11,7 +11,7 @@
   "priority": 2,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "@gap acceptance judge and coverage tally",
   "updated_at": "2026-10-18T17:16:41.756486Z"
 }

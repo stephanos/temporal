@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prove finite realization owners and exact receiver acquisition",
   "updated_at": "2026-10-18T14:14:39.038943Z"
 }

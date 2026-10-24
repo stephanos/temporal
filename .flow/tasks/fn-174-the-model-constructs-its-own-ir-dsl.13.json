@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Construct residual signature declarations with exact name provenance",
   "updated_at": "2026-10-14T15:24:40.051501Z"
 }

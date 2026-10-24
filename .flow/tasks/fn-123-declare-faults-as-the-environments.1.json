@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-123-declare-faults-as-the-environments",
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fault kinds and modelOnly declared on the fault actor's actions, lifted to an IR Fault record",
   "updated_at": "2026-10-18T17:30:32.194150Z"
 }

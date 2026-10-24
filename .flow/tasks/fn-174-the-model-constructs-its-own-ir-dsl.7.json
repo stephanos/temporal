@@ -10,7 +10,7 @@
   "priority": 70,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Capability expansions and gaps construct their messages",
   "updated_at": "2026-10-18T17:30:27.496549Z"
 }

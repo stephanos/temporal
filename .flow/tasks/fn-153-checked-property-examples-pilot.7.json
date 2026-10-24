@@ -5,7 +5,7 @@
   "priority": 0,
   "spec": "fn-153-checked-property-examples-pilot",
   "spec_path": ".flow/tasks/fn-153-checked-property-examples-pilot.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native typed Property illustrations on the final expect API",
   "updated_at": "2026-10-16T11:09:23.492392Z"
 }

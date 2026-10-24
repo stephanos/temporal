@@ -5,7 +5,7 @@
   "priority": 10,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The reify module: body lifter moved into a capture macro, `@lifted` at the definition site",
   "updated_at": "2026-10-18T17:30:52.330305Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: measure the Scala checker and decide the Go deletion and the lowering location",
   "updated_at": "2026-10-18T05:22:29.454338Z"
 }

@@ -559,7 +559,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-129-activity-coverage.md",
-  "status": "open",
+  "status": "done",
   "title": "Activity coverage",
   "tracker": {
     "baseHashFlow": null,
@@ -572,5 +572,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:21.222298Z"
+  "updated_at": "2026-10-24T03:56:58.564758Z"
 }

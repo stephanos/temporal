@@ -347,7 +347,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-123-declare-faults-as-the-environments.md",
-  "status": "open",
+  "status": "done",
   "title": "Declare faults as the environment's actions, with budgets and durable state",
   "tracker": {
     "baseHashFlow": null,
@@ -360,5 +360,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:18.636896Z"
+  "updated_at": "2026-10-24T03:56:57.609509Z"
 }

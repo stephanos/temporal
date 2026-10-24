@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-125-represent-dynamic-configuration-in-the",
   "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bind settings per Query with under, and key, count and answer one Query per valuation",
   "updated_at": "2026-10-18T17:30:45.957284Z"
 }

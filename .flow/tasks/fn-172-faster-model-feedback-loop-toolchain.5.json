@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-172-faster-model-feedback-loop-toolchain",
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prebuild the Go sample checker and check the samples in parallel",
   "updated_at": "2026-10-13T17:14:05.128756Z"
 }

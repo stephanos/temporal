@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Standardize primary machine declarations on class Model",
   "updated_at": "2026-10-18T05:26:56.017335Z"
 }

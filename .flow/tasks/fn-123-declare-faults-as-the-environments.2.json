@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-123-declare-faults-as-the-environments",
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Durability classification and the crashes binding in the DSL and lifter (fixtures only)",
   "updated_at": "2026-10-18T17:30:32.574935Z"
 }

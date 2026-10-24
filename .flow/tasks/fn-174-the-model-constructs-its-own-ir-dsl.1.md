@@ -45,31 +45,9 @@ Read `.flow/tmp/fn174-body-port-research.md`, `.flow/tmp/fn174-capture-api-resea
 - The TASTy lifter still passes its fixtures through the moved module.
 - The nested `records` decision, the 64 KB carrier measurement and the refusal-testing decision (`typeCheckErrors` or compile) are recorded with their fixtures (R9, R8).
 ## Done summary
-Blocker resolved by the spec amendment of 2026-10-14: the compile-time host is a compiler plugin (`model/design/compiler-plugin-prototype.md`); the task is `todo` again with a rewritten description and acceptance. The handover below is kept for the record.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
-Blocked (2026-10-13, superseded):
-# fn-174.1 boundary handover
-
-BLOCKED: DESIGN_CONFLICT
-Task: fn-174-the-model-constructs-its-own-ir-dsl.1
-Summary: Definition-site generated storage is not available through the supported Quotes member lookup for the existing caller-specific compile-time `choose` refusal.
-Impact: The full .1 implementation and downstream function-capture integration remain open.
-Suggested resolution: Read `.flow/tmp/fn174-boundary-conflict.md` and choose an explicit metadata/staging design or authorize the narrow stored-helper validation timing change before implementation.
-
-Task status remains `in_progress`. No production or tracked edit, staging, commit, review or `flowctl done` occurred. Owner dirt is preserved; HEAD/base remains `97f0ff053fc833e0ccd20e15f641e17d2d39b938`. All probe commands exited; the private probe Bloop server stopped successfully.
-
-Evidence and exact limits: `.flow/tmp/fn174-boundary-conflict.md`, with the frozen native/old-host contradictory case, compiler phase logs, helper-first and binary visibility controls, supported-inline-generation refusal, narrow warm stored-string result, and alternatives. These probes do not satisfy task acceptance or the complete sample/mini function oracle. All implementation obligations remain open. The task-end `GOMEMLIMIT=6GiB make model-check-changed BASE=97f0ff053f` was not reached.
-
-Additional conductor-requested control: an ordinary generated accessor with an encoded literal-singleton return type compiles but remains invisible to a compiled consumer's Quotes. A helper-only jar edit does re-expand the consumer under warm Bloop (actual macro invocation trace, unchanged consumer SHA256) and changes the runtime stored value. This proves classpath invalidation for the staged scratch case, not a compiler-visible IR seam. The report quantifies its two disjoint compile invocations and distinguishes them from a forbidden duplicate compilation of the same Model input set. Both private probe servers are stopped.
-
-baseline: prior scoped evidence `.flow/tmp/checks/20261013-182854/record.md` read as dispatched; no blanket BASELINE_HANDOFF inferred and no redundant broad baseline run.
-
-stage: impl-review - skipped(config: REVIEW_MODE=none; owner defers independent review to the source-batch boundary)
-
-Tier: session (jev-unavailable(no_key)); project implementer routing gpt-6.1-sol medium.
-
-Blocked:
-Owner override. Native Umpire framework DSL authoring, typing, runtime, caller/API retirement and native guidance come first. This original mixed/integration task remains open and held while native fn164.2/.10, fn165.7-.9, fn173.10/.11, fn123.9/.10 and fn153.7 complete. Consume native results later without repeating or claiming their deferred IR/Go/backend proofs. Retain all original exact IR, metadata, schema, compatibility, consumer and integration requirements. Full spec closure is not a native prerequisite. Ignore model/temporal entirely; no task resumes Temporal work without new owner authority. After native DSL completion, re-anchor this task to the final API before release. This is a deliberate priority/scope hold, not evidence of completion or a technical failure.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

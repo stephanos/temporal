@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 2: samples lift and model-check; Go budget, start list and vacuity; oracles and equivalence",
   "updated_at": "2026-10-21T17:35:56.773239Z"
 }

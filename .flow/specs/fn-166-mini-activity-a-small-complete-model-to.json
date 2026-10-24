@@ -294,7 +294,7 @@
     "impl:fn-166-mini-activity-a-small-complete-model-to.3": 0
   },
   "spec_path": ".flow/specs/fn-166-mini-activity-a-small-complete-model-to.md",
-  "status": "open",
+  "status": "done",
   "title": "Mini activity: a small, complete Model to iterate the DSL on",
   "tracker": {
     "baseHashFlow": null,
@@ -307,5 +307,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:35.689674Z"
+  "updated_at": "2026-10-24T03:57:05.849962Z"
 }

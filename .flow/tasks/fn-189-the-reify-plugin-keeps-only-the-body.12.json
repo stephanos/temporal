@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .5/.10: helpers inline at the call site; roots keep their names; remove namedCopy, the function table and the cardinality proof (R11)",
   "updated_at": "2026-10-18T17:30:25.350942Z"
 }

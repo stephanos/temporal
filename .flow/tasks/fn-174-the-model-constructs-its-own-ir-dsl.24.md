@@ -36,8 +36,9 @@ Run focused `framework.export.ConstructedSignatureSuite` and `framework.export.I
 - [ ] The receipt identifies the committed fn-165 baseline contract and explicitly defers missing generic consumer activation, full producer switches, reader retirement, system/Go/backend acceptance and broad batch gates. No full-spec closure is claimed.
 
 ## Done summary
-Blocked:
-Owner priority override: implement native DSL specs first. IR/capture/exporter lowering, exact-IR migration proofs and broad export verification follow the native DSL phase. Preserve all source, failed/interrupted records and original acceptance obligations. This task is held, not complete. Native DSL work may proceed from source checkpoint 437016b7d1 and its passing native core/check suites; no IR gate result is represented as green.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-189-the-reify-plugin-keeps-only-the-body.md",
-  "status": "open",
+  "status": "done",
   "title": "The reify plugin keeps only the body lifter: one compilation, one carrier, declared Machine shape",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:40.379629Z"
+  "updated_at": "2026-10-24T03:57:08.639939Z"
 }

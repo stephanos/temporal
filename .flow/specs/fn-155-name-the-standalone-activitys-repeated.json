@@ -492,7 +492,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-155-name-the-standalone-activitys-repeated.md",
-  "status": "open",
+  "status": "done",
   "title": "Name the standalone activity's repeated patterns",
   "tracker": {
     "baseHashFlow": null,
@@ -505,5 +505,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:29.404952Z"
+  "updated_at": "2026-10-24T03:57:02.456101Z"
 }

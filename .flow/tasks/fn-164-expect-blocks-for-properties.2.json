@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement typed expectation blocks and short-circuit runtime semantics",
   "updated_at": "2026-10-16T05:13:07.856512Z"
 }

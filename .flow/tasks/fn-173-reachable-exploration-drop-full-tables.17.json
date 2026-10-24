@@ -10,7 +10,7 @@
   "priority": 0,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.17.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile native batch fixtures for lazy init and inferred assumptions",
   "updated_at": "2026-10-16T12:59:23.080691Z"
 }

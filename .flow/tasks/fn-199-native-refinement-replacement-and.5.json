@@ -12,7 +12,7 @@
   "priority": 3,
   "spec": "fn-199-native-refinement-replacement-and",
   "spec_path": ".flow/tasks/fn-199-native-refinement-replacement-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Verdict kinds: resource limit, unsupported, declaration error; Report coverage",
   "updated_at": "2026-10-18T17:16:41.396478Z"
 }

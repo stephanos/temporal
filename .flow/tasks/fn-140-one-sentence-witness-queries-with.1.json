@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-140-one-sentence-witness-queries-with",
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare typed witness builders and their core Query values",
   "updated_at": "2026-10-11T05:32:36.992485Z"
 }

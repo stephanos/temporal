@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-151-nexus-matching-model-and-bug-finding.md",
-  "status": "open",
+  "status": "done",
   "title": "Nexus matching model and bug-finding evidence",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:27.545509Z"
+  "updated_at": "2026-10-24T03:57:01.600907Z"
 }

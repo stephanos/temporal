@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-165-inputs-as-records-named-classes",
   "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Realization kit names inputs by field selector",
   "updated_at": "2026-10-18T17:31:03.417489Z"
 }

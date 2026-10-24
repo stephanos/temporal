@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: the checker module outside framework.dsl, with one Result shape",
   "updated_at": "2026-10-17T21:20:19.417316Z"
 }

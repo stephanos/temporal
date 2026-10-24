@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-202-testpilot-schema-in-the-framework",
   "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split the Go runtime into generic packages and the Temporal driver; boundary test",
   "updated_at": "2026-10-18T17:16:42.353339Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: authored capture, strict expectations and native replay",
   "updated_at": "2026-10-18T09:56:54.126022Z"
 }

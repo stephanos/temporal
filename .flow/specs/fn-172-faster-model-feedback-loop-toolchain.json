@@ -228,7 +228,7 @@
     "impl:fn-172-faster-model-feedback-loop-toolchain.6": 0
   },
   "spec_path": ".flow/specs/fn-172-faster-model-feedback-loop-toolchain.md",
-  "status": "open",
+  "status": "done",
   "title": "Faster model feedback loop: toolchain fixes independent of reachable exploration",
   "tracker": {
     "baseHashFlow": null,
@@ -241,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:38.843100Z"
+  "updated_at": "2026-10-24T03:57:07.609631Z"
 }

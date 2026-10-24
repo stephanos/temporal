@@ -10,7 +10,7 @@
   "priority": 40,
   "spec": "fn-129-activity-coverage",
   "spec_path": ".flow/tasks/fn-129-activity-coverage.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Exploration on the activity's find Queries",
   "updated_at": "2026-10-18T17:30:43.444218Z"
 }

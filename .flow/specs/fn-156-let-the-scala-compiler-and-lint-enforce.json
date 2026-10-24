@@ -240,7 +240,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-156-let-the-scala-compiler-and-lint-enforce.md",
-  "status": "open",
+  "status": "done",
   "title": "Let the Scala compiler and lint enforce Model correctness",
   "tracker": {
     "baseHashFlow": null,
@@ -253,5 +253,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:29.959135Z"
+  "updated_at": "2026-10-24T03:57:02.764853Z"
 }

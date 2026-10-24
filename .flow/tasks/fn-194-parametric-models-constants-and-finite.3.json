@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-194-parametric-models-constants-and-finite",
   "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: Bank, Voting and TwoPhaseCommit take their world as parameters",
   "updated_at": "2026-10-18T04:00:14.593970Z"
 }

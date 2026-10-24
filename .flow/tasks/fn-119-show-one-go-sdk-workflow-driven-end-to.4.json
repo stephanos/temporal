@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-119-show-one-go-sdk-workflow-driven-end-to",
   "spec_path": ".flow/tasks/fn-119-show-one-go-sdk-workflow-driven-end-to.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Model the activity workflow example and run its Queries live from the gate",
   "updated_at": "2026-10-18T17:30:44.473564Z"
 }

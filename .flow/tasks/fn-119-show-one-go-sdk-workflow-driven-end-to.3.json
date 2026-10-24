@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-119-show-one-go-sdk-workflow-driven-end-to",
   "spec_path": ".flow/tasks/fn-119-show-one-go-sdk-workflow-driven-end-to.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Express workflow-scheduled activities and awaited outcomes in the realization DSL, lifter and lowering",
   "updated_at": "2026-10-18T17:30:44.120860Z"
 }

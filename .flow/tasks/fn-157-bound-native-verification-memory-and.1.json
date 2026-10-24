@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-157-bound-native-verification-memory-and",
   "spec_path": ".flow/tasks/fn-157-bound-native-verification-memory-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Seal independent full baseline and measure causal resource ownership",
   "updated_at": "2026-10-10T14:04:51.583232Z"
 }

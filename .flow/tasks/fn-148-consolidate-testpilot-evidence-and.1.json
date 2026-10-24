@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-148-consolidate-testpilot-evidence-and",
   "spec_path": ".flow/tasks/fn-148-consolidate-testpilot-evidence-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Generalize evidence declarations and extract evidence.proto",
   "updated_at": "2026-10-18T17:30:58.969708Z"
 }

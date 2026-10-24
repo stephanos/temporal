@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-195-modelsuite-a-models-test-file-holds-its.md",
-  "status": "open",
+  "status": "done",
   "title": "ModelSuite: a Model's test file holds its examples, explorations and conformance tests; Cases come only from conformance",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:43.574010Z"
+  "updated_at": "2026-10-24T03:57:10.460011Z"
 }

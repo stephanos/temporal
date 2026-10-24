@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.24.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile framework Class/default IR before deferred exact-IR baseline",
   "updated_at": "2026-10-18T17:30:28.527864Z"
 }

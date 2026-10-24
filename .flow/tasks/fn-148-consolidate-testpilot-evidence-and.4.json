@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-148-consolidate-testpilot-evidence-and",
   "spec_path": ".flow/tasks/fn-148-consolidate-testpilot-evidence-and.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Admit and verify normalized correlated tables",
   "updated_at": "2026-10-18T17:30:59.288782Z"
 }

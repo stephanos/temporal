@@ -8,7 +8,7 @@
   "priority": 2,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Owner decision on modality tables and H1/H2/H3/H5",
   "updated_at": "2026-10-18T18:31:41.544680Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-146-adopt-cel-for-runtime-predicates-and",
   "spec_path": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Build the descriptor-aware CEL value adapter",
   "updated_at": "2026-10-18T17:30:56.356562Z"
 }

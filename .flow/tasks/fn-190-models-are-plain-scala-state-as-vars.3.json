@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "IR evaluator for tests and the four native sample suites on it",
   "updated_at": "2026-10-17T01:16:42.452292Z"
 }

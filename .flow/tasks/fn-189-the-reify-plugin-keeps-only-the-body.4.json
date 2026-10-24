@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Family as a given value; remove FamilyPhase",
   "updated_at": "2026-10-16T15:39:59.855708Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-149-safety-and-liveness-groups-for-object",
   "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate Scala claim groups and commit native/lift equivalence",
   "updated_at": "2026-10-11T16:45:18.650718Z"
 }

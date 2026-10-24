@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.19.md",
-  "status": "todo",
+  "status": "done",
   "title": "Capture Machine endpoint expressions and construct isolated contributions",
   "updated_at": "2026-10-15T01:19:21.510633Z"
 }

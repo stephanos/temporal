@@ -38,8 +38,9 @@ make umpire-check-model && make lint-code-fast && make umpire-check-live-tests
 - [ ] One documented command runs the example; done summary gives its wall time, Scala lines authored, Go lines added and every R9 finding with its disposition.
 - [ ] Full gates and live tests pass.
 ## Done summary
-Blocked:
-Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). fn-119 (the Go SDK workflow showcase) waits until it is revived; its generic Driver primitives (tasks 1-2) are done.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

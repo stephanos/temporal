@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-197-correlated-obligations",
   "spec_path": ".flow/tasks/fn-197-correlated-obligations.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: prototype the spelling of a correlated obligation claim and record the decision",
   "updated_at": "2026-10-18T17:30:49.420945Z"
 }

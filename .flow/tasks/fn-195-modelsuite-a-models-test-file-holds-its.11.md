@@ -93,8 +93,9 @@ The authored-explicit production prerequisites `.22` (exact admission), `.23` (c
 - [ ] Direct `any` in conformance and unsupported conformance-body statements receive located local refusals. Conformance sampling may reuse an already declared exploration space. Preserve all P/S/X positive/refusal neighbors and the DSL-only declaration boundary.
 
 ## Done summary
-Blocked:
-The committed proof report `f10ee8b160fdd1c355343ac89e531e6630de2b21` retains failed complete-inventory and executable-capability requirements. The conductor scheduled bounded feasibility prerequisites and independent waited-class/expectation leaves. Keep this task blocked until proved production owner/receiver and capability mechanisms are implemented and integrated, alongside the coverage/expectation leaves and `.9`. A feasibility report closure, initialized-so-far inventory or explicit-through-only route does not close R4. Refine the remaining integration to an honest one-iteration size before start. Repeated acquisition, untouched lazy/external owners, complete selection, retained source/library identity, monitor binding and collectibility still require actual consumer evidence. Existing Phase 3 and Temporal holds remain unchanged.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

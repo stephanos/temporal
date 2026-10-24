@@ -244,7 +244,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-146-adopt-cel-for-runtime-predicates-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Adopt CEL for runtime predicates and values",
   "tracker": {
     "baseHashFlow": null,
@@ -257,5 +257,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:24.152557Z"
+  "updated_at": "2026-10-24T03:57:00.093344Z"
 }

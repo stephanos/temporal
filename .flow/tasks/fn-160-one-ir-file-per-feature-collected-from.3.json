@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "One machine per file; flat level folders grouped by name prefix: mini feature and shared code (real features at the sweep)",
   "updated_at": "2026-10-12T19:47:12.813548Z"
 }

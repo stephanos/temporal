@@ -11,7 +11,7 @@
   "priority": 2,
   "spec": "fn-206-apalache-backend-in-scala",
   "spec_path": ".flow/tasks/fn-206-apalache-backend-in-scala.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Apalache runner with pinned artifact and deterministic lifecycle",
   "updated_at": "2026-10-18T17:16:43.243764Z"
 }

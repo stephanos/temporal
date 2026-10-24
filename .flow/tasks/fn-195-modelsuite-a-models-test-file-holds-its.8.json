@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: ModelSuite lifecycle, discovery and suite execution policy",
   "updated_at": "2026-10-18T12:40:24.348996Z"
 }

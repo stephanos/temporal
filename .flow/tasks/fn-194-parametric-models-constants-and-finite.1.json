@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-194-parametric-models-constants-and-finite",
   "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: prototype a parametric Bank and record the verdict",
   "updated_at": "2026-10-18T02:16:56.927449Z"
 }

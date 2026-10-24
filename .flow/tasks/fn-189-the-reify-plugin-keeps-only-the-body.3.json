@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Sugar as inline defs; remove the plugin's expansion engine",
   "updated_at": "2026-10-16T15:39:59.855029Z"
 }

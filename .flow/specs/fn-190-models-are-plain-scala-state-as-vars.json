@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-190-models-are-plain-scala-state-as-vars.md",
-  "status": "open",
+  "status": "done",
   "title": "Models are plain Scala: state as vars, effects as assignments, lifted by the plugin, evaluated on the IR",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:40.873171Z"
+  "updated_at": "2026-10-24T03:57:08.965372Z"
 }

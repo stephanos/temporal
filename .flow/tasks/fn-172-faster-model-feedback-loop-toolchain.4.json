@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-172-faster-model-feedback-loop-toolchain",
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Package the lifter once, and reuse the samples jar and classpath when their inputs are unchanged",
   "updated_at": "2026-10-13T17:14:05.128728Z"
 }

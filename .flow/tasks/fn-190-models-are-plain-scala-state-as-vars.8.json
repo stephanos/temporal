@@ -11,7 +11,7 @@
   "priority": 7,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile fn-189 and re-record the plugin counts",
   "updated_at": "2026-10-21T17:35:57.274664Z"
 }

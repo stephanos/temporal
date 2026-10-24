@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-163-system-capabilities-distributed-systems.md",
-  "status": "open",
+  "status": "done",
   "title": "System capabilities: distributed-systems patterns as named capabilities",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:34.085395Z"
+  "updated_at": "2026-10-24T03:57:04.909045Z"
 }

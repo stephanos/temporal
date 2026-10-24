@@ -452,15 +452,10 @@ That final gate rebuilds artifacts, checks the boundary and all discovered suite
 - [ ] Framework `.7` may begin from this committed closure. `.8` finisher removal and `.9` colon cleanup remain required after `.7`; held system migration/seals, full-spec R6/R8, regeneration and other excluded work are not claimed complete.
 
 ## Done summary
-TBD: supply only after implementation and verification.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
-Blocked:
-Owner priority override: implement native DSL specs first. IR/capture/exporter lowering, exact-IR migration proofs and broad export verification follow the native DSL phase. Preserve all source, failed/interrupted records and original acceptance obligations. This task is held, not complete. Native DSL work may proceed from source checkpoint 437016b7d1 and its passing native core/check suites; no IR gate result is represented as green.
-
-Blocked:
-Owner override. Native Umpire framework DSL authoring, typing, runtime, caller/API retirement and native guidance come first. This original mixed/integration task remains open and held while native fn164.2/.10, fn165.7-.9, fn173.10/.11, fn123.9/.10 and fn153.7 complete. Consume native results later without repeating or claiming their deferred IR/Go/backend proofs. Retain all original exact IR, metadata, schema, compatibility, consumer and integration requirements. Full spec closure is not a native prerequisite. Ignore model/temporal entirely; no task resumes Temporal work without new owner authority. After native DSL completion, re-anchor this task to the final API before release. This is a deliberate priority/scope hold, not evidence of completion or a technical failure.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-
-- Commits: to be supplied by the implementing task.
-- Tests: actual focused commands, fresh generic artifact provenance, executed suites/counts and strict paired-comparison evidence; explicitly deferred full framework gate and independent review at source-batch end.
-- PRs: none required for the local committed source checkpoint.
+- Commits:
+- Tests:
+- PRs:

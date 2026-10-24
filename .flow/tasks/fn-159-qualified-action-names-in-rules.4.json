@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove disabled(process.stop) from the activity product",
   "updated_at": "2026-10-18T17:30:59.969426Z"
 }

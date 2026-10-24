@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.18.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add realize expectation conveniences and shared conformance validation",
   "updated_at": "2026-10-18T14:14:39.039233Z"
 }

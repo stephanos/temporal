@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the System level to Protocol",
   "updated_at": "2026-10-10T23:12:36.906902Z"
 }

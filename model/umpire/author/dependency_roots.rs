@@ -115,6 +115,15 @@ mod tests {
                 "impl<T> ::umpire_dsl::Trait for Model<T> {}",
                 "impl<T> ::author_kit::dsl::Trait for Model<T> {}",
             ),
+            (
+                "impl<F: Fn() -> T> ::umpire_dsl::Trait for Model<F> {}",
+                "impl<F: Fn() -> T> ::author_kit::dsl::Trait for Model<F> {}",
+            ),
+            ("Type<fn() -> T>::umpire_dsl::Value", "Type<fn() -> T>::umpire_dsl::Value"),
+            (
+                "vec![::umpire_dsl::Value, stringify!(*outcome == Outcome::Rejected(expected))]",
+                "vec![::author_kit::dsl::Value, stringify!(*outcome == Outcome::Rejected(expected))]",
+            ),
             ("impl Trait for ::umpire_dsl::Model {}", "impl Trait for ::author_kit::dsl::Model {}"),
             ("for<'a> ::umpire_dsl::Trait", "for<'a> ::author_kit::dsl::Trait"),
             ("fn value() -> ::umpire_dsl::Value {}", "fn value() -> ::author_kit::dsl::Value {}"),

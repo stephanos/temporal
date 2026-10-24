@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Resolve gap subjects, owners, waivers and expiry references in Scala",
   "updated_at": "2026-10-11T21:52:08.561647Z"
 }

@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-208-toolsumpire-becomes-toolstestpilot",
   "spec_path": ".flow/tasks/fn-208-toolsumpire-becomes-toolstestpilot.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move surviving commands to tools/testpilot/cmd and rename Make targets",
   "updated_at": "2026-10-18T17:16:43.823428Z"
 }

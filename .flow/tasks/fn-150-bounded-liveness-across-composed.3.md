@@ -39,19 +39,10 @@ mise exec -- scala-cli test model/irgen --test-only Fixtures
 - [ ] Existing Machine authoring fixtures stay valid; grouped or ungrouped placement follows the currently landed fn-149 contract.
 
 ## Done summary
-`c.leadsTo(name)(from, to, within, under*)` on `Composition[S]` (framework/Assume.scala) with
-predicates typed to the composed state; `assume.fair(first: Composed, more*)` makes composed steps
-fair through the existing `synced`/`own` selectors. Lifting (irgen/Compositions.scala
-`composedFairRef`, sharing one `selected` resolution with `composedKey`; Declarations.scala
-`assumptionOf`/`machineAssumption`; Claims.scala progress owner check) exports Progress on the
-composition and `fairRefs` preserving composition, member field, sync vs member, action-wide vs exact
-class. Refusals with source lines: fairness on another composition, on a machine's claim, assumed by a
-machine, mixed with machine actions, spread over two compositions, a sync class named from the side
-that cannot supply inputs, an own action that steps only with its pair, an action no sync pairs, a
-bound of 0; compile refusals: a member-state predicate and a missing bound. fn-149 grouping has not
-landed: claims stay ungrouped (Progress in `properties`, as the layout lint requires).
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: f7fcb54a67
-- Tests: `scala-cli test model/irgen --test-only umpire.irgen.Fixtures` (UMPIRE_LIFTER_UPDATE run: all pass but the crossed positions, fixed after; verification run: 111 PASS, 0 FAIL, `.flow/tmp/fn150/fixtures.log`); framework tests 60 PASS (`.flow/tmp/fn150/framework-tests.log`); Go TestLiftedModelsAreAdmitted/composedProgress and TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps PASS
+- Commits:
+- Tests:
 - PRs:

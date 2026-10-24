@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-141-shrink-the-ir-generator-one-description",
   "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Export the signature: actions, inputs, entities, observations, channels, assumptions, holes, Limits",
   "updated_at": "2026-10-06T19:17:45.418699Z"
 }

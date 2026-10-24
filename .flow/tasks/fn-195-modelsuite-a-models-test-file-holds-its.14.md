@@ -58,8 +58,9 @@ This blocked shell grants no export/IR/schema/Go/backend/generated/lifting/regen
 
 
 ## Done summary
-Blocked:
-Complete real held-export suite metadata remains unproved and unadmitted, and actual staged FrameworkLoop/ChangeCheck integration has not run. The `.12` generic/source-less metadata proof and direct BudgetPolicy sequence supply no full gate inventory or changed fn-196.2 ordering contract. Wait for the producer, an explicitly admitted complete metadata route, and honest subdivision of this L-sized caller/admission surface before implementation. Do not compile the proposed export module, drop held overrides, restrict authoring, or count prototype labels as actual gate evidence.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

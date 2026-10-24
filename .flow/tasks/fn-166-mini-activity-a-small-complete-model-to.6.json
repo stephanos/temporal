@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Separate lowered Cases into generated/cases/",
   "updated_at": "2026-10-11T21:28:27.925087Z"
 }

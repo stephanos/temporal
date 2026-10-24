@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-161-facets-action-owning-behaviour-areas-of",
   "spec_path": ".flow/tasks/fn-161-facets-action-owning-behaviour-areas-of.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Facet construct: framework, lifter, ownership check, layout rules",
   "updated_at": "2026-10-12T05:49:51.659569Z"
 }

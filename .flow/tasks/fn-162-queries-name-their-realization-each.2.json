@@ -12,7 +12,7 @@
   "review": null,
   "spec": "fn-162-queries-name-their-realization-each",
   "spec_path": ".flow/tasks/fn-162-queries-name-their-realization-each.2.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Realizations name the Queries they run: framework, lifter, docs (Scala part; Go half in fn-162.4)",
   "updated_at": "2026-10-12T18:51:56.634123Z"

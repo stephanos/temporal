@@ -18,7 +18,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: typed native conformance declarations and exact binding",
   "updated_at": "2026-10-18T18:30:13.933925Z"
 }

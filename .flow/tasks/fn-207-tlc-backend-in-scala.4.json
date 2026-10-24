@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-207-tlc-backend-in-scala",
   "spec_path": ".flow/tasks/fn-207-tlc-backend-in-scala.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Agreement: reachable set, invariant verdicts, counterexample replay",
   "updated_at": "2026-10-18T17:16:43.532144Z"
 }

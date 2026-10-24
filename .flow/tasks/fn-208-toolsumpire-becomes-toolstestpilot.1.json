@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-208-toolsumpire-becomes-toolstestpilot",
   "spec_path": ".flow/tasks/fn-208-toolsumpire-becomes-toolstestpilot.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete the Model-reading Go packages and commands",
   "updated_at": "2026-10-18T17:16:43.823267Z"
 }

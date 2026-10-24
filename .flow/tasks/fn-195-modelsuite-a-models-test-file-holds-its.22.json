@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.22.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native explicit conformance admission: exact binding and complete expectation/monitor validation",
   "updated_at": "2026-10-18T18:42:24.650310Z"
 }

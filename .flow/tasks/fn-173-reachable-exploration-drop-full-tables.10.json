@@ -5,7 +5,7 @@
   "priority": 0,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native collection state without whole-state enumeration",
   "updated_at": "2026-10-16T08:14:20.268267Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 1: the reachable graph is the only table (roots, reach bound, open-graph lint, receipt fields, IR structural fingerprint, parity test, one regeneration, Voting drops inv)",
   "updated_at": "2026-10-16T10:07:40.996055Z"
 }

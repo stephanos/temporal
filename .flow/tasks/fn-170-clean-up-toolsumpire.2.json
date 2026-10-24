@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-170-clean-up-toolsumpire",
   "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Layout: tools/umpire/framework (Temporal-free) and tools/umpire/temporal (adapter), mirroring model/",
   "updated_at": "2026-10-12T23:48:58.977918Z"
 }

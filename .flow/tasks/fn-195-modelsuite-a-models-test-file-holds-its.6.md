@@ -30,8 +30,9 @@ No held Temporal source, IR/export/lifter, Go, generated data or regeneration wo
 - [ ] Objects remain available for namespaces, constants, actors and shared declarations; Derived/Composition behavior and held Temporal/IR bodies are not removed by this task.
 - [ ] Construction examples are consistent, and the final documentation task explicitly consumes this convention.
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

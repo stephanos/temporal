@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-197-correlated-obligations",
   "spec_path": ".flow/tasks/fn-197-correlated-obligations.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: the owes/until word and its checker semantics, with the fixture tests",
   "updated_at": "2026-10-18T17:30:49.812759Z"
 }

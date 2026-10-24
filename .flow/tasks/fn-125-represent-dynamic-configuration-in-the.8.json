@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-125-represent-dynamic-configuration-in-the",
   "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Model the HSM/CHASM attempt semantics the owner chooses for the Nexus caller",
   "updated_at": "2026-10-18T17:30:47.900471Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: replay, find with a horizon, seeded sample, refuted, vacuity and the gate budget",
   "updated_at": "2026-10-18T05:02:20.503435Z"
 }

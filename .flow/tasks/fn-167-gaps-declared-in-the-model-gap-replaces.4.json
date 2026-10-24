@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Pure Scala gap migration transformation and copied-mini source proof",
   "updated_at": "2026-10-11T21:59:12.730394Z"
 }

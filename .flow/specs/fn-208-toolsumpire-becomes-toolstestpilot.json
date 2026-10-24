@@ -13,7 +13,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-208-toolsumpire-becomes-toolstestpilot.md",
-  "status": "open",
+  "status": "done",
   "title": "tools/umpire becomes tools/testpilot",
   "tracker": {
     "baseHashFlow": null,
@@ -26,5 +26,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:50.178756Z"
+  "updated_at": "2026-10-24T03:57:14.248181Z"
 }

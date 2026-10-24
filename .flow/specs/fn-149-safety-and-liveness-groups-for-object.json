@@ -203,7 +203,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-149-safety-and-liveness-groups-for-object.md",
-  "status": "open",
+  "status": "done",
   "title": "Safety and liveness groups for object properties",
   "tracker": {
     "baseHashFlow": null,
@@ -216,5 +216,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:25.915807Z"
+  "updated_at": "2026-10-24T03:57:01.013816Z"
 }

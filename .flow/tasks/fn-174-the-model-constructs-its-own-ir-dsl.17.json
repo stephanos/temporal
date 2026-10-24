@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.17.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retain typed Machine header provenance and construct isolated header/type contributions",
   "updated_at": "2026-10-14T21:53:58.323458Z"
 }

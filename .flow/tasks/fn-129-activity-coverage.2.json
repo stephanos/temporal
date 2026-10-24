@@ -10,7 +10,7 @@
   "priority": 20,
   "spec": "fn-129-activity-coverage",
   "spec_path": ".flow/tasks/fn-129-activity-coverage.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Respond by ID: a service actor",
   "updated_at": "2026-10-08T18:50:15.021661Z"
 }

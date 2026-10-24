@@ -10,7 +10,7 @@
   "priority": 51,
   "spec": "fn-128-close-the-activitys-precision-gaps",
   "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Observe accepted fatal settlement through typed public evidence",
   "updated_at": "2026-10-18T17:30:42.050141Z"
 }

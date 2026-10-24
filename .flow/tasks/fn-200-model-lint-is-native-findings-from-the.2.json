@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Graph lint kinds from the native Search; choice token on Step",
   "updated_at": "2026-10-18T17:16:41.756403Z"
 }

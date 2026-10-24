@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-146-adopt-cel-for-runtime-predicates-and",
   "spec_path": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Admit canonical CEL through one restricted environment",
   "updated_at": "2026-10-18T17:30:56.013521Z"
 }

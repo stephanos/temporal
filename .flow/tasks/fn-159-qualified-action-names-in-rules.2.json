@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the By-ID actor service to completionClient",
   "updated_at": "2026-10-18T17:30:59.667725Z"
 }

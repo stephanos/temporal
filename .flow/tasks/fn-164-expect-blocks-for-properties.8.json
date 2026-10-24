@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove framework lambda finishers and document the final expect surface",
   "updated_at": "2026-10-17T01:17:11.202204Z"
 }

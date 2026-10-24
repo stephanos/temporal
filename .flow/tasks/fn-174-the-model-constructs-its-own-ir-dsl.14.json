@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Construct exact Actor names with compiled old/native equivalence",
   "updated_at": "2026-10-14T17:25:10.232593Z"
 }

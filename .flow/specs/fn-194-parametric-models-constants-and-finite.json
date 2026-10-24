@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-194-parametric-models-constants-and-finite.md",
-  "status": "open",
+  "status": "done",
   "title": "Parametric Models: constants and finite domains as constructor parameters, instantiated by the suite",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:43.047376Z"
+  "updated_at": "2026-10-24T03:57:10.142180Z"
 }

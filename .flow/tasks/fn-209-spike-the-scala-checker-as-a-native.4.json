@@ -12,7 +12,7 @@
   "priority": 3,
   "spec": "fn-209-spike-the-scala-checker-as-a-native",
   "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go/no-go, recommendation, and the fn-203.3 / fn-204 recut on go",
   "updated_at": "2026-10-18T18:33:50.166415Z"
 }

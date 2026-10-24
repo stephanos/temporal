@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-161-facets-action-owning-behaviour-areas-of",
   "spec_path": ".flow/tasks/fn-161-facets-action-owning-behaviour-areas-of.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Stage 2: standalone activity rules and capabilities into owning facets",
   "updated_at": "2026-10-18T17:31:00.877746Z"
 }

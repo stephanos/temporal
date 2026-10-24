@@ -14,7 +14,7 @@
   "priority": 5,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Counts receipt after R1 to R7",
   "updated_at": "2026-10-18T17:30:24.013072Z"
 }

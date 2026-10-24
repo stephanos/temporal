@@ -15,7 +15,7 @@
   "plan_reviewed_at": null,
   "ready": false,
   "spec_path": ".flow/specs/fn-164-expect-blocks-for-properties.md",
-  "status": "open",
+  "status": "done",
   "title": "Expect blocks for Properties",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:34.594847Z"
+  "updated_at": "2026-10-24T03:57:05.207277Z"
 }

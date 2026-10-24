@@ -229,7 +229,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md",
-  "status": "open",
+  "status": "done",
   "title": "Show one Go SDK workflow driven end to end from the IRs",
   "tracker": {
     "baseHashFlow": null,
@@ -242,5 +242,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:18.122710Z"
+  "updated_at": "2026-10-24T03:56:57.297384Z"
 }

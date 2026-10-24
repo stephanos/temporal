@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-155-name-the-standalone-activitys-repeated",
   "spec_path": ".flow/tasks/fn-155-name-the-standalone-activitys-repeated.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Capture the baseline, build the equivalence projection and probe helper forms",
   "updated_at": "2026-10-10T00:05:43.363797Z"
 }

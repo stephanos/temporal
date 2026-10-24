@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-157-bound-native-verification-memory-and",
   "spec_path": ".flow/tasks/fn-157-bound-native-verification-memory-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Join full preservation and restore exact native gate evidence",
   "updated_at": "2026-10-10T00:15:13.762391Z"
 }

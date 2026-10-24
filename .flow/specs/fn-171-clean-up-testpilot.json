@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-171-clean-up-testpilot.md",
-  "status": "open",
+  "status": "done",
   "title": "Clean up Testpilot",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:38.312308Z"
+  "updated_at": "2026-10-24T03:57:07.323602Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Collect one IR file per feature package; remove irFile and exports",
   "updated_at": "2026-10-18T17:30:38.213470Z"
 }

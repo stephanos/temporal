@@ -31,8 +31,9 @@ The same-spec dependency on fn-195.5 remains. The explicit blocked status preven
 - [ ] Test purposes remain intact; full native/lint and fresh source/separate-library realization gates pass.
 - [ ] Related examples/links stay accurate; exact upstream comparison files, historical snapshots and held consumers are unchanged.
 ## Done summary
-Blocked:
-Final sample polish waits for the settled native DSL. Required integrated checkpoints are fn-195.5 (including class-only ModelSuite migration) and the framework-only fn-197 native prototype, implementation and documentation/sample-decision checkpoints through .3. Fn-197 still adds owes/until and can change ReliableBroadcast, so fn-195.5 alone is insufficient. The conductor must explicitly re-scope/split fn-197's Temporal readings and actual lifting proof before native execution, preserving those holds and keeping mixed parents open. No whole-spec cycle or cross-spec task edge is added. This task has not started. Release only after exact native closure commits are recorded in the durable description, using task reset without cascade, then recheck ready; do not force-start. This is an admission hold, not completed implementation.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

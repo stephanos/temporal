@@ -77,8 +77,9 @@ Parent holds remain unchanged. Keep mixed parents OPEN, review deferred and all 
 - [ ] The existing caller policy resolves once per actual suite execution and supplies one immutable `Execution` for automatic claims and P replay, with an extension seam for X/C. Real suite controls demonstrate default and exact-suite override effects on reported native budgets. Existing malformed/empty policy, nonpositive/out-of-Int values, duplicate keys and unknown-suite overrides refuse at the correct gate/suite boundary. Automatic claims retain ordinary native results, counterexample paths and vacuity warnings for the bound instance; refuted results fail, and unknown/cut results retain a visible documented inconclusive MUnit disposition. A horizon, sample count or Model field cannot replace the caller budget, and a discovered counterexample survives an unrelated cut.
 
 ## Done summary
-Blocked:
-The committed ff0dcaf55d checkpoint passes all 20 native stages, but `.flow/tmp/fn1958/metadata-probe/` proves two valid public no-argument ModelSuite subclasses execute four JUnit tests while actual Registry discovers zero. Stable-term superclass paths require missing compiler metadata. `.8` is incomplete and must wait for the metadata proof and its demonstrated production prerequisites. Preserve all committed implementation and receipts; do not replace this gap with an author restriction, parser special case or false completion. See `.flow/tmp/fn1958/summary.md` and `evidence.json` for the honest partial handover.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Held sweep: shared IR transport and metadata identity exclusions",
   "updated_at": "2026-10-11T21:52:08.561837Z"
 }

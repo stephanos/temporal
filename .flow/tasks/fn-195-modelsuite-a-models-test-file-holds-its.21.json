@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.21.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add deferred native refutation and complete exploration refusals",
   "updated_at": "2026-10-18T17:59:48.227683Z"
 }

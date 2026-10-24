@@ -8,7 +8,7 @@
   "priority": 0,
   "spec": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "spec_path": ".flow/tasks/fn-147-migrate-elapsed-time-fields-to-protobuf.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close native Duration authoring coverage and guidance",
   "updated_at": "2026-10-16T14:23:40.738435Z"
 }

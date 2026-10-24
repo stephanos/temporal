@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-172-faster-model-feedback-loop-toolchain",
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lift all framework samples in one lifter run, keeping the progress-claim roots",
   "updated_at": "2026-10-13T20:17:41.342793Z"
 }

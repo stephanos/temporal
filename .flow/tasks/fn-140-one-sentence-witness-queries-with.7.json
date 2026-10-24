@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-140-one-sentence-witness-queries-with",
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Validate exact composed witness selectors across deferred Go consumers",
   "updated_at": "2026-10-11T05:39:29.303351Z"
 }

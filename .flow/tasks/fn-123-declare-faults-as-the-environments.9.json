@@ -5,7 +5,7 @@
   "priority": 0,
   "spec": "fn-123-declare-faults-as-the-environments",
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native fault declarations, budgets and realization choices",
   "updated_at": "2026-10-16T09:56:14.746341Z"
 }

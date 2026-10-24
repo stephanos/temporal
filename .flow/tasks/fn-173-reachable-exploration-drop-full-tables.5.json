@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 4: DSL and lifter: native collections and Int in state, oneOf inputs, input-reading guards, Inbox recognized by type",
   "updated_at": "2026-10-21T17:35:56.278284Z"
 }

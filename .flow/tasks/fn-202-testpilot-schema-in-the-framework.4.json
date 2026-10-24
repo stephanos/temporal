@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-202-testpilot-schema-in-the-framework",
   "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the package to umpire.testpilot.v1 and the Go package path",
   "updated_at": "2026-10-18T18:31:39.638414Z"
 }

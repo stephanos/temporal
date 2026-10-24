@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-201-the-ir-is-internal-the-lift-module-no",
   "spec_path": ".flow/tasks/fn-201-the-ir-is-internal-the-lift-module-no.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fingerprints from Lifted.canonical; record first values",
   "updated_at": "2026-10-18T17:16:42.065190Z"
 }

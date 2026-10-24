@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-140-one-sentence-witness-queries-with",
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lift witnesses through existing declarations and enforce source refusals",
   "updated_at": "2026-10-11T06:21:02.924217Z"
 }

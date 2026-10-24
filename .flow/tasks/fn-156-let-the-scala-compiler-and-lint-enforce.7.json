@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-156-let-the-scala-compiler-and-lint-enforce",
   "spec_path": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Document enforcement and verify exact artifacts and full gates",
   "updated_at": "2026-10-21T17:35:54.244001Z"
 }

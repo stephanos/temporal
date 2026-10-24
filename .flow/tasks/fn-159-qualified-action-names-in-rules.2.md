@@ -39,12 +39,10 @@ make umpire-check-lint
 
 
 ## Done summary
-Batch 1d (Scala only): `object service` is `object completionClient`, documented as the client that settles an activity asynchronously by activity id without a task token, independent of the worker process (Java ActivityCompletionClient, Go CompleteActivityByID). Every rule, derived model, realization, test and comment that named the actor moved; `effects.serviceRetry` (the server's retry) keeps its name. Declared IR change for 5b: the actor name and the qualified action ids `...standalone.service.*` become `...standalone.completionClient.*`; the step tables rename `service.respond*ByID` to `completionClient.respond*ByID` (activity.map). Outside the activity: model/testdata/binding-order.tsv updated.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
-Blocked:
-OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: ebc9a2a698, ea62e94b16 (branch w-1d-activity)
-- Tests: activity test classes (framework.Activity*, StandaloneActivityPins, RoleRefinements, CapabilityRetryDeadlineFeatures) 66 passed, 0 failed (.flow/tmp/1d-activity/test-step1.log); full model suite: only MachineTablePins' stale-IR subject count fails (IR regenerates in 5b); ExportedMachineLawsTest passes after the binding-order pin update.
-- Equivalence: `make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model/testdata/equivalence/batch-1d/activity.map STEPS_ONLY=1` equivalent (.flow/tmp/1d-activity/equiv-step1.log, equiv-step2.log).
+- Commits:
+- Tests:
 - PRs:

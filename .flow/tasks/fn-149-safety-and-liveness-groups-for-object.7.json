@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-149-safety-and-liveness-groups-for-object",
   "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Document grouped Scala authoring and commit the final source seal",
   "updated_at": "2026-10-11T06:31:46.790500Z"
 }

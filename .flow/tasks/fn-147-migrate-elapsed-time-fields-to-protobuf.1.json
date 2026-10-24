@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "spec_path": ".flow/tasks/fn-147-migrate-elapsed-time-fields-to-protobuf.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Pin checked Duration conversion and presence semantics",
   "updated_at": "2026-10-18T17:30:57.865723Z"
 }

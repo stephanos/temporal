@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Held sweep: runnable migration, mini proof and real-feature retirement",
   "updated_at": "2026-10-18T17:30:29.956791Z"
 }

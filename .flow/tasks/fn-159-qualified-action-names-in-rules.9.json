@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "One spelling of a bounded integer: UpTo[N] on the field, ranges read per field",
   "updated_at": "2026-10-12T04:02:37.892702Z"
 }

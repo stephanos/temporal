@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-204-the-conformance-descriptor-ships-with",
   "spec_path": ".flow/tasks/fn-204-the-conformance-descriptor-ships-with.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bounded passive observation and monitor-only unbounded checks",
   "updated_at": "2026-10-18T17:16:42.953812Z"
 }

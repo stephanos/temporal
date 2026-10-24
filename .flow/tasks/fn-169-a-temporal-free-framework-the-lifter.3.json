@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Held sweep: a Temporal-free Umpire IR (Umpire namespace; Temporal vocabulary as data validated against descriptors and Driver capabilities)",
   "updated_at": "2026-10-13T00:04:05.112366Z"
 }

@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-207-tlc-backend-in-scala",
   "spec_path": ".flow/tasks/fn-207-tlc-backend-in-scala.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Spike: in-process TLC versus a child JVM",
   "updated_at": "2026-10-18T17:16:43.531966Z"
 }

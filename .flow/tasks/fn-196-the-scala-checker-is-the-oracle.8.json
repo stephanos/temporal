@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Checker performance: define each claim section class once, then the per-step costs",
   "updated_at": "2026-10-18T18:53:25.658165Z"
 }

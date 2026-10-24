@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "spec_path": ".flow/tasks/fn-147-migrate-elapsed-time-fields-to-protobuf.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Regenerate artifacts and document Duration contracts",
   "updated_at": "2026-10-18T17:30:58.632664Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 6b: backends decide (checkedBy/confirm, coverage admission, Go replay, agreement, orchestration module)",
   "updated_at": "2026-10-13T19:04:29.839614Z"
 }

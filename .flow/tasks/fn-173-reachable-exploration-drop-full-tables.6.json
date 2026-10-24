@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 5: the six framework samples rewritten natively, with a reachable-graph isomorphism test",
   "updated_at": "2026-10-18T17:30:29.444213Z"
 }

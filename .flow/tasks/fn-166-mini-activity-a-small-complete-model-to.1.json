@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "The feature as the unit: FEATURES on every model target, discovered by default, per-feature gate report",
   "updated_at": "2026-10-11T21:21:21.588437Z"
 }

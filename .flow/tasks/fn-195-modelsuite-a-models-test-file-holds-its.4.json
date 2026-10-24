@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: the six samples' tests are ModelSuites with Quint's runs",
   "updated_at": "2026-10-17T21:20:21.064566Z"
 }

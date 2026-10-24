@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Construct Action/Input/Channel signature messages in isolation",
   "updated_at": "2026-10-14T12:37:46.676501Z"
 }

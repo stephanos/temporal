@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .1: root-only positions inside the body lifter; drop the at/pos threading (R5, R10)",
   "updated_at": "2026-10-18T17:30:53.714218Z"
 }

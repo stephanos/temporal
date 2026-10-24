@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-125-represent-dynamic-configuration-in-the",
   "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare bound assumptions on server durations and check them at preparation",
   "updated_at": "2026-10-18T17:30:48.210978Z"
 }

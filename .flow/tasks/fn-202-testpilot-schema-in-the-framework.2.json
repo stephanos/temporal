@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-202-testpilot-schema-in-the-framework",
   "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Owner decision and implementation of the driver seam for the seven Temporal-typed fields",
   "updated_at": "2026-10-18T18:31:40.022301Z"
 }

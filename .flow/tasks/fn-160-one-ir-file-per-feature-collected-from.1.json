@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inventory every consumer of today's IR file split",
   "updated_at": "2026-10-10T18:15:45.352520Z"
 }

@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-199-native-refinement-replacement-and",
   "spec_path": ".flow/tasks/fn-199-native-refinement-replacement-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Queries and claims through a refinement, cross-owner claims",
   "updated_at": "2026-10-18T17:16:41.395651Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Governance (GOV-02): SPEC finite-types wording, Behavior Fingerprint as IR structural hash, VISION backends-may-decide, module map's orchestration module",
   "updated_at": "2026-10-13T19:04:29.839141Z"
 }

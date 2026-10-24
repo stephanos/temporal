@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-156-let-the-scala-compiler-and-lint-enforce",
   "spec_path": ".flow/tasks/fn-156-let-the-scala-compiler-and-lint-enforce.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce Model conventions and Scala import boundaries",
   "updated_at": "2026-10-10T00:00:38.982340Z"
 }

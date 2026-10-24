@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-193-compositions-are-plain-scala-members-as",
   "spec_path": ".flow/tasks/fn-193-compositions-are-plain-scala-members-as.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Plain compositions in the DSL; fixtures, tests and docs rewritten",
   "updated_at": "2026-10-17T19:50:55.878821Z"
 }

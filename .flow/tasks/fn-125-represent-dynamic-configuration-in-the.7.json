@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-125-represent-dynamic-configuration-in-the",
   "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Encode the Nexus implementation, lower one Case per valuation and retire the switch",
   "updated_at": "2026-10-18T17:30:47.509257Z"
 }

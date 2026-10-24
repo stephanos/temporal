@@ -24,8 +24,9 @@ Phase 2, after .5 (one lifting rule and one carrier) and .10 (the normalization 
 - [ ] `require` in a helper is refused with the R11 text; the warm-Bloop invalidation test and the six samples pass with an unchanged reachable graph.
 
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Qualify every phase reference; refuse phase-member imports",
   "updated_at": "2026-10-12T01:05:15.429613Z"
 }

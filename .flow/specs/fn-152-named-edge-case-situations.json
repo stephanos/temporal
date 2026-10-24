@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-152-named-edge-case-situations.md",
-  "status": "open",
+  "status": "done",
   "title": "Named edge-case situations",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:28.169076Z"
+  "updated_at": "2026-10-24T03:57:01.870956Z"
 }

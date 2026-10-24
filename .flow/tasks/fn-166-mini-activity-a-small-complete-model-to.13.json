@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Change-scoped model check: scope from the diff, suite coverage registry, evidence record",
   "updated_at": "2026-10-12T19:16:06.236264Z"
 }

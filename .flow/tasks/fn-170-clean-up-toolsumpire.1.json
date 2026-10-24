@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-170-clean-up-toolsumpire",
   "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "One umpire CLI with subcommands replaces the eight cmd binaries",
   "updated_at": "2026-10-18T17:30:30.339205Z"
 }

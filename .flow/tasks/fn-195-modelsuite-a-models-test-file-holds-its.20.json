@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.20.md",
-  "status": "todo",
+  "status": "done",
   "title": "Connect native find and seeded sample questions to ModelSuite",
   "updated_at": "2026-10-18T16:41:40.191554Z"
 }

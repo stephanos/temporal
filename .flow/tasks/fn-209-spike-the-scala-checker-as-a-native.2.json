@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-209-spike-the-scala-checker-as-a-native",
   "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "GraalVM native-image build of the checker with one sample",
   "updated_at": "2026-10-18T18:33:49.740950Z"
 }

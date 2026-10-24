@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-153-checked-property-examples-pilot",
   "spec_path": ".flow/tasks/fn-153-checked-property-examples-pilot.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Author the three contrast pairs and prove classification drift controls",
   "updated_at": "2026-10-10T06:33:46.650587Z"
 }

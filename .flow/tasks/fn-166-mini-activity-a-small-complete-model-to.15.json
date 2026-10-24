@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lifter suites: share the TASTy read across lifts, in-process conventions lint, bounded parallel suites",
   "updated_at": "2026-10-18T17:30:54.339401Z"
 }

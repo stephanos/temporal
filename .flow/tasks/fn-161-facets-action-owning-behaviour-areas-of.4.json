@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-161-facets-action-owning-behaviour-areas-of",
   "spec_path": ".flow/tasks/fn-161-facets-action-owning-behaviour-areas-of.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Wrap remaining machines into facets; switch facets-only and vocabulary rules on globally",
   "updated_at": "2026-10-12T05:49:52.323880Z"
 }

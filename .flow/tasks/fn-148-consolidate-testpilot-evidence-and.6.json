@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-148-consolidate-testpilot-evidence-and",
   "spec_path": ".flow/tasks/fn-148-consolidate-testpilot-evidence-and.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Simplify instruction references, cardinality and surviving markers",
   "updated_at": "2026-10-18T17:30:40.768018Z"
 }

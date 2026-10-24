@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.23.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native explicit conformance replay: selected-class coverage and complete verified eligibility",
   "updated_at": "2026-10-18T18:27:26.146347Z"
 }

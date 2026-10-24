@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-165-inputs-as-records-named-classes",
   "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate the Models to input records with byte-identical IR",
   "updated_at": "2026-10-18T17:31:03.811658Z"
 }

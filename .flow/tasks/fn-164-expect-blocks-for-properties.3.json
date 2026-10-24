@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lift framework expectation predicates with exact core IR and ordinary-function bridges",
   "updated_at": "2026-10-18T17:30:50.518633Z"
 }

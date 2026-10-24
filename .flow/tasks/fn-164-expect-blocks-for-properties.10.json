@@ -11,7 +11,7 @@
   "priority": 0,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Finish native expect callers, public API and colon authoring",
   "updated_at": "2026-10-16T05:40:57.849982Z"
 }

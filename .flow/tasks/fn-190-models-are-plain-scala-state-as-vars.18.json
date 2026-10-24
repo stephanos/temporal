@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.18.md",
-  "status": "todo",
+  "status": "done",
   "title": "Keep the user reference free of Scala source-file references",
   "updated_at": "2026-10-17T23:26:07.307913Z"
 }

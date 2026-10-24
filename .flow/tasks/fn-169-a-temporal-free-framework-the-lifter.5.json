@@ -11,7 +11,7 @@
   "review": "none",
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "framework/samples: one-file sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint",
   "updated_at": "2026-10-12T21:19:02.003412Z"
 }

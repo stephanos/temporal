@@ -295,7 +295,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-128-close-the-activitys-precision-gaps.md",
-  "status": "open",
+  "status": "done",
   "title": "Close the activity's precision gaps",
   "tracker": {
     "baseHashFlow": null,
@@ -308,5 +308,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:20.658304Z"
+  "updated_at": "2026-10-24T03:56:58.265684Z"
 }

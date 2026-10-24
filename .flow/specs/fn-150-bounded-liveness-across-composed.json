@@ -55,7 +55,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-150-bounded-liveness-across-composed.md",
-  "status": "open",
+  "status": "done",
   "title": "Bounded liveness across composed machines",
   "tracker": {
     "baseHashFlow": null,
@@ -68,5 +68,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:26.861321Z"
+  "updated_at": "2026-10-24T03:57:01.311572Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Flatten features/: a kind folder for shared parts, <kind>_<form> folders for forms",
   "updated_at": "2026-10-11T18:20:11.851167Z"
 }

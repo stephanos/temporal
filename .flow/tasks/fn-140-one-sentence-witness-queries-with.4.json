@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-140-one-sentence-witness-queries-with",
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prove the first Activity witness migration and remove duplicate terminate",
   "updated_at": "2026-10-11T07:51:22.179436Z"
 }

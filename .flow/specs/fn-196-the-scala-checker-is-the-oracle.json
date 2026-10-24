@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-196-the-scala-checker-is-the-oracle.md",
-  "status": "open",
+  "status": "done",
   "title": "The Scala checker is the oracle: NativeCheck stays, the Go check and the IR evaluator go",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:44.127142Z"
+  "updated_at": "2026-10-24T03:57:10.813943Z"
 }

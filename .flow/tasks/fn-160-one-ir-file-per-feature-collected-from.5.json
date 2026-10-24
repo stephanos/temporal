@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reusable equivalence check: capture a baseline, compare under a rename map",
   "updated_at": "2026-10-10T19:12:29.377971Z"
 }

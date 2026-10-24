@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.17.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add framework native waited-class projection and checked coverage",
   "updated_at": "2026-10-18T14:14:39.039154Z"
 }

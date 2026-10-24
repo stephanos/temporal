@@ -232,7 +232,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-147-migrate-elapsed-time-fields-to-protobuf.md",
-  "status": "open",
+  "status": "done",
   "title": "Migrate elapsed-time fields to protobuf Duration",
   "tracker": {
     "baseHashFlow": null,
@@ -245,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:24.686457Z"
+  "updated_at": "2026-10-24T03:57:00.395750Z"
 }

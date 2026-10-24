@@ -130,7 +130,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-167-gaps-declared-in-the-model-gap-replaces.md",
-  "status": "open",
+  "status": "done",
   "title": "Gaps declared in the Model: @gap replaces the lint file",
   "tracker": {
     "baseHashFlow": null,
@@ -143,5 +143,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:36.225116Z"
+  "updated_at": "2026-10-24T03:57:06.182024Z"
 }

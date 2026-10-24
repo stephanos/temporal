@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-209-spike-the-scala-checker-as-a-native.md",
-  "status": "open",
+  "status": "done",
   "title": "Spike: the Scala checker as a native binary (GraalVM native-image, Scala Native)",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:50.674199Z"
+  "updated_at": "2026-10-24T03:57:14.533778Z"
 }

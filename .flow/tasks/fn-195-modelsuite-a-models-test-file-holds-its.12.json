@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prove bounded compiled suite inventory and staged policy admission",
   "updated_at": "2026-10-18T12:10:38.744172Z"
 }

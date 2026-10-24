@@ -5,7 +5,7 @@
   "priority": 0,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native Bank and TwoPhaseCommit maps/sets with retained sample proof inputs",
   "updated_at": "2026-10-16T11:57:05.305978Z"
 }

@@ -10,7 +10,7 @@
   "priority": 50,
   "spec": "fn-129-activity-coverage",
   "spec_path": ".flow/tasks/fn-129-activity-coverage.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close: new Cases, live run, MILESTONES",
   "updated_at": "2026-10-18T17:30:43.786472Z"
 }

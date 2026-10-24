@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-125-represent-dynamic-configuration-in-the",
   "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare each dynamic-config key once in the kit and pin it to the server registry",
   "updated_at": "2026-10-18T17:30:46.757325Z"
 }

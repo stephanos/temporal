@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.19.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement immutable native exploration spaces and selectors",
   "updated_at": "2026-10-18T16:41:40.191389Z"
 }

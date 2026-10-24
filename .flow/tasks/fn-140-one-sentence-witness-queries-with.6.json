@@ -15,7 +15,7 @@
   "priority": null,
   "spec": "fn-140-one-sentence-witness-queries-with",
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close deferred witness consumer and regeneration proof",
   "updated_at": "2026-10-18T17:30:34.719692Z"
 }

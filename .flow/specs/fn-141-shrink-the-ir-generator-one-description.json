@@ -15,7 +15,7 @@
   "plan_reviewed_at": null,
   "ready": false,
   "spec_path": ".flow/specs/fn-141-shrink-the-ir-generator-one-description.md",
-  "status": "open",
+  "status": "done",
   "title": "Shrink the IR generator: one description of each DSL construct",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:23.077557Z"
+  "updated_at": "2026-10-24T03:56:59.498647Z"
 }

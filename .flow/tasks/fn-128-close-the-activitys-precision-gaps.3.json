@@ -10,7 +10,7 @@
   "priority": 30,
   "spec": "fn-128-close-the-activitys-precision-gaps",
   "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retry policy: maxAttempts and retryable timeouts",
   "updated_at": "2026-10-08T05:42:50.666586Z"
 }

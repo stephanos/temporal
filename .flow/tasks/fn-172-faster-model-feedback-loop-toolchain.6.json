@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-172-faster-model-feedback-loop-toolchain",
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "check.Check interprets each Model once: share or remove the replay binding and cut the GC share, with byte-identical receipts",
   "updated_at": "2026-10-13T18:07:24.417420Z"
 }

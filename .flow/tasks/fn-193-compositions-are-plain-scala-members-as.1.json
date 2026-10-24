@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-193-compositions-are-plain-scala-members-as",
   "spec_path": ".flow/tasks/fn-193-compositions-are-plain-scala-members-as.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prototype the plain composition form and record the verdict",
   "updated_at": "2026-10-17T19:50:55.878431Z"
 }

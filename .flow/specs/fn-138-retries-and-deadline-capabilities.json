@@ -250,7 +250,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-138-retries-and-deadline-capabilities.md",
-  "status": "open",
+  "status": "done",
   "title": "Retries and Deadline capabilities",
   "tracker": {
     "baseHashFlow": null,
@@ -263,5 +263,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:21.908525Z"
+  "updated_at": "2026-10-24T03:56:58.874202Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-171-clean-up-testpilot",
   "spec_path": ".flow/tasks/fn-171-clean-up-testpilot.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Tidy: current docs, package docs, test-only exports, generated-case loaders to lower, canary preflight import",
   "updated_at": "2026-10-21T17:35:55.745464Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lifter suites compile each fixture once per run and lift in a shared JVM",
   "updated_at": "2026-10-12T23:04:07.930351Z"
 }

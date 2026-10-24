@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-155-name-the-standalone-activitys-repeated",
   "spec_path": ".flow/tasks/fn-155-name-the-standalone-activitys-repeated.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Derive HeldDispatch and unify the Dispatch composition capabilities",
   "updated_at": "2026-10-09T23:15:42.623833Z"
 }

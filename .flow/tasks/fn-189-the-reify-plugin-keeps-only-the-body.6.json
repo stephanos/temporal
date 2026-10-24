@@ -10,7 +10,7 @@
   "priority": 4,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Machine shape by declaration: init/end/evidence as members, schemas and header identity derived at runtime",
   "updated_at": "2026-10-16T15:39:59.856442Z"
 }

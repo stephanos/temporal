@@ -74,15 +74,13 @@ Run the exact full commands above once on the final candidate under the shared l
 - [ ] Independent reviews inspect source scope and recorded evidence; the conductor receives commit/log paths and any unmet R9 blocker before starting dependent authoring work.
 
 ## Done summary
-Joined .6 and .8: published .plans/SCALA_CAPTURE_CHECKING.md with reconciliation (Draft lines 88-189 hash unchanged ed6b7160…; probes recompiled under the new warning flags give the original results, capture-recheck/receipts.txt). Docs: model/README.md section 'What the compiler, the lint and the law tests enforce', SEMANTICS role-law wording, UMPIRE_MODULES Scala layout paragraph, SCALA.md. R9 bytes: a fresh lift of the final source and of the pre-fn-156 source (HEAD with the three fn-156 source commits reverse-applied, the same Duration lifter fix 89b7745f8c applied, and the mainline-only StepTables.scala removed because it needs fn-156's IrFile.subjects and declares no Model) are byte-identical: 11/11 files, 25,191 positions, no normalization (lift.sh; baseline-ir.sha256 = final-ir.sha256 at 35dca5a364). Gates run: make lint-model exit 0; irgen suite 145 passed / 3 failed, all three inherited stale goldens (realizations.json: Duration encoding from the batch3 lifter fix only; hints.json/hintsRefused.json: Product/System positions and content changed by fn-155.3 96c554b1ab after the goldens' last regeneration) - not fn-156 drift, left for the regeneration owner; framework/Temporal suite 156/0 and gate tests 78/0 green. Not run: umpire-check-model/umpire-gen-model and umpire-check-cases (checked-in model/ir is stale against the Duration schema change being regenerated in w-batch3, and fn-155.6's whole-regeneration proof remains an owner hold); Cases derive from the byte-identical IR with no Go change by fn-156. Full Go suite not run (no Go change in this lane).
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
-Lane w-fn156 (Batch 1c close), on integrated umpire ae3f36ee51; source checkpoints d0a7f66639, 8481696c62, 7d54144267 (older lane notes: .worktrees/fn-156-let-the-scala-compiler-and-lint-enforce/.flow/tmp/fn156/batch/).
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: logs under .worktrees/w-fn156/.flow/tmp/fn156/ (lint-model-full, irgen-tests2, authoring-tests2, gate-tests2, lift-baseline/lift-candidate, *.sha256)
+- Tests:
 - PRs:
-
 ## Acceptance
 - [ ] Exact regeneration/manifests satisfy R9 without normalization; partial or deferred gates do not count as passes.
 - [ ] Final compiler/lint/IR-generation/Model/Case and canonical Go gates have recorded outcomes; all unmet obligations remain explicit.

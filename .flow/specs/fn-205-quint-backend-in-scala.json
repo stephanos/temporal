@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-205-quint-backend-in-scala.md",
-  "status": "open",
+  "status": "done",
   "title": "Quint backend in Scala",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:48.684105Z"
+  "updated_at": "2026-10-24T03:57:13.407474Z"
 }

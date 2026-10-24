@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Framework realization source checkpoint through c2207956bd",
   "updated_at": "2026-10-14T11:33:33.146012Z"
 }

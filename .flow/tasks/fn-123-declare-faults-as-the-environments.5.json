@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-123-declare-faults-as-the-environments",
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Budgets: budgetedBy, the four table rules in Go, LostStartAnswer bound to lossAvailable",
   "updated_at": "2026-10-18T17:30:33.331740Z"
 }

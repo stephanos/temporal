@@ -10,7 +10,7 @@
   "priority": 0,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.16.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retire native StepTables and catalog-based refinement/law walks",
   "updated_at": "2026-10-16T10:07:41.957601Z"
 }

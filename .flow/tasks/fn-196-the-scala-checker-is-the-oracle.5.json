@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: the Scala checker as the oracle in MILESTONES, the README and SEMANTICS",
   "updated_at": "2026-10-18T05:57:02.512413Z"
 }

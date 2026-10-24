@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-199-native-refinement-replacement-and",
   "spec_path": ".flow/tasks/fn-199-native-refinement-replacement-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replacement composition proof",
   "updated_at": "2026-10-18T17:16:41.395923Z"
 }

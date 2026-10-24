@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Require qualified on targets; from(X) groups without importing; rename the bound worker to activityWorker",
   "updated_at": "2026-10-12T00:46:04.840308Z"
 }

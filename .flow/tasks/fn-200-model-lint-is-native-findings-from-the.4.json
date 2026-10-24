@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-200-model-lint-is-native-findings-from-the",
   "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "API-value kind over ScalaPB descriptors",
   "updated_at": "2026-10-18T17:16:41.756562Z"
 }

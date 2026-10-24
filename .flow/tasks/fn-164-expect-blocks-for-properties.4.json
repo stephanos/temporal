@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate capability and foundation predicates to expectation blocks",
   "updated_at": "2026-10-18T17:30:51.206715Z"
 }

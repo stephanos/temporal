@@ -10,7 +10,7 @@
   "priority": 90,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Use colon blocks consistently across the Scala DSL and enforce the style",
   "updated_at": "2026-10-18T17:30:50.880245Z"
 }

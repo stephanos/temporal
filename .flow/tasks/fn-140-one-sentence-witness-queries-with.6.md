@@ -56,8 +56,9 @@ go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testi
 - [ ] The committed .10 source seal and .7/.8/.9 consumer proof handoffs are linked; no deferred obligation is counted complete solely by native Scala execution or scratch lifting.
 
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

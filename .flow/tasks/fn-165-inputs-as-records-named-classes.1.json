@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-165-inputs-as-records-named-classes",
   "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inventory the input surface and freeze field order, defaults and action shapes",
   "updated_at": "2026-10-18T17:31:02.263074Z"
 }

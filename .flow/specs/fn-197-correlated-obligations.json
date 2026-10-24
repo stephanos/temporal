@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-197-correlated-obligations.md",
-  "status": "open",
+  "status": "done",
   "title": "Correlated obligations: owes(fact).until(fact), a progress claim keyed by a fact's payload",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:44.656202Z"
+  "updated_at": "2026-10-24T03:57:11.098500Z"
 }

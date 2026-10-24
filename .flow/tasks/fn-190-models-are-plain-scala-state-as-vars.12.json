@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 2: remove the composition lifting and the <field>_<fact> keys from the lifter and Go (R17)",
   "updated_at": "2026-10-18T17:30:23.460381Z"
 }

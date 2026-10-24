@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the model-side Make targets out of the umpire- family",
   "updated_at": "2026-10-18T17:30:37.916982Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-160-one-ir-file-per-feature-collected-from",
   "spec_path": ".flow/tasks/fn-160-one-ir-file-per-feature-collected-from.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Drop scala. from Case identities; derive the set from the feature package",
   "updated_at": "2026-10-11T20:02:11.233195Z"
 }

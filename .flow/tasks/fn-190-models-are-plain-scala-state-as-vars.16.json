@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.16.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: delete the record-state vocabulary from the DSL",
   "updated_at": "2026-10-18T01:46:22.339976Z"
 }

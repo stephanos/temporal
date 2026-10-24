@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lifter suites scoped to what they lift: root-reachable admission, production fixtures retargeted to mini",
   "updated_at": "2026-10-12T19:13:55.195909Z"
 }

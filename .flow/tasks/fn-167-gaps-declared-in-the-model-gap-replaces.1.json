@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
   "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Typed @gap surface, annotation extraction and source admission",
   "updated_at": "2026-10-11T21:52:08.561503Z"
 }

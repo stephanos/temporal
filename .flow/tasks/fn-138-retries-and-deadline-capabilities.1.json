@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-138-retries-and-deadline-capabilities",
   "spec_path": ".flow/tasks/fn-138-retries-and-deadline-capabilities.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retries capability and action-filtered transition verification",
   "updated_at": "2026-10-08T07:42:10.561414Z"
 }

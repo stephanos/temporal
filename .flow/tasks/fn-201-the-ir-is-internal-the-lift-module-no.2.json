@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-201-the-ir-is-internal-the-lift-module-no",
   "spec_path": ".flow/tasks/fn-201-the-ir-is-internal-the-lift-module-no.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete checked-in IR, lift-and-settle, equivalence dumper and the Go sample check",
   "updated_at": "2026-10-18T17:16:42.065001Z"
 }

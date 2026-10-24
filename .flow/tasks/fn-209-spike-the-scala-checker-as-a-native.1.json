@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-209-spike-the-scala-checker-as-a-native",
   "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Can the claim-section rewriter become a compile-time macro or plugin phase?",
   "updated_at": "2026-10-18T17:45:28.922789Z"
 }

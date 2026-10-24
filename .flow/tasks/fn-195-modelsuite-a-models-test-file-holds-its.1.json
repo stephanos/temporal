@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: prototype a ModelSuite on Bank and record the verdict",
   "updated_at": "2026-10-18T07:24:27.818645Z"
 }

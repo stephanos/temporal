@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-162-queries-name-their-realization-each",
   "spec_path": ".flow/tasks/fn-162-queries-name-their-realization-each.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go consumers read the realization binding (held Go/schema half of fn-162.2)",
   "updated_at": "2026-10-12T18:51:48.977947Z"
 }

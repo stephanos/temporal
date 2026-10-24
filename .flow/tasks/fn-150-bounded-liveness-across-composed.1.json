@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-150-bounded-liveness-across-composed",
   "spec_path": ".flow/tasks/fn-150-bounded-liveness-across-composed.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Admit composition progress and prove reuse of the checker",
   "updated_at": "2026-10-08T15:38:29.168796Z"
 }

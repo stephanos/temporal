@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-163-system-capabilities-distributed-systems",
   "spec_path": ".flow/tasks/fn-163-system-capabilities-distributed-systems.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inventory and named system capabilities: Exclusive, Fenced, Idempotent, SingleOutcome",
   "updated_at": "2026-10-18T17:31:01.611599Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Plug-in seam: layout conventions and registered API descriptors (after fn-174.2)",
   "updated_at": "2026-10-18T17:30:30.965642Z"
 }

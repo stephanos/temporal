@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-174-the-model-constructs-its-own-ir-dsl.md",
-  "status": "open",
+  "status": "done",
   "title": "The Model constructs its own IR: DSL types build ir messages, capture points lift function bodies, the lifter retires",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:39.863041Z"
+  "updated_at": "2026-10-24T03:57:08.281706Z"
 }

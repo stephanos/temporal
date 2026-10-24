@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-196-the-scala-checker-is-the-oracle",
   "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "IR and plugin phase: retire the Go check and the IR evaluator, the gate and conformance replay run on the Scala checker",
   "updated_at": "2026-10-17T21:20:19.440003Z"
 }

@@ -10,7 +10,7 @@
   "priority": 0,
   "spec": "fn-165-inputs-as-records-named-classes",
   "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate native record callers and retire token and arity APIs",
   "updated_at": "2026-10-16T06:33:22.788861Z"
 }

@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-149-safety-and-liveness-groups-for-object",
   "spec_path": ".flow/tasks/fn-149-safety-and-liveness-groups-for-object.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Document grouped authoring and close integrated gates",
   "updated_at": "2026-10-11T06:32:41.120230Z"
 }

@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-209-spike-the-scala-checker-as-a-native",
   "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "WebAssembly build of the checker loaded from a Go host",
   "updated_at": "2026-10-18T18:33:50.550855Z"
 }

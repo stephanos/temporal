@@ -11,7 +11,7 @@
   "priority": 2,
   "spec": "fn-203-cases-are-produced-in-scala",
   "spec_path": ".flow/tasks/fn-203-cases-are-produced-in-scala.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Managed Case trees and the byte-equality gate",
   "updated_at": "2026-10-18T17:16:42.640093Z"
 }

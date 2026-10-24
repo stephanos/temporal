@@ -18,8 +18,9 @@ Use Flow commands for all planning state. On a proven applicable go, recut fn-20
 - [ ] Dependent planning and MILESTONES are reconciled through Flow where applicable to proven outcomes, without executing fn-202/fn-203/fn-204 or dropping support for an unproved consumer. Recommendation, naming decision and production-replacement prerequisite are explicit; historical results and owner holds are preserved.
 
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

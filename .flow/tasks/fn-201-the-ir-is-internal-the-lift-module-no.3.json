@@ -8,7 +8,7 @@
   "priority": 2,
   "spec": "fn-201-the-ir-is-internal-the-lift-module-no",
   "spec_path": ".flow/tasks/fn-201-the-ir-is-internal-the-lift-module-no.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "IR proto under model/framework/proto; ScalaPB jar from there",
   "updated_at": "2026-10-18T17:16:42.065098Z"
 }

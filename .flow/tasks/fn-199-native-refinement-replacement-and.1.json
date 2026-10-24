@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-199-native-refinement-replacement-and",
   "spec_path": ".flow/tasks/fn-199-native-refinement-replacement-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Refinement simulation over two reachable graphs",
   "updated_at": "2026-10-18T17:16:41.395265Z"
 }

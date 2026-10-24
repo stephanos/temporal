@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-194-parametric-models-constants-and-finite",
   "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: document parameters in SEMANTICS and the README",
   "updated_at": "2026-10-18T04:21:03.248463Z"
 }

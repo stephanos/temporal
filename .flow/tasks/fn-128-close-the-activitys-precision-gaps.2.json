@@ -10,7 +10,7 @@
   "priority": 20,
   "spec": "fn-128-close-the-activitys-precision-gaps",
   "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rejections are rows: failedPrecondition and invalidArgument",
   "updated_at": "2026-10-08T05:42:50.625887Z"
 }

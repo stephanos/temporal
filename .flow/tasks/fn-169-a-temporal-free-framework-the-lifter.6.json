@@ -11,7 +11,7 @@
   "review": "none",
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Port the Python interpreter-table comparator to Scala in framework/check/equivalence; pins to temporal/check",
   "updated_at": "2026-10-12T23:24:59.682914Z"
 }

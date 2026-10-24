@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-172-faster-model-feedback-loop-toolchain",
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Warm scala-cli server: find out why --server=false is used, then drop it where safe (Samples, ChangeCheck, Makefile model targets)",
   "updated_at": "2026-10-13T18:56:49.563160Z"
 }

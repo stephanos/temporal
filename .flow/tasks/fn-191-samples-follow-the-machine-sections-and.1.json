@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-191-samples-follow-the-machine-sections-and",
   "spec_path": ".flow/tasks/fn-191-samples-follow-the-machine-sections-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move the five remaining samples and NativeInputs into properties and queries sections",
   "updated_at": "2026-10-17T01:17:08.613079Z"
 }

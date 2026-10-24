@@ -12,7 +12,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-201-the-ir-is-internal-the-lift-module-no.md",
-  "status": "open",
+  "status": "done",
   "title": "The IR is internal: the lift module, no checked-in IR",
   "tracker": {
     "baseHashFlow": null,
@@ -25,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:46.688256Z"
+  "updated_at": "2026-10-24T03:57:12.252821Z"
 }

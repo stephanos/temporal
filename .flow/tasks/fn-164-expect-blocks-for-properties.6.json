@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove lambda finishers and seal expectation fixtures and author docs",
   "updated_at": "2026-10-18T17:30:51.938691Z"
 }

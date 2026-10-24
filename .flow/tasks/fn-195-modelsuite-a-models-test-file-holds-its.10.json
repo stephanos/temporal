@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prove bounded native realization, wait and capability admission",
   "updated_at": "2026-10-18T08:27:47.340510Z"
 }

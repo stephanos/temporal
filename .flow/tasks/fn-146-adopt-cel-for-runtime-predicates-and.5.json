@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-146-adopt-cel-for-runtime-predicates-and",
   "spec_path": ".flow/tasks/fn-146-adopt-cel-for-runtime-predicates-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move Contract and correlated verification to CEL",
   "updated_at": "2026-10-18T17:30:57.111467Z"
 }

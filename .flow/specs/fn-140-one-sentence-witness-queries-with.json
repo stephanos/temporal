@@ -226,7 +226,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-140-one-sentence-witness-queries-with.md",
-  "status": "open",
+  "status": "done",
   "title": "One-sentence witness Queries with explicit live expectations",
   "tracker": {
     "baseHashFlow": null,
@@ -239,5 +239,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:22.504690Z"
+  "updated_at": "2026-10-24T03:56:59.169900Z"
 }

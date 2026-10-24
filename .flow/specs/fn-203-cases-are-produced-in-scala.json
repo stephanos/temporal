@@ -12,7 +12,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-203-cases-are-produced-in-scala.md",
-  "status": "open",
+  "status": "done",
   "title": "Cases are produced in Scala",
   "tracker": {
     "baseHashFlow": null,
@@ -25,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:47.684657Z"
+  "updated_at": "2026-10-24T03:57:12.839549Z"
 }

@@ -10,7 +10,7 @@
   "priority": 6,
   "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
   "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Captured[F] capture arguments; remove post-pickler retargeting and per-arity overloads (after fn-174.8)",
   "updated_at": "2026-10-18T17:30:53.378838Z"
 }

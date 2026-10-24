@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-193-compositions-are-plain-scala-members-as.md",
-  "status": "open",
+  "status": "done",
   "title": "Compositions are plain Scala: members as vals, no state case class",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:42.520742Z"
+  "updated_at": "2026-10-24T03:57:09.844268Z"
 }

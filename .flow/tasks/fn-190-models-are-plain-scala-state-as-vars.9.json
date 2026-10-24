@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 2: lift vars, assignment effects, transitions and check blocks; State record, schema and init from declarations",
   "updated_at": "2026-10-21T17:35:57.777359Z"
 }

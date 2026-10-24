@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-170-clean-up-toolsumpire",
   "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Tidy: fold ir/paths, one duration conversion, export package name, over-exports, doc drift",
   "updated_at": "2026-10-12T23:48:32.064191Z"
 }

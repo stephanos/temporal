@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-208-toolsumpire-becomes-toolstestpilot",
   "spec_path": ".flow/tasks/fn-208-toolsumpire-becomes-toolstestpilot.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Amend SPEC, Vision, READMEs, module map, measurement note and MILESTONES; close fn-196.4 and R5 by reference",
   "updated_at": "2026-10-18T18:31:39.330639Z"
 }

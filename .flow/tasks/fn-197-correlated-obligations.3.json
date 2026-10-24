@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-197-correlated-obligations",
   "spec_path": ".flow/tasks/fn-197-correlated-obligations.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: SEMANTICS, README and progress-notation describe the word",
   "updated_at": "2026-10-18T17:30:50.211050Z"
 }

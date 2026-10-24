@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-198-framework-tests-are-case-folders.md",
-  "status": "open",
+  "status": "done",
   "title": "Framework tests are case folders: sources in, expected files out",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:45.166829Z"
+  "updated_at": "2026-10-24T03:57:11.379139Z"
 }

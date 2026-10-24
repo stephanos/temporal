@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-170-clean-up-toolsumpire",
   "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fold internal/engine into interp and check; remove the alias facades",
   "updated_at": "2026-10-12T23:48:30.152081Z"
 }

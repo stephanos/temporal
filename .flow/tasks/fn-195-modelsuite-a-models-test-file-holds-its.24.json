@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.24.md",
-  "status": "todo",
+  "status": "done",
   "title": "Public authored explicit conformance: typed MUnit registration and eligible-only selector",
   "updated_at": "2026-10-18T18:27:26.146451Z"
 }

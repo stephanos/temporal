@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-150-bounded-liveness-across-composed",
   "spec_path": ".flow/tasks/fn-150-bounded-liveness-across-composed.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Pin composed progress boundaries and witness replay",
   "updated_at": "2026-10-08T15:38:29.169136Z"
 }

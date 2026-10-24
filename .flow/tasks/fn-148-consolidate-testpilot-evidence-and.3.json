@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-148-consolidate-testpilot-evidence-and",
   "spec_path": ".flow/tasks/fn-148-consolidate-testpilot-evidence-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Introduce complete-state and result tables in lowering",
   "updated_at": "2026-10-18T17:30:39.863869Z"
 }

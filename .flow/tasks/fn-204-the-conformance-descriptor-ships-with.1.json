@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-204-the-conformance-descriptor-ships-with",
   "spec_path": ".flow/tasks/fn-204-the-conformance-descriptor-ships-with.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Scala emits the conformance descriptor from the native graph",
   "updated_at": "2026-10-18T17:16:42.953526Z"
 }

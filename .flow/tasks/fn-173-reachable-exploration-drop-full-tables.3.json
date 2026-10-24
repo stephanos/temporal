@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 2: Scala catalog machinery and Query totals retire; Go static checks on the IR (structural overlap, coverage, growth, refinement invariant, roots)",
   "updated_at": "2026-10-16T10:07:41.257856Z"
 }

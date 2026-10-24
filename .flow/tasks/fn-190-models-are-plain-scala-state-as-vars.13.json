@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Validate every native effect result and lint inferred multiline definitions",
   "updated_at": "2026-10-17T15:13:18.239168Z"
 }

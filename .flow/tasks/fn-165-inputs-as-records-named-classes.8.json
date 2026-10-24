@@ -10,7 +10,7 @@
   "priority": 0,
   "spec": "fn-165-inputs-as-records-named-classes",
   "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Native record execution and structural shared-input selectors",
   "updated_at": "2026-10-16T07:18:37.197695Z"
 }

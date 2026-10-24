@@ -10,7 +10,7 @@
   "priority": 60,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Claims construct their messages: Properties, Scenarios, Queries, progress; the lifter's fold goes",
   "updated_at": "2026-10-18T17:30:26.882930Z"
 }

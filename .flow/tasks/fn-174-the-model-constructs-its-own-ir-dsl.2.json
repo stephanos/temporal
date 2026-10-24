@@ -5,7 +5,7 @@
   "priority": 20,
   "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Realizations construct their messages; the driver prints them (size proof)",
   "updated_at": "2026-10-18T17:30:25.842068Z"
 }

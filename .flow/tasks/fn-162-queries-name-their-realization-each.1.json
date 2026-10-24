@@ -10,7 +10,7 @@
   "review": null,
   "spec": "fn-162-queries-name-their-realization-each",
   "spec_path": ".flow/tasks/fn-162-queries-name-their-realization-each.1.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Trace how a Case's assessed Properties are selected today",
   "updated_at": "2026-10-10T19:30:00.182644Z"

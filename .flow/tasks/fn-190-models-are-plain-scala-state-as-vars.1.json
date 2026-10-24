@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prototype the plain-Scala form on Kettle and record the verdict",
   "updated_at": "2026-10-17T01:16:41.344317Z"
 }

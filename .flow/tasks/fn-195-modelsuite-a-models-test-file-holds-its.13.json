@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement bounded inert compiled suite inventory",
   "updated_at": "2026-10-18T12:38:48.209941Z"
 }

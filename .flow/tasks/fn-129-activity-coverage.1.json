@@ -8,7 +8,7 @@
   "priority": 10,
   "spec": "fn-129-activity-coverage",
   "spec_path": ".flow/tasks/fn-129-activity-coverage.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Heartbeat: worker.heartbeat and a retryable heartbeat timeout",
   "updated_at": "2026-10-08T17:35:28.396216Z"
 }

@@ -39,8 +39,9 @@ go test -tags test_dep -run 'Test.*(Evidence|Correlated|Contract|Instruction|Rea
 - [ ] Protocol ownership, execution and lowering checks pass.
 - [ ] Producer, Case decoding, execution and independent offline assessment admission agree on exactly format 4.0; retired and unknown formats reject before payload interpretation or execution. fn-146.1's successful current-format Case/Run assessment and identity-negative proofs pass.
 ## Done summary
-Blocked:
-OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

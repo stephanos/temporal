@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-119-show-one-go-sdk-workflow-driven-end-to",
   "spec_path": ".flow/tasks/fn-119-show-one-go-sdk-workflow-driven-end-to.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Write the walkthrough, the one-command entry point and the fn-119 done summary",
   "updated_at": "2026-10-18T17:30:45.221339Z"
 }

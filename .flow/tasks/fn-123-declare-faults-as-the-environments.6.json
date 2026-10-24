@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-123-declare-faults-as-the-environments",
   "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Choice-level fault performance and lowering refusals for model-only faults and unperformed choices",
   "updated_at": "2026-10-18T17:30:33.689134Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "DSL completion: the test file in SEMANTICS and the README",
   "updated_at": "2026-10-18T14:14:57.526750Z"
 }

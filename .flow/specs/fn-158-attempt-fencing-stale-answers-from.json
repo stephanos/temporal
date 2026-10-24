@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-158-attempt-fencing-stale-answers-from.md",
-  "status": "open",
+  "status": "done",
   "title": "Attempt fencing: stale answers from workers the service gave up on",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:31.230755Z"
+  "updated_at": "2026-10-24T03:57:03.373990Z"
 }

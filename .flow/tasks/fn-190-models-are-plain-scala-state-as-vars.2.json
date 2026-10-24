@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "State as vars: Machine[O, F], synthesised State record, init and schema from declarations, erasing bounded aliases",
   "updated_at": "2026-10-17T01:16:41.870711Z"
 }

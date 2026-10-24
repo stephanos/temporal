@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-144-tag-protobuf-messages-with-domains-in.md",
-  "status": "open",
+  "status": "done",
   "title": "Tag protobuf messages with Domains in the Model and IR",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:35:23.606383Z"
+  "updated_at": "2026-10-24T03:56:59.812511Z"
 }

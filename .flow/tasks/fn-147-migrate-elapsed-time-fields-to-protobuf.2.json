@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "spec_path": ".flow/tasks/fn-147-migrate-elapsed-time-fields-to-protobuf.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace elapsed-time schemas and migrate Umpire producers",
   "updated_at": "2026-10-18T17:30:39.026079Z"
 }

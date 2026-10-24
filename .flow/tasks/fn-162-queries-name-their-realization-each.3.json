@@ -12,7 +12,7 @@
   "review": null,
   "spec": "fn-162-queries-name-their-realization-each",
   "spec_path": ".flow/tasks/fn-162-queries-name-their-realization-each.3.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "Claim containers removed: mini feature and shared code (standalone activity proof at the sweep)",
   "updated_at": "2026-10-12T18:53:55.837435Z"

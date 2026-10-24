@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-153-checked-property-examples-pilot",
   "spec_path": ".flow/tasks/fn-153-checked-property-examples-pilot.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare and lift typed Property illustrations",
   "updated_at": "2026-10-10T06:28:08.619522Z"
 }

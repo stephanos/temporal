@@ -12,7 +12,7 @@
   "priority": 2,
   "spec": "fn-209-spike-the-scala-checker-as-a-native",
   "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Scala Native build of the checker with one sample",
   "updated_at": "2026-10-18T18:32:33.485151Z"
 }

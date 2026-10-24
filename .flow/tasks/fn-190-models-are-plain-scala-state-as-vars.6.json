@@ -10,7 +10,7 @@
   "priority": 5,
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Facets and phases as vars; remove Phased and the contextual-phase machinery",
   "updated_at": "2026-10-17T01:16:43.627550Z"
 }

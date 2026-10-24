@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-173-reachable-exploration-drop-full-tables",
   "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Phase 6a: export coverage for refinement, progress, Queries, channels and collections",
   "updated_at": "2026-10-13T19:04:29.839589Z"
 }

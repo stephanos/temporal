@@ -23,8 +23,9 @@ Completes R4 and the executable realization portion of R3 after source task 8 an
 - [ ] One Case ran live to a verdict, with its exact Case and Run recorded; any kit gap is named rather than hidden.
 
 ## Done summary
-TBD
+Closed without implementation on 2026-10-24 at the owner's request. The Scala framework this task targets was frozen under `model/archived/` on 2026-10-18 and Umpire continues in Rust (`model/umpire`); the Scala-era backlog is retired rather than carried. Any intent here that still matters is re-filed against the Rust workspace when it is needed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

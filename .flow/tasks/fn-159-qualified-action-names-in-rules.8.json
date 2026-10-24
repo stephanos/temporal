@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-159-qualified-action-names-in-rules",
   "spec_path": ".flow/tasks/fn-159-qualified-action-names-in-rules.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename capability kinds Retries \u2192 Retryable, Deadline \u2192 Expirable",
   "updated_at": "2026-10-12T02:48:53.885403Z"
 }
