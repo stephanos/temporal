@@ -139,21 +139,35 @@ Captured on 2026-10-24 after the owner found the activity binding (about 3,600 n
 time: the activity protocol machine becomes a real Model checked natively and by TLC, with the feature
 Model declared as its refinement; `Projection::Reach` (the Model finds the path) lives in `umpire-runtime`,
 system-agnostic; worker strategies enumerated from the Model replace the hand-named scenarios after fn-243
-lands. Folded in: the action registry on the `Action` enum, fillers used four ways, the entity lens, capability
-traits, evidence kinds, one descriptor-generated WorkflowService catalog with claims, the opaque-field rule
-that empties the gap list. Target: per-feature mapping at most twice the Model's lines, re-measured on the
-workflow Model. Placed by the owner on 2026-10-24 after fn-243.4 and before fn-237.4 (fn-228 closed the same day).
-Depends on fn-243 and fn-247.
+lands. Folded in: the action registry on the `Action` enum, reusable fillers, the entity lens, capability
+traits, evidence kinds and a descriptor-generated WorkflowService catalog. Opaque-field inference is
+removed with exact per-probe accounting; independently justified name and retry-ordering rules remain.
+Target: per-feature mapping at most twice the Model's lines, re-measured on the workflow Model.
+The fourteen-task plan is committed and structurally validated; primary review remains pending.
+Ambiguous timer paths retain full state and evidence cursors; an opt-in versioned whole-prefix witness
+keeps later explanations consistent. Production metadata retention and actual SDK heartbeat delivery
+remain early implementation gates. The earlier worker codec capability moves here; fn-237.4 retains
+all original actual live proofs, with its downstream amendment still pending application.
+Placed after committed fn-243.4, fn-228.7, fn-237.3 and all of fn-247, before fn-237.4.
+The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency remains.
 [Spec](.flow/specs/fn-246-realization-as-a-checked-refinement-a.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.1 | ⬜ todo | After fn-243.4: Reach, fillers, capability traits in `umpire-runtime`; Kettle adopts Reach (R1, R2) |
-| fn-246.2 | ⬜ todo | After .1: `model/temporal/shared` catalog with claims and field kinds, entity lens, reads, program envelope, probe engine (R3) |
-| fn-246.3 | ⬜ todo | After .2: activity binding on the shared layer, gap list emptied, live slice identical, ratio measured (R4, R7) |
-| fn-246.4 | ⬜ todo | After .1: protocol Model of the activity API, `Refinement` consumer, `#[refines]` on the activity (R5) |
-| fn-246.5 | ⬜ todo | After .3: strategies enumerated from the Model replace hand scenarios; derived program rows (R6) |
-| fn-246.6 | ⬜ todo | After .3, .4, .5: DESIGN.md and README write-up, counts, model-time (R7) |
+| fn-246.1 | ⬜ todo | After committed prerequisites: transactional bounded Reach and Kettle proof point (R1) |
+| fn-246.12 | ⬜ todo | After committed prerequisites: shared descriptor catalog, claims and exact probe accounting (R3, R4) |
+| fn-246.13 | ⬜ todo | After committed prerequisites: independent activity protocol Model and native/TLC invariants (R5) |
+| fn-246.14 | ⬜ todo | After committed prerequisites: compatible heartbeat key and actual raw/SDK continuation capability (R6) |
+| fn-246.7 | ⬜ todo | After .1: typed capabilities, fillers and internal evidence adapters (R2) |
+| fn-246.8 | ⬜ todo | After .7: opt-in guest proof metadata and immutable version admission (R1, R2) |
+| fn-246.11 | ⬜ todo | After .7: variant metadata and Temporal action/entity/read registry (R2, R3) |
+| fn-246.9 | ⬜ todo | After .8: whole-prefix Run recording, replay and generic presentation (R1, R5) |
+| fn-246.10 | ⬜ todo | After .7 and .9: bounded alternatives and coherent explanation publication (R1, R5) |
+| fn-246.2 | ⬜ todo | After .7, .10, .11, .12: shared entity lens and filler-driven probes with equivalence pins (R3) |
+| fn-246.3 | ⬜ todo | After .2, .13, .14: activity migration, exact probe parity and mapping count (R4, R7) |
+| fn-246.4 | ⬜ todo | After .3, .11, .13: generic native Refinement consumer and activity declaration (R5) |
+| fn-246.5 | ⬜ todo | After .3, .4, .14: complete observable-worker policies and derived programs (R6) |
+| fn-246.6 | ⬜ todo | After .3, .4, .5: integrated evidence, count/timing gates and author docs (R1–R7) |
 
 ### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
 
