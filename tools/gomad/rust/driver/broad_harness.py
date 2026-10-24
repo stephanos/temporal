@@ -2,14 +2,17 @@
 
 Allocation targets use one exact libtest selection in a private stage working directory.
 """
+from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 import argparse
+import fcntl
 import json
 import os
 import re
 import stat
+import time
 
 from driver import HERE, command, configured, guard, require, sha, write
 import native_roles
@@ -408,15 +411,44 @@ def read(config, stage):
                 admission_sha256=sha(owned_root(config) / 'admission.json'), roles=rows)
 
 
+@contextmanager
+def initialization_lock(config):
+    root = owned_root(config)
+    require(root.parent.resolve() == root.parent and root.parent.is_dir(), 'foreign broad initialization parent')
+    path = root.with_name(root.name + '.lock')
+    fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, 0o600)
+    try:
+        info = os.fstat(fd)
+        require(stat.S_ISREG(info.st_mode) and stat.S_IMODE(info.st_mode) == 0o600
+                and info.st_nlink == 1 and info.st_uid == os.getuid(), 'foreign broad initialization lock')
+        until = time.monotonic() + 3600
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                require(time.monotonic() < until, 'broad initialization lock timed out')
+                time.sleep(0.05)
+        current = path.lstat()
+        require((info.st_dev, info.st_ino) == (current.st_dev, current.st_ino)
+                and root.parent.resolve() == root.parent, 'broad initialization lock changed')
+        yield
+    finally:
+        os.close(fd)
+
+
 def execute_build(config):
     guard(config)
     source_inputs(config)
-    root = owned_root(config)
-    root.mkdir(mode=0o700)
-    environment = fixed().environment(config, root)
-    command(dict(config, environment=environment), root, 'build-producer', producer_argv(config, 'build'),
-            timeout=3600, exact_environment=environment)
-    return read_build(config)
+    with initialization_lock(config):
+        guard(config)
+        root = owned_root(config)
+        if not root.exists() and not root.is_symlink():
+            root.mkdir(mode=0o700)
+            environment = fixed().environment(config, root)
+            command(dict(config, environment=environment), root, 'build-producer', producer_argv(config, 'build'),
+                    timeout=3600, exact_environment=environment)
+        return read_build(config)
 
 
 def execute(config, stage):

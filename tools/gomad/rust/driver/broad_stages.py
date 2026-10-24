@@ -243,10 +243,7 @@ def run(config, label, root):
     preflight(config, label, root)
     stage, root, expected = selection(config, label, root)
     try:
-        if broad_harness.owned_root(config).exists():
-            broad_harness.read_build(config)
-        else:
-            broad_harness.execute_build(config)
+        broad_harness.execute_build(config)
         broad_harness.execute(config, stage)
         if stage is broad_harness.Stage.PROVIDER:
             reference = importlib.import_module('cluster_wire_reference')

@@ -67,7 +67,7 @@ class BroadStages(unittest.TestCase):
                     patch.object(harness, 'command', side_effect=command), \
                     patch.object(harness, 'read_build', side_effect=read_build), \
                     patch.object(harness, 'execute', side_effect=execute), \
-                    patch.object(broad, 'collect', return_value={'complete': True}), \
+                    patch.object(broad, 'collect', return_value={'complete': True, 'subgates': [], 'reader_errors': {}}), \
                     patch.object(wire, 'collect'), patch.dict(sys.modules, {'counterfactual_receiving': SimpleNamespace(run=lambda config: None)}), \
                     patch.object(fcntl, 'flock', side_effect=flock), ThreadPoolExecutor(max_workers=3) as pool:
                 fixed.return_value.environment.return_value = {}
@@ -82,7 +82,7 @@ class BroadStages(unittest.TestCase):
                 finally:
                     release.set()
                 for future in [first, *rest]:
-                    self.assertEqual(future.result(timeout=5), {'complete': True})
+                    self.assertEqual(future.result(timeout=5), {'complete': True, 'subgates': [], 'reader_errors': {}})
                 self.assertEqual(builds, [1])
                 self.assertEqual({path.name for path in harness.owned_root(config).iterdir() if path.is_dir()},
                                  {'cluster-provider', 'cluster-functional', 'retained-cluster'})
@@ -215,7 +215,7 @@ class BroadStages(unittest.TestCase):
             config = {'root': scratch, 'source_sha256': 'synthetic', '_config_sha256': 'synthetic', 'identity': {}}
             build_root = harness.owned_root(config)
             def build(config):
-                build_root.mkdir()
+                build_root.mkdir(exist_ok=True)
             def facts(config, label, root):
                 return {'schema': broad.SCHEMA, 'label': label, 'complete': False,
                         'reader_errors': {}, 'subgates': [{'id': 'unreceived', 'status': 'REFUSED'}]}
@@ -230,7 +230,7 @@ class BroadStages(unittest.TestCase):
                     retained = json.loads((root / 'broad-diagnostics.json').read_text())
                     self.assertFalse(retained['complete'])
                     self.assertEqual(retained['subgates'][0]['status'], 'REFUSED')
-                fresh.assert_called_once_with(config)
+                self.assertEqual(fresh.call_count, 2)
                 reference.assert_called_once_with(config, produce=True)
                 self.assertEqual([call.args[1] for call in execute.call_args_list], [harness.Stage.PROVIDER, harness.Stage.RETAINED])
 
@@ -241,7 +241,7 @@ class BroadStages(unittest.TestCase):
             root = Path(scratch) / 'stages' / label
             root.mkdir(parents=True)
             harness.owned_root(config).mkdir()
-            with patch.object(broad, 'preflight'), patch.object(harness, 'read_build'), \
+            with patch.object(broad, 'preflight'), patch.object(harness, 'execute_build'), \
                     patch.object(harness, 'execute'), patch.object(wire, 'collect', side_effect=Refusal('original six did not execute')):
                 with self.assertRaises(Refusal):
                     broad.run(config, label, root)
