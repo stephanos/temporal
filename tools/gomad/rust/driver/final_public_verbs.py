@@ -210,7 +210,7 @@ def collect(config, root):
     path, lane, goldens = binding(config)
     python = config['python']
     live.sealed_input(config, python)
-    argv = [python, str(SCRIPT), '--bindings', str(path), '--bindings-sha256', sha(path),
+    argv = [python, str(SCRIPT), '--config', config['_config_path'], '--bindings', str(path), '--bindings-sha256', sha(path),
             '--work', str(root / 'public-verbs')]
     command(config, root, 'public-verbs', argv, timeout=config['deadline_s'])
     result = authenticate(config, root, argv, goldens, lane)

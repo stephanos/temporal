@@ -359,16 +359,16 @@ class DryRunLiveReadiness(unittest.TestCase):
             binary=root/'binary';binary.write_bytes(b'fixture role')
             work=base/'live-observed'
             config=dict(root=str(root),repo=str(root),dry_run=True,source_sha256='a'*64,identity={},_config_sha256='b'*64,
-                files={str(p):driver.sha(p) for p in (script,binary,Path(sys.executable))},
+                files={str(p):driver.sha(p) for p in (script,binary,Path(sys.executable).resolve())},
                 stages={'ordinary':dict(live_families=['observed'])},
-                live_corpus=dict(families={'observed':dict(stage='ordinary',role='release',argv=[sys.executable,str(script),'--binary',str(binary),'--work',str(work)])}))
+                live_corpus=dict(families={'observed':dict(stage='ordinary',role='release',argv=[str(Path(sys.executable).resolve()),str(script),'--binary',str(binary),'--work',str(work)])}))
             with patch.object(live,'PARITY',root),patch.object(live,'role',return_value=dict(binary=str(binary))),patch.object(live,'guard'),patch.object(live,'read_family',return_value={}):
                 live.execute_families(config,base,'ordinary')
                 self.assertEqual((work/'observed').read_text(),'actual child')
                 self.assertEqual(driver.read(base/'live-observed.command.json')['exit'],0)
                 for changed in (dict(config,dry_run=False),dict(config,stages={'ordinary':dict(live_families=['observed','observed'])})):
                     with self.subTest(changed=changed['stages']),self.assertRaises(driver.Refusal):live.planned(changed,'observed')
-            with self.assertRaises((driver.Refusal,KeyError)):
+            with self.assertRaisesRegex(driver.Refusal,'complete live family plan'):
                 live.read_corpus(config,root)
 
     def test_missing_slim_executions_are_named_deferred_gaps_until_reenabled(self):

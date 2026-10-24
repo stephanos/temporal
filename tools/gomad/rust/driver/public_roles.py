@@ -18,8 +18,6 @@ FEATURES = {name: (['conformance'] if name == 'reference-helper' else main_cli_b
 def source_inventory(receipt):
     import dry_run
     if receipt.get('schema') == dry_run.SCHEMA:
-        # A dry-run build carries no source custody; inventory the whole checkout tree it was built from,
-        # including staged untracked inputs (stress stages its broker source under .tmp).
         repo = HERE.parents[3]
         inventory = {str(path.relative_to(repo)): sha(path) for path in repo.rglob('*') if path.is_file()
                      and not {'.git', '.flow', '__pycache__'} & set(path.relative_to(repo).parts)}
@@ -67,9 +65,8 @@ def read_builds(path, inventory=None, frozen=None):
         paths.update(receipt['inputs']); paths.add(str(receipt_path))
         built[name] = receipt
     require(source.read_text() == source_inventory(built['release']), 'public source inventory is incomplete or foreign')
-    import dry_run
     if frozen is not None:
-        require(footprint[0] == dry_run.SCHEMA or (frozen['source_sha256'], frozen['head'], frozen['symlinks']) == footprint[:3],
+        require((frozen['source_sha256'], frozen['head'], frozen['symlinks']) == footprint[:3],
                 'public builds differ from frozen candidate')
         require(all(frozen['files'].get(name) == sha(name) for name in paths), 'public typed build closure is not fully frozen')
         require(built['release']['binary'] == frozen['binary'] and built['release']['binary_sha256'] == frozen['binary_sha256']

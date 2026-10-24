@@ -350,7 +350,7 @@ def recipes(config, label, root):
             # Original installed cluster-failure roots (deadlock/capacity and the asymmetric two/three cells).
             failure = installed_lifecycle_inputs(config)
             recipes_.insert(0, recipe('installed-cluster-failure', HERE / 'installed_cluster_failure.py', [
-                'produce', '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
+                'produce', '--config', config['_config_path'], '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
                 '--guest-config', failure['guest_config'], '--module-cache', failure['module_cache'],
                 '--root', str(work / 'installed-cluster-failure')]))
         if label == 'artifact':
@@ -359,7 +359,7 @@ def recipes(config, label, root):
             import installed_lifecycle_families
             for family in installed_lifecycle_families.FAMILIES:
                 recipes_.insert(-1, recipe('installed-lifecycle-' + family, HERE / 'installed_lifecycle_families.py', [
-                    'produce', '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
+                    'produce', '--config', config['_config_path'], '--main-build', config['build_receipt'], '--compiler-root', config['final_retained']['compiler_root'],
                     '--guest-config', typed['guest_config'], '--module-cache', typed['module_cache'],
                     '--root', str(work / ('installed-lifecycle-' + family)), '--family', family]))
         return recipes_

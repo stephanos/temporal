@@ -115,7 +115,7 @@ def live_role_inputs(config):
         receipt = main_cli_build.read_build(entry['build_receipt'], expected_role=name)
         if dry_run.is_record(entry['build_receipt']):
             require(receipt['binary'] == entry['binary'], 'dry-run live role binary differs from its record')
-            paths.update((entry['build_receipt'], entry['binary']))
+            paths.update(receipt['inputs']); paths.add(entry['build_receipt'])
             continue
         require(receipt['binary'] == entry['binary'] and receipt['source_sha256'] == config['source_sha256']
                 and receipt['head'] == config['head'] and receipt['symlinks'] == config['symlinks']

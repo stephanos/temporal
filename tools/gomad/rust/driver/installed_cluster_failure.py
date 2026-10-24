@@ -72,13 +72,6 @@ def environment(root):
 
 
 def source_manifest(build, repo):
-    import dry_run
-    if build.get('schema') == dry_run.SCHEMA:
-        # A dry-run build carries no source custody; inventory the tracked checkout it was built from.
-        import main_cli_build
-        files, _, _, _ = main_cli_build.source_state(repo, '/usr/bin/git')
-        return ''.join(value + '  ' + name + '\n' for name, value in sorted(files.items())
-                       if not Path(name).relative_to(repo).parts[0] == '.flow').encode()
     files = {name: value for name, value in build['inputs'].items()
              if Path(name).is_relative_to(repo) and not Path(name).relative_to(repo).parts[0] == '.flow'}
     raw = ''.join(value + '  ' + name + '\n' for name, value in sorted(files.items())).encode()
@@ -343,7 +336,12 @@ def main():
         producer.add_argument('--' + name, type=Path, required=True)
     reader = sub.add_parser('verify')
     reader.add_argument('--receipt', type=Path, required=True)
+    for entry in (producer, reader):
+        entry.add_argument('--config', type=Path)
     args = parser.parse_args()
+    if args.config is not None:
+        from driver import configured
+        configured(args.config)
     if args.mode == 'produce':
         print(produce(args.main_build, args.compiler_root, args.guest_config, args.module_cache, args.root))
     else:

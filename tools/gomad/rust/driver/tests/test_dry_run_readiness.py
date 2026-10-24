@@ -150,3 +150,21 @@ assert not any(name.startswith('GOMAD') for name in installed.environment(root))
                 observed=subprocess.run(argv,env=driver.clean_env(config),capture_output=True,text=True)
                 self.assertNotEqual(observed.returncode,0)
                 self.assertIn('stock compiler root required',observed.stderr)
+            parity_child = '''import sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+import driver,main_cli_build,final_public_verbs
+lane=final_public_verbs.orchestrator()
+build=Path(sys.argv[3])
+def binding(path,digest,frozen=None):
+    assert frozen is not None,'lost driver configuration at parity boundary'
+    main_cli_build.read_build(build,frozen,expected_role='release')
+    raise ValueError('fixture stopped after authenticated public role')
+lane.load_bindings=binding
+sys.argv=[str(lane.SCRIPT) if hasattr(lane,'SCRIPT') else 'all-verb-parity','--config',sys.argv[2],
+          '--bindings',str(build),'--bindings-sha256',driver.sha(build),'--work',sys.argv[4]]
+assert lane.main()==1
+'''
+            observed=subprocess.run([sys.executable,'-c',parity_child,str(driver.HERE),str(path),str(build),str(root/'parity')],env=driver.clean_env(config),capture_output=True,text=True)
+            self.assertEqual(observed.returncode,0,observed.stderr)
+            self.assertIn('fixture stopped after authenticated public role',observed.stderr)

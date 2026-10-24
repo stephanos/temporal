@@ -154,14 +154,16 @@ def option(argv, flag, default=None):
 def planned(config, family):
     require(family in FAMILIES, 'unknown live family')
     live = config.get('live_corpus')
-    require(isinstance(live, dict) and set(live.get('families', {})) == set(FAMILIES),
+    bound = set(live.get('families', {})) if isinstance(live, dict) else set()
+    require(isinstance(live, dict) and family in bound and
+            (bound == set(FAMILIES) or (config.get('dry_run') is True and bound <= set(FAMILIES))),
             'missing/unexpected complete live family plan')
     entry = live['families'][family]
     stage = entry['stage']
     require(stage in config['stages'] and config['stages'][stage].get('live_families', []).count(family) == 1,
             'live endpoint lacks its actual owning stage')
     assigned = [name for item in config['stages'].values() for name in item.get('live_families', [])]
-    require(len(assigned) == len(set(assigned)) and set(assigned) == set(FAMILIES), 'duplicate/missing live stage assignment')
+    require(len(assigned) == len(set(assigned)) and set(assigned) == bound, 'duplicate/missing live stage assignment')
     base = Path(config['root']) / 'stages' / stage
     work = base / ('live-' + family)
     argv = entry['argv']
@@ -749,7 +751,8 @@ def test_wasm_reach(config, actual):
     import ordinary_receiving
     reports = set(actual) | set(ordinary_receiving.final_read(config)['actual_cases'])
     for endpoint in entry.get('reports', []): reports.update(receiving_report(config, endpoint))
-    require(SLIM_IDS <= reports, 'three original slim-refusal executions are missing')
+    missing_slim = SLIM_IDS - reports
+    require(not missing_slim or not REACH_GAPS_BLOCK, 'three original slim-refusal executions are missing')
     import counterfactual_receiving
     stage = counterfactual_receiving.STAGE
     base = Path(config['root']) / 'stages' / stage
@@ -764,7 +767,12 @@ def test_wasm_reach(config, actual):
     counterfactual_lineage.mapping(mapping['entries'], proof['assertion_applicability'])
     reports.update(proof['actual_cases'])
     reports.update(stage_subgate_evidence(config))
-    return reach_coverage(original, mapping['entries'], reports)
+    entries = dict(mapping['entries'])
+    for path, name in SLIM_SOURCES.items():
+        evidence = 'go/go.temporal.io/server/' + path.rsplit('/', 1)[0] + '/' + name
+        if evidence in missing_slim:
+            entries[path + '#' + name] = dict(entries[path + '#' + name], gap='fn-232.14: original slim-refusal execution is missing')
+    return reach_coverage(original, entries, reports)
 
 
 def stage_subgate_evidence(config):

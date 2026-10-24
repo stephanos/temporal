@@ -163,7 +163,12 @@ def main():
     producer.add_argument('--family', choices=FAMILIES, required=True)
     reader = sub.add_parser('verify')
     reader.add_argument('--receipt', type=Path, required=True)
+    for entry in (producer, reader):
+        entry.add_argument('--config', type=Path)
     args = parser.parse_args()
+    if args.config is not None:
+        from driver import configured
+        configured(args.config)
     if args.mode == 'produce':
         print(produce(args.main_build, args.compiler_root, args.guest_config, args.module_cache, args.root, args.family))
     else:
