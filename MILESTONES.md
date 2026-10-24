@@ -431,8 +431,21 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Fresh build cohort preparation, then one complete passing cycle |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle5 terminal16PASS/1workflowFAIL/79unstarted |
+| [fn-232.21](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.21.md) | 🚧 Running | Repair strict producer/reader lint selection for the current workflows |
+| [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | Todo | Receive runtime and mandatory workload evidence |
+| [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | Todo | Receive retained/operator replay and ringpop proof; reconcile fn235 |
+| [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | Todo | Receive R4 preservation proof; reconcile fn185 |
+| [fn-232.25](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.25.md) | 🚧 Running | Retirement/public18 parity and common identity/size/docs ledger; grouping correction gated separately |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
+
+Tasks .21–.25 are closure predecessors of the already-running .13. The conductor
+launches one fresh cycle after .21 passes; .22–.25 prepare independently and finish
+from its actual outputs. They do not depend on .13 being done. All original
+acceptance and post-cycle ordering remain unchanged; .13 owns final composition.
+Cycle5 failed before actionlint because native smoke was intentionally deleted
+but the harness still required it. Its16 passing receipts, failed receipt,
+79 unstarted stages and unchanged source/protected custody remain historical.
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 

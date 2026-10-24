@@ -12,7 +12,12 @@
     "fn-232-gomad-rewrite-the-host-side-in-rust.17",
     "fn-232-gomad-rewrite-the-host-side-in-rust.18",
     "fn-232-gomad-rewrite-the-host-side-in-rust.19",
-    "fn-232-gomad-rewrite-the-host-side-in-rust.20"
+    "fn-232-gomad-rewrite-the-host-side-in-rust.20",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.21",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.22",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.23",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.24",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.25"
   ],
   "id": "fn-232-gomad-rewrite-the-host-side-in-rust.13",
   "priority": null,
@@ -20,5 +25,5 @@
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md",
   "status": "todo",
   "title": "Qualification cycle on the Rust binary and Go host retirement",
-  "updated_at": "2026-10-24T07:01:04.989270Z"
+  "updated_at": "2026-10-24T08:27:45.989204Z"
 }

@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T08:19:50.663009Z",
+  "depends_on": [
+    "fn-232-gomad-rewrite-the-host-side-in-rust.15",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.18",
+    "fn-232-gomad-rewrite-the-host-side-in-rust.19"
+  ],
+  "id": "fn-232-gomad-rewrite-the-host-side-in-rust.21",
+  "priority": 0,
+  "spec": "fn-232-gomad-rewrite-the-host-side-in-rust",
+  "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.21.md",
+  "status": "todo",
+  "title": "Restore strict lint for the current Gomad workflow inventory",
+  "updated_at": "2026-10-24T08:26:18.701057Z"
+}
