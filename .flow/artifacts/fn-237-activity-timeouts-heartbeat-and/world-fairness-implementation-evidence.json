@@ -216,21 +216,86 @@
     "same_family": true
   },
   "primary_review": {
-    "status": "not_dispatched",
-    "requested_spec": "codex:gpt-6.1-sol:high",
-    "same_family": true
+    "status": "SHIP",
+    "spec": "codex:gpt-6.1-sol:high",
+    "actual_review_model": "gpt-6.1-sol",
+    "actual_review_effort": "high",
+    "same_family": true,
+    "timing": {
+      "started_utc": "2026-10-24T17:27:27.542168+00:00",
+      "base_commit": "52b2ed61b90e16090e5a4ebc2a4c037786de9388",
+      "spec": "codex:gpt-6.1-sol:high",
+      "same_family": true,
+      "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-237-activity-timeouts-heartbeat-and.6.json",
+      "wrapper_pid": 4062129,
+      "dispatch_exit": 0,
+      "dispatch_seconds": 298.4190297669993,
+      "dispatch_finished_utc": "2026-10-24T17:32:25.961661+00:00",
+      "finalized_utc": "2026-10-24T17:33:24.034854Z",
+      "finalize_exit": 0
+    },
+    "receipt": "world-fairness-primary-receipt.json",
+    "meta": "world-fairness-primary-meta.json",
+    "raw_archive": "world-fairness-primary-raw.tar.gz",
+    "raw_archive_sha256": "5557b5191bfcce92d123400165f39b4b9c388751dbf4d8a8df4f0b590d3afa46",
+    "draws": [
+      {
+        "axis": "correctness",
+        "model": "gpt-6.1-sol",
+        "session_id": "01a16ef4-0a1c-7a23-9912-cd953203899f",
+        "verdict": "SHIP",
+        "failed": false
+      },
+      {
+        "axis": "contracts",
+        "model": "gpt-6.1-sol",
+        "session_id": "01a16ef4-0a0e-7962-8eba-0b1ee9d63176",
+        "verdict": "SHIP",
+        "failed": false
+      },
+      {
+        "axis": "integration",
+        "model": "gpt-6.1-sol",
+        "session_id": "01a16ef4-0a19-7fd2-87c4-77853becdc4a",
+        "verdict": "SHIP",
+        "failed": false
+      }
+    ],
+    "introduced": 0,
+    "pre_existing": 0,
+    "unaddressed": [],
+    "review_validation_limit": "Reviewers used cached focused binaries and inspected committed fresh gate evidence; read-only sandbox blocked Cargo rebuilding and required TLC was not rerun by reviewers."
   },
   "host_subagents": 4,
   "task_worktrees_remaining": 0,
   "execution_archive": {
     "path": "world-fairness-execution-logs.tar.gz",
-    "files": 74,
-    "sha256": "6dcdcd498787850e6c25cfbf8b62a332f01fbd53c9553974c5062cd8fe2577df"
+    "files": 86,
+    "sha256": "306b68d619188c1405335c9d853fdc49dde24f67be935af79be7c8cf07386244"
   },
   "limitations": [
     "Empty graphs do not invoke or establish agreement for unevaluated progress callbacks.",
     "Generic fixture uses embedded interpretation plus independently admitted source/TLC; raw-front interpreted coverage at all three Worlds is owned by the TLA integration test.",
     "Broader archived Scala/IR Go umbrella remains inherited red and is not covered by this active-gate claim."
   ],
-  "concurrent_metadata": "Source-free Flow/MILESTONES planning and closure commits from other sessions are preserved in the range without task implementation credit."
+  "concurrent_metadata": "Source-free Flow/MILESTONES planning and closure commits from other sessions are preserved in the range without task implementation credit.",
+  "final_verify": {
+    "gate_classification": "FULL: unmatched: MILESTONES.md",
+    "receipt_honors": [
+      "GATE_SKIPPED:model-check:green-receipt 01e2fee4",
+      "GATE_SKIPPED:model-check-required:green-receipt 01e2fee4",
+      "GATE_SKIPPED:model-time:green-receipt 01e2fee4"
+    ],
+    "fmt_command": "mise exec -- cargo fmt --all --check",
+    "fmt_exit": 0,
+    "preservation": {
+      "manifest_entries": 849,
+      "manifest_all_match": true,
+      "manifest_failures": [],
+      "compat_entries": 15,
+      "compat_all_match": true,
+      "compat_failures": []
+    }
+  },
+  "updated_utc": "2026-10-24T17:42:16.804607+00:00"
 }

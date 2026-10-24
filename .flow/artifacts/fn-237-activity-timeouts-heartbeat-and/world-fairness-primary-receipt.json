@@ -1,0 +1,51 @@
+{
+  "base": "52b2ed61b90e16090e5a4ebc2a4c037786de9388",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16ef4-0a1c-7a23-9912-cd953203899f",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16ef4-0a0e-7962-8eba-0b1ee9d63176",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a16ef4-0a19-7fd2-87c4-77853becdc4a",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "52b2ed61b90e16090e5a4ebc2a4c037786de9388",
+    "headSha": "88f2f3d8c455c5c3679872d18e395df89f06d032",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-51543b063d65b1400c3c11ee882061b5224dab8ab0168fa5f1f0781e0d4de1e2"
+  },
+  "id": "fn-237-activity-timeouts-heartbeat-and.6",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "e1210c6a904b4907a1e85d6f6f02ad1a",
+  "rid": "e1210c6a904b4907a1e85d6f6f02ad1a",
+  "session_id": "01a16ef4-0a1c-7a23-9912-cd953203899f",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-24T17:33:24.034854Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
