@@ -205,7 +205,13 @@ fn encode(ty: &Type, place: &TokenStream) -> TokenStream {
             quote!(__UmpireValue::Int(match &(#place) {
                 ::core::option::Option::None => 0,
                 ::core::option::Option::Some(__umpire_payload) => match #inner {
-                    __UmpireValue::Int(raw) => raw + 1,
+                    __UmpireValue::Int(raw) => {
+                        ::core::assert!(
+                            (0..::core::primitive::i128::from(::core::primitive::i32::MAX)).contains(&raw),
+                            "an optional payload exceeds its ordinal encoding"
+                        );
+                        raw + 1
+                    }
                     _ => ::core::unreachable!(),
                 },
             }))
@@ -257,7 +263,7 @@ fn decode(ty: &Type, value: &TokenStream) -> TokenStream {
         Type::Bounded(bounded) => {
             let name = ident(&bounded.name);
             let backing = ident(&bounded.backing);
-            let raw = quote!(<#backing as ::core::convert::TryFrom<i128>>::try_from(*raw).unwrap_or_else(|_| #mismatch));
+            let raw = quote!(<::core::primitive::#backing as ::core::convert::TryFrom<::core::primitive::i128>>::try_from(*raw).unwrap_or_else(|_| #mismatch));
             let construct = bounded.field.as_ref().map_or_else(
                 || quote!(#name(#raw)),
                 |field| {
@@ -272,7 +278,9 @@ fn decode(ty: &Type, value: &TokenStream) -> TokenStream {
                 decode(&Type::Bounded(bounded.clone()), &quote!(&__UmpireValue::Int(*code - 1)));
             quote!(match #value {
                 __UmpireValue::Int(0) => ::core::option::Option::None,
-                __UmpireValue::Int(code) => ::core::option::Option::Some(#inner),
+                __UmpireValue::Int(code)
+                    if (1..=::core::primitive::i128::from(::core::primitive::i32::MAX)).contains(code) =>
+                    ::core::option::Option::Some(#inner),
                 _ => #mismatch,
             })
         }

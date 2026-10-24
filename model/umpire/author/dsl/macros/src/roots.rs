@@ -95,6 +95,19 @@ impl syn::visit_mut::VisitMut for Admission {
     fn visit_item_use_mut(&mut self, item: &mut syn::ItemUse) {
         self.use_tree(&mut item.tree);
     }
+
+    fn visit_attribute_mut(&mut self, attr: &mut syn::Attribute) {
+        if attr.path().is_ident("derive")
+            && let Ok(mut paths) = attr.parse_args_with(
+                syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+            )
+        {
+            for path in &mut paths {
+                self.visit_path_mut(path);
+            }
+            *attr = syn::parse_quote!(#[derive(#paths)]);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -102,6 +115,26 @@ mod tests {
     use quote::ToTokens;
 
     use super::Admission;
+
+    #[test]
+    fn normalizes_derive_paths_using_dependency_roots() {
+        use syn::visit_mut::VisitMut;
+
+        let mut admission =
+            Admission { dsl: Some("direct_dsl".into()), facade: Some("author_kit".into()) };
+        let mut item: syn::ItemStruct = syn::parse_quote! {
+            #[derive(Finite, direct_dsl::Finite, ::author_kit::Finite, author_kit::dsl::Finite, other::Finite)]
+            struct Ticks(u8);
+        };
+        admission.visit_item_struct_mut(&mut item);
+        let expected: syn::Attribute = syn::parse_quote! {
+            #[derive(Finite, umpire_dsl::Finite, ::umpire_dsl::Finite, umpire_dsl::Finite, other::Finite)]
+        };
+        assert_eq!(
+            item.attrs[0].to_token_stream().to_string(),
+            expected.to_token_stream().to_string()
+        );
+    }
 
     #[test]
     fn normalizes_facade_imports_through_groups_without_stripping_other_prefixes() -> syn::Result<()>

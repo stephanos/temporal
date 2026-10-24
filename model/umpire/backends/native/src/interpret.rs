@@ -89,6 +89,8 @@ enum Node {
     Neg(Box<Node>, Range),
     Binary(Op, Box<Node>, Box<Node>, Range),
     If(Box<Node>, Box<Node>, Box<Node>),
+    Some(Box<Node>),
+    OptionalOr(Box<Node>, Box<Node>),
     Tuple(Vec<Node>),
     Seq(Vec<Node>),
     Length(Box<Node>),
@@ -525,7 +527,11 @@ fn world_values(
             .iter()
             .find(|(name, _)| *name == field.name)
             .ok_or_else(|| format!("the World exports no field {}", field.name))?;
-        world.insert(field.name.clone(), import(&field.ty, value)?);
+        world.insert(
+            field.name.clone(),
+            import(&field.ty, value)
+                .map_err(|error| format!("World field {}: {error}", field.name))?,
+        );
     }
     Ok(world)
 }
@@ -535,6 +541,22 @@ fn import(ty: &Type, value: &Exported) -> Result<Value, String> {
     Ok(match (ty, value) {
         (Type::Bool, Exported::Bool(value)) => Value::Bool(*value),
         (Type::Int { .. }, Exported::Int(value)) => Value::Int(*value),
+        (Type::Bounded(bounded), Exported::Bounded { name, raw })
+            if bounded.name == *name && bounded.contains(*raw) =>
+        {
+            Value::Int(*raw)
+        }
+        (Type::Optional(bounded), Exported::Optional(None)) if bounded.optional_valid() => {
+            Value::Int(0)
+        }
+        (Type::Optional(bounded), Exported::Optional(Some(payload))) => {
+            let Value::Int(raw) = import(&Type::Bounded(bounded.clone()), payload)? else {
+                unreachable!("a bounded value imports as an integer")
+            };
+            Value::Int(
+                bounded.encode(raw).ok_or_else(|| format!("{value:?} is not a value of {ty:?}"))?,
+            )
+        }
         (Type::Enum { variants, .. }, Exported::Enum(name)) => Value::Enum(
             variants
                 .iter()
@@ -718,6 +740,11 @@ impl Resolver<'_> {
             ExprKind::If(condition, yes, no) => {
                 Node::If(boxed(condition)?, boxed(yes)?, boxed(no)?)
             }
+            ExprKind::Bounded(value) | ExprKind::Payload(value) => self.node(value)?,
+            ExprKind::Some(value) => Node::Some(boxed(value)?),
+            ExprKind::OptionalOr(value, fallback) => {
+                Node::OptionalOr(boxed(value)?, boxed(fallback)?)
+            }
             ExprKind::Tuple(values) => Node::Tuple(list(values)?),
             ExprKind::Sequence(values) => Node::Seq(list(values)?),
             ExprKind::Length(value) => Node::Length(boxed(value)?),
@@ -865,6 +892,19 @@ impl<'a, S> Frame<'a, S> {
                     self.eval(no)
                 }
             }
+            Node::Some(value) => {
+                let raw = self.eval(value).integer();
+                assert!(
+                    (0..i128::from(i32::MAX)).contains(&raw),
+                    "an optional payload exceeds its ordinal encoding"
+                );
+                Value::Int(raw + 1)
+            }
+            Node::OptionalOr(value, fallback) => {
+                let code = self.eval(value).integer();
+                let fallback = self.eval(fallback);
+                if code == 0 { fallback } else { Value::Int(code - 1) }
+            }
             Node::Tuple(values) => {
                 Value::Tuple(values.iter().map(|value| self.eval(value)).collect())
             }
@@ -972,3 +1012,7 @@ impl Typed for Value {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "interpret_optional_tests.rs"]
+mod optional_tests;
