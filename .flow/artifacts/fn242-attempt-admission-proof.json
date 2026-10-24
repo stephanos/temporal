@@ -1,0 +1,988 @@
+{
+  "schema": "fn242-b02-proof/v1",
+  "status": "implementation-tested-awaiting-conductor-review",
+  "original_ids": 24,
+  "checks": [
+    {
+      "id": "orchestration:host_admission:19",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 19,
+      "failure": "bindings: predicate false: evidence.is_absolute() and evidence.resolve() == evidence",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "54b928a8281681c455843cef1c99fe4f9833ec4848f438bf2397164a33e00af7",
+          "failure": "evidence root must be an absolute canonical path",
+          "id": "orchestration:host_admission:19",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/repo\", evidence: \"relative\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0/overlay\" }",
+          "input_sha256": "ca26ec33b31edf7eb5e45f21a41b25cc39c1ffeef06b50e14048e7473ad1dbbc",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:21",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 21,
+      "failure": "bindings: predicate false: scratch.is_absolute() and scratch.resolve() == scratch",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "ba20f89d6c61c470913a5caa39cd0b71183954e339c92f87b0791adfbf540ab5",
+          "failure": "scratch must be an absolute canonical path",
+          "id": "orchestration:host_admission:21",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/evidence\", scratch: \"relative\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1/overlay\" }",
+          "input_sha256": "f8696a87dda25ff08000a53fac5ad5f8ac9c97708fc2e04f21059bed306b712e",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:23",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 23,
+      "failure": "bindings: predicate false: scratch.parent.is_dir()",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "fb4321184b7f1ff001405ef91caef478813517c0debf14275887473f73f593fa",
+          "failure": "scratch parent must already exist",
+          "id": "orchestration:host_admission:23",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/absent/child\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2/overlay\" }",
+          "input_sha256": "341b775b2973bc2a44ae88ad57864bd3cf26a398880b6d51a11b3b392225457f",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:24",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 24,
+      "failure": "bindings: predicate false: not scratch.is_relative_to(REPO) and not REPO.is_relative_to(scratch)",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "b91bf1aeee8703d71e8f52d6ff1d60b104ebf84a6ae87f618a21670a9c5d4654",
+          "failure": "scratch overlaps candidate source",
+          "id": "orchestration:host_admission:24",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/repo/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3/overlay\" }",
+          "input_sha256": "b65e989ef45bac6a241241e8674be64d41ab53c45c22e92afa6c4a17b0ff14c3",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:26",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 26,
+      "failure": "bindings: predicate false: not scratch.is_relative_to(evidence) and not evidence.is_relative_to(scratch)",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "b608f39b78f51a91b5c8a27217c89c1962d6b1ca0b888bc9a381917370e302c8",
+          "failure": "scratch overlaps evidence root",
+          "id": "orchestration:host_admission:26",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/evidence/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4/overlay\" }",
+          "input_sha256": "55d5ff7ed2a5780617c88fc6f32f7505004b957e156afeafcc0179a47cf1c682",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:29",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 29,
+      "failure": "bindings: predicate false: isinstance(paths, dict) and set(paths) == {'TMPDIR', 'GOTMPDIR'}",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "afbff5e895aa6d860a9c7d5707bb8978ecaca5ec778b331668f818472dec6467",
+          "failure": "explicit TMPDIR and GOTMPDIR scratch bindings required",
+          "id": "orchestration:host_admission:29",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/scratch/go\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5/overlay\" }",
+          "input_sha256": "4209a7e5da00f778a087240da3ed43ea00028493fefa3bc5b3188d0f87e3fe17",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:33",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 33,
+      "failure": "bindings: predicate false: path.is_absolute() and path.resolve() == path and path.parent == scratch",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "4377c1cbe0b17ac3143d3a8852e5783e4af7c0359eb6070bea81762cc22ee9cb",
+          "failure": "temporary path must be a direct canonical scratch child",
+          "id": "orchestration:host_admission:33",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/elsewhere\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6/overlay\" }",
+          "input_sha256": "9ea3ce87459076a441f42037ed1e238da7bada08599e2c84f2b9e82fdfedd7c8",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:35",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 35,
+      "failure": "bindings: predicate false: key not in config.get('environment', {}) or config['environment'][key] == name",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "ac5fa5ff5d00b784a8970b9f13f9bcf2f87c320513c660b5ea960c356f1953ad",
+          "failure": "conflicting temporary environment binding",
+          "id": "orchestration:host_admission:35",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/scratch/tmp\"}, environment: {\"TMPDIR\": \"conflict\"}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7/overlay\" }",
+          "input_sha256": "6f8dc99092c279412abcb562c4160e9d1a52fdb8949f81ee5087d4ab41afae03",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:37",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 37,
+      "failure": "bindings: predicate false: len(set(paths.values())) == 2",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/overlay\" }",
+          "control_result": "accepted",
+          "control_sha256": "e1be74822496caa56be1b6ddeafaae6937e3ceaf1868fc5372a47e8263f50fba",
+          "failure": "temporary paths must be distinct",
+          "id": "orchestration:host_admission:37",
+          "input": "Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/scratch/go\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8/overlay\" }",
+          "input_sha256": "db9ec4d5f13d03cbfe33de58794a416278f827cab926ae98a62ab68a7bff5a34",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:48",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 48,
+      "failure": "filesystem_type: predicate false: re.fullmatch(r'[a-zA-Z0-9._-]+', kind) is not None",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Facts { change: None, fail: false }",
+          "control_result": "accepted",
+          "control_sha256": "bb00bba0f980fd4849d843d7d0804ebcb3a001d11902d854b1a0d26dda4a80f0",
+          "failure": "unrecognized filesystem result",
+          "id": "orchestration:host_admission:48",
+          "input": "Facts { change: Some((\"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-10\", Filesystem { kind: \"ext4\\nspoof\", available_bytes: 68719476736 })), fail: false }",
+          "input_sha256": "272053b8da347160ad3364b3c9a089c36c02b5170cfa6b6bd7dd652c394f20e1",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:68",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 68,
+      "failure": "admit: predicate false: not scratch.exists()",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/overlay\" }, \"scratch absent\")",
+          "control_result": "accepted",
+          "control_sha256": "92489a1b2698789988836278589f9df0fe5d4c58c1f430c08cb91194b09563de",
+          "failure": "scratch must be fresh",
+          "id": "orchestration:host_admission:68",
+          "input": "(Bindings { repo: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/repo\", evidence: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/evidence\", scratch: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch\", temporary_paths: {\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/tmp\"}, environment: {}, config_sha256: \"authenticated-fixture-config\", host: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/host\", overlay: \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/overlay\" }, \"scratch exists\")",
+          "input_sha256": "1a01192ac78364ebe6b3d429abd56df8b1845701183f18ad9598f0b23238d15d",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:71",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 71,
+      "failure": "admit: predicate false: prior['status'] == 'PASS' and prior['config_sha256'] == config['_config_sha256']\n                    and prior['scratch'] == str(scratch)",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "\"authenticated-fixture-config\"",
+          "control_result": "accepted",
+          "control_sha256": "67fc9f38286549f3d50042ae13279d1fca73ef9057f111fb32846fbaf9e02538",
+          "failure": "missing authenticated initial host admission",
+          "id": "orchestration:host_admission:71",
+          "input": "\"changed\"",
+          "input_sha256": "9abf9994927acc503ec87e4433239aee75bb937357616bf8cca0290a1f3aa60a",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:73",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 73,
+      "failure": "admit: predicate false: scratch.is_dir() and all(Path(name).is_dir() for name in paths.values())",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "({\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/tmp\"}, \"all exist\")",
+          "control_result": "accepted",
+          "control_sha256": "a63aa95bd767a5fb0066035ee4862978613d156426df6f59df2dbf084d88f8e8",
+          "failure": "admitted temporary paths disappeared",
+          "id": "orchestration:host_admission:73",
+          "input": "({\"GOTMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/go\", \"TMPDIR\": \"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16/scratch/tmp\"}, \"TMPDIR removed\")",
+          "input_sha256": "d6874798d0f962bf0548f02dceb843f5271aa42166db7de5a2a9017baf8d718d",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:79",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 79,
+      "failure": "admit: predicate false: 'fuse' not in kind and kind != 'virtiofs'",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Facts { change: None, fail: false }",
+          "control_result": "accepted",
+          "control_sha256": "bb00bba0f980fd4849d843d7d0804ebcb3a001d11902d854b1a0d26dda4a80f0",
+          "failure": "scratch filesystem refused",
+          "id": "orchestration:host_admission:79",
+          "input": "Facts { change: Some((\"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-11\", Filesystem { kind: \"virtiofs\", available_bytes: 68719476736 })), fail: false }",
+          "input_sha256": "addcaa9b0d2d4bbd607be74875c7deeb2d3b290e8a1322302f68453c9eb02cf5",
+          "result": "refused"
+        },
+        {
+          "control": "Facts { change: None, fail: false }",
+          "control_result": "accepted",
+          "control_sha256": "bb00bba0f980fd4849d843d7d0804ebcb3a001d11902d854b1a0d26dda4a80f0",
+          "failure": "scratch filesystem refused",
+          "id": "orchestration:host_admission:79",
+          "input": "Facts { change: Some((\"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-12\", Filesystem { kind: \"fuseblk\", available_bytes: 68719476736 })), fail: false }",
+          "input_sha256": "f76a413ace5e2a1f09b3bc10db2c584bfb85acca14d8c4e2dee88af9e8a40184",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:81",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 81,
+      "failure": "admit: predicate false: volume['available_bytes'] >= MIN_FREE_BYTES",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Facts { change: None, fail: false }",
+          "control_result": "accepted",
+          "control_sha256": "bb00bba0f980fd4849d843d7d0804ebcb3a001d11902d854b1a0d26dda4a80f0",
+          "failure": "filesystem free byte floor: /home/agent/.cache/codex-build/tmp/gomad-admission-512814-13 requires 12884901888",
+          "id": "orchestration:host_admission:81",
+          "input": "Facts { change: Some((\"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-13\", Filesystem { kind: \"ext4\", available_bytes: 12884901887 })), fail: false }",
+          "input_sha256": "a4677003f4d1fcfc44673c496058042656845bceda7ba83b0ac3eda0c7618c09",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "orchestration:host_admission:90",
+      "source": "tools/gomad/rust/driver/host_admission.py",
+      "source_sha256": "9048ec27663dc887fa20fc539ff17a93f5d95886e8fb9adc6e8cb3dba59b8e6f",
+      "line": 90,
+      "failure": "admit: error/policy path: (except (Refusal, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError))",
+      "trust_boundary_ref": "driver",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "Facts { change: None, fail: false }",
+          "control_result": "accepted",
+          "control_sha256": "bb00bba0f980fd4849d843d7d0804ebcb3a001d11902d854b1a0d26dda4a80f0",
+          "failure": "fixture probe failed",
+          "id": "orchestration:host_admission:90",
+          "input": "Facts { change: Some((\"/home/agent/.cache/codex-build/tmp/gomad-admission-512814-14\", Filesystem { kind: \"ext4\", available_bytes: 68719476736 })), fail: true }",
+          "input_sha256": "9cf6859b9881f78bb14f6c32f28ef454b93c080790edbe372697bfc96995bf43",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:166:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 166,
+      "failure": "memory_decimal: ValueError(\"bounded unsigned decimal memory value required\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "bounded unsigned decimal memory value required",
+          "id": "workload-callback:producer:raise:166:8",
+          "input": "(\"+1\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "input_sha256": "0d54aea2e31c448342f30583a6e780168d0e10f80bae8cd346b192b6bc8127e7",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:176:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 176,
+      "failure": "memory_admission: ValueError(\"positive decimal memory admission threshold required\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "positive decimal memory admission threshold required",
+          "id": "workload-callback:producer:raise:176:8",
+          "input": "(\"0\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "input_sha256": "a7844f5f8fbe2381255104b0453fea74ee31771ef4f657f884b7a9964e1d1da4",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:179:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 179,
+      "failure": "memory_admission: ValueError(\"explicit memory admission requires Linux MemAvailable\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "explicit memory admission requires Linux MemAvailable",
+          "id": "workload-callback:producer:raise:179:8",
+          "input": "(\"1\", \"darwin\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "input_sha256": "3b3a138c777f7aa573e6c4b0d45a28d5346544a8e522888f7f31217fd6e95706",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:187:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 187,
+      "failure": "memory_admission: ValueError(\"MemAvailable observation exceeds 8KiB\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "MemAvailable observation exceeds 8KiB",
+          "id": "workload-callback:producer:raise:187:8",
+          "input": "(\"1\", \"linux\", \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\")",
+          "input_sha256": "0b6c2e665740e0ded9f6b3a0e52f160cbd121f060cab931eb24f5bec89f46d35",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:194:12",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 194,
+      "failure": "memory_admission: ValueError(\"unique exact MemAvailable field in kB required\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "unique exact MemAvailable field in kB required",
+          "id": "workload-callback:producer:raise:194:12",
+          "input": "(\"1\", \"linux\", \"MemAvailable: 1024 MB\\n\")",
+          "input_sha256": "c95a6079a189ecf209f26add977aef8518437731f821e5bf308443e07671ca8e",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:198:12",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 198,
+      "failure": "memory_admission: ValueError(\"MemAvailable byte conversion overflow\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "MemAvailable byte conversion overflow",
+          "id": "workload-callback:producer:raise:198:12",
+          "input": "(\"1\", \"linux\", \"MemAvailable: 18446744073709551615 kB\\n\")",
+          "input_sha256": "15487d25e4f9ad96270fb8784f7543e1623178bad2e978164835e6d3b3b6e27b",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:201:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 201,
+      "failure": "memory_admission: ValueError(\"MemAvailable observation missing\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "MemAvailable missing",
+          "id": "workload-callback:producer:raise:201:8",
+          "input": "(\"1\", \"linux\", \"MemTotal: 1024 kB\\n\")",
+          "input_sha256": "9ed444f74d093447c62b2f7d386084673adbf3ce9e2cccff33f4c6540f7488ad",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    },
+    {
+      "id": "workload-callback:producer:raise:203:8",
+      "source": "tools/gomad/rust/workload_tools/producer.py",
+      "source_sha256": "e73eee42ca1c477cc9f4d5ec451407caeaa001da026c6a61e879afe8beec7343",
+      "line": 203,
+      "failure": "memory_admission: ValueError(\"insufficient available memory before helper dispatch\")",
+      "trust_boundary_ref": "producer",
+      "rust_source_hashes": {
+        "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+        "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+        "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+        "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+        "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+        "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+        "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+      },
+      "observations": [
+        {
+          "control": "(\"1048576\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "control_result": "accepted",
+          "control_sha256": "30b31d644dae0bfa650c43e8c77b0277cabfa26f393ce7ba41127089225e018f",
+          "failure": "insufficient available memory before helper dispatch",
+          "id": "workload-callback:producer:raise:203:8",
+          "input": "(\"1048577\", \"linux\", \"MemTotal: 20 kB\\nMemAvailable: 1024 kB\\n\")",
+          "input_sha256": "6c6959a53693210db2b1b1e91ffdb3d6b2865b74e46e6d96201a80d8e2c56fa2",
+          "result": "refused"
+        }
+      ],
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0
+    }
+  ],
+  "policy": {
+    "policy-ambiguous-spawn": {
+      "test": "journal::tests::owner_cases",
+      "facts": "Two actual gated forks interrupted before journal PID publication retain charges; separate OS process reopen charged2 refuses third; actual Runner NoChild refunds.",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0,
+      "fixture_source_sha256": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780"
+    },
+    "policy-fixed-enrollment": {
+      "test": "enrollment_is_explicit_and_missing_binding_never_recreates_history; retained_outputs_and_partial_initial_enrollment_refuse; stable_lock_survives_binding_publication_and_concurrent_initial_contenders; corruption_and_crash_gaps_fail_closed_after_independent_reopen; live_replacement_and_floor_failure_never_charge",
+      "facts": "Explicit creation only, concurrent single history, missing binding refuses fresh outputs; independent policy/path/inode/digest/count/journal/sentinel/symlink/crashgap/torn/invalid-refund mutations refuse.",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0,
+      "fixture_source_sha256": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780"
+    },
+    "policy-reservation-resource-floors": {
+      "test": "journal::tests::floor_cases; admission::tests::reservation_resource_floors_exact_boundary_and_one_byte_below",
+      "facts": "HOST48318382079 overlay21474836479 inner12884901887 each refuses beforecharge/spawn. Exact45/20/12GiB executes true exit0. Probe failure, nonoverlay scratch, replaced tmp identity and foreign output refuse.",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "numeric_exit": 0,
+      "fixture_source_sha256": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780"
+    }
+  },
+  "mutants": [
+    {
+      "name": "refund",
+      "source": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-refund-source.rs",
+      "source_sha256": "b26c23437f6aa408fbc228dd08d061f73c877b362ef0c79900834d17d9488d56",
+      "tests_source": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-journal-tests.rs",
+      "tests_sha256": "a7a49774234e2d5b429908735401f2d0bee312618b2195f153619ebccde72467",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-refund.log",
+      "numeric_exit": 101,
+      "intended_failure": "Created charge expected1 actual0",
+      "restored_control_log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "restored_control_exit": 0,
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --test cycle_journal_owner"
+    },
+    {
+      "name": "digest",
+      "source": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-digest-source.rs",
+      "source_sha256": "0c0bbabab515cf329117c8a4610d9b009fa735cc7a9e32cbe6eb1a5ecdd15101",
+      "tests_source": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-journal-tests.rs",
+      "tests_sha256": "a7a49774234e2d5b429908735401f2d0bee312618b2195f153619ebccde72467",
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-digest.log",
+      "numeric_exit": 101,
+      "intended_failure": "mutation digest incorrectly reopened",
+      "restored_control_log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log",
+      "restored_control_exit": 0,
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib cycle::journal::tests::corruption_and_crash_gaps_fail_closed_after_independent_reopen -- --exact --test-threads=1 --nocapture"
+    }
+  ],
+  "source_hashes": {
+    "tools/gomad/rust/gomad/Cargo.toml": "abb691d955eb810db6ed2741f768526f9b7b712abee683131693291c821a3e8d",
+    "tools/gomad/rust/gomad/src/cycle/admission/mod.rs": "8563d367470324b066a39b1efcc37571461a095a033e267b1f9986802fede011",
+    "tools/gomad/rust/gomad/src/cycle/admission/tests.rs": "f7c3f9b72f80a35f2feed0b9d34e9c60a426efc2e767310def0cd739531d2c7f",
+    "tools/gomad/rust/gomad/src/cycle/journal/mod.rs": "9f40cf37366b6c54a9f9b80c07e401b13c4526a8004990ba6210ade39be62a58",
+    "tools/gomad/rust/gomad/src/cycle/journal/owner_fixture.rs": "a6a25590d9649a025faeb5d1c66798be95f4aade4675d33542e84a07dec64c87",
+    "tools/gomad/rust/gomad/src/cycle/journal/tests.rs": "110b0498abf345f36337954bde2c1e5e49bfde1a58b7314784b40c3f50a37780",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "86cfc506b52c6467ab01af6224388b75237d31ac00a44f33b225dd0e643bcffd",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "08cb23c64376b63eb2f5ef26e1c6647e59ef0e5011b34b8128b13458a18ce655"
+  },
+  "pids_rechecked_absent": [
+    509513,
+    509514,
+    509515,
+    509516,
+    509517,
+    509518,
+    509519,
+    511019,
+    511020,
+    512850,
+    512851,
+    512852,
+    512853,
+    512854,
+    512855,
+    512856
+  ],
+  "fixture_roots_rechecked_absent": [
+    "/home/agent/.cache/codex-build/tmp/cycle-journal-509512-1",
+    "/home/agent/.cache/codex-build/tmp/cycle-journal-512849-1",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-0",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-1",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-10",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-11",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-12",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-13",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-14",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-16",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-2",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-3",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-4",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-5",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-6",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-7",
+    "/home/agent/.cache/codex-build/tmp/gomad-admission-512814-8"
+  ],
+  "operational_binding_lexists": false,
+  "operational_mutations": 0,
+  "full_qualification_dispatches": 0,
+  "first_exploratory_exit": "inconclusive: wrapper numeric exit unobserved; summary29passed not used as gate evidence",
+  "final_command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+  "final_exit": 0,
+  "source_model_execution_metadata": "not exposed; omitted",
+  "gates": {
+    "cycle": {
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' test --locked --release -p gomad --lib --test cycle_journal_owner cycle:: -- --test-threads=1 --nocapture",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log"
+    },
+    "clippy": {
+      "command": "cargo +1.99.1 --config 'profile.release.package.gomad.opt-level=0' clippy --locked --release -p gomad --lib --no-deps -- -D warnings",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/clippy-2.log"
+    },
+    "fmt": {
+      "command": "cargo +1.99.1 fmt --all -- --check",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/fmt.log"
+    },
+    "diff": {
+      "command": "git diff --check",
+      "numeric_exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b02-attempt-admission/diff-check.log"
+    }
+  },
+  "build_environment": {
+    "working_directory": "/home/agent/wt/fn242-b02-attempt-admission/tools/gomad/rust",
+    "removed_prefixes": [
+      "GIT_",
+      "SANDBOX_"
+    ],
+    "removed_variables": [
+      "GOROOT"
+    ],
+    "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-cycle8-repair27-target",
+    "CARGO_BUILD_JOBS": "1",
+    "profile_override": "profile.release.package.gomad.opt-level=0",
+    "GOENV": "off",
+    "GOTOOLCHAIN": "local",
+    "GOWORK": "off",
+    "stock_go_path_prefix": "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin",
+    "suite_timeout_seconds": 600,
+    "test_threads": 1
+  },
+  "historical_launcher_sha256": "0ec5a6d93495b883952daa6df284224ef94d70be45251133e65eb17b39d7d143",
+  "commits": [
+    "150d06af1da8c0b390e4c0820a6772a47ca90a12"
+  ],
+  "base_commit": "b634c0b24743386ce3040170c443ddcd854fb305",
+  "commands_running": [],
+  "target_released": true,
+  "conductor_integration": {
+    "source_commit": "3d942494c8ddf1da0c490482228d19033236baed",
+    "worker_source_commit": "150d06af1da8c0b390e4c0820a6772a47ca90a12",
+    "audit": {
+      "original_check_ids": 24,
+      "matched_control_input_observations": 25,
+      "current_source_files": 8,
+      "log_sha256": {
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/final-cycle-test.log": "f987d82d7525cd24825396bf3fb309408ec2cf413fdadedf61bb3ff63a5b1010",
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/clippy-2.log": "e82dad99ed32c0d9bfa30d2575ffa37e82fff4dd2b7e346477cdfe13b010e311",
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-refund.log": "871a05d17500424dfb5ae732d0cc2dbaf13b06b3c10ee0e432f02f56519c34e9",
+        "/home/agent/wt/evidence/fn242-b02-attempt-admission/mutant-digest.log": "0a956a75148100ba0428aa4c8510845a827fe239e0a18cc57f8685366a983d59"
+      },
+      "pids_absent": 16,
+      "fixture_roots_absent": 17,
+      "policies": 3,
+      "operational_binding_absent": true,
+      "historical_launcher_unchanged": true
+    },
+    "audit_path": "/home/agent/wt/evidence/fn242-b02-attempt-admission/root-handoff-audit.json",
+    "root_results": "/home/agent/wt/evidence/fn242-b02-attempt-admission/root-integration/results.json",
+    "review": "pending one fresh high B02 draw",
+    "qualification_credit": false
+  }
+}
