@@ -1,0 +1,34 @@
+{
+  "branch_name": "fn-245-finite-collections-sets-maps-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T15:55:50.547037Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-237-activity-timeouts-heartbeat-and"
+  ],
+  "id": "fn-245-finite-collections-sets-maps-and",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-245-finite-collections-sets-maps-and.md",
+  "status": "open",
+  "title": "Finite collections: sets, maps and bounded lists in Models, admitted across native, interpreted and TLC checking (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T15:56:08.167947Z"
+}

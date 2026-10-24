@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T15:56:07.307059Z",
+  "depends_on": [
+    "fn-245-finite-collections-sets-maps-and.1"
+  ],
+  "id": "fn-245-finite-collections-sets-maps-and.2",
+  "priority": null,
+  "spec": "fn-245-finite-collections-sets-maps-and",
+  "spec_path": ".flow/tasks/fn-245-finite-collections-sets-maps-and.2.md",
+  "status": "todo",
+  "title": "Front-end admission of imbl OrdSet, OrdMap and the extended Vector method table; native value export; interpreter evaluation",
+  "updated_at": "2026-10-24T15:56:07.307059Z"
+}

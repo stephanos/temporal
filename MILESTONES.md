@@ -143,6 +143,24 @@ semantics and proves restored admission. This parent stays open until that follo
 | --- | --- | --- |
 | fn-243.5 | ⏸️ blocked | After .4 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40/fn-228 R7 evidence (R2, R5) |
 
+### fn-245: Finite collections: sets, maps and bounded lists in Models (model)
+
+Captured on 2026-10-24 after the owner answered four questions one at a time: shared fixtures are the
+consumer now and the workflow Model later; finite element domains now with the IR shaped so unbounded
+forms are additive later (Apalache or SMT arrays own those); authors write `imbl::OrdSet`, `imbl::OrdMap`
+and `imbl::Vector` with a plain method table, no DSL vocabulary; placed after fn-237.5 and before fn-240
+is revived, since it edits the same front-end, IR, interpreter and TLC crates as fn-237.1/.2. Three
+fixtures (`finite_sets`, `finite_maps`, `bounded_queue`) carry lift, interpreter and TLC goldens; the set
+fixture supplies the measurement fn-238.6 could not take. Depends on fn-237.
+[Spec](.flow/specs/fn-245-finite-collections-sets-maps-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-245.1 | ⬜ todo | After fn-237.5: IR set/map types, canonical values, expression nodes (R1) |
+| fn-245.2 | ⬜ todo | After .1: front-end admission and method table, native value export, interpreter evaluation (R2, R3) |
+| fn-245.3 | ⬜ todo | After .1: TLA+ emission (subsets, functions with `Absent`, quantifiers, Head/Tail) and typed TLC decoding (R4) |
+| fn-245.4 | ⬜ todo | After .2, .3: the three fixtures with goldens, differential and TLC agreement, fn-238.6 sets measurement, DESIGN and README (R3 to R6) |
+
 ### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
 
 Captured on 2026-10-23 from the positive native symbolic spike (`model/design/native-symbolic-backend.md`;
