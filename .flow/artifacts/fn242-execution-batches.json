@@ -8292,7 +8292,11 @@
       ],
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/producers/installed/**",
-        "tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**"
+        "tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**",
+        "tools/gomad/rust/Cargo.toml",
+        "tools/gomad/rust/gomad/Cargo.toml",
+        "tools/gomad/rust/Cargo.lock",
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.28": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**",
@@ -8540,7 +8544,8 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 3
+      "earliest_review_wave": 3,
+      "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target."
     },
     {
       "id": "B10",
@@ -8577,7 +8582,8 @@
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/producers/build/**",
         "tools/gomad/rust/gomad/src/cycle/producers/identity/**",
-        "tools/gomad/rust/gomad/src/cycle/producers/primary/**"
+        "tools/gomad/rust/gomad/src/cycle/producers/primary/**",
+        "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.29": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/build/**",
@@ -8972,7 +8978,8 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 3
+      "earliest_review_wave": 3,
+      "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit."
     },
     {
       "id": "B11",
@@ -9009,7 +9016,8 @@
       "declared_touch_union": [
         "tools/gomad/rust/gomad/src/cycle/producers/reference/**",
         "tools/gomad/rust/gomad/src/cycle/producers/sqlite_terminal/**",
-        "tools/gomad/rust/gomad/src/cycle/producers/workload/**"
+        "tools/gomad/rust/gomad/src/cycle/producers/workload/**",
+        "tools/gomad/rust/gomad/src/cli/qualify.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9256,7 +9264,8 @@
         "fresh_context": true
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
-      "earliest_review_wave": 3
+      "earliest_review_wave": 3,
+      "provisional_scope_extension": "B11 additionally owns exact tools/gomad/rust/gomad/src/cli/qualify.rs solely for fn-232.33 nonprovisional mandatory storage/network/clusters missing-compile-cache preflight (status 2, named reason, before expensive execution). Preserve provisional behavior and use existing installation admission/cache accessors. Producer installs pass --compile-cache ROOT/engine-cache; actual standalone within_budget and every nonfirst cache_hit proof remains required. This source extension supplies no fn-232.33 completion by itself; conductor reconciles actual evidence. Additional accessor changes require an exact seam declaration."
     },
     {
       "id": "B12",

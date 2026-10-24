@@ -41,3 +41,10 @@ TBD
 ## Owner-authorized batch B11 (workload-reference-oracle-producers)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.30, fn-242-gomad-shrink-the-qualification.32, fn-242-gomad-shrink-the-qualification.33. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
+
+
+## Provisional execution and exact conductor scope extension (owner throughput amendment, 2026-10-24)
+
+Source implementation may start against the named B03/B04 provisional interfaces under commit 6dba9571b4. Original dependencies remain unchanged; formal admission, integration, final validation, review and completion wait for actual predecessor receipts. One source writer for this batch, no heavy slot until explicit lease.
+
+B11 additionally owns exact tools/gomad/rust/gomad/src/cli/qualify.rs solely for fn-232.33 nonprovisional mandatory storage/network/clusters missing-compile-cache preflight (status 2, named reason, before expensive execution). Preserve provisional behavior and use existing installation admission/cache accessors. Producer installs pass --compile-cache ROOT/engine-cache; actual standalone within_budget and every nonfirst cache_hit proof remains required. This source extension supplies no fn-232.33 completion by itself; conductor reconciles actual evidence. Additional accessor changes require an exact seam declaration.

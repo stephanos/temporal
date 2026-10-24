@@ -42,3 +42,10 @@ TBD
 ## Owner-authorized batch B09 (static-installed-producers)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.28, fn-242-gomad-shrink-the-qualification.31. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
+
+
+## Provisional execution and exact conductor scope extension (owner throughput amendment, 2026-10-24)
+
+Source implementation may start against the named B03/B04 provisional interfaces under commit 6dba9571b4. Original dependencies remain unchanged; formal admission, integration, final validation, review and completion wait for actual predecessor receipts. One source writer for this batch, no heavy slot until explicit lease.
+
+B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target.

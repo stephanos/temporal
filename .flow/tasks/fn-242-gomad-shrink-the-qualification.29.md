@@ -41,3 +41,10 @@ TBD
 ## Owner-authorized batch B10 (build-primary-identity-producers)
 
 This task is the execution leader for fn-242-gomad-shrink-the-qualification.29, fn-242-gomad-shrink-the-qualification.40, fn-242-gomad-shrink-the-qualification.41. Before implementation or review, read every member task and `.flow/artifacts/fn242-execution-batches.json`. Implement every member's original acceptance and exact proof ownership in the manifest's internal order. Reserve the full Touches union and wait for every external dependency. Use shared genuine fixtures, one independent whole-batch review (1 draw(s)), and representative high-risk source mutants. Member task receipts follow actual batch SHIP in topological order with per-member evidence; no internal review/worker barrier or acceptance waiver.
+
+
+## Provisional execution and exact conductor scope extension (owner throughput amendment, 2026-10-24)
+
+Source implementation may start against the named B03/B04 provisional interfaces under commit 6dba9571b4. Original dependencies remain unchanged; formal admission, integration, final validation, review and completion wait for actual predecessor receipts. One source writer for this batch, no heavy slot until explicit lease.
+
+B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit.
