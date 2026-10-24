@@ -35,6 +35,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	runv1 "umpire.local/model/gen/umpire/run/v1"
 	"umpire.local/model/runner"
 	"umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
@@ -196,6 +197,71 @@ func requireAllExplained(t *testing.T, invocation umpireInvocation) {
 	}
 }
 
+const unheldCancelScopeMessage = "unheld cancellation of an open activity is outside the atomic cancellation Model"
+
+func isUnheldCancelScopeRefusal(run *runner.Run) bool {
+	refused := run.GetVerdict().GetRefused()
+	events := run.GetEvents()
+	if refused == nil || len(events) < 4 || refused.GetEvent() != uint64(len(events)-1) {
+		return false
+	}
+	event := events[refused.GetEvent()]
+	refusal := event.GetRefusal()
+	if event.GetSequence() != refused.GetEvent() || event.GetDriverEvent() != 0 ||
+		refusal.GetMethod() != modelv1.Method_METHOD_PROPOSE ||
+		refusal.GetRefusal().GetCode() != modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED ||
+		refusal.GetRefusal().GetMessage() != unheldCancelScopeMessage ||
+		refused.GetReason() != "model refused METHOD_PROPOSE: REFUSAL_CODE_UNSUPPORTED: "+unheldCancelScopeMessage {
+		return false
+	}
+	request := new(modelv1.ProposeRequest)
+	if proto.Unmarshal(refusal.GetRequest(), request) != nil || request.GetSeed()%2 != 0 ||
+		request.GetSeed() != runner.ProposalSeed(run.GetSeed(), event.GetRequest()) {
+		return false
+	}
+	var proposals uint64
+	for _, previous := range events[:len(events)-1] {
+		if previous.GetRefusal() != nil || previous.GetDriverFault() != nil || previous.GetAnswer() != nil {
+			return false
+		}
+		if proposal := previous.GetProposal(); proposal != nil {
+			proposals++
+			if proposal.GetResponse().GetAction() == "Client::Cancel" {
+				return false
+			}
+		}
+		if judgment := previous.GetJudgment(); judgment != nil {
+			if judgment.GetResponse().GetExplained() == nil {
+				return false
+			}
+			observation := new(realizationv1.Observation)
+			if judgment.GetRequest().GetObservation().UnmarshalTo(observation) != nil ||
+				observation.GetMethod() == workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName ||
+				observation.GetRequest().MessageIs(new(workflowservice.RequestCancelActivityExecutionRequest)) {
+				return false
+			}
+		}
+	}
+	return event.GetRequest() == proposals+1 && event.GetRequest() >= 2
+}
+
+func requireSupportedActivityRuns(t *testing.T, invocation umpireInvocation) {
+	t.Helper()
+	explained := umpireInvocation{code: runner.ExitExplained, runs: map[string]*runner.Run{}}
+	expectedCode := runner.ExitExplained
+	for path, run := range invocation.runs {
+		if run.GetVerdict().GetRefused() == nil {
+			explained.runs[path] = run
+		} else {
+			require.True(t, isUnheldCancelScopeRefusal(run), "%s: unexpected refusal: %v", path, run.GetVerdict())
+			expectedCode = runner.ExitRefused
+		}
+	}
+	require.Equal(t, expectedCode, invocation.code, "stdout: %s\nstderr: %s", invocation.stdout, invocation.stderr)
+	require.NotEmpty(t, explained.runs, "the mixed exploration must exercise supported Runs")
+	requireAllExplained(t, explained)
+}
+
 func (s *umpireSlice) program(world string) string {
 	t := s.t
 	t.Helper()
@@ -315,11 +381,36 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			driverEnv := s.driverEnv(namespace, queue)
 			driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = kind, s.program(world)
 			invocation := s.run(driverEnv, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
-			requireAllExplained(t, invocation)
+			requireSupportedActivityRuns(t, invocation)
 			require.Len(t, invocation.runs, 21)
 			for _, run := range invocation.runs {
 				requireWorkerRun(t, run, kind, namespace, queue)
 			}
+			t.Run("UnheldCancelScope", func(t *testing.T) {
+				_, run := invocationRun(t, invocation, 4)
+				require.True(t, isUnheldCancelScopeRefusal(run), "verdict: %v", run.GetVerdict())
+				require.Equal(t, uint64(2), run.GetEvents()[run.GetVerdict().GetRefused().GetEvent()].GetRequest())
+				require.Empty(t, explainedSteps(run), "the refusal precedes the first open-activity action")
+				for _, forged := range []struct {
+					name   string
+					change func(*runner.Run)
+				}{
+					{"reason", func(run *runner.Run) { run.Verdict.GetRefused().Reason += " forged" }},
+					{"verdict", func(run *runner.Run) {
+						run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Unexplained{Unexplained: &runv1.Unexplained{Event: 3}}}
+					}},
+					{"cancel-rpc", func(run *runner.Run) {
+						run.Events[2].GetJudgment().Request.Observation = modelSliceAny(t, &realizationv1.Observation{
+							Method:  workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName,
+							Request: modelSliceAny(t, new(workflowservice.RequestCancelActivityExecutionRequest)),
+						})
+					}},
+				} {
+					changed := proto.CloneOf(run)
+					forged.change(changed)
+					require.False(t, isUnheldCancelScopeRefusal(changed), "forged %s must not pass the scope control", forged.name)
+				}
+			})
 			t.Run("Complete", func(t *testing.T) {
 				path, run := invocationRun(t, invocation, 3)
 				require.Contains(t, explainedSteps(run), "Worker::RespondCompleted Accepted")
@@ -359,10 +450,11 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			if kind == "raw" {
 				raw = invocation
 			} else {
-				for _, seed := range []uint64{1, 3, 19, 21} {
+				for _, seed := range []uint64{1, 3, 4, 19, 21} {
 					_, rawRun := invocationRun(t, raw, seed)
 					_, sdkRun := invocationRun(t, invocation, seed)
 					require.Equal(t, judgmentPath(rawRun), judgmentPath(sdkRun), "seed %d has identical judgments", seed)
+					require.True(t, proto.Equal(rawRun.GetVerdict(), sdkRun.GetVerdict()), "seed %d has identical verdicts", seed)
 				}
 			}
 			t.Run("HostRefusal", func(t *testing.T) {
@@ -484,7 +576,7 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 			}
 		}
 		invocation := s.runObserved(driverEnv, observer, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
-		requireAllExplained(t, invocation)
+		requireSupportedActivityRuns(t, invocation)
 		require.Len(t, invocation.runs, 21)
 		for _, run := range invocation.runs {
 			requireWorkerRun(t, run, "raw", provisioned, queue)

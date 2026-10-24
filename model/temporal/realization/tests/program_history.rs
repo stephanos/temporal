@@ -259,7 +259,7 @@ fn reconciled(acknowledged: &Observation, current: &Observation) -> Any {
 fn cancellation(
     runtime: &mut impl Dispatch,
 ) -> umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
-    let Outcome::Propose(proposal) = invoke(runtime, 6, &protocol::ProposeRequest { seed: 0 })
+    let Outcome::Propose(proposal) = invoke(runtime, 6, &protocol::ProposeRequest { seed: 2 })
     else {
         panic!("cancel")
     };
@@ -270,32 +270,55 @@ fn cancellation(
         .unwrap_or_else(|error| panic!("{error:?}"))
 }
 
+fn read_terminal(runtime: &mut impl Dispatch, program: &WorkerProgram, scenario: &str) {
+    let Outcome::Propose(read) = invoke(runtime, 6, &protocol::ProposeRequest { seed: 1 }) else {
+        panic!("normal read")
+    };
+    assert_eq!(read.kind, protocol::ProposalKind::Read as i32);
+    let Outcome::Judge(closed) = invoke(
+        runtime,
+        4,
+        &protocol::JudgeRequest {
+            observation: Some(Any::pack(&terminal(program, scenario, 1, false))),
+        },
+    ) else {
+        panic!("terminal read")
+    };
+    assert!(!closed.continue_polling);
+    let Some(protocol::judge_response::Judgment::Explained(explanation)) = closed.judgment else {
+        panic!("terminal read must be explained")
+    };
+    assert_eq!(
+        explanation.steps,
+        [
+            "Worker::Poll(1)",
+            if scenario == "Fail" {
+                "Worker::RespondFailed { retryable: false }"
+            } else {
+                "Worker::RespondCompleted"
+            }
+        ]
+    );
+}
+
 #[test]
 fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
     for (seed, scenario, wrong) in
         [(0, "Complete", false), (2, "Fail", false), (0, "Complete", true), (2, "Fail", true)]
     {
         let (mut runtime, program) = setup(seed);
-        assert!(matches!(
-            invoke(
-                &mut runtime,
-                4,
-                &protocol::JudgeRequest {
-                    observation: Some(Any::pack(&common::describe(1, 1, 2)))
-                }
-            ),
-            Outcome::Judge(_)
-        ));
+        read_terminal(&mut runtime, &program, scenario);
         let Outcome::Propose(cancel) =
             invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 })
         else {
-            panic!("cancel")
+            panic!("terminal cancellation")
         };
         let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = cancel
             .request
             .unwrap_or_else(|| panic!("instruction"))
             .unpack()
             .unwrap_or_else(|e| panic!("{e:?}"));
+        assert!(!instruction.hold_worker_polls);
         let mut observation = terminal(&program, scenario, 1, wrong && scenario != "Fail");
         if wrong && scenario == "Fail" {
             let Some(ResultValue::Response(value)) = observation.result.take() else {
@@ -339,16 +362,12 @@ fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
             invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
             Outcome::Refusal(_)
         ));
-        let ack = Observation {
-            method:
-                "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-                    .into(),
-            request: instruction.request,
-            result: Some(ResultValue::Error(umpire_runtime::realization::Error {
-                code: 5,
-                message: "activity execution closed".into(),
-            })),
+        let Some(protocol::judge_response::Judgment::Explained(explanation)) = judgment.judgment
+        else {
+            panic!("fresh terminal evidence must be explained")
         };
+        assert_eq!(explanation.steps, [] as [String; 0]);
+        let ack = cancel_ack(instruction.request);
         let Outcome::Judge(judgment) =
             invoke(&mut runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(&ack)) })
         else {
@@ -409,7 +428,7 @@ fn cancel_reconciliation_describe_must_match_the_exact_instruction_request() {
 fn cancel_reconciliation_requires_the_actual_not_found_acknowledgment() {
     let (mut runtime, program) = setup(0);
     assert!(matches!(
-        invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
+        invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 2 }),
         Outcome::Propose(_)
     ));
     let observation = terminal(&program, "Complete", 1, false);
@@ -506,7 +525,7 @@ fn compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts
 fn reconciliation_context_changes_only_after_publication_and_clears_on_final_ack() {
     let (mut runtime, program) = setup(0);
     let (proposal, transaction) =
-        runtime.prepare(6, &protocol::ProposeRequest { seed: 0 }.encode_to_vec());
+        runtime.prepare(6, &protocol::ProposeRequest { seed: 2 }.encode_to_vec());
     let Some(Outcome::Propose(proposal)) = proposal.outcome else { panic!("cancel") };
     let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = proposal
         .request
@@ -709,5 +728,60 @@ fn describe_rejects_failure_history_and_outcomes_that_contradict_the_observed_ph
             wrong,
             "{phase:?}/{variation}: {judgment:?}"
         );
+    }
+}
+
+#[test]
+fn unheld_open_cancellation_is_refused_before_a_proposal_becomes_pending() {
+    for (started, seed) in [(true, 18), (false, 0)] {
+        let (mut runtime, program) = setup(0);
+        if started {
+            let Outcome::Judge(judgment) = invoke(
+                &mut runtime,
+                4,
+                &protocol::JudgeRequest {
+                    observation: Some(Any::pack(&common::describe(1, 1, 2))),
+                },
+            ) else {
+                panic!("delivery")
+            };
+            assert!(matches!(
+                judgment.judgment,
+                Some(protocol::judge_response::Judgment::Explained(_))
+            ));
+        }
+        let Outcome::Refusal(refusal) = invoke(&mut runtime, 6, &protocol::ProposeRequest { seed })
+        else {
+            panic!("unheld open cancellation must refuse: started={started}, seed={seed}")
+        };
+        assert_eq!(refusal.code(), protocol::RefusalCode::Unsupported);
+        assert_eq!(
+            refusal.message,
+            "unheld cancellation of an open activity is outside the atomic cancellation Model"
+        );
+        let Outcome::Propose(read) = invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 1 })
+        else {
+            panic!("refusal must leave no pending proposal")
+        };
+        assert_eq!(read.kind, protocol::ProposalKind::Read as i32);
+        let Outcome::Judge(judgment) = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest {
+                observation: Some(Any::pack(&terminal(&program, "Complete", 1, false))),
+            },
+        ) else {
+            panic!("terminal evidence")
+        };
+        assert!(matches!(
+            judgment.judgment,
+            Some(protocol::judge_response::Judgment::Explained(_))
+        ));
+        let Outcome::Propose(cancel) =
+            invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 })
+        else {
+            panic!("terminal cancellation remains realizable")
+        };
+        assert_eq!(cancel.action, "Client::Cancel");
     }
 }

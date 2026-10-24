@@ -125,6 +125,12 @@ impl Realization {
         if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
             return Ok(Proposal::Read { request: read });
         }
+        let hold = state.phase == Phase::Scheduled && seed & 2 != 0;
+        if !umpire_dsl::Phase::closed(&state.phase) && !hold {
+            return Err(Refusal::unsupported(
+                "unheld cancellation of an open activity is outside the atomic cancellation Model",
+            ));
+        }
         Ok(Proposal::Action {
             action: Client::Cancel.into(),
             request: Any::pack(&umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
@@ -134,7 +140,7 @@ impl Realization {
                     run_id: context.run_id.clone(),
                     ..Default::default()
                 })),
-                hold_worker_polls: state.phase == Phase::Scheduled && seed & 2 != 0,
+                hold_worker_polls: hold,
                 not_found_read: Some(read),
             }),
         })

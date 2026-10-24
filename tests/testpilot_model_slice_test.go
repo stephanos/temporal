@@ -4,7 +4,11 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -12,17 +16,13 @@ import (
 	"go.temporal.io/server/tools/umpire/temporaldriver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"testing"
-	"time"
-	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	model "umpire.local/model/host"
-	"umpire.local/model/runner"
-
-	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	model "umpire.local/model/host"
+	"umpire.local/model/runner"
 	temporalmodel "umpire.local/temporal"
 )
 
@@ -71,22 +71,36 @@ func modelSliceProgrammedTransport(t *testing.T) {
 				Transport: act.Transport{DialOptions: []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithChainUnaryInterceptor(intercept)}},
 			})
 			require.NoError(t, err)
-			run, err := runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, Seed: seed, Budget: 7, RunTimeout: time.Minute})
+			var run *runner.Run
+			var recorded uint64
+			_, err = runner.New(temporalmodel.Guest(), factory.New).Run(t.Context(), runner.ModeExplore, runner.Options{World: world, Seed: seed, Budget: 7, RunTimeout: time.Minute, Record: func(_ context.Context, current *runner.Run) error {
+				recorded++
+				if current.GetVerdict().GetRefused() != nil {
+					require.True(t, isUnheldCancelScopeRefusal(current), "unexpected transport refusal: %v", current.GetVerdict())
+				} else {
+					if current.GetVerdict().GetExplained() == nil {
+						data, err := protojson.Marshal(current)
+						require.NoError(t, err)
+						t.Logf("transport run=%s", data)
+					}
+					require.NotNil(t, current.GetVerdict().GetExplained(), "kind=%s seed=%d verdict=%v", kind, current.Seed, current.GetVerdict())
+				}
+				for _, event := range current.GetEvents() {
+					packed := event.GetJudgment().GetRequest().GetObservation()
+					if packed != nil {
+						annotations.actual(t, packed)
+					}
+				}
+				if current.GetSeed() == seed {
+					run = current
+				}
+				return nil
+			}})
 			require.NoError(t, err)
-			if run.GetVerdict().GetExplained() == nil {
-				data, err := protojson.Marshal(run)
-				require.NoError(t, err)
-				t.Logf("transport run=%s", data)
-			}
+			require.Equal(t, seed, recorded)
+			require.NotNil(t, run, "the selected supported scenario must be recorded")
 			require.NotNil(t, run.GetVerdict().GetExplained(), "kind=%s seed=%d verdict=%v", kind, seed, run.GetVerdict())
 			require.NoError(t, factory.Close(t.Context()))
-			for _, event := range run.GetEvents() {
-				packed := event.GetJudgment().GetRequest().GetObservation()
-				if packed == nil {
-					continue
-				}
-				annotations.actual(t, packed)
-			}
 
 			_, err = workflowservice.NewWorkflowServiceClient(conn).PollActivityExecution(t.Context(), &workflowservice.PollActivityExecutionRequest{Namespace: start.Namespace, ActivityId: start.ActivityId})
 			require.NoError(t, err)

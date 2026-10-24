@@ -215,7 +215,7 @@ fn pending_cancel_rejects_unrequested_describe_until_its_matching_invocation_fin
     let mut guest = Guest::new(annotation_runtime());
     configure(&mut guest);
     admit(&mut guest);
-    let cancel = propose(&mut guest, 0);
+    let cancel = propose(&mut guest, 2);
     assert_eq!(cancel.action, "Client::Cancel");
     let mut unrequested = common::describe(1, 2, 0);
     let mut request: DescribeActivityExecutionRequest = unrequested

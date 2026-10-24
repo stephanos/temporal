@@ -175,7 +175,16 @@ fn bootstrap_scenario_is_in_header_and_reads_and_seeded_cancel_hold_are_action_d
         for (seed, held) in [(0, false), (2, true)] {
             let (cancel, _) =
                 runtime.prepare(6, &protocol::ProposeRequest { seed }.encode_to_vec());
-            let Some(Outcome::Propose(cancel)) = cancel.outcome else { panic!("cancel") };
+            if !held {
+                let Some(Outcome::Refusal(refusal)) = cancel.outcome else {
+                    panic!("unheld cancellation refusal")
+                };
+                assert_eq!(refusal.code(), protocol::RefusalCode::Unsupported);
+                continue;
+            }
+            let Some(Outcome::Propose(cancel)) = cancel.outcome else {
+                panic!("held cancellation")
+            };
             assert_eq!(cancel.kind, protocol::ProposalKind::Action as i32);
             assert_eq!(cancel.action, "Client::Cancel");
             let instruction: TemporalInstruction = cancel

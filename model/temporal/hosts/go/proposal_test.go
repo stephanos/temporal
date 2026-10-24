@@ -2,6 +2,7 @@ package temporal_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	activitypb "go.temporal.io/api/activity/v1"
@@ -191,8 +192,7 @@ func TestProposalReviewedRaces(t *testing.T) {
 					t.Fatalf("post-terminal proposal: %v %v", next, err)
 				}
 			} else {
-				deliver(t, h)
-				cancel, err := h.Propose(ctx, &modelv1.ProposeRequest{})
+				cancel, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 2})
 				if err != nil || cancel.GetAction() != "Client::Cancel" {
 					t.Fatalf("cancel: %v %v", cancel, err)
 				}
@@ -210,10 +210,18 @@ func TestProposalReviewedRaces(t *testing.T) {
 	}
 }
 
-func TestCancelHoldIsSeededWithoutChangingTheAction(t *testing.T) {
+func TestOpenCancellationRequiresPollContainment(t *testing.T) {
 	for _, seed := range []uint64{0, 2} {
 		h, _, _ := configuredGuest(t, 0)
 		proposal, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
+		if seed == 0 {
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
+			var refused *model.RefusalError
+			if proposal != nil || !errors.As(err, &refused) || refused.Message != "unheld cancellation of an open activity is outside the atomic cancellation Model" {
+				t.Fatalf("unheld cancellation must refuse before issuing an instruction: %v %v", proposal, err)
+			}
+			continue
+		}
 		if err != nil || proposal.GetAction() != "Client::Cancel" || proposal.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_ACTION {
 			t.Fatalf("cancel: %v %v", proposal, err)
 		}

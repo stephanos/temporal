@@ -1,0 +1,15 @@
+# Successful cancellation can remain pending
+
+The final source live umbrella at `75e5b78c6d3a486e8f986a403503167fbb248952` exited 2. Its SDK seed 18 Run is retained as both exact proto-JSON and canonical binary. Guest SHA256 is `13e91f833a1c3696fa57dc04b551eb6631a9313e896d9a4e259f7dd0e3a0f55d`; program SHA256 is `518a416709b0ec47f968ff6f97fba0cfa6dc536bce59f233d59906f0497548cd`.
+
+Bootstrap started RetryThenComplete. Event 4 records a successful first Cancel, explained as Client::Cancel Accepted. The next Cancel records code 9, `cancellation already requested with request ID ...`, at event 6, correctly Unexplained under the current Model. Both requests and acknowledgments are retained. No post-cancel Describe was requested in this Run, so no terminal outcome is inferred.
+
+The public server handler in `chasm/lib/activity/operator_commands.go`, `handleCancellationRequested`, returns success after entering CancelRequested. It enters Canceled immediately only when no attempt is in progress. A different cancellation request while CancelRequested returns FailedPrecondition. `TransitionCompleted` and `TransitionFailed` in `chasm/lib/activity/statemachine.go` admit CancelRequested as a source phase.
+
+The independent Model in `model/temporal/feature/activity/model.rs` makes Client::Cancel atomic: every open phase becomes Canceled; later Cancel rejects NotFound. The realization maps successful Cancel to that Accepted action. Translating the observed FailedPrecondition to NotFound would falsify actual evidence. Waiting for a terminal read alone does not establish that a successful Cancel canceled the activity, because worker completion/failure remains legal from CancelRequested.
+
+The exact Run replayed through the current embedded guest with a Driver constructor that fails if called: Driver calls 0, Unexplained event 6, proto.Equal(recorded,replayed). The binary can also be replayed with `umpire replay --model <guest-at-the-source-commit.wasm> --run <cancel-ack-pending-1.binpb>`; exit 1 and the recorded Unexplained verdict are expected. No server is needed. The guest bytes are preserved at the source commit above.
+
+This evidence has not authorized a Model edit or a changed mapping. The raw matrix and restored ProvisionLifecycle passed in the same umbrella invocation; the SDK matrix failed on this retained Run. Required Model timing verification is recorded separately and cannot turn that live failure green.
+
+The conductor subsequently authorized a realization scope restriction: an unheld Cancel in an open Model state is Refused at Propose, before sending Cancel. The exact Unsupported message is `unheld cancellation of an open activity is outside the atomic cancellation Model`. Separate raw/SDK production-adapter tests prove bootstrap Start1 and Cancel0. Held cancellation before worker start and terminal cancellation remain exercised; open-state unheld cancellation remains a deferred cooperative-Model obligation for fn-237. The original Run remains a real mismatch and is replayed using its original guest, not reclassified as explained.
