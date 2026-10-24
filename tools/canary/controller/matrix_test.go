@@ -22,7 +22,7 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/protobuf/types/known/anypb"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

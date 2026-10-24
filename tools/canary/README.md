@@ -1,7 +1,7 @@
 # Production canary
 
 `tools/canary` runs the committed activity Model against a dedicated canary namespace in
-production through the Runner (`umpire.local/model/umpire/runner`) and the Temporal Driver
+production through the Runner (`umpire.local/model/runner`) and the Temporal Driver
 (`common/testing/testpilot/temporal/act`). Each invocation makes at most two serial Runs under one
 lease. Each Run starts one fresh activity on the canary task queue, whose in-process worker the
 Model answers, and is judged by the Model: Explained, Unexplained or Refused. Each Run is published

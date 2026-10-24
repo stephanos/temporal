@@ -22,7 +22,7 @@ import (
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/anypb"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 )
 
 var invokeCoordinates = authority.Coordinates{

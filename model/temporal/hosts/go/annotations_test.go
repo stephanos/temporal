@@ -9,9 +9,9 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
-	model "umpire.local/model"
-	annotationsv1 "umpire.local/model/umpire/annotations/v1"
-	modelv1 "umpire.local/model/umpire/model/v1"
+	model "umpire.local/model/host"
+	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
 )
 
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {

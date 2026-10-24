@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package umpire.annotations.v1;
 
-option go_package = "umpire.local/model/umpire/annotations/v1";
+option go_package = "umpire.local/model/gen/umpire/annotations/v1";
 
 
 message AnnotationRequest {

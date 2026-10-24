@@ -5,8 +5,8 @@ import (
 	"errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
-	model "umpire.local/model"
-	annotationsv1 "umpire.local/model/umpire/annotations/v1"
+	model "umpire.local/model/host"
+	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

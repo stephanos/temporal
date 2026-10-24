@@ -1,11 +1,11 @@
 # Go model host
 
-This isolated module runs the generated model v1 contract using wazero v1.12.0
+Package `umpire.local/model/host` runs the generated model v1 contract using wazero v1.12.0
 with Go 1.27.0 and `CGO_ENABLED=0`. It uses wazero's interpreter with experimental
 WebAssembly exception handling enabled for Rust unwinding. It has no dependency
 on the server module.
-The protobuf sources are under `../../proto/umpire/{model,realization,annotations}/v1`;
-generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
+The protobuf sources are under `../../proto/umpire/{model,realization,annotations,run}/v1`;
+generated Go under `gen/umpire/` uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
 Build the stock and generic control guests with the unwind profile before running:
 
@@ -13,18 +13,20 @@ Build the stock and generic control guests with the unwind profile before runnin
 # From model/:
 bash scripts/tests/build-guests.sh
 # From model/umpire/hosts/go:
-UMPIRE_CAUGHT_PANIC_WASM=../../../target/wasm32-wasip1/guest/caught_panic_control.wasm \
-UMPIRE_OVERFLOW_WASM=../../../target/wasm32-wasip1/guest/overflow_control.wasm \
-UMPIRE_PANIC_NATIVE=../../../target/panic-native \
+target="${CARGO_TARGET_DIR:-$(cd ../../.. && pwd)/target}"
+UMPIRE_CAUGHT_PANIC_WASM="$target/wasm32-wasip1/guest/caught_panic_control.wasm" \
+UMPIRE_OVERFLOW_WASM="$target/wasm32-wasip1/guest/overflow_control.wasm" \
+UMPIRE_PANIC_NATIVE="$target/panic-native" \
 CGO_ENABLED=0 mise exec -- go test -tags test_dep -count=1 ./...
-CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=5x -count=1
-CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=1
+CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=5x -count=1 ./host
+CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=1 ./host
 ```
 
 Tests resolve `UMPIRE_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/guest/umpire_stock_guest.wasm`, then the same path
-under `../../../target`. A missing artifact is an error. The parity test compares
-the report and every ordered row against the native trait Kettle fixtures.
+under `../../../../target` relative to `host/`. A missing artifact is an error.
+Kettle parity and live service tests live in the separate module at
+`../../reference/kettle`; the default model gate runs both modules.
 Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/guest/stateful_control.wasm`, with the same
 local-target fallback. Both guest crates link the export-free `umpire-runtime` library.
@@ -83,7 +85,7 @@ and value-free result classification independently of a system's probe controls.
 
 ## Runner
 
-Package `umpire.local/model/umpire/runner` is the one host loop. A `Runner` holds one guest's
+Package `umpire.local/model/runner` is the one host loop. A `Runner` holds one guest's
 bytes and a Driver factory. Each Run gets a fresh `Host` and a fresh Driver: Reset with the
 selected world, then Propose, have the Driver act, Judge every observation and Answer every
 callback, until the Model answers `QUIESCENT`, a proposal or event budget is spent, or an

@@ -29,7 +29,7 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"go.temporal.io/server/tools/canary/testharness"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

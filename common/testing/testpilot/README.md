@@ -2,7 +2,7 @@
 
 Testpilot is what remains of the Go test runtime after fn-228 made the Runner the one host loop.
 The Model judges every observation and answers every callback; the Runner
-(`umpire.local/model/umpire/runner`, see `model/umpire/hosts/go/README.md`) asks it to Propose,
+(`umpire.local/model/runner`, see `model/umpire/hosts/go/README.md`) asks it to Propose,
 Judge and Answer, drives a Driver and records a Run. Testpilot keeps only the Temporal mechanics
 that loop acts through.
 

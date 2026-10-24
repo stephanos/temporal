@@ -23,8 +23,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
-	"umpire.local/model/umpire/runner"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	"umpire.local/model/runner"
 )
 
 type pollOutcome int

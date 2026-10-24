@@ -15,7 +15,7 @@ if [ "$(mise exec -- protoc --version)" != 'libprotoc 29.5' ]; then
   printf 'wrong protoc version; expected mise-pinned libprotoc 29.5\n' >&2
   exit 1
 fi
-output="$PWD/umpire/hosts/go"
+output="$PWD/umpire/hosts/go/gen"
 if [ "${1:-}" = --check ]; then
   output=$(mktemp -d)
   trap 'rm -rf "$output"' EXIT
@@ -29,15 +29,10 @@ mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
   umpire/proto/umpire/annotations/v1/annotations.proto \
   umpire/proto/umpire/run/v1/run.proto
 if [ "${1:-}" = --check ]; then
-  for generated in "$output"/umpire/*/; do
-    diff -ru "umpire/hosts/go/umpire/$(basename "$generated")" "$generated"
-  done
-  # The tree holds only generated packages and the hand-written runner package beside them.
-  for present in umpire/hosts/go/umpire/* umpire/hosts/go/umpire/.[!.]*; do
-    [ -e "$present" ] || [ -L "$present" ] || continue
-    if [ "$present" != umpire/hosts/go/umpire/runner ] && { [ -L "$present" ] || [ ! -d "$present" ] || [ ! -d "$output/umpire/$(basename "$present")" ]; }; then
-      printf 'not generated: %s\n' "$present" >&2
-      exit 1
-    fi
-  done
+  linked=$(find umpire/hosts/go/gen -type l -print -quit)
+  if [ -n "$linked" ]; then
+    printf 'not generated: %s\n' "$linked" >&2
+    exit 1
+  fi
+  diff -ru umpire/hosts/go/gen "$output"
 fi

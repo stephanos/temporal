@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

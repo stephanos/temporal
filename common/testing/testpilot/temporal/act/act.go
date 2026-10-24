@@ -27,9 +27,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
-	runv1 "umpire.local/model/umpire/run/v1"
-	"umpire.local/model/umpire/runner"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	runv1 "umpire.local/model/gen/umpire/run/v1"
+	"umpire.local/model/runner"
 )
 
 // The Options defaults.

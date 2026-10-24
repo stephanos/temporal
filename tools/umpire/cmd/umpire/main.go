@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 )
 
 // cleanupTimeout bounds removing what the Temporal Driver provisioned.

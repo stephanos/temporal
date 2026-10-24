@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package umpire.run.v1;
-option go_package = "umpire.local/model/umpire/run/v1;runv1";
+option go_package = "umpire.local/model/gen/umpire/run/v1;runv1";
 
 import "google/protobuf/any.proto";
 import "umpire/model/v1/model.proto";

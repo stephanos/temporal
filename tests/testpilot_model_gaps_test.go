@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	model "umpire.local/model"
-	annotationsv1 "umpire.local/model/umpire/annotations/v1"
+	model "umpire.local/model/host"
+	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )

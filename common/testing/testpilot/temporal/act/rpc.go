@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 )
 
 // service is the generated WorkflowService descriptor every proposed request is sent through.

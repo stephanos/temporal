@@ -45,7 +45,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/common/testing/testpilot`: Testpilot, the runtime that prepares, runs and evaluates a Case
 - `/config`: configuration files and templates
 - `/docs`: documentation
-- `/model`: the Umpire Rust Cargo workspace, with the DSL, checker, shared fixtures, wasm guest and Go host under `umpire/` (`umpire/hosts/go` is a separate Go module)
+- `/model`: the Umpire Rust Cargo workspace, with the DSL, checker, shared fixtures, wasm guest and Go host under `umpire/` (`umpire/hosts/go` is a separate Go module with `host`, `runner` and generated `gen` packages; Kettle's Go server/tests use their own module at `umpire/reference/kettle`)
 - `/model/archived`: the frozen Scala framework and Temporal Models, retained with history for reference
 - `/proto`: proto definitions for internal services
 - `/schema`: database schema definitions for core databases store and visibility store

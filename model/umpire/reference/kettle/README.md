@@ -15,8 +15,10 @@ with the receipt's action and include the kettle identity.
 From `model/`, run `mise exec -- cargo test -p umpire-reference-kettle`.
 The guest uses the common pinned builder via `make model-check` at repository root.
 
-The Go server and generated API live in the generic host module at
-`umpire/hosts/go/reference/kettle` and `reference/kettle/v1`. Regenerate with
+The Go server, native/wasm parity and live host tests live here in module
+`umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
+replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
+from `umpire.local/model/host`. Regenerate with
 `bash model/scripts/proto-kettle-go.sh` at repository root; `--check` verifies
 the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
 The host test requires the built guest and fails if it is missing.
@@ -34,7 +36,7 @@ per-kettle tag limit through the shared resolved-limit context. The live guest u
 
 The native `tests/probes.rs` checks the catalog coverage snapshot. Refresh it with
 `UMPIRE_UPDATE_KETTLE_COVERAGE=1 mise exec -- cargo test -p umpire-reference-kettle --test probes`.
-The Go actual-wire probe test owns `expected/gaps.txt`; from `model/umpire/hosts/go`,
+The Go actual-wire probe test owns `expected/gaps.txt`; from `model/umpire/reference/kettle`,
 refresh with `UMPIRE_UPDATE_KETTLE_GAPS=1 go test -tags test_dep -run '^TestKettleAnnotationCoverageAndActualWireGaps$' -count=1 .`.
 Invalid probes bypass normal request filling so the original bytes reach the server;
 unsupported mutations and transport failures cannot establish a server finding.

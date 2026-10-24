@@ -15,9 +15,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	modelv1 "umpire.local/model/umpire/model/v1"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
-	"umpire.local/model/umpire/runner"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	"umpire.local/model/runner"
 )
 
 func task(token string) *workflowservice.PollActivityTaskQueueResponse {

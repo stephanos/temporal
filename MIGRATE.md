@@ -64,7 +64,10 @@ Use sibling checkouts under a developer-chosen parent:
 Today Cargo workspace `path` dependencies link the in-tree generic and Temporal
 crates. Root `go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal`
 with `model/umpire/hosts/go` and `model/temporal/hosts/go`; the extension module also
-replaces the generic host locally. The real server/SDK slice already consumes both.
+replaces the generic host locally. The generic module exposes `host`, `runner` and
+`gen/umpire/.../v1`; Kettle's Go server/tests live in their own module at
+`model/umpire/reference/kettle`, replacing the generic module with `../../hosts/go`.
+The real server/SDK slice already consumes both host modules.
 These local references require no publication. The post-extraction setup below preserves
 that development property; extraction and publication have not run.
 

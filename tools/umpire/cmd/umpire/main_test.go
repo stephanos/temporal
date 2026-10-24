@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

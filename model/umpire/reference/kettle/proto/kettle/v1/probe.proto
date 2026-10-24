@@ -1,6 +1,6 @@
 syntax = "proto3";
 package umpire.reference.kettle.v1;
-option go_package = "umpire.local/model/reference/kettle/v1;kettlev1";
+option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
 import "umpire/annotations/v1/annotations.proto";
 
 // Consumer setup slots; probe observations and results use the shared protocol.

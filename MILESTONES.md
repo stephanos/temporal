@@ -76,7 +76,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228.6 → fn-244.2 → fn-243 → fn-228.7 → fn-238 → fn-237 (fn-243 moved before fn-228.7 and fn-237 on 2026-10-24 so R40 is written once and fn-237 gets the hold fault; fn-242 runs in the parallel lane before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228.6 → fn-244.2 → fn-244.1 → fn-243 → fn-228.7 → fn-237 (the owner placed all of fn-244 before fn-243 on 2026-10-24; fn-243 precedes fn-228.7 and fn-237 so R40 is written once and fn-237 gets the hold fault; fn-242 runs in the parallel lane before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -105,7 +105,7 @@ publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner
 (.5), superseded by fn-243. .6 is complete locally: the legacy Testpilot packages are retired with a
 coverage map, generic runtime 23,117 -> 1,647 and total 33,851 -> 3,317 non-test lines, the canary
 runs the activity Model through the Runner behind an allowlist fence, and every gate passed
-(572.0s gate, 8.9s inner loop). fn-244.2 and then .7 remain.
+(572.0s gate, 8.9s inner loop). fn-244 and fn-243 precede .7.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
@@ -120,14 +120,14 @@ choices as recommended. Crates move into role directories (`author/`, `front/`, 
 `protocol/`, `catalog/`, `hosts/go/`, `reference/kettle/`, `dev/`); `umpire-lift` becomes
 `umpire-tla` and owns the subprocess supervision TLC and Apalache share; `umpire-annotations` merges
 into `umpire-catalog`; a new `umpire` facade gives Model authors one dependency; the Go module splits
-into `host`, `runner` and `gen`; `model/README.md` gains a crate map. No behaviour change; goldens
+into `host`, `runner` and `gen`; `model/README.md` gains a crate map. The owner placed both tasks before fn-243 on 2026-10-24; .2 finishes first, followed by the serialized Rust freeze in .1. No behaviour change; goldens
 byte-identical except listed path-embedding snapshots; the guest is rebuilt.
 [Spec](.flow/specs/fn-244-package-layout-of-modelumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-244.1 | ⬜ todo | Serialized freeze after fn-238 and fn-242 close, before fn-237.1: Rust crates into role directories, `umpire-tla`, catalog merge, facade, crate map (R1, R3) |
-| fn-244.2 | ⬜ todo | After fn-228.6, before fn-228.7: Go module split into `host`, `runner`, `gen`; Kettle Go under `reference/kettle` (R2) |
+| fn-244.2 | 🔄 in progress | After fn-228.6, before fn-228.7: Go module split into `host`, `runner`, `gen`; Kettle Go under `reference/kettle` (R2) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 

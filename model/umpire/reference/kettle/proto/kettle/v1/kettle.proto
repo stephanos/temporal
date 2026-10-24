@@ -1,6 +1,6 @@
 syntax = "proto3";
 package umpire.reference.kettle.v1;
-option go_package = "umpire.local/model/reference/kettle/v1;kettlev1";
+option go_package = "umpire.local/kettle/gen/kettle/v1;kettlev1";
 import "google/protobuf/duration.proto";
 service KettleService {
   rpc Fill(FillRequest) returns (FillResponse);

@@ -22,8 +22,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/anypb"
-	runv1 "umpire.local/model/umpire/run/v1"
-	"umpire.local/model/umpire/runner"
+	runv1 "umpire.local/model/gen/umpire/run/v1"
+	"umpire.local/model/runner"
 )
 
 // testGuest stands for the Model guest; the scripted Runs never execute it.

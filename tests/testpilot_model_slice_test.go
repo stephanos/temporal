@@ -29,9 +29,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"umpire.local/model"
-	modelv1 "umpire.local/model/umpire/model/v1"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
+	model "umpire.local/model/host"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	temporalmodel "umpire.local/temporal"
 )
 

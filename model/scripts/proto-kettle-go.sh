@@ -16,7 +16,7 @@ case "$("$plugin" --version)" in
 esac
 [ "$("$grpc_plugin" --version)" = 'protoc-gen-go-grpc 1.3.0' ] || { printf 'wrong protoc-gen-go-grpc version\n' >&2; exit 1; }
 [ "$(mise exec -- protoc --version)" = 'libprotoc 29.5' ] || { printf 'wrong protoc version; expected 29.5\n' >&2; exit 1; }
-output="$PWD/umpire/hosts/go/reference"
+output="$PWD/umpire/reference/kettle/gen"
 if [ "$#" -eq 1 ] && [ "$1" = --check ]; then
   output=$(mktemp -d)
   trap 'rm -rf "${output:?}"' EXIT
@@ -30,5 +30,5 @@ mise exec -- protoc --plugin="protoc-gen-go=$plugin" --plugin="protoc-gen-go-grp
   umpire/reference/kettle/proto/kettle/v1/kettle.proto \
   umpire/reference/kettle/proto/kettle/v1/probe.proto
 if [ "${1:-}" = --check ]; then
-  diff -ru umpire/hosts/go/reference/kettle/v1 "$output/kettle/v1"
+  diff -ru umpire/reference/kettle/gen "$output"
 fi

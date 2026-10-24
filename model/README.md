@@ -58,7 +58,11 @@ path is allowed. Offenses report deterministic relative file/line diagnostics.
 
 Cargo resolves all crates through local workspace `path` dependencies. The server's
 `go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal` with the
-two in-tree host modules; the latter replaces the former locally as well. No publication
+two in-tree host modules; the latter replaces the former locally as well.
+The generic Go module separates `hosts/go/host` (wasm transport), `hosts/go/runner`
+(the host loop), and `hosts/go/gen/umpire` (generated protocol packages).
+Kettle's Go server and host tests form a third module at `umpire/reference/kettle`,
+with a local replacement onto `../../hosts/go`; the model gate tests all three modules. No publication
 is needed for uncommitted local changes. Extraction remains a plan in `../MIGRATE.md`;
 Temporal's Models, generated API and realization stay in the server repository.
 
@@ -130,7 +134,7 @@ single-mutant servers. Healthy-equivalent no-op responses, missing witness regis
 unknown mutants and transport failures cannot count as detection. Select a server-local
 mutation with `kettle.Options{Mutant: name}`; `kettle.Mutants()` lists the supported names.
 These controls run in `make model-check`. The focused differential run took 20.546 s;
-the full Go host suite took 39.087 s and `make model-check` took 546.668 s, exceeding
+the full Go host and Kettle suites took 39.087 s and `make model-check` took 546.668 s, exceeding
 R30's 60 s soft target.
 
 ## Writing a Model

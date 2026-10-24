@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"google.golang.org/protobuf/types/known/anypb"
-	modelv1 "umpire.local/model/umpire/model/v1"
-	realizationv1 "umpire.local/model/umpire/realization/v1"
-	"umpire.local/model/umpire/runner"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 

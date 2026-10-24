@@ -14,8 +14,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	modelv1 "umpire.local/model/umpire/model/v1"
-	"umpire.local/model/umpire/runner"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	"umpire.local/model/runner"
 	"umpire.local/temporal"
 )
 

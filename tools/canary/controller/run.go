@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"umpire.local/model/umpire/runner"
+	"umpire.local/model/runner"
 )
 
 // An iteration's status: the Run's verdict, or failed when no Run was made or the loop could not

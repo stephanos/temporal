@@ -11,8 +11,8 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	annotationsv1 "umpire.local/model/umpire/annotations/v1"
-	modelv1 "umpire.local/model/umpire/model/v1"
+	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	temporalmodel "umpire.local/temporal"
 )
 

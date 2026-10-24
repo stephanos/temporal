@@ -11,7 +11,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
-	v1 "umpire.local/model/umpire/annotations/v1"
+	v1 "umpire.local/model/gen/umpire/annotations/v1"
 	unsafe "unsafe"
 )
 

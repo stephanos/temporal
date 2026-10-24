@@ -23,8 +23,8 @@ const (
 // and protocol schemas, the shared envelopes, and Temporal's read instruction. Never the Host,
 // the guest or the Realization.
 var actImports = []string{
-	"umpire.local/model/umpire/runner", "umpire.local/model/umpire/run/v1", "umpire.local/model/umpire/model/v1",
-	"umpire.local/model/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
+	"umpire.local/model/runner", "umpire.local/model/gen/umpire/run/v1", "umpire.local/model/gen/umpire/model/v1",
+	"umpire.local/model/gen/umpire/realization/v1", "umpire.local/temporal/umpire/temporal/v1",
 }
 
 // forbiddenPrefixes are what no Testpilot package imports: repository tests, Umpire tooling and
@@ -104,10 +104,10 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			other + " imports " + serverModule + "tools/umpire/ir"},
 		"a package imports the canary": {testpilotPackage{ImportPath: other, Imports: []string{serverModule + "tools/canary/policy"}},
 			other + " imports " + serverModule + "tools/canary/policy"},
-		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"umpire.local/model/umpire/runner"}},
-			other + " imports the Model host umpire.local/model/umpire/runner"},
-		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/model"}},
-			actPackage + " imports the Model host umpire.local/model"},
+		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"umpire.local/model/runner"}},
+			other + " imports the Model host umpire.local/model/runner"},
+		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/model/host"}},
+			actPackage + " imports the Model host umpire.local/model/host"},
 		"the Driver imports the guest outside its tests": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal"}},
 			actPackage + " imports the Model host umpire.local/temporal"},
 	} {

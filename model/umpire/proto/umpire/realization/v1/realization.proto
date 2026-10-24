@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package umpire.realization.v1;
 
-option go_package = "umpire.local/model/umpire/realization/v1";
+option go_package = "umpire.local/model/gen/umpire/realization/v1";
 
 import "google/protobuf/any.proto";
 

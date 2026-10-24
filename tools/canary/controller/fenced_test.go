@@ -9,8 +9,8 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
-	runv1 "umpire.local/model/umpire/run/v1"
-	"umpire.local/model/umpire/runner"
+	runv1 "umpire.local/model/gen/umpire/run/v1"
+	"umpire.local/model/runner"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
