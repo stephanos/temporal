@@ -9,12 +9,16 @@ import (
 
 	"github.com/google/uuid"
 	"go.temporal.io/api/workflowservice/v1"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
 	runv1 "umpire.local/model/umpire/run/v1"
 	"umpire.local/model/umpire/runner"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
-// ErrOutsideFence is a start the fence does not name: another activity, or any other execution.
+// ErrOutsideFence is a request the fence does not admit: one on another activity, or any request
+// but the canary World's activity calls.
 var ErrOutsideFence = errors.New("the canary starts only the activity its fence names")
 
 // activityPrefix begins every activity ID the canary fences, a fresh UUID after it.
@@ -33,14 +37,36 @@ func IsActivityID(id string) bool {
 	return err == nil && parsed.String() == rest
 }
 
-// startPrefix begins the full name of every WorkflowService request that creates an execution.
-const startPrefix = "temporal.api.workflowservice.v1.Start"
+// activityRequest is a WorkflowService request on one activity, which the fence admits only for
+// its own activity ID.
+type activityRequest interface {
+	proto.Message
+	GetActivityId() string
+}
 
-// startActivity is the one start the fence admits, for its own activity ID.
-var startActivity = (&workflowservice.StartActivityExecutionRequest{}).ProtoReflect().Descriptor().FullName()
+// unaryRequests and readRequests are the only requests the fence admits, sent alone or inside the
+// Temporal Driver's read instruction: the canary World's activity calls. A start is admitted only
+// unary, never as a read.
+var (
+	unaryRequests = map[protoreflect.FullName]func() activityRequest{
+		name(&workflowservice.StartActivityExecutionRequest{}):         func() activityRequest { return new(workflowservice.StartActivityExecutionRequest) },
+		name(&workflowservice.RequestCancelActivityExecutionRequest{}): func() activityRequest { return new(workflowservice.RequestCancelActivityExecutionRequest) },
+		name(&workflowservice.DescribeActivityExecutionRequest{}):      func() activityRequest { return new(workflowservice.DescribeActivityExecutionRequest) },
+		name(&workflowservice.PollActivityExecutionRequest{}):          func() activityRequest { return new(workflowservice.PollActivityExecutionRequest) },
+	}
+	readRequests = map[protoreflect.FullName]func() activityRequest{
+		name(&workflowservice.DescribeActivityExecutionRequest{}): func() activityRequest { return new(workflowservice.DescribeActivityExecutionRequest) },
+		name(&workflowservice.PollActivityExecutionRequest{}):     func() activityRequest { return new(workflowservice.PollActivityExecutionRequest) },
+	}
+	readInstruction = name(&temporalv1.ObserveActivity{})
+)
 
-// fencedDriver wraps one Run's Driver so the Run can start nothing but the activity the lease
-// already names: cleanup and reconcile act only on the fence's IDs, so they can never miss an
+func name(message proto.Message) protoreflect.FullName {
+	return message.ProtoReflect().Descriptor().FullName()
+}
+
+// fencedDriver wraps one Run's Driver so the Run can send nothing but the activity calls on the
+// activity the lease already names: cleanup and reconcile act only on the fence's IDs, so they can never miss an
 // execution the canary started.
 type fencedDriver struct {
 	runner.Driver
@@ -81,20 +107,28 @@ func (f *fencedDriver) Redact(event *runv1.Event) bool {
 	return false
 }
 
+// within admits only the allowlisted activity requests on the fenced activity, unwrapping the
+// read instruction; anything else, a workflow start, a signal-with-start, a multi-operation or a
+// schedule among them, is outside the fence.
 func (f *fencedDriver) within(payload *anypb.Any) error {
-	name := payload.MessageName()
-	if !strings.HasPrefix(string(name), startPrefix) {
-		return nil
+	allowed := unaryRequests
+	if payload.MessageName() == readInstruction {
+		instruction := new(temporalv1.ObserveActivity)
+		if err := payload.UnmarshalTo(instruction); err != nil {
+			return err
+		}
+		payload, allowed = instruction.GetRequest(), readRequests
 	}
-	if name != startActivity {
-		return fmt.Errorf("%w: %s", ErrOutsideFence, name)
+	newRequest, ok := allowed[payload.MessageName()]
+	if !ok {
+		return fmt.Errorf("%w: %s", ErrOutsideFence, payload.MessageName())
 	}
-	start := new(workflowservice.StartActivityExecutionRequest)
-	if err := payload.UnmarshalTo(start); err != nil {
+	request := newRequest()
+	if err := payload.UnmarshalTo(request); err != nil {
 		return err
 	}
-	if start.GetActivityId() != f.activityID {
-		return fmt.Errorf("%w: the start names another activity", ErrOutsideFence)
+	if request.GetActivityId() != f.activityID {
+		return fmt.Errorf("%w: %s names another activity", ErrOutsideFence, payload.MessageName())
 	}
 	return nil
 }

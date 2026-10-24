@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/protobuf/types/known/anypb"
 	"umpire.local/model/umpire/runner"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 // The adversarial authority and containment matrix, in process. Each mutation fails at the
@@ -96,8 +97,9 @@ func TestAPlantedCredentialReachesNoOutput(t *testing.T) {
 	}
 }
 
-// A Run whose Driver starts an activity outside its fence fails at the fence, before the start
-// reaches the Driver: the iteration fails, nothing is published, and cleanup acts only on the
+// A Run whose Driver sends a request outside its fence -- another activity, a workflow start, a
+// read instruction wrapping one, a signal-with-start -- fails at the fence, before it reaches the
+// Driver: the iteration fails, nothing is published, and cleanup acts only on the
 // fenced activities.
 func TestARunCrossingItsFenceFailsAtItsBoundary(t *testing.T) {
 	for name, start := range map[string]func(*testing.T) *anypb.Any{
@@ -106,6 +108,15 @@ func TestARunCrossingItsFenceFailsAtItsBoundary(t *testing.T) {
 		},
 		"a workflow": func(t *testing.T) *anypb.Any {
 			return packed(t, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"})
+		},
+		"a read instruction that starts a workflow": func(t *testing.T) *anypb.Any {
+			return packed(t, &temporalv1.ObserveActivity{
+				Request:        packed(t, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"}),
+				PollIntervalMs: 1, BackoffMs: 1, ReadTimeoutMs: 1,
+			})
+		},
+		"a signal-with-start": func(t *testing.T) *anypb.Any {
+			return packed(t, &workflowservice.SignalWithStartWorkflowExecutionRequest{WorkflowId: "customer-workflow"})
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

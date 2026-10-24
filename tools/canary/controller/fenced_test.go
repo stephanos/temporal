@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	runv1 "umpire.local/model/umpire/run/v1"
 	"umpire.local/model/umpire/runner"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 // stubDriver records the requests it is asked to start and whether it was closed.
@@ -38,8 +39,9 @@ func packed(t *testing.T, message proto.Message) *anypb.Any {
 	return payload
 }
 
-// A fenced Driver starts its own activity and any read, and refuses any other start before it
-// reaches the wrapped Driver; it keeps the wrapped Driver's Close and redaction.
+// A fenced Driver sends only the canary World's activity calls on its own activity, alone or as a
+// read instruction, and refuses everything else before it reaches the wrapped Driver; it keeps the
+// wrapped Driver's Close and redaction.
 func TestTheFenceAdmitsOnlyItsOwnActivity(t *testing.T) {
 	id := activityID(1)
 	inner := &stubDriver{}
@@ -47,22 +49,36 @@ func TestTheFenceAdmitsOnlyItsOwnActivity(t *testing.T) {
 	driver, err := newDriver(t.Context())
 	require.NoError(t, err)
 
-	_, err = driver.Start(t.Context(), 1, packed(t, &workflowservice.StartActivityExecutionRequest{ActivityId: id}))
-	require.NoError(t, err)
-	_, err = driver.Start(t.Context(), 2, packed(t, &workflowservice.DescribeActivityExecutionRequest{ActivityId: "anything"}))
-	require.NoError(t, err)
+	read := func(request proto.Message) *temporalv1.ObserveActivity {
+		return &temporalv1.ObserveActivity{Request: packed(t, request), PollIntervalMs: 1, BackoffMs: 1, ReadTimeoutMs: 1}
+	}
+	for name, admitted := range map[string]proto.Message{
+		"its start":              &workflowservice.StartActivityExecutionRequest{ActivityId: id},
+		"its cancel":             &workflowservice.RequestCancelActivityExecutionRequest{ActivityId: id},
+		"its describe":           &workflowservice.DescribeActivityExecutionRequest{ActivityId: id},
+		"a read of its describe": read(&workflowservice.DescribeActivityExecutionRequest{ActivityId: id}),
+		"a read of its poll":     read(&workflowservice.PollActivityExecutionRequest{ActivityId: id}),
+	} {
+		_, err := driver.Start(t.Context(), 1, packed(t, admitted))
+		require.NoError(t, err, name)
+	}
+	require.Len(t, inner.started, 5)
 	for name, refused := range map[string]proto.Message{
-		"another activity":  &workflowservice.StartActivityExecutionRequest{ActivityId: activityID(2)},
-		"a workflow":        &workflowservice.StartWorkflowExecutionRequest{WorkflowId: id},
-		"a batch operation": &workflowservice.StartBatchOperationRequest{JobId: id},
+		"another activity's start":            &workflowservice.StartActivityExecutionRequest{ActivityId: activityID(2)},
+		"another activity's cancel":           &workflowservice.RequestCancelActivityExecutionRequest{ActivityId: activityID(2)},
+		"a read of another activity":          read(&workflowservice.DescribeActivityExecutionRequest{ActivityId: activityID(2)}),
+		"a workflow":                          &workflowservice.StartWorkflowExecutionRequest{WorkflowId: id},
+		"a read that starts a workflow":       read(&workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"}),
+		"a read that starts its own activity": read(&workflowservice.StartActivityExecutionRequest{ActivityId: id}),
+		"a signal-with-start":                 &workflowservice.SignalWithStartWorkflowExecutionRequest{WorkflowId: "customer-workflow"},
+		"a multi-operation":                   &workflowservice.ExecuteMultiOperationRequest{},
+		"a schedule":                          &workflowservice.CreateScheduleRequest{ScheduleId: id},
+		"a batch operation":                   &workflowservice.StartBatchOperationRequest{JobId: id},
 	} {
 		_, err := driver.Start(t.Context(), 3, packed(t, refused))
 		require.ErrorIs(t, err, ErrOutsideFence, name)
 	}
-	require.Equal(t, []string{
-		"temporal.api.workflowservice.v1.StartActivityExecutionRequest",
-		"temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
-	}, inner.started, "a refused start never reaches the wrapped Driver")
+	require.Len(t, inner.started, 5, "a refused request never reaches the wrapped Driver")
 
 	require.True(t, driver.(runner.Redactor).Redact(&runv1.Event{}))
 	require.NoError(t, driver.(interface{ Close() error }).Close())
@@ -75,7 +91,8 @@ func TestTheFenceAdmitsOnlyItsOwnActivity(t *testing.T) {
 
 func TestActivityIDsAreTheCanarysOwn(t *testing.T) {
 	require.True(t, IsActivityID(newActivityID()))
-	require.NotEqual(t, newActivityID(), newActivityID())
+	first, second := newActivityID(), newActivityID()
+	require.NotEqual(t, first, second)
 	for _, id := range []string{"", "umpire-canary-", "umpire-canary-lease", "customer-activity", "umpire-canary-NOT-A-UUID",
 		"umpire-canary-00000000-0000-4000-8000-00000000000G"} {
 		require.False(t, IsActivityID(id), id)

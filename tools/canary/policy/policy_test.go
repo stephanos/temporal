@@ -1,10 +1,13 @@
 package policy
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"umpire.local/temporal"
 )
 
 func TestTheCommittedPolicyDecodesUnconfigured(t *testing.T) {
@@ -15,6 +18,16 @@ func TestTheCommittedPolicyDecodesUnconfigured(t *testing.T) {
 	require.Equal(t, "refs/heads/main", committed.TrustedRef)
 	require.Equal(t, 2, committed.Limits.Iterations)
 	require.Greater(t, committed.Limits.LeaseRunTimeout(), committed.Limits.Invocation()+committed.Limits.CleanupReserve())
+}
+
+// The committed policy pins the committed guest, so a guest rebuild fails here until the reviewed
+// policy update lands with it; otherwise every production dispatch would refuse as model-mismatch.
+func TestTheCommittedPolicyPinsTheCommittedGuest(t *testing.T) {
+	committed, err := Embedded()
+	require.NoError(t, err)
+	hash := sha256.Sum256(temporal.Guest())
+	require.Equal(t, hex.EncodeToString(hash[:]), committed.ModelHash,
+		"update modelHash in production-canary.json to the rebuilt guest's SHA-256")
 }
 
 func TestDigestIsTheWholeValue(t *testing.T) {
