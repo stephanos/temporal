@@ -1,22 +1,21 @@
 ---
 satisfies: [R12, R13, R14]
 ---
-# fn-232-gomad-rewrite-the-host-side-in-rust.29 Diagnose and repair primary inspection transition capacity refusal
+# fn-232-gomad-rewrite-the-host-side-in-rust.29 Diagnose primary inspection polling capacity refusal
 
 ## Description
-Touches to be determined from actual diagnosis; start with the primary Temporal inspection workload, Rust world/broker accounting and diagnostic evidence seams.
+Diagnose the actual C8 primary Temporal inspection failure without changing its requirements. The original onebox explore exited3 instead of expected1 with transition-bytes limit1048576 used1048560 delta188. Preserve C8 raw evidence unchanged; separately labelled diagnostics do not qualify the candidate.
 
-Investigate actual C8 temporal-inspection/primary-final failure: onebox explore exits3 instead of expected1, runner_failure transition-bytes limit1048576 used1048560 delta188. Both World owners can return this string and retained evidence has no failed execution prefix, so no source repair is justified yet. The full TestReplayInspectionWorkflowFailure/TestPrototypeWorkflow canary, its two one-minute timers/retries and required results, original1MiB bound and assertions remain unchanged. Never raise the bound or relabel capacity as expected.
+Two fresh bounded reproductions now retain byte-identical failed World prefixes, capacity records and guest output. Evidence identifies wasm-broker ownership,2136 visible calls/6408 transitions, virtual time471133454ns, and correct charging:2124 network calls at491bytes plus12 idle calls at473bytes equals1048560. The network trace shows1474 pending results among1647 polls; before/after-idle scans poll every pending linked-list entry. This establishes polling amplification, not arithmetic overcount or a demonstrated accounting defect.
 
-Read /home/agent/wt/evidence/fn232-split-closure/evidence-preparation/cycle8-primary-inspection-capacity-diagnosis.{json,md}. First run a separately labelled bounded diagnostic reproduction with fresh outputs and explicit owner/op/byte/virtual-time/pending-request evidence, retaining failed World/network prefix and guest stdout where feasible. Diagnostics are not qualification or a new baseline. Then isolate root cause and implement only an evidence-backed minimal repair, or report the precise remaining blocker without inventing a fix. Parent .13 cannot pass until the original inspection behavior actually satisfies its unchanged requirements.
+Evidence: /home/agent/wt/evidence/fn232-inspection-capacity-diagnostic/actual-diagnosis-r1.{json,md}. Diagnostic instrumentation stays isolated and uncommitted. Independent review and evidence authentication remain required before diagnosis is closed.
 
+Repair and full unchanged canary RED/GREEN obligations have been transferred explicitly to .30. This split does not discharge the actual capacity failure, .13 full qualification, .22-.25 receiving, or .14 reach.
 ## Acceptance
-- [ ] Reproduce the exact required failure in a fresh bounded diagnostic context with original1MiB/scenario/assertions and actual source/compiler/runtime/model/host bindings. Distinguish selected World owner, exact transition accounting/op counts, virtual time and guest progress; preserve original C8 raw attempt unchanged.
-- [ ] Identify cause with concrete evidence distinguishing legitimate workload demand from duplicate/redundant transitions, model loop or accounting error. Do not invent a fix from the capacity string alone.
-- [ ] If a repair is justified, retain RED/GREEN behavioral regression under the same bound and full canary semantics, complete required merge gates and independent green-tree SHIP review before integration. Any instrumentation is separately identified and qualification implications recorded.
-- [ ] Parent full96/final145 and all existing runtime/replay/capacity/receiving obligations remain intact and pending until fresh actual proof. No budget increase, scenario shortcut, identity normalization or new unsupported disposition discharges this task.
-
-
+- [ ] Authenticate both actual diagnostic reproductions under original1MiB/scenario/assertions and exact source/compiler/runtime/model/host bindings; preserve failed World/network prefix and guest output, with original C8 raw attempt unchanged.
+- [ ] Verify selected World owner, exact accounting/op counts, virtual time and guest progress. Distinguish observed polling amplification from unsupported accounting-error or DNS-loop claims.
+- [ ] Independently review the diagnosis and its limits; retain raw evidence and instrumentation provenance. Claim no production repair or qualification pass from diagnostics.
+- [ ] Transfer repair, behavioral RED/GREEN and full original canary obligations into .30, and make .13 closure depend on .30. All original runtime/replay/capacity/receiving obligations remain intact.
 ## Done summary
 TBD
 

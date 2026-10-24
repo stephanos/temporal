@@ -159,8 +159,12 @@ survived. Retain the attempt and terminal audits under
 The diagnostic integration target exposed two additional role-neutral fixture helpers;
 Temporal inspection exposed both a tracked Gitlink inventory error and a1MiB transition-byte
 capacity refusal. Tasks .27 and .28 repair the independently diagnosed inventory and
-fixture defects; .29 first obtains the missing execution-prefix evidence for the capacity
-refusal. These tasks may proceed independently. No bound, scenario, assertion or receiving
+fixture defects; both worker gates are green, with conductor verification and review pending.
+Task .29 retains two matching diagnostic reproductions: repeated pending network polls
+exhaust correctly accounted broker transitions after 0.471 seconds of virtual time. Its
+diagnosis awaits independent review; .30 owns the repair and complete original canary under
+the unchanged 1 MiB bound. The repair follows the diagnosis while the other fixes proceed
+independently. No bound, scenario, assertion or receiving
 obligation is waived. All96 stages and the final145 reader remain required on the repaired
 candidate. The deferred .26 review metadata is integrated separately as `c84db120f1`.
 
@@ -176,7 +180,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Complete and review fn-232.27–.29, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
+1. Complete and review fn-232.27–.30, then refresh current bindings and run `driver.py parallel` for all96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle plus the unchanged delegated receiving/closeout acceptance closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -477,7 +481,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle8 terminal23PASS/2FAIL/71unstarted; .27–.29 repair owners |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Sole cycle runner and final96/145 acceptance; cycle8 terminal23PASS/2FAIL/71unstarted; .27–.30 diagnosis and repair owners |
 | [fn-232.22](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.22.md) | 🚧 Running | Receive runtime and mandatory workload evidence |
 | [fn-232.23](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.23.md) | 🚧 Running | Receive retained/operator replay and ringpop proof; reconcile fn235 |
 | [fn-232.24](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.24.md) | 🚧 Running | Receive R4 preservation proof; reconcile fn185 |
@@ -486,6 +490,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.27](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.27.md) | 🚧 Running | Handle tracked Gitlinks in onebox source inventory |
 | [fn-232.28](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.28.md) | 🚧 Running | Complete compiled-role integration fixture repair and full five-profile target matrix |
 | [fn-232.29](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.29.md) | 🚧 Running | Diagnose primary inspection transition capacity under unchanged1MiB/scenario |
+| [fn-232.30](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.30.md) | Todo | Repair inspection polling capacity and prove the full original canary under the unchanged bound; follows .29 |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
