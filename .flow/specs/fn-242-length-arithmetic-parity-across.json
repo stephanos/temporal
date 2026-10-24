@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-242-length-arithmetic-parity-across.md",
-  "status": "open",
+  "status": "done",
   "title": "Length arithmetic parity across compiled, interpreted and TLC",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-23T22:13:09.217825Z"
+  "updated_at": "2026-10-24T01:14:08.086422Z"
 }
