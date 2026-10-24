@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-249-durable-validation-cost-review-at-spec",
   "spec_path": ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce and integrate durable validation-cost assessment at spec close",
   "updated_at": "2026-10-24T22:25:38.008958Z"
 }

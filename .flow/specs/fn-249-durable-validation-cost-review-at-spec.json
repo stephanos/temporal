@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-249-durable-validation-cost-review-at-spec",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-24T22:59:56.121104Z",
   "created_at": "2026-10-24T22:02:36.599652Z",
   "default_impl": null,
   "default_review": null,
@@ -239,7 +239,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-249-durable-validation-cost-review-at-spec.md",
-  "status": "open",
+  "status": "done",
   "title": "Durable validation-cost review at spec completion",
   "tracker": {
     "baseHashFlow": null,
@@ -252,5 +252,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:52:29.821627Z"
+  "updated_at": "2026-10-24T22:59:57.306084Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/validation-cost-review-ef5dff8cfba6956e04158de363192217cfaa473a2d6ae8a1608c1d3e051c8e2c.json",
+    "schema_version": 1,
+    "sha256": "ef5dff8cfba6956e04158de363192217cfaa473a2d6ae8a1608c1d3e051c8e2c"
+  }
 }

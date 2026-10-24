@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-249-durable-validation-cost-review-at-spec",
+  "gates": [
+    {
+      "command": "FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py python3 tools/flow/test_committed_dependencies.py",
+      "mode": "isolated temporary Git repositories; installed combined patch stack",
+      "cost": {
+        "kind": "measured",
+        "seconds": 6.695
+      },
+      "coverage": "Locally committed unpublished predecessor admission and negative controls",
+      "evidence": [
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/validation-evidence.json",
+        ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md"
+      ]
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py python3 tools/flow/test_validation_review.py",
+      "mode": "isolated temporary Git repositories; installed combined patch stack",
+      "cost": {
+        "kind": "measured",
+        "seconds": 21.603
+      },
+      "coverage": "Schema, cost kinds, bounds, safe paths, exact bytes, lifecycle refusal, retry, partial writes, installer mismatch and backups",
+      "evidence": [
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/validation-evidence.json",
+        ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md"
+      ]
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 FLOWCTL_PY=/home/agent/.codex/scripts/flowctl.py MAKE_PR_PREFLIGHT=/home/agent/.codex/scripts/make-pr-preflight.sh python3 tools/flow/test_validation_preflight.py",
+      "mode": "isolated temporary Git repositories; installed combined patch stack",
+      "cost": {
+        "kind": "measured",
+        "seconds": 9.966
+      },
+      "coverage": "Real close commit fence, retry artifact durability, failure before staging, opt-out/done/dry-run/body-only, no added network/model/test work",
+      "evidence": [
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/validation-evidence.json",
+        ".flow/tasks/fn-249-durable-validation-cost-review-at-spec.1.md"
+      ]
+    },
+    {
+      "command": "BASH_ENV=/dev/null python3 /home/agent/.codex/scripts/flowctl.py codex impl-review-fanout fn-249-durable-validation-cost-review-at-spec.1 --base 5aed4c237c004f9ad738594698f52d612e30bedd --receipt /tmp/impl-review-receipt-8f37faba39e2-fn-249-durable-validation-cost-review-at-spec.1.json --spec codex:gpt-6.1-sol:high --json",
+      "mode": "First-round three-axis read-only review; same family as writer; elapsed wall interval from draw metadata",
+      "cost": {
+        "kind": "measured",
+        "seconds": 161.387
+      },
+      "coverage": "Independent review of R1-R4 and installation integration",
+      "evidence": [
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/review-round-1.json",
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/validation-evidence.json"
+      ]
+    },
+    {
+      "command": "BASH_ENV=/dev/null python3 /home/agent/.codex/scripts/flowctl.py codex impl-review fn-249-durable-validation-cost-review-at-spec.1 --base 5aed4c237c004f9ad738594698f52d612e30bedd --receipt /tmp/impl-review-receipt-8f37faba39e2-fn-249-durable-validation-cost-review-at-spec.1.json --spec codex:gpt-6.1-sol:high --json",
+      "mode": "single resumed review after fixes; read-only; same family as writer",
+      "cost": {
+        "kind": "unknown",
+        "reason": "The completed resumed review records its completion timestamp but no exact invocation-start receipt; elapsed duration was not separately captured"
+      },
+      "coverage": "Git conversion durability and missing-input guidance fixes plus cumulative R1-R4 review",
+      "evidence": [
+        ".flow/artifacts/fn-249-durable-validation-cost-review-at-spec/implementation/impl-review-receipt.json"
+      ]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "Keep validation scope aligned with tooling changes",
+      "decision": "retain focused controls",
+      "rationale": "The three isolated harnesses check distinct behavior in about 38 seconds of summed suite time; no safe coverage-preserving removal was found. Rust/Go/model gates are outside this task scope.",
+      "coverage_preserved": "All success/refusal/path/retry/commit-fence/install/dependency controls remain; future close only validates report structure and copies bytes, without running tests or another model."
+    },
+    {
+      "opportunity": "Avoid redundant executions during future report authoring",
+      "decision": "reuse existing evidence",
+      "rationale": "Close accepts estimates and explained unknowns. Report preparation reused existing gate and review evidence without another test run, model call or preliminary report commit.",
+      "coverage_preserved": "Required implementation gates and primary review still run at their existing boundaries."
+    }
+  ],
+  "source_basis": {
+    "base_commit": "5aed4c237c004f9ad738594698f52d612e30bedd",
+    "implementation_commit": "0885749c879d8ea08d784a5befaacd60755d2a99",
+    "fix_commit": "0646629ab844f6a54d474c6cf33c1857e846070f"
+  },
+  "follow_ups": []
+}
