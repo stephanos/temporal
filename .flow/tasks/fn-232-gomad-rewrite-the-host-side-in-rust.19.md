@@ -26,9 +26,10 @@ The cycle's lint-router action currently omits LINT_POLICY_GOLANGCI, so TestLint
 - [ ] Retained cycle2 failure evidence remains unchanged; fresh full-cycle and all receiving obligations stay with .13.
 
 ## Done summary
-TBD
+Repaired demonstrated retained Go source lint findings and lint-policy imports. Restored the closed boundary for relocated WASI fixtures and execution of the actual pinned policy linter in both producer and independent reader, with strict skips retained. Corrected only provenance-backed retired-policy count, lexical order and renamed CI job expectations; active policy exclusions and negative assertions remain. Focused verification passed including 22 static-driver tests and full router suite with 207 passes/zero skips. Independent three-axis review returned SHIP. Integrated mandatory gate on c6f77620ee04453db3bf1e970ff3b39a9c0ca7f7 exited0 with587driver tests. Actual cycle2 failure artifacts remain hash-identical. Task .13 still requires fresh source-bound SQLite/install preparation, full96-stagecycle and receiving/size reconciliation; this task supplies no newcycle pass.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: af5c8e7edc6f4eeb70375fe57686d2e4e957254a, c6f77620ee04453db3bf1e970ff3b39a9c0ca7f7, ca82139a596b1d42b823b5063a1968437b8c1e45
+- Tests: python3 -m unittest test_static_stages [exit 0], /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go test -tags test_dep -count=1 ./cmd/tools/lintcode [exit 0], /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go vet -tags test_dep ./cmd/tools/lintcode [exit 0], /Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-stock-go1.27.1/bin/go test -tags test_dep -count=1 ./internal/backends/wasm/toolchain/cmd/runtimeinventory ./internal/model/cmd/sqlite-native ./internal/model/volume [exit 0], make lint-code-gomad GOLANGCI_LINT_BASE_REV=1d695061b6382009d0659238c652a5a765b1d5f5 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/home/agent/.cache/codex-build/tmp/tmp.0x9JRpMAVy/golangci-lint ERRORTYPE=/home/agent/wt/evidence/fn232/fn219-host-tools-2026-10-20/host-tools/errortype [exit 0], go test -json -tags test_dep -count=1 ./cmd/tools/lintcode [exit 0], Integrated mandatory gate: make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism; source c6f77620ee04453db3bf1e970ff3b39a9c0ca7f7; session8065 terminal exit0; 587 driver tests; /home/agent/wt/evidence/fn232-split-closure/retained-go-lint-integration-gate.log, Three-axis impl-review SHIP; /home/agent/wt/evidence/fn232-split-closure/retained-go-lint-review.json; no surviving findings
 - PRs:

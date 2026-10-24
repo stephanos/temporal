@@ -102,6 +102,13 @@ Task .18 is reviewed, integrated and done. The mandatory gate exited 0 on
 The empty-package fix covers both static and ordinary recursive receiving. The next
 fresh cycle uses the resulting clean candidate; C99 remains unchanged and incomplete.
 
+The subsequent C0277 cycle on `abbea52d43` is terminal INCOMPLETE/exit1: four stages passed,
+three lint stages failed, and 89 did not start. The source defects are repaired by .19,
+reviewed and integrated with the full mandatory gate passing on `c6f77620ee` (587 driver
+tests). Its Go source edits require genuine fresh SQLite and cooperative installation
+admissions; `launch-rebound.py` prepares those before the next full cycle. Prior failures
+and their identity/custody ledgers remain preserved; no cycle pass is claimed.
+
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
 artifact detached/kill-resume families. Children load their driver configuration explicitly;
 role reads validate current source, features and compiler context while preserving original
@@ -415,7 +422,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement and .15–.18 merged; preparing fresh complete qualification cycle |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement and .15–.19 merged; preparing fresh Go input bindings and full cycle |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
