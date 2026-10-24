@@ -127,7 +127,11 @@ impl Environment {
                     }
                     match statement {
                         Stmt::Local(local) => {
-                            let Pat::Ident(id) = &local.pat else {
+                            let (pattern, expected) = match &local.pat {
+                                Pat::Type(value) => (value.pat.as_ref(), Some(self.ty(&value.ty)?)),
+                                pattern => (pattern, None),
+                            };
+                            let Pat::Ident(id) = pattern else {
                                 return self.err(local, "only simple local bindings are admitted");
                             };
                             let Some(init) = &local.init else {
@@ -136,7 +140,8 @@ impl Environment {
                             if init.diverge.is_some() {
                                 return self.err(local, "let-else is unsupported");
                             }
-                            let value = self.expr(&init.expr, state, &scoped, None, depth)?;
+                            let value =
+                                self.expr(&init.expr, state, &scoped, expected.as_ref(), depth)?;
                             checks.push(flow.guard(value.clone(), default_expr(&value.ty)));
                             scoped.insert(id.ident.to_string(), define(value, definitions));
                         }
@@ -413,7 +418,11 @@ fn without_stay(body: &RustExpr) -> (RustExpr, bool) {
 pub(super) fn default_expr(ty: &Type) -> Expr {
     match ty {
         Type::Bool => Expr::bool(false),
-        Type::Int { .. } => Expr::int(0, ty.clone()),
+        Type::Int { .. } | Type::Optional(_) => Expr::int(0, ty.clone()),
+        Type::Bounded(value) => Expr {
+            kind: ExprKind::Bounded(Box::new(Expr::int(value.low, value.backing_type()))),
+            ty: ty.clone(),
+        },
         Type::Seq(_) => Expr { kind: ExprKind::Sequence(Vec::new()), ty: ty.clone() },
         Type::Enum { variants, .. } => {
             Expr { kind: ExprKind::Enum(variants[0].clone()), ty: ty.clone() }
@@ -426,7 +435,11 @@ pub(super) fn default_expr(ty: &Type) -> Expr {
 fn define(value: Expr, definitions: &mut Vec<(String, Expr)>) -> Expr {
     if matches!(
         value.kind,
-        ExprKind::Unary(..)
+        ExprKind::Bounded(..)
+            | ExprKind::Payload(..)
+            | ExprKind::Some(..)
+            | ExprKind::OptionalOr(..)
+            | ExprKind::Unary(..)
             | ExprKind::Binary(..)
             | ExprKind::If(..)
             | ExprKind::Tuple(..)

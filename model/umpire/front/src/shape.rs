@@ -47,6 +47,8 @@ pub(crate) fn parse(
         constants: Env::new(),
         enums: BTreeMap::new(),
         defaults: BTreeMap::new(),
+        bounded: BTreeMap::new(),
+        bounded_defaults: Vec::new(),
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
         vector_imported: admit_imports(items)?,
@@ -77,6 +79,11 @@ pub(crate) fn parse(
             }
         };
         attrs(attributes, &["doc", "derive", "internal"])?;
+        if let Item::Struct(value) = item
+            && derives(&value.attrs, "Finite")
+        {
+            parser.admit_bounded(value)?;
+        }
         if let Item::Enum(value) = item {
             let payload = derives(&value.attrs, "Action")
                 && value.variants.iter().any(|v| !matches!(v.fields, syn::Fields::Unit));
@@ -116,7 +123,14 @@ pub(crate) fn parse(
         for (name, field) in fields {
             attrs(&field.attrs, &["doc"])?;
             let ty = parser.ty(&field.ty)?;
-            if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
+            if !matches!(
+                ty,
+                Type::Bool
+                    | Type::Int { .. }
+                    | Type::Bounded(_)
+                    | Type::Optional(_)
+                    | Type::Enum { .. }
+            ) {
                 return Err(Diagnostic::at(*field, "World fields require admitted scalar types"));
             }
             parser.world_fields.push(WorldField {

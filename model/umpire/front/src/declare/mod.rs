@@ -18,8 +18,8 @@ macro_rules! bail {
 mod action;
 mod fields;
 pub use action::{ActionEnum, FieldDomain, action_enum};
-pub(crate) use fields::struct_fields;
 pub use fields::{Finite, finite, integer, named_fields, start_ranges};
+pub(crate) use fields::{literal, struct_fields};
 
 type Result<T> = syn::Result<T>;
 
