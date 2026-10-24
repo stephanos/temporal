@@ -13,6 +13,7 @@
     "fn-242-gomad-shrink-the-qualification.11": 0,
     "fn-242-gomad-shrink-the-qualification.12": 0,
     "fn-242-gomad-shrink-the-qualification.13": 0,
+    "fn-242-gomad-shrink-the-qualification.14": 1,
     "fn-242-gomad-shrink-the-qualification.15": 0,
     "fn-242-gomad-shrink-the-qualification.6": 0
   },
@@ -948,6 +949,58 @@
       "task": "fn-242-gomad-shrink-the-qualification.15",
       "timestamp": "2026-10-24T21:40:08.947705Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5646520e41d648a8c5db3436f28dcc99ecde0965b14612972892c472811eb792",
+      "backend": "codex",
+      "base_sha": "c35e6787952119af53286006ee8e628ffaec9035",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1a4af9b9e1d05a760677b4c699221da3",
+            "classification": "introduced",
+            "findingId": "finding-1a4af9b9e1d05a760677b4c699221da3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0b1901c8e6a1ff971dcd5cad17910059",
+            "classification": "introduced",
+            "findingId": "finding-0b1901c8e6a1ff971dcd5cad17910059",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1f277a7ac3247c8af3b81b067f74196dd44162db",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1940,
+      "output_sha256": "cbc229c42db3b1e75caf749004fcac53f26bfd439b9b9a32d56a23b41e3064f2",
+      "reservation_id": "e044b6c4abea477ba562ac9cd7d55c94",
+      "round_consumed": true,
+      "scope": "impl:fn-242-gomad-shrink-the-qualification.14",
+      "superseded_by": null,
+      "task": "fn-242-gomad-shrink-the-qualification.14",
+      "timestamp": "2026-10-24T22:35:10.043020Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -967,6 +1020,7 @@
     "impl:fn-242-gomad-shrink-the-qualification.11": 0,
     "impl:fn-242-gomad-shrink-the-qualification.12": 0,
     "impl:fn-242-gomad-shrink-the-qualification.13": 0,
+    "impl:fn-242-gomad-shrink-the-qualification.14": 0,
     "impl:fn-242-gomad-shrink-the-qualification.15": 0,
     "impl:fn-242-gomad-shrink-the-qualification.6": 0,
     "plan": 0
@@ -985,5 +1039,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:09:57.091578Z"
+  "updated_at": "2026-10-24T22:35:10.044894Z"
 }
