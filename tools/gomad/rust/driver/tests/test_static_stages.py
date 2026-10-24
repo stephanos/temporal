@@ -185,16 +185,18 @@ class StaticStageContract(unittest.TestCase):
             check()
 
     def test_replay_regenerations_need_independent_commands_and_environment(self):
-        action = dict(kind='replay-regeneration', argv=['/pinned/go','test','./model'], cwd='/source')
+        action = dict(kind='replay-regeneration', argv=['/pinned/go','test','-tags','test_dep','-count=1',
+                      '-run','^TestReplayPlanConformance$','./internal/model/choice'], cwd='/source')
         root, evidence, command, report, check = self.reader_fixture('validate', action)
         results = []
         for index in range(2):
             extra = dict(GOMAD_REPLAY_PLAN_CORPUS_REGENERATE='1',
                          GOMAD_REPLAY_PLAN_CORPUS_DIR=str(evidence/('replay-generation-'+str(index))))
-            listed = command(['/pinned/go','test','-json','-list','.','./model'], listing(), extra)
-            run = command(['/pinned/go','test','-json','./model'], execution(), extra)
+            listed = command([*action['argv'][:2], '-json', '-list', '^TestReplayPlanConformance$', *action['argv'][2:]],
+                             listing(('TestReplayPlanConformance',)), extra)
+            run = command([*action['argv'][:2], '-json', *action['argv'][2:]], execution(('TestReplayPlanConformance',)), extra)
             results.append(dict(kind='go-tests', listing=listed, run=run, repetitions=1, scope_exclusions=[],
-                                roots=[dict(package='model', name='TestA', repetitions=1)]))
+                                roots=[dict(package='model', name='TestReplayPlanConformance', repetitions=1)]))
         report['actions'][0]['results'] = results
         with patch.object(static, 'tree_hashes', return_value={'original':'bytes'}):
             self.assertEqual(len(check()['testcases']), 2)
@@ -212,6 +214,84 @@ class StaticStageContract(unittest.TestCase):
             row['command_sha256'] = driver.sha(path)
             with self.assertRaisesRegex(driver.Refusal, 'recipe environment'):
                 check()
+
+    def test_go_producer_lists_the_executed_root_selection(self):
+        selected = 'TestReplayPlanConformance'
+        cases = [([], '.', (selected, 'TestSibling'), 2),
+                 (['-run', '^' + selected + '$'], '^' + selected + '$', (selected,), 1),
+                 (['-run=^' + selected + '$'], '^' + selected + '$', (selected,), 1),
+                 (['-run', ''], '.', (selected, 'TestSibling'), 1)]
+        for flags, pattern, names, repeats in cases:
+            with self.subTest(flags=flags), tempfile.TemporaryDirectory() as directory:
+                action = dict(kind='go-tests', argv=['/pinned/go', 'test', '-tags', 'test_dep',
+                              '-count=' + str(repeats), *flags, './model/...'], cwd='/source', repeats=repeats)
+                producer = static.Execution({}, dict(root=directory), 'validate')
+                calls = []
+                def call(argv, cwd, env):
+                    calls.append((argv, cwd, env))
+                    producer.rows.append(dict(name='command-' + str(len(calls))))
+                    if '-list' in argv:
+                        actual_names = names if argv[argv.index('-list') + 1] == pattern else (selected, 'TestSibling')
+                        return listing(actual_names)
+                    return execution(names, repeats=repeats)
+                extra = dict(GOMAD_ARCH_ALL_PLATFORMS='1')
+                with patch.object(producer, 'call', side_effect=call):
+                    result = producer.go(action, extra)
+                self.assertEqual(calls, [([*action['argv'][:2], '-json', '-list', pattern, *action['argv'][2:]], '/source', extra),
+                                         ([*action['argv'][:2], '-json', *action['argv'][2:]], '/source', extra)])
+                self.assertEqual(result['roots'], [dict(package='model', name=name, repetitions=repeats) for name in sorted(names)])
+
+    def test_go_reader_selection_and_raw_command_integrity(self):
+        selected = 'TestReplayPlanConformance'
+        for flags, pattern, names in [([], '.', (selected, 'TestSibling')),
+                                      (['-run', '^' + selected + '$'], '^' + selected + '$', (selected,))]:
+            with self.subTest(flags=flags):
+                action = dict(kind='go-tests', argv=['/pinned/go', 'test', '-tags=test_dep', '-count=2',
+                              *flags, './model/...'], cwd='/source', repeats=2, all_platforms=True)
+                root, evidence, command, report, check = self.reader_fixture('architecture', action)
+                extra = dict(GOMAD_ARCH_ALL_PLATFORMS='1')
+                listed = command([*action['argv'][:2], '-json', '-list', pattern, *action['argv'][2:]], listing(names), extra)
+                run = command([*action['argv'][:2], '-json', *action['argv'][2:]], execution(names, repeats=2), extra)
+                report['actions'][0]['results'] = [dict(kind='go-tests', listing=listed, run=run, repetitions=2,
+                    scope_exclusions=[], roots=[dict(package='model', name=name, repetitions=2) for name in sorted(names)])]
+                with patch.object(static, 'ignored_inventory', return_value=[]):
+                    self.assertEqual(len(check()['testcases']), len(names) * 2)
+                    mutations = [(listed, listing(names + (names[0],)), 'duplicate listed Go root'),
+                                 (run, execution(names, repeats=1), 'missing/duplicate Go root'),
+                                 (run, execution(names, repeats=3), 'missing/duplicate Go root')]
+                    for name, raw, message in mutations:
+                        with self.subTest(mutation=message):
+                            row = next(row for row in report['commands'] if row['name'] == name)
+                            path = evidence/(name + '.stdout')
+                            original = path.read_bytes()
+                            path.write_bytes(raw)
+                            row['stdout_sha256'] = driver.sha(path)
+                            with self.assertRaisesRegex(driver.Refusal, message):
+                                check()
+                            path.write_bytes(original)
+                            row['stdout_sha256'] = driver.sha(path)
+                    for name in (listed, run):
+                        row = next(row for row in report['commands'] if row['name'] == name)
+                        path = evidence/(name + '.command.json')
+                        original = driver.read(path)
+                        forged = dict(original, argv=original['argv'] + ['-run=TestSibling'])
+                        driver.write(path, forged)
+                        row['argv'] = forged['argv']
+                        row['command_sha256'] = driver.sha(path)
+                        with self.assertRaisesRegex(driver.Refusal, 'changed command argv'):
+                            check()
+                        driver.write(path, original)
+                        row['argv'] = original['argv']
+                        row['command_sha256'] = driver.sha(path)
+
+    def test_go_subtest_selection_refuses_before_any_command(self):
+        for flags in (['-run', '^TestA$/child'], ['-run=^TestA$/child']):
+            with self.subTest(flags=flags), tempfile.TemporaryDirectory() as directory:
+                producer = static.Execution({}, dict(root=directory), 'validate')
+                action = dict(argv=['/pinned/go', 'test', *flags, './model'], cwd='/source')
+                with patch.object(producer, 'call', side_effect=AssertionError('unsupported selector started a command')) as call, self.assertRaisesRegex(driver.Refusal, 'subtest selector'):
+                    producer.go(action)
+                call.assert_not_called()
 
     def test_actual_bounded_command_receipt_binds_regeneration_environment(self):
         with tempfile.TemporaryDirectory() as directory:
