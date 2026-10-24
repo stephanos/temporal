@@ -363,7 +363,28 @@ fn receive_genuine_corpora() {
     for kind in ["world", "clock", "network", "broker"] {
         let admitted = load_corpus(kind);
         let raw = std::fs::read(root.join(format!("{kind}.log"))).unwrap();
-        admitted.receive(&raw).unwrap();
+        if kind == "broker" {
+            let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../wasmhost/tests/testdata/broker_orders");
+            let inputs = std::fs::read_dir(directory)
+                .unwrap()
+                .map(|e| e.unwrap().path())
+                .filter(|p| p.extension().is_some_and(|s| s == "gmnetev1"))
+                .map(|p| {
+                    (
+                        p.file_stem().unwrap().to_str().unwrap().to_owned(),
+                        std::fs::read(&p).unwrap(),
+                    )
+                })
+                .collect::<std::collections::BTreeMap<_, _>>();
+            let frozen = inputs
+                .iter()
+                .map(|(name, raw)| (name.clone(), sha(raw)))
+                .collect();
+            admitted.receive_broker(&raw, &inputs, &frozen).unwrap();
+        } else {
+            admitted.receive(&raw).unwrap();
+        }
     }
 }
 

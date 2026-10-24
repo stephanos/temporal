@@ -65,6 +65,90 @@ impl Corpus {
 
     /// Compares complete current corpus execution rows; no historical pin normalization.
     pub(crate) fn receive(&self, stdout: &[u8]) -> Result<(), String> {
+        require(
+            self.kind != "broker",
+            "broker receiving requires reopened network evidence",
+        )?;
+        self.receive_rows(stdout)
+    }
+
+    pub(crate) fn receive_broker(
+        &self,
+        stdout: &[u8],
+        raw: &BTreeMap<String, Vec<u8>>,
+        frozen: &BTreeMap<String, String>,
+    ) -> Result<(), String> {
+        require(self.kind == "broker", "foreign broker corpus")?;
+        let mut expected = BTreeSet::new();
+        for (name, doc) in &self.documents {
+            if doc["network"].is_null() {
+                continue;
+            }
+            for node in doc["nodes"].as_array().ok_or("broker nodes")? {
+                let node = node.as_str().ok_or("broker node")?;
+                expected.insert(format!("{name}.{node}"));
+            }
+        }
+        require(
+            raw.keys().cloned().collect::<BTreeSet<_>>() == expected
+                && raw.keys().eq(frozen.keys()),
+            "broker network file inventory",
+        )?;
+        for (name, bytes) in raw {
+            require(sha(bytes) == frozen[name], "broker network input identity")?;
+        }
+        self.receive_rows(stdout)?;
+        let text = std::str::from_utf8(stdout).map_err(|e| e.to_string())?;
+        for line in text.lines() {
+            let Some((_, value)) = line.split_once("GOMAD_CORE_OBSERVATION ") else {
+                continue;
+            };
+            let row = crate::cycle::custody::strict_json(value.as_bytes())?;
+            if row["case"] != "network.broker.replay" {
+                continue;
+            }
+            let name = row["inputs"]["name"].as_str().ok_or("broker corpus name")?;
+            let doc = self.documents.get(name).ok_or("foreign broker corpus")?;
+            let actual = &row["observed"];
+            fields(actual, &["outputs", "world_base64", "evidence"])?;
+            let evidence = actual["evidence"]
+                .as_object()
+                .ok_or("broker node evidence")?;
+            let nodes = if doc["network"].is_null() {
+                Vec::new()
+            } else {
+                doc["nodes"]
+                    .as_array()
+                    .ok_or("broker nodes")?
+                    .iter()
+                    .map(|v| v.as_str().ok_or("broker node"))
+                    .collect::<Result<Vec<_>, _>>()?
+            };
+            require(
+                evidence.keys().map(String::as_str).collect::<BTreeSet<_>>()
+                    == nodes.iter().copied().collect(),
+                "broker node evidence owners",
+            )?;
+            if nodes.is_empty() {
+                continue;
+            }
+            let model: NetworkModel =
+                serde_json::from_value(doc["network"].clone()).map_err(|e| e.to_string())?;
+            for node in nodes {
+                let encoded = evidence[node].as_str().ok_or("broker evidence encoding")?;
+                let wire =
+                    crate::qualify::cells::base64(encoded).ok_or("broker evidence base64")?;
+                require(
+                    wire == raw[&format!("{name}.{node}")],
+                    "broker node network bytes",
+                )?;
+                codec::observe_network_evidence(&wire, 8 << 20, &model, &model)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn receive_rows(&self, stdout: &[u8]) -> Result<(), String> {
         let mut required = BTreeMap::new();
         for (name, doc) in &self.documents {
             match self.kind.as_str() {
