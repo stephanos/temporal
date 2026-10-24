@@ -4,13 +4,14 @@
   "claimed_at": null,
   "created_at": "2026-10-23T15:10:25.980185Z",
   "depends_on": [
-    "fn-241-gomad-a-race-profile-for-wasip1-deferred.1"
+    "fn-241-gomad-a-race-profile-for-wasip1-deferred.1",
+    "fn-241-gomad-a-race-profile-for-wasip1-deferred.6"
   ],
   "id": "fn-241-gomad-a-race-profile-for-wasip1-deferred.2",
   "priority": null,
   "spec": "fn-241-gomad-a-race-profile-for-wasip1-deferred",
   "spec_path": ".flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.2.md",
   "status": "todo",
-  "title": "FastTrack detector with span-allocated shadow; one-seed detection of PR 10549",
-  "updated_at": "2026-10-23T15:10:25.980185Z"
+  "title": "FastTrack core: vector clocks, epochs, goroutine seeding, sync edges, ordered/unordered corpus",
+  "updated_at": "2026-10-24T16:34:04.330108Z"
 }

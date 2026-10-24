@@ -9,6 +9,6 @@
   "spec": "fn-241-gomad-a-race-profile-for-wasip1-deferred",
   "spec_path": ".flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.1.md",
   "status": "todo",
-  "title": "Lift the wasip1 race gate, rebuild the pinned toolchain, stub runtime/race",
-  "updated_at": "2026-10-23T15:10:25.458766Z"
+  "title": "Lift the wasip1 race gate and rebuild the pinned go and compile tools for the race profile",
+  "updated_at": "2026-10-24T16:34:02.722023Z"
 }

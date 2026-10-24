@@ -10,12 +10,22 @@ Prerequisites delivered: fn-180 (registry descriptors retained in recordings, ru
 
 ## Planning status and prerequisites
 
-This is captured backlog, not an executable task plan. No implementation tasks have been created and the spec is not ready. The 2026-10-20 Rust-host decision supersedes the Go-host command/evidence locations below: host orchestration belongs in `tools/gomad/rust/gomad`, helper/runtime work stays with its existing owner, and a Go source generator may remain retained build tooling. Before task breakdown, reconcile the proposed command and evidence interfaces against the completed Rust replay/inspection and campaign owners. Preserve the acceptance requirements; do not start a parallel Go-host implementation or infer that absent tasks mean completion.
+Rewritten onto the Rust host on 2026-10-24 (owner request). The Go runner and the `gomadtool` command set no longer exist, and the Go `softassert` observer (`internal/evidence/record/softassert`, deleted in b64f3dcb89) was ported as `campaign/soft_assertions.rs`, which is now the Always oracle; the owners named below are the ones in the tree today. Acceptance criteria R1–R6 are unchanged from the 2026-10-16 capture.
+
+Owners:
+- Server API: `common/softassert` (Go, Temporal server).
+- Catalog generator: retained Go build tooling under `tools/gomad/internal/backends/wasm/toolchain/cmd/catalog`, beside the existing overlay generator; it is build tooling, never a host role.
+- Guest channel: the cooperative runtime overlay (`toolchain/runtime_wasm.go.txt`, `toolchain/overlay.go`), which already owns the `gomadWasmObservation` import.
+- Helper side: `wasm-engine` ABI dispatch and `wasm-model` evidence streams (fn-240 names; `wasmhost/src/{abi,model}` today).
+- Record and inspect: `gomad-evidence` (`evidence/record.rs`, `evidence/inspection.rs`, `evidence/symbolize`).
+- Campaign flags, summary and the existing Always oracle: `gomad-campaign` (`campaign/soft_assertions.rs`, `campaign/execution.rs`, `campaign/scenario.rs`).
+
+Sequencing: after fn-240 (the campaign and evidence crates exist), after fn-242 (requalification has closed, since the record schema and runtime/ABI/helper identities rotate here) and after fn-245.2 (the `semantic` section is born as a typed record, not a `Value`). Spec-level dependencies recorded.
 
 ## Architecture & Data Models
 
 - **API.** `softassert.Sometimes(staticMessage string)` declares that the calling site should be reached in at least one execution of a campaign. `softassert.Unreachable(logger, staticMessage, tags...)` is an alias of `Fail`. In ordinary builds `Sometimes` compiles to nothing observable. New Sometimes/Unreachable names must be string literals. Existing That/Fail/error-helper sites retain their current runtime message evaluation and failure grouping; dynamic legacy messages use a generated static source-site label in the catalog, never a runtime string as the site ID.
-- **Catalog.** A generator in the `gomadtool` command set scans the server module for `softassert.That`, `Fail`, `Sometimes`, `Unreachable`, `UnexpectedInternalErr`, `UnexpectedDataLoss` and for static span names in `tracer.Start` calls, and writes one checked-in Go file under the `gomad && wasip1 && wasm` tag that declares every site at package initialization with a stable ID, kind (always, sometimes, span), package path, file, line and message. IDs follow declaration order and are stable within one catalog version; the catalog hash is the identity. `make -C tools/gomad validate` fails when the checked-in file is stale.
+- **Catalog.** A generator (retained Go build tooling under `toolchain/cmd/catalog`) scans the server module for `softassert.That`, `Fail`, `Sometimes`, `Unreachable`, `UnexpectedInternalErr`, `UnexpectedDataLoss` and for static span names in `tracer.Start` calls, and writes one checked-in Go file under the `gomad && wasip1 && wasm` tag that declares every site at package initialization with a stable ID, kind (always, sometimes, span), package path, file, line and message. IDs follow declaration order and are stable within one catalog version; the catalog hash is the identity. `make -C tools/gomad validate` fails when the checked-in file is stale.
 - **Channel.** A semantic-probe facility in the cooperative guest runtime: a bitset sized from the catalog, reserved at initialization identically in every incarnation, set by `Sometimes` with one load, one branch and one store, and flushed through one dedicated host import at process exit and at every inspection or terminal boundary. `Fail` under the gomad tag additionally emits its ID and up to 32 raw PCs from `runtime.Callers` through the same import on the failing path. The import never yields, reads the clock, consumes draws or enters the WASI transcript or choice trace; it writes into the helper's evidence stream with the current local choice ordinal and virtual time attached by the host.
 - **Evidence.** The artifact record gains a `semantic` section: catalog hash, the sorted set of hit IDs, and for `Fail` hits the ID, choice ordinal, virtual time and symbolized frames. Hit sets enter the coverage summary and corpus features. The catalog hash is bound into prepared-target identity; replay and resume refuse a mismatch.
 - **Campaign.** `--coverage=semantic` and `--require-probe=NAME` accept catalogued `sometimes` names on WASM. A campaign summary lists catalogued `sometimes` entries never hit, with counts of executions. `--must-hit=NAME` (repeatable, globs allowed) fails the campaign with a distinct outcome when a named entry is never hit. `--keep-successes=novel` retains the first execution that hits each new entry.
@@ -24,7 +34,7 @@ This is captured backlog, not an executable task plan. No implementation tasks h
 ## API Contracts
 
 - `softassert.Sometimes(staticMessage string)`: no logger, no tags, no return value. Ordinary builds: no-op. Gomad WASM builds: sets the bit for the site's catalog ID. Calling it from any goroutine is legal.
-- `gomadtool catalog generate --module DIR --output FILE` writes the catalog; `gomadtool catalog check` exits 1 with the first stale or refused site. Refusals: non-literal new Sometimes/Unreachable name, duplicate public Sometimes name within a package, message over 4,096 bytes, a site in a file excluded by build tags the generator cannot evaluate.
+- `go run ./internal/backends/wasm/toolchain/cmd/catalog generate --module DIR --output FILE` writes the catalog; `… check` exits 1 with the first stale or refused site. Refusals: non-literal new Sometimes/Unreachable name, duplicate public Sometimes name within a package, message over 4,096 bytes, a site in a file excluded by build tags the generator cannot evaluate.
 - `gomad explore` and `qualify` on cooperative WASM: `--coverage=semantic`, `--require-probe=NAME`, `--must-hit=NAME` and the existing `--keep-successes=novel` apply to catalogued names. Unknown names are refused before execution (status 2). A never-hit `--must-hit` entry ends the campaign with a dedicated outcome and status 1.
 - `gomad inspect ARTIFACT` prints the semantic section: hits by name, and for `Fail` hits the choice ordinal, virtual time and frames. `inspect --choices` marks decisions adjacent to a `Fail` hit.
 - Record schema and catalog format are versioned. Supported-lineage older artifacts without a semantic section remain inspectable and report "no catalog". Replay still requires their exact compatible runtime/helper/host identities: retain an authenticated pre-change executable and matching inputs under this open spec for the legacy replay test; the changed executable refuses incompatible identities instead of silently admitting or migrating them.
@@ -44,32 +54,31 @@ This is captured backlog, not an executable task plan. No implementation tasks h
 
 ### Catalog binding and terminal completeness
 
-Inventory legacy literal and dynamic sites before generation. Site identity is the ordered source descriptor (package, module-relative file, declaration/call position and assertion kind); IDs are stable within the resulting catalog version and the catalog hash binds the prepared target. Existing duplicate That/Fail messages are distinct sites; do not rename their ordinary messages or failure signatures. Existing dynamic messages, including mutable_state_impl.go and assertion helper forwarding, retain evaluation and output unchanged and receive generated static location labels. Only new Sometimes/Unreachable declarations require literal public names; Sometimes names are package-qualified, with duplicate public names in one package refused.
-
-Bind calls at build time through a Go source overlay transformation owned by the retained generator, not a runtime message lookup or stack walk. Replace each application declaration call with a generated ID-bearing, gomad-tagged entry point while preserving receiver/argument evaluation order and exactly-once evaluation. Ordinary builds keep original source. Recognized assertion helpers forward that explicit ID internally and are not counted again as application declaration sites; an unrecognized forwarding shape fails generation with its source location. Binding is established before inlining and works during package initialization after the reserved runtime bitset is initialized. Test identical text in two packages, duplicate legacy text, dynamic legacy messages, helper forwarding, inlining and initialization calls. Include the transformed call path in hot-path/allocation and runtime-witness verification.
-
-Each incarnation records observation completeness (`complete` or `incomplete` with reason), valid observed hit IDs and dropped/truncated counts. At terminal collection, after guest execution has stopped, the helper reads the bounded registered bitset from that incarnation's memory without executing guest exit code; validate address/size/catalog binding before reading. Normal flushes are checkpoints, not proof that later hits cannot exist. An inaccessible or invalid final snapshot, lost state, output truncation in the semantic channel or incomplete Fail-event stream marks the affected observation incomplete. Retain positive authenticated hits, but absent IDs are unknown for incomplete observations. A campaign reports never-hit and fails must-hit only when every selected execution needed for that conclusion ran with complete semantic observations. Incomplete observations with no positive hit produce an explicit inconclusive coverage outcome, never a successful coverage claim or a fabricated never-hit failure; existing application/capacity/infrastructure outcomes retain precedence. Test an immediate hit followed by fuel exhaustion, trap, epoch interruption and semantic truncation, and interrupted/missing campaign executions.
-
+Unchanged from the capture: site identity is the ordered source descriptor (package, module-relative file, position, kind); IDs are stable within a catalog version; the catalog hash binds the prepared target. Binding happens at build time through the retained generator's source overlay transformation, never a runtime lookup or stack walk. Each incarnation records observation completeness (`complete`, or `incomplete` with reason), valid hit IDs and dropped/truncated counts. At terminal collection the helper reads the bounded registered bitset from the incarnation's memory after guest execution has stopped, validating address, size and catalog binding first. Normal flushes are checkpoints, not proof that later hits cannot exist.
 
 ### Server package and generator (.1)
 
-Add `Sometimes` and `Unreachable` to `common/softassert`: only Sometimes is a no-op in the default build; Unreachable delegates to Fail with its existing behavior. Their gomad-tagged implementations call into the semantic channel through the same guest initialization link seam `common/gomaddebug` uses. Write the generator under the WASM backend's `gomadtool` with the scanner built on `go/packages`; emit `common/softassert/zz_catalog_gomad.go`. Add the `validate` check. Convert at least one existing site that an engineer identified as "should happen under load" to `Sometimes` as the demonstration, for example the sync-match path in matching or the speculative workflow task timeout path.
+Add `Sometimes` and `Unreachable` to `common/softassert`. Write the generator under `toolchain/cmd/catalog` on `go/packages`, emit `common/softassert/zz_catalog_gomad.go` under the `gomad && wasip1 && wasm` tag, add the `validate` check, convert at least one existing site. Go only; no host code.
 
-### Guest channel (.2)
+### Guest channel and helper import (.2)
 
-Extend the cooperative runtime overlay with the bitset, the `Sometimes` hook, the `Fail` PC capture and the flush import, under the existing runtime owner. Add the import to the helper's ABI beside the fn-180 debug import, writing to the evidence stream with host-attached coordinates. Rotate the runtime, ABI and helper identities together.
+Extend the cooperative runtime overlay with the bitset reserved before user package initialization, the `Sometimes` hook (one load, one branch, one store), the `Fail` PC capture (up to 32 raw PCs, failing path only) and a dedicated flush import beside `gomadWasmObservation`. Add the import to the helper ABI; the model writes a bounded semantic evidence stream with host-attached coordinates (choice ordinal, virtual time). Rotate the runtime, ABI and helper identities together. The runtime-state witness must not change because a `Sometimes` fired.
 
-### Evidence and campaign (.3)
+### Record and inspect (.3)
 
-Add the semantic section to the WASM artifact record and cluster evidence, the catalog hash to prepared-target identity, and the coverage, `--require-probe`, `--must-hit` and `--keep-successes=novel` handling to the runner for cooperative WASM. Feed hit sets into corpus features. Extend `inspect`.
+Add the `semantic` section to the execution record v2 as a typed struct (fn-245 discipline): catalog hash, per-incarnation sorted hit IDs, completeness, and for `Fail` hits the ID, ordinal, virtual time and symbolized frames. Bind the catalog hash into prepared-target identity; refuse a mismatch at preparation. `inspect` prints the section and `inspect --choices` marks decisions adjacent to a `Fail` hit. Supported-lineage artifacts without the section report "no catalog". Retain an authenticated pre-change executable and inputs for the legacy replay test; the changed executable refuses incompatible identities.
 
-### Qualification and demonstration (.4)
+### Campaign (.4)
 
-Run the cooperative runtime qualification on the integrated candidate to show unchanged recording and replay evidence for workloads without `Sometimes` sites. Demonstrate on the Temporal one-box cell: one `Sometimes` site reached under a seed campaign and reported in the summary; the same site reported never-hit and failing `--must-hit` when the workload that reaches it is removed. Retain commands, exits and identities in the batch evidence handover.
+In `gomad-campaign`: `--coverage=semantic`, `--require-probe`, `--must-hit` (repeatable, globs) and `--keep-successes=novel` accept catalogued names on cooperative WASM; unknown names are refused before execution (status 2). The summary lists never-hit `sometimes` entries with execution counts; a never-hit `--must-hit` entry ends a completely observed campaign with a dedicated outcome and status 1; incomplete observation reports inconclusive coverage unless an authenticated positive hit already satisfies the entry. Hit sets feed the existing corpus features. The existing log-scanner Always oracle in `soft_assertions.rs` stays as the fallback for pre-change artifacts.
+
+### Qualification and demonstration (.5)
+
+Run the cooperative runtime qualification on the integrated candidate to show unchanged recording and replay evidence for workloads without `Sometimes` sites. Demonstrate on the one-box cell: one `Sometimes` site reached under a seed campaign and reported; the same site never-hit and failing `--must-hit` when its workload is removed.
 
 ### Verification
 
-Host-source and package tests with `-tags test_dep`, the Rust helper suites, `make -C tools/gomad validate` including the catalog check, and `test-wasm` once on the integrated candidate. Plan review authorizes no implementation, push, PR or CI action.
+Server package tests, the retained Go generator tests, `cargo test --workspace`, `make -C tools/gomad validate` including the catalog check, and the one-box qualification cell once on the integrated candidate. No PR, push or CI run is authorized by this spec.
 
 ## Acceptance Criteria
 
@@ -96,6 +105,12 @@ Owner request (2026-10-16) following the discussion recorded in `.plans/GOMAD_FI
 
 ## Requirement coverage
 
-| Requirements | Task coverage | Reason |
-| --- | --- | --- |
-| R1–R6 | Not yet decomposed | Captured design requires the Rust ownership and feasibility decisions above before an executable task breakdown. Requirements remain open; no implementation acceptance is claimed. |
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | `Sometimes` and `Unreachable` in `common/softassert`. | fn-191-gomad-sometimes-assertions-and-a-site.1 | — |
+| R2 | Catalog generator, checked-in catalog, `validate` check. | fn-191-gomad-sometimes-assertions-and-a-site.1 | — |
+| R3 | Guest channel, helper import, typed `semantic` record section, witness unaffected. | fn-191-gomad-sometimes-assertions-and-a-site.2, fn-191-gomad-sometimes-assertions-and-a-site.3 | — |
+| R4 | Campaign flags, never-hit summary, `--must-hit` outcome, inconclusive semantics. | fn-191-gomad-sometimes-assertions-and-a-site.4 | — |
+| R5 | `inspect` semantic section, legacy "no catalog", pre-change executable replay test. | fn-191-gomad-sometimes-assertions-and-a-site.3 | — |
+| R6 | One-box demonstration and cooperative qualification unchanged. | fn-191-gomad-sometimes-assertions-and-a-site.5 | — |
+

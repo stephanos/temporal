@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:46:35.759783Z",
+  "depends_on": [
+    "fn-190-gomad-wasm-checkpoint-restore-experiment.1"
+  ],
+  "id": "fn-190-gomad-wasm-checkpoint-restore-experiment.5",
+  "priority": null,
+  "spec": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "spec_path": ".flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.5.md",
+  "status": "todo",
+  "title": "Research finding and go/no-go",
+  "updated_at": "2026-10-24T16:46:39.222631Z"
+}

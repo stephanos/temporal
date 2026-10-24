@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:46:35.472831Z",
+  "depends_on": [
+    "fn-190-gomad-wasm-checkpoint-restore-experiment.3"
+  ],
+  "id": "fn-190-gomad-wasm-checkpoint-restore-experiment.4",
+  "priority": null,
+  "spec": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "spec_path": ".flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.4.md",
+  "status": "todo",
+  "title": "Temporal one-box boot-probe measurement",
+  "updated_at": "2026-10-24T16:46:38.906556Z"
+}

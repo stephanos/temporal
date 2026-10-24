@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:07:09.221477Z",
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.9"
+  ],
+  "id": "fn-240-gomad-context-sized-rust-crates-with.10",
+  "priority": null,
+  "spec": "fn-240-gomad-context-sized-rust-crates-with",
+  "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.10.md",
+  "status": "todo",
+  "title": "Extract gomad-replay, gomad-qualify, gomad-sweep, gomad-shim",
+  "updated_at": "2026-10-24T16:07:28.083386Z"
+}

@@ -266,7 +266,7 @@ The owner's goal says to follow the conductor's own recommendations when in doub
 7. **Stress as a correctness check (owner, 2026-10-23).** The fn-188.5 41×4 stress matrix is not a one-hour cycle stage. It runs right after the freeze on the frozen candidate as a determinism check: every same-seed divergence is a finding, whatever the host load. Its wall time and other timing results are recorded but not judged until the quiet-host window. fn-242 does not wait for it.
 8. **Pre-freeze source.** fn-227.1's inventory rows cite the Rust map-order tests before the freeze. The pre-freeze dry run also runs the Rust sweep against a real guest and runs fn-233's launcher, shim and Make lanes.
 9. **Post-freeze runs.** On the frozen candidate, as correctness work under the current load: the fn-233 formal rerun (~1 h), stress (2–3 h) and the fn-221 full sweep (5–8 h). Load-only timeouts are classified as contention and rechecked later. fn-221 reruns the whole sweep on the frozen Rust binary instead of resuming the Go-candidate journal, because the Go host's helper link-count infrastructure rows and changed evidence bounds make that journal non-transferable. Only the fn-185.2/.3 profiles wait for a quiet-host window.
-10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities. The cleanup-first owner amendment supersedes the wait: complete fn-242, then all approved fn-240 tasks, then fn-246 qualification.
+10. **fn-240 crate count.** The owner's 8–12 crate target stands, even though the main crate has grown to about 110k lines. The read-only survey (.1) may run now. Extractions wait until the post-freeze windows are done, because each one rotates the host and helper identities. Superseded in part on 2026-10-24: fn-240 Amendment 4 fixes the end state at 17 library crates and 3 bins under `rust/crates/`, `rust/bins/`, `rust/tools/`, with `wasm-engine` the only crate exposing wasmtime; the fold order back to twelve is recorded in the spec. The cleanup-first amendment supersedes the wait for post-freeze windows: complete fn-242, then all fn-240 tasks, then fn-246 qualification.
 11. **No new Python driver code.** Until fn-242 runs, `tools/gomad/rust/driver/` gets only the Python the fn-232.13 freeze and its post-freeze windows strictly need. New checks go into Rust tests or `gomad` verbs.
 12. **fn-222 inside the final cycle.** The one-box fn-222 group runs alongside the inspection stage's own onebox inspection, not after it, and the cycle stays at 96 stages. The cycle is launched with `driver.py parallel`. fn-222.1 then closes on the cycle's gate exits and support list.
 
@@ -520,14 +520,23 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 
 ### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
 
-Owner's 8–12 crate target stands (ruling 10). Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
+Target layout fixed by the owner on 2026-10-24 (spec Amendment 4); R11 typed error enums and R12 size lints ride on every extraction. Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
+| [fn-240.5](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.5.md) | ⬜ Todo | Foundations: `HostError`, identity closure with flip-byte test, inventory scanner, workspace lints and allow-list |
 | [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
 | [fn-240.3](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md) | ⬜ Todo | Extract `wasm-sim` (clock, network, volume, event_order, sim controller) |
-| [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide next cuts |
+| [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide go/no-go for continuing to the Amendment 4 layout |
+| [fn-240.6](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.6.md) | ⬜ Todo | Hooks instead of features: `wasm-hooks`, `wasm-diagnostic`, `gomad-fixture` |
+| [fn-240.7](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.7.md) | ⬜ Todo | Extract `wasm-model` and the `wasm-conformance` bin; drop the conformance feature |
+| [fn-240.8](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.8.md) | ⬜ Todo | Split `wasm-engine` from `wasm-cluster`; `wasmhost` helper bin |
+| [fn-240.9](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.9.md) | ⬜ Todo | Extract `gomad-install` and `gomad-execution`; remove cli back-edges |
+| [fn-240.10](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.10.md) | ⬜ Todo | Extract `gomad-replay`, `gomad-qualify`, `gomad-sweep`, `gomad-shim` |
+| [fn-240.11](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.11.md) | ⬜ Todo | Extract `gomad-campaign` |
+| [fn-240.12](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.12.md) | ⬜ Todo | Split `gomad-measure` and `gomad-stress` |
+| [fn-240.13](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.13.md) | ⬜ Todo | Directory relayout, dispatch-only `bins/gomad`, Makefile `--workspace`, final measurement |
 
 ### Final qualification after cleanup — [fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md)
 
@@ -611,10 +620,53 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
 
+### Typed boundaries for the Rust host — [fn-245](.flow/specs/fn-245-gomad-typed-boundaries-for-the-rust-host.md)
+
+Filed 2026-10-24 from the complexity review; depends on fn-240 and fn-242. Typed errors and size lints are fn-240 R11/R12, not here.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-245.1](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.1.md) | ⬜ Todo | One authenticated-read abstraction (`gomad_evidence::io`) replaces per-module read/digest/authenticate copies; after fn-240.2, before fn-240.9 |
+| [fn-245.2](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.2.md) | ⬜ Todo | Typed receipts with `deny_unknown_fields` replace `serde_json::Value` outside the canonical encoder; after fn-242.7 |
+
+### Sometimes assertions and site catalog — [fn-191](.flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md)
+
+Rewritten onto the Rust host 2026-10-24; depends on fn-240, fn-242 and fn-245 (the `semantic` record section is typed). The Always oracle is `campaign/soft_assertions.rs`.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-191.1](.flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.1.md) | ⬜ Todo | `Sometimes`/`Unreachable` in `common/softassert`; retained Go catalog generator and `validate` check |
+| [fn-191.2](.flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.2.md) | ⬜ Todo | Guest channel in the cooperative overlay; helper semantic import; identities rotated |
+| [fn-191.3](.flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.3.md) | ⬜ Todo | Typed `semantic` record section, catalog identity binding, `inspect` output, legacy replay test |
+| [fn-191.4](.flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.4.md) | ⬜ Todo | Campaign flags, never-hit summary, `--must-hit` outcome, corpus features |
+| [fn-191.5](.flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.5.md) | ⬜ Todo | One-box demonstration; cooperative qualification unchanged |
+
+### WASM checkpoint-restore experiment — [fn-190](.flow/specs/fn-190-gomad-wasm-checkpoint-restore-experiment.md)
+
+Rewritten onto the Rust host 2026-10-24; depends on fn-240 (snapshot/restore are `wasm-sim`/`wasm-model` boundary operations, so after fn-240.7). Experiment with a kill switch in .1; .5 runs on either path.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-190.1](.flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.1.md) | ⬜ Todo | Dormant re-entry prototype in the runtime overlay; recorded-suffix fixture at three boundaries (kill switch) |
+| [fn-190.2](.flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.2.md) | ⬜ Todo | Crate `snapshot`/`restore` boundaries and `--dump=image` |
+| [fn-190.3](.flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.3.md) | ⬜ Todo | `checkpoint-probe` developer verb: restore, recorded and fresh suffix, forced-prefix baseline |
+| [fn-190.4](.flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.4.md) | ⬜ Todo | Temporal one-box boot-probe measurement |
+| [fn-190.5](.flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.5.md) | ⬜ Todo | Research finding and go/no-go |
+
 ### Race profile for wasip1 — [fn-241](.flow/specs/fn-241-gomad-a-race-profile-for-wasip1-deferred.md)
 
-Deferred by owner decision 2026-10-23; all four tasks ⛔ Blocked on the revival trigger recorded in the spec (saturated fault matrix, benchmark table showing a reachable unreported race). No work until revived.
+Deferred by owner decision 2026-10-23; broken into eleven tasks on 2026-10-24, all ⛔ Blocked on the revival trigger recorded in the spec (saturated fault matrix, benchmark table showing a reachable unreported race). No work until revived.
 
-### Captured backlog without tasks
-
-[fn-190](.flow/specs/fn-190-gomad-wasm-checkpoint-restore-experiment.md) checkpoint-restore experiment and [fn-191](.flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md) Sometimes assertions are reviewed designs with no tasks; both must be re-homed onto the Rust replay/campaign owners before task breakdown.
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-241.1](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.1.md) | ⛔ Blocked | Lift the wasip1 race gate; rebuild pinned `go` and `compile` for the race profile |
+| [fn-241.5](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.5.md) | ⛔ Blocked | Stub `runtime/race` for wasm; instrumented choices fixture matches uninstrumented (early proof) |
+| [fn-241.6](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.6.md) | ⛔ Blocked | Race overlay embedding with separate identity; determinism inventory rows |
+| [fn-241.2](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.2.md) | ⛔ Blocked | FastTrack core: vector clocks, epochs, goroutine seeding, sync edges, ordered/unordered corpus |
+| [fn-241.7](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.7.md) | ⛔ Blocked | Span-allocated shadow memory with recorded sampling fallback |
+| [fn-241.8](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.8.md) | ⛔ Blocked | One-seed detection of PR 10549 on the §3 workload; fixed revision clean |
+| [fn-241.3](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.3.md) | ⛔ Blocked | Race report class: wire fields, forcing schedule, retention and replay |
+| [fn-241.9](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.9.md) | ⛔ Blocked | Symbolize both race stacks through the inspect path |
+| [fn-241.10](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.10.md) | ⛔ Blocked | `sync/atomic` edges, stale-size variant, atomic-counter negative fixture, happens-before fingerprint |
+| [fn-241.11](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.11.md) | ⛔ Blocked | `gomad.wasi-race/v1` identity, per-run selection, refusal on mismatch; cooperative byte-unchanged |
+| [fn-241.4](.flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.4.md) | ⛔ Blocked | Race profile capacities, qualification cells, operator docs, closing audit |

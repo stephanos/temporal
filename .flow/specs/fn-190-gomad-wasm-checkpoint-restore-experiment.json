@@ -6,13 +6,16 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-240-gomad-context-sized-rust-crates-with"
+  ],
   "id": "fn-190-gomad-wasm-checkpoint-restore-experiment",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-21T17:44:28.130412Z",
+  "ready": true,
   "review_attempts": [
     {
       "artifact_sha256": "34b49662f4c2c08d94fbb259f16e7b7bd5e89635d83151ae08c0cfd2243c174d",
@@ -159,5 +162,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:50:16.915601Z"
+  "updated_at": "2026-10-24T16:46:39.758703Z"
 }

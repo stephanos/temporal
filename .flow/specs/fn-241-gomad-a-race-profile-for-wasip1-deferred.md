@@ -2,7 +2,7 @@
 
 ## Status: deferred
 
-This spec is deferred and not ready. Every task is blocked with the same revival trigger. It exists so the decision in [GOMAD_RACES.md](../../.plans/GOMAD_RACES.md) is recorded as scope with acceptance criteria rather than argued again. No implementation, PR, push or CI run is authorized until the owner revives it.
+This spec is deferred and not ready. Every task (eleven since the 2026-10-24 breakdown) is blocked with the same revival trigger. It exists so the decision in [GOMAD_RACES.md](../../.plans/GOMAD_RACES.md) is recorded as scope with acceptance criteria rather than argued again. No implementation, PR, push or CI run is authorized until the owner revives it.
 
 **Revival trigger.** The persistence fault matrix from [GOMAD_FIND_BUGS.md §3](../../.plans/GOMAD_FIND_BUGS.md) has saturated, the known-bug benchmark table exists, and that table shows a bug in the data-race or lock-discipline family that a workload under Gomad reaches but Gomad does not report. The PR 10549 row is the first candidate. Static checklocks annotations on the history service do not satisfy or cancel the trigger; they are Temporal's work and catch only guarded-field violations.
 
@@ -85,7 +85,12 @@ Task 1: the toolchain choices fixture builds with `-race` for `wasip1/wasm` from
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Platform gate lifted, toolchain rebuilt, stub `runtime/race` builds and runs the choices fixture instrumented | fn-241-gomad-a-race-profile-for-wasip1-deferred.1 | — |
-| R2 | FastTrack detector with span shadow reports the PR 10549 map race from one seed; fixed code is clean | fn-241-gomad-a-race-profile-for-wasip1-deferred.2 | — |
-| R3 | Retained, symbolized, replayable race reports with forcing schedule; atomic edges; stale-size variant reported | fn-241-gomad-a-race-profile-for-wasip1-deferred.3 | — |
-| R4 | Race profile identity, capacities, qualification cells, on/off documentation; cooperative profile unchanged | fn-241-gomad-a-race-profile-for-wasip1-deferred.4 | — |
+| R1 | Platform gate lifted, toolchain rebuilt, stub `runtime/race` builds and runs the choices fixture instrumented, race overlay identity separated | fn-241-gomad-a-race-profile-for-wasip1-deferred.1, fn-241-gomad-a-race-profile-for-wasip1-deferred.5, fn-241-gomad-a-race-profile-for-wasip1-deferred.6 | — |
+| R2 | FastTrack detector with span shadow reports the PR 10549 map race from one seed; fixed code is clean | fn-241-gomad-a-race-profile-for-wasip1-deferred.2, fn-241-gomad-a-race-profile-for-wasip1-deferred.7, fn-241-gomad-a-race-profile-for-wasip1-deferred.8 | — |
+| R3 | Retained, symbolized, replayable race reports with forcing schedule; atomic edges; stale-size variant reported | fn-241-gomad-a-race-profile-for-wasip1-deferred.3, fn-241-gomad-a-race-profile-for-wasip1-deferred.9, fn-241-gomad-a-race-profile-for-wasip1-deferred.10 | — |
+| R4 | Race profile identity, capacities, qualification cells, on/off documentation; cooperative profile unchanged | fn-241-gomad-a-race-profile-for-wasip1-deferred.6, fn-241-gomad-a-race-profile-for-wasip1-deferred.7, fn-241-gomad-a-race-profile-for-wasip1-deferred.11, fn-241-gomad-a-race-profile-for-wasip1-deferred.4 | — |
+
+## Task breakdown (2026-10-24, owner request)
+
+The four L-sized phases were split into eleven tasks so each fits one worker lane and has one proof. Dependency order:
+.1 gate and tool rebuild → .5 stub `runtime/race` (early proof point) → .6 overlay embedding and inventory → .2 FastTrack core with corpus → .7 span shadow and sampling → .8 one-seed PR 10549 → .3 report class → {.9 symbolization, .10 atomics and fingerprint} → .4 capacities, cells, docs. .11 (profile identity and selection) starts after .6 and .7, in parallel with .8 to .10. Every task remains blocked on the revival trigger above.

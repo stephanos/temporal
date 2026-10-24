@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:46:32.818422Z",
+  "depends_on": [
+    "fn-191-gomad-sometimes-assertions-and-a-site.1"
+  ],
+  "id": "fn-191-gomad-sometimes-assertions-and-a-site.2",
+  "priority": null,
+  "spec": "fn-191-gomad-sometimes-assertions-and-a-site",
+  "spec_path": ".flow/tasks/fn-191-gomad-sometimes-assertions-and-a-site.2.md",
+  "status": "todo",
+  "title": "Guest channel in the cooperative runtime overlay and the helper semantic import",
+  "updated_at": "2026-10-24T16:46:36.092025Z"
+}

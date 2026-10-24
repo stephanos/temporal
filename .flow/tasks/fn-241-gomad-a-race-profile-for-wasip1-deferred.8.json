@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:33:34.280256Z",
+  "depends_on": [
+    "fn-241-gomad-a-race-profile-for-wasip1-deferred.7"
+  ],
+  "id": "fn-241-gomad-a-race-profile-for-wasip1-deferred.8",
+  "priority": null,
+  "spec": "fn-241-gomad-a-race-profile-for-wasip1-deferred",
+  "spec_path": ".flow/tasks/fn-241-gomad-a-race-profile-for-wasip1-deferred.8.md",
+  "status": "todo",
+  "title": "One-seed detection of PR 10549 on the section 3 workload; fixed revision is clean",
+  "updated_at": "2026-10-24T16:34:04.844290Z"
+}

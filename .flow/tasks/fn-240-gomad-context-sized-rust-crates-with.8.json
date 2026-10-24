@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:07:08.635072Z",
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.6",
+    "fn-240-gomad-context-sized-rust-crates-with.7"
+  ],
+  "id": "fn-240-gomad-context-sized-rust-crates-with.8",
+  "priority": null,
+  "spec": "fn-240-gomad-context-sized-rust-crates-with",
+  "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.8.md",
+  "status": "todo",
+  "title": "Split wasm-engine from wasm-cluster; wasmhost helper bin",
+  "updated_at": "2026-10-24T16:07:27.280882Z"
+}

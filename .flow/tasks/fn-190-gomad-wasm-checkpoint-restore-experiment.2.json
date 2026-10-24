@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:46:34.557707Z",
+  "depends_on": [
+    "fn-190-gomad-wasm-checkpoint-restore-experiment.1"
+  ],
+  "id": "fn-190-gomad-wasm-checkpoint-restore-experiment.2",
+  "priority": null,
+  "spec": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "spec_path": ".flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.2.md",
+  "status": "todo",
+  "title": "Crate snapshot/restore boundaries and the image dump",
+  "updated_at": "2026-10-24T16:46:37.989829Z"
+}

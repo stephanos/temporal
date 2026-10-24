@@ -6,13 +6,18 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-240-gomad-context-sized-rust-crates-with",
+    "fn-242-gomad-shrink-the-qualification",
+    "fn-245-gomad-typed-boundaries-for-the-rust-host"
+  ],
   "id": "fn-191-gomad-sometimes-assertions-and-a-site",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-21T17:48:14.983187Z",
+  "ready": true,
   "review_attempts": [
     {
       "artifact_sha256": "5fc35d21cb5f2fbd574a3bcc35409aaaec0ca766de80c49f4ad6f09971bd0ec9",
@@ -175,5 +180,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:50:18.889913Z"
+  "updated_at": "2026-10-24T16:46:39.491959Z"
 }

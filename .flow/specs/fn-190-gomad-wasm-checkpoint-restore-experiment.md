@@ -10,21 +10,29 @@ Prerequisites already delivered: fn-180 stop-and-inspect (prefix cuts, the runti
 
 ## Planning status and prerequisites
 
-This is captured backlog, not an executable task plan. No implementation tasks have been created and the spec is not ready. The 2026-10-20 Rust-host decision supersedes the Go-host command/evidence locations below: host orchestration belongs in `tools/gomad/rust/gomad`, helper/runtime work stays with its existing owner, and a Go source generator may remain retained build tooling. Before task breakdown, reconcile the proposed command and evidence interfaces against the completed Rust replay/inspection and campaign owners. Preserve the acceptance requirements; do not start a parallel Go-host implementation or infer that absent tasks mean completion.
+Rewritten onto the Rust host on 2026-10-24 (owner request). The `gomadtool` command set and the Go-host replay are gone; `gomad replay --stop=… --dump=…` is the Rust inspection path today (`cli/replay.rs`, `replay/inspection.rs`, helper `linked_inspection`). Acceptance criteria R1–R6 are unchanged from the 2026-10-16 capture. This remains an experiment with a kill switch: a demonstrated impossible re-entry is a valid no-go result retained under R6, not a pass for R1–R5.
+
+Owners:
+- Image capture: the Rust replay inspection path, one additional built-in dump `image`.
+- Helper snapshot and restore: `wasm-sim` (clock, network, volume, simulation controller) and `wasm-model` (namespace, tape cursor, draw state, descriptors, evidence accumulators) from fn-240. Snapshot and restore are crate-boundary operations: each crate exposes `snapshot() -> Image` and `restore(Image)` for its own state, tested at its boundary. This is why the experiment waits for fn-240.7.
+- Restore and probe verb: an experimental developer verb `checkpoint-probe` in the `gomad` bin, compiled only with the determinism-fixture feature set so it is absent from release binaries, never in `gomad replay`.
+- Runtime re-entry: the cooperative runtime overlay (`toolchain/runtime_wasm.go.txt`, `toolchain/overlay.go`), dormant unless an image capture is requested.
+
+Sequencing: after fn-240.7 (`wasm-model` extracted; `wasm-sim` exists from .3). Spec-level dependency on fn-240 recorded.
 
 ## Architecture & Data Models
 
 - **Image capture** extends the fn-180 inspection stop with one additional built-in dump, `image`, available only for single-guest cooperative artifacts. It writes the guest's linear memory, module globals, tables and remaining fuel, together with a versioned experimental operational helper snapshot (clock run state and pending folds, tape cursor, seeded draw state, descriptor/open-file offsets and rights, namespace contents, network buffers/connections, volume bytes/dirty state and evidence accumulation state). Existing inspection cuts/commitments verify this state but are not sufficient restore inputs. The image is diagnostic output beside the replay result. It is never an artifact, never evidence and never part of any identity.
-- **Restore** instantiates a fresh store from the same prepared module, overwrites linear memory, globals and tables from the image, restores the helper cut, and re-enters the guest so that the pending decision at the captured boundary is delivered and application execution continues. Restore lives in an experimental `gomadtool` subcommand in the WASM backend, not in `gomad replay`.
+- **Restore** instantiates a fresh store from the same prepared module, overwrites linear memory, globals and tables from the image, restores the helper cut, and re-enters the guest so that the pending decision at the captured boundary is delivered and application execution continues. Restore lives in the experimental `gomad checkpoint-probe` developer verb (fixture-feature builds only), not in `gomad replay`.
 - **Two continuation modes.** *Recorded suffix*: continue under the remainder of the recorded tape and compare the result with an ordinary fresh replay of the same artifact. *Fresh suffix*: continue with a seeded continuation from the cut and compare with a fresh forced-prefix execution (an experimental extension of `ModePrefix` with an explicit continuation-seed boundary) of the same prefix and the same continuation seed. The second mode is the one exploration would use.
-- **Comparison** reuses the fn-180 cut verification and `gomadtool diagnostic-diff`: choice trace, WASI transcript digests, network and storage digests, stdout/stderr, terminal outcome and the compulsory runtime-state witness. A mismatch names the first differing ordinal and field.
+- **Comparison** reuses the fn-180 cut verification in the Rust inspection path: choice trace, WASI transcript digests, network and storage digests, stdout/stderr, terminal outcome and the compulsory runtime-state witness. A mismatch names the first differing ordinal and field.
 - **Re-entry is the central risk.** At a decision boundary the guest is suspended inside a host import, so the wasm native stack is live and cannot be rebuilt for a fresh instance. Go's wasm port unwinds the native stack to its run loop on every goroutine switch and resumes from `PC_F`/`PC_B` state held in linear memory. The experiment must establish whether the fn-180 handoff can be arranged so that the stop point is reached with the native stack unwound and the pending decision delivered through a reserved linear-memory slot on resume, rather than as the import's return value. This is a guest runtime change under the existing cooperative runtime owner and must be dormant and identical in recording and replay.
 
 ## API Contracts
 
-- `gomad replay --stop=<choice=N|time=T|failure> --dump=image ARTIFACT` writes `ARTIFACT.inspection/image/` containing the guest image, the helper cut and a manifest with sizes, the resolved boundary and the capture wall time. Refused before execution for cluster artifacts, Go-owned network recordings, artifacts without fn-180 inspection metadata, and stops that are not inspectable boundaries.
-- `gomadtool checkpoint-probe --image DIR --mode recorded|fresh [--seed N] [--repeat K] ARTIFACT` restores the image, continues, and writes a comparison report: restore wall time, continuation wall time, the matched or first-divergent evidence field and ordinal, and for `fresh` mode the same comparison against a fresh forced-prefix execution. `--repeat` re-runs the restore and reports medians and ranges.
-- `gomadtool checkpoint-probe --baseline` runs the fresh instance to the same boundary and records boot wall time, so every report carries the ratio the decision needs.
+- `gomad replay --stop=<choice=N|time=T|failure> --dump=image ARTIFACT` writes `ARTIFACT.inspection/image/` with the guest image (linear memory, globals, tables, remaining fuel), the helper snapshot from each sim and model crate, and a manifest with sizes, the resolved boundary and capture wall time. Refused before execution for cluster artifacts, artifacts without inspection metadata, and stops that are not inspectable boundaries.
+- `gomad checkpoint-probe --image DIR --mode recorded|fresh [--seed N] [--repeat K] ARTIFACT` (fixture-feature builds only) restores the image into a fresh store, continues, and writes a comparison report: restore and continuation wall time, matched or first-divergent evidence field and ordinal, and for `fresh` mode the same comparison against a fresh forced-prefix execution of the same prefix and continuation seed. `--repeat` reports medians and ranges. `--baseline` runs the fresh instance to the same boundary and records boot wall time.
+- Comparison reuses the existing inspection cut verification: choice trace, WASI transcript digests, network and storage digests, stdout/stderr, terminal outcome and the compulsory runtime-state witness.
 - Reports and images are research evidence under `.flow/artifacts/` and `docs/research/gomad/`. No new artifact schema, campaign state, plan field or identity input is introduced.
 
 ## Edge Cases & Constraints
@@ -40,35 +48,29 @@ This is captured backlog, not an executable task plan. No implementation tasks h
 
 ## Implementation Design
 
-Before splitting the numbered stages into tasks, resolve the fixture kill switch: a demonstrated impossible re-entry is a valid no-go research result, not a pass for R1–R5. Retain the report under R6 and record the resulting disposition explicitly; do not mark unrun Temporal or continuation acceptance complete. The image export proposal below remains an experimental interface to reconcile with the Rust replay owner, not an already supported dump.
+### Re-entry prototype and fixture (.1)
 
-### Fixture first (.1)
+Resolve the kill switch first. Prototype under the runtime overlay owner, using the fn-180 g0 handoff: at a stop requested with an image capture, the scheduler path records the pending decision request in a reserved linear-memory slot, unwinds to the run loop and traps to the host instead of blocking inside the import; resume re-enters the run loop and reads the delivered decision from the slot. The prototype is dormant: a recording and an ordinary replay take the existing import path and produce identical evidence. Fixture: two goroutines handing off through a channel, one timer, one select with two ready cases, a few hundred bytes of fake-network traffic, one read from a read-only mount. Capture at a run-queue decision, a select decision and a boundary inside a clock run, and prove recorded-suffix equivalence at all three before touching Temporal. If re-entry cannot be made to work, skip .2–.4 and run .5 to retain the no-go finding.
 
-Use a tiny cooperative fixture with two goroutines handing off through a channel, one timer, one select with two ready cases, a few hundred bytes of fake-network traffic and one read from a read-only mount. Capture at three boundaries: a run-queue decision, a select decision and a boundary inside a clock run. Prove recorded-suffix equivalence at all three before touching Temporal. If re-entry cannot be made to work for the fixture, skip .2/.3 and execute .4 to retain the no-go finding; do not claim unrun continuation or Temporal acceptance.
+### Crate snapshots and image capture (.2)
 
-### Runtime re-entry (.1)
+Add `snapshot`/`restore` at the `wasm-sim` and `wasm-model` boundaries for clock run state and pending folds, tape cursor, seeded draw state, descriptor offsets and rights, namespace contents, network buffers and connections, volume bytes and dirty state, and evidence accumulators; each is a boundary test in that crate (snapshot, mutate, restore, compare commitment). Add the `image` dump to the Rust inspection path. Capture happens before any inspection allocation, or the dump is refused with that reason. Existing replay and recording paths gain no restore entry point.
 
-Prototype under the cooperative runtime owner (`toolchain/runtime_wasm.go.txt`, `toolchain/overlay.go`) using the fn-180 g0 handoff: at a stop requested with an image capture, the scheduler path records the pending decision request in a reserved slot, unwinds to the run loop and traps to the host instead of blocking inside the import. Resume re-enters the run loop, reads the delivered decision from the slot and continues through the ordinary decision path. The prototype must be dormant: a recording and an ordinary replay take the existing import path and produce identical evidence, which the compulsory witness checks.
+### Restore, fresh-suffix seed contract and probe verb (.3)
 
-### Fresh-suffix seed contract (.2)
+The `checkpoint-probe` verb instantiates a fresh store from the same prepared module, overwrites linear memory, globals and tables, restores each crate from its snapshot, compares the restored commitment with the captured one, and re-enters. Fresh suffix: at the validated cut an experimental runtime hook resets only the scheduling-choice PRNG streams to the continuation seed; clock, entropy, model state and prior evidence are unchanged; the forced-prefix baseline applies the same hook at the same cut. Both paths use the same instrumented module.
 
-The boot seed and forced prefix are identical in the restored and fresh baseline runs. At the same validated cut, an experimental runtime hook resets only the scheduling-choice PRNG streams to the continuation seed; clock/entropy/model state and all prior evidence remain unchanged. Apply the hook after forming the pending choice request but before selecting its result. If an ordinary path already generated that choice, discard/recompute it identically on both experimental paths. A helper seed change alone is insufficient because scheduling PRNG state lives in guest memory. Both paths use the same dormant-in-ordinary-runs hook and ordered candidates, with eight continuation seeds per boundary. Verify identical pre-cut state, deterministic same-continuation-seed suffixes and a branching fixture where distinct continuation seeds can alter choices. If this hook cannot preserve those contracts, report no-go rather than claiming existing ModePrefix supplies continuation reseeding.
+### Temporal cell (.4)
 
-### Helper restore (.2)
+Run the one-box cell for `TestFrontendSystemInfo` and one smoke suite with an explicit test-only probe marker just after testcore setup and a controlled handoff to an inspectable decision. Report marker-to-cut distance, boot wall time, image bytes, capture, restore and continuation wall times as medians of at least five warm runs on one host in one window.
 
-Capture operational helper state before producing inspection commitments, and add restore counterparts for clock/folds, tape cursor, draw state, descriptors/offsets/rights, namespace data, network buffers/connections, volume bytes/dirty state and evidence accumulators. Inventory every field consumed after resume; hashes, counters and inspection summaries alone cannot reconstruct it. Compare a restored state commitment with the captured commitment before continuing. Restore is only ever applied to a fresh store created for the probe command. Existing replay and recording paths do not gain a restore entry point.
+### Finding (.5)
 
-### Temporal cell (.3)
-
-Run the WASM one-box qualification cell for `./tests/gomadfunctional TestFrontendSystemInfo` and one smoke suite. Identify a boundary immediately after testcore setup using an explicit test-only probe marker and a controlled handoff to an inspectable scheduling decision. Record the marker, ordinal and source location in the retained experimental module. The original TestFrontendSystemInfo has no guaranteed decision site of its own; do not infer the boundary by searching for its function in choice sites. Use the same instrumented module for fresh and restored runs and report the marker-to-cut work separately. If no equivalent inspectable cut can be established, retain that blocker and leave R5 open. Capture, restore in both modes, and measure on any WASM host with a warm cache, median of at least five runs on the same host in the same window, as the superseding 2026-10-17 performance decision permits. Report boot wall to the boundary, image bytes, capture and restore wall time, continuation wall time, and the ratio of boot to restore.
-
-### Finding (.4)
-
-Write `docs/research/gomad/<date>-wasm-checkpoint-restore.md`: what the image needed beyond linear memory, every mismatch found and its cause, the measurements, and a go/no-go recommendation. If go, include the product design the next spec would implement: a checkpoint-backed forced-prefix frontier that caches one image per prefix, binds image provenance to the prepared module and helper identities, and keeps retained failures fresh-replay verified. If no-go, name the state that cannot be captured and the cheapest alternative. Link the report from `docs/research/gomad/README.md` and `.plans/GOMAD_NEXT.md`.
+Write `docs/research/gomad/<date>-wasm-checkpoint-restore.md`: what the image needed beyond linear memory, every mismatch and its cause, the measurements, and a go/no-go recommendation with either the product design for a checkpoint-backed forced-prefix frontier or the blocking state and the cheapest alternative. Link it from the research index and `.plans/GOMAD_CMP.md`.
 
 ### Verification
 
-Fixture and runtime tests run with `-tags test_dep`, the Rust helper suites, `make -C tools/gomad validate` and the cooperative runtime qualification once on the integrated candidate, to show the dormant re-entry path changed no recording or replay evidence. Retain commands, exits and identities in the batch evidence handover. Plan review authorizes no implementation, push, PR or CI action.
+Fixture and overlay tests, `cargo test --workspace` including the new crate boundary tests, `make -C tools/gomad validate`, and the cooperative runtime qualification once on the integrated candidate to show the dormant path changed no recording or replay evidence. No PR, push or CI run is authorized by this spec.
 
 ## Acceptance Criteria
 
@@ -95,6 +97,12 @@ Owner request (2026-10-16): checkpoint a run before an interesting point, freeze
 
 ## Requirement coverage
 
-| Requirements | Task coverage | Reason |
-| --- | --- | --- |
-| R1–R6 | Not yet decomposed | Captured design requires the Rust ownership and feasibility decisions above before an executable task breakdown. Requirements remain open; no implementation acceptance is claimed. |
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | `--dump=image` writes guest image, helper snapshot and manifest; refusals. | fn-190-gomad-wasm-checkpoint-restore-experiment.2 | — |
+| R2 | Fixture recorded-suffix equivalence at three boundaries. | fn-190-gomad-wasm-checkpoint-restore-experiment.1, fn-190-gomad-wasm-checkpoint-restore-experiment.3 | — |
+| R3 | Fixture fresh-suffix equivalence, eight seeds per boundary. | fn-190-gomad-wasm-checkpoint-restore-experiment.3 | — |
+| R4 | Dormant re-entry path leaves recording and replay evidence unchanged. | fn-190-gomad-wasm-checkpoint-restore-experiment.1, fn-190-gomad-wasm-checkpoint-restore-experiment.5 | — |
+| R5 | Temporal one-box measurements, both continuation modes. | fn-190-gomad-wasm-checkpoint-restore-experiment.4 | — |
+| R6 | Research report with go/no-go and follow-on design or blocking state. | fn-190-gomad-wasm-checkpoint-restore-experiment.5 | — |
+

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:07:08.083004Z",
+  "depends_on": [
+    "fn-240-gomad-context-sized-rust-crates-with.4"
+  ],
+  "id": "fn-240-gomad-context-sized-rust-crates-with.6",
+  "priority": null,
+  "spec": "fn-240-gomad-context-sized-rust-crates-with",
+  "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.6.md",
+  "status": "todo",
+  "title": "Hooks instead of features: wasm-hooks, wasm-diagnostic, gomad-fixture",
+  "updated_at": "2026-10-24T16:07:26.271025Z"
+}

@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-22T21:07:07.094820Z",
   "depends_on": [
-    "fn-240-gomad-context-sized-rust-crates-with.1"
+    "fn-240-gomad-context-sized-rust-crates-with.1",
+    "fn-240-gomad-context-sized-rust-crates-with.5"
   ],
   "id": "fn-240-gomad-context-sized-rust-crates-with.2",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md",
   "status": "todo",
   "title": "Extract gomad-evidence crate with boundary tests",
-  "updated_at": "2026-10-22T21:07:07.094820Z"
+  "updated_at": "2026-10-24T16:07:25.207840Z"
 }

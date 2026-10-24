@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T16:46:34.124611Z",
+  "depends_on": [],
+  "id": "fn-190-gomad-wasm-checkpoint-restore-experiment.1",
+  "priority": null,
+  "spec": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "spec_path": ".flow/tasks/fn-190-gomad-wasm-checkpoint-restore-experiment.1.md",
+  "status": "todo",
+  "title": "Dormant re-entry prototype in the runtime overlay and recorded-suffix fixture",
+  "updated_at": "2026-10-24T16:46:34.124611Z"
+}
