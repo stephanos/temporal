@@ -147,7 +147,7 @@ fn binding_value(ty: &LiftType, literal: &Literal) -> Result<Value, Refusal> {
 
 fn validate_binding(module: &Module) -> Result<(), Refusal> {
     let parameters = &module.metadata.parameters;
-    let constants = constant_bindings(&module.cfg);
+    let constants = constant_bindings(&module.cfg)?;
     if parameters.is_empty() {
         if !constants.is_empty()
             || module.metadata.binding.as_ref().is_some_and(|binding| !binding.world.is_empty())
@@ -198,8 +198,22 @@ fn validate_binding(module: &Module) -> Result<(), Refusal> {
     Ok(())
 }
 
-fn constant_bindings(cfg: &str) -> Vec<&str> {
-    cfg.lines().map(str::trim).filter(|line| line.starts_with("CONSTANT")).collect()
+fn constant_bindings(cfg: &str) -> Result<Vec<&str>, Refusal> {
+    let mut constants = Vec::new();
+    for line in cfg.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        let (keyword, value) = line
+            .split_once(char::is_whitespace)
+            .ok_or_else(|| Refusal(format!("noncanonical config line: {line}")))?;
+        match keyword {
+            "CONSTANT" => constants.push(line),
+            "SPECIFICATION" | "INIT" | "NEXT" | "INVARIANT" | "PROPERTY" => {
+                identifier(value.trim())?;
+            }
+            "CHECK_DEADLOCK" if value.trim() == "TRUE" => {}
+            _ => return Err(Refusal(format!("noncanonical config line: {line}"))),
+        }
+    }
+    Ok(constants)
 }
 
 fn validate_properties(module: &Module) -> Result<(), Refusal> {
@@ -226,7 +240,7 @@ fn validate_properties(module: &Module) -> Result<(), Refusal> {
         if name.is_empty() || !names.insert(name) || !operators.insert(operator) {
             return Err(Refusal(format!("duplicate property declaration {name:?}/{operator}")));
         }
-        if constant_bindings(cfg) != constant_bindings(&module.cfg) {
+        if constant_bindings(cfg)? != constant_bindings(&module.cfg)? {
             return Err(Refusal(format!(
                 "selected World bindings differ in isolated CFG for {name}"
             )));

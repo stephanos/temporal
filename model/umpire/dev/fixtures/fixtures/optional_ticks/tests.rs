@@ -258,6 +258,25 @@ fn optional_ticks_refuses_legal_world_swaps_in_each_cfg_family() -> umpire_testi
         .ok_or("coordinated CFGs certified another legal selected World")?;
     assert!(error.to_string().contains("selected World bindings differ"), "{error}");
 
+    for family in ["main", "invariant", "postcondition", "negative", "progress"] {
+        let mut continued = module.clone();
+        let cfg = match family {
+            "main" => &mut continued.cfg,
+            "invariant" => &mut continued.metadata.invariants[0].cfg,
+            "postcondition" => &mut continued.metadata.postconditions[0].cfg,
+            "negative" => &mut continued.metadata.negative[0].cfg,
+            _ => &mut continued.metadata.progress[0].cfg,
+        };
+        let original = "CONSTANT __umpire_world_remaining = 0\n";
+        assert!(cfg.contains(original));
+        *cfg = cfg.replace(original, &format!("{original}__umpire_world_remaining = 2\n"));
+        let error = bound_for(selected(Some(3)))
+            .check_module(&folder(), &continued)
+            .err()
+            .ok_or_else(|| format!("{family} CFG continuation certified another selected World"))?;
+        assert!(error.to_string().contains("noncanonical config line"), "{error}");
+    }
+
     Ok(())
 }
 

@@ -45,11 +45,14 @@
   "quality_audits": {
     "correctness": {
       "initial_findings": 1,
-      "fixed": "Main CFG assignment decoding is anchored to typed binding/parameters; coordinated unused-World-parameter mutation red101\u2192green0."
+      "fixed": "Main CFG assignment decoding is anchored to typed binding/parameters; coordinated unused-World-parameter mutation red101\u2192green0.",
+      "followup_1_remaining": 1,
+      "continuation_fix": "Actual main continuation override red101; all five continuation families green0 after rejecting noncanonical emitted CFG lines."
     },
     "standards": {
       "initial_findings": 4,
-      "fixed": "Private value conversion and test modules extracted; optional guide moved to framework README."
+      "fixed": "Private value conversion and test modules extracted; optional guide moved to framework README.",
+      "followup_remaining": 0
     },
     "followup": "pending"
   },
@@ -73,5 +76,9 @@
   "boundary": {
     "passed": 2,
     "exit_code": 0
+  },
+  "continuation_scoped": {
+    "strict_clippy_exit_code": 0,
+    "focused_tests_exit_code": 0
   }
 }
