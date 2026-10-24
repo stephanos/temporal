@@ -157,3 +157,24 @@ Development evidence only; no frozen cycle.
   - Item d: compose bindings for live_corpus families, final_profiles, final_retained, stress, public_verbs, private_observations, terminal_controls_reference, primary and fn222.
   - Port the 29 gaps.
   - Run the dry run after the corpus fix lands.
+
+### Worker A handover, 2026-10-24 (branch fn232-flake-class, head below)
+
+Stopped on owner instruction. No cycle run was started.
+
+- **Merged or gated:** fn232-gap-ports (28 of 29 reach gaps ported or retired with reasons; builder and volume `/original-make/` selections have distinct ordinary run IDs), fn232-lint-flake (strict clippy in all 13 rust-lint modes), fn232-shim-etxtbsy.
+- **This branch:**
+  - `eb773cd5ac`: fn-227.1's four inventory rows cite the Rust map-order tests (R1, R2).
+  - `45e831a79e`: removes the allocation-probe wires and refuses retaining them inside the checkout.
+  - `ebaed60313`: `crate::fork_order` orders child creation against lock release (retention leases, store/pin/children locks, wrapper guards); `make_executable` for test fixtures; exact assertions for the capacity, launcher-pipe and wasmhost pre-launch-termination tests (core_lifecycle reader accepts the never-created form).
+  - `ffe9d0eea7`: removes the 93 derive-tests scratch files it accidentally committed, moves four test scratch roots to the system temp directory, and ignores `rust/*/target/`.
+- **Loop evidence** (`/home/agent/wt/evidence/fn232-flake-class-loop/`, load 30–50):
+  - gomad lib: 12/200 failed. None were the fixed classes. 7 were timeouts (`cli::run_guest::admission_tests::{same_driver_launches_have_distinct_campaigns_and_record_commitments, structured_all_pass_reports_both_authenticated_outcomes_then_summary}`, `evidence::store::publish::tests::{target_link_collision_releases_exclusive_guard_before_reuse_read, module_reader_serializes_cross_store_link_retirement_and_staging_cleanup}`, `measurement::cancellation_tests::cancellation_while_publication_lock_is_held_returns_before_lock_release`), which are deferred-perf under the quiet-host ruling. Runs 21, 24, 25, 112, 168 and 169 ended with no failure section; dmesg shows OOM kills only of other sessions' processes, so the cause is unknown.
+  - wasmhost lib: 1/200 failed (`live_cleanup_reaps_a_noncooperative_store_at_the_original_five_second_grace`, timing).
+  - allocation_receiving: invalid. Source files were edited during the loop, which trips the measurement source-closure tests.
+- **Next steps:**
+  1. Rerun the gomad lib loop on a committed, unedited tree, recording each run's exit status and signal, to classify the silent ends (OOM, backstop or crash).
+  2. Rerun the 50-run allocation_receiving loop the same way.
+  3. When B reports a resolving composition, run the full cycle with `driver.py parallel` on gomad head. Record every stage process's exit status and signal; treat a silent end as a real failure until shown otherwise; record timing-only failures as deferred-perf. Include the Rust sweep on a real guest and fn-233's launcher, shim and Make lanes.
+  4. Map `TestInstalledOperatorAsymmetricGuestFailureEndsPromptly` once `installed_cluster_failure` is wired into a stage.
+- **Retained:** worktree `/home/agent/wt/fn232-cycle-closure` (branches fn232-cycle-closure, fn232-gap-ports, fn232-lint-flake, fn232-shim-etxtbsy, fn232-flake-class); cargo target `/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-cycle-closure-target`; gate logs under `/home/agent/wt/evidence/fn232-*-gate/`. No background processes remain.
