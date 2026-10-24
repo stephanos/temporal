@@ -8,6 +8,9 @@ use quote::ToTokens;
 
 impl Environment {
     pub(crate) fn ty(&self, ty: &syn::Type) -> Result<Type> {
+        if let Some(ty) = self.optional_type(ty)? {
+            return Ok(ty);
+        }
         if let Some(ty) = self.vector_type(ty)? {
             return Ok(ty);
         }
@@ -26,6 +29,11 @@ impl Environment {
             }
             return Ok(Type::Int { min, max });
         }
+        if let Some(value) = self.bounded.get(&name)
+            && matches!(ty, syn::Type::Path(path) if path.path.is_ident(&name))
+        {
+            return Ok(Type::Bounded(value.clone()));
+        }
         self.enums
             .get(&name)
             .cloned()
@@ -34,7 +42,11 @@ impl Environment {
     pub(crate) fn default_value(&self, ty: &Type) -> Result<Expr> {
         match ty {
             Type::Bool => Ok(Expr::bool(false)),
-            Type::Int { .. } => Ok(Expr::int(0, ty.clone())),
+            Type::Int { .. } | Type::Optional(_) => Ok(Expr::int(0, ty.clone())),
+            Type::Bounded(value) if self.bounded_defaults.contains(&value.name) => Ok(Expr {
+                kind: ExprKind::Bounded(Box::new(Expr::int(0, value.backing_type()))),
+                ty: ty.clone(),
+            }),
             Type::Seq(_) => Ok(Expr { kind: ExprKind::Sequence(Vec::new()), ty: ty.clone() }),
             Type::Enum { name, .. } => {
                 let value = self.defaults.get(name).ok_or_else(|| {

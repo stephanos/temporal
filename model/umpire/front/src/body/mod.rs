@@ -11,6 +11,7 @@ mod claim;
 mod effects;
 mod expr;
 mod inputs;
+mod optional;
 mod outcome;
 mod progress;
 mod typer;
@@ -89,6 +90,8 @@ pub(crate) struct Environment {
     pub(crate) constants: Env,
     pub(crate) enums: BTreeMap<String, Type>,
     pub(crate) defaults: BTreeMap<String, String>,
+    pub(crate) bounded: BTreeMap<String, umpire_ir::Bounded>,
+    pub(crate) bounded_defaults: Vec<String>,
     pub(crate) helpers: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) methods: BTreeMap<String, syn::ImplItemFn>,
     pub(crate) vector_imported: bool,
@@ -123,6 +126,7 @@ impl Environment {
             }
         }
         let mut known = BTreeMap::new();
+        let mut bounded = BTreeMap::new();
         let types = model
             .fields
             .iter()
@@ -133,6 +137,9 @@ impl Environment {
             .chain(model.constants.values().map(|value| &value.ty))
         {
             enums(ty, &mut known);
+            if let Type::Bounded(value) | Type::Optional(value) = ty {
+                bounded.insert(value.name.clone(), value.clone());
+            }
         }
         enums(&model.fact_type, &mut known);
         Self {
@@ -142,6 +149,8 @@ impl Environment {
             world_fields: model.world_fields.clone(),
             constants: model.constants.clone().into_iter().collect(),
             enums: known,
+            bounded,
+            bounded_defaults: Vec::new(),
             defaults: BTreeMap::new(),
             helpers: BTreeMap::new(),
             methods: BTreeMap::new(),

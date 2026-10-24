@@ -86,6 +86,11 @@ impl Environment {
             RustExpr::Paren(v) => return self.expr(&v.expr, state, locals, expected, depth),
             RustExpr::Group(v) => return self.expr(&v.expr, state, locals, expected, depth),
             RustExpr::Path(path) => {
+                if let Some(value) =
+                    self.optional_constructor(path, None, state, locals, expected, depth)?
+                {
+                    return self.require(node, value, expected);
+                }
                 let name = path_name(&path.path.to_token_stream().to_string());
                 if locals.world.as_ref() == Some(&name)
                     || locals.states.contains(&name)
@@ -130,7 +135,22 @@ impl Environment {
                         Diagnostic::at(node, format!("unknown state field `{member}`"))
                     })?
                 } else {
-                    return self.err(node, format!("unresolved field `{key}`"));
+                    let base = self.expr(&field.base, state, locals, None, depth)?;
+                    let Type::Bounded(descriptor) = &base.ty else {
+                        return self.err(node, format!("unresolved field `{key}`"));
+                    };
+                    let member = match &field.member {
+                        syn::Member::Unnamed(index) => {
+                            descriptor.field.is_none() && index.index == 0
+                        }
+                        syn::Member::Named(name) => {
+                            descriptor.field.as_deref() == Some(name.to_string().as_str())
+                        }
+                    };
+                    if !member {
+                        return self.err(node, "unknown bounded payload field");
+                    }
+                    Expr { ty: descriptor.backing_type(), kind: ExprKind::Payload(Box::new(base)) }
                 }
             }
             RustExpr::Unary(unary) => {
@@ -187,8 +207,9 @@ impl Environment {
                     None
                 };
                 let (left, right) = if context.is_none()
-                    && integer_literal(&binary.left)
+                    && (integer_literal(&binary.left)
                         .is_some_and(|(literal, _)| literal.suffix().is_empty())
+                        || matches!(binary.left.as_ref(), RustExpr::Path(path) if path.path.segments.last().is_some_and(|s| s.ident == "None")))
                     && integer_literal(&binary.right).is_none()
                 {
                     let right = self.expr(&binary.right, state, locals, None, depth)?;
@@ -247,13 +268,62 @@ impl Environment {
             RustExpr::Call(call) if self.is_rejected(call) => {
                 self.rejected_call(call, state, locals, depth)?
             }
-            RustExpr::Call(call) => match self.vector_constructor(call, expected)? {
-                Some(value) => value,
-                None => {
+            RustExpr::Struct(value) => {
+                let name = value.path.get_ident().map(ToString::to_string);
+                let Some(descriptor) = name.as_ref().and_then(|name| self.bounded.get(name)) else {
+                    return self.err(node, "unsupported struct construction");
+                };
+                if locals.contains_key(&descriptor.name)
+                    || value.rest.is_some()
+                    || value.fields.len() != 1
+                {
                     return self
-                        .err(node, format!("unsupported expression `{}`", node.to_token_stream()));
+                        .err(node, "bounded named construction requires its one payload field");
                 }
-            },
+                let member = &value.fields[0];
+                if !matches!(&member.member, syn::Member::Named(name) if descriptor.field.as_deref() == Some(name.to_string().as_str()))
+                {
+                    return self.err(node, "unknown bounded payload field");
+                }
+                let payload = self.expr(
+                    &member.expr,
+                    state,
+                    locals,
+                    Some(&descriptor.backing_type()),
+                    depth,
+                )?;
+                Expr {
+                    ty: Type::Bounded(descriptor.clone()),
+                    kind: ExprKind::Bounded(Box::new(payload)),
+                }
+            }
+            RustExpr::Call(call) => {
+                if let RustExpr::Path(path) = call.func.as_ref()
+                    && call.args.len() <= 1
+                    && let Some(value) = self.optional_constructor(
+                        path,
+                        call.args.first(),
+                        state,
+                        locals,
+                        expected,
+                        depth,
+                    )?
+                {
+                    return self.require(node, value, expected);
+                }
+                if let Some(value) = self.bounded_call(call, state, locals, depth)? {
+                    return self.require(node, value, expected);
+                }
+                match self.vector_constructor(call, expected)? {
+                    Some(value) => value,
+                    None => {
+                        return self.err(
+                            node,
+                            format!("unsupported expression `{}`", node.to_token_stream()),
+                        );
+                    }
+                }
+            }
             RustExpr::MethodCall(call) => {
                 if let Some(value) = self.vector_method(call, state, locals, expected, depth)? {
                     return self.require(node, value, expected);
@@ -273,6 +343,10 @@ impl Environment {
                     );
                 }
                 let receiver = self.expr(&call.receiver, state, locals, None, depth)?;
+                if matches!(receiver.ty, Type::Optional(_)) {
+                    let value = self.optional_method(call, receiver, state, locals, depth)?;
+                    return self.require(node, value, expected);
+                }
                 if call.method == "into" && call.args.is_empty() && receiver.ty == Type::Bool {
                     return self.require(node, receiver, expected);
                 }
@@ -328,6 +402,9 @@ impl Environment {
         let args: syn::Result<Args> = syn::parse2(mac.mac.tokens.clone());
         let args = args.map_err(|e| Diagnostic::span(e.span(), e.to_string()))?;
         let value = self.expr(&args.value, state, locals, None, depth)?;
+        if matches!(value.ty, Type::Optional(_)) {
+            return self.err(mac, "optional patterns are unsupported; use presence tests");
+        }
         self.pattern(&args.pat, &value)
     }
     fn pattern(&self, pat: &Pat, value: &Expr) -> Result<Expr> {
