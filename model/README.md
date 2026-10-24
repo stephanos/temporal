@@ -73,9 +73,9 @@ make umpire-check-live-tests
 Slice and gaps use `temporal.Guest()` from the committed
 `temporal/hosts/go/umpire_temporal_guest.wasm`; they build no Rust guest.
 The slice requires Complete, Fail, HostRefusal, Cancellation, CancelAfterCompletion,
-CancelBeforeWorkerStart and RetryThenComplete to pass. The umbrella invokes both before its existing
-legacy selector. Seven inherited legacy failures remain explicitly red; see DESIGN's
-Mini activity slice section. This bespoke proof does not execute a Testpilot Case.
+CancelBeforeWorkerStart and RetryThenComplete to pass. The umbrella invokes both before its
+`^TestTestpilot` selector, which also runs the canary harness over the Runner; fn-228.6 retired the
+Case tests and their seven inherited legacy failures. No Testpilot Case remains.
 
 The Temporal host module's `go test -tags test_dep ./...` needs only Go, with no
 guest environment variable or Cargo target lookup. Model authors refresh the embedded
@@ -83,7 +83,7 @@ artifact with `make umpire-guest`. The generic builder's `--check` compares byte
 `make model-check`, reporting stale sizes and the first differing offset. Missing pinned
 build prerequisites warn and skip only this freshness step when `CI` is unset; set `CI`
 (including an empty value) fails. Actual compile failures and stale bytes always fail.
-The full Rust authoring gate and the umbrella's legacy IR bridge still require Rust.
+The full Rust authoring gate still requires Rust.
 Umpire ships no prebuilt stock/control guests. See [GUEST_BUILDS.md](GUEST_BUILDS.md).
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`

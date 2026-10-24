@@ -1,1 +1,0 @@
-{"version":2,"name":"local-strict","claim":"The Case's Contract held, with every rule supported, for one closed Run of the Case against an ephemeral local test cluster.","trust":"local-ephemeral-cluster","blockingKnownGaps":["capability","interpretation"],"unsupportedRule":"rejected"}

@@ -1,1 +1,0 @@
-{"version":2,"name":"local-ephemeral","claim":"The Case's Contract held for one closed Run of the Case against an ephemeral local test cluster, under the recorded Driver identity.","trust":"local-ephemeral-cluster","blockingKnownGaps":["capability","interpretation"],"unsupportedRule":"incomplete"}
