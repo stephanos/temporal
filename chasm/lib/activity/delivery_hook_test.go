@@ -4,6 +4,7 @@ package activity
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"go.temporal.io/server/chasm/lib/activity/gen/activitypb/v1"
 	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/testing/testhooks"
-	"go.temporal.io/server/common/testing/testpilot/temporal/control"
 	"go.uber.org/mock/gomock"
 )
 
@@ -39,10 +39,9 @@ func TestDispatchHoldPreservesTheValidatedMessage(t *testing.T) {
 		func(_ context.Context, _ chasm.ComponentRef, read func(chasm.Context, chasm.Component) error, _ ...chasm.TransitionOption) error {
 			return read(mutable, a)
 		})
-	gate := control.NewDeliveryGate(testhooks.ActivityDelivery{Execution: key, Stamp: 7})
-	defer gate.Close()
+	arrive, held, release := holdActivityDelivery(t, testhooks.ActivityDelivery{Execution: key, Stamp: 7})
 	hooks := testhooks.NewTestHooks()
-	t.Cleanup(testhooks.Set(hooks, testhooks.ActivityDispatch, gate.Arrive, namespace.ID(key.NamespaceID)))
+	t.Cleanup(testhooks.Set(hooks, testhooks.ActivityDispatch, arrive, namespace.ID(key.NamespaceID)))
 	sent := make(chan int32, 1)
 	matching.EXPECT().AddActivityTask(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, req *matchingservice.AddActivityTaskRequest, _ ...any) (*matchingservice.AddActivityTaskResponse, error) {
@@ -54,14 +53,18 @@ func TestDispatchHoldPreservesTheValidatedMessage(t *testing.T) {
 	go func() {
 		done <- handler.Execute(chasm.NewEngineContext(ctx, engine), ref, chasm.TaskAttributes{}, &activitypb.ActivityDispatchTask{Stamp: 7})
 	}()
-	require.NoError(t, gate.WaitHeld(ctx))
+	select {
+	case <-held:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	select {
 	case <-sent:
 		t.Fatal("matching received the held delivery")
 	default:
 	}
 	attempt.Stamp = 8
-	require.NoError(t, gate.Release())
+	release()
 	require.NoError(t, <-done)
 	require.Equal(t, int32(7), <-sent)
 	select {
@@ -69,4 +72,25 @@ func TestDispatchHoldPreservesTheValidatedMessage(t *testing.T) {
 		t.Fatal("delivery was sent more than once")
 	default:
 	}
+}
+
+func holdActivityDelivery(t *testing.T, target testhooks.ActivityDelivery) (func(context.Context, testhooks.ActivityDelivery) error, <-chan struct{}, func()) {
+	t.Helper()
+	held, released := make(chan struct{}), make(chan struct{})
+	var arriveOnce, releaseOnce sync.Once
+	release := func() { releaseOnce.Do(func() { close(released) }) }
+	t.Cleanup(release)
+	arrive := func(ctx context.Context, delivery testhooks.ActivityDelivery) error {
+		if delivery != target {
+			return nil
+		}
+		arriveOnce.Do(func() { close(held) })
+		select {
+		case <-released:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return arrive, held, release
 }

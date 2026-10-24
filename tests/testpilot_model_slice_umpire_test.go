@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"net"
 	"os"
@@ -20,9 +21,14 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/chasm/lib/activity"
+	"go.temporal.io/server/common/dynamicconfig"
+	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot/temporal/act"
+	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -78,6 +84,10 @@ func (s *umpireSlice) world(namespace, queue, input string, attempts int32) stri
 // run invokes the command in an empty working directory with only the given Driver
 // environment, and requires that the published Runs are the only thing it wrote.
 func (s *umpireSlice) run(driverEnv map[string]string, args ...string) umpireInvocation {
+	return s.runObserved(driverEnv, nil, args...)
+}
+
+func (s *umpireSlice) runObserved(driverEnv map[string]string, observe func(<-chan struct{}) error, args ...string) umpireInvocation {
 	t := s.t
 	t.Helper()
 	workdir, store := t.TempDir(), s.root.TempDir()
@@ -97,7 +107,18 @@ func (s *umpireSlice) run(driverEnv map[string]string, args ...string) umpireInv
 	}
 	var stdout, stderr bytes.Buffer
 	command.Stdout, command.Stderr = &stdout, &stderr
-	err := command.Run()
+	require.NoError(t, command.Start())
+	finished := make(chan struct{})
+	var observed chan error
+	if observe != nil {
+		observed = make(chan error, 1)
+		go func() { observed <- observe(finished) }()
+	}
+	err := command.Wait()
+	close(finished)
+	if observed != nil {
+		require.NoError(t, <-observed, "namespace must be served while the CLI is running")
+	}
 	var exit *exec.ExitError
 	if err != nil && !errors.As(err, &exit) {
 		require.NoError(t, err)
@@ -158,7 +179,7 @@ func lastLine(text string) string {
 func requireAllExplained(t *testing.T, invocation umpireInvocation) {
 	t.Helper()
 	for _, run := range invocation.runs {
-		if run.GetVerdict().GetUnexplained() != nil {
+		if run.GetVerdict().GetUnexplained() != nil || run.GetVerdict().GetRefused() != nil {
 			data, err := protojson.Marshal(run)
 			require.NoError(t, err)
 			t.Logf("deviation run=%s", data)
@@ -268,7 +289,14 @@ func requireWorkerRun(t *testing.T, run *runner.Run, kind, namespace, queue stri
 
 func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 	binary := buildCommand(t, "tools/umpire/cmd/umpire")
-	env := activityEnvironment(t)
+	env := newTestpilotTestEnvironment(t,
+		testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true),
+		testcore.WithDynamicConfig(activity.Enabled, true),
+		testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true),
+		testcore.WithWorkerService("UMPIRE_TEMPORAL_CREATE deletes its namespace through the system delete-namespace workflow"),
+		testcore.WithDynamicConfig(dynamicconfig.TransferProcessorUpdateAckInterval, time.Second),
+		testcore.WithDynamicConfig(dynamicconfig.VisibilityProcessorUpdateAckInterval, time.Second),
+	)
 	guest, err := filepath.Abs(filepath.Join("..", "model", "temporal", "hosts", "go", "umpire_temporal_guest.wasm"))
 	require.NoError(t, err)
 	committed, err := os.ReadFile(guest)
@@ -404,6 +432,68 @@ func TestTestpilotModelSliceThroughUmpire(t *testing.T) {
 				require.True(t, detected, "the control must be detected by the Model")
 			})
 		}
+	})
+	t.Run("ProvisionLifecycle", func(t *testing.T) {
+		s.t = t
+		provisioned, queue := "umpire-provision-"+uuid.NewString(), "umpire-provision-"+uuid.NewString()
+		world := s.world(provisioned, queue, "application-input", 2)
+		driverEnv := s.driverEnv(provisioned, queue)
+		driverEnv[act.EnvCreate] = "true"
+		driverEnv[act.EnvExecutorKind], driverEnv[act.EnvProgram] = "raw", s.program(world)
+		service := env.SdkClient().WorkflowService()
+		request := &workflowservice.DescribeNamespaceRequest{Namespace: provisioned}
+		_, err := service.DescribeNamespace(t.Context(), request)
+		var missing *serviceerror.NamespaceNotFound
+		require.ErrorAs(t, err, &missing, "the CLI must create a fresh namespace")
+		observer := func(finished <-chan struct{}) error {
+			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+			defer cancel()
+			ticker := time.NewTicker(10 * time.Millisecond)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-finished:
+					return errors.New("CLI exited before namespace creation was observed")
+				case <-ctx.Done():
+					return ctx.Err()
+				default:
+				}
+				response, err := service.DescribeNamespace(ctx, request)
+				if err == nil {
+					if response.GetNamespaceInfo().GetName() != provisioned {
+						return fmt.Errorf("DescribeNamespace returned %q, expected %q", response.GetNamespaceInfo().GetName(), provisioned)
+					}
+					select {
+					case <-finished:
+						return errors.New("CLI exited before namespace creation was observed")
+					default:
+						return nil
+					}
+				}
+				var missing *serviceerror.NamespaceNotFound
+				if !errors.As(err, &missing) {
+					return err
+				}
+				select {
+				case <-finished:
+					return errors.New("CLI exited before namespace creation was observed")
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-ticker.C:
+				}
+			}
+		}
+		invocation := s.runObserved(driverEnv, observer, "explore", "--world", world, "--seed", "21", "--budget", "7", "--event-timeout", "60s", "--run-timeout", "2m")
+		requireAllExplained(t, invocation)
+		require.Len(t, invocation.runs, 21)
+		for _, run := range invocation.runs {
+			requireWorkerRun(t, run, "raw", provisioned, queue)
+		}
+		await.Requiref(t.Context(), t, func(t *await.T) {
+			_, err := service.DescribeNamespace(t.Context(), request)
+			var missing *serviceerror.NamespaceNotFound
+			require.ErrorAs(t, err, &missing)
+		}, 30*time.Second, 100*time.Millisecond, "the CLI did not delete namespace %s", provisioned)
 	})
 	t.Run("UnreachableEndpoint", func(t *testing.T) {
 		s.t = t

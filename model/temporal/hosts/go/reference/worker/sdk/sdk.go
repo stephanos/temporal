@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	sdklog "go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -53,7 +55,7 @@ func Validate(program []byte) error {
 }
 
 // Follow starts one dynamic activity handler and joins it before returning on cancellation.
-// conn is owned by the caller and must have ScenarioPropagator installed.
+// conn remains caller-owned; the program selects the namespace on its shared transport.
 func Follow(ctx context.Context, conn client.Client, program []byte) error {
 	table, err := worker.Decode(program)
 	if err != nil {
@@ -67,7 +69,15 @@ func Follow(ctx context.Context, conn client.Client, program []byte) error {
 	if conn == nil {
 		return errors.New("sdk executor requires a connection")
 	}
-	w := sdkworker.New(conn, table.TaskQueue, sdkworker.Options{DisableWorkflowWorker: true, WorkerStopTimeout: time.Second, BackgroundActivityContext: ctx})
+	bound, err := client.NewClientFromExistingWithContext(ctx, conn, client.Options{
+		Namespace: table.Namespace, ContextPropagators: []workflow.ContextPropagator{ScenarioPropagator()},
+		Logger: sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+	})
+	if err != nil {
+		return err
+	}
+	defer bound.Close()
+	w := sdkworker.New(bound, table.TaskQueue, sdkworker.Options{DisableWorkflowWorker: true, WorkerStopTimeout: time.Second, BackgroundActivityContext: ctx})
 	w.RegisterDynamicActivity(func(ctx context.Context, _ converter.EncodedValues) (converter.RawValue, error) {
 		info := activity.GetInfo(ctx)
 		scenario, _ := ctx.Value(scenarioKey{}).(string)

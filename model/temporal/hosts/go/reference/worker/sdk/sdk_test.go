@@ -19,7 +19,7 @@ func TestCompletionPreservesPayloadAndRefusesMultiple(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(got.value.Payload().GetData()) != "exact" {
+	if !proto.Equal(payload, got.value.Payload()) {
 		t.Fatal("payload changed")
 	}
 	response, _ = anypb.New(&workflowservice.RespondActivityTaskCompletedRequest{Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{payload, payload}}})

@@ -5,11 +5,14 @@ import (
 	"maps"
 	"net"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
+	"go.temporal.io/api/serviceerror"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -367,4 +370,57 @@ func TestProgrammedInstructionIsADriverFault(t *testing.T) {
 	require.Contains(t, event.Fault, "worker poll hold is unsupported")
 	_, open := <-x.Events()
 	require.False(t, open)
+}
+
+func TestCreatedNamespaceReadinessPrecedesOneUnretriedStart(t *testing.T) {
+	for _, create := range []bool{false, true} {
+		t.Run(map[bool]string{false: "external namespace", true: "created namespace"}[create], func(t *testing.T) {
+			var describes atomic.Int32
+			server := newFakeServer(t, func(method string) ([]byte, error) {
+				switch method {
+				case workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName:
+					if describes.Add(1) == 1 {
+						return nil, serviceerror.ToStatus(serviceerror.NewNamespaceNotFound("namespace")).Err()
+					}
+					return nil, status.Error(codes.NotFound, "execution does not exist")
+				case workflowservice.WorkflowService_DescribeTaskQueue_FullMethodName:
+					return nil, nil
+				case workflowservice.WorkflowService_StartActivityExecution_FullMethodName:
+					return nil, serviceerror.ToStatus(serviceerror.NewNamespaceNotFound("actual modeled Start failed")).Err()
+				default:
+					t.Errorf("unexpected RPC %s", method)
+					return nil, nil
+				}
+			})
+			d := testDriver(t, server.address, Options{Create: create})
+			request := packed(t, &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity", TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"}})
+			x := start(t, d, 1, request)
+			event := next(t, x)
+			actual := observation(t, event)
+			require.Equal(t, workflowservice.WorkflowService_StartActivityExecution_FullMethodName, actual.GetMethod())
+			require.Equal(t, int32(codes.NotFound), actual.GetError().GetCode())
+			require.Contains(t, actual.GetError().GetMessage(), "actual modeled Start failed")
+			require.True(t, proto.Equal(request, actual.GetRequest()))
+			require.Len(t, server.calls(workflowservice.WorkflowService_StartActivityExecution_FullMethodName), 1, "readiness never retries a modeled Start")
+			if create {
+				require.Len(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName), 2)
+				require.Len(t, server.calls(workflowservice.WorkflowService_DescribeTaskQueue_FullMethodName), 1)
+			} else {
+				require.Empty(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName))
+				require.Empty(t, server.calls(workflowservice.WorkflowService_DescribeTaskQueue_FullMethodName))
+			}
+			require.NoError(t, x.Respond(t.Context(), event.ID, explained(false)))
+		})
+	}
+}
+
+func TestReadinessFailurePreventsTheModeledStart(t *testing.T) {
+	server := newFakeServer(t, func(method string) ([]byte, error) {
+		return nil, status.Error(codes.PermissionDenied, "readiness permission denied")
+	})
+	d := testDriver(t, server.address, Options{Create: true})
+	x, err := d.Start(t.Context(), 1, packed(t, &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity", TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"}}))
+	require.ErrorContains(t, err, "readiness permission denied")
+	require.Nil(t, x)
+	require.Empty(t, server.calls(workflowservice.WorkflowService_StartActivityExecution_FullMethodName))
 }

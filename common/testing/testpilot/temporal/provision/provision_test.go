@@ -3,13 +3,17 @@ package provision
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/serviceerror"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
 )
@@ -234,5 +238,102 @@ func TestCreateRejectsAnIncompleteRequestBeforeAnyServerCall(t *testing.T) {
 			require.ErrorIs(t, err, ErrInvalid)
 			require.Empty(t, workflow.registered)
 		})
+	}
+}
+
+type readinessWorkflow struct {
+	workflowservice.WorkflowServiceClient
+	describe func(context.Context, *workflowservice.DescribeActivityExecutionRequest) error
+	matching func(context.Context, *workflowservice.DescribeTaskQueueRequest) error
+}
+
+func (f readinessWorkflow) DescribeActivityExecution(ctx context.Context, request *workflowservice.DescribeActivityExecutionRequest, _ ...grpc.CallOption) (*workflowservice.DescribeActivityExecutionResponse, error) {
+	return &workflowservice.DescribeActivityExecutionResponse{}, f.describe(ctx, request)
+}
+func (f readinessWorkflow) DescribeTaskQueue(ctx context.Context, request *workflowservice.DescribeTaskQueueRequest, _ ...grpc.CallOption) (*workflowservice.DescribeTaskQueueResponse, error) {
+	return &workflowservice.DescribeTaskQueueResponse{}, f.matching(ctx, request)
+}
+
+func TestReadyActivityWaitsForTheExactHistoryAndMatchingTargets(t *testing.T) {
+	for _, raw := range []bool{false, true} {
+		t.Run(map[bool]string{false: "typed", true: "grpc"}[raw], func(t *testing.T) {
+			normalize := func(err error) error {
+				if raw {
+					return serviceerror.ToStatus(err).Err()
+				}
+				return err
+			}
+			history, matching := 0, 0
+			request := &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "pending-activity", TaskQueue: &taskqueuepb.TaskQueue{Name: "pending-queue"}}
+			workflow := readinessWorkflow{
+				describe: func(ctx context.Context, got *workflowservice.DescribeActivityExecutionRequest) error {
+					history++
+					require.Equal(t, request.GetNamespace(), got.GetNamespace())
+					require.Equal(t, request.GetActivityId(), got.GetActivityId())
+					require.NotEmpty(t, got.GetRunId())
+					_, err := uuid.Parse(got.GetRunId())
+					require.NoError(t, err)
+					_, bounded := ctx.Deadline()
+					require.True(t, bounded)
+					if history == 1 {
+						return normalize(serviceerror.NewNamespaceNotFound("namespace"))
+					}
+					return normalize(serviceerror.NewNotFound("execution does not exist"))
+				},
+				matching: func(ctx context.Context, got *workflowservice.DescribeTaskQueueRequest) error {
+					matching++
+					require.Equal(t, 2, history, "matching follows proof that history knows the namespace")
+					require.Equal(t, request.GetNamespace(), got.GetNamespace())
+					require.Equal(t, request.GetTaskQueue().GetName(), got.GetTaskQueue().GetName())
+					require.Equal(t, enumspb.TASK_QUEUE_TYPE_ACTIVITY, got.GetTaskQueueType())
+					require.Equal(t, enumspb.DESCRIBE_TASK_QUEUE_MODE_UNSPECIFIED, got.GetApiMode())
+					if matching == 1 {
+						return normalize(serviceerror.NewNamespaceNotFound("namespace"))
+					}
+					return nil
+				},
+			}
+			require.NoError(t, ReadyActivity(t.Context(), workflow, request, fastResources(Resources{})))
+			require.Equal(t, 2, history)
+			require.Equal(t, 2, matching)
+		})
+	}
+}
+
+func TestReadyActivityStopsOnUnrelatedErrorsAndCallerDeadline(t *testing.T) {
+	request := &workflowservice.StartActivityExecutionRequest{Namespace: "namespace", ActivityId: "pending-activity", TaskQueue: &taskqueuepb.TaskQueue{Name: "pending-queue"}}
+	for _, phase := range []string{"history", "matching"} {
+		for _, blocked := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/blocked=%t", phase, blocked), func(t *testing.T) {
+				ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+				defer cancel()
+				calls := 0
+				probe := func(ctx context.Context) error {
+					calls++
+					if blocked {
+						<-ctx.Done()
+						return ctx.Err()
+					}
+					return serviceerror.NewPermissionDenied("not readiness", "")
+				}
+				workflow := readinessWorkflow{
+					describe: func(ctx context.Context, _ *workflowservice.DescribeActivityExecutionRequest) error {
+						if phase == "history" {
+							return probe(ctx)
+						}
+						return serviceerror.NewNotFound("execution")
+					},
+					matching: func(ctx context.Context, _ *workflowservice.DescribeTaskQueueRequest) error { return probe(ctx) },
+				}
+				err := ReadyActivity(ctx, workflow, request, fastResources(Resources{}))
+				require.Error(t, err)
+				if blocked {
+					require.ErrorIs(t, err, context.DeadlineExceeded)
+				} else {
+					require.ErrorContains(t, err, "not readiness")
+				}
+				require.Equal(t, 1, calls)
+			})
+		}
 	}
 }

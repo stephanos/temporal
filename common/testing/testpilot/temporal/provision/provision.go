@@ -14,10 +14,13 @@ import (
 	"fmt"
 	"time"
 
+	enumspb "go.temporal.io/api/enums/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/serviceerror"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
@@ -182,6 +185,7 @@ func awaitNamespace(ctx context.Context, workflow workflowservice.WorkflowServic
 		_, last = workflow.DescribeNamespace(deadline, &workflowservice.DescribeNamespaceRequest{
 			Namespace: resources.Namespace,
 		})
+		last = serviceerror.FromStatus(serviceerror.ToStatus(last))
 		if last == nil {
 			return nil
 		}
@@ -192,6 +196,67 @@ func awaitNamespace(ctx context.Context, workflow workflowservice.WorkflowServic
 		select {
 		case <-deadline.Done():
 			return fmt.Errorf("namespace %q was not served within %s: %w", resources.Namespace, timeout, last)
+		case <-ticker.C:
+		}
+	}
+}
+
+// ReadyActivity checks the pending Start's history shard and addressed activity queue partition.
+func ReadyActivity(ctx context.Context, workflow workflowservice.WorkflowServiceClient, request *workflowservice.StartActivityExecutionRequest, resources Resources) error {
+	if ctx == nil || workflow == nil || request.GetNamespace() == "" || request.GetActivityId() == "" || request.GetTaskQueue().GetName() == "" {
+		return fmt.Errorf("%w: activity readiness requires context, client, namespace, activity ID and task queue", ErrInvalid)
+	}
+	timeout := resources.ReadyTimeout
+	if timeout <= 0 {
+		timeout = DefaultReadyTimeout
+	}
+	interval := resources.ReadyInterval
+	if interval <= 0 {
+		interval = DefaultReadyInterval
+	}
+	deadline, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	// A nonempty RunID forces history to load mutable state through its namespace cache
+	// before persistence can answer that the synthetic execution does not exist.
+	history := &workflowservice.DescribeActivityExecutionRequest{Namespace: request.GetNamespace(), ActivityId: request.GetActivityId(), RunId: "00000000-0000-4000-8000-000000000000"}
+	if err := awaitActivityTarget(deadline, interval, "activity history", true, func(ctx context.Context) error {
+		_, err := workflow.DescribeActivityExecution(ctx, history)
+		return err
+	}); err != nil {
+		return err
+	}
+	queue := &workflowservice.DescribeTaskQueueRequest{Namespace: request.GetNamespace(), TaskQueue: proto.Clone(request.GetTaskQueue()).(*taskqueuepb.TaskQueue), TaskQueueType: enumspb.TASK_QUEUE_TYPE_ACTIVITY}
+	return awaitActivityTarget(deadline, interval, "activity matching", false, func(ctx context.Context) error {
+		_, err := workflow.DescribeTaskQueue(ctx, queue)
+		return err
+	})
+}
+
+func awaitActivityTarget(ctx context.Context, interval time.Duration, target string, executionMissingReady bool, probe func(context.Context) error) error {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("%s readiness: %w", target, err)
+		}
+		err := serviceerror.FromStatus(serviceerror.ToStatus(probe(ctx)))
+		if ctx.Err() != nil {
+			return fmt.Errorf("%s readiness: %w", target, ctx.Err())
+		}
+		if err == nil {
+			return nil
+		}
+		var executionMissing *serviceerror.NotFound
+		if executionMissingReady && errors.As(err, &executionMissing) {
+			return nil
+		}
+		var namespaceMissing *serviceerror.NamespaceNotFound
+		if !errors.As(err, &namespaceMissing) {
+			return fmt.Errorf("%s readiness: %w", target, err)
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("%s readiness: %w", target, ctx.Err())
 		case <-ticker.C:
 		}
 	}

@@ -47,3 +47,64 @@ Base `c24241ebbe94d59c9b4afcd1f1a44c53c8fc3455`, reviewed head `8c73ef3876b1b340
 
 Correctness axis: 0 findings; no worst tier.
 Standards axis: 0 findings; no worst tier.
+
+# fn-243.2 quality audits
+
+Base `8c82fb4ff3ee4c8f694b9067d7f6652803b50428`, reviewed head `c96f9bacf26f95034ecfa634235e7fbc731b7cc8`. Both axes ran in fresh gpt-6.1-sol high contexts, in parallel with the primary CLI review. Reviewer and writer use the same model family. The reports below are verbatim.
+
+### Correctness axis
+
+## Quality Audit — Correctness axis: fn-243.2
+
+### Summary
+
+- Files changed: 61 · Critical 0 · Should Fix 1 · Consider 1 · Ship: ⚠️ Fix first (axis only).
+
+### Should Fix
+
+- **model/temporal/hosts/go/reference/worker/sdk/sdk.go:70** (Conf 75): Walked: `Follow` ignores `table.Namespace`; the SDK worker inherits the client namespace and can execute namespace B’s matching tasks using namespace A’s program — enforce the program namespace before polling and add a mismatch regression.
+
+### Consider
+
+- **model/temporal/hosts/go/reference/worker/sdk/sdk_test.go:22** (Conf 100): Cited: the replacement conversion test checks only payload data, dropping the retired test’s `proto.Equal` assertion over metadata too — restore complete payload equality.
+
+### Test Gaps
+
+- Namespace mismatch between the SDK client and worker program.
+
+### Test Budget
+
+- Added lines: tests ≤1,983 including fixtures/setup; implementation 1,063. Ratio upper bound 1.87:1.
+- Existing callback tests retired; READ continuation assertions changed with the corrected hook contract.
+
+### What's Good
+
+- Walked: reconciliation retains actual acknowledgment evidence and correlates the fresh read before judging cancellation.
+- Cited retained logs: model gate and 2,412 live identities passed; broad gates were not rerun.
+
+Suppressed findings: 1 at anchor 25.
+
+### Standards axis
+
+## Quality Audit — Standards axis: fn-243.2
+
+### Summary
+
+- Files changed: 61 · Should Fix 0 · Consider 0 · Blocking: none possible (standards axis)
+- No standards findings. Worst tier: none.
+
+### Out-of-axis observations
+
+> Out-of-axis observation: **tests/testpilot_model_slice_umpire_test.go:278** — switching to the existing namespace drops the former `EnvCreate=true` and namespace-deletion assertions for retained provisioning behavior (walked).
+
+### What's Good
+
+- **walked:** Shared table decoding owns matching policy; composition injects executor functions without exposing program decoding to the Driver.
+- **executed:** File-size calculation found no 1,000-line crossings. Glossary contains zero terms; root `DESIGN.md` is absent.
+
+Existing gate results were supplied by the conductor; no builds or gates were rerun.
+
+Correctness axis: 2 findings; worst tier Should Fix.
+Standards axis: 0 tiered findings; no worst tier. The provisioning observation is routed to correctness for the fix decision.
+
+The conductor accepted the namespace guard fix, full payload equality restoration and live provisioning deletion control. This decision does not change either report or constitute a primary review verdict. Follow-up evidence will record resolution.

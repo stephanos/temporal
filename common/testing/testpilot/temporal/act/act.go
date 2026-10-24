@@ -19,7 +19,6 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	sdklog "go.temporal.io/sdk/log"
-	"go.temporal.io/sdk/workflow"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -43,12 +42,11 @@ const (
 // Options configure the Driver. Namespace and TaskQueue must be the ones the Model's World names;
 // the Driver never reads the World.
 type Options struct {
-	ExecutorKind       string
-	Program            []byte
-	ExecutorVersion    string
-	ValidateProgram    func([]byte) error
-	Follow             func(context.Context, client.Client, []byte) error
-	ContextPropagators []workflow.ContextPropagator
+	ExecutorKind    string
+	Program         []byte
+	ExecutorVersion string
+	ValidateProgram func([]byte) error
+	Follow          func(context.Context, client.Client, []byte) error
 
 	// Address is the frontend's host:port.
 	Address string
@@ -287,9 +285,8 @@ func (d *Driver) startWorker() error {
 	d.workerDone = make(chan struct{})
 	sdk, err := client.NewLazyClient(client.Options{
 		HostPort: d.opts.Address, Namespace: d.opts.Namespace, Credentials: d.opts.Transport.ClientCredentials,
-		Logger:             sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
-		ContextPropagators: d.opts.ContextPropagators,
-		ConnectionOptions:  client.ConnectionOptions{TLS: d.opts.Transport.clientTLS(), DialOptions: append(slices.Clone(d.opts.Transport.DialOptions), grpc.WithChainUnaryInterceptor(d.polls.intercept))},
+		Logger:            sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+		ConnectionOptions: client.ConnectionOptions{TLS: d.opts.Transport.clientTLS(), DialOptions: append(slices.Clone(d.opts.Transport.DialOptions), grpc.WithChainUnaryInterceptor(d.polls.intercept))},
 	})
 	if err != nil {
 		cancel()
@@ -325,10 +322,20 @@ func (d *Driver) Worker() *runv1.Worker {
 	return &runv1.Worker{Kind: kind, Version: version, Namespace: d.opts.Namespace, TaskQueue: d.opts.TaskQueue}
 }
 
-// Start sends the proposal and returns at once; its events report what happened.
-func (d *Driver) Start(_ context.Context, request uint64, payload *anypb.Any) (runner.Exchange, error) {
+// Start checks infrastructure readiness for a created namespace before sending a bootstrap.
+// The exchange reports the modeled request and its actual acknowledgment without retries.
+func (d *Driver) Start(ctx context.Context, request uint64, payload *anypb.Any) (runner.Exchange, error) {
 	if err := validStart(payload); err != nil {
 		return nil, err
+	}
+	if d.opts.Create && payload.MessageIs(&workflowservice.StartActivityExecutionRequest{}) {
+		start := new(workflowservice.StartActivityExecutionRequest)
+		if err := payload.UnmarshalTo(start); err != nil {
+			return nil, err
+		}
+		if err := provision.ReadyActivity(ctx, workflowservice.NewWorkflowServiceClient(d.conn), start, provision.Resources{}); err != nil {
+			return nil, err
+		}
 	}
 	x := newExchange(d, request)
 	d.mu.Lock()

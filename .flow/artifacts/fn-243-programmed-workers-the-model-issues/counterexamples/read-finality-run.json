@@ -1,0 +1,481 @@
+{
+  "modelHash": "6486a93480545e3c63bde85d7333686de898bbcac0fa9d5cb3e3bc8e605083e2",
+  "protocolVersion": 1,
+  "world": {
+    "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+    "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+    "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+    "activityType": {
+      "name": "ModelSlice"
+    },
+    "taskQueue": {
+      "name": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623"
+    },
+    "startToCloseTimeout": "20s",
+    "retryPolicy": {
+      "maximumAttempts": 1
+    },
+    "input": {
+      "payloads": [
+        {
+          "metadata": {
+            "encoding": "YmluYXJ5L3BsYWlu"
+          },
+          "data": "YXBwbGljYXRpb24taW5wdXQ="
+        }
+      ]
+    }
+  },
+  "seed": "1",
+  "events": [
+    {
+      "reset": {
+        "request": {
+          "configuration": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+            "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+            "activityType": {
+              "name": "ModelSlice"
+            },
+            "taskQueue": {
+              "name": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623"
+            },
+            "startToCloseTimeout": "20s",
+            "retryPolicy": {
+              "maximumAttempts": 1
+            },
+            "input": {
+              "payloads": [
+                {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "YXBwbGljYXRpb24taW5wdXQ="
+                }
+              ]
+            }
+          }
+        },
+        "response": {
+          "program": {
+            "@type": "type.googleapis.com/umpire.temporal.v1.WorkerProgram",
+            "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+            "taskQueue": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623",
+            "rules": [
+              {
+                "key": {
+                  "@type": "type.googleapis.com/umpire.temporal.v1.ActivityTaskKey",
+                  "scenario": "Complete",
+                  "attempt": 1,
+                  "activityType": "ModelSlice"
+                },
+                "respond": [
+                  {
+                    "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest",
+                    "result": {
+                      "payloads": [
+                        {
+                          "metadata": {
+                            "encoding": "YmluYXJ5L3BsYWlu"
+                          },
+                          "data": "Q29tcGxldGU="
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "key": {
+                  "@type": "type.googleapis.com/umpire.temporal.v1.ActivityTaskKey",
+                  "scenario": "RetryThenComplete",
+                  "attempt": 1,
+                  "activityType": "ModelSlice"
+                },
+                "respond": [
+                  {
+                    "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest",
+                    "failure": {
+                      "message": "Retry",
+                      "applicationFailureInfo": {
+                        "type": "MiniActivityFailure"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "key": {
+                  "@type": "type.googleapis.com/umpire.temporal.v1.ActivityTaskKey",
+                  "scenario": "Fail",
+                  "attempt": 1,
+                  "activityType": "ModelSlice"
+                },
+                "respond": [
+                  {
+                    "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest",
+                    "failure": {
+                      "message": "Fail",
+                      "applicationFailureInfo": {
+                        "type": "MiniActivityFailure",
+                        "nonRetryable": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sequence": "1",
+      "request": "1",
+      "proposal": {
+        "request": {
+          "seed": "10451216379200822465"
+        },
+        "response": {
+          "request": {
+            "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+            "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+            "requestId": "5e41ab08-7439-411e-b18d-6ce93d6cf1ee",
+            "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+            "activityType": {
+              "name": "ModelSlice"
+            },
+            "taskQueue": {
+              "name": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623"
+            },
+            "startToCloseTimeout": "20s",
+            "retryPolicy": {
+              "maximumAttempts": 1
+            },
+            "input": {
+              "payloads": [
+                {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "YXBwbGljYXRpb24taW5wdXQ="
+                }
+              ]
+            },
+            "header": {
+              "fields": {
+                "umpire-scenario": {
+                  "metadata": {
+                    "encoding": "YmluYXJ5L3BsYWlu"
+                  },
+                  "data": "RmFpbA=="
+                }
+              }
+            }
+          },
+          "kind": "PROPOSAL_KIND_BOOTSTRAP"
+        }
+      }
+    },
+    {
+      "sequence": "2",
+      "request": "1",
+      "driverEvent": "1",
+      "judgment": {
+        "request": {
+          "observation": {
+            "@type": "type.googleapis.com/umpire.realization.v1.Observation",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+            "response": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionResponse",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "started": true,
+              "link": {
+                "activity": {
+                  "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+                  "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+                  "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9"
+                }
+              }
+            },
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "requestId": "5e41ab08-7439-411e-b18d-6ce93d6cf1ee",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "activityType": {
+                "name": "ModelSlice"
+              },
+              "taskQueue": {
+                "name": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623"
+              },
+              "startToCloseTimeout": "20s",
+              "retryPolicy": {
+                "maximumAttempts": 1
+              },
+              "input": {
+                "payloads": [
+                  {
+                    "metadata": {
+                      "encoding": "YmluYXJ5L3BsYWlu"
+                    },
+                    "data": "YXBwbGljYXRpb24taW5wdXQ="
+                  }
+                ]
+              },
+              "header": {
+                "fields": {
+                  "umpire-scenario": {
+                    "metadata": {
+                      "encoding": "YmluYXJ5L3BsYWlu"
+                    },
+                    "data": "RmFpbA=="
+                  }
+                }
+              }
+            }
+          }
+        },
+        "response": {
+          "explained": {}
+        }
+      }
+    },
+    {
+      "sequence": "3",
+      "request": "2",
+      "proposal": {
+        "request": {
+          "seed": "13757245211066428519"
+        },
+        "response": {
+          "request": {
+            "@type": "type.googleapis.com/umpire.temporal.v1.ObserveActivity",
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "includeOutcome": true,
+              "includeLastFailure": true
+            },
+            "pollIntervalMs": "10",
+            "readTimeoutMs": "30000",
+            "backoffMs": "10"
+          },
+          "kind": "PROPOSAL_KIND_READ"
+        }
+      }
+    },
+    {
+      "sequence": "4",
+      "request": "2",
+      "driverEvent": "1",
+      "judgment": {
+        "request": {
+          "observation": {
+            "@type": "type.googleapis.com/umpire.realization.v1.Observation",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+            "response": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "info": {
+                "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+                "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+                "activityType": {
+                  "name": "ModelSlice"
+                },
+                "status": "ACTIVITY_EXECUTION_STATUS_RUNNING",
+                "runState": "PENDING_ACTIVITY_STATE_SCHEDULED",
+                "taskQueue": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623",
+                "scheduleToCloseTimeout": "0s",
+                "scheduleToStartTimeout": "0s",
+                "startToCloseTimeout": "20s",
+                "heartbeatTimeout": "0s",
+                "retryPolicy": {
+                  "initialInterval": "1s",
+                  "backoffCoefficient": 2,
+                  "maximumInterval": "100s",
+                  "maximumAttempts": 1
+                },
+                "attempt": 1,
+                "scheduleTime": "2026-10-24T07:09:54.682591896Z",
+                "stateTransitionCount": "1",
+                "stateSizeBytes": "865",
+                "searchAttributes": {},
+                "header": {
+                  "fields": {
+                    "umpire-scenario": {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "RmFpbA=="
+                    }
+                  }
+                },
+                "executionTime": "2026-10-24T07:09:54.682591896Z"
+              },
+              "longPollToken": "CiQwNTdmYmY3MS0xZjUyLTQ4OGEtYTVhNy1hZjFjMGRiYTUyNDYSJDA5ZjM0MTQ4LTg5MmEtNGZmZi05NzhjLTc4MzM3ODk2YmNhMBokMDFhMTZjYmUtYTA3YS03OGMxLWJhNDEtM2QwYWRjNWE2NWI5IOKwg7UMKgIQAToCEAE="
+            },
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "includeOutcome": true,
+              "includeLastFailure": true
+            }
+          }
+        },
+        "response": {
+          "explained": {},
+          "continuePolling": true
+        }
+      }
+    },
+    {
+      "sequence": "5",
+      "request": "2",
+      "driverEvent": "2",
+      "judgment": {
+        "request": {
+          "observation": {
+            "@type": "type.googleapis.com/umpire.realization.v1.Observation",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+            "response": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "info": {
+                "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+                "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+                "activityType": {
+                  "name": "ModelSlice"
+                },
+                "status": "ACTIVITY_EXECUTION_STATUS_RUNNING",
+                "runState": "PENDING_ACTIVITY_STATE_STARTED",
+                "taskQueue": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623",
+                "scheduleToCloseTimeout": "0s",
+                "scheduleToStartTimeout": "0s",
+                "startToCloseTimeout": "20s",
+                "heartbeatTimeout": "0s",
+                "retryPolicy": {
+                  "initialInterval": "1s",
+                  "backoffCoefficient": 2,
+                  "maximumInterval": "100s",
+                  "maximumAttempts": 1
+                },
+                "lastStartedTime": "2026-10-24T07:09:54.690772646Z",
+                "attempt": 1,
+                "scheduleTime": "2026-10-24T07:09:54.682591896Z",
+                "lastWorkerIdentity": "1119520@dev-build@",
+                "stateTransitionCount": "2",
+                "stateSizeBytes": "972",
+                "searchAttributes": {},
+                "header": {
+                  "fields": {
+                    "umpire-scenario": {
+                      "metadata": {
+                        "encoding": "YmluYXJ5L3BsYWlu"
+                      },
+                      "data": "RmFpbA=="
+                    }
+                  }
+                },
+                "sdkName": "temporal-go",
+                "sdkVersion": "1.48.0",
+                "executionTime": "2026-10-24T07:09:54.682591896Z"
+              },
+              "longPollToken": "CiQwNTdmYmY3MS0xZjUyLTQ4OGEtYTVhNy1hZjFjMGRiYTUyNDYSJDA5ZjM0MTQ4LTg5MmEtNGZmZi05NzhjLTc4MzM3ODk2YmNhMBokMDFhMTZjYmUtYTA3YS03OGMxLWJhNDEtM2QwYWRjNWE2NWI5IOKwg7UMKgIQAjoCEAE="
+            },
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9",
+              "includeOutcome": true,
+              "includeLastFailure": true
+            }
+          }
+        },
+        "response": {
+          "explained": {
+            "steps": [
+              "Worker::Poll(1)"
+            ],
+            "outcomes": [
+              "Accepted"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "sequence": "6",
+      "request": "3",
+      "proposal": {
+        "request": {
+          "seed": "17911839290282890590"
+        },
+        "response": {
+          "request": {
+            "@type": "type.googleapis.com/umpire.temporal.v1.TemporalInstruction",
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9"
+            }
+          },
+          "action": "Client::Cancel",
+          "kind": "PROPOSAL_KIND_ACTION"
+        }
+      }
+    },
+    {
+      "sequence": "7",
+      "request": "3",
+      "driverEvent": "1",
+      "judgment": {
+        "request": {
+          "observation": {
+            "@type": "type.googleapis.com/umpire.realization.v1.Observation",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+            "error": {
+              "code": 5,
+              "message": "activity not found for ID: 09f34148-892a-4fff-978c-78337896bca0"
+            },
+            "request": {
+              "@type": "type.googleapis.com/temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+              "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+              "activityId": "09f34148-892a-4fff-978c-78337896bca0",
+              "runId": "01a16cbe-a07a-78c1-ba41-3d0adc5a65b9"
+            }
+          }
+        },
+        "response": {
+          "unexplained": {
+            "expectedActions": [
+              "Client::Cancel",
+              "Worker::RespondCompleted",
+              "Worker::RespondFailed { retryable: false }",
+              "Worker::RespondFailed { retryable: true }",
+              "Deadline::StartToClose"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "verdict": {
+    "unexplained": {
+      "event": "7"
+    }
+  },
+  "worker": {
+    "kind": "sdk",
+    "version": "go.temporal.io/sdk@v1.48.0",
+    "namespace": "TestTestpilotModelSlice-Transport-1fb35aa3-356d-4e2f-962f-bd36f8c62d0f",
+    "taskQueue": "transport-ebfcd488-9c5a-4678-8c6a-f3ef26b5a623"
+  }
+}

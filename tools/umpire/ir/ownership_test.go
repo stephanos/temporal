@@ -98,7 +98,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 	if strings.HasPrefix(name, "tools/umpire/lower/internal/producer") && owner != "lower" {
 		return "producer is private to lowering"
 	}
-	if name == "common/testing/testpilot" && owner == "internal" {
+	if name == "common/testing/testpilot" && (owner == "internal" || owner == "temporaldriver") {
 		return "unapproved Testpilot helper dependency"
 	}
 	neutralDuration := name == "common/testing/testpilot/duration" && (owner == "realization" || owner == "lower" || owner == "conformance")
@@ -106,6 +106,8 @@ func modelImportProblem(file string, external bool, imported string) string {
 		helper := strings.TrimPrefix(name, "common/testing/testpilot/")
 		allowed := false
 		switch owner {
+		case "temporaldriver":
+			allowed = helper == "temporal/act"
 		case "explore":
 			allowed = helper == "campaign" || helper == "replay" || helper == "recordedrun"
 		case "internal":
@@ -330,6 +332,12 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		allowed          bool
 	}{
 		{file: "tools/umpire/ir/load.go", dependency: module + "api/umpire/v1", allowed: true},
+		{file: "tools/umpire/temporaldriver/driver.go", dependency: module + "common/testing/testpilot/temporal/act", allowed: true},
+		{file: "tools/umpire/temporaldriver/driver.go", dependency: module + "common/testing/testpilot/temporal/provision"},
+		{file: "tools/umpire/temporaldriver/driver.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/temporaldriver/driver_test.go", dependency: module + "common/testing/testpilot/temporal/control"},
+		{file: "tools/umpire/temporaldriver/driver.go", dependency: module + "common/testing/testpilot/temporal/act/internal"},
+		{file: "tools/umpire/ir/load.go", dependency: module + "common/testing/testpilot/temporal/act"},
 		{file: "tools/umpire/interp/eval.go", dependency: module + "tools/umpire/ir"},
 		{file: "tools/umpire/interp/helpers_test.go", dependency: module + "tools/umpire/ir/paths", allowed: true},
 		{file: "tools/umpire/interp/helpers_test.go", dependency: module + "tools/umpire/ir"},

@@ -11,7 +11,7 @@ use activity::{Client, Phase, Worker};
 use umpire_dsl::{Machine, Outcome};
 use umpire_runtime::{Candidate, Projection, Proposal, google::protobuf::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
-    activity::v1::activity_execution_outcome::Value,
+    activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
     common::v1::{Payload, Payloads},
     failure::v1::Failure,
     workflowservice::v1::{
@@ -335,7 +335,15 @@ impl Realization {
             {
                 Self::programmed_failure(failure)?;
             }
-            if attempt > 1 {
+            if !Self::consistent_evidence(
+                phase,
+                attempt,
+                info.last_failure.as_ref(),
+                response.outcome.as_ref(),
+            ) {
+                return Ok(Projection::steps([]));
+            }
+            if attempt > 1 && phase != Phase::Failed {
                 let (action, expected) = Self::response(scenario, i32::from(attempt - 1))?;
                 if !matches!(action, Worker::RespondFailed { retryable: true }) {
                     return Ok(Projection::steps([]));
@@ -378,7 +386,12 @@ impl Realization {
                     };
                     terminal_retryable = retryable;
                     let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
-                    if !Self::same_failure(Some(failure), expected.failure.as_ref()) {
+                    if !Self::same_failure(Some(failure), expected.failure.as_ref())
+                        || !Self::same_failure(
+                            info.last_failure.as_ref(),
+                            expected.failure.as_ref(),
+                        )
+                    {
                         return Ok(Projection::steps([]));
                     }
                 }
@@ -386,6 +399,32 @@ impl Realization {
             }
         }
         Ok(Self::project_phase(state, &activity::Model { phase, attempt }, terminal_retryable))
+    }
+
+    fn consistent_evidence(
+        phase: Phase,
+        attempt: u8,
+        last_failure: Option<&Failure>,
+        outcome: Option<&ActivityExecutionOutcome>,
+    ) -> bool {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+        if attempt == 1
+            && !matches!(phase, Phase::Failed | Phase::TimedOut)
+            && last_failure.is_some()
+        {
+            return false;
+        }
+        let Some(outcome) = outcome else {
+            return true;
+        };
+        match phase {
+            Phase::Scheduled | Phase::Started => false,
+            Phase::Canceled => matches!(&outcome.value, Some(Value::Failure(failure))
+                if matches!(&failure.failure_info, Some(FailureInfo::CanceledFailureInfo(_)))),
+            Phase::TimedOut => matches!(&outcome.value, Some(Value::Failure(failure))
+                if matches!(&failure.failure_info, Some(FailureInfo::TimeoutFailureInfo(_)))),
+            Phase::Completed | Phase::Failed => true,
+        }
     }
 
     fn programmed_failure(failure: &Failure) -> Result<(), Refusal> {

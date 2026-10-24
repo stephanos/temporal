@@ -91,7 +91,12 @@ fn terminal(program: &WorkerProgram, scenario: &str, attempt: i32, wrong: bool) 
         Value::Result(result)
     };
     response.outcome = Some(ActivityExecutionOutcome { value: Some(value), ..Default::default() });
-    if attempt > 1 {
+    if let Some(Value::Failure(failure)) =
+        response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref())
+    {
+        response.info.as_mut().unwrap_or_else(|| panic!("info")).last_failure =
+            Some(failure.clone());
+    } else if attempt > 1 {
         let failed: RespondActivityTaskFailedRequest =
             row(program, "RetryThenComplete", attempt - 1)
                 .unpack()
@@ -535,4 +540,174 @@ fn reconciliation_context_changes_only_after_publication_and_clears_on_final_ack
         matches!(invoke(&mut runtime, 4, &request), Outcome::Refusal(_)),
         "final acknowledgment consumes reconciliation context"
     );
+}
+
+#[test]
+fn terminal_failure_validates_current_last_failure_against_the_program() {
+    use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+    for variation in ["matching", "wrong_message", "wrong_type", "missing"] {
+        let (mut runtime, program) = setup(2);
+        let mut observation = terminal(&program, "Fail", 1, false);
+        let Some(ResultValue::Response(value)) = observation.result.take() else {
+            panic!("response")
+        };
+        let mut response: DescribeActivityExecutionResponse =
+            value.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+        let Some(Value::Failure(failure)) =
+            response.outcome.as_ref().and_then(|outcome| outcome.value.as_ref())
+        else {
+            panic!("failure")
+        };
+        let mut last_failure = failure.clone();
+        last_failure.source = "GoSDK".into();
+        last_failure.stack_trace = "handler.go:42".into();
+        match variation {
+            "wrong_message" => last_failure.message = "different current failure".into(),
+            "wrong_type" => {
+                let Some(FailureInfo::ApplicationFailureInfo(info)) =
+                    &mut last_failure.failure_info
+                else {
+                    panic!("application failure")
+                };
+                info.r#type = "OtherFailure".into();
+            }
+            _ => {}
+        }
+        response.info.as_mut().unwrap_or_else(|| panic!("info")).last_failure =
+            (variation != "missing").then_some(last_failure);
+        observation.result = Some(ResultValue::Response(Any::pack(&response)));
+        let Outcome::Judge(judgment) = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest { observation: Some(Any::pack(&observation)) },
+        ) else {
+            panic!("judge")
+        };
+        assert_eq!(
+            matches!(judgment.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))),
+            variation != "matching",
+            "{variation}: {judgment:?}"
+        );
+    }
+}
+
+fn accept_cancellation(runtime: &mut impl Dispatch) {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse;
+    let instruction = cancellation(runtime);
+    let acknowledged = Observation {
+        method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+            .into(),
+        request: instruction.request,
+        result: Some(ResultValue::Response(Any::pack(
+            &RequestCancelActivityExecutionResponse::default(),
+        ))),
+    };
+    let Outcome::Judge(judgment) =
+        invoke(runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(&acknowledged)) })
+    else {
+        panic!("cancellation")
+    };
+    assert!(matches!(judgment.judgment, Some(protocol::judge_response::Judgment::Explained(_))));
+}
+
+#[test]
+fn describe_rejects_failure_history_and_outcomes_that_contradict_the_observed_phase() {
+    use umpire_temporal::activity::Phase;
+    use umpire_temporal_api::temporal::api::failure::v1::{
+        CanceledFailureInfo, Failure, failure::FailureInfo,
+    };
+    for (phase, variation, wrong) in [
+        (Phase::Completed, "last_failure", true),
+        (Phase::Canceled, "last_failure", true),
+        (Phase::Started, "last_failure", true),
+        (Phase::Scheduled, "last_failure", true),
+        (Phase::Started, "outcome", true),
+        (Phase::Scheduled, "outcome", true),
+        (Phase::Canceled, "result", true),
+        (Phase::Canceled, "application_failure", true),
+        (Phase::Canceled, "canceled_failure", false),
+        (Phase::Completed, "retry_history", false),
+    ] {
+        let (mut runtime, program) = setup(u64::from(variation == "retry_history"));
+        if phase == Phase::Canceled {
+            accept_cancellation(&mut runtime);
+        }
+        let mut observation = if phase == Phase::Completed {
+            terminal(
+                &program,
+                if variation == "retry_history" { "RetryThenComplete" } else { "Complete" },
+                if variation == "retry_history" { 2 } else { 1 },
+                false,
+            )
+        } else {
+            common::describe(
+                1,
+                if phase == Phase::Canceled { 4 } else { 1 },
+                if phase == Phase::Canceled {
+                    0
+                } else if phase == Phase::Started {
+                    2
+                } else {
+                    1
+                },
+            )
+        };
+        let Some(ResultValue::Response(value)) = observation.result.take() else {
+            panic!("response")
+        };
+        let mut response: DescribeActivityExecutionResponse =
+            value.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+        let failed: RespondActivityTaskFailedRequest =
+            row(&program, "Fail", 1).unpack().unwrap_or_else(|error| panic!("{error:?}"));
+        match variation {
+            "last_failure" => {
+                response.info.as_mut().unwrap_or_else(|| panic!("info")).last_failure =
+                    failed.failure;
+            }
+            "outcome" | "application_failure" => {
+                response.outcome = Some(ActivityExecutionOutcome {
+                    value: Some(Value::Failure(
+                        failed.failure.unwrap_or_else(|| panic!("failure")),
+                    )),
+                    ..Default::default()
+                });
+            }
+            "result" => {
+                let completed: RespondActivityTaskCompletedRequest = row(&program, "Complete", 1)
+                    .unpack()
+                    .unwrap_or_else(|error| panic!("{error:?}"));
+                response.outcome = Some(ActivityExecutionOutcome {
+                    value: Some(Value::Result(
+                        completed.result.unwrap_or_else(|| panic!("result")),
+                    )),
+                    ..Default::default()
+                });
+            }
+            "canceled_failure" => {
+                response.outcome = Some(ActivityExecutionOutcome {
+                    value: Some(Value::Failure(Failure {
+                        failure_info: Some(FailureInfo::CanceledFailureInfo(
+                            CanceledFailureInfo::default(),
+                        )),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                });
+            }
+            _ => {}
+        }
+        observation.result = Some(ResultValue::Response(Any::pack(&response)));
+        let Outcome::Judge(judgment) = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest { observation: Some(Any::pack(&observation)) },
+        ) else {
+            panic!("judgment")
+        };
+        assert_eq!(
+            matches!(judgment.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))),
+            wrong,
+            "{phase:?}/{variation}: {judgment:?}"
+        );
+    }
 }

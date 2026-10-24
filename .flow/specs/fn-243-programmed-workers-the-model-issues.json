@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-243-programmed-workers-the-model-issues",
   "impl_review_rounds": {
-    "fn-243-programmed-workers-the-model-issues.1": 0
+    "fn-243-programmed-workers-the-model-issues.1": 0,
+    "fn-243-programmed-workers-the-model-issues.2": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -50,6 +51,66 @@
       "task": "fn-243-programmed-workers-the-model-issues.1",
       "timestamp": "2026-10-24T06:43:51.562286Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2023b2a84bf8ea2ec7b389d08456697424cb17f968240595b0b545a3ab6ba0d3",
+      "backend": "codex",
+      "base_sha": "8c82fb4ff3ee4c8f694b9067d7f6652803b50428",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c397305e869d96f9d4ddfb2e03a7e92a",
+            "classification": "introduced",
+            "findingId": "finding-c397305e869d96f9d4ddfb2e03a7e92a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f432315732adc9599a5d1f1f75d744fd",
+            "classification": "introduced",
+            "findingId": "finding-f432315732adc9599a5d1f1f75d744fd",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c503911935308b1fdd14c8dd97529461",
+            "classification": "introduced",
+            "findingId": "finding-c503911935308b1fdd14c8dd97529461",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c96f9bacf26f95034ecfa634235e7fbc731b7cc8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2977,
+      "output_sha256": "d16ba02f6a0a695351fa81f9f3c1fd92ed7787d63c521f7a1e29723cc88fe710",
+      "reservation_id": "95c3def8009b4afbb26c2144d40182dc",
+      "round_consumed": true,
+      "scope": "impl:fn-243-programmed-workers-the-model-issues.2",
+      "superseded_by": null,
+      "task": "fn-243-programmed-workers-the-model-issues.2",
+      "timestamp": "2026-10-24T09:02:05.675342Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -58,7 +119,8 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-243-programmed-workers-the-model-issues.1": 0
+    "impl:fn-243-programmed-workers-the-model-issues.1": 0,
+    "impl:fn-243-programmed-workers-the-model-issues.2": 0
   },
   "spec_path": ".flow/specs/fn-243-programmed-workers-the-model-issues.md",
   "status": "open",
@@ -74,5 +136,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T06:43:51.566616Z"
+  "updated_at": "2026-10-24T09:02:05.689062Z"
 }
