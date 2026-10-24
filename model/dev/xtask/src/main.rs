@@ -1,5 +1,10 @@
 //! Native development command dispatcher.
-use std::{env, ffi::OsStr, io::{self, Read, Write}, path::Path};
+use std::{
+    env,
+    ffi::OsStr,
+    io::{self, Read, Write},
+    path::Path,
+};
 
 fn run() -> xtask::Result<i32> {
     let mut arguments = env::args_os().skip(1);
@@ -16,7 +21,9 @@ fn run() -> xtask::Result<i32> {
             io::stdout().write_all(b"\n")?;
             Ok(0)
         }
-        Some(command) if command == OsStr::new("guest-rustc") => xtask::compiler::run(arguments.collect()),
+        Some(command) if command == OsStr::new("guest-rustc") => {
+            xtask::compiler::run(arguments.collect())
+        }
         _ => Err(xtask::Error::Invalid("commands: guest-lock, guest-rustc".into())),
     }
 }

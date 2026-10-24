@@ -1,0 +1,37 @@
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+error: used `assert!` to check that a value is not empty
+  --> dev/xtask/tests/identity/current_inputs.rs:22:5
+   |
+22 |     assert!(!value["package"].as_array().unwrap().is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_ne!` to show the value on failure
+   |
+22 -     assert!(!value["package"].as_array().unwrap().is_empty());
+22 +     assert_ne!(value["package"].as_array().unwrap().as_slice(), []);
+   |
+
+error: `format!(..)` appended to existing `String`
+   --> dev/xtask/tests/identity/lock.rs:168:13
+    |
+168 | /             fixture.lock.push_str(&format!(
+169 | |                 "[[package]]\nname = 'serde'\nversion = '1'\nsource = '{source}'\n"
+170 | |             ));
+    | |______________^
+    |
+    = note: you may need to import the `std::fmt::Write` trait
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#format_push_string
+    = note: `-D clippy::format-push-string` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::format_push_string)]`
+help: consider using `write!` to avoid the extra allocation
+    |
+168 -             fixture.lock.push_str(&format!(
+169 -                 "[[package]]\nname = 'serde'\nversion = '1'\nsource = '{source}'\n"
+170 -             ));
+168 +             let _ = write!(fixture.lock, "[[package]]\nname = 'serde'\nversion = '1'\nsource = '{source}'\n");
+    |
+
+error: could not compile `xtask` (test "guest_identity") due to 2 previous errors

@@ -1,4 +1,5 @@
 use serde_json::{Value, json};
+use std::fmt::Write;
 use std::{
     collections::BTreeMap,
     fs,
@@ -165,9 +166,11 @@ fn ambiguous_name_version_coordinates_are_marked_unavailable() {
             .unwrap()
             .push(json!({"id":"another serde", "deps":[]}));
         if let Some(source) = source.as_str() {
-            fixture.lock.push_str(&format!(
+            write!(
+                fixture.lock,
                 "[[package]]\nname = 'serde'\nversion = '1'\nsource = '{source}'\n"
-            ));
+            )
+            .unwrap();
         }
         let map = fixture.map();
         assert_eq!(map["serde 1"], None);

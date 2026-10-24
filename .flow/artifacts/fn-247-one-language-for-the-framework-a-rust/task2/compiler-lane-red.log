@@ -1,0 +1,60 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling quote v1.0.47
+   Compiling typenum v1.20.1
+   Compiling libc v0.2.191
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling cfg-if v1.0.5
+   Compiling hybrid-array v0.4.15
+   Compiling syn v3.0.9
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling cpufeatures v0.3.1
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling serde_spanned v1.1.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn2472-compiler/model/dev/xtask)
+warning: missing documentation for the crate
+ --> dev/xtask/tests/compiler_lane.rs:1:1
+  |
+1 | / #[path = "identity/compiler.rs"]
+2 | | mod compiler;
+  | |_____________^
+  |
+  = note: requested on the command line with `-W missing-docs`
+
+warning: `xtask` (test "compiler_lane") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.94s
+     Running tests/compiler_lane.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-compiler-target/debug/deps/compiler_lane-ec9521ae8d96a53b)
+
+running 1 test
+test compiler::probes_pass_through_without_guest_environment ... FAILED
+
+failures:
+
+---- compiler::probes_pass_through_without_guest_environment stdout ----
+
+thread 'compiler::probes_pass_through_without_guest_environment' (619962) panicked at dev/xtask/tests/identity/compiler.rs:3:72:
+called `Result::unwrap()` on an `Err` value: Invalid("compiler implementation pending")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    compiler::probes_pass_through_without_guest_environment
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p xtask --test compiler_lane`

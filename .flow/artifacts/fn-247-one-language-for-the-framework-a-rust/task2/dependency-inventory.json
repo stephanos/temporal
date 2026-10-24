@@ -1,0 +1,123 @@
+{
+  "before_package_count": 137,
+  "after_package_count": 145,
+  "new_packages": [
+    {
+      "name": "block-buffer",
+      "version": "0.12.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [],
+      "R18_basis": "released 2026-06-11 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "const-oid",
+      "version": "0.10.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [],
+      "R18_basis": "released 2026-01-07 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "crypto-common",
+      "version": "0.2.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [],
+      "R18_basis": "released 2026-05-19 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "digest",
+      "version": "0.11.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [
+        "alloc",
+        "block-api",
+        "default",
+        "oid"
+      ],
+      "R18_basis": "released 2026-05-03 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "hybrid-array",
+      "version": "0.4.15",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [],
+      "R18_basis": "released 2026-09-08 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "sha2",
+      "version": "0.11.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [
+        "alloc",
+        "default",
+        "oid"
+      ],
+      "R18_basis": "released 2026-10-12 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "typenum",
+      "version": "1.20.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "features": [
+        "const-generics"
+      ],
+      "R18_basis": "released 2026-05-29 (within 12 months); official index source in planning/sha2-primary-sources.md"
+    },
+    {
+      "name": "xtask",
+      "version": "0.0.1",
+      "source": null,
+      "features": [],
+      "R18_basis": "local host-only workspace member"
+    }
+  ],
+  "toml": {
+    "name": "toml",
+    "version": "1.1.8+spec-1.1.0",
+    "source": "registry+https://github.com/rust-lang/crates.io-index",
+    "checksum": "20489e00e4d8741d6be680764cc12e270655e375a20d1011e844a9c3379e678d",
+    "dependencies": [
+      "indexmap",
+      "serde_core",
+      "serde_spanned",
+      "toml_datetime",
+      "toml_parser",
+      "toml_writer",
+      "winnow"
+    ]
+  },
+  "guest_union_proof": [
+    {
+      "root": "umpire-caught-panic-guest",
+      "packages": 78,
+      "all_platform_normal_build_unchanged": true
+    },
+    {
+      "root": "umpire-control-guest",
+      "packages": 78,
+      "all_platform_normal_build_unchanged": true
+    },
+    {
+      "root": "umpire-kettle-guest",
+      "packages": 85,
+      "all_platform_normal_build_unchanged": true
+    },
+    {
+      "root": "umpire-overflow-guest",
+      "packages": 78,
+      "all_platform_normal_build_unchanged": true
+    },
+    {
+      "root": "umpire-stock-guest",
+      "packages": 78,
+      "all_platform_normal_build_unchanged": true
+    },
+    {
+      "root": "umpire-temporal-guest",
+      "packages": 88,
+      "all_platform_normal_build_unchanged": true
+    }
+  ],
+  "scope": "all-platform nondev normal/build topology and feature union, including existing host build tools; not actual compiled wasm runtime closure",
+  "serde_json_preserve_order": false,
+  "changed_existing_nodes": []
+}

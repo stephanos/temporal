@@ -1,0 +1,28 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn2472-lock/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s
+     Running tests/lock_lane.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-lock-target/debug/deps/lock_lane-ca9cea8b9675ad4f)
+
+running 7 tests
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... FAILED
+
+failures:
+
+---- lock::malformed_native_documents_and_graphs_are_rejected stdout ----
+
+thread 'lock::malformed_native_documents_and_graphs_are_rejected' (620947) panicked at dev/xtask/tests/identity/lock.rs:151:101:
+cycle
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    lock::malformed_native_documents_and_graphs_are_rejected
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p xtask --test lock_lane`

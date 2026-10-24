@@ -1,0 +1,22 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn2472-compiler/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.59s
+     Running tests/compiler_lane.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-compiler-target/debug/deps/compiler_lane-8f9be90abe3c7260)
+
+running 14 tests
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+

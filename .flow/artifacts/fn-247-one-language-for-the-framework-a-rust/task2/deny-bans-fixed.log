@@ -1,0 +1,846 @@
+warning[duplicate]: found 2 duplicate entries for crate 'hashbrown'
+   ┌─ /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock:30:1
+   │  
+30 │ ╭ hashbrown 0.15.5 registry+https://github.com/rust-lang/crates.io-index
+31 │ │ hashbrown 0.17.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰──────────────────────────────────────────────────────────────────────┘ lock entries
+   │  
+   ├ hashbrown v0.15.5
+     └── petgraph v0.8.3
+         ├── prost-build v0.14.4
+         │   ├── umpire-catalog-build v0.0.1
+         │   │   ├── (build) umpire-reference-kettle v0.0.1
+         │   │   │   └── umpire-kettle-guest v0.0.1
+         │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+         │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+         │   │   │   │   └── umpire-temporal-annotate v0.0.1
+         │   │   │   │       └── umpire-temporal v0.0.1
+         │   │   │   │           ├── umpire-temporal-guest v0.0.1
+         │   │   │   │           └── (dev) umpire-temporal-tests v0.0.1
+         │   │   │   ├── (build) umpire-temporal-api v0.0.1
+         │   │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   │   ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+         │   │   │       └── umpire-temporal v0.0.1 (*)
+         │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+         │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+         │   ├── (build) umpire-runtime v0.0.1
+         │   │   ├── umpire v0.0.1
+         │   │   │   ├── (dev) umpire-apalache v0.0.1
+         │   │   │   ├── umpire-author-consumer v0.0.1
+         │   │   │   ├── (dev) umpire-fixtures v0.0.1
+         │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   │   └── (dev) umpire-suite v0.0.1
+         │   │   │       ├── umpire v0.0.1 (*)
+         │   │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   ├── umpire-catalog v0.0.1
+         │   │   │   ├── umpire v0.0.1 (*)
+         │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   └── umpire-temporal-api v0.0.1 (*)
+         │   │   ├── umpire-catalog-build v0.0.1 (*)
+         │   │   ├── umpire-catalog-syntax v0.0.1
+         │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+         │   │   │   ├── umpire-catalog-macros v0.0.1
+         │   │   │   │   └── umpire-catalog v0.0.1 (*)
+         │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+         │   │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   │   ├── umpire-caught-panic-guest v0.0.1
+         │   │   ├── umpire-control-guest v0.0.1
+         │   │   ├── umpire-kettle-guest v0.0.1 (*)
+         │   │   ├── umpire-overflow-guest v0.0.1
+         │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   ├── umpire-stock-guest v0.0.1
+         │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   │   ├── umpire-temporal-api v0.0.1 (*)
+         │   │   ├── umpire-temporal-guest v0.0.1 (*)
+         │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   └── (build) umpire-temporal-api v0.0.1 (*)
+         └── umpire-checker v0.0.1
+             ├── umpire-apalache v0.0.1 (*)
+             ├── (dev) umpire-fixtures v0.0.1 (*)
+             ├── umpire-reference-kettle v0.0.1 (*)
+             ├── umpire-runtime v0.0.1 (*)
+             ├── umpire-suite v0.0.1 (*)
+             ├── (dev) umpire-temporal-tests v0.0.1 (*)
+             ├── umpire-testing v0.0.1
+             │   ├── (dev) umpire-checker v0.0.1 (*)
+             │   ├── (dev) umpire-dsl v0.0.1
+             │   │   ├── umpire v0.0.1 (*)
+             │   │   ├── umpire-apalache v0.0.1 (*)
+             │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+             │   │   ├── umpire-checker v0.0.1 (*)
+             │   │   ├── umpire-control-guest v0.0.1 (*)
+             │   │   ├── (dev) umpire-dsl-macros v0.0.1
+             │   │   │   └── umpire-dsl v0.0.1 (*)
+             │   │   ├── umpire-overflow-guest v0.0.1 (*)
+             │   │   ├── umpire-reference-kettle v0.0.1 (*)
+             │   │   ├── umpire-runtime v0.0.1 (*)
+             │   │   ├── umpire-suite v0.0.1 (*)
+             │   │   ├── umpire-temporal v0.0.1 (*)
+             │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+             │   │   ├── umpire-testing v0.0.1 (*)
+             │   │   ├── (dev) umpire-tla v0.0.1
+             │   │   │   ├── umpire-apalache v0.0.1 (*)
+             │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+             │   │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+             │   │   │   ├── umpire-testing v0.0.1 (*)
+             │   │   │   └── umpire-tlc v0.0.1
+             │   │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+             │   │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+             │   │   │       ├── umpire-testing v0.0.1 (*)
+             │   │   │       └── (dev) umpire-tla v0.0.1 (*)
+             │   │   └── (dev) umpire-tlc v0.0.1 (*)
+             │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+             │   ├── (dev) umpire-fixtures v0.0.1 (*)
+             │   ├── (dev) umpire-suite v0.0.1 (*)
+             │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+             ├── (dev) umpire-tla v0.0.1 (*)
+             └── (dev) umpire-tlc v0.0.1 (*)
+   ├ hashbrown v0.17.1
+     └── indexmap v2.14.2
+         ├── petgraph v0.8.3
+         │   ├── prost-build v0.14.4
+         │   │   ├── umpire-catalog-build v0.0.1
+         │   │   │   ├── (build) umpire-reference-kettle v0.0.1
+         │   │   │   │   └── umpire-kettle-guest v0.0.1
+         │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+         │   │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+         │   │   │   │   │   └── umpire-temporal-annotate v0.0.1
+         │   │   │   │   │       └── umpire-temporal v0.0.1
+         │   │   │   │   │           ├── umpire-temporal-guest v0.0.1
+         │   │   │   │   │           └── (dev) umpire-temporal-tests v0.0.1
+         │   │   │   │   ├── (build) umpire-temporal-api v0.0.1
+         │   │   │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   │   │   ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+         │   │   │   │       └── umpire-temporal v0.0.1 (*)
+         │   │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+         │   │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+         │   │   ├── (build) umpire-runtime v0.0.1
+         │   │   │   ├── umpire v0.0.1
+         │   │   │   │   ├── (dev) umpire-apalache v0.0.1
+         │   │   │   │   ├── umpire-author-consumer v0.0.1
+         │   │   │   │   ├── (dev) umpire-fixtures v0.0.1
+         │   │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   │   │   └── (dev) umpire-suite v0.0.1
+         │   │   │   │       ├── umpire v0.0.1 (*)
+         │   │   │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   │   ├── umpire-catalog v0.0.1
+         │   │   │   │   ├── umpire v0.0.1 (*)
+         │   │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   │   └── umpire-temporal-api v0.0.1 (*)
+         │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+         │   │   │   ├── umpire-catalog-syntax v0.0.1
+         │   │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+         │   │   │   │   ├── umpire-catalog-macros v0.0.1
+         │   │   │   │   │   └── umpire-catalog v0.0.1 (*)
+         │   │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+         │   │   │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   │   │   ├── umpire-caught-panic-guest v0.0.1
+         │   │   │   ├── umpire-control-guest v0.0.1
+         │   │   │   ├── umpire-kettle-guest v0.0.1 (*)
+         │   │   │   ├── umpire-overflow-guest v0.0.1
+         │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   │   ├── umpire-stock-guest v0.0.1
+         │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   │   │   ├── umpire-temporal-api v0.0.1 (*)
+         │   │   │   ├── umpire-temporal-guest v0.0.1 (*)
+         │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+         │   └── umpire-checker v0.0.1
+         │       ├── umpire-apalache v0.0.1 (*)
+         │       ├── (dev) umpire-fixtures v0.0.1 (*)
+         │       ├── umpire-reference-kettle v0.0.1 (*)
+         │       ├── umpire-runtime v0.0.1 (*)
+         │       ├── umpire-suite v0.0.1 (*)
+         │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+         │       ├── umpire-testing v0.0.1
+         │       │   ├── (dev) umpire-checker v0.0.1 (*)
+         │       │   ├── (dev) umpire-dsl v0.0.1
+         │       │   │   ├── umpire v0.0.1 (*)
+         │       │   │   ├── umpire-apalache v0.0.1 (*)
+         │       │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+         │       │   │   ├── umpire-checker v0.0.1 (*)
+         │       │   │   ├── umpire-control-guest v0.0.1 (*)
+         │       │   │   ├── (dev) umpire-dsl-macros v0.0.1
+         │       │   │   │   └── umpire-dsl v0.0.1 (*)
+         │       │   │   ├── umpire-overflow-guest v0.0.1 (*)
+         │       │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │       │   │   ├── umpire-runtime v0.0.1 (*)
+         │       │   │   ├── umpire-suite v0.0.1 (*)
+         │       │   │   ├── umpire-temporal v0.0.1 (*)
+         │       │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+         │       │   │   ├── umpire-testing v0.0.1 (*)
+         │       │   │   ├── (dev) umpire-tla v0.0.1
+         │       │   │   │   ├── umpire-apalache v0.0.1 (*)
+         │       │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+         │       │   │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+         │       │   │   │   ├── umpire-testing v0.0.1 (*)
+         │       │   │   │   └── umpire-tlc v0.0.1
+         │       │   │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+         │       │   │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+         │       │   │   │       ├── umpire-testing v0.0.1 (*)
+         │       │   │   │       └── (dev) umpire-tla v0.0.1 (*)
+         │       │   │   └── (dev) umpire-tlc v0.0.1 (*)
+         │       │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+         │       │   ├── (dev) umpire-fixtures v0.0.1 (*)
+         │       │   ├── (dev) umpire-suite v0.0.1 (*)
+         │       │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │       ├── (dev) umpire-tla v0.0.1 (*)
+         │       └── (dev) umpire-tlc v0.0.1 (*)
+         ├── toml_edit v0.25.17+spec-1.1.0
+         │   └── proc-macro-crate v3.5.0
+         │       ├── umpire-catalog-macros v0.0.1 (*)
+         │       └── umpire-dsl-macros v0.0.1 (*)
+         └── umpire-checker v0.0.1 (*)
+
+warning[duplicate]: found 2 duplicate entries for crate 'prettyplease'
+   ┌─ /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock:50:1
+   │  
+50 │ ╭ prettyplease 0.2.37 registry+https://github.com/rust-lang/crates.io-index
+51 │ │ prettyplease 0.3.0 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰────────────────────────────────────────────────────────────────────────┘ lock entries
+   │  
+   ├ prettyplease v0.2.37
+     └── prost-build v0.14.4
+         ├── umpire-catalog-build v0.0.1
+         │   ├── (build) umpire-reference-kettle v0.0.1
+         │   │   └── umpire-kettle-guest v0.0.1
+         │   ├── umpire-temporal-annotate-syntax v0.0.1
+         │   │   ├── umpire-temporal-annotate-macros v0.0.1
+         │   │   │   └── umpire-temporal-annotate v0.0.1
+         │   │   │       └── umpire-temporal v0.0.1
+         │   │   │           ├── umpire-temporal-guest v0.0.1
+         │   │   │           └── (dev) umpire-temporal-tests v0.0.1
+         │   │   ├── (build) umpire-temporal-api v0.0.1
+         │   │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   │   ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+         │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+         │   │       └── umpire-temporal v0.0.1 (*)
+         │   └── (build) umpire-temporal-api v0.0.1 (*)
+         ├── (build) umpire-reference-kettle v0.0.1 (*)
+         ├── (build) umpire-runtime v0.0.1
+         │   ├── umpire v0.0.1
+         │   │   ├── (dev) umpire-apalache v0.0.1
+         │   │   ├── umpire-author-consumer v0.0.1
+         │   │   ├── (dev) umpire-fixtures v0.0.1
+         │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   └── (dev) umpire-suite v0.0.1
+         │   │       ├── umpire v0.0.1 (*)
+         │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+         │   ├── umpire-catalog v0.0.1
+         │   │   ├── umpire v0.0.1 (*)
+         │   │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   │   ├── umpire-temporal v0.0.1 (*)
+         │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   │   └── umpire-temporal-api v0.0.1 (*)
+         │   ├── umpire-catalog-build v0.0.1 (*)
+         │   ├── umpire-catalog-syntax v0.0.1
+         │   │   ├── umpire-catalog-build v0.0.1 (*)
+         │   │   ├── umpire-catalog-macros v0.0.1
+         │   │   │   └── umpire-catalog v0.0.1 (*)
+         │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+         │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   ├── umpire-caught-panic-guest v0.0.1
+         │   ├── umpire-control-guest v0.0.1
+         │   ├── umpire-kettle-guest v0.0.1 (*)
+         │   ├── umpire-overflow-guest v0.0.1
+         │   ├── umpire-reference-kettle v0.0.1 (*)
+         │   ├── umpire-stock-guest v0.0.1
+         │   ├── umpire-temporal v0.0.1 (*)
+         │   ├── umpire-temporal-annotate v0.0.1 (*)
+         │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+         │   ├── umpire-temporal-api v0.0.1 (*)
+         │   ├── umpire-temporal-guest v0.0.1 (*)
+         │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+         └── (build) umpire-temporal-api v0.0.1 (*)
+   ├ prettyplease v0.3.0
+     ├── (dev) umpire-catalog-syntax v0.0.1
+     │   ├── umpire-catalog-build v0.0.1
+     │   │   ├── (build) umpire-reference-kettle v0.0.1
+     │   │   │   └── umpire-kettle-guest v0.0.1
+     │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+     │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+     │   │   │   │   └── umpire-temporal-annotate v0.0.1
+     │   │   │   │       └── umpire-temporal v0.0.1
+     │   │   │   │           ├── umpire-temporal-guest v0.0.1
+     │   │   │   │           └── (dev) umpire-temporal-tests v0.0.1
+     │   │   │   ├── (build) umpire-temporal-api v0.0.1
+     │   │   │   │   ├── umpire-temporal v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+     │   │   │       └── umpire-temporal v0.0.1 (*)
+     │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │   ├── umpire-catalog-macros v0.0.1
+     │   │   └── umpire-catalog v0.0.1
+     │   │       ├── umpire v0.0.1
+     │   │       │   ├── (dev) umpire-apalache v0.0.1
+     │   │       │   ├── umpire-author-consumer v0.0.1
+     │   │       │   ├── (dev) umpire-fixtures v0.0.1
+     │   │       │   ├── umpire-reference-kettle v0.0.1 (*)
+     │   │       │   └── (dev) umpire-suite v0.0.1
+     │   │       │       ├── umpire v0.0.1 (*)
+     │   │       │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │       ├── umpire-reference-kettle v0.0.1 (*)
+     │   │       ├── umpire-temporal v0.0.1 (*)
+     │   │       ├── umpire-temporal-annotate v0.0.1 (*)
+     │   │       └── umpire-temporal-api v0.0.1 (*)
+     │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+     ├── (dev) umpire-dsl-macros v0.0.1
+     │   └── umpire-dsl v0.0.1
+     │       ├── umpire v0.0.1 (*)
+     │       ├── umpire-apalache v0.0.1 (*)
+     │       ├── umpire-caught-panic-guest v0.0.1
+     │       ├── umpire-checker v0.0.1
+     │       │   ├── umpire-apalache v0.0.1 (*)
+     │       │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │       │   ├── umpire-reference-kettle v0.0.1 (*)
+     │       │   ├── umpire-runtime v0.0.1
+     │       │   │   ├── umpire v0.0.1 (*)
+     │       │   │   ├── umpire-catalog v0.0.1 (*)
+     │       │   │   ├── umpire-catalog-build v0.0.1 (*)
+     │       │   │   ├── umpire-catalog-syntax v0.0.1 (*)
+     │       │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+     │       │   │   ├── umpire-control-guest v0.0.1
+     │       │   │   ├── umpire-kettle-guest v0.0.1 (*)
+     │       │   │   ├── umpire-overflow-guest v0.0.1
+     │       │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │       │   │   ├── umpire-stock-guest v0.0.1
+     │       │   │   ├── umpire-temporal v0.0.1 (*)
+     │       │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+     │       │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │       │   │   ├── umpire-temporal-api v0.0.1 (*)
+     │       │   │   ├── umpire-temporal-guest v0.0.1 (*)
+     │       │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       │   ├── umpire-suite v0.0.1 (*)
+     │       │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       │   ├── umpire-testing v0.0.1
+     │       │   │   ├── (dev) umpire-checker v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-dsl v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-suite v0.0.1 (*)
+     │       │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       │   ├── (dev) umpire-tla v0.0.1
+     │       │   │   ├── umpire-apalache v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │       │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       │   │   ├── umpire-testing v0.0.1 (*)
+     │       │   │   └── umpire-tlc v0.0.1
+     │       │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+     │       │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       │   │       ├── umpire-testing v0.0.1 (*)
+     │       │   │       └── (dev) umpire-tla v0.0.1 (*)
+     │       │   └── (dev) umpire-tlc v0.0.1 (*)
+     │       ├── umpire-control-guest v0.0.1 (*)
+     │       ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │       ├── umpire-overflow-guest v0.0.1 (*)
+     │       ├── umpire-reference-kettle v0.0.1 (*)
+     │       ├── umpire-runtime v0.0.1 (*)
+     │       ├── umpire-suite v0.0.1 (*)
+     │       ├── umpire-temporal v0.0.1 (*)
+     │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │       ├── umpire-testing v0.0.1 (*)
+     │       ├── (dev) umpire-tla v0.0.1 (*)
+     │       └── (dev) umpire-tlc v0.0.1 (*)
+     ├── umpire-front v0.0.1
+     │   ├── umpire-dsl-macros v0.0.1 (*)
+     │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   └── umpire-tla v0.0.1 (*)
+     ├── (dev) umpire-temporal-annotate-syntax v0.0.1 (*)
+     └── (dev) umpire-temporal-realization-macros v0.0.1 (*)
+
+warning[duplicate]: found 2 duplicate entries for crate 'rand_core'
+   ┌─ /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock:64:1
+   │  
+64 │ ╭ rand_core 0.9.5 registry+https://github.com/rust-lang/crates.io-index
+65 │ │ rand_core 0.10.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰──────────────────────────────────────────────────────────────────────┘ lock entries
+   │  
+   ├ rand_core v0.9.5
+     ├── imbl v7.0.2
+     │   ├── (dev) umpire-apalache v0.0.1
+     │   ├── umpire-dsl v0.0.1
+     │   │   ├── umpire v0.0.1
+     │   │   │   ├── (dev) umpire-apalache v0.0.1 (*)
+     │   │   │   ├── umpire-author-consumer v0.0.1
+     │   │   │   ├── (dev) umpire-fixtures v0.0.1
+     │   │   │   ├── umpire-reference-kettle v0.0.1
+     │   │   │   │   └── umpire-kettle-guest v0.0.1
+     │   │   │   └── (dev) umpire-suite v0.0.1
+     │   │   │       ├── umpire v0.0.1 (*)
+     │   │   │       └── (dev) umpire-temporal-tests v0.0.1
+     │   │   ├── umpire-apalache v0.0.1 (*)
+     │   │   ├── umpire-caught-panic-guest v0.0.1
+     │   │   ├── umpire-checker v0.0.1
+     │   │   │   ├── umpire-apalache v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │   │   │   ├── umpire-runtime v0.0.1
+     │   │   │   │   ├── umpire v0.0.1 (*)
+     │   │   │   │   ├── umpire-catalog v0.0.1
+     │   │   │   │   │   ├── umpire v0.0.1 (*)
+     │   │   │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │   │   │   │   │   ├── umpire-temporal v0.0.1
+     │   │   │   │   │   │   ├── umpire-temporal-guest v0.0.1
+     │   │   │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   │   │   ├── umpire-temporal-annotate v0.0.1
+     │   │   │   │   │   │   └── umpire-temporal v0.0.1 (*)
+     │   │   │   │   │   └── umpire-temporal-api v0.0.1
+     │   │   │   │   │       ├── umpire-temporal v0.0.1 (*)
+     │   │   │   │   │       ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │   │   │   │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   │   ├── umpire-catalog-build v0.0.1
+     │   │   │   │   │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │   │   │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+     │   │   │   │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+     │   │   │   │   │   │   │   └── umpire-temporal-annotate v0.0.1 (*)
+     │   │   │   │   │   │   ├── (build) umpire-temporal-api v0.0.1 (*)
+     │   │   │   │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+     │   │   │   │   │   │       └── umpire-temporal v0.0.1 (*)
+     │   │   │   │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │   │   │   │   ├── umpire-catalog-syntax v0.0.1
+     │   │   │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+     │   │   │   │   │   ├── umpire-catalog-macros v0.0.1
+     │   │   │   │   │   │   └── umpire-catalog v0.0.1 (*)
+     │   │   │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │   │   │   │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │   │   │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+     │   │   │   │   ├── umpire-control-guest v0.0.1
+     │   │   │   │   ├── umpire-kettle-guest v0.0.1 (*)
+     │   │   │   │   ├── umpire-overflow-guest v0.0.1
+     │   │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │   │   │   │   ├── umpire-stock-guest v0.0.1
+     │   │   │   │   ├── umpire-temporal v0.0.1 (*)
+     │   │   │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+     │   │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │   │   │   │   ├── umpire-temporal-api v0.0.1 (*)
+     │   │   │   │   ├── umpire-temporal-guest v0.0.1 (*)
+     │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   ├── umpire-suite v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   ├── umpire-testing v0.0.1
+     │   │   │   │   ├── (dev) umpire-checker v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-dsl v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-dsl-macros v0.0.1
+     │   │   │   │   │   └── umpire-dsl v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-suite v0.0.1 (*)
+     │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-tla v0.0.1
+     │   │   │   │   ├── umpire-apalache v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │   │   │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   │   ├── umpire-testing v0.0.1 (*)
+     │   │   │   │   └── umpire-tlc v0.0.1
+     │   │   │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+     │   │   │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   │   │       ├── umpire-testing v0.0.1 (*)
+     │   │   │   │       └── (dev) umpire-tla v0.0.1 (*)
+     │   │   │   └── (dev) umpire-tlc v0.0.1 (*)
+     │   │   ├── umpire-control-guest v0.0.1 (*)
+     │   │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │   │   ├── umpire-overflow-guest v0.0.1 (*)
+     │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │   │   ├── umpire-runtime v0.0.1 (*)
+     │   │   ├── umpire-suite v0.0.1 (*)
+     │   │   ├── umpire-temporal v0.0.1 (*)
+     │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   ├── umpire-testing v0.0.1 (*)
+     │   │   ├── (dev) umpire-tla v0.0.1 (*)
+     │   │   └── (dev) umpire-tlc v0.0.1 (*)
+     │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │   └── (dev) umpire-tla v0.0.1 (*)
+     └── rand_xoshiro v0.7.0
+         └── imbl v7.0.2 (*)
+   ├ rand_core v0.10.1
+     ├── chacha20 v0.10.2
+     │   └── proptest v1.12.0
+     │       └── (dev) umpire-checker v0.0.1
+     │           ├── umpire-apalache v0.0.1
+     │           ├── (dev) umpire-fixtures v0.0.1
+     │           ├── umpire-reference-kettle v0.0.1
+     │           │   └── umpire-kettle-guest v0.0.1
+     │           ├── umpire-runtime v0.0.1
+     │           │   ├── umpire v0.0.1
+     │           │   │   ├── (dev) umpire-apalache v0.0.1 (*)
+     │           │   │   ├── umpire-author-consumer v0.0.1
+     │           │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   └── (dev) umpire-suite v0.0.1
+     │           │   │       ├── umpire v0.0.1 (*)
+     │           │   │       └── (dev) umpire-temporal-tests v0.0.1
+     │           │   ├── umpire-catalog v0.0.1
+     │           │   │   ├── umpire v0.0.1 (*)
+     │           │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   ├── umpire-temporal v0.0.1
+     │           │   │   │   ├── umpire-temporal-guest v0.0.1
+     │           │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate v0.0.1
+     │           │   │   │   └── umpire-temporal v0.0.1 (*)
+     │           │   │   └── umpire-temporal-api v0.0.1
+     │           │   │       ├── umpire-temporal v0.0.1 (*)
+     │           │   │       ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │           │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── umpire-catalog-build v0.0.1
+     │           │   │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+     │           │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+     │           │   │   │   │   └── umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   │   ├── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+     │           │   │   │       └── umpire-temporal v0.0.1 (*)
+     │           │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   ├── umpire-catalog-syntax v0.0.1
+     │           │   │   ├── umpire-catalog-build v0.0.1 (*)
+     │           │   │   ├── umpire-catalog-macros v0.0.1
+     │           │   │   │   └── umpire-catalog v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   ├── umpire-caught-panic-guest v0.0.1
+     │           │   ├── umpire-control-guest v0.0.1
+     │           │   ├── umpire-kettle-guest v0.0.1 (*)
+     │           │   ├── umpire-overflow-guest v0.0.1
+     │           │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   ├── umpire-stock-guest v0.0.1
+     │           │   ├── umpire-temporal v0.0.1 (*)
+     │           │   ├── umpire-temporal-annotate v0.0.1 (*)
+     │           │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   ├── umpire-temporal-api v0.0.1 (*)
+     │           │   ├── umpire-temporal-guest v0.0.1 (*)
+     │           │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           ├── umpire-suite v0.0.1 (*)
+     │           ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           ├── umpire-testing v0.0.1
+     │           │   ├── (dev) umpire-checker v0.0.1 (*)
+     │           │   ├── (dev) umpire-dsl v0.0.1
+     │           │   │   ├── umpire v0.0.1 (*)
+     │           │   │   ├── umpire-apalache v0.0.1 (*)
+     │           │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+     │           │   │   ├── umpire-checker v0.0.1 (*)
+     │           │   │   ├── umpire-control-guest v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-dsl-macros v0.0.1
+     │           │   │   │   └── umpire-dsl v0.0.1 (*)
+     │           │   │   ├── umpire-overflow-guest v0.0.1 (*)
+     │           │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   ├── umpire-runtime v0.0.1 (*)
+     │           │   │   ├── umpire-suite v0.0.1 (*)
+     │           │   │   ├── umpire-temporal v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-testing v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-tla v0.0.1
+     │           │   │   │   ├── umpire-apalache v0.0.1 (*)
+     │           │   │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   │   ├── umpire-testing v0.0.1 (*)
+     │           │   │   │   └── umpire-tlc v0.0.1
+     │           │   │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   │       ├── umpire-testing v0.0.1 (*)
+     │           │   │   │       └── (dev) umpire-tla v0.0.1 (*)
+     │           │   │   └── (dev) umpire-tlc v0.0.1 (*)
+     │           │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │           │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   ├── (dev) umpire-suite v0.0.1 (*)
+     │           │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           ├── (dev) umpire-tla v0.0.1 (*)
+     │           └── (dev) umpire-tlc v0.0.1 (*)
+     ├── getrandom v0.4.3
+     │   ├── rand v0.10.3
+     │   │   └── proptest v1.12.0 (*)
+     │   └── tempfile v3.27.0
+     │       ├── insta v1.49.0
+     │       │   ├── (dev) umpire-catalog v0.0.1 (*)
+     │       │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │       │   ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │       │   ├── (dev) umpire-temporal-annotate-syntax v0.0.1 (*)
+     │       │   ├── (dev) umpire-temporal-realization-macros v0.0.1 (*)
+     │       │   └── umpire-testing v0.0.1 (*)
+     │       ├── proptest v1.12.0 (*)
+     │       ├── prost-build v0.14.4
+     │       │   ├── umpire-catalog-build v0.0.1 (*)
+     │       │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │       │   ├── (build) umpire-runtime v0.0.1 (*)
+     │       │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │       └── rusty-fork v0.3.1
+     │           └── proptest v1.12.0 (*)
+     ├── rand v0.10.3 (*)
+     └── rand_xorshift v0.5.0
+         └── proptest v1.12.0 (*)
+
+warning[duplicate]: found 2 duplicate entries for crate 'syn'
+   ┌─ /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock:83:1
+   │  
+83 │ ╭ syn 2.0.119 registry+https://github.com/rust-lang/crates.io-index
+84 │ │ syn 3.0.9 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰───────────────────────────────────────────────────────────────┘ lock entries
+   │  
+   ├ syn v2.0.119
+     ├── enum-iterator-derive v1.5.0
+     │   └── enum-iterator v2.3.0
+     │       └── umpire-dsl v0.0.1
+     │           ├── umpire v0.0.1
+     │           │   ├── (dev) umpire-apalache v0.0.1
+     │           │   ├── umpire-author-consumer v0.0.1
+     │           │   ├── (dev) umpire-fixtures v0.0.1
+     │           │   ├── umpire-reference-kettle v0.0.1
+     │           │   │   └── umpire-kettle-guest v0.0.1
+     │           │   └── (dev) umpire-suite v0.0.1
+     │           │       ├── umpire v0.0.1 (*)
+     │           │       └── (dev) umpire-temporal-tests v0.0.1
+     │           ├── umpire-apalache v0.0.1 (*)
+     │           ├── umpire-caught-panic-guest v0.0.1
+     │           ├── umpire-checker v0.0.1
+     │           │   ├── umpire-apalache v0.0.1 (*)
+     │           │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   ├── umpire-runtime v0.0.1
+     │           │   │   ├── umpire v0.0.1 (*)
+     │           │   │   ├── umpire-catalog v0.0.1
+     │           │   │   │   ├── umpire v0.0.1 (*)
+     │           │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal v0.0.1
+     │           │   │   │   │   ├── umpire-temporal-guest v0.0.1
+     │           │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal-annotate v0.0.1
+     │           │   │   │   │   └── umpire-temporal v0.0.1 (*)
+     │           │   │   │   └── umpire-temporal-api v0.0.1
+     │           │   │   │       ├── umpire-temporal v0.0.1 (*)
+     │           │   │   │       ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-catalog-build v0.0.1
+     │           │   │   │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+     │           │   │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+     │           │   │   │   │   │   └── umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   │   │   ├── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+     │           │   │   │   │       └── umpire-temporal v0.0.1 (*)
+     │           │   │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   │   ├── umpire-catalog-syntax v0.0.1
+     │           │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+     │           │   │   │   ├── umpire-catalog-macros v0.0.1
+     │           │   │   │   │   └── umpire-catalog v0.0.1 (*)
+     │           │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+     │           │   │   ├── umpire-control-guest v0.0.1
+     │           │   │   ├── umpire-kettle-guest v0.0.1 (*)
+     │           │   │   ├── umpire-overflow-guest v0.0.1
+     │           │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   ├── umpire-stock-guest v0.0.1
+     │           │   │   ├── umpire-temporal v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-api v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-guest v0.0.1 (*)
+     │           │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── umpire-suite v0.0.1 (*)
+     │           │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── umpire-testing v0.0.1
+     │           │   │   ├── (dev) umpire-checker v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-dsl v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-dsl-macros v0.0.1
+     │           │   │   │   └── umpire-dsl v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-suite v0.0.1 (*)
+     │           │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── (dev) umpire-tla v0.0.1
+     │           │   │   ├── umpire-apalache v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-testing v0.0.1 (*)
+     │           │   │   └── umpire-tlc v0.0.1
+     │           │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │       ├── umpire-testing v0.0.1 (*)
+     │           │   │       └── (dev) umpire-tla v0.0.1 (*)
+     │           │   └── (dev) umpire-tlc v0.0.1 (*)
+     │           ├── umpire-control-guest v0.0.1 (*)
+     │           ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │           ├── umpire-overflow-guest v0.0.1 (*)
+     │           ├── umpire-reference-kettle v0.0.1 (*)
+     │           ├── umpire-runtime v0.0.1 (*)
+     │           ├── umpire-suite v0.0.1 (*)
+     │           ├── umpire-temporal v0.0.1 (*)
+     │           ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           ├── umpire-testing v0.0.1 (*)
+     │           ├── (dev) umpire-tla v0.0.1 (*)
+     │           └── (dev) umpire-tlc v0.0.1 (*)
+     ├── prettyplease v0.2.37
+     │   └── prost-build v0.14.4
+     │       ├── umpire-catalog-build v0.0.1 (*)
+     │       ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │       ├── (build) umpire-runtime v0.0.1 (*)
+     │       └── (build) umpire-temporal-api v0.0.1 (*)
+     ├── prost-build v0.14.4 (*)
+     └── prost-derive v0.14.4
+         └── prost v0.14.4
+             ├── prost-build v0.14.4 (*)
+             ├── prost-types v0.14.4
+             │   └── prost-build v0.14.4 (*)
+             ├── umpire-catalog v0.0.1 (*)
+             ├── umpire-catalog-build v0.0.1 (*)
+             ├── umpire-catalog-syntax v0.0.1 (*)
+             ├── umpire-caught-panic-guest v0.0.1 (*)
+             ├── umpire-control-guest v0.0.1 (*)
+             ├── umpire-reference-kettle v0.0.1 (*)
+             ├── umpire-runtime v0.0.1 (*)
+             ├── umpire-temporal v0.0.1 (*)
+             ├── umpire-temporal-annotate v0.0.1 (*)
+             ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+             ├── umpire-temporal-api v0.0.1 (*)
+             └── (dev) umpire-temporal-tests v0.0.1 (*)
+   ├ syn v3.0.9
+     ├── manyhow v0.14.1
+     │   └── umpire-dsl-macros v0.0.1
+     │       └── umpire-dsl v0.0.1
+     │           ├── umpire v0.0.1
+     │           │   ├── (dev) umpire-apalache v0.0.1
+     │           │   ├── umpire-author-consumer v0.0.1
+     │           │   ├── (dev) umpire-fixtures v0.0.1
+     │           │   ├── umpire-reference-kettle v0.0.1
+     │           │   │   └── umpire-kettle-guest v0.0.1
+     │           │   └── (dev) umpire-suite v0.0.1
+     │           │       ├── umpire v0.0.1 (*)
+     │           │       └── (dev) umpire-temporal-tests v0.0.1
+     │           ├── umpire-apalache v0.0.1 (*)
+     │           ├── umpire-caught-panic-guest v0.0.1
+     │           ├── umpire-checker v0.0.1
+     │           │   ├── umpire-apalache v0.0.1 (*)
+     │           │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   ├── umpire-runtime v0.0.1
+     │           │   │   ├── umpire v0.0.1 (*)
+     │           │   │   ├── umpire-catalog v0.0.1
+     │           │   │   │   ├── umpire v0.0.1 (*)
+     │           │   │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal v0.0.1
+     │           │   │   │   │   ├── umpire-temporal-guest v0.0.1
+     │           │   │   │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal-annotate v0.0.1
+     │           │   │   │   │   └── umpire-temporal v0.0.1 (*)
+     │           │   │   │   └── umpire-temporal-api v0.0.1
+     │           │   │   │       ├── umpire-temporal v0.0.1 (*)
+     │           │   │   │       ├── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   │       └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-catalog-build v0.0.1
+     │           │   │   │   ├── (build) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   ├── umpire-temporal-annotate-syntax v0.0.1
+     │           │   │   │   │   ├── umpire-temporal-annotate-macros v0.0.1
+     │           │   │   │   │   │   └── umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   │   │   ├── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   │   │   │   └── (build) umpire-temporal-realization-macros v0.0.1
+     │           │   │   │   │       └── umpire-temporal v0.0.1 (*)
+     │           │   │   │   └── (build) umpire-temporal-api v0.0.1 (*)
+     │           │   │   ├── umpire-catalog-syntax v0.0.1
+     │           │   │   │   ├── umpire-catalog-build v0.0.1 (*)
+     │           │   │   │   ├── umpire-catalog-macros v0.0.1
+     │           │   │   │   │   └── umpire-catalog v0.0.1 (*)
+     │           │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │           │   │   │   └── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   │   ├── umpire-caught-panic-guest v0.0.1 (*)
+     │           │   │   ├── umpire-control-guest v0.0.1
+     │           │   │   ├── umpire-kettle-guest v0.0.1 (*)
+     │           │   │   ├── umpire-overflow-guest v0.0.1
+     │           │   │   ├── umpire-reference-kettle v0.0.1 (*)
+     │           │   │   ├── umpire-stock-guest v0.0.1
+     │           │   │   ├── umpire-temporal v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-api v0.0.1 (*)
+     │           │   │   ├── umpire-temporal-guest v0.0.1 (*)
+     │           │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── umpire-suite v0.0.1 (*)
+     │           │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── umpire-testing v0.0.1
+     │           │   │   ├── (dev) umpire-checker v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-dsl v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-suite v0.0.1 (*)
+     │           │   │   └── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   ├── (dev) umpire-tla v0.0.1
+     │           │   │   ├── umpire-apalache v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │   ├── umpire-testing v0.0.1 (*)
+     │           │   │   └── umpire-tlc v0.0.1
+     │           │   │       ├── (dev) umpire-fixtures v0.0.1 (*)
+     │           │   │       ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           │   │       ├── umpire-testing v0.0.1 (*)
+     │           │   │       └── (dev) umpire-tla v0.0.1 (*)
+     │           │   └── (dev) umpire-tlc v0.0.1 (*)
+     │           ├── umpire-control-guest v0.0.1 (*)
+     │           ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │           ├── umpire-overflow-guest v0.0.1 (*)
+     │           ├── umpire-reference-kettle v0.0.1 (*)
+     │           ├── umpire-runtime v0.0.1 (*)
+     │           ├── umpire-suite v0.0.1 (*)
+     │           ├── umpire-temporal v0.0.1 (*)
+     │           ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │           ├── umpire-testing v0.0.1 (*)
+     │           ├── (dev) umpire-tla v0.0.1 (*)
+     │           └── (dev) umpire-tlc v0.0.1 (*)
+     ├── prettyplease v0.3.0
+     │   ├── (dev) umpire-catalog-syntax v0.0.1 (*)
+     │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │   ├── umpire-front v0.0.1
+     │   │   ├── umpire-dsl-macros v0.0.1 (*)
+     │   │   ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     │   │   └── umpire-tla v0.0.1 (*)
+     │   ├── (dev) umpire-temporal-annotate-syntax v0.0.1 (*)
+     │   └── (dev) umpire-temporal-realization-macros v0.0.1 (*)
+     ├── serde_derive v1.0.229
+     │   ├── serde v1.0.229
+     │   │   ├── trybuild v1.0.122
+     │   │   │   ├── (dev) umpire-catalog v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-checker v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-dsl v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-dsl-macros v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-reference-kettle v0.0.1 (*)
+     │   │   │   ├── (dev) umpire-temporal v0.0.1 (*)
+     │   │   │   └── (dev) umpire-temporal-annotate v0.0.1 (*)
+     │   │   ├── umpire-apalache v0.0.1 (*)
+     │   │   └── xtask v0.0.1
+     │   └── trybuild v1.0.122 (*)
+     ├── thiserror-impl v2.0.21
+     │   └── thiserror v2.0.21
+     │       ├── umpire-backend-process v0.0.1
+     │       │   ├── umpire-apalache v0.0.1 (*)
+     │       │   ├── umpire-tla v0.0.1 (*)
+     │       │   └── umpire-tlc v0.0.1 (*)
+     │       ├── umpire-checker v0.0.1 (*)
+     │       ├── umpire-suite v0.0.1 (*)
+     │       ├── umpire-tla v0.0.1 (*)
+     │       ├── umpire-tlc v0.0.1 (*)
+     │       └── xtask v0.0.1 (*)
+     ├── umpire-catalog-macros v0.0.1 (*)
+     ├── umpire-catalog-syntax v0.0.1 (*)
+     ├── umpire-dsl-macros v0.0.1 (*)
+     ├── umpire-front v0.0.1 (*)
+     ├── umpire-ir-derive v0.0.1
+     │   └── umpire-ir v0.0.1
+     │       ├── umpire-dsl v0.0.1 (*)
+     │       ├── umpire-dsl-macros v0.0.1 (*)
+     │       └── umpire-front v0.0.1 (*)
+     ├── umpire-temporal-annotate-macros v0.0.1 (*)
+     ├── umpire-temporal-annotate-syntax v0.0.1 (*)
+     ├── umpire-temporal-realization-macros v0.0.1 (*)
+     ├── (dev) umpire-temporal-tests v0.0.1 (*)
+     └── umpire-tla v0.0.1 (*)
+
+bans ok

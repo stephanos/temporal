@@ -1,0 +1,15 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn2472-lock/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.42s
+     Running tests/lock_lane.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2472-lock-target/debug/deps/lock_lane-ca9cea8b9675ad4f)
+
+running 7 tests
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

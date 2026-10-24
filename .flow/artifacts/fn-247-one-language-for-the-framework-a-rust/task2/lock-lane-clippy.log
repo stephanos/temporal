@@ -1,0 +1,19 @@
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/work/fn2472-lock/model/dev/xtask)
+error: item in documentation is missing backticks
+  --> dev/xtask/src/support.rs:30:20
+   |
+30 | /// Encode through serde_json's default sorted Map, including nested objects.
+   |                    ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#doc_markdown
+   = note: `-D clippy::doc-markdown` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_markdown)]`
+help: try
+   |
+30 - /// Encode through serde_json's default sorted Map, including nested objects.
+30 + /// Encode through `serde_json`'s default sorted Map, including nested objects.
+   |
+
+error: could not compile `xtask` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `xtask` (lib test) due to 1 previous error
