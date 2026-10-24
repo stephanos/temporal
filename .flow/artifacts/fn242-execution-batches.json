@@ -8309,7 +8309,9 @@
         "tools/gomad/rust/Cargo.toml",
         "tools/gomad/rust/gomad/Cargo.toml",
         "tools/gomad/rust/Cargo.lock",
-        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf_tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.28": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**",
@@ -8558,7 +8560,8 @@
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
-      "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target."
+      "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target.",
+      "canonical_build_recipe_extension": "Exact static_commands.rs build-role leaves map explicitly to existing B01 DryRun/cargo_command semantics, ordinary-reference to reference-transport; no duplicate builder/parser, independent current expected argv in leaf_tests.rs, preserve stage IDs/resources/actual features/targets and offline policy (authenticated CARGO_NET_OFFLINE=true if needed). No wholesale catalog/golden regeneration or pinned raw discovery edits."
     },
     {
       "id": "B10",
@@ -9032,7 +9035,8 @@
         "tools/gomad/rust/gomad/src/cycle/producers/workload/**",
         "tools/gomad/rust/gomad/src/cli/qualify.rs",
         "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
-        "tools/gomad/internal/backends/wasm/QUALIFICATION.md"
+        "tools/gomad/internal/backends/wasm/QUALIFICATION.md",
+        "tools/gomad/rust/gomad/src/measurement/warm.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9289,7 +9293,8 @@
         "purpose": "Extend existing source recipe/stage/verify for actual inspection-shard/workflow/onebox and smoke/frontend selections, unchanged frozen module closure and original transformations/limits/custody; no duplicate copier. Document fn232.33 compile cache.",
         "admission": "Any nonprovisional cell installation without compile_cache_root refuses status2 namedreason, not only sqlite/multi-instance; provisional behavior preserved. Reuse existing installation accessor.",
         "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
-      }
+      },
+      "terminal_validator_visibility_extension": "Exact warm.rs only: Run::observed and Run::validate visibility becomes pub(crate), preserving all admission/timing/teardown algorithms; reuse existing terminal validator and real feature controls, no duplicate parser/measurement mechanism."
     },
     {
       "id": "B12",
