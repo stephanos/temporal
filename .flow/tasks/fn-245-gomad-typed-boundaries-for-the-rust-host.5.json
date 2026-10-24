@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T19:05:03.180141Z",
+  "depends_on": [],
+  "id": "fn-245-gomad-typed-boundaries-for-the-rust-host.5",
+  "priority": null,
+  "spec": "fn-245-gomad-typed-boundaries-for-the-rust-host",
+  "spec_path": ".flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.5.md",
+  "status": "todo",
+  "title": "Guest path and limit constants in one place",
+  "updated_at": "2026-10-24T19:05:03.180141Z"
+}

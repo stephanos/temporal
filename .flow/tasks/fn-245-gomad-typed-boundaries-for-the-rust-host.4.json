@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T19:05:02.819048Z",
+  "depends_on": [
+    "fn-245-gomad-typed-boundaries-for-the-rust-host.1"
+  ],
+  "id": "fn-245-gomad-typed-boundaries-for-the-rust-host.4",
+  "priority": null,
+  "spec": "fn-245-gomad-typed-boundaries-for-the-rust-host",
+  "spec_path": ".flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.4.md",
+  "status": "todo",
+  "title": "Engine state machine without Option unwraps",
+  "updated_at": "2026-10-24T19:05:03.830537Z"
+}

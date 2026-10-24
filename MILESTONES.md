@@ -606,6 +606,7 @@ Original acceptance closes from fn-246 receiving after fn-242 and fn-240. New ev
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⛔ Blocked | Original final acceptance; execution/receiving transferred to fn-246 after cleanup |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | ⛔ Blocked | Original reach acceptance; fn-246.1 restores strict admission before final qualification |
 | [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⛔ Blocked | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
+| [fn-232.33](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.33.md) | ⬜ Todo | producer.py installs without `--compile-cache`; warm-resident budget refuses storage, network and clusters cells (found standalone 2026-10-24; fix proven) |
 
 Historical closure plan, superseded by the cleanup-first amendment above: tasks .21–.26 were closure predecessors of the already-running .13. The conductor
 launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish
@@ -668,6 +669,9 @@ Filed 2026-10-24 from the complexity review; depends on fn-240 and fn-242. Typed
 | --- | --- | --- |
 | [fn-245.1](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.1.md) | ⬜ Todo | One authenticated-read abstraction (`gomad_evidence::io`) replaces per-module read/digest/authenticate copies; after fn-240.2, before fn-240.9 |
 | [fn-245.2](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.2.md) | ⬜ Todo | Typed receipts with `deny_unknown_fields` replace `serde_json::Value` outside the canonical encoder; after fn-242.7 |
+| [fn-245.3](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.3.md) | ⬜ Todo | Replace message-prefix dispatch (`runner_failure:`, `refused:`, `capacity:`) with typed outcome kinds |
+| [fn-245.4](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.4.md) | ⬜ Todo | Engine phase as a type: no Option-state unwraps in `wasm-engine` |
+| [fn-245.5](.flow/tasks/fn-245-gomad-typed-boundaries-for-the-rust-host.5.md) | ⬜ Todo | Guest path and limit constants defined once |
 
 ### Sometimes assertions and site catalog — [fn-191](.flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md)
 
