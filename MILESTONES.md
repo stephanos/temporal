@@ -396,9 +396,9 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.15](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.15.md) | Todo | Go selector accounting; parallel with .17 |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.17](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.17.md) | Todo | Shared harness initialization; prerequisite for .16 |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.16](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.16.md) | Todo | Counterfactual declaration/reach and child configuration |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.15](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.15.md) | Done | Go selector accounting; reviewed and integrated, mandatory gate green |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.17](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.17.md) | Done | Shared harness initialization; reviewed and integrated, mandatory gate green |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.16](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.16.md) | 🚧 Running | Counterfactual declaration/reach and child configuration |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Parked | Retirement merged; waits for .15–.17, then one green full cycle on `gomad` |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 

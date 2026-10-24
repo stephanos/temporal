@@ -27,9 +27,16 @@ Run the existing test_static_stages.py suite with its established driver test in
 - [ ] Focused static-stage regressions pass; no corpus expectations or .13 cycle/evidence acceptance are weakened.
 
 ## Done summary
-TBD
+Static Go test inventory now uses the executed root selector in both producer and independent authenticator. Go owns regex matching; unrestricted inventory, package/build flags, repetitions, exclusions and strict raw verification remain intact. Unsupported slash/subtest selectors refuse before execution.
 
+The regression failed before the fix. All 19 focused tests pass, covering restricted/unrestricted selection, missing/duplicate roots and changed command receipts. The combined mandatory gate passed on integration commit 63280b2da1126d50178adcf6ab25715c74ea2954, including all 576 Python driver tests. Log: /home/agent/wt/evidence/fn232-split-closure/integration-gate.log.
+
+stage: wave-dispatch - ran (model: gpt-6.1-sol)
+stage: impl-review - ran: SHIP across correctness, contracts and integration (model: gpt-6.1-sol)
+stage: plan-sync - skipped(config: disabled)
+
+Review receipt: /home/agent/wt/evidence/fn232-split-closure/selector-review.json. All source commits remain reachable from gomad. Task .13 still owns the actual 96-stage qualification cycle; this fix supplies no cycle pass. Tracker sync: n/a (bridge inactive). No push or PR.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f8135e89caf23bd2d732b8641e9c274dd07f4fec, 66dad56f36c006e0ddc072a4acdbb08d548f5dc9
+- Tests: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_static_stages.py -v, PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/gomad/rust/driver/tests -p test_static_stages.py -k subtest_selection -v, git diff --check, PATH=<stock-Go1.27.1>/bin:$PATH GOCACHE=/home/agent/.cache/go-build-fn232-corpus CARGO_TARGET_DIR=<workspace>/.build-cache/fn232-composition-target CARGO_BUILD_JOBS=2 make -C tools/gomad test-harness test-rust-engine validate-wasm-determinism; exit 0 on63280b2da1126d50178adcf6ab25715c74ea2954; 576 driver tests pass
 - PRs:
