@@ -1,0 +1,4019 @@
+{
+  "schema": "fn242-cycle-scheduler-executed-proof/v1",
+  "task": "fn-242-gomad-shrink-the-qualification.12",
+  "status": "implementation proof only; global R1 audit and final qualification remain pending",
+  "source_commit": "efa65d6095fd8a3145a1eddf5e33f2e9a219c5a2",
+  "base_commit": "993c35b888d04e9c89f29eee8afdb09813b08ea2",
+  "ownership_path": ".flow/artifacts/fn242-cycle-proof-ownership.json",
+  "ownership_sha256": "4bbb1e9acd529a0e0aa3414d295902460b0977fe1ea702676202125fb071ddb9",
+  "inventory_sha256": "21b500b6272f5b303c22e921225235ef6917d87f141a41d1429641f9d81bd4e3",
+  "original_scheduler_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+  "source_files": {
+    "tools/gomad/rust/gomad/src/cycle/scheduler/execution.rs": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/tests.rs": "032be6fc1501be32b09737d1b96eb76c61c00373bf5007dab8890cbd0f64f908",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/graph.rs": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/admission.rs": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+    "tools/gomad/rust/gomad/src/cycle/scheduler/mod.rs": "f729d315f6c5efe21cb53b5ba28dfd79dedbbb725fc94dd6556827e1874a22b7"
+  },
+  "owned_check_count": 72,
+  "owned_check_ids": [
+    "orchestration:scheduler:66",
+    "orchestration:scheduler:67",
+    "orchestration:scheduler:68",
+    "orchestration:scheduler:69",
+    "orchestration:scheduler:70",
+    "orchestration:scheduler:71",
+    "orchestration:scheduler:84",
+    "orchestration:scheduler:85",
+    "orchestration:scheduler:88",
+    "orchestration:scheduler:89",
+    "orchestration:scheduler:91",
+    "orchestration:scheduler:92",
+    "orchestration:scheduler:100",
+    "orchestration:scheduler:101",
+    "orchestration:scheduler:116",
+    "orchestration:scheduler:118",
+    "orchestration:scheduler:119",
+    "orchestration:scheduler:161",
+    "orchestration:scheduler:163",
+    "orchestration:scheduler:166",
+    "orchestration:scheduler:168",
+    "orchestration:scheduler:170",
+    "orchestration:scheduler:172",
+    "orchestration:scheduler:173",
+    "orchestration:scheduler:175",
+    "orchestration:scheduler:177",
+    "orchestration:scheduler:179",
+    "orchestration:scheduler:180",
+    "orchestration:scheduler:182",
+    "orchestration:scheduler:184",
+    "orchestration:scheduler:186",
+    "orchestration:scheduler:189",
+    "orchestration:scheduler:191",
+    "orchestration:scheduler:193",
+    "orchestration:scheduler:195",
+    "orchestration:scheduler:198",
+    "orchestration:scheduler:200",
+    "orchestration:scheduler:202",
+    "orchestration:scheduler:229",
+    "orchestration:scheduler:231",
+    "orchestration:scheduler:233",
+    "orchestration:scheduler:236",
+    "orchestration:scheduler:335",
+    "orchestration:scheduler:339",
+    "orchestration:scheduler:350",
+    "orchestration:scheduler:357",
+    "orchestration:scheduler:364",
+    "orchestration:scheduler:366",
+    "orchestration:scheduler:368",
+    "orchestration:scheduler:380",
+    "orchestration:scheduler:391",
+    "orchestration:scheduler:393",
+    "orchestration:scheduler:414",
+    "orchestration:scheduler:416",
+    "workload-callback:scheduler:boolean_return:162:8",
+    "workload-callback:scheduler:boolean_return:164:8",
+    "workload-callback:scheduler:boolean_return:169:12",
+    "workload-callback:scheduler:boolean_return:171:8",
+    "workload-callback:scheduler:boolean_return:174:12",
+    "workload-callback:scheduler:boolean_return:176:12",
+    "workload-callback:scheduler:boolean_return:178:12",
+    "workload-callback:scheduler:boolean_return:181:12",
+    "workload-callback:scheduler:boolean_return:183:12",
+    "workload-callback:scheduler:boolean_return:185:8",
+    "workload-callback:scheduler:boolean_return:187:8",
+    "workload-callback:scheduler:boolean_return:190:8",
+    "workload-callback:scheduler:boolean_return:192:8",
+    "workload-callback:scheduler:boolean_return:194:8",
+    "workload-callback:scheduler:boolean_return:196:8",
+    "workload-callback:scheduler:boolean_return:199:12",
+    "workload-callback:scheduler:boolean_return:203:12",
+    "workload-callback:scheduler:boolean_return:204:4"
+  ],
+  "source_mutation_count": 62,
+  "source_mutation_attempt_count": 63,
+  "inconclusive_attempt_count": 1,
+  "inconclusive_attempts_path": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-results.json",
+  "caught_source_mutation_count": 62,
+  "proof_rows": [
+    {
+      "id": "orchestration:scheduler:66",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 66,
+      "predicate": "self.cls not in CLASSES",
+      "path_conditions": [],
+      "failure": "Stage.__init__: error/policy path: self.cls not in CLASSES",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Unknown classes refuse before producing a contract."
+      ],
+      "mutations": [
+        {
+          "name": "unknown_class",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Unknown classes refuse before producing a contract.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "f71180df8d562c9328185d72435ea9254f5b24ca9d6404e8720af824f228df24",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-unknown_class.log",
+          "log_sha256": "fdceff7245bccdc6751424c90d7b6eb302ffa967790ab3bffbc214d72f97bfbd",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:67",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 67,
+      "predicate": "raise DagError(f\"{self.label}: unknown class {self.cls}\")",
+      "path_conditions": [
+        {
+          "line": 66,
+          "expression": "self.cls not in CLASSES",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "Stage.__init__: error/policy path: (self.cls not in CLASSES)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Unknown classes refuse before producing a contract."
+      ],
+      "mutations": [
+        {
+          "name": "unknown_class",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Unknown classes refuse before producing a contract.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "f71180df8d562c9328185d72435ea9254f5b24ca9d6404e8720af824f228df24",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-unknown_class.log",
+          "log_sha256": "fdceff7245bccdc6751424c90d7b6eb302ffa967790ab3bffbc214d72f97bfbd",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:68",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 68,
+      "predicate": "self.flags - set(FLAGS)",
+      "path_conditions": [],
+      "failure": "Stage.__init__: error/policy path: self.flags - set(FLAGS)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Unknown flags refuse before producing a contract."
+      ],
+      "mutations": [
+        {
+          "name": "unknown_flag",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Unknown flags refuse before producing a contract.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "654ae7217f4ed19641a34f5b6f4ebf62f42114ae08801cf39c33c4f4f87a689b",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-unknown_flag-typed.log",
+          "log_sha256": "4ffca1347a11170f20cd224c0f7e2d5b0b4f57df270199bd0dc562275a419645",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:69",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 69,
+      "predicate": "raise DagError(f\"{self.label}: unknown flags {sorted(self.flags - set(FLAGS))}\")",
+      "path_conditions": [
+        {
+          "line": 68,
+          "expression": "self.flags - set(FLAGS)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "Stage.__init__: error/policy path: (self.flags - set(FLAGS))",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Unknown flags refuse before producing a contract."
+      ],
+      "mutations": [
+        {
+          "name": "unknown_flag",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Unknown flags refuse before producing a contract.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "654ae7217f4ed19641a34f5b6f4ebf62f42114ae08801cf39c33c4f4f87a689b",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-unknown_flag-typed.log",
+          "log_sha256": "4ffca1347a11170f20cd224c0f7e2d5b0b4f57df270199bd0dc562275a419645",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:70",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 70,
+      "predicate": "self.cores <= 0 or self.mem < 0 or self.est < 0",
+      "path_conditions": [],
+      "failure": "Stage.__init__: error/policy path: self.cores <= 0 or self.mem < 0 or self.est < 0",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control."
+      ],
+      "mutations": [
+        {
+          "name": "invalid_cores",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "48ed7f9bb89066b95e12af9afda7eade4aa8c5bf5d9078c03bc70e56a2658d7e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_cores.log",
+          "log_sha256": "20a5625fff953cfb5716deb057aeb42da8f58718ddf449c325772dca78801568",
+          "caught": true
+        },
+        {
+          "name": "invalid_memory",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "940b5f5c59b17839f5a4d16e2db64b504c00cb094dd1e160a9d863e6202a3763",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_memory.log",
+          "log_sha256": "bbe02868b4229dc9b749d134096348b26b7fd55d22eb01bff4a1835211109454",
+          "caught": true
+        },
+        {
+          "name": "invalid_estimate",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "27a1ddcab611846b80c4b3c2690570622eab86badc6506dd89123423280912ce",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_estimate.log",
+          "log_sha256": "eee28c5b72ed2fbf331eaf7905e647bebe111e763a6168a01913770b47d550d3",
+          "caught": true
+        },
+        {
+          "name": "nonfinite_cores",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "49cff257ab1bc931abb2c3c2aec938e6c99504a63760cb426046da0774a588d7",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-nonfinite_cores.log",
+          "log_sha256": "81826d69f318b417f2335c451385d160b8db3dd00eccd616dba3dbbd2ae3800a",
+          "caught": true
+        },
+        {
+          "name": "nonfinite_memory",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "2c19257c975764cf880870ed5cbe511fe50325659670df635ca20e93981e6f52",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-nonfinite_memory.log",
+          "log_sha256": "09514dd0653139d7b1275623d94cc53ada9b612c1cd2118664059c569a955193",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:71",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 71,
+      "predicate": "raise DagError(f\"{self.label}: invalid resources\")",
+      "path_conditions": [
+        {
+          "line": 70,
+          "expression": "self.cores <= 0 or self.mem < 0 or self.est < 0",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "Stage.__init__: error/policy path: (self.cores <= 0 or self.mem < 0 or self.est < 0)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+        "Each resource dimension has independent malformed-value refusal and valid zero/positive control."
+      ],
+      "mutations": [
+        {
+          "name": "invalid_cores",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "48ed7f9bb89066b95e12af9afda7eade4aa8c5bf5d9078c03bc70e56a2658d7e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_cores.log",
+          "log_sha256": "20a5625fff953cfb5716deb057aeb42da8f58718ddf449c325772dca78801568",
+          "caught": true
+        },
+        {
+          "name": "invalid_memory",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "940b5f5c59b17839f5a4d16e2db64b504c00cb094dd1e160a9d863e6202a3763",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_memory.log",
+          "log_sha256": "bbe02868b4229dc9b749d134096348b26b7fd55d22eb01bff4a1835211109454",
+          "caught": true
+        },
+        {
+          "name": "invalid_estimate",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "27a1ddcab611846b80c4b3c2690570622eab86badc6506dd89123423280912ce",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-invalid_estimate.log",
+          "log_sha256": "eee28c5b72ed2fbf331eaf7905e647bebe111e763a6168a01913770b47d550d3",
+          "caught": true
+        },
+        {
+          "name": "nonfinite_cores",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "49cff257ab1bc931abb2c3c2aec938e6c99504a63760cb426046da0774a588d7",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-nonfinite_cores.log",
+          "log_sha256": "81826d69f318b417f2335c451385d160b8db3dd00eccd616dba3dbbd2ae3800a",
+          "caught": true
+        },
+        {
+          "name": "nonfinite_memory",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Each resource dimension has independent malformed-value refusal and valid zero/positive control.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "2c19257c975764cf880870ed5cbe511fe50325659670df635ca20e93981e6f52",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-nonfinite_memory.log",
+          "log_sha256": "09514dd0653139d7b1275623d94cc53ada9b612c1cd2118664059c569a955193",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:84",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 84,
+      "predicate": "header != COLUMNS",
+      "path_conditions": [],
+      "failure": "load_dag: error/policy path: header != COLUMNS",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Ten-column header must match exactly, not merely exist."
+      ],
+      "mutations": [
+        {
+          "name": "header",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Ten-column header must match exactly, not merely exist.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "95028ed2d23c8fa8c997298ed49fa3bb41ba22a5704016eec60911410cbad3bc",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-header.log",
+          "log_sha256": "83f205cf75e5ba2cb863de0d396030a471b5a6479164ff25e69686ad59cb9edb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:85",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 85,
+      "predicate": "raise DagError(f\"DAG header must be {COLUMNS}, got {header}\")",
+      "path_conditions": [
+        {
+          "line": 84,
+          "expression": "header != COLUMNS",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "load_dag: error/policy path: (header != COLUMNS)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Ten-column header must match exactly, not merely exist."
+      ],
+      "mutations": [
+        {
+          "name": "header",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Ten-column header must match exactly, not merely exist.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "95028ed2d23c8fa8c997298ed49fa3bb41ba22a5704016eec60911410cbad3bc",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-header.log",
+          "log_sha256": "83f205cf75e5ba2cb863de0d396030a471b5a6479164ff25e69686ad59cb9edb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:88",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 88,
+      "predicate": "len(fields) != len(COLUMNS)",
+      "path_conditions": [],
+      "failure": "load_dag: error/policy path: len(fields) != len(COLUMNS)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Malformed rows refuse instead of disappearing from the input."
+      ],
+      "mutations": [
+        {
+          "name": "row",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Malformed rows refuse instead of disappearing from the input.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "6d34819d2c1917b3d1816434faa59e0d09fceb8f6e571f5fd27cb486bd97a5c8",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-row.log",
+          "log_sha256": "ab51910b7d90f353edca53845a76f0f52df37c4f03b382396fec4d9ca49f773f",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:89",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 89,
+      "predicate": "raise DagError(f\"bad DAG row: {line!r}\")",
+      "path_conditions": [
+        {
+          "line": 88,
+          "expression": "len(fields) != len(COLUMNS)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "load_dag: error/policy path: (len(fields) != len(COLUMNS))",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Malformed rows refuse instead of disappearing from the input."
+      ],
+      "mutations": [
+        {
+          "name": "row",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::dag_rows_refuse_each_invalid_boundary",
+          "guarantee": "Malformed rows refuse instead of disappearing from the input.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "6d34819d2c1917b3d1816434faa59e0d09fceb8f6e571f5fd27cb486bd97a5c8",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-row.log",
+          "log_sha256": "ab51910b7d90f353edca53845a76f0f52df37c4f03b382396fec4d9ca49f773f",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:91",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 91,
+      "predicate": "stage.label in stages",
+      "path_conditions": [],
+      "failure": "load_dag: error/policy path: stage.label in stages",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Duplicate labels refuse instead of silently replacing a node."
+      ],
+      "mutations": [
+        {
+          "name": "duplicate",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Duplicate labels refuse instead of silently replacing a node.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "38187b20121b1f36b5414ebf13732ebe1b55cd379d21eacbc8d527c78606c7ea",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-duplicate.log",
+          "log_sha256": "5441f104e84b3bc16a5e7797dd5abc9f32b1e05ecd49b0891f628da49ad77529",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:92",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 92,
+      "predicate": "raise DagError(f\"duplicate stage {stage.label}\")",
+      "path_conditions": [
+        {
+          "line": 91,
+          "expression": "stage.label in stages",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "load_dag: error/policy path: (stage.label in stages)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Duplicate labels refuse instead of silently replacing a node."
+      ],
+      "mutations": [
+        {
+          "name": "duplicate",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Duplicate labels refuse instead of silently replacing a node.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "38187b20121b1f36b5414ebf13732ebe1b55cd379d21eacbc8d527c78606c7ea",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-duplicate.log",
+          "log_sha256": "5441f104e84b3bc16a5e7797dd5abc9f32b1e05ecd49b0891f628da49ad77529",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:100",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 100,
+      "predicate": "dep not in stages",
+      "path_conditions": [],
+      "failure": "finalize: error/policy path: dep not in stages",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Absent dependencies refuse at graph validation before traversal."
+      ],
+      "mutations": [
+        {
+          "name": "missing_dependency",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Absent dependencies refuse at graph validation before traversal.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "e813959eeee48c586373296fea026242c4cd37d0bb7b5b178a77414fb9df3c6c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-missing_dependency.log",
+          "log_sha256": "3aa568fb3c95ac12a2cf13eb710cfeb5ba605ea022c0871bfefb3f74de8a81b2",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:101",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 101,
+      "predicate": "raise DagError(f\"{stage.label}: unknown dependency {dep}\")",
+      "path_conditions": [
+        {
+          "line": 100,
+          "expression": "dep not in stages",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "finalize: error/policy path: (dep not in stages)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Absent dependencies refuse at graph validation before traversal."
+      ],
+      "mutations": [
+        {
+          "name": "missing_dependency",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Absent dependencies refuse at graph validation before traversal.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "e813959eeee48c586373296fea026242c4cd37d0bb7b5b178a77414fb9df3c6c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-missing_dependency.log",
+          "log_sha256": "3aa568fb3c95ac12a2cf13eb710cfeb5ba605ea022c0871bfefb3f74de8a81b2",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:116",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 116,
+      "predicate": "state.get(label) == \"done\"",
+      "path_conditions": [],
+      "failure": "topological.visit: error/policy path: state.get(label) == \"done\"",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Completed shared ancestors appear exactly once in deterministic topology."
+      ],
+      "mutations": [
+        {
+          "name": "topology_done",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Completed shared ancestors appear exactly once in deterministic topology.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "734812d5dd4fc05a0084ae64d61cb37032172ce6b16147b1fb480693bbe4817a",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-topology_done.log",
+          "log_sha256": "db6c9fc4f868a411fee72b4b4d439aa4496192acb88556924ac7057152f76e9e",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:118",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 118,
+      "predicate": "state.get(label) == \"active\"",
+      "path_conditions": [],
+      "failure": "topological.visit: error/policy path: state.get(label) == \"active\"",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Active-node revisits refuse cycles, unlike completed-node revisits."
+      ],
+      "mutations": [
+        {
+          "name": "cycle",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Active-node revisits refuse cycles, unlike completed-node revisits.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "aeb64d4accb81a84a52e7709714405a4e2d55817a7b6e76919ea721166361040",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-cycle.log",
+          "log_sha256": "0aee221e2fd6297412ac26011629fbf01e1da7b8d6c30ddce6608b7576c545cd",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:119",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 119,
+      "predicate": "raise DagError(\"dependency cycle: \" + \" -> \".join(path + [label]))",
+      "path_conditions": [
+        {
+          "line": 118,
+          "expression": "state.get(label) == \"active\"",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "topological.visit: error/policy path: (state.get(label) == \"active\")",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Active-node revisits refuse cycles, unlike completed-node revisits."
+      ],
+      "mutations": [
+        {
+          "name": "cycle",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::graph_validation_and_rank",
+          "guarantee": "Active-node revisits refuse cycles, unlike completed-node revisits.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "aeb64d4accb81a84a52e7709714405a4e2d55817a7b6e76919ea721166361040",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-cycle.log",
+          "log_sha256": "0aee221e2fd6297412ac26011629fbf01e1da7b8d6c30ddce6608b7576c545cd",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:161",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 161,
+      "predicate": "not running",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: not running",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Idle-host admission precedes all caps/live sampling."
+      ],
+      "mutations": [
+        {
+          "name": "idle_exception",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Idle-host admission precedes all caps/live sampling.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a73b8378a805a885fc4bd5f2c79c9bc3f98fe7e92b0432f455575013b739f4ce",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-idle_exception.log",
+          "log_sha256": "55510ebf31e0423a08dacf22ebb46e1ee7be01895d391aaefeafa110cbbd4c4e",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:163",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 163,
+      "predicate": "stage.cls == \"solo\" or any(r.cls == \"solo\" for r in running)",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: stage.cls == \"solo\" or any(r.cls == \"solo\" for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated solo_candidate exclusion refuses; adjacent compatible control admits.",
+        "Independently isolated solo_running exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "solo_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated solo_candidate exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "31b82f744f09c78732803191cb57eb3282de33940f2386c7442a9ae69610617c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-solo_candidate.log",
+          "log_sha256": "af8e66ebb6ff8ed66549507ebd9d21c2db368175589b37f4193a9868f6701f92",
+          "caught": true
+        },
+        {
+          "name": "solo_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated solo_running exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "0559f354a0ee2290af294ed35d509e632bce307e5df7349262d97bccf74b1b3f",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-solo_running.log",
+          "log_sha256": "55d8d8347497547b575e3df78ab47b9a34554f7ae69b83a5e99e2f88a2109fbb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:166",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 166,
+      "predicate": "stage.cls == \"budgeted\"",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: stage.cls == \"budgeted\"",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated budgeted_branch exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "budgeted_branch",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_branch exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "3997fa8261fd3ea5571481ab45b25bea48911442ae55c04514ff0bb8b1218532",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_branch.log",
+          "log_sha256": "0edcdf5219b9d5e486e7bc31365135e52d39baa519064b8b7dd0f39e2cc04d31",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:168",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 168,
+      "predicate": "exclusive_running or any(\"heavy\" in r.flags for r in running)",
+      "path_conditions": [
+        {
+          "line": 166,
+          "expression": "stage.cls == \"budgeted\"",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: exclusive_running or any(\"heavy\" in r.flags for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated budgeted_exclusive exclusion refuses; adjacent compatible control admits.",
+        "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "budgeted_exclusive",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_exclusive exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d59879baee431d8aa1053264675c77dc53cc4f6f3ecfb2ebe9eade8dc681b467",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_exclusive.log",
+          "log_sha256": "bd85e52e38b5afada4831586202c3dbfd65ae99635cf33d511fd997937d8b326",
+          "caught": true
+        },
+        {
+          "name": "budgeted_heavy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7ce4113adf9f21f9950efd4da4fc4b1dd9ba370f26fd6f5c29c808402683c05c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_heavy.log",
+          "log_sha256": "bb558916b6c701edab85d5a4a91363eeb375e03bdfd026348ed072e54f17d8b0",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:170",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 170,
+      "predicate": "\"heavy\" in stage.flags and any(r.cls == \"budgeted\" for r in running)",
+      "path_conditions": [
+        {
+          "line": 166,
+          "expression": "stage.cls == \"budgeted\"",
+          "branch": "else",
+          "required_value": false
+        }
+      ],
+      "failure": "can_start: error/policy path: \"heavy\" in stage.flags and any(r.cls == \"budgeted\" for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated heavy_budgeted exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "heavy_budgeted",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated heavy_budgeted exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a06debd7a5cdc53604c5eda72aead2fb744cefe89b05f4806bab745ff9ba482d",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-heavy_budgeted.log",
+          "log_sha256": "2f260221cf00bdac71370f8d95a5e52a54aedacdd03e47ac03c9f8ea21afb704",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:172",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 172,
+      "predicate": "stage.cls == \"exclusive\"",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: stage.cls == \"exclusive\"",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated exclusive_branch exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_branch",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated exclusive_branch exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "21f027bc0a895548fa763844cf52d42f32b993863a2a03e4226ec5c82f07be05",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_branch.log",
+          "log_sha256": "1d7baa2716c8bfa21cf11c76b218b4c71df94955daa3833f4a598f1e207e2c3e",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:173",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 173,
+      "predicate": "exclusive_running",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: exclusive_running",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Two exclusive stages never overlap."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_exclusive",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Two exclusive stages never overlap.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7a7fca3249b6117cd3bb91a259e73708e9984aa4c19747a37deb9dd2304e7622",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_exclusive.log",
+          "log_sha256": "0113f72847c660fab431e8ca9e249da2d932183ea3db3547cd9db6a4a4166d66",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:175",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 175,
+      "predicate": "not policy.allow_background or \"bgok\" not in stage.flags",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: not policy.allow_background or \"bgok\" not in stage.flags",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Candidate exclusive requires background policy.",
+        "Candidate exclusive requires bgok."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_policy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate exclusive requires background policy.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "434f9955f5e803f625df6b59e32209f47d16eb470cab253d90b636e7df75eb15",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_policy.log",
+          "log_sha256": "94ede3905f9c613c92399ad98649faf005955f011aefd80284b5ba8545e6a7c3",
+          "caught": true
+        },
+        {
+          "name": "exclusive_bgok",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate exclusive requires bgok.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a1fde184bd5287935d4a10d4619f309699ed821551c0d0ec7ee31a8c1225efab",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_bgok.log",
+          "log_sha256": "9958996b22174d8c2a2cf0f9ebf5268e6afddfb39f44af0277663f9b80072806",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:177",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 177,
+      "predicate": "any(\"bg\" not in r.flags for r in running)",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: any(\"bg\" not in r.flags for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Every running stage overlapping exclusive must be bg."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_running_bg",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Every running stage overlapping exclusive must be bg.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a297907d59adbff3965d076883c15df89ca155234213c098848f9f7737b5224d",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_running_bg.log",
+          "log_sha256": "9c964c51a5dd6a4ed7c854ee1877af1ae78e740313027cb36c056497dcf33bfa",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:179",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 179,
+      "predicate": "exclusive_running",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "else",
+          "required_value": false
+        }
+      ],
+      "failure": "can_start: error/policy path: exclusive_running",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "A running exclusive applies reverse background restrictions."
+      ],
+      "mutations": [
+        {
+          "name": "running_exclusive_branch",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "A running exclusive applies reverse background restrictions.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "b209d688d1283b88d173fde41200306a7d78fbd4ae9baeba4b61d9aadcb81c9e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_branch.log",
+          "log_sha256": "ded303922137ba10098843f84f63f1b93e2f4b2a357449ebb50d2b9d30e11f3a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:180",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 180,
+      "predicate": "not policy.allow_background or \"bg\" not in stage.flags",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 179,
+          "expression": "exclusive_running",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: not policy.allow_background or \"bg\" not in stage.flags",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Running exclusive requires background policy.",
+        "Candidate overlapping running exclusive requires bg."
+      ],
+      "mutations": [
+        {
+          "name": "running_exclusive_policy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Running exclusive requires background policy.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7fb469bd9d55db82f48bc92e8cd06794dd7191b2ab87d3726623c65f611778e9",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_policy.log",
+          "log_sha256": "5fcbe4845d7218c5dc92df58f294a98fbffe1bc2fc476da408c15de1393c1337",
+          "caught": true
+        },
+        {
+          "name": "running_exclusive_bg",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate overlapping running exclusive requires bg.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "f3c05dd759d735628923211743b5583636d0eb9b323d7d7b797222f14ec97cd7",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_bg.log",
+          "log_sha256": "4b6175af048af9b0bdaaae6414c8ccc78835765ef809e5dc8b35cc5d3e60a0e8",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:182",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 182,
+      "predicate": "any(\"bgok\" not in r.flags for r in exclusive_running)",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 179,
+          "expression": "exclusive_running",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: any(\"bgok\" not in r.flags for r in exclusive_running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Every running exclusive must have bgok."
+      ],
+      "mutations": [
+        {
+          "name": "running_exclusive_bgok",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Every running exclusive must have bgok.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "e6685f4e540aa07f2091e38989eada69028cc93fa900ecbe5694724ea0a3f745",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_bgok.log",
+          "log_sha256": "2ffadc92a102958cc4c397e6b73e251c5fc7e5f11dfdd9cc2afcd3ba4503eafc",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:184",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 184,
+      "predicate": "\"cleantree\" in stage.flags and any(r.scratch for r in running)",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: \"cleantree\" in stage.flags and any(r.scratch for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Cleantree candidate excludes running scratch."
+      ],
+      "mutations": [
+        {
+          "name": "clean_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Cleantree candidate excludes running scratch.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "25d437f80011e0a0ff5a50eeb4ea5d10ea7b2e1fccfec80da152e2907a783cd1",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-clean_candidate.log",
+          "log_sha256": "0c972844ae0ffbadcb8058e1ed040032772c4b456a2f68649520616a0a4c38e4",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:186",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 186,
+      "predicate": "stage.scratch and any(\"cleantree\" in r.flags for r in running)",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: stage.scratch and any(\"cleantree\" in r.flags for r in running)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Scratch candidate excludes running cleantree."
+      ],
+      "mutations": [
+        {
+          "name": "clean_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Scratch candidate excludes running cleantree.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "6d9b6f771ac99edeb9899c962d10af8ba0c447a350fb4a053ce65214525ac450",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-clean_running.log",
+          "log_sha256": "53b1e83a62e3e8f632074bc0178c6c02c6f35e95c2f94789904b93adf666dced",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:189",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 189,
+      "predicate": "held.intersection(stage.locks)",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: held.intersection(stage.locks)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Any shared lock excludes concurrent admission."
+      ],
+      "mutations": [
+        {
+          "name": "lock",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Any shared lock excludes concurrent admission.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "e517a3d2b3c3a5957453bae992559c52b046d495ee9c5d2b89e356ad56aac76e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-lock.log",
+          "log_sha256": "ba300df604fdfbe5d95b0139913788079b32bcd3cfacda648ab88ff6189db101",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:191",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 191,
+      "predicate": "sum(r.cores for r in running) + stage.cores > policy.cores",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: sum(r.cores for r in running) + stage.cores > policy.cores",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated cores limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "cores",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated cores limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7f8a6fd27deb20d2bbc681c5605130493626765b73c7344b62a2a6459a4a253e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-cores.log",
+          "log_sha256": "d17c53c7e2d950048510ffa8741fedfec78b9fd41e179d9973d2ecfd27bcabec",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:193",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 193,
+      "predicate": "sum(r.mem for r in running) + stage.mem > policy.mem",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: sum(r.mem for r in running) + stage.mem > policy.mem",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated memory limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "memory",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated memory limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d3e99030ab4f8abdbbe35b2df9ffdfa01d9f4ef8073c21f50917fa2e4767b711",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-memory.log",
+          "log_sha256": "fd4b0c8a12c40e1de444aa8c2abb42a84f66a7bef495b4b1ff737f951902aa2a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:195",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 195,
+      "predicate": "\"memguard\" in stage.flags and sum(r.mem for r in running) + GUARD_GIB > policy.mem",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: \"memguard\" in stage.flags and sum(r.mem for r in running) + GUARD_GIB > policy.mem",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated guard_candidate limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "guard_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated guard_candidate limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "84d9fd40846293dfc2208afd0a20626016df73c81b2b1768f608447dc9cf0ea8",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-guard_candidate.log",
+          "log_sha256": "93f832f52431532c65e4526e6c2024ed31f039f0b36a615d5eb0591b9a4298e2",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:198",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 198,
+      "predicate": "sum(r.mem for r in running if r is not guarded) + stage.mem + GUARD_GIB > policy.mem",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: sum(r.mem for r in running if r is not guarded) + stage.mem + GUARD_GIB > policy.mem",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated guard_running limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "guard_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated guard_running limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "6e3abb40238a6ed1b537a008103e0c5d26a63319a718ee70a1ef993a4cc4adbd",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-guard_running.log",
+          "log_sha256": "ec50848b6eed46bc7494e5e408ae92aca1d15aaa0341c79de6d0d9659b7fb38b",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:200",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 200,
+      "predicate": "\"memguard\" in stage.flags and policy.live_mem is not None",
+      "path_conditions": [],
+      "failure": "can_start: error/policy path: \"memguard\" in stage.flags and policy.live_mem is not None",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Guarded concurrent admission must sample the supplied live-memory seam."
+      ],
+      "mutations": [
+        {
+          "name": "live_presence",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Guarded concurrent admission must sample the supplied live-memory seam.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "cddb0b1d2ba5e4b2b8884ef0a6fbac1fcec8bcbc6c2118f666fb0a3521082bae",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-live_presence.log",
+          "log_sha256": "ddba5b3d169bfcab9f0d3ea2015951b4893219e64b39629e94f2793b1bb66978",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:202",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 202,
+      "predicate": "policy.live_mem() < GUARD_GIB + policy.margin + stage.mem",
+      "path_conditions": [
+        {
+          "line": 200,
+          "expression": "\"memguard\" in stage.flags and policy.live_mem is not None",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: error/policy path: policy.live_mem() < GUARD_GIB + policy.margin + stage.mem",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated live_threshold limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "live_threshold",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated live_threshold limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d360ad981073b18c935b26e1382fe6576e10b2a1697cc1f4a44afcabe4299c3e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-live_threshold.log",
+          "log_sha256": "a90cc42fc2e4d88d89f88e7d2ffc691498f72418c7ccdae03aef97392cdfece9",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:229",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 229,
+      "predicate": "stage.cls == \"budgeted\" and heavy_pending",
+      "path_conditions": [],
+      "failure": "select: error/policy path: stage.cls == \"budgeted\" and heavy_pending",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Ready heavy work goes before budgeted cells even if budgeted has tier zero.",
+        "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "heavy_ready",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::selection_preserves_priority_and_reservation",
+          "guarantee": "Ready heavy work goes before budgeted cells even if budgeted has tier zero.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "e217a7f63e838335c4ba64c24312299c8204f8ab9376a9f72a8ce9386ceeed5f",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-heavy_ready.log",
+          "log_sha256": "699c725ca0aa9ce685850f3eeeb7d26be528b0002ecbee6158c9e248b1bf3faa",
+          "caught": true
+        },
+        {
+          "name": "budgeted_heavy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7ce4113adf9f21f9950efd4da4fc4b1dd9ba370f26fd6f5c29c808402683c05c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_heavy.log",
+          "log_sha256": "bb558916b6c701edab85d5a4a91363eeb375e03bdfd026348ed072e54f17d8b0",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:231",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 231,
+      "predicate": "stage.cls in (\"exclusive\", \"solo\") and shared_ready",
+      "path_conditions": [],
+      "failure": "select: error/policy path: stage.cls in (\"exclusive\", \"solo\") and shared_ready",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Ready normal/budgeted work defers exclusive/solo consideration."
+      ],
+      "mutations": [
+        {
+          "name": "shared_first",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::selection_preserves_priority_and_reservation",
+          "guarantee": "Ready normal/budgeted work defers exclusive/solo consideration.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "64095948256600d9c521ce26fce51d873c9af93e2222f2758f166be652175d09",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-shared_first.log",
+          "log_sha256": "c31d5f30b285194457b64cc30a7d439fe891a4f2f3b724682378a427e63c31cd",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:233",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 233,
+      "predicate": "can_start(stage, active, policy)",
+      "path_conditions": [],
+      "failure": "select: error/policy path: can_start(stage, active, policy)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Selection enforces admission against running and newly chosen stages."
+      ],
+      "mutations": [
+        {
+          "name": "selection_admission",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::selection_preserves_priority_and_reservation",
+          "guarantee": "Selection enforces admission against running and newly chosen stages.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "7c14e1cf019c70f8805ab9a697160b40bcb40e9cb862daff7ce20c7540114d79",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-selection_admission.log",
+          "log_sha256": "70e1082b795fc6fba07398d24dcad5182fb8d4096a5231f82f5d01190486736a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:236",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 236,
+      "predicate": "stage.cls in (\"exclusive\", \"solo\")",
+      "path_conditions": [
+        {
+          "line": 233,
+          "expression": "can_start(stage, active, policy)",
+          "branch": "else",
+          "required_value": false
+        }
+      ],
+      "failure": "select: error/policy path: stage.cls in (\"exclusive\", \"solo\")",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "The highest-priority blocked exclusive/solo reserves host; lower exclusive does not overtake."
+      ],
+      "mutations": [
+        {
+          "name": "reservation",
+          "file": "graph.rs",
+          "test": "cycle::scheduler::tests::selection_preserves_priority_and_reservation",
+          "guarantee": "The highest-priority blocked exclusive/solo reserves host; lower exclusive does not overtake.",
+          "source_sha256": "d0b6e8a9ef5ee5715ecdf84e1670c8e420e7bac1e2dd0e564e5a7891969cc375",
+          "mutated_source_sha256": "11aae1aabde69e625ef7f7ee96c9ca78af2b0cb266b2b777e9442fcb24fee497",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-reservation.log",
+          "log_sha256": "479941319376fa9f765210e3e9d7c98b8b66508d036161e2fe990587fbfe3e70",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:335",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 335,
+      "predicate": "not wall_exceeded and policy.deadline is not None and executor.now() > policy.deadline",
+      "path_conditions": [],
+      "failure": "run: error/policy path: not wall_exceeded and policy.deadline is not None and executor.now() > policy.deadline",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Crossing deadline latches stop-admission when configured; timing-only mode continues."
+      ],
+      "mutations": [
+        {
+          "name": "deadline_observe",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Crossing deadline latches stop-admission when configured; timing-only mode continues.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "bba1f0c8f3a32d63bc300ae7d2c9b78adbf69785c420166e6511c6197a1deb9a",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-deadline_observe.log",
+          "log_sha256": "503f0cfc63487116dbfc26b663e20b5219a722864da273ae283881873fd26a98",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:339",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 339,
+      "predicate": "not failed and not (wall_exceeded and policy.stop_at_deadline)",
+      "path_conditions": [],
+      "failure": "run: error/policy path: not failed and not (wall_exceeded and policy.stop_at_deadline)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Failure stops independent queued work, not merely failed dependencies.",
+        "Stop-at-deadline forbids later starts while leaving started stages to drain."
+      ],
+      "mutations": [
+        {
+          "name": "failfast_admit",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Failure stops independent queued work, not merely failed dependencies.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "84061d384c46587b85c3f19bf8f7bede4e5077e5ff25e81340e2a2720f4d0c62",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-failfast_admit.log",
+          "log_sha256": "ffa5db9ab8515f6c9c803e8383c6e99b3c26729a79efb2403dfc31705246ce9d",
+          "caught": true
+        },
+        {
+          "name": "deadline_stop",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Stop-at-deadline forbids later starts while leaving started stages to drain.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "006f091ba2b2a0ce9112c024e8caf309249f88463965cefb16026965ded2a25d",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-deadline_stop.log",
+          "log_sha256": "dc5c4d1e0cb5f24b54ed19c3d27dd910faaf13fbf32838af8e7a39c83551aed0",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:350",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 350,
+      "predicate": "not running",
+      "path_conditions": [],
+      "failure": "run: error/policy path: not running",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Run drains every started stage and records its actual exit before returning."
+      ],
+      "mutations": [
+        {
+          "name": "drain",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Run drains every started stage and records its actual exit before returning.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "fd45a7e048160b570508a2325b8654fc05183312ccd4abc6c8d81d355338801b",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-drain.log",
+          "log_sha256": "5c0c6472336720dee0acabaebcb33c8a317ad2cb723abb917f2c3431f6a7eb1a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:357",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 357,
+      "predicate": "code == 0",
+      "path_conditions": [],
+      "failure": "run: error/policy path: code == 0",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Only actual zero completions satisfy dependencies; failures retain their exit."
+      ],
+      "mutations": [
+        {
+          "name": "completion_success",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Only actual zero completions satisfy dependencies; failures retain their exit.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "d87e6e013e855a43a99ad163b88cd0ce5e57fd66175c5ec5668053fd68143c37",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-completion_success.log",
+          "log_sha256": "b32f2ceeea630ea479fa72a50f4bab8545570a280d951c86ccac81790b51c8d9",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:364",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 364,
+      "predicate": "failed",
+      "path_conditions": [],
+      "failure": "run: error/policy path: failed",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Real failures retain status 1 even when timing overruns also occurred."
+      ],
+      "mutations": [
+        {
+          "name": "failure_priority",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Real failures retain status 1 even when timing overruns also occurred.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "440fd7feecd170b5b4a502590bd140a41e87a2f869aca74988ea7198fc0b0c0b",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-failure_priority.log",
+          "log_sha256": "97dddb1a5cb638b5566f5a0b708390a6b1523b53918238b0bb5edb884fbcc386",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:366",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 366,
+      "predicate": "wall_exceeded or (policy.deadline is not None and executor.now() > policy.deadline)",
+      "path_conditions": [
+        {
+          "line": 364,
+          "expression": "failed",
+          "branch": "else",
+          "required_value": false
+        }
+      ],
+      "failure": "run: error/policy path: wall_exceeded or (policy.deadline is not None and executor.now() > policy.deadline)",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Otherwise complete timing overruns retain timing status 3."
+      ],
+      "mutations": [
+        {
+          "name": "deadline_status",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Otherwise complete timing overruns retain timing status 3.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "6cff1c9620b25c17e8c33e3a14e04bbf7da9db3dfdccab1a37bac85a58b1dc6f",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-deadline_status.log",
+          "log_sha256": "aefe5c436197b4d64b001f547f7f2e902edc3ac51f9ae6a915bd67d495fc3e66",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:368",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 368,
+      "predicate": "not_run",
+      "path_conditions": [
+        {
+          "line": 364,
+          "expression": "failed",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 366,
+          "expression": "wall_exceeded or (policy.deadline is not None and executor.now() > policy.deadline)",
+          "branch": "else",
+          "required_value": false
+        }
+      ],
+      "failure": "run: error/policy path: not_run",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Unstarted unreachable work never becomes completed success."
+      ],
+      "mutations": [
+        {
+          "name": "not_run_status",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::incomplete_and_executor_errors_do_not_fabricate_success",
+          "guarantee": "Unstarted unreachable work never becomes completed success.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "cf4a5531a1dec2c6ce68a1b886f76106e06027066070d1a9c478c07943d76d32",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-not_run_status.log",
+          "log_sha256": "8615b06918e867b64227352b225d26082d4320d6f847befa9e16b7b3b716e80a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:380",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 380,
+      "predicate": "not finished",
+      "path_conditions": [],
+      "failure": "actual_critical_path: error/policy path: not finished",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Empty records have an empty actual critical path without fabricated completion."
+      ],
+      "mutations": [
+        {
+          "name": "empty_path",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::executor_deadline_failure_drain_and_accounting",
+          "guarantee": "Empty records have an empty actual critical path without fabricated completion.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "e86ba870254bf6551db5a6427d161a18ed825b9ec8cf0c74feff17817efba835",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-empty_path.log",
+          "log_sha256": "b1938740104a3c93b8137e8ef05bf3d45a7052289d761834bca8cf0e27bd05fb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:391",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 391,
+      "predicate": "record[\"start\"] - dep_end > 1.0",
+      "path_conditions": [],
+      "failure": "actual_critical_path: error/policy path: record[\"start\"] - dep_end > 1.0",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Critical path includes the actual resource release preceding a delayed start."
+      ],
+      "mutations": [
+        {
+          "name": "resource_path",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::memory_sampling_and_critical_resource_path",
+          "guarantee": "Critical path includes the actual resource release preceding a delayed start.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "48abe70317474aff23e645ddaec887b4f5db4ad4412017e302dd93f20084a1b6",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-resource_path.log",
+          "log_sha256": "bb31a5ef2d76701bc29dcf28532818515f766188db74882d22878be4e555fcdb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:393",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 393,
+      "predicate": "blockers",
+      "path_conditions": [
+        {
+          "line": 391,
+          "expression": "record[\"start\"] - dep_end > 1.0",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "actual_critical_path: error/policy path: blockers",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "An existing resource predecessor is labelled resource, with no-blocker starts remaining start.",
+        "A delayed first stage with no finished predecessor remains a start, not a fabricated resource edge."
+      ],
+      "mutations": [
+        {
+          "name": "resource_blockers",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::memory_sampling_and_critical_resource_path",
+          "guarantee": "An existing resource predecessor is labelled resource, with no-blocker starts remaining start.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "2d5b0ec02c220b18ee1eb7d451ce8646caff5fd553d7f0aaf4763ec1a50646f2",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-resource_blockers.log",
+          "log_sha256": "050bbf3cbff537482f28aeae60d5701ced355610190cd9e1fe9e2076f1cf4316",
+          "caught": true
+        },
+        {
+          "name": "resource_no_blocker",
+          "file": "execution.rs",
+          "test": "cycle::scheduler::tests::incomplete_and_executor_errors_do_not_fabricate_success",
+          "guarantee": "A delayed first stage with no finished predecessor remains a start, not a fabricated resource edge.",
+          "source_sha256": "685116ede0d61d87a9cf4fc2a55b74a437aa52ecb4ee56abfe7ccb134be28755",
+          "mutated_source_sha256": "b298c8636201fe428db722afd11e3b87ffeb839ddb218a110c6e12e6b164905e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-resource_no_blocker.log",
+          "log_sha256": "aceded66d54194c6703f1e8d004e8a2e82d129da8a57881804a63062c5555541",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:414",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 414,
+      "predicate": "line.startswith(\"MemAvailable:\")",
+      "path_conditions": [],
+      "failure": "mem_available_gib: error/policy path: line.startswith(\"MemAvailable:\")",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Actual admission reads MemAvailable, not MemFree or total memory."
+      ],
+      "mutations": [
+        {
+          "name": "mem_field",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::memory_sampling_and_critical_resource_path",
+          "guarantee": "Actual admission reads MemAvailable, not MemFree or total memory.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "3ea5bcc39252ebc40870bae56bdfd92d8ce7ac224000595dadd60b810653dafd",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-mem_field.log",
+          "log_sha256": "fe0723f03cd3606c9ac5edd28eac21c6128b0e9fe5f3c9bfa0edcb866b15e6fb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "orchestration:scheduler:416",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 416,
+      "predicate": "raise RuntimeError(\"MemAvailable missing\")",
+      "path_conditions": [],
+      "failure": "mem_available_gib: error/policy path: unconditional error on this path",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Absent MemAvailable is a sample failure, not a fabricated observation."
+      ],
+      "mutations": [
+        {
+          "name": "mem_missing",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::memory_sampling_and_critical_resource_path",
+          "guarantee": "Absent MemAvailable is a sample failure, not a fabricated observation.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "1f99b3ec47fb5a3cc79665cac2715fc1c9d5bf9f44ce5cb8bd64f44acd523e35",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-mem_missing.log",
+          "log_sha256": "9792bde6f175f8a1a7a729d6ce47062cc076b956346a0f5a72c1b0876b7af04f",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:162:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 162,
+      "predicate": "True",
+      "path_conditions": [
+        {
+          "line": 161,
+          "expression": "not running",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return True",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Idle-host admission precedes all caps/live sampling."
+      ],
+      "mutations": [
+        {
+          "name": "idle_exception",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Idle-host admission precedes all caps/live sampling.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a73b8378a805a885fc4bd5f2c79c9bc3f98fe7e92b0432f455575013b739f4ce",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-idle_exception.log",
+          "log_sha256": "55510ebf31e0423a08dacf22ebb46e1ee7be01895d391aaefeafa110cbbd4c4e",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:164:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 164,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 163,
+          "expression": "stage.cls == \"solo\" or any(r.cls == \"solo\" for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated solo_candidate exclusion refuses; adjacent compatible control admits.",
+        "Independently isolated solo_running exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "solo_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated solo_candidate exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "31b82f744f09c78732803191cb57eb3282de33940f2386c7442a9ae69610617c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-solo_candidate.log",
+          "log_sha256": "af8e66ebb6ff8ed66549507ebd9d21c2db368175589b37f4193a9868f6701f92",
+          "caught": true
+        },
+        {
+          "name": "solo_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated solo_running exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "0559f354a0ee2290af294ed35d509e632bce307e5df7349262d97bccf74b1b3f",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-solo_running.log",
+          "log_sha256": "55d8d8347497547b575e3df78ab47b9a34554f7ae69b83a5e99e2f88a2109fbb",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:169:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 169,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 166,
+          "expression": "stage.cls == \"budgeted\"",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 168,
+          "expression": "exclusive_running or any(\"heavy\" in r.flags for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated budgeted_exclusive exclusion refuses; adjacent compatible control admits.",
+        "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "budgeted_exclusive",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_exclusive exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d59879baee431d8aa1053264675c77dc53cc4f6f3ecfb2ebe9eade8dc681b467",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_exclusive.log",
+          "log_sha256": "bd85e52e38b5afada4831586202c3dbfd65ae99635cf33d511fd997937d8b326",
+          "caught": true
+        },
+        {
+          "name": "budgeted_heavy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated budgeted_heavy exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7ce4113adf9f21f9950efd4da4fc4b1dd9ba370f26fd6f5c29c808402683c05c",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-budgeted_heavy.log",
+          "log_sha256": "bb558916b6c701edab85d5a4a91363eeb375e03bdfd026348ed072e54f17d8b0",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:171:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 171,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 166,
+          "expression": "stage.cls == \"budgeted\"",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 170,
+          "expression": "\"heavy\" in stage.flags and any(r.cls == \"budgeted\" for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated heavy_budgeted exclusion refuses; adjacent compatible control admits."
+      ],
+      "mutations": [
+        {
+          "name": "heavy_budgeted",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated heavy_budgeted exclusion refuses; adjacent compatible control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a06debd7a5cdc53604c5eda72aead2fb744cefe89b05f4806bab745ff9ba482d",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-heavy_budgeted.log",
+          "log_sha256": "2f260221cf00bdac71370f8d95a5e52a54aedacdd03e47ac03c9f8ea21afb704",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:174:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 174,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 173,
+          "expression": "exclusive_running",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Two exclusive stages never overlap."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_exclusive",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Two exclusive stages never overlap.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7a7fca3249b6117cd3bb91a259e73708e9984aa4c19747a37deb9dd2304e7622",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_exclusive.log",
+          "log_sha256": "0113f72847c660fab431e8ca9e249da2d932183ea3db3547cd9db6a4a4166d66",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:176:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 176,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 175,
+          "expression": "not policy.allow_background or \"bgok\" not in stage.flags",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Candidate exclusive requires background policy.",
+        "Candidate exclusive requires bgok."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_policy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate exclusive requires background policy.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "434f9955f5e803f625df6b59e32209f47d16eb470cab253d90b636e7df75eb15",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_policy.log",
+          "log_sha256": "94ede3905f9c613c92399ad98649faf005955f011aefd80284b5ba8545e6a7c3",
+          "caught": true
+        },
+        {
+          "name": "exclusive_bgok",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate exclusive requires bgok.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a1fde184bd5287935d4a10d4619f309699ed821551c0d0ec7ee31a8c1225efab",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_bgok.log",
+          "log_sha256": "9958996b22174d8c2a2cf0f9ebf5268e6afddfb39f44af0277663f9b80072806",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:178:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 178,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 177,
+          "expression": "any(\"bg\" not in r.flags for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Every running stage overlapping exclusive must be bg."
+      ],
+      "mutations": [
+        {
+          "name": "exclusive_running_bg",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Every running stage overlapping exclusive must be bg.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "a297907d59adbff3965d076883c15df89ca155234213c098848f9f7737b5224d",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-exclusive_running_bg.log",
+          "log_sha256": "9c964c51a5dd6a4ed7c854ee1877af1ae78e740313027cb36c056497dcf33bfa",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:181:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 181,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 179,
+          "expression": "exclusive_running",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 180,
+          "expression": "not policy.allow_background or \"bg\" not in stage.flags",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Running exclusive requires background policy.",
+        "Candidate overlapping running exclusive requires bg."
+      ],
+      "mutations": [
+        {
+          "name": "running_exclusive_policy",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Running exclusive requires background policy.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7fb469bd9d55db82f48bc92e8cd06794dd7191b2ab87d3726623c65f611778e9",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_policy.log",
+          "log_sha256": "5fcbe4845d7218c5dc92df58f294a98fbffe1bc2fc476da408c15de1393c1337",
+          "caught": true
+        },
+        {
+          "name": "running_exclusive_bg",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Candidate overlapping running exclusive requires bg.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "f3c05dd759d735628923211743b5583636d0eb9b323d7d7b797222f14ec97cd7",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_bg.log",
+          "log_sha256": "4b6175af048af9b0bdaaae6414c8ccc78835765ef809e5dc8b35cc5d3e60a0e8",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:183:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 183,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 172,
+          "expression": "stage.cls == \"exclusive\"",
+          "branch": "else",
+          "required_value": false
+        },
+        {
+          "line": 179,
+          "expression": "exclusive_running",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 182,
+          "expression": "any(\"bgok\" not in r.flags for r in exclusive_running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Every running exclusive must have bgok."
+      ],
+      "mutations": [
+        {
+          "name": "running_exclusive_bgok",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Every running exclusive must have bgok.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "e6685f4e540aa07f2091e38989eada69028cc93fa900ecbe5694724ea0a3f745",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-running_exclusive_bgok.log",
+          "log_sha256": "2ffadc92a102958cc4c397e6b73e251c5fc7e5f11dfdd9cc2afcd3ba4503eafc",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:185:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 185,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 184,
+          "expression": "\"cleantree\" in stage.flags and any(r.scratch for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Cleantree candidate excludes running scratch."
+      ],
+      "mutations": [
+        {
+          "name": "clean_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Cleantree candidate excludes running scratch.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "25d437f80011e0a0ff5a50eeb4ea5d10ea7b2e1fccfec80da152e2907a783cd1",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-clean_candidate.log",
+          "log_sha256": "0c972844ae0ffbadcb8058e1ed040032772c4b456a2f68649520616a0a4c38e4",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:187:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 187,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 186,
+          "expression": "stage.scratch and any(\"cleantree\" in r.flags for r in running)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Scratch candidate excludes running cleantree."
+      ],
+      "mutations": [
+        {
+          "name": "clean_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Scratch candidate excludes running cleantree.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "6d9b6f771ac99edeb9899c962d10af8ba0c447a350fb4a053ce65214525ac450",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-clean_running.log",
+          "log_sha256": "53b1e83a62e3e8f632074bc0178c6c02c6f35e95c2f94789904b93adf666dced",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:190:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 190,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 189,
+          "expression": "held.intersection(stage.locks)",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Any shared lock excludes concurrent admission."
+      ],
+      "mutations": [
+        {
+          "name": "lock",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Any shared lock excludes concurrent admission.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "e517a3d2b3c3a5957453bae992559c52b046d495ee9c5d2b89e356ad56aac76e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-lock.log",
+          "log_sha256": "ba300df604fdfbe5d95b0139913788079b32bcd3cfacda648ab88ff6189db101",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:192:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 192,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 191,
+          "expression": "sum(r.cores for r in running) + stage.cores > policy.cores",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated cores limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "cores",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated cores limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "7f8a6fd27deb20d2bbc681c5605130493626765b73c7344b62a2a6459a4a253e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-cores.log",
+          "log_sha256": "d17c53c7e2d950048510ffa8741fedfec78b9fd41e179d9973d2ecfd27bcabec",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:194:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 194,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 193,
+          "expression": "sum(r.mem for r in running) + stage.mem > policy.mem",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated memory limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "memory",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated memory limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d3e99030ab4f8abdbbe35b2df9ffdfa01d9f4ef8073c21f50917fa2e4767b711",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-memory.log",
+          "log_sha256": "fd4b0c8a12c40e1de444aa8c2abb42a84f66a7bef495b4b1ff737f951902aa2a",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:196:8",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 196,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 195,
+          "expression": "\"memguard\" in stage.flags and sum(r.mem for r in running) + GUARD_GIB > policy.mem",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated guard_candidate limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "guard_candidate",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated guard_candidate limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "84d9fd40846293dfc2208afd0a20626016df73c81b2b1768f608447dc9cf0ea8",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-guard_candidate.log",
+          "log_sha256": "93f832f52431532c65e4526e6c2024ed31f039f0b36a615d5eb0591b9a4298e2",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:199:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 199,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 198,
+          "expression": "sum(r.mem for r in running if r is not guarded) + stage.mem + GUARD_GIB > policy.mem",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated guard_running limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "guard_running",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated guard_running limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "6e3abb40238a6ed1b537a008103e0c5d26a63319a718ee70a1ef993a4cc4adbd",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-guard_running.log",
+          "log_sha256": "ec50848b6eed46bc7494e5e408ae92aca1d15aaa0341c79de6d0d9659b7fb38b",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:203:12",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 203,
+      "predicate": "False",
+      "path_conditions": [
+        {
+          "line": 200,
+          "expression": "\"memguard\" in stage.flags and policy.live_mem is not None",
+          "branch": "then",
+          "required_value": true
+        },
+        {
+          "line": 202,
+          "expression": "policy.live_mem() < GUARD_GIB + policy.margin + stage.mem",
+          "branch": "then",
+          "required_value": true
+        }
+      ],
+      "failure": "can_start: return False",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Independently isolated live_threshold limit refuses; exact-boundary control admits."
+      ],
+      "mutations": [
+        {
+          "name": "live_threshold",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Independently isolated live_threshold limit refuses; exact-boundary control admits.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "d360ad981073b18c935b26e1382fe6576e10b2a1697cc1f4a44afcabe4299c3e",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-live_threshold.log",
+          "log_sha256": "a90cc42fc2e4d88d89f88e7d2ffc691498f72418c7ccdae03aef97392cdfece9",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    },
+    {
+      "id": "workload-callback:scheduler:boolean_return:204:4",
+      "original_source": ".flow/artifacts/wasm-qualification-driver/parallel/scheduler.py",
+      "original_source_sha256": "4affd01357d2418a4c88fe674b78ead0c9320f2b8451734546d612026b50fb4c",
+      "original_line": 204,
+      "predicate": "True",
+      "path_conditions": [],
+      "failure": "can_start: return True",
+      "proof_kind": "executed Rust refusal/admission/control fixture plus actual source countermutation",
+      "surviving_guarantees": [
+        "Compatible concurrent work admits after all exclusions."
+      ],
+      "mutations": [
+        {
+          "name": "concurrent_allow",
+          "file": "admission.rs",
+          "test": "cycle::scheduler::tests::admission_each_disjunct_and_valid_control",
+          "guarantee": "Compatible concurrent work admits after all exclusions.",
+          "source_sha256": "ec03f5a7c567f174541cbabc9ab602c6b6d1b7bbcd719df98bd4316b70392ec0",
+          "mutated_source_sha256": "e4153b179b9c4a227d2e19918ff5d6dbc58cc150ab184806b3f73269726f7336",
+          "exit": 101,
+          "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/mutation-concurrent_allow.log",
+          "log_sha256": "f259212bb8eaaecc9a578555e734a1876e828cc6bae92fc8f3d3c41d6d4ed076",
+          "caught": true
+        }
+      ],
+      "control": {
+        "command": [
+          "cargo",
+          "+1.99.1",
+          "test",
+          "--locked",
+          "-p",
+          "gomad",
+          "--lib",
+          "cycle::",
+          "--",
+          "--test-threads=2",
+          "--nocapture"
+        ],
+        "exit": 0,
+        "log": "/home/agent/wt/evidence/fn242-cycle-scheduler/restored-controls.log",
+        "sha256": "0667cbbf526981c0531f7c9db4e46bce3e27c41bb11c55823411090bb40e872d"
+      },
+      "fold": "Policy branch and its own return/raise share the same immutable input and refusal boundary; they fold into the named Rust guard and its boolean/error result. No ancestor-only credit."
+    }
+  ],
+  "mutations_results_path": "/home/agent/wt/evidence/fn242-cycle-scheduler/qualified-mutations.json",
+  "mutations_results_sha256": "2c424d5846e0df695d68b0fa04eac6833aade9d4dedc62155b2d9cf5f68898a5",
+  "notes": [
+    "All mutation runs compiled the real production Gomad library graph, selected exactly one named Rust test and observed numeric exit101 plus test failure. No separate test-only scheduler implementation was used.",
+    "A mutation that disables an early graph invariant can expose a later invariant panic; such a panic is only mutant-kill evidence. Original malformed inputs must and do take the intended typed refusal in the restored test, with exception-free valid controls.",
+    "Budgeted/heavy ready-selection prefilter shares its running-heavy guarantee with can_start at the same admission boundary. Independent budgeted_heavy refusal/control and heavy_ready selection mutation protect both situations.",
+    "Actual critical-path empty-case is represented by an empty finished-record iterator. Its source countermutation removes the empty fallback and fails the empty-run fixture; no completion is fabricated.",
+    "Original topological completed/active branches fold into one validated graph traversal with separate diamond and cycle fixtures.",
+    "Journal/attempt accounting, child process custody and qualification execution remain with their named owners. Full attempts remain0 used/2 remaining."
+  ],
+  "conductor_integration": {
+    "integrated_commit": "c92212cd39fac9e41936fa05b8a21bf84765877d",
+    "worker_proof_map": "/home/agent/wt/evidence/fn242-cycle-scheduler/proof-map.json",
+    "worker_proof_map_sha256": "88e894b87287d1e34790ba5bad1d598af50b24e6b77656daebe59f57c44a0f4c",
+    "qualification_accounting": "No attempt since amendment; two policy allowance remains. Fixed actual operational enrollment binding is absent, not a verified durable counter. No enrollment/reservation here."
+  }
+}
