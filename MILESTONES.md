@@ -510,10 +510,9 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.13](.flow/tasks/fn-242-gomad-shrink-the-qualification.13.md) | 🚧 Running | Real process custody, accounting, busy workers and cleanup |
-| [fn-242.14](.flow/tasks/fn-242-gomad-shrink-the-qualification.14.md) | ⬜ Todo | Strict cycle configuration and frozen source/build authentication |
+| [fn-242.14](.flow/tasks/fn-242-gomad-shrink-the-qualification.14.md) | 🚧 Running | Strict cycle configuration and frozen source/build authentication |
 | [fn-242.16](.flow/tasks/fn-242-gomad-shrink-the-qualification.16.md) | ⬜ Todo | Authenticate candidate, compiler, GNU and workload inputs |
-| [fn-242.15](.flow/tasks/fn-242-gomad-shrink-the-qualification.15.md) | ⬜ Todo | Fixed global attempt journal and reservation-time admission floors |
+| [fn-242.15](.flow/tasks/fn-242-gomad-shrink-the-qualification.15.md) | 🚧 Running | Fixed global attempt journal and reservation-time admission floors |
 | [fn-242.17](.flow/tasks/fn-242-gomad-shrink-the-qualification.17.md) | ⬜ Todo | Freeze authenticated role and configuration bindings |
 | [fn-242.19](.flow/tasks/fn-242-gomad-shrink-the-qualification.19.md) | ⬜ Todo | Compose fixed stages and surviving endpoint bindings |
 | [fn-242.18](.flow/tasks/fn-242-gomad-shrink-the-qualification.18.md) | ⬜ Todo | Validate command, artifact and preparation custody |
