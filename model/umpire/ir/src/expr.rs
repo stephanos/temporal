@@ -140,21 +140,24 @@ impl Expr {
             | ExprKind::Input(_)
             | ExprKind::Outcome
             | ExprKind::Enum(_) => true,
-            ExprKind::Local(_) | ExprKind::Unary(Unary::Neg, _) | ExprKind::GetOr(..) => false,
+            ExprKind::Local(_)
+            | ExprKind::Unary(Unary::Neg, _)
+            | ExprKind::GetOr(..)
+            | ExprKind::Some(_) => false,
             ExprKind::Unary(Unary::Not, value)
             | ExprKind::Length(value)
             | ExprKind::Check(_, value)
             | ExprKind::Bounded(value)
             | ExprKind::Payload(value) => value.infallible(),
-            ExprKind::Some(_) => false,
-            ExprKind::OptionalOr(value, fallback) => value.infallible() && fallback.infallible(),
             ExprKind::Binary(op, left, right) => {
                 !matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
                     && left.infallible()
                     && right.infallible()
             }
             ExprKind::If(a, b, c) => a.infallible() && b.infallible() && c.infallible(),
-            ExprKind::Append(a, b) => a.infallible() && b.infallible(),
+            ExprKind::Append(a, b) | ExprKind::OptionalOr(a, b) => {
+                a.infallible() && b.infallible()
+            }
             ExprKind::Tuple(values) | ExprKind::Sequence(values) | ExprKind::Checks(values) => {
                 values.iter().all(Self::infallible)
             }
