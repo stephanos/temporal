@@ -118,7 +118,7 @@ runs the activity Model through the Runner behind an allowlist fence, and every 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.7 | ⬜ todo | After committed .6, fn-244.2 and fn-243.2; Runner and Run write-up, earned R33-R39 discharge, R40 architecture and explicit unheld proof deferred to fn-243.5; R5 superseded (R7) |
+| fn-228.7 | 🟨 in progress | After committed .6, fn-244.2 and fn-243.2; Runner and Run write-up, earned R33-R39 discharge, R40 architecture and explicit unheld proof deferred to fn-243.5; R5 superseded (R7) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
@@ -164,7 +164,7 @@ semantics and proves restored admission. This parent stays open until that follo
 | --- | --- | --- |
 | fn-243.1 | ✅ done | After fn-228.6 and fn-244.2: program on Reset, Read proposals, `WorkerProgram` envelope, activity rows, `umpire program` (R1) |
 | fn-243.2 | ✅ done | After .1: raw/sdk executors, hold, server-history judgment and admitted live slice; exact unheld open-state refusal until .5 (R2, R3) |
-| fn-243.3 | 🟨 in progress | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
+| fn-243.3 | ✅ done | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
 | fn-243.4 | ⬜ todo | After committed .2, .3 and fn-228.7: R40 architecture/current scope checked; code pointers and explicit .5 obligation (R5) |
 | fn-243.5 | ⏸️ blocked | After .4 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40/fn-228 R7 evidence (R2, R5) |
 
