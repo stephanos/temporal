@@ -71,7 +71,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228 → fn-238 → fn-237; fn-211 is deferred at the owner’s request on 2026-10-22. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Owner-approved remaining order is fn-228 → fn-238 → fn-237 → fn-243 (fn-243 placed last on 2026-10-23; fn-242 runs in the parallel lane before fn-237.1); fn-211 is deferred at the owner’s request on 2026-10-22. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -96,14 +96,15 @@ instruction, never answers for the Model, and joins all its work on Close; the l
 through `umpire explore` with the Run as the only artifact. .4's required gate passed at 2054.281s
 (load average about 40, not steady state); inner loop 22.546s. fn-241 (one WorkflowService table
 plus per-feature claims) is complete. Four pre-existing live Testpilot failures, the canary and
-publish retirements and `TestTestpilotModelSlice` are carried into .6. The Shim (.5) is next.
+publish retirements and `TestTestpilotModelSlice` are carried into .6. The owner deferred the Shim
+(.5) on 2026-10-23; .6 is next and .7 records R40 as deferred.
 [Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-228.5 | 🔄 in progress | After .4: Shim endpoint for non-Go SDK workers (R5) |
-| fn-228.6 | ⬜ todo | After .4 and .5: delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
-| fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
+| fn-228.5 | ⏸️ superseded | Superseded by fn-243 (programmed workers); Shim work deleted 2026-10-23 (R5) |
+| fn-228.6 | 🔄 in progress | After .4 (.5 deferred): delete and shrink Testpilot packages with replacement coverage; include relocated Runner code in counts (R6) |
+| fn-228.7 | ⬜ todo | After .6; records R40 as deferred: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ### fn-238: Shared front end: one Model reading for the native checker and the lifter (model)
 
@@ -173,6 +174,24 @@ on 2026-10-23, scheduled after fn-238.
 | fn-237.3 | ⬜ todo | After .1, .2 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
 | fn-237.5 | ⬜ todo | After .4: DESIGN.md timeout and cancellation write-up (R5) |
+
+### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
+
+Filed on 2026-10-23 after the owner deferred the Shim and asked for pre-programmed workers: in a
+cloud setup no worker can reach Umpire. Propose returns a deterministic program with each request;
+workers follow it without a connection; their actions reach the server, and the Model judges that
+history: a worker deviating from its program is Unexplained, an unprogrammed task is Refused. The in-process Go worker follows
+programs too, superseding the Shim (fn-228.5). Design and recommendations:
+[programmed-workers.md](model/design/programmed-workers.md). The owner placed it last, after fn-237
+(2026-10-23).
+[Spec](.flow/specs/fn-243-programmed-workers-the-model-issues.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-243.1 | ⬜ todo | Program on Propose: protocol, Runtime, `Realize`, Temporal worker program (R1) |
+| fn-243.2 | ⬜ todo | After .1: Go worker follows programs; judgment from server history (R2, R3) |
+| fn-243.3 | ⬜ todo | After .2: a worker in another language follows a program file (R4) |
+| fn-243.4 | ⬜ todo | After .2, .3: DESIGN.md rewrites R40, Shim superseded (R5) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model) — deferred
 
