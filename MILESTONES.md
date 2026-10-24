@@ -150,8 +150,8 @@ hold fault and follows.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-243.1 | 🟨 in progress | After fn-228.6 and fn-244.2: program on Reset, Read proposals, `WorkerProgram` envelope, activity rows, `umpire program` (R1) |
-| fn-243.2 | ⬜ todo | After .1: raw and sdk executors, Driver hold fault, judgment from server history, live slice (R2, R3) |
+| fn-243.1 | ✅ done | After fn-228.6 and fn-244.2: program on Reset, Read proposals, `WorkerProgram` envelope, activity rows, `umpire program` (R1) |
+| fn-243.2 | 🟨 in progress | After .1: raw and sdk executors, Driver hold fault, judgment from server history, live slice (R2, R3) |
 | fn-243.3 | ⬜ todo | After .2: a raw executor in another language follows the program file, or the gap is recorded (R4) |
 | fn-243.4 | ⬜ todo | After .2, .3 and fn-228.7: DESIGN.md R40 final form checked; design note points to code (R5) |
 
