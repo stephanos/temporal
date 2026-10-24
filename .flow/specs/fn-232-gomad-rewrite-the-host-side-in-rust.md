@@ -115,3 +115,12 @@ These record how the owner's later decisions in MILESTONES.md change this spec. 
 5. **The cycle driver is Python.** `tools/gomad/rust/driver/` (about 34k lines) grew out of the stage scripts during .13 and was never a design decision. fn-242 moves it into a Rust `gomad` verb; until then, no new Python beyond what the cycle strictly needs (MILESTONES ruling 11).
 6. **Single workspace.** `gomad-wasmhost` now lives at `tools/gomad/rust/wasmhost` as a workspace member with one `Cargo.lock` (owner decision 2026-10-21); the "existing helper crate" in Architecture refers to it there.
 7. **Timing is non-blocking until the quiet-host window.** The 3,600-second limit and stage budgets are measured and recorded on every cycle but, under the owner's 2026-10-23 decision, a wall-time-only failure does not block closure. Correctness, replay, identities and memory/capacity bounds remain binding.
+
+
+### Remaining closure split (2026-10-24)
+
+Append three narrowly scoped fix tasks; preserve fn-232.1 through .12 as done and retain all existing fn-232.13 acceptance and historical evidence. Task creation order is .15 static Go selector alignment (S; R11/R12), .16 counterfactual absence/configuration handling (M; R12/R14), and .17 shared broad-harness readiness (M; R12).
+
+Execution wave one is .15 and .17. Task .16 depends on .17 because both change `broad_stages.py`. Task .13 depends on all three fixes and remains the actual green 96-stage cycle plus unchanged correctness, replay, determinism, identity, memory, capacity, documentation, size and retained-evidence obligations under the owner's existing performance deferral. Focused fix tests cannot substitute for that cycle.
+
+Task .14 explicitly follows .13; encode that dependency while preserving its existing reach-closure scope. Until .14, absent counterfactual reach may be reported only as explicit unexecuted, uncredited reach with `REACH_GAPS_BLOCK=false`; declared malformed or failed bindings remain strict refusals. These tasks neither close the reach gaps nor claim a cycle pass.

@@ -60,7 +60,7 @@ No other milestone work starts before fn-232.13 closes. This changes ordering on
 
 ### Current handover (2026-10-24)
 
-fn-232.13 remains open: the full 96-stage cycle has not run. The current integration input is
+fn-232.13 remains open: the full 96-stage cycle has not passed. The current integration input is
 `fn232-composition` at `4e4b8b51a5b65d76868712b588b2ed1067ee82cd`, containing `gomad`
 base `318427522b009f5a27eeeb3c7c17b211b0ce2c34`. Its driver suite (567 tests) and full
 mandatory worker merge gate exited 0; the independent implementation re-review returned
@@ -71,6 +71,17 @@ supply no cycle result. The retained launch controller is
 `/home/agent/wt/evidence/fn232-resume-launch/launch.py`; it prepares fresh candidate bindings
 and runs `driver.py parallel` without a formal freeze ceremony.
 Current evidence: `/home/agent/wt/evidence/fn232-resume-composition/`.
+
+The subsequent `resume-4e4-assembly4` attempt assembled all 96 stages successfully, then
+failed its first stage, `validate`: the selected Go test passed, but the driver listed all
+36 package roots and incorrectly required execution of the 35 unselected roots. The driver
+exited 1 with zero passing stage receipts; all attempt processes are terminal. Preserve its
+configuration and raw evidence under `/home/agent/wt/evidence/fn232-resume-launch/`.
+The remaining closure fixes are split into fn-232.15 (Go selector accounting), fn-232.16
+(counterfactual declaration/reach and child configuration), and fn-232.17 (shared harness
+initialization). Tasks .15 and .17 may run in parallel; .16 follows .17 because they share
+the broad-stage call site. Task .13 retains the complete acceptance gate and waits for all
+three fixes. Completed tasks .1–.12 and the separate .14 reach-porting scope are preserved.
 
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
 artifact detached/kill-resume families. Children load their driver configuration explicitly;
@@ -84,7 +95,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities; one green cycle closes fn-232.13.
+1. Complete fn-232.15 and .17 in parallel, then .16. Review and integrate the fixes before assembling another cycle. Run `driver.py parallel` for all 96 stages on current `gomad`; retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -385,8 +396,11 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement merged; closes on one green full cycle on `gomad` |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | 🚧 Running | Close the remaining test-wasm reach-map gaps after closure |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.15](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.15.md) | Todo | Go selector accounting; parallel with .17 |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.17](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.17.md) | Todo | Shared harness initialization; prerequisite for .16 |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.16](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.16.md) | Todo | Counterfactual declaration/reach and child configuration |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Parked | Retirement merged; waits for .15–.17, then one green full cycle on `gomad` |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
 

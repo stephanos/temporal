@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-24T00:04:40.970076Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-232-gomad-rewrite-the-host-side-in-rust.13"
+  ],
   "id": "fn-232-gomad-rewrite-the-host-side-in-rust.14",
   "priority": null,
   "spec": "fn-232-gomad-rewrite-the-host-side-in-rust",
   "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md",
   "status": "todo",
   "title": "Close the remaining test-wasm reach-map gaps after closure",
-  "updated_at": "2026-10-24T00:04:40.970076Z"
+  "updated_at": "2026-10-24T04:08:52.762529Z"
 }

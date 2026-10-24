@@ -268,3 +268,12 @@ local refs without pushing or changing the main/composition trees. Mapping and b
 sweep `911833fb481f8f51d3af6dd20699fc435032c78a`; reach `1f85fbfcf95604757a6742d54a934e13395c2bc4`.
 
 Launch controller: `/home/agent/wt/evidence/fn232-resume-launch/launch.py --execute --tag resume-4e4-cycle1`. Its preflight validates 57 retained inputs; fresh role records are authenticated before assembly. The source must remain unchanged throughout preparation and execution. This handover records readiness, not a cycle pass.
+
+
+### Remaining closure split (2026-10-24)
+
+Append three narrowly scoped fix tasks; preserve fn-232.1 through .12 as done and retain all existing fn-232.13 acceptance and historical evidence. Task creation order is .15 static Go selector alignment (S; R11/R12), .16 counterfactual absence/configuration handling (M; R12/R14), and .17 shared broad-harness readiness (M; R12).
+
+Execution wave one is .15 and .17. Task .16 depends on .17 because both change `broad_stages.py`. Task .13 depends on all three fixes and remains the actual green 96-stage cycle plus unchanged correctness, replay, determinism, identity, memory, capacity, documentation, size and retained-evidence obligations under the owner's existing performance deferral. Focused fix tests cannot substitute for that cycle.
+
+Task .14 explicitly follows .13; encode that dependency while preserving its existing reach-closure scope. Until .14, absent counterfactual reach may be reported only as explicit unexecuted, uncredited reach with `REACH_GAPS_BLOCK=false`; declared malformed or failed bindings remain strict refusals. These tasks neither close the reach gaps nor claim a cycle pass.
