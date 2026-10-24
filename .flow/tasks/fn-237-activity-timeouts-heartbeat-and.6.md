@@ -46,9 +46,36 @@ Mechanical owner correction from standards review: move existing typed World imp
 - [ ] Compiled native, interpreted, embedded and independently re-admitted source plus actual required TLC agree at maxima 1/2/3, with exact 2/3/4 fair values, typed allowed/fair ordinals, all ordinary actions allowed and one WF per selected Poll plus close. Missing close, omitted current Poll, stale payload, variant union, source-only predicate/leaf, legal World and metadata mutations discriminate by exact disagreement or typed refusal; starvation/heartbeat counterexamples replay without deriving policy from native graphs.
 - [ ] All tracked old flat expansions/goldens and immutable compatibility artifacts remain byte-identical against integrated O; new plan Print compiles/roundtrips. Authoring/subset README, actual fixture counts/replay evidence, focused/full gates and timing are recorded. Existing action_inputs negative controls and its explicitly nondiscriminating bounded-fairness behavioral check remain intact.
 ## Done summary
-TBD
+Model authors can select exact literal fair/only/without scopes through exhaustive World-only conditionals. Both source consumers validate World values, select every registered/progress plan before catalog membership, preserve registration and rebinding, and reserve possible generated names without unioning policy; compiled native callbacks and existing per-value WF semantics remain independent.
 
+Tier: session (jev-unavailable(no_key)); AGENTS implementer gpt-6.1-sol medium / reviewer gpt-6.1-sol high.
+
+stage: impl-review - ran [2026-10-24T17:27:27.542168+00:00..2026-10-24T17:33:24.034854Z], SHIP. Three actual codex:gpt-6.1-sol:high draws report zero introduced, zero pre-existing and no unaddressed R-IDs. Review uses the same model family. No actual implementer model is inferred. Reviewers inspected committed fresh verification evidence; their local checks used cached binaries because Cargo rebuilding was read-only, and they did not rerun required TLC.
+
+Baseline green before source edits. Actual exits were zero for model-check (493.938s), required model-check (697.328s) and model-time (401.697s). Base 52b2ed61b90e16090e5a4ebc2a4c037786de9388 was persisted before implementation. Concurrent source-free Flow/MILESTONES commits remain in the complete range and receive no task credit.
+
+Final executable source is 94e47d78789bb4de8bd2c372027e7785baa30545. Full gates at 01e2fee46829b3464088b9ba8d5bbdc26f10d8c1 exited zero:
+
+- make model-check: 497.288s; 702 Rust passes, zero failures, four ignored, plus active host checks.
+- UMPIRE_BACKENDS=require make model-check: 582.113s; 702 Rust passes, zero failures, four ignored; actual source/TLC agreement and semantic controls required.
+- make model-time: 352.388s wall; gate 343.787s misses the inherited 60s soft target, inner 8.454s meets 10s.
+
+Affected-crate tests, strict Clippy and final workspace fmt passed. Required fixture tests passed 7/7 in 44.19s. Maxima 1/2/3 have 3/6/9 states, 4/11/20 edges, 2/3/4 exact fair values and all 4/5/6 ordinary values allowed. Three source-readmitted TLC baselines replay one negative counterexample each. Four emitted WF mutants reach typed-replay verdict disagreement; heartbeat and stale-Poll lassos retain concrete ordinal, choice, outcome, facts and back-edge evidence. Source-only and metadata-only mutations refuse separately. All five nonempty CFG families retain the selected World.
+
+The existing Bound owner now compares progress metadata against effective original compiled scopes at reached states. Empty graphs invoke no progress callback and establish no agreement for unevaluated callbacks. Generic fixture interpretation uses the embedded tree; independently admitted fixture source is checked through TLC/native agreement. Raw shared-front interpretation at all three Worlds is covered by the TLA integration owner. These boundaries are explicit in world-fairness-proof-boundaries.md.
+
+Fresh quality audits found correctness zero and standards two mechanical size findings. Existing-private-owner and guide relocations resolved both; standards follow-up is zero. Initial relocation import failures were fixed without weakening old tests; final native tests and full gates pass. All raw reports and failed diagnostics are preserved.
+
+All 849 protected old artifacts and 15 original compatibility comparisons remain byte-exact, including O's new expectations and action_inputs controls. Guest SHA-256 remains b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a; no refresh or repin occurred. The broader archived Scala/IR Go umbrella remains inherited red and is outside this active-gate claim.
+
+GATE_SKIPPED:model-check:green-receipt 01e2fee4
+GATE_SKIPPED:model-check-required:green-receipt 01e2fee4
+GATE_SKIPPED:model-time:green-receipt 01e2fee4
+
+Full evidence, archives and review receipt are under .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-*. Four host subagents served two implementation lanes and two audit axes. Both task worktrees and branches were removed normally; no command remains running. This closes task .6 only. The parent and downstream activity/live obligations remain open; the conductor owns MILESTONES and the later HTML refresh.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c18ce40c296d1be285efc1575ff20d00d00940d2, 8368fb712e538ebca8f5ad55de44fcd3fb5656ca, 513b57a63cedf5ff7c77cc8762c2d235ef187edc, 208b34c0343f27442df8dfe6debbc99412e9027c, c2ab1407273018b971060a0f3b2ff58b1eebfd27, a52cc9823c42830d545875d5ade093aa36af685c, 87b3aa1613594c12fc6795343f23813f2afc7130, a315f5099cabb3ba4cdc532729c3eab2c67e695a, d4eff7eedbd7c787bf4d7a10f8244244c578e315, fdeb9474a9e9f05558bf7efa7a439e64bdffb4ae, 89244b470c5b5da4e0ada1fe2b460367ad064b48, 9b64b686efc0558fc48ba901b369541256ba606e, e5a9a3eea716bfcce9e27a8520fb49368aa3819f, bd749e1808987e9084fac1214644cc2e581b8505, e9bb607812ee1c8cf03a583eae3b8d4c0ebd5826, cbcb9d1e0a117d6191cab1a96bfc6ce528f186a1, 94e47d78789bb4de8bd2c372027e7785baa30545, 01e2fee46829b3464088b9ba8d5bbdc26f10d8c1, 88f2f3d8c455c5c3679872d18e395df89f06d032, f0380f58faf8b83916c115e3cc98a16e6d1baa33
+- Tests: make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, cd model && mise exec -- cargo test -p umpire-front -p umpire-ir -p umpire-tla -p umpire-checker -p umpire-fixtures, UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-fixtures --test fixtures world_fairness -- --nocapture --test-threads=1, cd model && mise exec -- cargo fmt --all --check, python3 .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-preserved-audit.py final, GATE_SKIPPED:model-check:green-receipt 01e2fee4, GATE_SKIPPED:model-check-required:green-receipt 01e2fee4, GATE_SKIPPED:model-time:green-receipt 01e2fee4
 - PRs:
