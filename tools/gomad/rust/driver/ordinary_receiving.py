@@ -132,7 +132,8 @@ def collect(config, root):
         prefix = 'ordinary-' + name
         expected = static.parse_go_inventory((root / (prefix + '-list.stdout')).read_bytes())
         if name == 'recursive':
-            expected = {key: value for key, value in expected.items() if not key[1].startswith('TestNamespaceConformance')}
+            expected['roots'] = {key: value for key, value in expected['roots'].items()
+                                 if not key[1].startswith('TestNamespaceConformance')}
         raw = (root / (prefix + '-run.stdout')).read_bytes()
         roots = static.verify_go(raw, expected, 1)
         identities = set()

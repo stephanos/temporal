@@ -337,6 +337,17 @@ class StaticStageContract(unittest.TestCase):
         with self.assertRaisesRegex(driver.Refusal, 'command bytes changed'):
             check()
 
+    def test_go_no_test_classification_requires_absent_test_field(self):
+        empty = [dict(Action='output', Package='empty', Output='?   \tempty\t[no test files]\n'),
+                 dict(Action='skip', Package='empty')]
+        inventory = static.parse_go_inventory(listing() + events(empty))
+        for value in (None, ''):
+            changed = events([dict(row, Test=value) for row in empty])
+            with self.subTest(value=value, phase='listing'), self.assertRaises(driver.Refusal):
+                static.parse_go_inventory(listing() + changed)
+            with self.subTest(value=value, phase='run'), self.assertRaises(driver.Refusal):
+                static.verify_go(execution() + changed, inventory, 1)
+
     def test_go_subtest_selection_refuses_before_any_command(self):
         for flags in (['-run', '^TestA$/child'], ['-run=^TestA$/child']):
             with self.subTest(flags=flags), tempfile.TemporaryDirectory() as directory:

@@ -293,13 +293,13 @@ def go_empty_output(package):
     return '?   \t' + package + '\t[no test files]\n'
 
 
-def parse_go_packages(raw):
+def parse_go_inventory(raw):
     names, packages, terminals, output = {}, set(), {}, {}
     for line in raw.decode().splitlines():
         row = json.loads(line)
         package, action = row['Package'], row.get('Action')
         packages.add(package)
-        require(not row.get('Test') and action != 'fail', 'failed or test-bearing Go listing')
+        require('Test' not in row and action != 'fail', 'failed or test-bearing Go listing')
         if action in ('pass', 'skip'):
             require(package not in terminals, 'duplicate listed Go package terminal')
             terminals[package] = action
@@ -318,10 +318,6 @@ def parse_go_packages(raw):
     return dict(roots=names, packages=packages, empty_packages=empty)
 
 
-def parse_go_inventory(raw):
-    return parse_go_packages(raw)['roots']
-
-
 GO_SCOPE_SOURCES = {
     'tools/gomad/internal/archcheck/defaultset_test.go': '245b52ae2b3d33d8f734c7a6c83a3ceda053abeee66ad23876584ee2fb3d9425',
     'tools/gomad/internal/archcheck/architecture_test.go': 'b0e2aeb1a56835776148f94b112fc523a1e6dabdeef0e88d911f5f33d25c5e19',
@@ -332,7 +328,7 @@ GO_SCOPE_REASON = 'no nested in-tree module is checked out; nothing to keep out 
 
 
 def go_scope_exclusions(inventory):
-    if GO_SCOPE_ROOT not in inventory:
+    if GO_SCOPE_ROOT not in inventory['roots']:
         return []
     require(all(sha(REPO / path) == digest for path, digest in GO_SCOPE_SOURCES.items()),
             'original Go scope exclusion source changed')
@@ -343,9 +339,8 @@ def go_scope_exclusions(inventory):
                  replacement='go.temporal.io/server => ../..', nested_backend_modules=[], status='UNEXECUTED')]
 
 
-def verify_go(raw, expected, repeats, exclusions=(), package_inventory=None):
-    packages = package_inventory['packages'] if package_inventory is not None else {pkg for pkg, _ in expected}
-    empty = package_inventory['empty_packages'] if package_inventory is not None else set()
+def verify_go(raw, inventory, repeats, exclusions=()):
+    expected, packages, empty = inventory['roots'], inventory['packages'], inventory['empty_packages']
     passes, runs, skips, terminals, output = dict(expected), dict(expected), dict(expected), {}, {}
     allowed = {(row['package'], row['name']): row for row in exclusions}
     require(set(allowed) <= set(expected), 'unlisted Go scope exclusion')
@@ -355,7 +350,7 @@ def verify_go(raw, expected, repeats, exclusions=(), package_inventory=None):
         package = row.get('Package')
         key = (package, test)
         require(package in packages, 'unlisted Go package ran')
-        require(not test or package not in empty, 'test ran in Go no-test package')
+        require(package not in empty or 'Test' not in row, 'test ran in Go no-test package')
         require(action != 'fail', 'failed Go package or subtest')
         if action == 'output' and test:
             output[key] = output.get(key, '') + row.get('Output', '')
@@ -480,10 +475,10 @@ class Execution:
         argv = action['argv']
         listing = self.call(go_listing_argv(argv), action['cwd'], env)
         listing_name = self.rows[-1]['name']
-        inventory = parse_go_packages(listing)
+        inventory = parse_go_inventory(listing)
         raw = self.call([*argv[:2], '-json', *argv[2:]], action['cwd'], env)
-        exclusions = go_scope_exclusions(inventory['roots'])
-        roots = verify_go(raw, inventory['roots'], action.get('repeats', 1), exclusions, inventory)
+        exclusions = go_scope_exclusions(inventory)
+        roots = verify_go(raw, inventory, action.get('repeats', 1), exclusions)
         return dict(kind='go-tests', roots=roots, listing=listing_name, run=self.rows[-1]['name'],
                     repetitions=action.get('repeats', 1), scope_exclusions=exclusions, inventory_sha256=hashlib.sha256(listing).hexdigest())
 
@@ -697,10 +692,10 @@ def authenticate_result(plan_path, label):
                                     GOMAD_REPLAY_PLAN_CORPUS_DIR=str(root / ('replay-generation-' + str(result_index))))
                 consume(row['listing'], owned, go_listing_argv(argv), recipe_row['cwd'], go_extra)
                 consume(row['run'], owned, [*argv[:2], '-json', *argv[2:]], recipe_row['cwd'], go_extra)
-                inventory = parse_go_packages(raw(row['listing'], owned))
-                exclusions = go_scope_exclusions(inventory['roots'])
+                inventory = parse_go_inventory(raw(row['listing'], owned))
+                exclusions = go_scope_exclusions(inventory)
                 require(row['scope_exclusions'] == exclusions, 'changed Go exclusion witness')
-                observed = verify_go(raw(row['run'], owned), inventory['roots'], row['repetitions'], exclusions, inventory)
+                observed = verify_go(raw(row['run'], owned), inventory, row['repetitions'], exclusions)
                 scope_exclusions.extend(exclusions)
                 require(observed == row['roots'], 'Go roots differ from raw execution')
                 for line in raw(row['run'], owned).decode().splitlines():
