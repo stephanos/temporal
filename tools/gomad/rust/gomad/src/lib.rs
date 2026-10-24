@@ -5,6 +5,7 @@ pub mod backstop;
 pub mod campaign;
 pub mod cli;
 pub(crate) mod config;
+pub(crate) mod cycle;
 pub mod evidence;
 pub mod execute;
 #[cfg(feature = "determinism-fixture")]
