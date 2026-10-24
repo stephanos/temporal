@@ -2,7 +2,7 @@
 #![deny(unsafe_code)]
 #![allow(clippy::print_stdout, clippy::print_stderr)]
 #[path = "../../src/syscall.rs"]
-#[allow(unsafe_code, dead_code)]
+#[allow(dead_code)]
 mod syscall;
 
 #[forbid(unsafe_code)]
@@ -106,6 +106,21 @@ mod fixture {
             }
             "utf8" => io::stdout().write_all(&[255])?,
             "echo" => io::stdout().write_all(b"native\n")?,
+            #[cfg(target_os = "linux")]
+            "poison-atfork" => {
+                syscall::poison_atfork_child()?;
+                let mut command = Command::new(env::current_exe()?);
+                command.arg("echo");
+                let (status, output) = umpire_backend_process::run_process(
+                    &mut command,
+                    Path::new(&args[2]),
+                    "poison",
+                    Limits { timeout: Duration::from_secs(5), ..Limits::default() },
+                    None,
+                )?;
+                assert!(status.success(), "pthread_atfork child handler ran: {status}");
+                assert_eq!(output, "native\n");
+            }
             "argv-env" => {
                 println!("arg:{}", args[2]);
                 println!("value:{}", env::var("UMPIRE_PROCESS_VALUE")?);
@@ -159,7 +174,28 @@ mod fixture {
             if let Ok(pid) = fs::read_to_string(&self.supervisor) {
                 let _ = signal(pid.trim(), "-KILL");
             }
-            let _ = syscall::reap_owned_children();
+            let children_path = format!("/proc/self/task/{}/children", process::id());
+            for _ in 0..100 {
+                let children = fs::read_to_string(&children_path).unwrap_or_default();
+                let mut live = false;
+                for pid in children.split_whitespace() {
+                    let zombie =
+                        fs::read_to_string(format!("/proc/{pid}/status")).is_ok_and(|status| {
+                            status
+                                .lines()
+                                .any(|line| line.starts_with("State:") && line.contains('Z'))
+                        });
+                    if !zombie {
+                        live = true;
+                        let _ = signal(pid, "-KILL");
+                    }
+                }
+                if !live {
+                    let _ = syscall::reap_owned_children();
+                    break;
+                }
+                thread::sleep(Duration::from_millis(5));
+            }
         }
     }
     #[cfg(target_os = "linux")]
