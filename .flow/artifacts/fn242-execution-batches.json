@@ -6667,7 +6667,14 @@
       "owner_fixture_extension": {
         "file": "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
         "purpose": "Only command/RetainedSession dispatch arm, shared exclusive initializer; conductor integrates with B03 bindings arm."
-      }
+      },
+      "current_contract_corrections": [
+        {
+          "id": "reader:core_codec:recovery_image:430:8",
+          "correction": "For original compound row reader:core_codec:recovery_image:430:8, the historical Python sum(durable object bytes)<=volume capacity guard is erroneous: the authoritative volume/image.rs validate_tree contract admits dependency-closed partial durable states above volume capacity, while volatile growth and recovered-namespace resource bounds remain enforced. Preserve that current behavior rather than add a new receiver refusal. Keep the original row retained for inode<next_inode and all surviving integrity/bounds terms; identify the corrected byte-capacity term explicitly and prove an actually accepted partial-durability over-capacity control through the real decoder/receiver, plus retained-boundary catchers. This is a receiving correctness correction, not a legacy byte-compatibility waiver or an automatic caught/retired row.",
+          "authority": "fn-242-gomad-shrink-the-qualification.21 Recovery capacity contract correction"
+        }
+      ]
     },
     {
       "id": "B05",
