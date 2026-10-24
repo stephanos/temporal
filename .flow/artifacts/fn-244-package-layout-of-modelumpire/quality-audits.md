@@ -60,3 +60,23 @@ stage: quality-audits - ran (two independent axes; snapshot 06d85823c8)
 ## Reconciliation after the audited snapshot
 
 The grouped-import defect is fixed in `d31cc44b0d`; the facade-only consumer reproduces the original admission failure and passes after recursive grouped-path normalization. Strict workspace clippy, actual CI guest rebuild with identical bytes, and the refreshed full timed default gate pass (437.824s gate, 7.378s inner loop). The host README now names `../../protocol/proto/umpire/…`. Both original axis reports above remain verbatim; their findings are addressed by these subsequent changes.
+
+### Correctness axis follow-up
+
+Audited committed head `4dacc5bdcb91ac78703a0b6fd95d03589dda057c`.
+
+The grouped-facade finding is resolved (**walked**). `facade_use_tree` now strips `dsl` through nested groups while preserving other prefixes. The real consumer exercises grouped imports and retains its `embedded.model.is_ok()` assertion; unit controls cover nested groups and prefix preservation.
+
+Remaining findings in this follow-up scope: **0**. No tests, builds, or writes performed.
+
+### Standards axis follow-up
+
+Resolved at `4dacc5bdcb91ac78703a0b6fd95d03589dda057c`. Evidence: executed; the corrected README path resolves to all four existing schema files. Unresolved findings: 0.
+
+### Final disposition
+
+Correctness axis: the one Should Fix finding is resolved; zero findings remain in the follow-up scope.
+
+Standards axis: the one Consider finding is resolved; zero findings remain in the follow-up scope.
+
+Task closure `0ddf1b5a76` records the final required TLC gate passing, the unchanged guest, artifact checks and implementation-review SHIP. The parent spec-completion review remains separate.
