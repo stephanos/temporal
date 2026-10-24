@@ -418,10 +418,12 @@ func (d *Driver) startWorker(context.Context) error {
 		return d.workerErr
 	}
 	sdk, err := client.NewLazyClient(client.Options{
-		HostPort:  d.opts.Address,
-		Namespace: d.opts.Namespace,
-		Logger:    sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
+		HostPort:    d.opts.Address,
+		Namespace:   d.opts.Namespace,
+		Credentials: d.opts.Transport.ClientCredentials,
+		Logger:      sdklog.NewStructuredLogger(slog.New(slog.DiscardHandler)),
 		ConnectionOptions: client.ConnectionOptions{
+			TLS:         d.opts.Transport.clientTLS(),
 			DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(d.gate.intercept, d.observeResponses)},
 		},
 	})

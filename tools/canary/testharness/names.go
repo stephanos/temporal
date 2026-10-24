@@ -13,8 +13,5 @@ const (
 	VariablePause = "UMPIRE_CANARY_HARNESS_PAUSE"
 )
 
-// ProfileName is the only Evaluation Profile a harness policy may name.
-const ProfileName = "canary-harness"
-
 // CrashExit is the exit code of a crashed harness process, which no mode ever returns.
 const CrashExit = 99

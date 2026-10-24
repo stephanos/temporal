@@ -11,22 +11,21 @@ import (
 
 	"go.temporal.io/sdk/client"
 	sdklog "go.temporal.io/sdk/log"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/common/testing/testpilot/temporal/act"
 	"go.temporal.io/server/tools/canary/policy"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
 
 // The environment variables the protected workflow sets from the production-canary environment.
 const (
-	VariableTLSCert      = "UMPIRE_CANARY_TLS_CERT"
-	VariableTLSKey       = "UMPIRE_CANARY_TLS_KEY"
-	VariableAPIKey       = "UMPIRE_CANARY_API_KEY"
-	VariableGRPC         = "UMPIRE_CANARY_GRPC"
-	VariableNamespace    = "UMPIRE_CANARY_NAMESPACE"
-	VariableTaskQueue    = "UMPIRE_CANARY_TASK_QUEUE"
-	VariableHandlerQueue = "UMPIRE_CANARY_HANDLER_QUEUE"
-	VariableEndpoint     = "UMPIRE_CANARY_ENDPOINT"
+	VariableTLSCert   = "UMPIRE_CANARY_TLS_CERT"
+	VariableTLSKey    = "UMPIRE_CANARY_TLS_KEY"
+	VariableAPIKey    = "UMPIRE_CANARY_API_KEY"
+	VariableGRPC      = "UMPIRE_CANARY_GRPC"
+	VariableNamespace = "UMPIRE_CANARY_NAMESPACE"
+	VariableTaskQueue = "UMPIRE_CANARY_TASK_QUEUE"
 )
 
 // Lookup reads one environment variable, as os.LookupEnv does.
@@ -46,30 +45,20 @@ func (e *Error) Error() string { return e.Variable + ": " + e.Reason }
 // Coordinates are the target's raw names. They are never written: preflight compares their
 // digests with the policy's, and the Redactor removes them from every written text.
 type Coordinates struct {
-	GRPC          string
-	Namespace     string
-	TaskQueue     string
-	HandlerQueue  string
-	NexusEndpoint string
-}
-
-// Driver is the Testpilot environment the coordinates bind the canary Case under.
-func (c Coordinates) Driver() testpilotdriver.Environment {
-	return testpilotdriver.Environment{
-		Namespace: c.Namespace, TaskQueue: c.TaskQueue,
-		HandlerTaskQueue: c.HandlerQueue, NexusEndpoint: c.NexusEndpoint,
-	}
+	GRPC      string
+	Namespace string
+	TaskQueue string
 }
 
 // Digests are the coordinates as the policy records them.
 func (c Coordinates) Digests() policy.Coordinates {
-	return policy.DigestsOf(c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint)
+	return policy.DigestsOf(c.GRPC, c.Namespace, c.TaskQueue)
 }
 
 // Redactor removes every coordinate and each given secret. It is the one list of coordinates a
 // canary redacts, so neither build can leave a coordinate unredacted that the other redacts.
 func (c Coordinates) Redactor(secrets ...string) *Redactor {
-	return NewRedactor(append([]string{c.GRPC, c.Namespace, c.TaskQueue, c.HandlerQueue, c.NexusEndpoint}, secrets...)...)
+	return NewRedactor(append([]string{c.GRPC, c.Namespace, c.TaskQueue}, secrets...)...)
 }
 
 // LoadCoordinates reads every coordinate; each is required.
@@ -83,8 +72,7 @@ func LoadCoordinates(lookup Lookup) (Coordinates, error) {
 		value    *string
 	}{
 		{VariableGRPC, &coordinates.GRPC}, {VariableNamespace, &coordinates.Namespace},
-		{VariableTaskQueue, &coordinates.TaskQueue}, {VariableHandlerQueue, &coordinates.HandlerQueue},
-		{VariableEndpoint, &coordinates.NexusEndpoint},
+		{VariableTaskQueue, &coordinates.TaskQueue},
 	} {
 		value, ok := lookup(field.variable)
 		if !ok || value == "" {
@@ -95,7 +83,7 @@ func LoadCoordinates(lookup Lookup) (Coordinates, error) {
 	return coordinates, nil
 }
 
-// Transport is how the canary reaches its target: the Driver's server endpoint and the SDK client
+// Transport is how the canary reaches its target: the Temporal Driver and the lease's SDK client
 // share one target and one credential. The controller takes it as a value; Load is the untagged
 // binary's only source of one.
 type Transport struct {
@@ -107,13 +95,23 @@ type Transport struct {
 	ClientCredentials client.Credentials
 }
 
-// Endpoint is the Driver's server endpoint for the canary namespace. The namespace header is the
+// Driver is the Temporal Driver's transport to the canary namespace. The namespace header is the
 // routing key a namespace-scoped API key is checked against, which the SDK client sends itself.
-func (t Transport) Endpoint(namespace string) testpilotdriver.Endpoint {
-	return testpilotdriver.Endpoint{
-		Target: t.Target, Credentials: t.Credentials, PerRPCCredentials: t.PerRPCCredentials,
-		Metadata: metadata.Pairs("temporal-namespace", namespace),
+func (t Transport) Driver(namespace string) act.Transport {
+	options := []grpc.DialOption{
+		grpc.WithTransportCredentials(t.Credentials),
+		grpc.WithChainUnaryInterceptor(func(ctx context.Context, method string, request, reply any, conn *grpc.ClientConn, invoke grpc.UnaryInvoker, options ...grpc.CallOption) error {
+			return invoke(metadata.AppendToOutgoingContext(ctx, "temporal-namespace", namespace), method, request, reply, conn, options...)
+		}),
 	}
+	if t.PerRPCCredentials != nil {
+		options = append(options, grpc.WithPerRPCCredentials(t.PerRPCCredentials))
+	}
+	var clientTLS *tls.Config
+	if t.ClientTLS != nil {
+		clientTLS = t.ClientTLS.Clone()
+	}
+	return act.Transport{DialOptions: options, ClientTLS: clientTLS, ClientCredentials: t.ClientCredentials}
 }
 
 // ClientOptions are the SDK client's options for the canary namespace, logging through logger.

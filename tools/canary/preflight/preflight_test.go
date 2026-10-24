@@ -10,16 +10,16 @@ import (
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"umpire.local/temporal"
 )
 
 var testCoordinates = authority.Coordinates{
 	GRPC: "canary-frontend.example.internal:7233", Namespace: "canary-namespace-7c1",
-	TaskQueue: "canary-queue-2b9", HandlerQueue: "canary-handler-queue-5e3", NexusEndpoint: "canary-endpoint-8d4",
+	TaskQueue: "canary-queue-2b9",
 }
 
 // configured is the committed policy with the test coordinates' digests filled in.
@@ -72,14 +72,14 @@ func registered() *namespaces {
 
 func input(canary *policy.Policy, environment map[string]string, coordinates authority.Coordinates, reads Namespaces) Input {
 	return Input{
-		Policy: canary, Lookup: lookupOf(environment), Coordinates: coordinates, Namespaces: reads,
+		Policy: canary, Lookup: lookupOf(environment), Coordinates: coordinates, Namespaces: reads, Guest: temporal.Guest(),
 		Redactor: authority.NewRedactor(testCoordinates.GRPC, testCoordinates.Namespace, testCoordinates.TaskQueue,
-			testCoordinates.HandlerQueue, testCoordinates.NexusEndpoint, coordinates.GRPC, coordinates.Namespace),
+			coordinates.GRPC, coordinates.Namespace),
 	}
 }
 
 // A dispatch of the trusted workflow against the policy's coordinates proves the scope: the
-// digests, the invocation, and the pinned Case prepared for these coordinates, after one read.
+// digests, the invocation, and the committed Model guest the policy pins, after one read.
 func TestCheckProvesTheCanaryScope(t *testing.T) {
 	canary := configured(t)
 	reads := registered()
@@ -89,11 +89,7 @@ func TestCheckProvesTheCanaryScope(t *testing.T) {
 	require.Equal(t, canary.Coordinates, scope.Coordinates)
 	require.Equal(t, 1, reads.reads)
 	require.Equal(t, testCoordinates.Namespace, reads.requested)
-
-	bound, err := casebinding.Bind(canary, testCoordinates.Driver())
-	require.NoError(t, err)
-	require.Equal(t, bound.Prepared.Identity(), scope.Prepared.Identity(), "the Case prepared for these coordinates, under the policy's Profile")
-	require.Equal(t, canary.CaseProfile, scope.Prepared.Identity().Profile)
+	require.Equal(t, temporal.Guest(), scope.Guest, "the policy pins the committed guest")
 }
 
 // Each mismatch refuses by name, returns no Scope, and one decided without a connection makes no
@@ -130,7 +126,7 @@ func TestCheckRefusesEachMismatchByName(t *testing.T) {
 			e[VariableRunAttempt] = "0"
 		}, false},
 		"an unconfigured policy": {StatusPolicyUnconfigured, func(c *policy.Policy, _ map[string]string, _ *authority.Coordinates, _ *namespaces) {
-			c.Coordinates.HandlerQueue = policy.Unconfigured
+			c.Coordinates.TaskQueue = policy.Unconfigured
 		}, false},
 		"another gRPC target": {StatusCoordinateMismatch, func(_ *policy.Policy, _ map[string]string, k *authority.Coordinates, _ *namespaces) {
 			k.GRPC = "elsewhere.example.internal:7233"
@@ -141,14 +137,8 @@ func TestCheckRefusesEachMismatchByName(t *testing.T) {
 		"another task queue": {StatusCoordinateMismatch, func(_ *policy.Policy, _ map[string]string, k *authority.Coordinates, _ *namespaces) {
 			k.TaskQueue = "customer-queue"
 		}, false},
-		"another handler queue": {StatusCoordinateMismatch, func(_ *policy.Policy, _ map[string]string, k *authority.Coordinates, _ *namespaces) {
-			k.HandlerQueue = "customer-handler-queue"
-		}, false},
-		"another Nexus endpoint": {StatusCoordinateMismatch, func(_ *policy.Policy, _ map[string]string, k *authority.Coordinates, _ *namespaces) {
-			k.NexusEndpoint = "customer-endpoint"
-		}, false},
-		"another Case": {StatusCaseMismatch, func(c *policy.Policy, _ map[string]string, _ *authority.Coordinates, _ *namespaces) {
-			c.CaseIdentity = "0000000000000000000000000000000000000000000000000000000000000000"
+		"another Model": {StatusModelMismatch, func(c *policy.Policy, _ map[string]string, _ *authority.Coordinates, _ *namespaces) {
+			c.ModelHash = "0000000000000000000000000000000000000000000000000000000000000000"
 		}, false},
 		"a missing namespace": {StatusNamespaceMissing, func(_ *policy.Policy, _ map[string]string, _ *authority.Coordinates, n *namespaces) {
 			n.err = serviceerror.NewNamespaceNotFound(testCoordinates.Namespace)
@@ -191,7 +181,7 @@ func TestCheckRefusesEachMismatchByName(t *testing.T) {
 			}
 			for _, value := range []string{
 				testCoordinates.GRPC, "canary-frontend.example.internal", testCoordinates.Namespace, testCoordinates.TaskQueue,
-				testCoordinates.HandlerQueue, testCoordinates.NexusEndpoint, coordinates.GRPC, coordinates.Namespace,
+				coordinates.GRPC, coordinates.Namespace,
 			} {
 				require.NotContains(t, refusal.Error(), value, "a refusal's detail never carries a coordinate")
 			}

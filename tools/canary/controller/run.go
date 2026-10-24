@@ -5,62 +5,59 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"slices"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	commonpb "go.temporal.io/api/common/v1"
-	"go.temporal.io/sdk/client"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/duration"
-	"go.temporal.io/server/common/testing/testpilot/evaluation"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/server/common/testing/testpilot/temporal/act"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"umpire.local/model/umpire/runner"
 )
 
-// An iteration's status: fn-26's three decisions, or unconstructible when the Run errored or its
-// record could not be admitted, which has no receipt.
+// An iteration's status: the Run's verdict, or failed when no Run was made or the loop could not
+// run, which publishes nothing.
 const (
-	StatusAccepted        = evaluation.DecisionAccepted
-	StatusRejected        = evaluation.DecisionRejected
-	StatusIncomplete      = evaluation.DecisionIncomplete
-	StatusUnconstructible = "unconstructible"
+	StatusExplained   = "explained"
+	StatusUnexplained = "unexplained"
+	StatusRefused     = "refused"
+	StatusFailed      = "failed"
 )
 
 const (
-	// workerStopTimeout bounds the Driver's worker stop when an iteration releases it.
-	workerStopTimeout = 10 * time.Second
-	// releaseTimeout bounds each iteration's Driver and client release, under its own context.
+	// runTimeout bounds one Run: the Runner's own run budget.
+	runTimeout = 2 * time.Minute
+	// releaseTimeout bounds each iteration's Driver release, under its own context.
 	releaseTimeout = 30 * time.Second
 	// notFoundMargin is how much longer than one RPC's timeout the pause between the two reads
-	// that decide a fenced workflow never started is, so a start still in flight has landed.
+	// that decide a fenced activity never started is, so a start still in flight has landed.
 	notFoundMargin = time.Second
+	// notFoundPause is that pause: the Temporal Driver's RPC timeout plus the margin.
+	notFoundPause = act.DefaultRPCTimeout + notFoundMargin
 )
 
-// Outcome is what decide made of one iteration: its status, its rendered receipt (none for an
-// unconstructible one), and any error.
+// Outcome is what one iteration came to: its status, the Run it recorded (none for a failed
+// one), and any error.
 type Outcome struct {
-	Status  string
-	Receipt []byte
-	Err     error
+	Status string
+	Run    *runner.Run
+	Err    error
 }
 
-// Decide assesses one closed Run; .8 wires it to fn-26's admission and assessment.
-type Decide func(run *testpilotspb.Run, verdict *testpilotspb.Verdict) Outcome
-
-// Iteration is one Run the invocation made and what decide made of it.
+// Iteration is one fenced activity the invocation ran the Model against, and what came of it.
 type Iteration struct {
-	RunID   string
-	Outcome Outcome
+	ActivityID string
+	Outcome    Outcome
 }
 
-// Cleanup is what cleanup did: the workflow IDs the fence names, those verified closed, those it
+// Cleanup is what cleanup did: the activity IDs the fence names, those verified closed, those it
 // could not verify, whether the lease was released, and why not.
 type Cleanup struct {
 	Fenced     []string
@@ -89,13 +86,13 @@ type StopKind int
 const (
 	// StopNone: every iteration the policy allows ran.
 	StopNone StopKind = iota
-	// StopDecision: an iteration was not accepted.
+	// StopDecision: an iteration was not explained.
 	StopDecision
 	// StopLimit: too little of the invocation limit was left for another iteration.
 	StopLimit
 	// StopInterrupted: the invocation was cancelled.
 	StopInterrupted
-	// StopRelease: an iteration's Driver did not release.
+	// StopRelease: an iteration's Driver factory did not release.
 	StopRelease
 	// StopRecord: the recovery record could not be written.
 	StopRecord
@@ -107,19 +104,18 @@ type Config struct {
 	Policy    *policy.Policy
 	Scope     *preflight.Scope
 	Namespace string
+	TaskQueue string
 	Transport authority.Transport
 	Redactor  *authority.Redactor
 	// Service is the lease's and cleanup's view of the target, namespace-scoped.
 	Service  Service
 	Identity string
-	Dial     func(client.Options) (client.Client, error)
-	Decide   Decide
 	Recovery *recovery.Store
 	// Progress receives the redacted progress lines, at most the policy's progress bytes.
 	Progress io.Writer
 	// Started is when `run` started; the invocation limit runs from it.
 	Started time.Time
-	// Wait is the pause workflowClosed takes; nil is a real one.
+	// Wait is the pause activityClosed takes; nil is a real one.
 	Wait Wait
 	// Hook is told each phase the invocation reaches; nil in the untagged build, where nothing
 	// but the harness's crash hook would use it.
@@ -141,28 +137,28 @@ func (c *Config) phase(name string) {
 }
 
 func (c *Config) validate() error {
-	if c.Policy == nil || c.Scope == nil || c.Scope.Prepared == nil || c.Namespace == "" || c.Redactor == nil || c.Service == nil ||
-		c.Dial == nil || c.Decide == nil || c.Recovery == nil || c.Progress == nil || c.Started.IsZero() || c.Transport.Target == "" ||
+	if c.Policy == nil || c.Scope == nil || len(c.Scope.Guest) == 0 || c.Namespace == "" || c.TaskQueue == "" || c.Redactor == nil ||
+		c.Service == nil || c.Recovery == nil || c.Progress == nil || c.Started.IsZero() || c.Transport.Target == "" ||
 		c.Transport.Credentials == nil {
 		return errors.New("the canary controller needs every input")
 	}
 	return nil
 }
 
-// invocation is one Run call's state. openDriver and runCase are the real Driver and the prepared
-// Case's Run; a unit test replaces them to script iterations against a fake server.
+// invocation is one Run call's state. openDriver and runModel are the real Temporal Driver and the
+// Runner; a unit test replaces them to script iterations against a fake server.
 type invocation struct {
 	Config
 	target     Target
 	progress   *authority.Writer
 	wait       Wait
-	openDriver func() (testpilot.Driver, func(context.Context) error, error)
-	runCase    func(context.Context, testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+	openDriver func() (runner.NewDriver, func(context.Context) error, error)
+	runModel   func(context.Context, *anypb.Any, runner.NewDriver) (*runner.Run, error)
 }
 
-// Run is one invocation: read the lease and refuse an unreconciled one; take it; run the prepared
-// Case serially, each iteration through a fresh fenced Driver, stopping after the first that is
-// not accepted, at the policy's iterations or when too little of the invocation limit is left for
+// Run is one invocation: read the lease and refuse an unreconciled one; take it; run the Model
+// serially, each iteration one Run against a fresh activity the lease fences first, stopping after
+// the first Run that is not explained, at the policy's iterations or when too little of the invocation limit is left for
 // another Run; and clean up under the reserve on every exit after the lease is held. An error is
 // a tooling failure before any lease was taken.
 func Run(ctx context.Context, config Config) (*Result, error) {
@@ -194,32 +190,39 @@ func newInvocation(config Config) *invocation {
 		run.wait = sleep
 	}
 	run.openDriver = run.openTemporalDriver
-	run.runCase = config.Scope.Prepared.Run
+	run.runModel = run.explore
 	return run
 }
 
-// openTemporalDriver opens a fresh SDK client, logging through the Redactor, and a Driver over it
-// for the canary's Profile and transport; its release closes both.
-func (r *invocation) openTemporalDriver() (testpilot.Driver, func(context.Context) error, error) {
-	sdk, err := r.Dial(r.Transport.ClientOptions(r.Namespace, r.Redactor.Logger(r.progress)))
-	if err != nil {
-		return nil, nil, fmt.Errorf("open the SDK client: %w", err)
-	}
-	driver, err := testpilotdriver.New(testpilotdriver.Options{
-		Profile:           r.Scope.Profile,
-		ServerEndpoints:   map[string]testpilotdriver.Endpoint{casebinding.EndpointRole: r.Transport.Endpoint(r.Namespace)},
-		SDKClient:         sdk,
-		WorkerRoleID:      casebinding.WorkerRole,
-		WorkerStopTimeout: workerStopTimeout,
+// openTemporalDriver makes the Temporal Driver's factory for the canary's namespace, queue and
+// transport; its release closes the factory.
+func (r *invocation) openTemporalDriver() (runner.NewDriver, func(context.Context) error, error) {
+	factory, err := act.NewFactory(act.Options{
+		Address: r.Transport.Target, Namespace: r.Namespace, TaskQueue: r.TaskQueue,
+		Transport: r.Transport.Driver(r.Namespace),
 	})
 	if err != nil {
-		sdk.Close()
 		return nil, nil, fmt.Errorf("open the Driver: %w", err)
 	}
-	return driver, func(ctx context.Context) error {
-		defer sdk.Close()
-		return driver.Close(ctx)
-	}, nil
+	return factory.New, factory.Close, nil
+}
+
+// explore is one Run of the Model's guest from world, at seed 1, through newDriver.
+func (r *invocation) explore(ctx context.Context, world *anypb.Any, newDriver runner.NewDriver) (*runner.Run, error) {
+	return runner.New(r.Scope.Guest, newDriver).Run(ctx, runner.ModeExplore, runner.Options{World: world, Seed: 1, RunTimeout: runTimeout})
+}
+
+// world is the canary's one activity: a Start the Model admits, on the canary queue, whose worker
+// completes it, under the given activity ID.
+func (r *invocation) world(activityID string) (*anypb.Any, error) {
+	return anypb.New(&workflowservice.StartActivityExecutionRequest{
+		Namespace: r.Namespace, ActivityId: activityID,
+		ActivityType: &commonpb.ActivityType{Name: "UmpireCanary"}, TaskQueue: &taskqueuepb.TaskQueue{Name: r.TaskQueue},
+		StartToCloseTimeout: durationpb.New(20 * time.Second), RetryPolicy: &commonpb.RetryPolicy{MaximumAttempts: 1},
+		Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{
+			Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete"),
+		}}},
+	})
 }
 
 func (r *invocation) logf(format string, arguments ...any) {
@@ -295,29 +298,12 @@ func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error)
 	return &Result{Lease: &found, Unreconciled: true}, nil
 }
 
-// notFoundPause is one RPC's timeout, the instruction default the prepared Case declares, plus a
-// margin. A Case that declares none gives no timeout to wait out, which is an error, as reconcile's.
-func (r *invocation) notFoundPause() (time.Duration, error) {
-	ms, err := duration.Milliseconds("instruction_defaults.timeout", r.Scope.Prepared.Snapshot().GetProgram().GetInstructionDefaults().GetTimeout())
-	if err != nil {
-		return 0, err
-	}
-	if ms <= 0 {
-		return 0, errors.New("the prepared canary Case declares no instruction timeout")
-	}
-	return time.Duration(ms)*time.Millisecond + notFoundMargin, nil
-}
-
-// iterationBound is the longest one iteration can take: a Run spends its total duration running,
-// a cleanup window each on termination, cleanup and close, and its total duration again closing
-// its Verdict, the later steps under fresh contexts no invocation deadline reaches; then the Driver's
-// release. An iteration starts only when this much of the invocation limit is left, so a live
-// invocation never outlives the limit plus the cleanup reserve that reconcile's age guard assumes.
+// iterationBound is the longest one iteration can take: a Run's own budget, then its Drivers'
+// close and the factory's release. An iteration starts only when this much of the invocation limit
+// is left, so a live invocation never outlives the limit plus the cleanup reserve that reconcile's
+// age guard assumes.
 func (r *invocation) iterationBound() time.Duration {
-	limits := r.Scope.Profile.ProgramLimits
-	total := limits.GetMaxDuration().AsDuration()
-	cleanup := limits.GetCleanupDuration().AsDuration()
-	return 2*total + 3*cleanup + releaseTimeout
+	return runTimeout + act.DefaultCloseTimeout + releaseTimeout
 }
 
 func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
@@ -333,7 +319,7 @@ func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 		iteration, releaseErr := r.iteration(ctx, fence)
 		result.Iterations = append(result.Iterations, iteration)
 		r.phase(PhaseIterationClosed)
-		r.logf("iteration %d: run %s %s", index+1, iteration.RunID, iteration.Outcome.Status)
+		r.logf("iteration %d: activity %s %s", index+1, iteration.ActivityID, iteration.Outcome.Status)
 		// A Driver that did not release is a tooling failure whatever the iteration decided, and no
 		// Driver starts beside one that may still hold workers or connections.
 		if releaseErr != nil {
@@ -341,58 +327,68 @@ func (r *invocation) iterate(ctx context.Context, fence Fence, result *Result) {
 			r.logf("iteration %d: the Driver did not release: %s", index+1, releaseErr)
 			return
 		}
-		if iteration.Outcome.Status != StatusAccepted {
+		if iteration.Outcome.Status != StatusExplained {
 			result.Stopped, result.StoppedBy = "iteration "+fmt.Sprint(index+1)+" was "+iteration.Outcome.Status, StopDecision
 			return
 		}
 	}
 }
 
-// iteration runs the prepared Case once through a fresh fenced Driver and SDK client, releases
-// both, and decides the closed Run. It returns the release's failure beside the iteration, and
-// turns a panic in the Run or in decide into an unconstructible iteration, so cleanup still runs.
+// iteration fences a fresh activity on the lease, runs the Model against it through a fenced
+// Temporal Driver, and releases the Driver's factory. It returns the release's failure beside the
+// iteration, and turns a panic in the Run into a failed iteration, so cleanup still runs.
 func (r *invocation) iteration(ctx context.Context, fence Fence) (Iteration, error) {
-	unconstructible := func(runID string, err error) Iteration {
-		return Iteration{RunID: runID, Outcome: Outcome{Status: StatusUnconstructible, Err: err}}
+	failed := func(activityID string, err error) Iteration {
+		return Iteration{ActivityID: activityID, Outcome: Outcome{Status: StatusFailed, Err: err}}
 	}
-	driver, release, err := r.openDriver()
+	activityID := newActivityID()
+	if err := signalRunOpened(ctx, r.target, fence, activityID); err != nil {
+		return failed("", err), nil
+	}
+	if err := r.Recovery.Update(func(record *recovery.Record) {
+		record.CurrentActivityID = activityID
+		record.Iterations = append(record.Iterations, recovery.Iteration{ActivityID: activityID})
+	}); err != nil {
+		return failed(activityID, err), nil
+	}
+	r.phase(PhaseRunOpened)
+	world, err := r.world(activityID)
 	if err != nil {
-		return unconstructible("", err), nil
+		return failed(activityID, err), nil
 	}
-	fenced := NewFencedDriver(driver, func(ctx context.Context, runID string) error {
-		if err := signalRunOpened(ctx, r.target, fence, runID); err != nil {
-			return err
-		}
-		if err := r.Recovery.Update(func(record *recovery.Record) {
-			record.CurrentRunID = runID
-			record.Iterations = append(record.Iterations, recovery.Iteration{RunID: runID})
-		}); err != nil {
-			return err
-		}
-		r.phase(PhaseRunOpened)
-		return nil
-	})
-	var run *testpilotspb.Run
-	var verdict *testpilotspb.Verdict
+	newDriver, release, err := r.openDriver()
+	if err != nil {
+		return failed(activityID, err), nil
+	}
+	var run *runner.Run
 	runErr := safely(func() (err error) {
-		run, verdict, err = r.runCase(ctx, fenced)
+		run, err = r.runModel(ctx, world, fenced(newDriver, activityID))
 		return err
 	})
 	releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
 	releaseErr := safely(func() error { return release(releaseCtx) })
 	cancel()
-	runID := fenced.Opened()
+	if runErr == nil && run == nil {
+		runErr = errors.New("the Runner returned no Run")
+	}
 	if runErr != nil {
-		return unconstructible(runID, errors.Join(fmt.Errorf("run the canary Case: %w", runErr), releaseErr)), releaseErr
+		return failed(activityID, errors.Join(fmt.Errorf("run the Model: %w", runErr), releaseErr)), releaseErr
 	}
-	var outcome Outcome
-	if err := safely(func() error { outcome = r.Decide(run, verdict); return nil }); err != nil {
-		outcome = Outcome{Status: StatusUnconstructible, Err: err}
+	return Iteration{ActivityID: activityID, Outcome: Outcome{Status: statusOf(run), Run: run}}, releaseErr
+}
+
+// statusOf is a Run's verdict as an iteration's status.
+func statusOf(run *runner.Run) string {
+	switch {
+	case run.GetVerdict().GetExplained() != nil:
+		return StatusExplained
+	case run.GetVerdict().GetUnexplained() != nil:
+		return StatusUnexplained
+	case run.GetVerdict().GetRefused() != nil:
+		return StatusRefused
+	default:
+		return StatusFailed
 	}
-	if !slices.Contains([]string{StatusAccepted, StatusRejected, StatusIncomplete, StatusUnconstructible}, outcome.Status) {
-		outcome = Outcome{Status: StatusUnconstructible, Err: fmt.Errorf("decide returned status %q", outcome.Status)}
-	}
-	return Iteration{RunID: runID, Outcome: outcome}, releaseErr
 }
 
 // safely runs step and reports a panic in it as an error.
@@ -405,7 +401,7 @@ func safely(step func() error) (err error) {
 	return step()
 }
 
-// cleanup closes exactly the workflows the fence names, and releases the lease only when every
+// cleanup closes exactly the activities the fence names, and releases the lease only when every
 // one is verified closed; otherwise it leaves the lease held and the scope uncertain.
 func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iteration) *Cleanup {
 	outcome := &Cleanup{}
@@ -423,20 +419,16 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 	fenced, err := fencedIDs(ctx, r.target, fence)
 	if err != nil {
 		for _, iteration := range iterations {
-			if iteration.RunID != "" {
-				outcome.Unverified = append(outcome.Unverified, iteration.RunID)
+			if iteration.ActivityID != "" {
+				outcome.Unverified = append(outcome.Unverified, iteration.ActivityID)
 			}
 		}
 		return uncertain(err)
 	}
 	outcome.Fenced = fenced
-	pause, err := r.notFoundPause()
-	if err != nil {
-		return uncertain(err)
-	}
 	var failures []error
 	for _, id := range fenced {
-		closed, _, err := closeFenced(ctx, r.target, id, pause, r.wait, ReasonCleanup)
+		closed, _, err := closeFenced(ctx, r.target, id, notFoundPause, r.wait, ReasonCleanup)
 		switch {
 		case err != nil:
 			failures = append(failures, err)
@@ -448,7 +440,7 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 		}
 	}
 	if len(outcome.Unverified) > 0 {
-		return uncertain(errors.Join(append(failures, fmt.Errorf("%d fenced workflows are not verified closed", len(outcome.Unverified)))...))
+		return uncertain(errors.Join(append(failures, fmt.Errorf("%d fenced activities are not verified closed", len(outcome.Unverified)))...))
 	}
 	if err := terminate(ctx, r.target, &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID}, ReasonReleased); err != nil {
 		return uncertain(fmt.Errorf("release the canary lease: %w", err))
@@ -463,11 +455,11 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 	outcome.Released = true
 	if err := r.Recovery.Update(func(record *recovery.Record) {
 		record.Phase = recovery.PhaseReleased
-		record.CurrentRunID = ""
+		record.CurrentActivityID = ""
 	}); err != nil {
 		outcome.Err = err
 	}
-	r.logf("cleanup released the lease; %d fenced workflows closed", len(outcome.Closed))
+	r.logf("cleanup released the lease; %d fenced activities closed", len(outcome.Closed))
 	return outcome
 }
 

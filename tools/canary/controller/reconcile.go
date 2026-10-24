@@ -12,7 +12,6 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
@@ -27,7 +26,7 @@ const (
 	StatusRecoveryUnreadable = "recovery-unreadable"
 )
 
-// reconcileTimeout bounds one reconcile: a few reads and terminations per fenced workflow.
+// reconcileTimeout bounds one reconcile: a few reads and terminations per fenced activity.
 const reconcileTimeout = 5 * time.Minute
 
 // Reconciliation is one `reconcile`: the build's seams, the job's environment, the job's recovery
@@ -45,21 +44,21 @@ type Reconciliation struct {
 }
 
 // Report is reconcile's one document, in a fixed key order: what it acted on, what it closed, what
-// it could not verify, and what its job's iterations came to. It never names a receipt it did not
-// see published, and fabricates no Verdict.
+// it could not verify, and what its job's iterations came to. It never names a Run it did not see
+// published, and fabricates no verdict.
 type Report struct {
 	Status     string          `json:"status"`
 	Detail     string          `json:"detail,omitempty"`
 	Invocation string          `json:"invocation,omitempty"`
 	Lease      *recovery.Lease `json:"lease,omitempty"`
 	Fenced     []string        `json:"fenced"`
-	// Closed are the fenced workflows verified closed; Terminated are those reconcile closed.
+	// Closed are the fenced activities verified closed; Terminated are those reconcile closed.
 	Closed     []string `json:"closed"`
 	Terminated []string `json:"terminated"`
 	Unverified []string `json:"unverified"`
 	// Lost are the iterations the job's own record shows opened and never published.
 	Lost []string `json:"lost"`
-	// PublicationUnknown are a found lease's fenced Runs, whose publication belongs to the earlier
+	// PublicationUnknown are a found lease's fenced activities, whose Runs' publication belongs to the earlier
 	// invocation's artifact, which FoundArtifact names when the lease's start says whose it was.
 	PublicationUnknown []string `json:"publicationUnknown"`
 	FoundInvocation    string   `json:"foundInvocation,omitempty"`
@@ -70,9 +69,8 @@ type Report struct {
 // invocation ID after it.
 const ArtifactPrefix = "umpire-production-canary-"
 
-// Reconcile acts only on the (lease ID, run ID) its job's recovery record names. It never
-// prepares, dispatches, assesses, or writes a receipt or provenance: it verifies or terminates
-// exactly the workflows that lease run fenced, then records the scope reconciled, or leaves the
+// Reconcile acts only on the (lease ID, run ID) its job's recovery record names. It never runs the
+// Model or publishes a Run: it verifies or terminates exactly the activities that lease run fenced, then records the scope reconciled, or leaves the
 // lease held and reports the scope uncertain. It returns the report and the exit: 0 reconciled or
 // nothing to reconcile, 2 uncertain or the lease in use, 3 a tooling failure.
 func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int) {
@@ -101,7 +99,7 @@ func Reconcile(ctx context.Context, reconciliation Reconciliation) (Report, int)
 		return done(StatusNothingToReconcile, ExitAccepted,
 			"the job's record names no lease; one may be held, and the next dispatch finds and refuses it until it is reconciled")
 	}
-	canary, _, err := reconciliation.Seams.Policy()
+	canary, err := reconciliation.Seams.Policy()
 	if err != nil {
 		return done(StatusPolicyUnavailable, ExitFailed, err.Error())
 	}
@@ -198,7 +196,7 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 		// operator to close by hand.
 		if lease.Held == recovery.HeldTook {
 			for _, iteration := range r.record.Iterations {
-				r.report.Unverified = append(r.report.Unverified, iteration.RunID)
+				r.report.Unverified = append(r.report.Unverified, iteration.ActivityID)
 			}
 		}
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
@@ -207,14 +205,8 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 	if err := r.lostOrUnknown(ctx, fence, fenced); err != nil {
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
 	}
-	// One RPC's timeout is the pinned Case's instruction default, as the run's cleanup reads it.
-	timeout, err := casebinding.InstructionTimeout()
-	if err != nil {
-		return StatusReconcileUncertain, ExitUncertain, err.Error()
-	}
-	pause := timeout + notFoundMargin
 	for _, id := range fenced {
-		closed, terminated := r.close(ctx, id, pause)
+		closed, terminated := r.close(ctx, id, notFoundPause)
 		if terminated {
 			r.report.Terminated = append(r.report.Terminated, id)
 		}
@@ -226,19 +218,19 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 	}
 	if len(r.report.Unverified) > 0 {
 		return StatusReconcileUncertain, ExitUncertain, fmt.Sprintf(
-			"%d fenced workflows are not verified closed; close them by hand and dispatch again", len(r.report.Unverified))
+			"%d fenced activities are not verified closed; close them by hand and dispatch again", len(r.report.Unverified))
 	}
 	if err := r.release(ctx, fence, observed); err != nil {
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
 	}
-	r.logf("reconciled: %d fenced workflows closed", len(r.report.Closed))
+	r.logf("reconciled: %d fenced activities closed", len(r.report.Closed))
 	return StatusReconciled, ExitAccepted, ""
 }
 
 // lostOrUnknown reports the job's iterations: on its own lease, those its record shows opened and
-// unpublished are lost, unless its run finished publishing, when an unpublished one was
-// unconstructible and had no receipt to lose; on a found lease, the fenced Runs' publication is the
-// earlier invocation's to show, in the artifact its lease's start names.
+// unpublished are lost, unless its run finished publishing, when an unpublished one failed and had
+// no Run to lose; on a found lease, the fenced activities' Runs are the earlier invocation's to
+// show, in the artifact its lease's start names.
 func (r *reconciler) lostOrUnknown(ctx context.Context, fence Fence, fenced []string) error {
 	if r.record.Lease.Held == recovery.HeldFound {
 		r.report.PublicationUnknown = nonNil(fenced)
@@ -256,18 +248,18 @@ func (r *reconciler) lostOrUnknown(ctx context.Context, fence Fence, fenced []st
 	}
 	for _, iteration := range r.record.Iterations {
 		if !iteration.Published {
-			r.report.Lost = append(r.report.Lost, iteration.RunID)
+			r.report.Lost = append(r.report.Lost, iteration.ActivityID)
 		}
 	}
 	return nil
 }
 
-// close verifies one fenced workflow closed, terminating it first when it is open, and says
+// close verifies one fenced activity closed, terminating it first when it is open, and says
 // whether it is closed and whether reconcile terminated it.
 func (r *reconciler) close(ctx context.Context, id string, pause time.Duration) (closed, terminated bool) {
 	closed, terminated, err := closeFenced(ctx, r.target, id, pause, r.wait, ReasonReconciled)
 	if err != nil {
-		r.logf("fenced workflow %s: %s", id, err)
+		r.logf("fenced activity %s: %s", id, err)
 		return false, terminated
 	}
 	return closed, terminated

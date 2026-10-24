@@ -4,116 +4,97 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
-	"time"
+	"io"
+	"strings"
 
+	"github.com/google/uuid"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/anypb"
+	runv1 "umpire.local/model/umpire/run/v1"
+	"umpire.local/model/umpire/runner"
 )
 
-var (
-	// ErrSecondOpen is a fenced Driver asked to open a second Run: each iteration's Driver opens
-	// one, so a concurrent or repeated Run fails closed.
-	ErrSecondOpen = errors.New("a fenced canary Driver opens one Run")
-	// ErrOutsideFence is a workflow start whose ID is not the fenced Run's.
-	ErrOutsideFence = errors.New("the canary starts only the workflow its fence names")
-)
+// ErrOutsideFence is a start the fence does not name: another activity, or any other execution.
+var ErrOutsideFence = errors.New("the canary starts only the activity its fence names")
 
-// startWorkflowExecution is the one method that creates a workflow the fence must name.
-var startWorkflowExecution = workflowservice.File_temporal_api_workflowservice_v1_service_proto.
-	Services().ByName("WorkflowService").Methods().ByName("StartWorkflowExecution").FullName()
+// activityPrefix begins every activity ID the canary fences, a fresh UUID after it.
+const activityPrefix = "umpire-canary-"
 
-// Fencer records a Run's ID on the lease before anything runs.
-type Fencer func(ctx context.Context, runID string) error
+// newActivityID is a fresh activity ID for one iteration.
+func newActivityID() string { return activityPrefix + uuid.NewString() }
 
-// FencedDriver wraps a Testpilot Driver so a Run is fenced before it is opened: Open signals the
-// Run's ID to the lease and only then delegates, and the Session it returns refuses to start any
-// workflow but the one that ID names, which is the Case's own workflow ID.
-type FencedDriver struct {
-	driver testpilot.Driver
-	fence  Fencer
-	mu     sync.Mutex
-	opened string
-}
-
-// NewFencedDriver fences driver's Runs with fence.
-func NewFencedDriver(driver testpilot.Driver, fence Fencer) *FencedDriver {
-	return &FencedDriver{driver: driver, fence: fence}
-}
-
-func (f *FencedDriver) Identity(ctx context.Context) (testpilot.DriverIdentity, error) {
-	return f.driver.Identity(ctx)
-}
-
-func (f *FencedDriver) Validate(ctx context.Context, program testpilot.PreparedProgram) error {
-	return f.driver.Validate(ctx, program)
-}
-
-// Open fences runID and then opens it. A second Open, or a fence that fails, opens nothing.
-func (f *FencedDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	if f.opened != "" {
-		return nil, ErrSecondOpen
+// IsActivityID reports whether id is one the canary fences: its prefix and a UUID.
+func IsActivityID(id string) bool {
+	rest, ok := strings.CutPrefix(id, activityPrefix)
+	if !ok {
+		return false
 	}
-	if !testpilot.IsRunID(runID) {
-		return nil, errors.New("a fenced canary Run needs a Testpilot Run ID")
+	parsed, err := uuid.Parse(rest)
+	return err == nil && parsed.String() == rest
+}
+
+// startPrefix begins the full name of every WorkflowService request that creates an execution.
+const startPrefix = "temporal.api.workflowservice.v1.Start"
+
+// startActivity is the one start the fence admits, for its own activity ID.
+var startActivity = (&workflowservice.StartActivityExecutionRequest{}).ProtoReflect().Descriptor().FullName()
+
+// fencedDriver wraps one Run's Driver so the Run can start nothing but the activity the lease
+// already names: cleanup and reconcile act only on the fence's IDs, so they can never miss an
+// execution the canary started.
+type fencedDriver struct {
+	runner.Driver
+	activityID string
+}
+
+// fenced makes newDriver's Drivers fenced to activityID.
+func fenced(newDriver runner.NewDriver, activityID string) runner.NewDriver {
+	return func(ctx context.Context) (runner.Driver, error) {
+		driver, err := newDriver(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &fencedDriver{Driver: driver, activityID: activityID}, nil
 	}
-	if err := f.fence(ctx, runID); err != nil {
+}
+
+func (f *fencedDriver) Start(ctx context.Context, request uint64, payload *anypb.Any) (runner.Exchange, error) {
+	if err := f.within(payload); err != nil {
 		return nil, err
 	}
-	f.opened = runID
-	session, err := f.driver.Open(ctx, runID, program)
-	if err != nil {
-		return nil, err
+	return f.Driver.Start(ctx, request, payload)
+}
+
+// Close closes the wrapped Driver, when it has anything to close.
+func (f *fencedDriver) Close() error {
+	if closer, ok := f.Driver.(io.Closer); ok {
+		return closer.Close()
 	}
-	return &fencedSession{Session: session, runID: runID}, nil
+	return nil
 }
 
-// Opened is the Run ID this Driver fenced and opened, or "".
-func (f *FencedDriver) Opened() string {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return f.opened
-}
-
-type fencedSession struct {
-	testpilot.Session
-	runID string
-}
-
-func (s *fencedSession) InvokeRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
-	if err := s.within(method, request); err != nil {
-		return nil, err
+// Redact keeps the wrapped Driver's redaction, when it has one.
+func (f *fencedDriver) Redact(event *runv1.Event) bool {
+	if redactor, ok := f.Driver.(runner.Redactor); ok {
+		return redactor.Redact(event)
 	}
-	return s.Session.InvokeRPC(ctx, coordinate, role, method, request)
+	return false
 }
 
-func (s *fencedSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if err := s.within(method, request); err != nil {
-		return nil, err
-	}
-	return s.Session.PollRPC(ctx, coordinate, role, method, request, interval, satisfied)
-}
-
-// within refuses a workflow start whose ID is not the fenced Run's, so cleanup, which acts only on
-// the fence's IDs, can never miss a workflow the canary started.
-func (s *fencedSession) within(method protoreflect.MethodDescriptor, request proto.Message) error {
-	if method == nil || method.FullName() != startWorkflowExecution {
+func (f *fencedDriver) within(payload *anypb.Any) error {
+	name := payload.MessageName()
+	if !strings.HasPrefix(string(name), startPrefix) {
 		return nil
 	}
-	wire, err := proto.Marshal(request)
-	if err != nil {
+	if name != startActivity {
+		return fmt.Errorf("%w: %s", ErrOutsideFence, name)
+	}
+	start := new(workflowservice.StartActivityExecutionRequest)
+	if err := payload.UnmarshalTo(start); err != nil {
 		return err
 	}
-	var start workflowservice.StartWorkflowExecutionRequest
-	if err := proto.Unmarshal(wire, &start); err != nil {
-		return err
-	}
-	if start.GetWorkflowId() != s.runID {
-		return fmt.Errorf("%w: the start names another workflow", ErrOutsideFence)
+	if start.GetActivityId() != f.activityID {
+		return fmt.Errorf("%w: the start names another activity", ErrOutsideFence)
 	}
 	return nil
 }

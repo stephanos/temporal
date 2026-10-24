@@ -17,46 +17,41 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/evaluation"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
-	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+	"umpire.local/model/umpire/runner"
 )
 
 // The adversarial authority and containment matrix, in process. Each mutation fails at the
 // boundary that owns it and touches nothing unrelated. The cases this package already proves at
 // their own boundary are not repeated here: target drift (TestInvokeRefusesBeforeAnything), a
 // lease collision (TestTakeLeaseFailsOnAnyOpenRun, and the race in TestRunRefusesAnUnreconciledLease),
-// a stale fence (TestAStaleFenceStopsTheInvocation), a second open of one Driver
-// (TestFencedDriverFencesBeforeItOpens), another Case (TestInvokeExitsThreeForAnUnconstructibleIteration),
+// a stale fence (TestAStaleFenceStopsTheInvocation), a start outside the fence
+// (TestTheFenceAdmitsOnlyItsOwnActivity), another Model (TestInvokeRefusesBeforeAnything),
 // a timed-out or hand-terminated lease (TestRunRefusesAnUnreconciledLease,
 // TestReconcileRecordsAClosedLeaseReconciled), a tampered record (TestReconcileRefusesAnotherScope),
-// cleanup uncertainty (TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed), an
+// cleanup uncertainty (TestCleanupLeavesTheLeaseHeldWhenAnActivityIsNotVerifiedClosed), an
 // iteration past the limit (TestRunStopsAtThePolicysIterations), and a publication conflict
-// (TestInvokeExitsThreeOnAPublicationConflict). The live cases -- routing drift, a crash at each
-// phase -- are the harness's, in tests/testpilot_canary_test.go.
+// (TestInvokeExitsThreeOnAPublicationConflict). The live cases -- a crash at each phase -- are the
+// harness's, in tests/testpilot_canary_test.go.
 
 // A credential and every raw coordinate planted in a failure's text reach no output: not the
-// summary, the progress, a published receipt or provenance, nor the recovery record.
+// summary, the progress, nor the recovery record. A published Run carries its World, whose
+// namespace and task queue the Model needs to replay it; it never carries the credential or the
+// gRPC target.
 func TestAPlantedCredentialReachesNoOutput(t *testing.T) {
 	const apiKey = "canary-api-key-9b2e7d41c0"
 	credentialed := map[string]string{
 		authority.VariableGRPC: invokeCoordinates.GRPC, authority.VariableNamespace: invokeCoordinates.Namespace,
-		authority.VariableTaskQueue: invokeCoordinates.TaskQueue, authority.VariableHandlerQueue: invokeCoordinates.HandlerQueue,
-		authority.VariableEndpoint: invokeCoordinates.NexusEndpoint, authority.VariableAPIKey: apiKey,
+		authority.VariableTaskQueue: invokeCoordinates.TaskQueue, authority.VariableAPIKey: apiKey,
 	}
 	host, _, _ := strings.Cut(invokeCoordinates.GRPC, ":")
-	secrets := []string{apiKey, invokeCoordinates.GRPC, host, invokeCoordinates.Namespace, invokeCoordinates.TaskQueue,
-		invokeCoordinates.HandlerQueue, invokeCoordinates.NexusEndpoint}
+	secrets := []string{apiKey, invokeCoordinates.GRPC, host, invokeCoordinates.Namespace, invokeCoordinates.TaskQueue}
 	planted := "Bearer " + apiKey + " to " + invokeCoordinates.GRPC + " for " + invokeCoordinates.Namespace + " via " +
-		invokeCoordinates.TaskQueue + ", " + invokeCoordinates.HandlerQueue + " and " + invokeCoordinates.NexusEndpoint
+		invokeCoordinates.TaskQueue
 
 	for name, test := range map[string]struct {
 		plant     func(*invokeFixture)
@@ -65,7 +60,7 @@ func TestAPlantedCredentialReachesNoOutput(t *testing.T) {
 		"in a Run's error": {plant: func(f *invokeFixture) { f.runErr = errors.New("the Run failed: " + planted) }},
 		"in a Driver's release error": {plant: func(f *invokeFixture) {
 			f.release = func(context.Context) error { return errors.New("the worker did not stop: " + planted) }
-		}, published: 2},
+		}, published: 1},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newInvokeFixture(t)
@@ -85,57 +80,49 @@ func TestAPlantedCredentialReachesNoOutput(t *testing.T) {
 			record, err := os.ReadFile(f.recovery)
 			require.NoError(t, err)
 			written["the recovery record"] = string(record)
-			for _, name := range f.published(t) {
-				document, err := os.ReadFile(filepath.Join(f.output, name))
-				require.NoError(t, err)
-				written[name] = string(document)
-			}
 			for where, text := range written {
 				for _, secret := range secrets {
 					require.NotContains(t, text, secret, "a planted value reached %s", where)
+				}
+			}
+			for _, name := range f.published(t) {
+				document, err := os.ReadFile(filepath.Join(f.output, name))
+				require.NoError(t, err)
+				for _, secret := range []string{apiKey, invokeCoordinates.GRPC, host} {
+					require.NotContains(t, string(document), secret, "a planted value reached %s", name)
 				}
 			}
 		})
 	}
 }
 
-// A Run that crosses its fence fails at the boundary that owns it. A Run naming another Run than
-// the one its Driver fenced is refused by publication, which publishes nothing; a workflow start
-// outside the fence is refused by the fenced Session before it reaches the Driver, so the Run is
-// unconstructible. Cleanup acts only on the fenced Runs either way.
+// A Run whose Driver starts an activity outside its fence fails at the fence, before the start
+// reaches the Driver: the iteration fails, nothing is published, and cleanup acts only on the
+// fenced activities.
 func TestARunCrossingItsFenceFailsAtItsBoundary(t *testing.T) {
-	t.Run("another Run than the fenced one", func(t *testing.T) {
-		f := newInvokeFixture(t)
-		f.run = func(index int, run *testpilotspb.Run) *testpilotspb.Run {
-			run.RunId = runID(100 + index)
-			return run
-		}
-		summary, code := f.invoke(t, f.seams())
-		require.Equal(t, ExitFailed, code, "%+v", summary)
-		require.Equal(t, StatusPublicationFailed, summary.Status)
-		require.Contains(t, summary.Detail, "different Runs")
-		require.Empty(t, f.published(t), "a crossed receipt is never published")
-		require.Equal(t, []string{runID(1), runID(2)}, summary.Cleanup.Fenced)
-	})
-
-	t.Run("a start outside the fence", func(t *testing.T) {
-		f := newInvokeFixture(t)
-		var delegated []string
-		f.session = func(ctx context.Context, session testpilot.Session) error {
-			_, err := session.InvokeRPC(ctx, testpilot.Coordinate{}, casebinding.EndpointRole, workflowServiceMethod("StartWorkflowExecution"),
-				&workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"})
-			delegated = session.(*fencedSession).Session.(*recordingSession).invoked
-			return err
-		}
-		summary, code := f.invoke(t, f.seams())
-		require.Equal(t, ExitFailed, code, "%+v", summary)
-		require.Equal(t, StatusUnconstructible, summary.Status)
-		require.Contains(t, summary.Detail, ErrOutsideFence.Error())
-		require.Empty(t, delegated, "the start never reached the Driver")
-		require.Empty(t, f.published(t))
-		require.Equal(t, []string{runID(1)}, summary.Cleanup.Fenced)
-		require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome)
-	})
+	for name, start := range map[string]func(*testing.T) *anypb.Any{
+		"another activity": func(t *testing.T) *anypb.Any {
+			return packed(t, &workflowservice.StartActivityExecutionRequest{ActivityId: "customer-activity"})
+		},
+		"a workflow": func(t *testing.T) *anypb.Any {
+			return packed(t, &workflowservice.StartWorkflowExecutionRequest{WorkflowId: "customer-workflow"})
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newInvokeFixture(t)
+			f.start = func(*anypb.Any) *anypb.Any { return start(t) }
+			summary, code := f.invoke(t, f.seams())
+			require.Equal(t, ExitFailed, code, "%+v", summary)
+			require.Equal(t, StatusFailed, summary.Status)
+			require.Contains(t, summary.Detail, ErrOutsideFence.Error())
+			require.Empty(t, f.ids, "the start never reached the Driver")
+			require.Empty(t, f.published(t))
+			require.Len(t, summary.Cleanup.Fenced, 1)
+			require.True(t, IsActivityID(summary.Cleanup.Fenced[0]))
+			require.Equal(t, CleanupReleased, summary.Cleanup.Outcome)
+			require.NotContains(t, f.server.calls, "terminate customer-activity")
+		})
+	}
 }
 
 // A second dispatch, and its job's reconcile, during a live Run of the first touch nothing of it:
@@ -184,15 +171,14 @@ func TestASecondDispatchDuringALiveRunTouchesNothingOfIt(t *testing.T) {
 
 	require.Equal(t, ExitAccepted, code, "%+v", summary)
 	require.Len(t, summary.Iterations, 2)
-	require.Equal(t, []string{runID(1), runID(2)}, summary.Cleanup.Fenced)
-	require.Len(t, f.published(t), 4)
+	require.Equal(t, f.ids, summary.Cleanup.Fenced)
+	require.Len(t, f.published(t), 2)
 }
 
-// A tenfold request is capped by three sets of limits, each pinned here so raising one is a
-// reviewed change: the policy's (iterations, time, the cleanup reserve, the lease's run timeout and
-// progress), the Temporal Profile's DefaultCeilings the canary's Driver Profile carries (a Run's
-// RPCs, worker activations, events and duration, and so the longest an iteration can take), and
-// fn-26's admission caps, which every receipt records and which refuse a Run past them.
+// A tenfold request is capped by two sets of limits, each pinned here so raising one is a reviewed
+// change: the policy's (iterations, time, the cleanup reserve, the lease's run timeout and
+// progress) and the Runner's per-Run budgets the canary runs under (proposals, events, the event
+// and run timeouts, and so the longest an iteration can take).
 func TestATenfoldRequestIsCappedByEveryLimit(t *testing.T) {
 	t.Run("the policy", func(t *testing.T) {
 		canary := testPolicy(t)
@@ -207,91 +193,43 @@ func TestATenfoldRequestIsCappedByEveryLimit(t *testing.T) {
 		run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
 		result, err := run.run(t.Context())
 		require.NoError(t, err)
-		require.Len(t, result.Iterations, canary.Limits.Iterations, "every Run accepted, and still no more than the policy's")
+		require.Len(t, result.Iterations, canary.Limits.Iterations, "every Run explained, and still no more than the policy's")
 		require.Equal(t, canary.Limits.Iterations, s.runs)
 	})
 
-	t.Run("the Temporal Profile", func(t *testing.T) {
+	t.Run("the Runner's budgets", func(t *testing.T) {
+		require.Equal(t, [4]int64{32, 1024, 30000, 300000}, [4]int64{
+			runner.DefaultBudget, runner.DefaultEventBudget, runner.DefaultEventTimeout.Milliseconds(), runner.DefaultRunTimeout.Milliseconds(),
+		}, "proposals, events, event and run timeout")
+		require.Equal(t, 2*time.Minute, runTimeout, "the canary's own run budget")
 		canary := testPolicy(t)
-		bound, err := casebinding.Bind(canary, testpilotdriver.Environment{
-			Namespace: testNamespace, TaskQueue: "queue", HandlerTaskQueue: "handler-queue", NexusEndpoint: "endpoint",
-		})
-		require.NoError(t, err)
-		program, contract, correlated := testpilotdriver.DefaultCeilings()
-		require.True(t, proto.Equal(program, bound.Profile.ProgramLimits))
-		require.True(t, proto.Equal(contract, bound.Profile.ContractLimits))
-		require.True(t, proto.Equal(correlated, bound.Profile.CorrelatedLimits))
-		limits := bound.Profile.ProgramLimits
-		require.Equal(t, [6]int64{16, 8, 512, 32768, 30000, 20000}, [6]int64{
-			int64(limits.GetMaxAttempts()), int64(limits.GetMaxActivations()), int64(limits.GetMaxRunEvents()),
-			int64(limits.GetMaxRequestBytes()), limits.GetMaxDuration().AsDuration().Milliseconds(), limits.GetCleanupDuration().AsDuration().Milliseconds(),
-		}, "attempts, activations, events, request bytes, total and cleanup duration")
-
 		s := &script{server: newFakeServer()}
 		run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
-		require.Equal(t, 150*time.Second, run.iterationBound())
+		require.Equal(t, 160*time.Second, run.iterationBound())
 		require.GreaterOrEqual(t, canary.Limits.Invocation(), time.Duration(canary.Limits.Iterations)*run.iterationBound(),
 			"the policy's iterations fit the invocation limit")
 	})
-
-	t.Run("fn-26's caps", func(t *testing.T) {
-		require.Equal(t, evaluation.Caps{CaseBytes: 4 << 20, RunBytes: 16 << 20, RunEvents: 65536, ReceiptBytes: 1 << 20}, evaluation.AdmissionCaps())
-
-		f := newInvokeFixture(t)
-		summary, code := f.invoke(t, f.seams())
-		require.Equal(t, ExitAccepted, code, "%+v", summary)
-		for _, iteration := range summary.Iterations {
-			encoded, err := os.ReadFile(filepath.Join(f.output, iteration.Receipt+".json"))
-			require.NoError(t, err)
-			receipt, err := evaluation.DecodeReceipt(encoded)
-			require.NoError(t, err)
-			require.Equal(t, evaluation.AdmissionCaps(), receipt.Caps, "the receipt records the caps it was admitted under")
-		}
-
-		f = newInvokeFixture(t)
-		f.run = func(_ int, run *testpilotspb.Run) *testpilotspb.Run {
-			for len(run.Events) <= evaluation.MaxRunEvents {
-				run.Events = append(run.Events, run.GetEvents()[0])
-			}
-			return run
-		}
-		summary, code = f.invoke(t, f.seams())
-		require.Equal(t, ExitFailed, code)
-		require.Equal(t, StatusUnconstructible, summary.Status)
-		require.Contains(t, summary.Detail, evaluation.ReasonOversized)
-		require.Empty(t, f.published(t), "a Run past the caps has no receipt")
-	})
 }
 
-// A proved violation stays rejected whatever else the invocation meets, and a Run that proves
-// nothing is incomplete, never accepted: the published receipt's decision is fn-26's alone, and
-// the invocation's own failures change only the exit and the provenance.
-func TestAProvedViolationStaysViolated(t *testing.T) {
-	violated := func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED }
+// An unexplained Run stays unexplained whatever else the invocation meets: the published Run's
+// verdict is the Model's alone, and the invocation's own failures change only the exit.
+func TestAnUnexplainedRunStaysUnexplained(t *testing.T) {
 	for name, test := range map[string]struct {
-		edit     func(*evaluation.Subject)
-		also     func(*invokeFixture)
-		decision string
-		status   string
-		code     int
+		also   func(*invokeFixture)
+		status string
+		code   int
 	}{
-		"violated": {edit: violated, decision: evaluation.DecisionRejected, status: StatusRejected, code: ExitDecided},
-		"violated, and the Run's cleanup failed": {edit: func(s *evaluation.Subject) {
-			violated(s)
-			s.Cleanup = testpilotspb.CLEANUP_STATUS_FAILED
-		}, decision: evaluation.DecisionRejected, status: StatusRejected, code: ExitDecided},
-		"violated, and the invocation's cleanup uncertain": {edit: violated, also: func(f *invokeFixture) {
+		"unexplained": {status: StatusUnexplained, code: ExitDecided},
+		"unexplained, and the invocation's cleanup uncertain": {also: func(f *invokeFixture) {
 			f.between = func(int) { f.server.fail["history "+f.policy.Lease.WorkflowID] = serviceerror.NewUnavailable("down") }
-		}, decision: evaluation.DecisionRejected, status: StatusCleanupUncertain, code: ExitUncertain},
-		"violated, and the Driver did not release": {edit: violated, also: func(f *invokeFixture) {
+		}, status: StatusCleanupUncertain, code: ExitUncertain},
+		"unexplained, and the Driver did not release": {also: func(f *invokeFixture) {
 			f.release = func(context.Context) error { return errors.New("the worker did not stop") }
-		}, decision: evaluation.DecisionRejected, status: StatusToolingFailure, code: ExitFailed},
-		"inconclusive": {edit: func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE },
-			decision: evaluation.DecisionIncomplete, status: StatusIncomplete, code: ExitDecided},
+		}, status: StatusToolingFailure, code: ExitFailed},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newInvokeFixture(t)
-			f.decide = decidedAs(t, f.policy, test.edit)
+			f.statuses = []string{StatusUnexplained}
 			if test.also != nil {
 				test.also(f)
 			}
@@ -299,12 +237,10 @@ func TestAProvedViolationStaysViolated(t *testing.T) {
 			require.Equal(t, test.code, code, "%+v", summary)
 			require.Equal(t, test.status, summary.Status)
 			require.Len(t, summary.Iterations, 1)
-			require.Equal(t, test.decision, summary.Iterations[0].Status)
-			encoded, err := os.ReadFile(filepath.Join(f.output, summary.Iterations[0].Receipt+".json"))
+			require.Equal(t, StatusUnexplained, summary.Iterations[0].Status)
+			published, err := runner.Load(filepath.Join(f.output, summary.Iterations[0].Run))
 			require.NoError(t, err)
-			receipt, err := evaluation.DecodeReceipt(encoded)
-			require.NoError(t, err)
-			require.Equal(t, test.decision, receipt.Decision)
+			require.NotNil(t, published.GetVerdict().GetUnexplained())
 		})
 	}
 }
@@ -318,12 +254,13 @@ func TestNoStateCrossesRunsOrLeases(t *testing.T) {
 		const invocations = 4
 		server := newFakeServer()
 		runs := make([]*invocation, invocations)
+		scripts := make([]*script, invocations)
 		stores := make([]*recovery.Store, invocations)
 		for index := range invocations {
 			canary := testPolicy(t)
 			canary.Lease.WorkflowID += "-" + strconv.Itoa(index)
-			s := &script{server: server, first: 10 * index}
-			runs[index], stores[index] = s.invocation(t, canary, time.Now(), &bytes.Buffer{})
+			scripts[index] = &script{server: server}
+			runs[index], stores[index] = scripts[index].invocation(t, canary, time.Now(), &bytes.Buffer{})
 		}
 		results := make([]*Result, invocations)
 		errs := make([]error, invocations)
@@ -334,11 +271,12 @@ func TestNoStateCrossesRunsOrLeases(t *testing.T) {
 		wg.Wait()
 		for index := range invocations {
 			require.NoError(t, errs[index])
-			own := []string{runID(10*index + 1), runID(10*index + 2)}
-			require.Equal(t, own, runIDs(results[index].Iterations))
+			own := scripts[index].ids
+			require.Len(t, own, 2)
+			require.Equal(t, own, activityIDs(results[index].Iterations))
 			require.Equal(t, own, results[index].Cleanup.Fenced)
 			require.True(t, results[index].Cleanup.Released)
-			require.Equal(t, []recovery.Iteration{{RunID: own[0]}, {RunID: own[1]}}, stores[index].Snapshot().Iterations)
+			require.Equal(t, []recovery.Iteration{{ActivityID: own[0]}, {ActivityID: own[1]}}, stores[index].Snapshot().Iterations)
 		}
 	})
 
@@ -347,63 +285,67 @@ func TestNoStateCrossesRunsOrLeases(t *testing.T) {
 		server := newFakeServer()
 		var drivers []*stubDriver
 		var results []*Result
-		for index := range 2 {
-			s := &script{server: server, first: 10 * index}
+		var owns [][]string
+		for range 2 {
+			s := &script{server: server}
 			run, store := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
-			run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
-				driver := &stubDriver{}
-				drivers = append(drivers, driver)
-				return driver, func(context.Context) error { return nil }, nil
+			run.openDriver = func() (runner.NewDriver, func(context.Context) error, error) {
+				return func(context.Context) (runner.Driver, error) {
+					driver := &stubDriver{}
+					drivers = append(drivers, driver)
+					return driver, nil
+				}, func(context.Context) error { return nil }, nil
 			}
 			result, err := run.run(t.Context())
 			require.NoError(t, err)
 			require.True(t, result.Cleanup.Released)
-			own := []string{runID(10*index + 1), runID(10*index + 2)}
+			own := s.ids
 			require.Equal(t, own, result.Cleanup.Fenced)
-			require.Equal(t, []recovery.Iteration{{RunID: own[0]}, {RunID: own[1]}}, store.Snapshot().Iterations)
+			require.Equal(t, []recovery.Iteration{{ActivityID: own[0]}, {ActivityID: own[1]}}, store.Snapshot().Iterations)
 			results = append(results, result)
+			owns = append(owns, own)
 		}
 		require.NotEqual(t, results[0].Lease.RunID, results[1].Lease.RunID)
 		for index, result := range results {
 			fenced, err := fencedIDs(t.Context(), target(server), Fence{WorkflowID: result.Lease.WorkflowID, RunID: result.Lease.RunID})
 			require.NoError(t, err)
-			require.Equal(t, []string{runID(10*index + 1), runID(10*index + 2)}, fenced, "each lease run fences its own Runs only")
+			require.Equal(t, owns[index], fenced, "each lease run fences its own activities only")
 		}
 		require.Len(t, drivers, 4, "one fresh Driver per iteration")
 		for _, driver := range drivers {
-			require.Equal(t, 1, driver.opens)
+			require.Len(t, driver.started, 1)
 		}
 	})
 }
 
 // A stale recovery record -- a job that crashed after cleanup released its lease, reconciled only
 // after a later invocation took the lease -- acts on its own lease run alone: it names its
-// unpublished iterations lost and never touches the later lease run or the Run it fences.
+// unpublished iterations lost and never touches the later lease run or the activity it fences.
 func TestAStaleRecoveryRecordNeverReachesALaterLease(t *testing.T) {
 	f := newReconcileFixture(t)
-	stale := f.took(t, nil, runID(1))
+	stale := f.took(t, nil, activityID(1))
 	require.NoError(t, terminate(t.Context(), target(f.server), &commonpb.WorkflowExecution{WorkflowId: stale.WorkflowID, RunId: stale.RunID}, ReasonReleased))
 	later, err := takeLease(t.Context(), target(f.server), f.policy.Lease, time.Hour, "later")
 	require.NoError(t, err)
-	require.NoError(t, signalRunOpened(t.Context(), target(f.server), later, runID(2)))
-	f.server.open(runID(2), time.Unix(3000, 0))
-	f.record(t, &recovery.Lease{WorkflowID: stale.WorkflowID, RunID: stale.RunID, Held: recovery.HeldTook}, recovery.Iteration{RunID: runID(1)})
+	require.NoError(t, signalRunOpened(t.Context(), target(f.server), later, activityID(2)))
+	f.server.open(activityID(2), time.Unix(3000, 0))
+	f.record(t, &recovery.Lease{WorkflowID: stale.WorkflowID, RunID: stale.RunID, Held: recovery.HeldTook}, recovery.Iteration{ActivityID: activityID(1)})
 	f.server.calls = nil
 
 	report, code := f.reconcile(t, f.seams())
 	require.Equal(t, ExitAccepted, code, "%+v", report)
 	require.Equal(t, StatusReconciled, report.Status)
-	require.Equal(t, []string{runID(1)}, report.Fenced)
-	require.Equal(t, []string{runID(1)}, report.Lost)
+	require.Equal(t, []string{activityID(1)}, report.Fenced)
+	require.Equal(t, []string{activityID(1)}, report.Lost)
 	require.Empty(t, report.Terminated)
 	for _, call := range f.server.calls {
 		require.False(t, mutates(call), "reconcile only reads here: %s", call)
 	}
 	observed := f.leaseState(t)
 	require.Equal(t, Observed{State: LeaseOpen, RunID: later.RunID, Started: time.Unix(1000, 0).UTC()}, observed, "the later lease run is left alone")
-	closed, err := workflowClosed(t.Context(), target(f.server), runID(2), time.Second, noWait)
+	closed, err := activityClosed(t.Context(), target(f.server), activityID(2), time.Second, noWait)
 	require.NoError(t, err)
-	require.False(t, closed, "the later invocation's Run is left alone")
+	require.False(t, closed, "the later invocation's activity is left alone")
 }
 
 // mutates says whether a fake server call changes the target: a start, a signal or a termination.

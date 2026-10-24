@@ -1,6 +1,6 @@
 // Package recovery is the canary's in-job recovery record: the invocation, the lease it took or
-// found, the Run in flight and its phase, and each iteration's Run with whether its receipt was
-// published. It lives only for its job, in one mode-0600 file that `run` creates before it reads
+// found, the activity in flight and its phase, and each iteration's fenced activity with whether
+// its Run was published. It lives only for its job, in one mode-0600 file that `run` creates before it reads
 // the lease and rewrites at each phase, and that `reconcile` reads to act on exactly the lease its
 // own job recorded. It holds identities only: no credential, coordinate or Run content.
 package recovery
@@ -19,7 +19,7 @@ import (
 )
 
 // Version is the record format this package reads.
-const Version = 1
+const Version = 2
 
 // fileMode is the record's only mode.
 const fileMode fs.FileMode = 0o600
@@ -60,20 +60,20 @@ type Lease struct {
 	Held       string `json:"held"`
 }
 
-// Iteration is one Run this job made and whether its receipt was published.
+// Iteration is one fenced activity this job started a Run on, and whether that Run was published.
 type Iteration struct {
-	RunID     string `json:"runId"`
-	Published bool   `json:"published"`
+	ActivityID string `json:"activityId"`
+	Published  bool   `json:"published"`
 }
 
 // Record is one job's recovery record.
 type Record struct {
-	Version      int         `json:"version"`
-	InvocationID string      `json:"invocationId"`
-	Phase        string      `json:"phase"`
-	Lease        *Lease      `json:"lease"`
-	CurrentRunID string      `json:"currentRunId"`
-	Iterations   []Iteration `json:"iterations"`
+	Version           int         `json:"version"`
+	InvocationID      string      `json:"invocationId"`
+	Phase             string      `json:"phase"`
+	Lease             *Lease      `json:"lease"`
+	CurrentActivityID string      `json:"currentActivityId"`
+	Iterations        []Iteration `json:"iterations"`
 }
 
 func (r *Record) validate() error {
@@ -90,8 +90,8 @@ func (r *Record) validate() error {
 		return errors.New("the recovery record's lease needs a workflow ID, a run ID and whether it was took or found")
 	}
 	for _, iteration := range r.Iterations {
-		if iteration.RunID == "" {
-			return errors.New("a recovery record iteration names no Run")
+		if iteration.ActivityID == "" {
+			return errors.New("a recovery record iteration names no activity")
 		}
 	}
 	return nil

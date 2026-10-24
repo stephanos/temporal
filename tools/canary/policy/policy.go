@@ -1,5 +1,5 @@
-// Package policy is the production canary's fixed policy: which Case it runs and under which
-// Profiles, the authority it runs with, the digests of the target it may touch, the lease it holds,
+// Package policy is the production canary's fixed policy: which Model guest it runs, the
+// authority it runs with, the digests of the target it may touch, the lease it holds,
 // the ref and workflow it trusts, and its Limits. The policy is data under tools/canary, never an
 // Umpire type, and no flag or environment variable changes it in the untagged build.
 //
@@ -22,7 +22,7 @@ import (
 )
 
 // Version is the policy format this package reads.
-const Version = 1
+const Version = 2
 
 // Unconfigured is a coordinate the operator has not committed a digest for yet.
 const Unconfigured = "unconfigured"
@@ -50,11 +50,9 @@ const (
 // Coordinates are the digests of the target's names, each the hex SHA-256 of the whole
 // environment value (the gRPC one is the dial target, `host:port`), or Unconfigured.
 type Coordinates struct {
-	GRPC          string `json:"grpc"`
-	Namespace     string `json:"namespace"`
-	TaskQueue     string `json:"taskQueue"`
-	HandlerQueue  string `json:"handlerQueue"`
-	NexusEndpoint string `json:"nexusEndpoint"`
+	GRPC      string `json:"grpc"`
+	Namespace string `json:"namespace"`
+	TaskQueue string `json:"taskQueue"`
 }
 
 // Lease names the lease workflow: its fixed ID, its type, and a task queue no worker polls.
@@ -64,8 +62,7 @@ type Lease struct {
 	TaskQueue    string `json:"taskQueue"`
 }
 
-// Limits are the canary's own bounds; a Run's own duration and events are the Temporal Profile's,
-// and the recorded-Run and receipt caps are fn-26's.
+// Limits are the canary's own bounds; a Run's own budgets are the Runner's.
 type Limits struct {
 	Iterations             int `json:"iterations"`
 	InvocationSeconds      int `json:"invocationSeconds"`
@@ -89,17 +86,16 @@ func (l Limits) LeaseRunTimeout() time.Duration {
 
 // Policy is one decoded, validated canary policy.
 type Policy struct {
-	Version           int         `json:"version"`
-	CaseIdentity      string      `json:"caseIdentity"`
-	CaseProfile       string      `json:"caseProfile"`
-	EvaluationProfile string      `json:"evaluationProfile"`
-	AuthorityClass    string      `json:"authorityClass"`
-	Coordinates       Coordinates `json:"coordinates"`
-	Lease             Lease       `json:"lease"`
-	Repository        string      `json:"repository"`
-	TrustedRef        string      `json:"trustedRef"`
-	WorkflowPath      string      `json:"workflowPath"`
-	Limits            Limits      `json:"limits"`
+	Version int `json:"version"`
+	// ModelHash is the hex SHA-256 of the Model guest the canary runs, the build's committed one.
+	ModelHash      string      `json:"modelHash"`
+	AuthorityClass string      `json:"authorityClass"`
+	Coordinates    Coordinates `json:"coordinates"`
+	Lease          Lease       `json:"lease"`
+	Repository     string      `json:"repository"`
+	TrustedRef     string      `json:"trustedRef"`
+	WorkflowPath   string      `json:"workflowPath"`
+	Limits         Limits      `json:"limits"`
 }
 
 //go:embed production-canary.json
@@ -135,11 +131,7 @@ type namedCoordinate struct{ name, value string }
 
 // named is the one list of coordinates, in the policy's order, with their JSON names.
 func (c Coordinates) named() []namedCoordinate {
-	return []namedCoordinate{
-		{"grpc", c.GRPC}, {"namespace", c.Namespace},
-		{"taskQueue", c.TaskQueue}, {"handlerQueue", c.HandlerQueue},
-		{"nexusEndpoint", c.NexusEndpoint},
-	}
+	return []namedCoordinate{{"grpc", c.GRPC}, {"namespace", c.Namespace}, {"taskQueue", c.TaskQueue}}
 }
 
 // Mismatch names the first coordinate whose digest differs from other's, or reports that none does.
@@ -154,11 +146,8 @@ func (c Coordinates) Mismatch(other Coordinates) (string, bool) {
 }
 
 // DigestsOf is the policy form of raw coordinates: each one's Digest.
-func DigestsOf(grpc, namespace, taskQueue, handlerQueue, nexusEndpoint string) Coordinates {
-	return Coordinates{
-		GRPC: Digest(grpc), Namespace: Digest(namespace), TaskQueue: Digest(taskQueue),
-		HandlerQueue: Digest(handlerQueue), NexusEndpoint: Digest(nexusEndpoint),
-	}
+func DigestsOf(grpc, namespace, taskQueue string) Coordinates {
+	return Coordinates{GRPC: Digest(grpc), Namespace: Digest(namespace), TaskQueue: Digest(taskQueue)}
 }
 
 // Decode reads a policy strictly: every field present and valid, and the bytes exactly the
@@ -188,11 +177,10 @@ func (p *Policy) validate() error {
 	if p.Version != Version {
 		return fmt.Errorf("canary policy format version %d, not %d", p.Version, Version)
 	}
-	if !IsDigest(p.CaseIdentity) {
-		return fmt.Errorf("caseIdentity %q is not a hex SHA-256", p.CaseIdentity)
+	if !IsDigest(p.ModelHash) {
+		return fmt.Errorf("modelHash %q is not a hex SHA-256", p.ModelHash)
 	}
 	for _, field := range []struct{ name, value string }{
-		{"caseProfile", p.CaseProfile}, {"evaluationProfile", p.EvaluationProfile},
 		{"lease.workflowId", p.Lease.WorkflowID}, {"lease.workflowType", p.Lease.WorkflowType},
 		{"lease.taskQueue", p.Lease.TaskQueue}, {"repository", p.Repository},
 	} {

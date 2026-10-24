@@ -17,17 +17,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/metadata"
 )
 
 const testAPIKey = "canary-api-key-4f6d0a1c9e"
 
 var testCoordinates = map[string]string{
-	VariableGRPC:         "canary-frontend.example.internal:7233",
-	VariableNamespace:    "canary-namespace-7c1",
-	VariableTaskQueue:    "canary-queue-2b9",
-	VariableHandlerQueue: "canary-handler-queue-5e3",
-	VariableEndpoint:     "canary-endpoint-8d4",
+	VariableGRPC:      "canary-frontend.example.internal:7233",
+	VariableNamespace: "canary-namespace-7c1",
+	VariableTaskQueue: "canary-queue-2b9",
 }
 
 // testPair is a fresh self-signed certificate and its key, PEM-encoded as the environment holds them.
@@ -66,8 +63,7 @@ func TestLoadCoordinatesRequiresEach(t *testing.T) {
 	coordinates, err := LoadCoordinates(environment(nil))
 	require.NoError(t, err)
 	require.Equal(t, testCoordinates[VariableGRPC], coordinates.GRPC)
-	require.Equal(t, testCoordinates[VariableEndpoint], coordinates.Driver().NexusEndpoint)
-	require.Equal(t, testCoordinates[VariableHandlerQueue], coordinates.Driver().HandlerTaskQueue)
+	require.Equal(t, testCoordinates[VariableTaskQueue], coordinates.TaskQueue)
 	for variable := range testCoordinates {
 		t.Run(variable, func(t *testing.T) {
 			_, err := LoadCoordinates(environment(map[string]string{variable: ""}))
@@ -78,7 +74,7 @@ func TestLoadCoordinatesRequiresEach(t *testing.T) {
 	}
 }
 
-// Every credential yields a TLS transport for both the Driver's endpoint and the SDK client; none
+// Every credential yields a TLS transport for both the Temporal Driver and the SDK client; none
 // is plaintext.
 func TestLoadBuildsATLSTransportFromEachCredential(t *testing.T) {
 	certificate, key := testPair(t)
@@ -108,9 +104,11 @@ func TestLoadBuildsATLSTransportFromEachCredential(t *testing.T) {
 				require.NotContains(t, fmt.Sprintf("%v %+v", transport.PerRPCCredentials, transport.PerRPCCredentials), testAPIKey)
 			}
 
-			endpoint := transport.Endpoint(loaded.Coordinates.Namespace)
-			require.Equal(t, testCoordinates[VariableGRPC], endpoint.Target)
-			require.Equal(t, metadata.Pairs("temporal-namespace", testCoordinates[VariableNamespace]), endpoint.Metadata)
+			driver := transport.Driver(loaded.Coordinates.Namespace)
+			require.Len(t, driver.DialOptions, map[bool]int{false: 2, true: 3}[withKey], "TLS, the namespace header and any API key")
+			require.Equal(t, withKey, driver.ClientCredentials != nil)
+			require.NotNil(t, driver.ClientTLS)
+			require.NotSame(t, transport.ClientTLS, driver.ClientTLS, "the Driver gets its own TLS config")
 			options := transport.ClientOptions(loaded.Coordinates.Namespace, nil)
 			require.Equal(t, testCoordinates[VariableGRPC], options.HostPort)
 			require.Equal(t, testCoordinates[VariableNamespace], options.Namespace)

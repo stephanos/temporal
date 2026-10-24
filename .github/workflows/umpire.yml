@@ -53,11 +53,5 @@ jobs:
         run: mise exec -- go test -count=1 -tags test_dep ./tools/canary/...
       - name: Run the canary harness build's tests
         run: mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
-      - name: Check the generated Cases
-        run: make umpire-check-cases
-      - name: Check the functional fixtures lowered from the model
-        run: make umpire-check-fixtures
-      - name: Check the pinned canary Case
-        run: make canary-check-case
       - name: Build the production canary
         run: make canary-build

@@ -3,6 +3,8 @@ package controller
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"path/filepath"
 	"strings"
@@ -13,65 +15,93 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/sdk/client"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/anypb"
+	runv1 "umpire.local/model/umpire/run/v1"
+	"umpire.local/model/umpire/runner"
 )
 
-// script is one scripted invocation: each Run opens its fenced Driver, starts its workflow on the
-// fake server and leaves it open or closes it, then decide answers from statuses.
+// testGuest stands for the Model guest; the scripted Runs never execute it.
+var testGuest = []byte("guest")
+
+// scriptedRun is a Run of the test guest from world with the verdict status names.
+func scriptedRun(world *anypb.Any, status string) *runner.Run {
+	hash := sha256.Sum256(testGuest)
+	run := &runner.Run{ModelHash: hex.EncodeToString(hash[:]), ProtocolVersion: runner.ProtocolVersion, World: world, Seed: 1}
+	switch status {
+	case StatusUnexplained:
+		run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Unexplained{Unexplained: &runv1.Unexplained{Event: 3}}}
+	case StatusRefused:
+		run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Refused{Refused: &runv1.Refused{Event: 3, Reason: "driver fault"}}}
+	case StatusExplained:
+		run.Verdict = &runv1.Verdict{Outcome: &runv1.Verdict_Explained{Explained: &runv1.Explained{Termination: runv1.Termination_TERMINATION_QUIESCENT}}}
+	}
+	return run
+}
+
+// startScripted is what a scripted Run does first: start the World's activity through the fenced
+// Driver, as the Temporal Driver would, and return its ID.
+func startScripted(ctx context.Context, world *anypb.Any, newDriver runner.NewDriver) (string, error) {
+	driver, err := newDriver(ctx)
+	if err != nil {
+		return "", err
+	}
+	if _, err := driver.Start(ctx, 1, world); err != nil {
+		return "", err
+	}
+	start := new(workflowservice.StartActivityExecutionRequest)
+	if err := world.UnmarshalTo(start); err != nil {
+		return "", err
+	}
+	return start.GetActivityId(), nil
+}
+
+// script is one scripted invocation: each Run starts its activity through its fenced Driver on the
+// fake server and leaves it open or closes it, and its verdict follows the statuses.
 type script struct {
-	server *fakeServer
-	// first offsets the scripted Run IDs, so concurrent scripts name disjoint Runs.
-	first    int
+	server   *fakeServer
 	statuses []string
-	// leaveOpen leaves each Run's workflow open, as a Run cut off by its deadline would.
+	// leaveOpen leaves each Run's activity open, as a Run cut off by its deadline would.
 	leaveOpen bool
-	// runErr fails the Run after its Driver opens.
+	// runErr fails the Run after its activity starts.
 	runErr error
 	// between runs after each Run, before the next.
 	between  func(index int)
 	runs     int
 	released int
-	decided  int
+	ids      []string
 }
 
 func (s *script) invocation(t *testing.T, canary *policy.Policy, started time.Time, progress *bytes.Buffer) (*invocation, *recovery.Store) {
 	t.Helper()
 	store, err := recovery.Create(filepath.Join(t.TempDir(), "recovery.json"), "1234-1")
 	require.NoError(t, err)
-	bound, err := casebinding.Bind(canary, testpilotdriver.Environment{
-		Namespace: testNamespace, TaskQueue: "queue", HandlerTaskQueue: "handler-queue", NexusEndpoint: "endpoint",
-	})
-	require.NoError(t, err)
 	run := newInvocation(Config{
-		Policy: canary, Scope: &preflight.Scope{InvocationID: "1234-1", Prepared: bound.Prepared, Profile: bound.Profile},
-		Namespace: testNamespace, Transport: authority.Transport{Target: "localhost:7233", Credentials: insecure.NewCredentials()},
+		Policy: canary, Scope: &preflight.Scope{InvocationID: "1234-1", Guest: testGuest},
+		Namespace: testNamespace, TaskQueue: "queue", Transport: authority.Transport{Target: "localhost:7233", Credentials: insecure.NewCredentials()},
 		Redactor: authority.NewRedactor(testNamespace), Service: s.server, Identity: "umpire-canary",
-		Dial:   func(client.Options) (client.Client, error) { return nil, errors.New("no dial in a unit test") },
-		Decide: s.decide, Recovery: store, Progress: progress, Started: started, Wait: noWait,
+		Recovery: store, Progress: progress, Started: started, Wait: noWait,
 	})
-	run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
-		return &stubDriver{}, func(context.Context) error { s.released++; return nil }, nil
+	run.openDriver = func() (runner.NewDriver, func(context.Context) error, error) {
+		return func(context.Context) (runner.Driver, error) { return &stubDriver{}, nil },
+			func(context.Context) error { s.released++; return nil }, nil
 	}
-	run.runCase = s.run
+	run.runModel = s.run
 	return run, store
 }
 
-func (s *script) run(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+func (s *script) run(ctx context.Context, world *anypb.Any, newDriver runner.NewDriver) (*runner.Run, error) {
 	s.runs++
-	id := runID(s.first + s.runs)
-	if _, err := driver.Open(ctx, id, testpilot.PreparedProgram{}); err != nil {
-		return nil, nil, err
+	id, err := startScripted(ctx, world, newDriver)
+	if err != nil {
+		return nil, err
 	}
+	s.ids = append(s.ids, id)
 	s.server.open(id, time.Unix(3000, 0))
 	if !s.leaveOpen {
 		s.server.finish(id)
@@ -80,30 +110,25 @@ func (s *script) run(ctx context.Context, driver testpilot.Driver) (*testpilotsp
 		s.between(s.runs)
 	}
 	if s.runErr != nil {
-		return nil, nil, s.runErr
+		return nil, s.runErr
 	}
-	return &testpilotspb.Run{RunId: id}, &testpilotspb.Verdict{}, nil
+	status := StatusExplained
+	if s.runs <= len(s.statuses) {
+		status = s.statuses[s.runs-1]
+	}
+	return scriptedRun(world, status), nil
 }
 
-func (s *script) decide(*testpilotspb.Run, *testpilotspb.Verdict) Outcome {
-	s.decided++
-	status := StatusAccepted
-	if s.decided <= len(s.statuses) {
-		status = s.statuses[s.decided-1]
-	}
-	return Outcome{Status: status, Receipt: []byte("receipt-" + status)}
-}
-
-func runIDs(iterations []Iteration) []string {
+func activityIDs(iterations []Iteration) []string {
 	var ids []string
 	for _, iteration := range iterations {
-		ids = append(ids, iteration.RunID)
+		ids = append(ids, iteration.ActivityID)
 	}
 	return ids
 }
 
-// Two accepted Runs, serially, each fenced on one lease; cleanup verifies both closed and releases
-// the lease, and the record says so.
+// Two explained Runs, serially, each on a fresh activity fenced on one lease; cleanup verifies both
+// closed and releases the lease, and the record says so.
 func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	canary := testPolicy(t)
 	s := &script{server: newFakeServer()}
@@ -115,15 +140,17 @@ func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	require.False(t, result.Unreconciled)
 	require.Equal(t, recovery.HeldTook, result.Lease.Held)
 	require.Len(t, result.Iterations, canary.Limits.Iterations)
-	require.Equal(t, []string{runID(1), runID(2)}, runIDs(result.Iterations))
+	require.Equal(t, s.ids, activityIDs(result.Iterations))
+	require.NotEqual(t, s.ids[0], s.ids[1], "each iteration has its own activity")
 	for _, iteration := range result.Iterations {
-		require.Equal(t, StatusAccepted, iteration.Outcome.Status)
-		require.Equal(t, []byte("receipt-accepted"), iteration.Outcome.Receipt)
+		require.True(t, IsActivityID(iteration.ActivityID))
+		require.Equal(t, StatusExplained, iteration.Outcome.Status)
+		require.NotNil(t, iteration.Outcome.Run)
 	}
 	require.Empty(t, result.Stopped)
 	require.Equal(t, 2, s.released, "each iteration releases its own Driver")
 
-	require.Equal(t, []string{runID(1), runID(2)}, result.Cleanup.Fenced)
+	require.Equal(t, s.ids, result.Cleanup.Fenced)
 	require.Equal(t, result.Cleanup.Fenced, result.Cleanup.Closed)
 	require.Empty(t, result.Cleanup.Unverified)
 	require.True(t, result.Cleanup.Released)
@@ -135,11 +162,11 @@ func TestRunMakesThePolicysIterationsAndReleasesTheLease(t *testing.T) {
 	record := store.Snapshot()
 	require.Equal(t, recovery.PhaseReleased, record.Phase)
 	require.Equal(t, result.Lease, record.Lease)
-	require.Equal(t, []recovery.Iteration{{RunID: runID(1)}, {RunID: runID(2)}}, record.Iterations)
+	require.Equal(t, []recovery.Iteration{{ActivityID: s.ids[0]}, {ActivityID: s.ids[1]}}, record.Iterations)
 	require.Contains(t, progress.String(), "cleanup released the lease")
 }
 
-// The loop never makes more Runs than the policy allows, whatever decide says.
+// The loop never makes more Runs than the policy allows.
 func TestRunStopsAtThePolicysIterations(t *testing.T) {
 	canary := testPolicy(t)
 	canary.Limits.Iterations = 3
@@ -151,10 +178,10 @@ func TestRunStopsAtThePolicysIterations(t *testing.T) {
 	require.Equal(t, 3, s.runs)
 }
 
-// A rejected, incomplete or unconstructible iteration ends the invocation: no further Run is made
-// against production after it, and cleanup still runs.
-func TestRunStopsAfterTheFirstIterationNotAccepted(t *testing.T) {
-	for _, status := range []string{StatusRejected, StatusIncomplete, StatusUnconstructible, "bogus"} {
+// An unexplained, refused or verdictless Run ends the invocation: no further Run is made against
+// production after it, and cleanup still runs.
+func TestRunStopsAfterTheFirstRunNotExplained(t *testing.T) {
+	for _, status := range []string{StatusUnexplained, StatusRefused, "none"} {
 		t.Run(status, func(t *testing.T) {
 			s := &script{server: newFakeServer(), statuses: []string{status}}
 			run, store := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
@@ -163,8 +190,8 @@ func TestRunStopsAfterTheFirstIterationNotAccepted(t *testing.T) {
 			require.Len(t, result.Iterations, 1)
 			require.Equal(t, 1, s.runs)
 			want := status
-			if status == "bogus" {
-				want = StatusUnconstructible
+			if status == "none" {
+				want = StatusFailed
 			}
 			require.Equal(t, want, result.Iterations[0].Outcome.Status)
 			require.Contains(t, result.Stopped, "iteration 1 was "+want)
@@ -179,9 +206,9 @@ func TestRunStopsAfterTheFirstIterationNotAccepted(t *testing.T) {
 		result, err := run.run(t.Context())
 		require.NoError(t, err)
 		require.Len(t, result.Iterations, 1)
-		require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
-		require.Equal(t, runID(1), result.Iterations[0].RunID)
-		require.Zero(t, s.decided, "an errored Run is never decided")
+		require.Equal(t, StatusFailed, result.Iterations[0].Outcome.Status)
+		require.Equal(t, s.ids[0], result.Iterations[0].ActivityID)
+		require.Nil(t, result.Iterations[0].Outcome.Run, "an errored Run records nothing")
 		require.True(t, result.Cleanup.Released)
 	})
 }
@@ -191,9 +218,9 @@ func TestRunStartsNoRunPastTheInvocationLimit(t *testing.T) {
 	canary := testPolicy(t)
 	s := &script{server: newFakeServer()}
 	run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
-	// One second short of an iteration's whole bound, which is longer than the Run's own limits.
+	// One second short of an iteration's whole bound, which is longer than the Run's own budget.
 	run.Started = time.Now().Add(-canary.Limits.Invocation() + run.iterationBound() - time.Second)
-	require.Greater(t, run.iterationBound(), 2*time.Minute)
+	require.Greater(t, run.iterationBound(), runTimeout)
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
 	require.Empty(t, result.Iterations)
@@ -293,33 +320,33 @@ func (r raced) DescribeWorkflowExecution(ctx context.Context, request *workflows
 	return response, err
 }
 
-// Cleanup terminates exactly the fenced workflows still open, and nothing else on the target.
-func TestCleanupClosesOnlyTheFencedWorkflows(t *testing.T) {
+// Cleanup terminates exactly the fenced activities still open, and nothing else on the target.
+func TestCleanupClosesOnlyTheFencedActivities(t *testing.T) {
 	canary := testPolicy(t)
 	s := &script{server: newFakeServer(), leaveOpen: true}
-	s.server.open("customer-workflow", time.Unix(1, 0))
+	s.server.open("customer-activity", time.Unix(1, 0))
 	run, _ := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, []string{runID(1), runID(2)}, result.Cleanup.Closed)
+	require.Equal(t, s.ids, result.Cleanup.Closed)
 	require.True(t, result.Cleanup.Released)
-	require.Contains(t, s.server.calls, "terminate "+runID(1))
-	require.NotContains(t, s.server.calls, "terminate customer-workflow")
-	closed, err := workflowClosed(t.Context(), target(s.server), "customer-workflow", time.Second, noWait)
+	require.Contains(t, s.server.calls, "terminate "+s.ids[0])
+	require.NotContains(t, s.server.calls, "terminate customer-activity")
+	closed, err := activityClosed(t.Context(), target(s.server), "customer-activity", time.Second, noWait)
 	require.NoError(t, err)
-	require.False(t, closed, "a workflow the fence does not name is never touched")
+	require.False(t, closed, "an activity the fence does not name is never touched")
 }
 
-// A fenced workflow that is not verified closed leaves the lease held and the scope uncertain,
+// A fenced activity that is not verified closed leaves the lease held and the scope uncertain,
 // apart from the iterations' outcomes.
-func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T) {
+func TestCleanupLeavesTheLeaseHeldWhenAnActivityIsNotVerifiedClosed(t *testing.T) {
 	canary := testPolicy(t)
-	for name, stick := range map[string]func(*fakeServer){
-		"a workflow that stays open": func(server *fakeServer) { server.terminal[runID(2)] = true },
-		"a termination that fails": func(server *fakeServer) {
-			server.fail["terminate "+runID(2)] = serviceerror.NewUnavailable("down")
+	for name, stick := range map[string]func(*fakeServer, string){
+		"an activity that stays open": func(server *fakeServer, id string) { server.terminal[id] = true },
+		"a termination that fails": func(server *fakeServer, id string) {
+			server.fail["terminate "+id] = serviceerror.NewUnavailable("down")
 		},
-		"an unreadable fence": func(server *fakeServer) {
+		"an unreadable fence": func(server *fakeServer, _ string) {
 			server.fail["history "+canary.Lease.WorkflowID] = serviceerror.NewUnavailable("down")
 		},
 	} {
@@ -327,7 +354,7 @@ func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T)
 			s := &script{server: newFakeServer(), leaveOpen: true}
 			s.between = func(index int) {
 				if index == 2 {
-					stick(s.server)
+					stick(s.server, s.ids[1])
 				}
 			}
 			run, store := s.invocation(t, canary, time.Now(), &bytes.Buffer{})
@@ -335,11 +362,11 @@ func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T)
 			require.NoError(t, err)
 			require.Len(t, result.Iterations, 2)
 			for _, iteration := range result.Iterations {
-				require.Equal(t, StatusAccepted, iteration.Outcome.Status, "cleanup never changes an iteration's outcome")
+				require.Equal(t, StatusExplained, iteration.Outcome.Status, "cleanup never changes an iteration's outcome")
 			}
 			require.False(t, result.Cleanup.Released)
 			require.Error(t, result.Cleanup.Err)
-			require.Contains(t, result.Cleanup.Unverified, runID(2))
+			require.Contains(t, result.Cleanup.Unverified, s.ids[1])
 			require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
 			delete(s.server.fail, "history "+canary.Lease.WorkflowID)
 			observed, err := leaseState(t.Context(), target(s.server), canary.Lease.WorkflowID)
@@ -349,8 +376,8 @@ func TestCleanupLeavesTheLeaseHeldWhenAWorkflowIsNotVerifiedClosed(t *testing.T)
 	}
 }
 
-// A lease closed under a running invocation is a stale fence: the next Run's fence fails, so it
-// never opens, and cleanup cannot release a lease it no longer holds.
+// A lease closed under a running invocation is a stale fence: the next activity's fence fails, so
+// its Run never starts, and cleanup cannot release a lease it no longer holds.
 func TestAStaleFenceStopsTheInvocation(t *testing.T) {
 	canary := testPolicy(t)
 	s := &script{server: newFakeServer()}
@@ -365,11 +392,10 @@ func TestAStaleFenceStopsTheInvocation(t *testing.T) {
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
 	require.Len(t, result.Iterations, 2)
-	require.Equal(t, StatusAccepted, result.Iterations[0].Outcome.Status)
-	require.Equal(t, StatusUnconstructible, result.Iterations[1].Outcome.Status)
-	require.Empty(t, result.Iterations[1].RunID, "the second Run never opened")
-	require.Len(t, s.server.runs[runID(1)], 1)
-	require.NotContains(t, s.server.runs, runID(2))
+	require.Equal(t, StatusExplained, result.Iterations[0].Outcome.Status)
+	require.Equal(t, StatusFailed, result.Iterations[1].Outcome.Status)
+	require.Empty(t, result.Iterations[1].ActivityID, "the second activity was never fenced")
+	require.Equal(t, 1, s.runs, "the second Run never started")
 	require.False(t, result.Cleanup.Released)
 	require.Equal(t, recovery.PhaseUncertain, store.Snapshot().Phase)
 }
@@ -420,51 +446,55 @@ func TestCleanupEndsAtTheInvocationLimitPlusTheReserve(t *testing.T) {
 // fails after an errored Run is reported with it.
 func TestADriverThatDoesNotReleaseStopsTheLoop(t *testing.T) {
 	stuck := errors.New("the worker did not stop")
+	stuckDriver := func() (runner.NewDriver, func(context.Context) error, error) {
+		return func(context.Context) (runner.Driver, error) { return &stubDriver{}, nil }, func(context.Context) error { return stuck }, nil
+	}
 	s := &script{server: newFakeServer()}
 	run, _ := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
-	run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
-		return &stubDriver{}, func(context.Context) error { return stuck }, nil
-	}
+	run.openDriver = stuckDriver
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
 	require.Len(t, result.Iterations, 1)
-	require.Equal(t, StatusAccepted, result.Iterations[0].Outcome.Status, "the Run's own outcome stands")
+	require.Equal(t, StatusExplained, result.Iterations[0].Outcome.Status, "the Run's own outcome stands")
 	require.Contains(t, result.Stopped, "did not release")
 	require.True(t, result.Cleanup.Released)
 
 	s = &script{server: newFakeServer(), runErr: errors.New("the Run failed")}
 	run, _ = s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
-	run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
-		return &stubDriver{}, func(context.Context) error { return stuck }, nil
-	}
+	run.openDriver = stuckDriver
 	result, err = run.run(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
+	require.Equal(t, StatusFailed, result.Iterations[0].Outcome.Status)
 	require.ErrorIs(t, result.Iterations[0].Outcome.Err, stuck)
 }
 
-// A panic in the Run or in decide is an unconstructible iteration, and cleanup still runs.
-func TestAPanicIsUnconstructibleAndCleanupStillRuns(t *testing.T) {
+// A panic in the Run is a failed iteration, and cleanup still runs.
+func TestAPanicIsAFailedIterationAndCleanupStillRuns(t *testing.T) {
 	s := &script{server: newFakeServer()}
 	run, store := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
-	run.Decide = func(*testpilotspb.Run, *testpilotspb.Verdict) Outcome { panic("decide broke") }
+	run.runModel = func(context.Context, *anypb.Any, runner.NewDriver) (*runner.Run, error) { panic("run broke") }
 	result, err := run.run(t.Context())
 	require.NoError(t, err)
 	require.Len(t, result.Iterations, 1)
-	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
-	require.ErrorContains(t, result.Iterations[0].Outcome.Err, "decide broke")
+	require.Equal(t, StatusFailed, result.Iterations[0].Outcome.Status)
+	require.ErrorContains(t, result.Iterations[0].Outcome.Err, "run broke")
 	require.True(t, result.Cleanup.Released)
 	require.Equal(t, recovery.PhaseReleased, store.Snapshot().Phase)
+}
 
-	s = &script{server: newFakeServer()}
-	run, _ = s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
-	run.runCase = func(context.Context, testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
-		panic("run broke")
-	}
-	result, err = run.run(t.Context())
+// The canary's World is one fresh activity on the canary queue whose worker completes it.
+func TestTheWorldIsOneCompletingActivity(t *testing.T) {
+	s := &script{server: newFakeServer()}
+	run, _ := s.invocation(t, testPolicy(t), time.Now(), &bytes.Buffer{})
+	world, err := run.world(activityID(1))
 	require.NoError(t, err)
-	require.Equal(t, StatusUnconstructible, result.Iterations[0].Outcome.Status)
-	require.True(t, result.Cleanup.Released)
+	start := new(workflowservice.StartActivityExecutionRequest)
+	require.NoError(t, world.UnmarshalTo(start))
+	require.Equal(t, testNamespace, start.GetNamespace())
+	require.Equal(t, activityID(1), start.GetActivityId())
+	require.Equal(t, "queue", start.GetTaskQueue().GetName())
+	require.Equal(t, int32(1), start.GetRetryPolicy().GetMaximumAttempts())
+	require.Equal(t, "Complete", string(start.GetInput().GetPayloads()[0].GetData()))
 }
 
 func TestRunRequiresEveryInput(t *testing.T) {

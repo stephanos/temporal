@@ -1,15 +1,11 @@
 {
-  "version": 1,
-  "caseIdentity": "35f4af42eae3e3a2ebe541bfda251a714a14e0bde8dc5a32e78280babc2eb049",
-  "caseProfile": "production-canary",
-  "evaluationProfile": "production-canary",
+  "version": 2,
+  "modelHash": "757fd2e8ca05d8116f5d20c6fbe3586ff2d865296319ddec2cb1d48fe5dab66e",
   "authorityClass": "protected-workflow",
   "coordinates": {
     "grpc": "unconfigured",
     "namespace": "unconfigured",
-    "taskQueue": "unconfigured",
-    "handlerQueue": "unconfigured",
-    "nexusEndpoint": "unconfigured"
+    "taskQueue": "unconfigured"
   },
   "lease": {
     "workflowId": "umpire-canary-lease",

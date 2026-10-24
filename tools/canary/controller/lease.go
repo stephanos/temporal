@@ -1,7 +1,8 @@
 // Package controller runs the production canary's invocation: it reads and takes the lease, runs
-// the prepared Case serially through fenced Drivers, and cleans up exactly what the lease's fence
-// names. The lease is a workflow on a task queue no worker polls; its run ID is the fence, and its
-// `run-opened` signals are the server-side list of every workflow the fence may touch.
+// the activity Model through the Runner serially, each Run's Temporal Driver fenced to one
+// activity, publishes the Runs, and cleans up exactly what the lease's fence names. The lease is a
+// workflow on a task queue no worker polls; its run ID is the fence, and its `run-opened` signals
+// are the server-side list of every activity the fence may touch.
 package controller
 
 import (
@@ -18,7 +19,6 @@ import (
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/converter"
-	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -32,7 +32,7 @@ const (
 	SignalRunOpened  = "run-opened"
 	ReasonReleased   = "umpire-canary: released"
 	ReasonReconciled = "umpire-canary: reconciled"
-	// ReasonCleanup is the reason a fenced workflow is terminated with.
+	// ReasonCleanup is the reason a fenced activity is terminated with.
 	ReasonCleanup = "umpire-canary: cleanup"
 )
 
@@ -42,6 +42,8 @@ const maxLeaseEvents = 1024
 
 // Service is the part of the WorkflowService the lease and cleanup use: all namespace-scoped.
 type Service interface {
+	DescribeActivityExecution(context.Context, *workflowservice.DescribeActivityExecutionRequest, ...grpc.CallOption) (*workflowservice.DescribeActivityExecutionResponse, error)
+	TerminateActivityExecution(context.Context, *workflowservice.TerminateActivityExecutionRequest, ...grpc.CallOption) (*workflowservice.TerminateActivityExecutionResponse, error)
 	StartWorkflowExecution(context.Context, *workflowservice.StartWorkflowExecutionRequest, ...grpc.CallOption) (*workflowservice.StartWorkflowExecutionResponse, error)
 	SignalWorkflowExecution(context.Context, *workflowservice.SignalWorkflowExecutionRequest, ...grpc.CallOption) (*workflowservice.SignalWorkflowExecutionResponse, error)
 	TerminateWorkflowExecution(context.Context, *workflowservice.TerminateWorkflowExecutionRequest, ...grpc.CallOption) (*workflowservice.TerminateWorkflowExecutionResponse, error)
@@ -49,7 +51,7 @@ type Service interface {
 	GetWorkflowExecutionHistory(context.Context, *workflowservice.GetWorkflowExecutionHistoryRequest, ...grpc.CallOption) (*workflowservice.GetWorkflowExecutionHistoryResponse, error)
 }
 
-// Target is where the lease and the fenced workflows live, and the identity the canary's own calls
+// Target is where the lease and the fenced activities live, and the identity the canary's own calls
 // carry.
 type Target struct {
 	Service   Service
@@ -192,17 +194,17 @@ func takeLease(ctx context.Context, target Target, lease policy.Lease, timeout t
 	return Fence{WorkflowID: lease.WorkflowID, RunID: started.GetRunId()}, nil
 }
 
-// signalRunOpened records a Run's ID in the lease's history, sent to the exact fence run, so a
-// stale fence -- a lease run that has closed -- fails the signal.
-func signalRunOpened(ctx context.Context, target Target, fence Fence, runID string) error {
-	input, err := converter.GetDefaultDataConverter().ToPayloads(runID)
+// signalRunOpened records an activity ID in the lease's history before its Run starts, sent to the
+// exact fence run, so a stale fence -- a lease run that has closed -- fails the signal.
+func signalRunOpened(ctx context.Context, target Target, fence Fence, activityID string) error {
+	input, err := converter.GetDefaultDataConverter().ToPayloads(activityID)
 	if err != nil {
 		return err
 	}
 	_, err = target.Service.SignalWorkflowExecution(ctx, &workflowservice.SignalWorkflowExecutionRequest{
 		Namespace:         target.Namespace,
 		WorkflowExecution: &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID},
-		SignalName:        SignalRunOpened, Input: input, Identity: target.Identity, RequestId: runID,
+		SignalName:        SignalRunOpened, Input: input, Identity: target.Identity, RequestId: activityID,
 	})
 	if err != nil {
 		return fmt.Errorf("fence the Run on the canary lease: %w", err)
@@ -210,7 +212,7 @@ func signalRunOpened(ctx context.Context, target Target, fence Fence, runID stri
 	return nil
 }
 
-// fencedIDs reads every workflow ID the fence's `run-opened` signals name, in order, once each.
+// fencedIDs reads every activity ID the fence's `run-opened` signals name, in order, once each.
 func fencedIDs(ctx context.Context, target Target, fence Fence) ([]string, error) {
 	var ids []string
 	var token []byte
@@ -232,10 +234,10 @@ func fencedIDs(ctx context.Context, target Target, fence Fence) ([]string, error
 				continue
 			}
 			var id string
-			if err := converter.GetDefaultDataConverter().FromPayloads(signaled.GetInput(), &id); err != nil || !testpilot.IsRunID(id) {
-				// Only the canary's own fence names a Run; anything else signalled to the lease fails
-				// closed, so cleanup never acts on a workflow the canary did not start.
-				return nil, fmt.Errorf("a %s signal on the canary lease names no Testpilot Run", SignalRunOpened)
+			if err := converter.GetDefaultDataConverter().FromPayloads(signaled.GetInput(), &id); err != nil || !IsActivityID(id) {
+				// Only the canary's own fence names an activity; anything else signalled to the lease
+				// fails closed, so cleanup never acts on an execution the canary did not start.
+				return nil, fmt.Errorf("a %s signal on the canary lease names no canary activity", SignalRunOpened)
 			}
 			if !slices.Contains(ids, id) {
 				ids = append(ids, id)
@@ -286,13 +288,13 @@ func sleep(ctx context.Context, d time.Duration) error {
 	}
 }
 
-// workflowClosed reports whether a fenced workflow is closed. One the server does not find on two
+// activityClosed reports whether a fenced activity is closed. One the server does not find on two
 // reads a pause apart never started -- its start was fenced but never reached the server -- and
 // counts as closed. Cleanup and reconcile share it.
-func workflowClosed(ctx context.Context, target Target, workflowID string, pause time.Duration, wait Wait) (bool, error) {
+func activityClosed(ctx context.Context, target Target, activityID string, pause time.Duration, wait Wait) (bool, error) {
 	for attempt := range 2 {
-		described, err := target.Service.DescribeWorkflowExecution(ctx, &workflowservice.DescribeWorkflowExecutionRequest{
-			Namespace: target.Namespace, Execution: &commonpb.WorkflowExecution{WorkflowId: workflowID},
+		described, err := target.Service.DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{
+			Namespace: target.Namespace, ActivityId: activityID,
 		})
 		if notFound(err) {
 			if attempt == 0 {
@@ -303,29 +305,38 @@ func workflowClosed(ctx context.Context, target Target, workflowID string, pause
 			continue
 		}
 		if err != nil {
-			return false, fmt.Errorf("describe a fenced workflow: %w", err)
+			return false, fmt.Errorf("describe a fenced activity: %w", err)
 		}
-		return described.GetWorkflowExecutionInfo().GetStatus() != enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING, nil
+		switch described.GetInfo().GetStatus() {
+		case enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED,
+			enumspb.ACTIVITY_EXECUTION_STATUS_TERMINATED, enumspb.ACTIVITY_EXECUTION_STATUS_TIMED_OUT:
+			return true, nil
+		default:
+			return false, nil
+		}
 	}
 	return true, nil
 }
 
-// closeFenced verifies one fenced workflow closed, terminating it with reason first when it is
+// closeFenced verifies one fenced activity closed, terminating it with reason first when it is
 // open, and says whether it is closed and whether it was terminated. Cleanup and reconcile share it.
 func closeFenced(ctx context.Context, target Target, id string, pause time.Duration, wait Wait, reason string) (closed, terminated bool, err error) {
-	closed, err = workflowClosed(ctx, target, id, pause, wait)
+	closed, err = activityClosed(ctx, target, id, pause, wait)
 	if err != nil || closed {
 		return closed, false, err
 	}
-	if err := terminate(ctx, target, &commonpb.WorkflowExecution{WorkflowId: id}, reason); err != nil {
+	_, err = target.Service.TerminateActivityExecution(ctx, &workflowservice.TerminateActivityExecutionRequest{
+		Namespace: target.Namespace, ActivityId: id, Reason: reason, Identity: target.Identity,
+	})
+	if err != nil && !notFound(err) && status.Code(err) != codes.FailedPrecondition {
 		return false, false, err
 	}
-	closed, err = workflowClosed(ctx, target, id, pause, wait)
+	closed, err = activityClosed(ctx, target, id, pause, wait)
 	return closed, true, err
 }
 
-// terminate ends one workflow run with reason. A run already closed or never started is not an
-// error: the caller verifies with workflowClosed.
+// terminate ends one lease run with reason. A run already closed or never started is not an
+// error: the caller reads the lease back.
 func terminate(ctx context.Context, target Target, execution *commonpb.WorkflowExecution, reason string) error {
 	_, err := target.Service.TerminateWorkflowExecution(ctx, &workflowservice.TerminateWorkflowExecutionRequest{
 		Namespace: target.Namespace, WorkflowExecution: execution, Reason: reason, Identity: target.Identity,

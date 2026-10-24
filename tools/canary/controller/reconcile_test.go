@@ -40,8 +40,8 @@ func (f *reconcileFixture) record(t *testing.T, lease *recovery.Lease, iteration
 	}))
 }
 
-// took starts a lease run as the job's own and fences the given Runs on it, each left open or
-// closed.
+// took starts a lease run as the job's own and fences the given activities on it, each left open
+// or closed.
 func (f *reconcileFixture) took(t *testing.T, open map[string]bool, runs ...string) Fence {
 	t.Helper()
 	// The lease is started as an earlier invocation's, whose identity its start carries.
@@ -100,46 +100,46 @@ func TestReconcileWithNothingToReconcile(t *testing.T) {
 	require.Empty(t, f.server.calls)
 }
 
-// The job's own lease is reconciled at once: exactly its fenced workflows are verified or
+// The job's own lease is reconciled at once: exactly its fenced activities are verified or
 // terminated, the lease run is terminated as reconciled, and the iterations its record shows
-// unpublished are reported lost; no Verdict or receipt appears anywhere.
+// unpublished are reported lost; no Run is published.
 func TestReconcileClosesTheJobsOwnLease(t *testing.T) {
 	f := newReconcileFixture(t)
-	fence := f.took(t, map[string]bool{runID(2): true}, runID(1), runID(2))
-	f.server.open("customer-workflow", time.Unix(1, 0))
+	fence := f.took(t, map[string]bool{activityID(2): true}, activityID(1), activityID(2))
+	f.server.open("customer-activity", time.Unix(1, 0))
 	f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook},
-		recovery.Iteration{RunID: runID(1), Published: true}, recovery.Iteration{RunID: runID(2)})
+		recovery.Iteration{ActivityID: activityID(1), Published: true}, recovery.Iteration{ActivityID: activityID(2)})
 
 	report, code := f.reconcile(t, f.seams())
 	require.Equal(t, ExitAccepted, code, "%+v", report)
 	require.Equal(t, StatusReconciled, report.Status)
-	require.Equal(t, []string{runID(1), runID(2)}, report.Fenced)
-	require.Equal(t, []string{runID(1), runID(2)}, report.Closed)
+	require.Equal(t, []string{activityID(1), activityID(2)}, report.Fenced)
+	require.Equal(t, []string{activityID(1), activityID(2)}, report.Closed)
 	require.Empty(t, report.Unverified)
-	require.Equal(t, []string{runID(2)}, report.Lost, "the unpublished iteration is lost, with no receipt")
-	require.Equal(t, []string{runID(2)}, report.Terminated, "only the open fenced workflow is terminated")
+	require.Equal(t, []string{activityID(2)}, report.Lost, "the unpublished iteration is lost")
+	require.Equal(t, []string{activityID(2)}, report.Terminated, "only the open fenced activity is terminated")
 	require.Empty(t, report.PublicationUnknown)
-	require.Contains(t, f.server.calls, "terminate "+runID(2))
-	require.NotContains(t, f.server.calls, "terminate "+runID(1), "a closed fenced workflow is only verified")
-	require.NotContains(t, f.server.calls, "terminate customer-workflow")
+	require.Contains(t, f.server.calls, "terminate "+activityID(2))
+	require.NotContains(t, f.server.calls, "terminate "+activityID(1), "a closed fenced activity is only verified")
+	require.NotContains(t, f.server.calls, "terminate customer-activity")
 	require.Equal(t, LeaseReleased, f.leaseState(t).State)
 	entries, err := os.ReadDir(f.output)
 	require.NoError(t, err)
-	require.Empty(t, entries, "reconcile writes no receipt or provenance")
+	require.Empty(t, entries, "reconcile publishes no Run")
 }
 
-// A run that finished publishing lost nothing: an iteration its record shows unpublished was
-// unconstructible, and had no receipt.
+// A run that finished publishing lost nothing: an iteration its record shows unpublished failed,
+// and recorded no Run.
 func TestReconcileAfterAFinishedRunLosesNothing(t *testing.T) {
 	f := newReconcileFixture(t)
-	fence := f.took(t, nil, runID(1))
+	fence := f.took(t, nil, activityID(1))
 	require.NoError(t, terminate(t.Context(), target(f.server), &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID}, ReasonReleased))
 	finished, err := recovery.Create(f.recovery, "1234567-1")
 	require.NoError(t, err)
 	require.NoError(t, finished.Update(func(record *recovery.Record) {
 		record.Phase = recovery.PhaseFinished
 		record.Lease = &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}
-		record.Iterations = []recovery.Iteration{{RunID: runID(1)}}
+		record.Iterations = []recovery.Iteration{{ActivityID: activityID(1)}}
 	}))
 	report, code := f.reconcile(t, f.seams())
 	require.Equal(t, ExitAccepted, code, "%+v", report)
@@ -149,10 +149,10 @@ func TestReconcileAfterAFinishedRunLosesNothing(t *testing.T) {
 }
 
 // A lease its job found open is left alone while it is younger than an invocation can be, and
-// reconciled once it is older; its fenced Runs' publication is the earlier invocation's.
+// reconciled once it is older; its fenced activities' Runs are the earlier invocation's.
 func TestReconcileGuardsAFoundLeaseByItsAge(t *testing.T) {
 	f := newReconcileFixture(t)
-	fence := f.took(t, map[string]bool{runID(1): true}, runID(1))
+	fence := f.took(t, map[string]bool{activityID(1): true}, activityID(1))
 	f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldFound})
 	f.now = time.Unix(1000, 0).Add(f.policy.Limits.Invocation())
 
@@ -166,7 +166,7 @@ func TestReconcileGuardsAFoundLeaseByItsAge(t *testing.T) {
 	report, code = f.reconcile(t, f.seams())
 	require.Equal(t, ExitAccepted, code, "%+v", report)
 	require.Equal(t, StatusReconciled, report.Status)
-	require.Equal(t, []string{runID(1)}, report.PublicationUnknown)
+	require.Equal(t, []string{activityID(1)}, report.PublicationUnknown)
 	require.Equal(t, "7654321-2", report.FoundInvocation, "the earlier invocation, read from its lease's start")
 	require.Equal(t, ArtifactPrefix+"7654321-2", report.FoundArtifact)
 	require.Empty(t, report.Lost)
@@ -185,7 +185,7 @@ func TestReconcileRecordsAClosedLeaseReconciled(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newReconcileFixture(t)
-			fence := f.took(t, nil, runID(1))
+			fence := f.took(t, nil, activityID(1))
 			close(f, fence)
 			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldFound})
 			require.Equal(t, LeaseClosedOtherwise, f.leaseState(t).State)
@@ -200,7 +200,7 @@ func TestReconcileRecordsAClosedLeaseReconciled(t *testing.T) {
 
 	t.Run("a later lease run is another invocation's", func(t *testing.T) {
 		f := newReconcileFixture(t)
-		fence := f.took(t, nil, runID(1))
+		fence := f.took(t, nil, activityID(1))
 		f.server.timeOut(f.policy.Lease.WorkflowID)
 		later := f.server.open(f.policy.Lease.WorkflowID, time.Unix(5000, 0))
 		f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldFound})
@@ -231,31 +231,31 @@ func TestReconcileRecordsAClosedLeaseReconciled(t *testing.T) {
 	})
 }
 
-// A fenced workflow that cannot be verified closed, or a fence that cannot be read, leaves the
+// A fenced activity that cannot be verified closed, or a fence that cannot be read, leaves the
 // lease held and the scope uncertain, exit 2.
 func TestReconcileLeavesAnUncertainScopeHeld(t *testing.T) {
 	for name, stick := range map[string]func(*reconcileFixture){
-		"a workflow that stays open": func(f *reconcileFixture) { f.server.terminal[runID(1)] = true },
+		"an activity that stays open": func(f *reconcileFixture) { f.server.terminal[activityID(1)] = true },
 		"a termination that fails": func(f *reconcileFixture) {
-			f.server.fail["terminate "+runID(1)] = serviceerror.NewUnavailable("down")
+			f.server.fail["terminate "+activityID(1)] = serviceerror.NewUnavailable("down")
 		},
 		"an unreadable fence": func(f *reconcileFixture) {
 			f.server.fail["history "+f.policy.Lease.WorkflowID] = serviceerror.NewUnavailable("down")
 		},
 		"a foreign signal on the lease": func(f *reconcileFixture) {
 			fence := Fence{WorkflowID: f.policy.Lease.WorkflowID, RunID: f.server.latest(f.policy.Lease.WorkflowID).runID}
-			require.NoError(t, signalRunOpened(t.Context(), target(f.server), fence, "customer-workflow"))
+			require.NoError(t, signalRunOpened(t.Context(), target(f.server), fence, "customer-activity"))
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newReconcileFixture(t)
-			fence := f.took(t, map[string]bool{runID(1): true}, runID(1))
+			fence := f.took(t, map[string]bool{activityID(1): true}, activityID(1))
 			stick(f)
-			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}, recovery.Iteration{RunID: runID(1)})
+			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook}, recovery.Iteration{ActivityID: activityID(1)})
 			report, code := f.reconcile(t, f.seams())
 			require.Equal(t, ExitUncertain, code, "%+v", report)
 			require.Equal(t, StatusReconcileUncertain, report.Status)
-			require.Contains(t, report.Unverified, runID(1), "the report names what an operator must close")
+			require.Contains(t, report.Unverified, activityID(1), "the report names what an operator must close")
 			delete(f.server.fail, "history "+f.policy.Lease.WorkflowID)
 			require.Equal(t, LeaseOpen, f.leaseState(t).State, "the lease stays held")
 		})
@@ -301,7 +301,7 @@ func TestReconcileRefusesAnotherScope(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := newReconcileFixture(t)
-			fence := f.took(t, map[string]bool{runID(1): true}, runID(1))
+			fence := f.took(t, map[string]bool{activityID(1): true}, activityID(1))
 			f.record(t, &recovery.Lease{WorkflowID: fence.WorkflowID, RunID: fence.RunID, Held: recovery.HeldTook})
 			seams := f.seams()
 			test.edit(f, &seams)

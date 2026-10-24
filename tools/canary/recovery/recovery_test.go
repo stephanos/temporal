@@ -25,8 +25,8 @@ func TestCreateUpdateAndReadBack(t *testing.T) {
 	require.NoError(t, store.Update(func(r *Record) {
 		r.Phase = PhaseRunning
 		r.Lease = &Lease{WorkflowID: "umpire-canary-lease", RunID: "fence", Held: HeldTook}
-		r.CurrentRunID = "run-1"
-		r.Iterations = append(r.Iterations, Iteration{RunID: "run-1"})
+		r.CurrentActivityID = "activity-1"
+		r.Iterations = append(r.Iterations, Iteration{ActivityID: "activity-1"})
 	}))
 	info, err = os.Stat(path)
 	require.NoError(t, err)
@@ -85,10 +85,10 @@ func TestReadRefusesAnythingButTheCanonicalRecord(t *testing.T) {
 
 	text := string(canonical)
 	for name, encoded := range map[string]string{
-		"an unknown key":         strings.Replace(text, `"version": 1,`, `"version": 1,`+"\n"+`  "extra": true,`, 1),
-		"a repeated key":         strings.Replace(text, `"version": 1,`, `"version": 1,`+"\n"+`  "version": 1,`, 1),
+		"an unknown key":         strings.Replace(text, `"version": 2,`, `"version": 2,`+"\n"+`  "extra": true,`, 1),
+		"a repeated key":         strings.Replace(text, `"version": 2,`, `"version": 2,`+"\n"+`  "version": 2,`, 1),
 		"a case-folded key":      strings.Replace(text, `"invocationId"`, `"InvocationId"`, 1),
-		"another version":        strings.Replace(text, `"version": 1`, `"version": 2`, 1),
+		"another version":        strings.Replace(text, `"version": 2`, `"version": 1`, 1),
 		"another spacing":        strings.ReplaceAll(text, "  ", "    "),
 		"null iterations":        strings.Replace(text, `"iterations": []`, `"iterations": null`, 1),
 		"no final newline":       strings.TrimSuffix(text, "\n"),

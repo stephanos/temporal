@@ -7,8 +7,10 @@ package act
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -63,6 +65,16 @@ type Options struct {
 	// full name followed by a field path, e.g.
 	// temporal.api.workflowservice.v1.PollActivityTaskQueueResponse.task_token.
 	Redact []string
+	// Transport is how the Driver reaches Address; the zero value is plaintext without credentials.
+	Transport Transport
+}
+
+// Transport is a credentialed connection to the frontend: the dial options of the Driver's own
+// calls and the SDK worker client's TLS and credentials. It is never read from the environment.
+type Transport struct {
+	DialOptions       []grpc.DialOption
+	ClientTLS         *tls.Config
+	ClientCredentials client.Credentials
 }
 
 // The environment Configure reads.
@@ -134,6 +146,13 @@ func (o Options) withDefaults() Options {
 	return o
 }
 
+func (t Transport) clientTLS() *tls.Config {
+	if t.ClientTLS == nil {
+		return nil
+	}
+	return t.ClientTLS.Clone()
+}
+
 // Factory makes one Driver per Run and owns what outlives a Run: the provisioned namespace.
 type Factory struct {
 	opts Options
@@ -166,7 +185,7 @@ func (f *Factory) provision(ctx context.Context) error {
 	if !f.opts.Create || f.provisioned {
 		return nil
 	}
-	conn, err := dial(f.opts.Address)
+	conn, err := dial(f.opts)
 	if err != nil {
 		return err
 	}
@@ -192,8 +211,12 @@ func (f *Factory) Close(ctx context.Context) error {
 	return errors.Join(err, f.conn.Close())
 }
 
-func dial(address string) (*grpc.ClientConn, error) {
-	return grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithStatsHandler(completion{}))
+func dial(opts Options) (*grpc.ClientConn, error) {
+	dialOptions := opts.Transport.DialOptions
+	if len(dialOptions) == 0 {
+		dialOptions = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	}
+	return grpc.NewClient(opts.Address, append(slices.Clone(dialOptions), grpc.WithStatsHandler(completion{}))...)
 }
 
 // Driver acts on one Temporal deployment for one Run.
@@ -224,7 +247,7 @@ type Driver struct {
 }
 
 func newDriver(opts Options) (*Driver, error) {
-	conn, err := dial(opts.Address)
+	conn, err := dial(opts)
 	if err != nil {
 		return nil, err
 	}

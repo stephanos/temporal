@@ -3,50 +3,35 @@ package controller
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/serviceerror"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/evaluation"
-	"go.temporal.io/server/common/testing/testpilot/recordedrun"
-	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
-	"go.temporal.io/server/tools/canary/publication"
 	"go.temporal.io/server/tools/canary/recovery"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/anypb"
+	"umpire.local/model/umpire/runner"
 )
 
 var invokeCoordinates = authority.Coordinates{
 	GRPC: "canary-frontend.example.internal:7233", Namespace: testNamespace, TaskQueue: "canary-queue-2b9",
-	HandlerQueue: "canary-handler-queue-5e3", NexusEndpoint: "canary-endpoint-8d4",
-}
-
-// recordedRun is the test cluster's recorded canary Run, under another Run ID.
-func recordedRun(t *testing.T, runID string) *testpilotspb.Run {
-	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexus-workflow-syncCompletion-current-run.json"))
-	require.NoError(t, err)
-	decoded, err := recordedrun.Decode(encoded)
-	require.NoError(t, err)
-	decoded.Run.RunId = runID
-	return decoded.Run
 }
 
 // invokeFixture is one invocation against the fake server: the policy configured for the test
-// coordinates, a plaintext transport, the dispatch's environment, and iterations scripted from the
-// recorded Run.
+// coordinates and pinning the test guest, a plaintext transport, the dispatch's environment, and
+// scripted Runs.
 type invokeFixture struct {
 	server   *fakeServer
 	policy   *policy.Policy
@@ -54,10 +39,8 @@ type invokeFixture struct {
 	output   string
 	recovery string
 	progress bytes.Buffer
-	// run edits each scripted Run before it returns; nil returns it as recorded.
-	run func(index int, run *testpilotspb.Run) *testpilotspb.Run
-	// decide replaces fn-26's decision; nil keeps the real one.
-	decide Decide
+	// statuses are the scripted Runs' verdicts in order; past them a Run is explained.
+	statuses []string
 	// between runs after each Run.
 	between func(index int)
 	// release is each iteration's Driver release; nil releases cleanly.
@@ -66,13 +49,14 @@ type invokeFixture struct {
 	ctx context.Context
 	// started is when the invocation started; zero is now.
 	started time.Time
-	// runErr fails each scripted Run after its Driver opens.
+	// runErr fails each scripted Run after its activity starts.
 	runErr error
-	// session acts on each scripted Run's fenced Session once it opens; an error fails the Run.
-	session func(ctx context.Context, session testpilot.Session) error
-	runs    int
-	// publish replaces publication.Publish; nil keeps it.
-	publish func(context.Context, string, []publication.Item, func(string) error) ([]publication.Published, error)
+	// start replaces the World each scripted Run starts its activity from; nil starts the World.
+	start func(world *anypb.Any) *anypb.Any
+	runs  int
+	ids   []string
+	// publish replaces runner.Publish; nil keeps it.
+	publish func(context.Context, string, *runner.Run) (runner.Publication, error)
 }
 
 func newInvokeFixture(t *testing.T) *invokeFixture {
@@ -80,6 +64,8 @@ func newInvokeFixture(t *testing.T) *invokeFixture {
 	canary, err := policy.Embedded()
 	require.NoError(t, err)
 	canary.Coordinates = invokeCoordinates.Digests()
+	hash := sha256.Sum256(testGuest)
+	canary.ModelHash = hex.EncodeToString(hash[:])
 	root := t.TempDir()
 	output := filepath.Join(root, "output")
 	require.NoError(t, os.Mkdir(output, 0o755))
@@ -96,16 +82,13 @@ func newInvokeFixture(t *testing.T) *invokeFixture {
 
 func (f *invokeFixture) seams() Seams {
 	return Seams{
-		Policy: func() (*policy.Policy, *evaluation.Profile, error) {
-			profile, err := assessment.LoadProfile(f.policy.EvaluationProfile)
-			return f.policy, profile, err
-		},
+		Policy: func() (*policy.Policy, error) { return f.policy, nil },
+		Guest:  testGuest,
 		Authority: func(authority.Lookup) (*authority.Authority, error) {
 			return &authority.Authority{
 				Coordinates: invokeCoordinates,
 				Transport:   authority.Transport{Target: invokeCoordinates.GRPC, Credentials: insecure.NewCredentials()},
-				Redactor: authority.NewRedactor(invokeCoordinates.GRPC, invokeCoordinates.TaskQueue,
-					invokeCoordinates.HandlerQueue, invokeCoordinates.NexusEndpoint),
+				Redactor:    authority.NewRedactor(invokeCoordinates.GRPC, invokeCoordinates.TaskQueue),
 			}, nil
 		},
 	}
@@ -127,40 +110,37 @@ func (f *invokeFixture) invoke(t *testing.T, seams Seams) (Summary, int) {
 		prepare: func(run *invocation) {
 			run.Wait = noWait
 			run.wait = noWait
-			run.openDriver = func() (testpilot.Driver, func(context.Context) error, error) {
-				if f.release != nil {
-					return &stubDriver{}, f.release, nil
+			run.openDriver = func() (runner.NewDriver, func(context.Context) error, error) {
+				release := f.release
+				if release == nil {
+					release = func(context.Context) error { return nil }
 				}
-				return &stubDriver{}, func(context.Context) error { return nil }, nil
+				return func(context.Context) (runner.Driver, error) { return &stubDriver{}, nil }, release, nil
 			}
-			run.runCase = func(ctx context.Context, driver testpilot.Driver) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+			run.runModel = func(ctx context.Context, world *anypb.Any, newDriver runner.NewDriver) (*runner.Run, error) {
 				f.runs++
-				id := runID(f.runs)
-				session, err := driver.Open(ctx, id, testpilot.PreparedProgram{})
-				if err != nil {
-					return nil, nil, err
+				started := world
+				if f.start != nil {
+					started = f.start(world)
 				}
+				id, err := startScripted(ctx, started, newDriver)
+				if err != nil {
+					return nil, err
+				}
+				f.ids = append(f.ids, id)
 				f.server.open(id, time.Unix(3000, 0))
 				f.server.finish(id)
-				if f.session != nil {
-					if err := f.session(ctx, session); err != nil {
-						return nil, nil, err
-					}
-				}
-				recorded := recordedRun(t, id)
-				if f.run != nil {
-					recorded = f.run(f.runs, recorded)
-				}
 				if f.between != nil {
 					f.between(f.runs)
 				}
 				if f.runErr != nil {
-					return nil, nil, f.runErr
+					return nil, f.runErr
 				}
-				return recorded, recorded.GetVerdict(), nil
-			}
-			if f.decide != nil {
-				run.Decide = f.decide
+				status := StatusExplained
+				if f.runs <= len(f.statuses) {
+					status = f.statuses[f.runs-1]
+				}
+				return scriptedRun(world, status), nil
 			}
 		},
 	})
@@ -173,112 +153,82 @@ func (f *invokeFixture) startedAt() time.Time {
 	return f.started
 }
 
+// published is every file under the output directory, relative to it.
 func (f *invokeFixture) published(t *testing.T) []string {
 	t.Helper()
-	entries, err := os.ReadDir(f.output)
-	require.NoError(t, err)
 	var names []string
-	for _, entry := range entries {
-		names = append(names, entry.Name())
-	}
+	require.NoError(t, filepath.WalkDir(f.output, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		relative, err := filepath.Rel(f.output, path)
+		names = append(names, relative)
+		return err
+	}))
 	slices.Sort(names)
 	return names
 }
 
-// decidedAs is fn-26's decision on the recorded Run with its subject edited first, as a rejected or
-// incomplete iteration's receipt would be rendered.
-func decidedAs(t *testing.T, canary *policy.Policy, edit func(*evaluation.Subject)) Decide {
-	t.Helper()
-	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
-	require.NoError(t, err)
-	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexus-workflow-syncCompletion-current-run.json"))
-	require.NoError(t, err)
-	decoded, err := recordedrun.Decode(encoded)
-	require.NoError(t, err)
-	return func(run *testpilotspb.Run, _ *testpilotspb.Verdict) Outcome {
-		subject, err := assessment.Admit(canary, decoded.Driver, run)
-		require.NoError(t, err)
-		edit(subject)
-		decision := evaluation.Assess(subject, *profile, nil)
-		receipt, err := evaluation.Render(subject, *profile, decision)
-		require.NoError(t, err)
-		return Outcome{Status: decision.Outcome, Receipt: receipt}
-	}
-}
-
-// Every iteration accepted: preflight, the lease, two Runs admitted, assessed and rendered in
-// memory, cleanup releasing the lease, then each receipt and its provenance published and recorded;
-// the exit is 0.
-func TestInvokePublishesEveryAcceptedIteration(t *testing.T) {
+// Every Run explained: preflight, the lease, two Runs recorded in memory, cleanup releasing the
+// lease, then each Run published with runner.Publish and recorded; the exit is 0.
+func TestInvokePublishesEveryExplainedRun(t *testing.T) {
 	f := newInvokeFixture(t)
 	summary, code := f.invoke(t, f.seams())
 	require.Equal(t, ExitAccepted, code, "%+v\n%s", summary, f.progress.String())
-	require.Equal(t, StatusAccepted, summary.Status)
+	require.Equal(t, StatusExplained, summary.Status)
 	require.Equal(t, "1234567-1", summary.Invocation)
 	require.Len(t, summary.Iterations, 2)
-	require.Equal(t, &SummaryCleanup{Outcome: assessment.CleanupReleased, Fenced: []string{runID(1), runID(2)}, Unverified: []string{}}, summary.Cleanup)
+	require.Equal(t, &SummaryCleanup{Outcome: CleanupReleased, Fenced: f.ids, Unverified: []string{}}, summary.Cleanup)
 
-	var want []string
+	var keys []string
 	for index, iteration := range summary.Iterations {
-		require.Equal(t, runID(index+1), iteration.RunID)
-		require.Equal(t, StatusAccepted, iteration.Status)
-		want = append(want, iteration.Receipt+".json", iteration.Provenance+".provenance.json")
-
-		encoded, err := os.ReadFile(filepath.Join(f.output, iteration.Provenance+".provenance.json"))
+		require.Equal(t, f.ids[index], iteration.ActivityID)
+		require.Equal(t, StatusExplained, iteration.Status)
+		keys = append(keys, iteration.Run)
+		published, err := runner.Load(filepath.Join(f.output, iteration.Run))
 		require.NoError(t, err)
-		provenance, err := assessment.DecodeProvenance(encoded)
-		require.NoError(t, err)
-		require.Equal(t, iteration.Receipt, provenance.Receipt)
-		require.Equal(t, index+1, provenance.Invocation.Iteration)
-		require.Equal(t, f.policy.Coordinates, provenance.Coordinates)
-		require.Equal(t, assessment.CleanupReleased, provenance.Cleanup.Invocation)
-		require.Equal(t, []string{runID(1), runID(2)}, provenance.Fenced)
+		require.Equal(t, f.policy.ModelHash, published.GetModelHash())
+		require.NotNil(t, published.GetVerdict().GetExplained())
 	}
-	slices.Sort(want)
-	require.Equal(t, want, f.published(t))
+	slices.Sort(keys)
+	require.Equal(t, keys, f.published(t), "the Runs are the only artifact")
 
 	record, err := recovery.Read(f.recovery)
 	require.NoError(t, err)
 	require.Equal(t, recovery.PhaseFinished, record.Phase)
-	require.Equal(t, []recovery.Iteration{{RunID: runID(1), Published: true}, {RunID: runID(2), Published: true}}, record.Iterations)
-	for _, raw := range []string{invokeCoordinates.GRPC, invokeCoordinates.TaskQueue, invokeCoordinates.HandlerQueue, invokeCoordinates.NexusEndpoint} {
+	require.Equal(t, []recovery.Iteration{{ActivityID: f.ids[0], Published: true}, {ActivityID: f.ids[1], Published: true}}, record.Iterations)
+	for _, raw := range []string{invokeCoordinates.GRPC, invokeCoordinates.TaskQueue} {
 		require.NotContains(t, f.progress.String(), raw)
 	}
 }
 
-// A rejected or incomplete iteration ends the invocation with exit 1, and its receipt and
-// provenance are still published.
-func TestInvokeExitsOneForARejectedOrIncompleteIteration(t *testing.T) {
-	for status, edit := range map[string]func(*evaluation.Subject){
-		evaluation.DecisionRejected:   func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED },
-		evaluation.DecisionIncomplete: func(s *evaluation.Subject) { s.Cleanup = testpilotspb.CLEANUP_STATUS_FAILED },
-	} {
+// An unexplained or refused Run ends the invocation with exit 1, and that Run is still published.
+func TestInvokeExitsOneForAnUnexplainedOrRefusedRun(t *testing.T) {
+	for _, status := range []string{StatusUnexplained, StatusRefused} {
 		t.Run(status, func(t *testing.T) {
 			f := newInvokeFixture(t)
-			f.decide = decidedAs(t, f.policy, edit)
+			f.statuses = []string{status}
 			summary, code := f.invoke(t, f.seams())
 			require.Equal(t, ExitDecided, code, "%+v", summary)
 			require.Equal(t, status, summary.Status)
-			require.Len(t, summary.Iterations, 1, "no Run follows one not accepted")
-			require.Len(t, f.published(t), 2)
+			require.Len(t, summary.Iterations, 1, "no Run follows one not explained")
+			require.Len(t, f.published(t), 1)
+			require.Equal(t, []string{summary.Iterations[0].Run}, f.published(t))
 		})
 	}
 }
 
-// A Run fn-26 does not admit is unconstructible: no receipt, the invocation ends, exit 3.
-func TestInvokeExitsThreeForAnUnconstructibleIteration(t *testing.T) {
+// A Run that errors is a failed iteration: nothing is published, the invocation ends, exit 3.
+func TestInvokeExitsThreeForAFailedIteration(t *testing.T) {
 	f := newInvokeFixture(t)
-	f.run = func(_ int, run *testpilotspb.Run) *testpilotspb.Run {
-		run.CaseId = "temporal.case.nexusCallerTests.syncCompletion"
-		return run
-	}
+	f.runErr = errors.New("the Run could not complete")
 	summary, code := f.invoke(t, f.seams())
 	require.Equal(t, ExitFailed, code)
-	require.Equal(t, StatusUnconstructible, summary.Status)
-	require.Contains(t, summary.Detail, "crossed")
-	require.Equal(t, []SummaryIteration{{RunID: runID(1), Status: StatusUnconstructible}}, summary.Iterations)
-	require.Empty(t, f.published(t), "an unconstructible iteration publishes nothing")
-	require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome)
+	require.Equal(t, StatusFailed, summary.Status)
+	require.Contains(t, summary.Detail, "could not complete")
+	require.Equal(t, []SummaryIteration{{ActivityID: f.ids[0], Status: StatusFailed}}, summary.Iterations)
+	require.Empty(t, f.published(t), "a failed iteration publishes nothing")
+	require.Equal(t, CleanupReleased, summary.Cleanup.Outcome)
 }
 
 // Preflight refuses by name before any record, lease or read of the target.
@@ -289,14 +239,15 @@ func TestInvokeRefusesBeforeAnything(t *testing.T) {
 	}{
 		"another ref": {func(f *invokeFixture, _ *Seams) { f.env[preflight.VariableRef] = "refs/heads/feature" }, preflight.StatusWorkflowContext},
 		"an unconfigured policy": {func(f *invokeFixture, _ *Seams) {
-			f.policy.Coordinates.NexusEndpoint = policy.Unconfigured
+			f.policy.Coordinates.TaskQueue = policy.Unconfigured
 		}, preflight.StatusPolicyUnconfigured},
 		"another target": {func(f *invokeFixture, _ *Seams) { f.policy.Coordinates.GRPC = policy.Digest("elsewhere:7233") }, preflight.StatusCoordinateMismatch},
+		"another guest":  {func(_ *invokeFixture, s *Seams) { s.Guest = []byte("another guest") }, preflight.StatusModelMismatch},
 		"no credential": {func(_ *invokeFixture, s *Seams) {
 			s.Authority = func(authority.Lookup) (*authority.Authority, error) { return nil, authority.ErrNoCredential }
 		}, StatusAuthorityUnavailable},
 		"no policy": {func(_ *invokeFixture, s *Seams) {
-			s.Policy = func() (*policy.Policy, *evaluation.Profile, error) { return nil, nil, errors.New("unreadable") }
+			s.Policy = func() (*policy.Policy, error) { return nil, errors.New("unreadable") }
 		}, StatusPolicyUnavailable},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -315,8 +266,8 @@ func TestInvokeRefusesBeforeAnything(t *testing.T) {
 	}
 }
 
-// An unreconciled lease is exit 2 before any Run; an uncertain cleanup is exit 2 with every decided
-// iteration still published, its provenance saying so.
+// An unreconciled lease is exit 2 before any Run; an uncertain cleanup is exit 2 with every
+// recorded Run still published.
 func TestInvokeExitsTwoWhenTheScopeIsNotClean(t *testing.T) {
 	t.Run("an unreconciled lease", func(t *testing.T) {
 		f := newInvokeFixture(t)
@@ -331,58 +282,47 @@ func TestInvokeExitsTwoWhenTheScopeIsNotClean(t *testing.T) {
 		require.Equal(t, recovery.HeldFound, record.Lease.Held)
 	})
 
-	t.Run("an uncertain cleanup outranks a rejection", func(t *testing.T) {
+	t.Run("an uncertain cleanup outranks an unexplained Run", func(t *testing.T) {
 		f := newInvokeFixture(t)
-		f.decide = decidedAs(t, f.policy, func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED })
+		f.statuses = []string{StatusUnexplained}
 		f.between = func(int) { f.server.fail["history "+f.policy.Lease.WorkflowID] = serviceerror.NewUnavailable("down") }
 		summary, code := f.invoke(t, f.seams())
 		require.Equal(t, ExitUncertain, code, "%+v", summary)
 		require.Equal(t, StatusCleanupUncertain, summary.Status)
-		require.Equal(t, assessment.CleanupUncertain, summary.Cleanup.Outcome)
-		require.Equal(t, []string{runID(1)}, summary.Cleanup.Fenced, "an unreadable fence falls back to the iterations' own Runs")
-		names := f.published(t)
-		require.Len(t, names, 2, "publication follows the cleanup attempt whatever its outcome")
-		for _, name := range names {
-			if strings.HasSuffix(name, ".provenance.json") {
-				encoded, err := os.ReadFile(filepath.Join(f.output, name))
-				require.NoError(t, err)
-				provenance, err := assessment.DecodeProvenance(encoded)
-				require.NoError(t, err)
-				require.Equal(t, assessment.CleanupUncertain, provenance.Cleanup.Invocation)
-			}
-		}
+		require.Equal(t, CleanupUncertain, summary.Cleanup.Outcome)
+		require.Equal(t, f.ids, summary.Cleanup.Fenced, "an unreadable fence falls back to the iterations' own activities")
+		require.Len(t, f.published(t), 1, "publication follows the cleanup attempt whatever its outcome")
 	})
 }
 
-// A name that already holds other bytes is a publication conflict, exit 3, and is never overwritten.
+// A key that already holds other bytes is a publication conflict, exit 3, and is never overwritten.
 func TestInvokeExitsThreeOnAPublicationConflict(t *testing.T) {
 	f := newInvokeFixture(t)
-	profile, err := assessment.LoadProfile(f.policy.EvaluationProfile)
-	require.NoError(t, err)
-	// The first iteration's receipt, as Invoke will render it under the Case prepared for these
-	// coordinates.
-	bound, err := casebinding.Bind(f.policy, invokeCoordinates.Driver())
-	require.NoError(t, err)
-	first := decide(f.policy, profile, &preflight.Scope{Prepared: bound.Prepared}, recordedRun(t, runID(1)))
-	require.Equal(t, StatusAccepted, first.Status, "%v", first.Err)
-	receipt := first.Receipt
-	planted := filepath.Join(f.output, evaluation.ReceiptIdentity(receipt)+".json")
-	require.NoError(t, os.WriteFile(planted, []byte("other\n"), 0o644))
-
+	var planted string
+	f.publish = func(ctx context.Context, root string, run *runner.Run) (runner.Publication, error) {
+		if planted == "" {
+			_, digest, err := runner.Canonical(run)
+			require.NoError(t, err)
+			planted = filepath.Join(root, run.GetModelHash(), "1", digest+runner.RunExtension)
+			require.NoError(t, os.MkdirAll(filepath.Dir(planted), 0o755))
+			require.NoError(t, os.WriteFile(planted, []byte("other\n"), 0o644))
+		}
+		return runner.Publish(ctx, root, run)
+	}
 	summary, code := f.invoke(t, f.seams())
 	require.Equal(t, ExitFailed, code)
 	require.Equal(t, StatusPublicationConflict, summary.Status)
 	kept, err := os.ReadFile(planted)
 	require.NoError(t, err)
 	require.Equal(t, "other\n", string(kept))
-	require.Equal(t, []string{filepath.Base(planted)}, f.published(t), "nothing else is published when a name conflicts")
+	require.Len(t, f.published(t), 1, "nothing else is published when a key conflicts")
 	record, err := recovery.Read(f.recovery)
 	require.NoError(t, err)
 	require.Equal(t, recovery.PhasePublishing, record.Phase)
 }
 
-// A Driver that does not release after an accepted iteration stops the invocation as a tooling
-// failure, exit 3, and the accepted receipt is still published.
+// A Driver that does not release after an explained Run stops the invocation as a tooling
+// failure, exit 3, and the Run is still published.
 func TestInvokeExitsThreeWhenADriverDoesNotRelease(t *testing.T) {
 	f := newInvokeFixture(t)
 	f.release = func(context.Context) error { return errors.New("the worker did not stop") }
@@ -391,13 +331,13 @@ func TestInvokeExitsThreeWhenADriverDoesNotRelease(t *testing.T) {
 	require.Equal(t, StatusToolingFailure, summary.Status)
 	require.Contains(t, summary.Detail, "did not release")
 	require.Len(t, summary.Iterations, 1)
-	require.Equal(t, StatusAccepted, summary.Iterations[0].Status)
-	require.Len(t, f.published(t), 2, "the decided receipt and its provenance are published")
+	require.Equal(t, StatusExplained, summary.Iterations[0].Status)
+	require.Len(t, f.published(t), 1, "the recorded Run is published")
 }
 
-// An interrupt ends the iterations, not the publication: every receipt already decided is published
+// An interrupt ends the iterations, not the publication: every Run already recorded is published
 // after the cleanup attempt, and the invocation exits 3 as interrupted.
-func TestAnInterruptStillPublishesWhatWasDecided(t *testing.T) {
+func TestAnInterruptStillPublishesWhatWasRecorded(t *testing.T) {
 	f := newInvokeFixture(t)
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
@@ -411,26 +351,17 @@ func TestAnInterruptStillPublishesWhatWasDecided(t *testing.T) {
 	require.Equal(t, ExitFailed, code, "%+v", summary)
 	require.Equal(t, StatusInterrupted, summary.Status)
 	require.Len(t, summary.Iterations, 1, "no Run starts after the interrupt")
-	require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome, "cleanup runs under its own context")
-	require.Len(t, f.published(t), 2)
+	require.Equal(t, CleanupReleased, summary.Cleanup.Outcome, "cleanup runs under its own context")
+	require.Len(t, f.published(t), 1)
 	record, err := recovery.Read(f.recovery)
 	require.NoError(t, err)
-	require.Equal(t, []recovery.Iteration{{RunID: runID(1), Published: true}}, record.Iterations)
+	require.Equal(t, []recovery.Iteration{{ActivityID: f.ids[0], Published: true}}, record.Iterations)
 }
 
-// The other named failures, each exit 3: a Run that errors (unconstructible, no receipt), no
-// iteration at all within the limit, a publication that fails, a publication it cannot record,
-// and a Driver that does not release after an iteration that was not accepted.
+// The other named failures, each exit 3: no iteration at all within the limit, a publication that
+// fails, a publication it cannot record, and a Driver that does not release after a Run that was
+// not explained.
 func TestInvokeNamesEveryOtherFailure(t *testing.T) {
-	t.Run("a Run that errors", func(t *testing.T) {
-		f := newInvokeFixture(t)
-		f.runErr = errors.New("the Run could not complete")
-		summary, code := f.invoke(t, f.seams())
-		require.Equal(t, ExitFailed, code)
-		require.Equal(t, StatusUnconstructible, summary.Status)
-		require.Contains(t, summary.Detail, "could not complete")
-		require.Empty(t, f.published(t))
-	})
 	t.Run("no iteration within the limit", func(t *testing.T) {
 		f := newInvokeFixture(t)
 		f.started = time.Now().Add(-f.policy.Limits.Invocation() + time.Minute)
@@ -438,7 +369,7 @@ func TestInvokeNamesEveryOtherFailure(t *testing.T) {
 		require.Equal(t, ExitFailed, code)
 		require.Equal(t, StatusNoIteration, summary.Status)
 		require.Zero(t, f.runs)
-		require.Equal(t, assessment.CleanupReleased, summary.Cleanup.Outcome, "the lease taken is released")
+		require.Equal(t, CleanupReleased, summary.Cleanup.Outcome, "the lease taken is released")
 	})
 	t.Run("a publication that fails", func(t *testing.T) {
 		f := newInvokeFixture(t)
@@ -454,36 +385,42 @@ func TestInvokeNamesEveryOtherFailure(t *testing.T) {
 	})
 	t.Run("a publication it cannot record", func(t *testing.T) {
 		f := newInvokeFixture(t)
-		f.publish = func(ctx context.Context, root string, items []publication.Item, _ func(string) error) ([]publication.Published, error) {
-			return publication.Publish(ctx, root, items, func(string) error { return errors.New("the record is not writable") })
+		var before []byte
+		f.publish = func(ctx context.Context, root string, run *runner.Run) (runner.Publication, error) {
+			publication, err := runner.Publish(ctx, root, run)
+			// The record's path becomes a directory that cannot be replaced.
+			before, _ = os.ReadFile(f.recovery)
+			require.NoError(t, os.Remove(f.recovery))
+			require.NoError(t, os.MkdirAll(filepath.Join(f.recovery, "occupied"), 0o700))
+			return publication, err
 		}
 		summary, code := f.invoke(t, f.seams())
 		require.Equal(t, ExitFailed, code)
 		require.Equal(t, StatusPublicationUnreported, summary.Status)
-		require.Contains(t, summary.Detail, "not writable")
-		require.Len(t, f.published(t), 2, "the first receipt and its provenance are published, and nothing after them")
-		record, err := recovery.Read(f.recovery)
+		require.Contains(t, summary.Detail, "was published")
+		require.Len(t, f.published(t), 1, "the first Run is published, and nothing after it")
+		record, err := recovery.Decode(before)
 		require.NoError(t, err)
-		require.Equal(t, recovery.PhasePublishing, record.Phase, "an unreported publication never reads as finished")
+		require.Equal(t, recovery.PhasePublishing, record.Phase, "the last record written never reads as finished")
 		require.False(t, record.Iterations[0].Published)
 	})
-	t.Run("a Driver that does not release after a rejection", func(t *testing.T) {
+	t.Run("a Driver that does not release after an unexplained Run", func(t *testing.T) {
 		f := newInvokeFixture(t)
-		f.decide = decidedAs(t, f.policy, func(s *evaluation.Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED })
+		f.statuses = []string{StatusUnexplained}
 		f.release = func(context.Context) error { return errors.New("the worker did not stop") }
 		summary, code := f.invoke(t, f.seams())
-		require.Equal(t, ExitFailed, code, "a tooling failure outranks the rejection")
+		require.Equal(t, ExitFailed, code, "a tooling failure outranks the unexplained Run")
 		require.Equal(t, StatusToolingFailure, summary.Status)
 		require.Contains(t, f.progress.String(), "did not release")
-		require.Len(t, f.published(t), 2, "the rejected receipt is still published")
+		require.Len(t, f.published(t), 1, "the unexplained Run is still published")
 	})
 }
 
 func TestOutcomeKeepsTheHighestExit(t *testing.T) {
 	var result outcome
-	result.raise(StatusRejected, ExitDecided, "first")
+	result.raise(StatusUnexplained, ExitDecided, "first")
 	result.raise(StatusCleanupUncertain, ExitUncertain, "second")
-	result.raise(StatusIncomplete, ExitDecided, "third")
+	result.raise(StatusRefused, ExitDecided, "third")
 	require.Equal(t, StatusCleanupUncertain, result.summary.Status)
 	require.Equal(t, ExitUncertain, result.code)
 	result.raise(StatusPublicationConflict, ExitFailed, "fourth")

@@ -9,9 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/testing/testpilot/evaluation"
-	"go.temporal.io/server/common/testing/testpilot/recordedrun"
-	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/recovery"
 )
@@ -39,25 +36,11 @@ func canaryDocuments(t *testing.T) []canaryDocument {
 		require.NoError(t, err)
 		return encoded
 	}
-	parseProfile := func(encoded []byte) error {
-		_, err := evaluation.ParseProfile(encoded)
-		return err
-	}
 	record, err := recovery.Encode(&recovery.Record{Version: recovery.Version, InvocationID: "1234567-1", Phase: recovery.PhaseStarted})
 	require.NoError(t, err)
 	return []canaryDocument{
-		{"the policy", 1, read("tools/canary/policy/production-canary.json"), func(encoded []byte) error {
+		{"the policy", policy.Version, read("tools/canary/policy/production-canary.json"), func(encoded []byte) error {
 			_, err := policy.Decode(encoded)
-			return err
-		}},
-		{"the production-canary Profile", 2, read("tools/canary/assessment/profiles/production-canary.json"), parseProfile},
-		{"the canary-harness Profile", 2, read("tools/canary/testharness/profiles/canary-harness.json"), parseProfile},
-		{"a receipt", evaluation.ReceiptFormatVersion, renderedReceipt(t), func(encoded []byte) error {
-			_, err := evaluation.DecodeReceipt(encoded)
-			return err
-		}},
-		{"a provenance", 1, read("tools/canary/assessment/testdata/provenance/released.json"), func(encoded []byte) error {
-			_, err := assessment.DecodeProvenance(encoded)
 			return err
 		}},
 		{"the recovery record", recovery.Version, record, func(encoded []byte) error {
@@ -65,25 +48,6 @@ func canaryDocuments(t *testing.T) []canaryDocument {
 			return err
 		}},
 	}
-}
-
-// renderedReceipt is fn-26's receipt for the test cluster's recorded canary Run under the
-// production-canary Profile, as the controller renders one.
-func renderedReceipt(t *testing.T) []byte {
-	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join(repositoryRoot(t), "tools", "canary", "assessment", "testdata", "nexus-workflow-syncCompletion-current-run.json"))
-	require.NoError(t, err)
-	decoded, err := recordedrun.Decode(encoded)
-	require.NoError(t, err)
-	canary, err := policy.Embedded()
-	require.NoError(t, err)
-	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
-	require.NoError(t, err)
-	subject, err := assessment.Admit(canary, decoded.Driver, decoded.Run)
-	require.NoError(t, err)
-	receipt, err := evaluation.Render(subject, *profile, evaluation.Assess(subject, *profile, nil))
-	require.NoError(t, err)
-	return receipt
 }
 
 // Every document the canary reads or writes is at its format version, decodes from its canonical

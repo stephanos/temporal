@@ -11,8 +11,6 @@ func TestTheCommittedPolicyDecodesUnconfigured(t *testing.T) {
 	committed, err := Embedded()
 	require.NoError(t, err)
 	require.False(t, committed.Configured(), "the operator commits the coordinate digests")
-	require.Equal(t, "production-canary", committed.CaseProfile)
-	require.Equal(t, "production-canary", committed.EvaluationProfile)
 	require.Equal(t, AuthorityProtectedWorkflow, committed.AuthorityClass)
 	require.Equal(t, "refs/heads/main", committed.TrustedRef)
 	require.Equal(t, 2, committed.Limits.Iterations)
@@ -39,9 +37,9 @@ func TestDecodeRejectsEachMalformation(t *testing.T) {
 		encoded string
 		detail  string
 	}{
-		"another version":              {mutate(`"version": 1`, `"version": 2`), "format version 2"},
-		"a Case identity that is not":  {mutate(`"caseIdentity": "`+decoded.CaseIdentity+`"`, `"caseIdentity": "zero"`), "caseIdentity"},
-		"a missing Profile":            {mutate(`"caseProfile": "production-canary"`, `"caseProfile": ""`), "caseProfile is missing"},
+		"another version":              {mutate(`"version": 2`, `"version": 1`), "format version 1"},
+		"a model hash that is not":     {mutate(`"modelHash": "`+decoded.ModelHash+`"`, `"modelHash": "zero"`), "modelHash"},
+		"a missing lease":              {mutate(`"workflowId": "umpire-canary-lease"`, `"workflowId": ""`), "lease.workflowId is missing"},
 		"an unknown authority class":   {mutate(`"authorityClass": "protected-workflow"`, `"authorityClass": "anyone"`), "authorityClass"},
 		"a raw coordinate":             {mutate(`"namespace": "unconfigured"`, `"namespace": "canary-prod"`), "coordinate namespace"},
 		"a repository without owner":   {mutate(`"repository": "temporalio/temporal"`, `"repository": "temporal"`), "owner/name"},
@@ -54,10 +52,11 @@ func TestDecodeRejectsEachMalformation(t *testing.T) {
 		"a lease that expires early":   {mutate(`"leaseRunTimeoutSeconds": 86400`, `"leaseRunTimeoutSeconds": 720`), "must exceed"},
 		"an overflowing invocation":    {mutate(`"invocationSeconds": 600`, `"invocationSeconds": 9223372036854775807`), "at most"},
 		"too many iterations":          {mutate(`"iterations": 2`, `"iterations": 17`), "at most"},
-		"an unknown key":               {mutate(`"version": 1,`, `"version": 1, "override": true,`), "unknown field"},
+		"an unknown key":               {mutate(`"version": 2,`, `"version": 2, "override": true,`), "unknown field"},
+		"a retired Nexus coordinate":   {mutate(`"taskQueue": "unconfigured"`, `"taskQueue": "unconfigured", "nexusEndpoint": "unconfigured"`), "unknown field"},
 		"a case-folded key":            {mutate(`"trustedRef"`, `"TrustedRef"`), "canonical form"},
 		"a repeated key":               {mutate(`"repository": "temporalio/temporal",`, `"repository": "evil/fork", "repository": "temporalio/temporal",`), "canonical form"},
-		"other spacing":                {mutate(`"version": 1`, `"version":1`), "canonical form"},
+		"other spacing":                {mutate(`"version": 2`, `"version":2`), "canonical form"},
 		"not JSON":                     {"{", "decode canary policy"},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -74,16 +73,14 @@ func TestAuthorityClassesCannotBeWidened(t *testing.T) {
 }
 
 func TestCoordinatesMismatchNamesTheFirstDifference(t *testing.T) {
-	ours := DigestsOf("grpc:7233", "namespace", "queue", "handler", "endpoint")
+	ours := DigestsOf("grpc:7233", "namespace", "queue")
 	require.Equal(t, Digest("namespace"), ours.Namespace)
 	_, differs := ours.Mismatch(ours)
 	require.False(t, differs)
 	for name, theirs := range map[string]Coordinates{
-		"grpc":          DigestsOf("other:7233", "namespace", "queue", "handler", "endpoint"),
-		"namespace":     DigestsOf("grpc:7233", "other", "queue", "handler", "endpoint"),
-		"taskQueue":     DigestsOf("grpc:7233", "namespace", "other", "handler", "endpoint"),
-		"handlerQueue":  DigestsOf("grpc:7233", "namespace", "queue", "other", "endpoint"),
-		"nexusEndpoint": DigestsOf("grpc:7233", "namespace", "queue", "handler", "other"),
+		"grpc":      DigestsOf("other:7233", "namespace", "queue"),
+		"namespace": DigestsOf("grpc:7233", "other", "queue"),
+		"taskQueue": DigestsOf("grpc:7233", "namespace", "other"),
 	} {
 		named, differs := ours.Mismatch(theirs)
 		require.True(t, differs)

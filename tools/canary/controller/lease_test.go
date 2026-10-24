@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -24,7 +25,8 @@ import (
 
 const testNamespace = "canary-test"
 
-// fakeRun is one workflow run the fake server holds.
+// fakeRun is one workflow run the fake server holds; a fenced activity is held as a run under its
+// activity ID.
 type fakeRun struct {
 	runID   string
 	status  enumspb.WorkflowExecutionStatus
@@ -182,6 +184,57 @@ func (s *fakeServer) DescribeWorkflowExecution(ctx context.Context, request *wor
 	}}, nil
 }
 
+// activityStatus is a fake run's status as an activity execution's.
+func activityStatus(status enumspb.WorkflowExecutionStatus) enumspb.ActivityExecutionStatus {
+	switch status {
+	case enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING:
+		return enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING
+	case enumspb.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+		return enumspb.ACTIVITY_EXECUTION_STATUS_TERMINATED
+	case enumspb.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
+		return enumspb.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+	default:
+		return enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
+	}
+}
+
+// DescribeActivityExecution reads a fenced activity, which the fake holds as a run under its ID.
+func (s *fakeServer) DescribeActivityExecution(ctx context.Context, request *workflowservice.DescribeActivityExecutionRequest, _ ...grpc.CallOption) (*workflowservice.DescribeActivityExecutionResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := s.failing(ctx, "describe", request.GetActivityId()); err != nil {
+		return nil, err
+	}
+	run := s.latest(request.GetActivityId())
+	if run == nil {
+		return nil, serviceerror.NewNotFound("activity not found")
+	}
+	return &workflowservice.DescribeActivityExecutionResponse{RunId: run.runID, Info: &activitypb.ActivityExecutionInfo{
+		ActivityId: request.GetActivityId(), RunId: run.runID, Status: activityStatus(run.status),
+	}}, nil
+}
+
+// TerminateActivityExecution terminates a fenced activity the fake holds.
+func (s *fakeServer) TerminateActivityExecution(ctx context.Context, request *workflowservice.TerminateActivityExecutionRequest, _ ...grpc.CallOption) (*workflowservice.TerminateActivityExecutionResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := s.failing(ctx, "terminate", request.GetActivityId()); err != nil {
+		return nil, err
+	}
+	run := s.latest(request.GetActivityId())
+	if run == nil {
+		return nil, serviceerror.NewNotFound("activity not found")
+	}
+	if run.status != enumspb.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		return nil, serviceerror.NewFailedPrecondition("activity already closed")
+	}
+	if s.terminal[request.GetActivityId()] {
+		return &workflowservice.TerminateActivityExecutionResponse{}, nil
+	}
+	run.close(enumspb.WORKFLOW_EXECUTION_STATUS_TERMINATED, &historypb.HistoryEvent{EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_TERMINATED})
+	return &workflowservice.TerminateActivityExecutionResponse{}, nil
+}
+
 // DescribeNamespace answers for the one registered namespace the fake serves.
 func (s *fakeServer) DescribeNamespace(ctx context.Context, request *workflowservice.DescribeNamespaceRequest, _ ...grpc.CallOption) (*workflowservice.DescribeNamespaceResponse, error) {
 	s.mu.Lock()
@@ -238,8 +291,8 @@ func testPolicy(t *testing.T) *policy.Policy {
 
 func noWait(context.Context, time.Duration) error { return nil }
 
-// runID is the nth Run ID in the form Testpilot chooses.
-func runID(n int) string { return fmt.Sprintf("testpilot.run.00000000-0000-4000-8000-%012d", n) }
+// activityID is the nth activity ID in the form the canary chooses.
+func activityID(n int) string { return fmt.Sprintf("umpire-canary-00000000-0000-4000-8000-%012d", n) }
 
 func TestLeaseStateReadsTheLatestRunAndItsCloseReason(t *testing.T) {
 	ctx := t.Context()
@@ -318,17 +371,17 @@ func TestTheFenceSignalsNameEveryRunOnce(t *testing.T) {
 	lease := testPolicy(t).Lease
 	fence, err := takeLease(ctx, target(server), lease, time.Hour, "request")
 	require.NoError(t, err)
-	for _, id := range []string{runID(1), runID(2), runID(1), runID(3)} {
+	for _, id := range []string{activityID(1), activityID(2), activityID(1), activityID(3)} {
 		require.NoError(t, signalRunOpened(ctx, target(server), fence, id))
 	}
 	ids, err := fencedIDs(ctx, target(server), fence)
 	require.NoError(t, err)
-	require.Equal(t, []string{runID(1), runID(2), runID(3)}, ids)
+	require.Equal(t, []string{activityID(1), activityID(2), activityID(3)}, ids)
 
 	stale := Fence{WorkflowID: fence.WorkflowID, RunID: "run-stale"}
-	require.Error(t, signalRunOpened(ctx, target(server), stale, runID(4)), "a stale fence fails the signal")
+	require.Error(t, signalRunOpened(ctx, target(server), stale, activityID(4)), "a stale fence fails the signal")
 	require.NoError(t, terminate(ctx, target(server), &commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID}, ReasonReleased))
-	require.Error(t, signalRunOpened(ctx, target(server), fence, runID(4)), "a released fence fails the signal")
+	require.Error(t, signalRunOpened(ctx, target(server), fence, activityID(4)), "a released fence fails the signal")
 
 	other, err := takeLease(ctx, target(server), lease, time.Hour, "next")
 	require.NoError(t, err)
@@ -341,14 +394,14 @@ func TestTheFenceSignalsNameEveryRunOnce(t *testing.T) {
 			}}})
 	server.mu.Unlock()
 	_, err = fencedIDs(ctx, target(server), other)
-	require.ErrorContains(t, err, "names no Testpilot Run", "a fence signal with no ID fails closed")
+	require.ErrorContains(t, err, "names no canary activity", "a fence signal with no ID fails closed")
 
 	require.NoError(t, terminate(ctx, target(server), &commonpb.WorkflowExecution{WorkflowId: lease.WorkflowID, RunId: other.RunID}, ReasonReleased))
 	foreign, err := takeLease(ctx, target(server), lease, time.Hour, "foreign")
 	require.NoError(t, err)
 	require.NoError(t, signalRunOpened(ctx, target(server), foreign, "customer-workflow"))
 	_, err = fencedIDs(ctx, target(server), foreign)
-	require.ErrorContains(t, err, "names no Testpilot Run", "a signal naming anything but a Testpilot Run fails closed")
+	require.ErrorContains(t, err, "names no canary activity", "a signal naming anything but a canary activity fails closed")
 }
 
 func TestFencedIDsStopAtTheEventBound(t *testing.T) {
@@ -356,7 +409,7 @@ func TestFencedIDsStopAtTheEventBound(t *testing.T) {
 	server := newFakeServer()
 	fence, err := takeLease(ctx, target(server), testPolicy(t).Lease, time.Hour, "request")
 	require.NoError(t, err)
-	input, err := converter.GetDefaultDataConverter().ToPayloads(runID(1))
+	input, err := converter.GetDefaultDataConverter().ToPayloads(activityID(1))
 	require.NoError(t, err)
 	run := server.find(&commonpb.WorkflowExecution{WorkflowId: fence.WorkflowID, RunId: fence.RunID})
 	for len(run.events) <= maxLeaseEvents {
@@ -369,24 +422,24 @@ func TestFencedIDsStopAtTheEventBound(t *testing.T) {
 	require.ErrorContains(t, err, "exceeds", "a lease history past the bound is not one the canary made")
 }
 
-// A fenced workflow is closed when the server reports it closed, or when it does not find it on
+// A fenced activity is closed when the server reports it closed, or when it does not find it on
 // two reads a pause apart; one found the second time is judged by its status.
-func TestWorkflowClosed(t *testing.T) {
+func TestActivityClosed(t *testing.T) {
 	ctx := t.Context()
 	server := newFakeServer()
 	server.open("running", time.Unix(1, 0))
 	server.open("finished", time.Unix(1, 0))
 	server.finish("finished")
 
-	closed, err := workflowClosed(ctx, target(server), "running", time.Second, noWait)
+	closed, err := activityClosed(ctx, target(server), "running", time.Second, noWait)
 	require.NoError(t, err)
 	require.False(t, closed)
-	closed, err = workflowClosed(ctx, target(server), "finished", time.Second, noWait)
+	closed, err = activityClosed(ctx, target(server), "finished", time.Second, noWait)
 	require.NoError(t, err)
 	require.True(t, closed)
 
 	paused := 0
-	closed, err = workflowClosed(ctx, target(server), "never-started", time.Second, func(context.Context, time.Duration) error {
+	closed, err = activityClosed(ctx, target(server), "never-started", time.Second, func(context.Context, time.Duration) error {
 		paused++
 		return nil
 	})
@@ -394,19 +447,19 @@ func TestWorkflowClosed(t *testing.T) {
 	require.True(t, closed, "not found twice is never started")
 	require.Equal(t, 1, paused)
 
-	closed, err = workflowClosed(ctx, target(server), "late", time.Second, func(context.Context, time.Duration) error {
+	closed, err = activityClosed(ctx, target(server), "late", time.Second, func(context.Context, time.Duration) error {
 		server.open("late", time.Unix(1, 0))
 		return nil
 	})
 	require.NoError(t, err)
 	require.False(t, closed, "a start that lands between the reads is open")
 
-	_, err = workflowClosed(ctx, target(server), "never-started", time.Second, func(context.Context, time.Duration) error {
+	_, err = activityClosed(ctx, target(server), "never-started", time.Second, func(context.Context, time.Duration) error {
 		return context.Canceled
 	})
 	require.ErrorIs(t, err, context.Canceled)
 
 	server.fail["describe running"] = serviceerror.NewUnavailable("down")
-	_, err = workflowClosed(ctx, target(server), "running", time.Second, noWait)
+	_, err = activityClosed(ctx, target(server), "running", time.Second, noWait)
 	require.Error(t, err)
 }

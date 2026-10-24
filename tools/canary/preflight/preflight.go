@@ -1,14 +1,13 @@
 // Package preflight proves, before the canary mutates anything, that it runs in the protected
 // workflow against exactly the canary's scope: the trusted ref and workflow file, the policy's
-// coordinates, an existing namespace, and the pinned Case prepared under the tree's catalog. It
-// claims nothing about the rest of production. The one call it makes is DescribeNamespace, a read;
-// it never reads a Nexus endpoint, which needs cluster admin the canary's namespace-scoped
-// credential does not have, so the endpoint's route is proved by the Run's own observation of the
-// handler's reply.
+// coordinates, an existing namespace, and the Model guest the policy pins. It claims nothing about
+// the rest of production. The one call it makes is DescribeNamespace, a read.
 package preflight
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,22 +16,19 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/authority"
-	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// The named refusals. Each is decided before any mutation, and creates no Run or receipt.
+// The named refusals. Each is decided before any mutation, and creates no Run.
 const (
 	StatusWorkflowContext      = "workflow-context"
 	StatusPolicyUnconfigured   = "policy-unconfigured"
 	StatusCoordinateMismatch   = "coordinate-mismatch"
-	StatusCaseMismatch         = "case-mismatch"
+	StatusModelMismatch        = "model-mismatch"
 	StatusNamespaceMissing     = "namespace-missing"
 	StatusNamespaceUnavailable = "namespace-unavailable"
 )
@@ -77,34 +73,29 @@ type Namespaces interface {
 }
 
 // Input is what preflight checks: the policy, the job's environment (the workflow context), the
-// target's raw coordinates, the Redactor that removes them from every detail, and the namespace
-// read.
+// target's raw coordinates, the Redactor that removes them from every detail, the namespace read,
+// and the Model guest the build carries.
 type Input struct {
 	Policy      *policy.Policy
 	Lookup      authority.Lookup
 	Coordinates authority.Coordinates
 	Redactor    *authority.Redactor
 	Namespaces  Namespaces
+	Guest       []byte
 }
 
 // Scope is what preflight proved: the invocation's ID, the coordinates as the policy's digests,
-// and the pinned Case prepared for them under the canary's Driver Profile, which are the Case and
-// Profile the controller runs. The ID and the digests are safe to write; the prepared Case and the
-// Profile bind the raw coordinates, so nothing of them is written except through the Redactor.
+// and the guest whose hash is the policy's, which is the Model the controller runs. All of it is
+// safe to write.
 type Scope struct {
 	InvocationID string
 	Coordinates  policy.Coordinates
-	Prepared     *testpilot.PreparedCase
-	Profile      testpilot.ProfileSpec
+	Guest        []byte
 }
 
 // Check runs every check in order, the ones that need no connection first, and returns the Scope
 // or the first Refusal.
 func Check(ctx context.Context, input Input) (*Scope, error) {
-	return check(ctx, input, casebinding.Bind)
-}
-
-func check(ctx context.Context, input Input, bind func(*policy.Policy, testpilotdriver.Environment) (*casebinding.Bound, error)) (*Scope, error) {
 	if input.Policy == nil || input.Lookup == nil || input.Redactor == nil || input.Namespaces == nil {
 		return nil, errors.New("preflight needs a policy, an environment, a Redactor and a namespace read")
 	}
@@ -123,9 +114,8 @@ func check(ctx context.Context, input Input, bind func(*policy.Policy, testpilot
 	if name, differs := digests.Mismatch(canary.Coordinates); differs {
 		return refuse(StatusCoordinateMismatch, "the %s coordinate's digest is not the policy's", name)
 	}
-	bound, err := bind(canary, input.Coordinates.Driver())
-	if err != nil {
-		return refuse(StatusCaseMismatch, "%s", err)
+	if hash := sha256.Sum256(input.Guest); hex.EncodeToString(hash[:]) != canary.ModelHash {
+		return refuse(StatusModelMismatch, "the build's Model guest is not the one the policy pins")
 	}
 
 	describeCtx, cancel := context.WithTimeout(ctx, describeTimeout)
@@ -143,7 +133,7 @@ func check(ctx context.Context, input Input, bind func(*policy.Policy, testpilot
 	case described.GetNamespaceInfo().GetState() != enumspb.NAMESPACE_STATE_REGISTERED:
 		return refuse(StatusNamespaceUnavailable, "the canary namespace is %s, not registered", described.GetNamespaceInfo().GetState())
 	}
-	return &Scope{InvocationID: invocationID, Coordinates: digests, Prepared: bound.Prepared, Profile: bound.Profile}, nil
+	return &Scope{InvocationID: invocationID, Coordinates: digests, Guest: input.Guest}, nil
 }
 
 // workflowContext requires a manual dispatch of the policy's workflow file on its trusted ref in

@@ -13,7 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/controller"
 )
@@ -77,7 +76,7 @@ func parse(arguments []string, stderr io.Writer) (options, error) {
 	parsed := options{Mode: arguments[0]}
 	flags := flag.NewFlagSet("umpire-canary "+parsed.Mode, flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	flags.StringVar(&parsed.Output, "output", "", "an existing directory outside the model for receipts and provenance")
+	flags.StringVar(&parsed.Output, "output", "", "an existing directory outside the model for the published Runs")
 	flags.StringVar(&parsed.Recovery, "recovery", "", "the job's recovery record: run creates it, reconcile reads it")
 	if err := flags.Parse(arguments[1:]); err != nil {
 		return options{}, err
@@ -88,25 +87,25 @@ func parse(arguments []string, stderr io.Writer) (options, error) {
 	if parsed.Output == "" || parsed.Recovery == "" {
 		return options{}, errors.New(usage)
 	}
-	output, err := publish.Resolve(parsed.Output)
+	output, err := resolve(parsed.Output)
 	if err != nil {
 		return options{}, fmt.Errorf("--output: %w", err)
 	}
 	if info, err := os.Stat(output); err != nil || !info.IsDir() {
 		return options{}, errors.New("--output: the directory does not exist")
 	}
-	model, err := publish.Resolve(modelRoot)
+	model, err := resolve(modelRoot)
 	if err != nil {
 		return options{}, fmt.Errorf("the model root: %w", err)
 	}
-	recovery, err := publish.Resolve(parsed.Recovery)
+	recovery, err := resolve(parsed.Recovery)
 	if err != nil {
 		return options{}, fmt.Errorf("--recovery: %w", err)
 	}
 	switch {
-	case publish.Within(model, output):
+	case within(model, output):
 		return options{}, errors.New("--output is under the model, which never receives the canary's output")
-	case publish.Within(output, recovery):
+	case within(output, recovery):
 		return options{}, errors.New("--recovery is under --output, which is uploaded; the record lives only for its job")
 	}
 	if info, err := os.Stat(filepath.Dir(recovery)); err != nil || !info.IsDir() {

@@ -1,71 +1,58 @@
 //go:build canary_harness
 
-// Package testharness is the canary's harness build: a policy read from a test file, the
-// canary-harness Evaluation Profile, a plaintext transport to a test cluster, and hooks a live test
-// uses to crash or pause the process at a phase. It compiles only under the canary_harness tag, so
-// the untagged binary the protected workflow runs contains none of it, and a harness receipt is
-// never a production receipt: its Profile, trust and authority class say harness.
+// Package testharness is the canary's harness build: a policy read from a test file, a plaintext
+// transport to a test cluster, and hooks a live test uses to crash or pause the process at a phase.
+// It compiles only under the canary_harness tag, so the untagged binary the protected workflow runs
+// contains none of it, and a harness policy's authority class says harness.
 package testharness
 
 import (
-	"embed"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
-	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/controller"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/grpc/credentials/insecure"
+	"umpire.local/temporal"
 )
 
 // pausePoll is how often a paused harness looks for its file.
 const pausePoll = 50 * time.Millisecond
 
-// The canary-harness Profile, which only this build embeds.
-//
-//go:embed profiles/*.json
-var profiles embed.FS
-
 // Seams are the harness build's: the test policy, a plaintext transport and the hooks, all from the
 // environment lookup gives.
 func Seams(lookup authority.Lookup) controller.Seams {
 	return controller.Seams{
-		Policy:    func() (*policy.Policy, *evaluation.Profile, error) { return LoadPolicy(lookup) },
+		Policy:    func() (*policy.Policy, error) { return LoadPolicy(lookup) },
+		Guest:     temporal.Guest(),
 		Authority: Authority,
 		Hook:      hook(lookup),
 	}
 }
 
-// LoadPolicy reads the test policy strictly and refuses one that names any Evaluation Profile but
-// canary-harness or any authority class but harness, so no harness run can claim production.
-func LoadPolicy(lookup authority.Lookup) (*policy.Policy, *evaluation.Profile, error) {
+// LoadPolicy reads the test policy strictly and refuses one that names any authority class but
+// harness, so no harness run can claim production.
+func LoadPolicy(lookup authority.Lookup) (*policy.Policy, error) {
 	path, ok := lookup(VariablePolicy)
 	if !ok || path == "" {
-		return nil, nil, fmt.Errorf("%s is not set", VariablePolicy)
+		return nil, fmt.Errorf("%s is not set", VariablePolicy)
 	}
 	encoded, err := os.ReadFile(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	canary, err := policy.Decode(encoded)
 	if err != nil {
-		return nil, nil, err
-	}
-	if canary.EvaluationProfile != ProfileName {
-		return nil, nil, fmt.Errorf("a harness policy names the %s Evaluation Profile only, not %q", ProfileName, canary.EvaluationProfile)
+		return nil, err
 	}
 	if canary.AuthorityClass != policy.AuthorityHarness {
-		return nil, nil, fmt.Errorf("a harness policy's authority class is %s only, not %q", policy.AuthorityHarness, canary.AuthorityClass)
+		return nil, fmt.Errorf("a harness policy's authority class is %s only, not %q", policy.AuthorityHarness, canary.AuthorityClass)
 	}
-	profile, err := evaluation.LoadProfileIn(profiles, ProfileName)
-	if err != nil {
-		return nil, nil, err
-	}
-	return canary, profile, nil
+	return canary, nil
 }
 
 // Authority is the harness's plaintext transport to the coordinates' target, which the untagged
