@@ -60,9 +60,28 @@ The task owner is the sole committer and owns integration/gates. After a compili
 
 
 ## Done summary
-TBD
+Optional handler facts now pass through native adapters, independent SSA lowering, typed interpretation and both TLA emitters. The new generic fixture exercises four forced fact witnesses and clearing; all 799 old artifacts and 15 frozen originals remain byte-identical.
 
+Tier:session jev-unavailable(no_key), explicitAGENTS implementer6.1medium/reviewer6.1high; samefamilydisclose.
+stage: impl-review - ran [2026-10-24T11:46:40Z..2026-10-24T11:52:28Z] (SHIP; three fresh codex:gpt-6.1-sol:high draws, zero findings)
+baseline: green (focused six-crate command, exit 0 before edits)
+
+Full gates: make model-check exit 0, 401.5006 s; UMPIRE_BACKENDS=require make model-check exit 0, 561.2351 s; make model-time exit 0, 361.2700 s wall. Timed gate 352.224 s exceeds the 60 s soft target; inner loop 8.910 s meets 10 s. The individual test-stage timing 197.:00s is inconclusive and retained verbatim.
+
+Native fixture: 7 states, 31 edges. TLC: 57 distinct observer states, 248 generated; five counterexamples replayed. Controls cover all adapter combinations, Debug-only facts, native enabledness/rejection, SSA and canonical constructor refusals, source/IR fact-only mutants, exact replay vector forgeries and observer preservation. Required TLC executes both selected Worlds. Safety emission was controlled; live Apalache remains deferred.
+
+Correctness audit: one Should Fix, resolved with a red-to-green canonical-path control. Standards audit: zero findings. Primary review: all three draws SHIP. Reviewer and implementers are from the same family under the explicit routing choice.
+
+Evidence: .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/ (execution record, raw quality reports, TLC witnesses, gate attempts, timing and manifests). Linked guest bytes are unchanged. All four writer worktrees were removed normally after verified task-owned archives. No Activity policy, optional-value support, old golden, canary pin or MILESTONES change. The broader legacy Go tooling baseline remains inherited red outside the active model gate.
+
+GATE_SKIPPED:model-check:green-receipt 5be80b30 - baseline reused from prior post-gate pass
+GATE_SKIPPED:model-check-required:green-receipt 5be80b30 - baseline reused from prior post-gate pass
+GATE_SKIPPED:model-time:green-receipt 51dc99f5 - baseline reused from prior post-gate pass
+
+Tracker sync: n/a (bridge inactive)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a7e9bfcad8ba399d1a24e5b1f4e9c8aeb78e4de8, 84dfc0a328b6ab6f28a7232c5ea6695a7def687f, d47ad5a4d6a01ebad93ac9e8d3adcba8c820ebfb, ba14a34a430999ee21eede8f3a04b8891b3fbb66, 5be80b307fb9ddc2c46eb5a37905ee42ac1f23f3, 51dc99f53cd6c4e470160664a24c54a1903b8a1e
+- Tests: make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, cd model && mise exec -- cargo fmt --all --check, cd model && mise exec -- cargo clippy -p umpire-dsl -p umpire-dsl-macros -p umpire-front -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures --all-targets --all-features -- -D warnings, cd model && mise exec -- cargo test -p umpire-tla --test optional_facts, cd model && UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-testing --lib, python3 .flow/tmp/fn2371-evidence-audit.py final, GATE_SKIPPED:model-check:green-receipt 5be80b30 - baseline reused from prior post-gate pass, GATE_SKIPPED:model-check-required:green-receipt 5be80b30 - baseline reused from prior post-gate pass, GATE_SKIPPED:model-time:green-receipt 51dc99f5 - baseline reused from prior post-gate pass
 - PRs:

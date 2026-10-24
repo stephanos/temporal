@@ -10,12 +10,59 @@
     "fn-227-parameterized-models-declared-worlds"
   ],
   "id": "fn-237-activity-timeouts-heartbeat-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-237-activity-timeouts-heartbeat-and.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5d1ca67997db5a970d5e0c6eeface5f45aa6608094ff4283c420964f2adce36f",
+      "backend": "codex",
+      "base_sha": "8ca8756c653c40ad8aa945ee480bd58262bc2132",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "51dc99f53cd6c4e470160664a24c54a1903b8a1e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a65974497a87420f891673e8c7fecadd",
+      "round_consumed": true,
+      "scope": "impl:fn-237-activity-timeouts-heartbeat-and.1",
+      "superseded_by": null,
+      "task": "fn-237-activity-timeouts-heartbeat-and.1",
+      "timestamp": "2026-10-24T11:52:28.083972Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-237-activity-timeouts-heartbeat-and.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-237-activity-timeouts-heartbeat-and.1": 0
+  },
   "spec_path": ".flow/specs/fn-237-activity-timeouts-heartbeat-and.md",
   "status": "open",
   "title": "Activity timeouts, heartbeat and cooperative cancellation (model, temporal)",
@@ -30,5 +77,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T04:02:53.444302Z"
+  "updated_at": "2026-10-24T11:52:28.089227Z"
 }
