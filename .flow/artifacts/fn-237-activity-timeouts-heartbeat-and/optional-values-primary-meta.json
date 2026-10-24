@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-237-activity-timeouts-heartbeat-and.2",
+  "standalone": false,
+  "base_branch": "e2f25dc292cf048d3b61e33b9b2b25e97fedaf97",
+  "reviewed_base_sha": "e2f25dc292cf048d3b61e33b9b2b25e97fedaf97",
+  "reviewed_head_sha": "2e50739c07dd0aef6aa87f2e9a8c7f4e61c5cfb0",
+  "artifact_sha256": "255e271155567588dbb5855c6fb2eb35d1cb60597ac8877c1754e0e555db0495",
+  "reservation_id": "36488d27d14c4bb193294d491da859c7",
+  "rid": "36488d27d14c4bb193294d491da859c7",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a16e77-4172-7ad2-9f68-90a62ce9e0fd",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-24T15:11:10.959403Z",
+      "finished_at": "2026-10-24T15:16:55.548848Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a16e77-416f-78e0-b0dd-522b28297c69",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-24T15:11:10.959523Z",
+      "finished_at": "2026-10-24T15:15:07.021065Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a16e77-416f-7223-a743-80e22b5865de",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-24T15:11:10.959634Z",
+      "finished_at": "2026-10-24T15:14:55.858123Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/36488d27d14c4bb193294d491da859c7/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-237-activity-timeouts-heartbeat-and.2.json",
+  "created_at": "2026-10-24T15:16:55.564922Z"
+}

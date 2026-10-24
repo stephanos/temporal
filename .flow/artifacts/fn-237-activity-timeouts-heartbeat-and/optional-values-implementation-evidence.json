@@ -83,7 +83,32 @@
       "observation": "green: actual make exit 0; timing output records all gate steps and inner-loop execution"
     }
   ],
-  "primary_review": "pending",
+  "primary_review": {
+    "verdict": "SHIP",
+    "spec": "codex:gpt-6.1-sol:high",
+    "same_family": true,
+    "rid": "36488d27d14c4bb193294d491da859c7",
+    "session_id": "01a16e77-4172-7ad2-9f68-90a62ce9e0fd",
+    "draws": {
+      "correctness": {
+        "verdict": "SHIP",
+        "introduced": 0,
+        "pre_existing": 0
+      },
+      "contracts": {
+        "verdict": "SHIP",
+        "introduced": 0,
+        "pre_existing": 0
+      },
+      "integration": {
+        "verdict": "SHIP",
+        "introduced": 0,
+        "pre_existing": 0
+      }
+    },
+    "dispatch_exit_code": 0,
+    "finalize_exit_code": 0
+  },
   "quality_audits": {
     "correctness": {
       "initial_findings": 1,
@@ -210,5 +235,28 @@
       },
       "canonical_mandatory_parent_assertions": "both present and passed; make exit0; no exact-output/count claim for diagnostic interval"
     }
-  ]
+  ],
+  "final_verify": {
+    "receipt_checks": [
+      {
+        "gate": "model-check",
+        "command": "make model-check",
+        "exit_code": 0,
+        "output": "HONORED: gate model-check green receipt 6f0fb85f\n"
+      },
+      {
+        "gate": "model-check-required",
+        "command": "UMPIRE_BACKENDS=require make model-check",
+        "exit_code": 0,
+        "output": "HONORED: gate model-check-required green receipt 6f0fb85f\n"
+      },
+      {
+        "gate": "model-time",
+        "command": "make model-time",
+        "exit_code": 0,
+        "output": "HONORED: gate model-time green receipt 6f0fb85f\n"
+      }
+    ],
+    "fmt_exit": 0
+  }
 }

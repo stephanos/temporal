@@ -11,7 +11,8 @@
   ],
   "id": "fn-237-activity-timeouts-heartbeat-and",
   "impl_review_rounds": {
-    "fn-237-activity-timeouts-heartbeat-and.1": 0
+    "fn-237-activity-timeouts-heartbeat-and.1": 0,
+    "fn-237-activity-timeouts-heartbeat-and.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -158,10 +159,46 @@
       "task": null,
       "timestamp": "2026-10-24T12:16:02.463048Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "255e271155567588dbb5855c6fb2eb35d1cb60597ac8877c1754e0e555db0495",
+      "backend": "codex",
+      "base_sha": "e2f25dc292cf048d3b61e33b9b2b25e97fedaf97",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e50739c07dd0aef6aa87f2e9a8c7f4e61c5cfb0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "36488d27d14c4bb193294d491da859c7",
+      "round_consumed": true,
+      "scope": "impl:fn-237-activity-timeouts-heartbeat-and.2",
+      "superseded_by": null,
+      "task": "fn-237-activity-timeouts-heartbeat-and.2",
+      "timestamp": "2026-10-24T15:17:40.261785Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-237-activity-timeouts-heartbeat-and.1": 1,
+    "impl:fn-237-activity-timeouts-heartbeat-and.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -169,6 +206,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-237-activity-timeouts-heartbeat-and.1": 0,
+    "impl:fn-237-activity-timeouts-heartbeat-and.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-237-activity-timeouts-heartbeat-and.md",
@@ -185,5 +223,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T12:16:02.474579Z"
+  "updated_at": "2026-10-24T15:17:40.266702Z"
 }

@@ -1,0 +1,25 @@
+{
+  "classify_exit": 1,
+  "classify": "FULL: unmatched: model/README.md",
+  "receipt_checks": [
+    {
+      "gate": "model-check",
+      "command": "make model-check",
+      "exit_code": 0,
+      "output": "HONORED: gate model-check green receipt 6f0fb85f\n"
+    },
+    {
+      "gate": "model-check-required",
+      "command": "UMPIRE_BACKENDS=require make model-check",
+      "exit_code": 0,
+      "output": "HONORED: gate model-check-required green receipt 6f0fb85f\n"
+    },
+    {
+      "gate": "model-time",
+      "command": "make model-time",
+      "exit_code": 0,
+      "output": "HONORED: gate model-time green receipt 6f0fb85f\n"
+    }
+  ],
+  "fmt_exit": 0
+}
