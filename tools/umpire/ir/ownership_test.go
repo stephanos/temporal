@@ -284,7 +284,7 @@ func TestEveryToolingPackageHasALiveCaller(t *testing.T) {
 			}
 		}
 	}))
-	require.Greater(t, len(packages), 10)
+	require.Greater(t, len(packages), 5)
 	var problems []string
 	for directory, name := range packages {
 		if problem := toolingCallerProblem(directory, name, importers[directory], commands.String()); problem != "" {

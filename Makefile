@@ -437,7 +437,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/source.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-lint umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire umpire-check-live-tests umpire-check-backends fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -499,7 +499,6 @@ umpire-check-model-gaps:
 				} exit failed }' "$$temporary"
 
 umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
-	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
@@ -527,45 +526,6 @@ umpire-check-live-tests: umpire-check-model-slice umpire-check-model-gaps
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
-umpire-ir-bridge:
-	@printf $(COLOR) "Build the Umpire IR bridge..."
-	@mise exec -- go build -o ./.build/umpire-ir-bridge ./tools/umpire/cmd/umpire-ir-bridge
-
-umpire-gen-cases:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature)/generated)); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --update) || exit $$?; \
-	 done
-
-umpire-check-cases:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature)/generated)); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases)) || exit $$?; \
-	 done
-
-# Lints selected features' existing primary IR files and prints their coverage.
-MODEL_LINT_IR = $(wildcard $(addsuffix /generated/ir.json,$(MODEL_FEATURE_PATHS)))
-umpire-check-lint:
-	@$(if $(MODEL_LINT_IR),mise exec -- go run ./tools/umpire/cmd/umpire-lint $(foreach file,$(MODEL_LINT_IR),$(call model_quote,$(file))),:)
-
-umpire-gen-fixtures:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind functional --update) || exit $$?; \
-	 done
-
-umpire-check-fixtures:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind functional) || exit $$?; \
-	 done
-
-canary-gen-case:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind canary --update) || exit $$?; \
-	 done
-
-canary-check-case:
-	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
-		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind canary) || exit $$?; \
-	 done
-
 # The backend agreement: Quint reads the lifted IR and is held to Go's reading of it. The tests
 # pin their tools and fail when one is missing; the pins are in tools/umpire/export/tools_test.go.
 # UMPIRE_BACKENDS_OUT names a directory that
@@ -577,12 +537,6 @@ umpire-install-backends:
 
 umpire-check-backends:
 	@UMPIRE_BACKENDS=require CC="$${CC:-/usr/bin/clang}" mise exec -- go test -C ./tools/umpire/export -count=1 -timeout 30m -tags test_dep
-
-umpire-check-exploration-bridge:
-	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/(campaign|sequence)$$'
-
-umpire-check-replay-bridge:
-	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/replay$$'
 
 # Archived Scala targets are unmaintained and are not expected to build. Their explicit source
 # roots keep authoring, the IR generator (export) and the check separate under model/archived.

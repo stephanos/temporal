@@ -217,7 +217,7 @@ func retiredFeatureFiles(root string) ([]string, error) {
 // liveLayoutRoots are the live files and trees outside model/ that name model paths: the tools that
 // read the model, the build, CI, and the documents that describe the layout.
 var liveLayoutRoots = []string{
-	"tools/umpire", "tools/canary", "common/testing/testpilot", "tests/testcore/testpilot",
+	"tools/umpire", "tools/canary", "common/testing/testpilot",
 	"api/umpire", "proto/internal/temporal/server/api/umpire",
 	"Makefile", ".github/workflows", "AGENTS.md", ".plans/UMPIRE_MODULES.md", ".plans/UMPIRE4_VISION.md",
 }
@@ -243,19 +243,15 @@ var retiredModelVocabulary = regexp.MustCompile(`\b(?:` + strings.Join([]string{
 }, "|") + `)\b`)
 
 var retiredVocabularyRoots = []string{
-	"tools/umpire", "tools/canary", "tests/testcore/testpilot", "common/testing/testpilot",
+	"tools/umpire", "tools/canary", "common/testing/testpilot",
 	"model", "AGENTS.md", ".plans/UMPIRE_MODULES.md",
 	".plans/UMPIRE4_VISION.md", ".plans/DSL_OPERATORS.md", ".plans/DSL_SIMPLIFICATION.md",
 	".plans/QUINT_MODULE_LAYOUT.md",
 }
 
-// These are historical Cases retained to prove compatibility with another model or with a prior
-// pinned canary. They are archives, not live artifacts generated from model/temporal.
-var retiredVocabularyArchives = map[string]bool{
-	"tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-case.json": true,
-	"tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json":     true,
-	"tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json":      true,
-}
+// These are historical artifacts retained as archives, not live artifacts generated from
+// model/temporal. fn-228.6 retired the last of them with the Case runtime.
+var retiredVocabularyArchives = map[string]bool{}
 
 var retiredLevelProse = regexp.MustCompile(`(?i)\b(?:protocol machine|system contract)\b`)
 

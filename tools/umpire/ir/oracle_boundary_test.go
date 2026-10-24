@@ -11,7 +11,7 @@ import (
 )
 
 func TestReaderAndLowererDoNotImportHandwrittenOracles(t *testing.T) {
-	for _, directory := range []string{".", "../interp", "../check", "../realization", "../lower"} {
+	for _, directory := range []string{".", "../interp", "../check", "../realization"} {
 		files, err := filepath.Glob(filepath.Join(directory, "*.go"))
 		require.NoError(t, err)
 		require.NotEmpty(t, files)
