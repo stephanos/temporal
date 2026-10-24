@@ -1164,8 +1164,10 @@ name = "umpire-temporal-tests"
 version = "0.0.1"
 dependencies = [
  "prost",
+ "syn 3.0.9",
  "umpire-checker",
  "umpire-dsl",
+ "umpire-front",
  "umpire-runtime",
  "umpire-suite",
  "umpire-temporal",

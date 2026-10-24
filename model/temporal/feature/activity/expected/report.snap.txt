@@ -1,11 +1,26 @@
 starts: 1
 reached: 18
-emitted: 48
-evaluated: 162
-refused: 114
+emitted: 63
+evaluated: 216
+refused: 153
 depth: 6
 cut: false
 outcome: Verified
+claim state_bounds: Verified
+claim deadline_arming: Verified
+claim pending_is_cooperative: Verified
 claim terminal_remains: Verified
 claim closed_rejects: Verified
+claim global_never_replenished: Verified
+claim tick_descends_and_expires: Verified
+claim countdowns_decrement: Verified
+claim heartbeat_preserves_attempt_and_global: Verified
+claim attempt_changes_only_on_retry: Verified
+claim tick_priority: Verified
+claim eventually_closed: Verified
+claim pending_retryable_failure_cancels: Verified
+claim pending_nonretryable_failure_fails: Verified
+claim ordinary_retry_rearms: Verified
+claim ordinary_retry_at_cap_fails: Verified
+claim ordinary_nonretryable_failure_fails: Verified
 vacuity: none

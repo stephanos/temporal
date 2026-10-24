@@ -31,7 +31,10 @@ type Action = <activity::World as Machine>::Action;
 
 /// Creates one independently owned guest run.
 pub fn runtime() -> umpire_runtime::Runtime<activity::World, Realization> {
-    umpire_runtime::Runtime::new(activity::World::new(3), Realization::default())
+    umpire_runtime::Runtime::new(
+        activity::World::new(3, None, None, None, None, false),
+        Realization::default(),
+    )
 }
 
 /// The strict mini activity observation and worker program policy.
@@ -404,7 +407,7 @@ impl Realization {
                 _ => {}
             }
         }
-        Ok(Self::project_phase(state, &activity::Model { phase, attempt }, terminal_retryable))
+        Ok(Self::project_phase(state, &Self::observed_state(phase, attempt), terminal_retryable))
     }
 
     fn consistent_evidence(
@@ -451,6 +454,18 @@ impl Realization {
             failure
         }
         observed.map(content) == expected.map(content)
+    }
+
+    fn observed_state(phase: Phase, attempt: u8) -> activity::Model {
+        activity::Model {
+            phase,
+            attempt,
+            cancel_requested: false,
+            schedule_to_start_remaining: None,
+            start_to_close_remaining: None,
+            schedule_to_close_remaining: None,
+            heartbeat_remaining: None,
+        }
     }
 
     fn project_phase(

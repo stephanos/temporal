@@ -454,29 +454,26 @@ or goldens. Its external live golden is checked by the gap gate, not regenerated
 
 ## Mini activity slice (fn-216)
 
-The independent `temporal/feature/activity/model.rs` declares a bounded retry World
-(`maximum_attempts` one through three), six lifecycle phases and dynamic `attempt` starting
-at one. `Worker::Poll(expected)` rejects stale attempts with FailedPrecondition.
-`RespondFailed { retryable }` schedules attempt + 1 below the cap; cap and nonretryable
-failures close as Failed. Direct ScheduleToStart/StartToClose deadlines and atomic
-cancellation remain. Both shared closure laws are registered across every phase/attempt.
-The default three-attempt graph reaches 18 states, emits 48 choices from 162 evaluations,
-refuses 114 disabled actions and has depth six without a cut. The suite states `Cases(3 * 7)`:
-seven scheduled/started closing or retry alternatives per attempt, with exact retained witnesses.
+The independent activity Model carries retry maximum 1..=3, four optional bounded
+`Ticks` deadlines and atomic/cooperative cancellation. Its state records phase, attempt,
+pending cancellation and four countdowns. One Tick decrements all live budgets and selects
+ScheduleToClose > StartToClose > Heartbeat > ScheduleToStart, emitting one exact expiry fact.
+Terminal transitions clear budgets and pending. Pending attempt expiry or retryable failure
+cancels, while global expiry times out; completion and nonretryable failure may win.
 
-`temporal/feature/activity/compatibility/` retains all 15 original artifacts from the
-pinned pre-extension commit and verifies their SHA256 manifest. Its test compares exact
-canonical starts, reachable phases and action/outcome/fact/destination relationships after
-an explicit one-attempt lifecycle projection; both deadline edges and four rejected
-terminal Cancel loops remain. Failure payload assignments deduplicate only after projection.
-Changing an original deadline destination fails the same comparison. This is the
-one-attempt/direct-deadline/atomic-cancel checkpoint; fn-237.3 owns the final Tick-era World
-and projection. The guest retains an explicit three-attempt World only for checker exploration before live
-admission. A successful actual captured Start selects `maximum_attempts` in `1..=3` for one
-execution; request timeouts are retained exactly, without admission or quantization until
-fn-237.4. Callback Poll carries the observed attempt. Fail maps to retryable=false;
-RetryThenComplete fails retryably on attempt one and completes attempt two. The live proof
-admits Start before worker startup and judges the real retry Describe before second delivery.
+Exact Poll(1)..Poll(maximum_attempts) and RespondCompleted weak fairness establishes
+closure, including timeoutless Worlds. Registered countdown laws establish the spanning
+actual-Tick bound across arbitrary interleavings. The [activity guide](temporal/feature/activity/README.md)
+states arming/reset rules, cancellation boundaries, the induction and availability controls.
+Its [compatibility projection](temporal/feature/activity/compatibility/README.md) validates
+one atomic attempt with one-tick waiting/running deadlines against all 15 original artifacts,
+retaining exactly one start, six states and eleven old visible edges.
+
+The default offline three-attempt World reaches 18 states and emits 63 edges from 216
+evaluations, with 153 disabled evaluations and depth six. Its 17 claims verify natively;
+Cases(3 * 7) retains 21 atomic witnesses. Expanded cooperative Worlds are checked separately.
+Live constructors keep request-derived maximum_attempts, absent timeouts and atomic
+cancellation until the downstream binding work; checker Worlds grant no live capability.
 
 `terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
 shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal
@@ -502,7 +499,7 @@ checkpoint, run its real added-catalog-field control from `model/` with
 It rebuilds in a disposable worktree and preserves the existing coverage baseline.
 For public states without declared constants, `#[machine]` exports `World` and `Action`,
 and `world()` returns `World`. Non-public states retain the opaque interface with generated types following
-the state's visibility. The declared activity World uses `World::new(maximum_attempts)` and removes
+the state's visibility. The declared activity World uses an explicit six-field `World::new` and removes
 the realization's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
 Describe and cancel RPC method paths are realization constants. The policy parser and reply constructor
@@ -539,14 +536,13 @@ real server/SDK controls. The worker returns only decoded Model reply data and u
 SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
 Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
 
-Declared Worlds, computed starts, Finite input domains, exact-payload fairness and the
-activity's phase/rejection/closure laws now have native/TLC agreement. The shared fixture
-runner includes the Temporal root; activity coverage is `Cases(3 * 7)`, or 21 alternatives.
-Facts and broader typed projection authoring remain separate gaps. Request timeout admission,
-Tick, heartbeat and cooperative cancellation remain deferred to fn-237; direct deadlines
-and atomic cancellation describe only the retained retry checkpoint. No Model transition
-was changed to fit server evidence. [Current evidence and boundaries](DESIGN.md#parameterized-worlds-and-inputs)
-include selected-World counts and the retained actual live retry proof.
+Declared Worlds, computed starts, Finite inputs, facts, bounded optional values and
+exact selected-World fairness support the activity policy. The retained retry, closure,
+compatibility, deadline and cooperative matrices use the same authored source with
+independent interpretation and required TLC controls. [Activity policy verification](../.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md)
+records measured Worlds, replay, mutations, timing and the live admission boundary.
+The [earlier checkpoint](DESIGN.md#parameterized-worlds-and-inputs) retains the original
+actual live retry proof. No Model transition was selected to fit server evidence.
 
 At that historical checkpoint, R33's protocol seam was proven and the broader runtime
 replacement was still open. The later [Runner and Run](DESIGN.md#runner-and-run)

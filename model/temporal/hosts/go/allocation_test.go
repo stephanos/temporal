@@ -168,7 +168,7 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 			var frozen *modelv1.JudgeResponse
 			if tc.frozen {
 				frozen = g.judge(t, scheduled(t))
-				unexplained(t, frozen, "Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose")
+				unexplained(t, frozen, "Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Worker::Heartbeat", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)")
 			}
 			g.call(t, tc.method, tc.request(t), true)
 			after := g.judge(t, matching)
@@ -207,9 +207,9 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				g.call(t, modelv1.Method_METHOD_JUDGE, start, false, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 			}
 			exploration := g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
-			wantStates := uint32(18)
+			wantStates := uint32(15)
 			if operation == "reset live" {
-				wantStates = 6
+				wantStates = 5
 			}
 			if exploration.GetExplore().GetReached() != wantStates {
 				t.Fatalf("explored %d states; want %d", exploration.GetExplore().GetReached(), wantStates)
@@ -243,7 +243,7 @@ func TestTemporalWorldTransactionsSurviveActualResponseExhaustion(t *testing.T) 
 				explained(t, g.judge(t, start.Observation))
 				explained(t, g.judge(t, started(t)))
 				exploration = g.call(t, modelv1.Method_METHOD_EXPLORE, &modelv1.ExploreRequest{Budget: 64}, false)
-				if exploration.GetExplore().GetReached() != 6 {
+				if exploration.GetExplore().GetReached() != 5 {
 					t.Fatal("admission did not select the one-attempt World")
 				}
 			case "freeze":

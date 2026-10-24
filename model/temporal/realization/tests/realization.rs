@@ -143,7 +143,15 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         activity::Phase::Canceled,
         activity::Phase::TimedOut,
     ] {
-        let before = activity::Model { phase, attempt: 1 };
+        let before = activity::Model {
+            phase,
+            attempt: 1,
+            cancel_requested: false,
+            schedule_to_start_remaining: None,
+            start_to_close_remaining: None,
+            schedule_to_close_remaining: None,
+            heartbeat_remaining: None,
+        };
         let Projection::Candidates(paths) = Realization::default()
             .observe(&cancel(Some(5)), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
@@ -152,7 +160,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         };
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].path.len(), 1);
-        let (outcome, _, after) = activity::World::new(3)
+        let (outcome, _, after) = activity::World::new(3, None, None, None, None, false)
             .checked_step(&before, paths[0].path[0].action.clone())
             .unwrap_or_else(|error| panic!("{error:?}"))
             .into_iter()
@@ -197,7 +205,9 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
                     "Worker::RespondCompleted",
                     "Worker::RespondFailed { retryable: false }",
                     "Worker::RespondFailed { retryable: true }",
-                    "Deadline::StartToClose",
+                    "Worker::Heartbeat",
+                    "Worker::RespondCanceled(2)",
+                    "Worker::RespondCanceled(3)",
                 ]
             } else {
                 vec![
@@ -205,7 +215,8 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
                     "Worker::Poll(1)",
                     "Worker::Poll(2)",
                     "Worker::Poll(3)",
-                    "Deadline::ScheduleToStart",
+                    "Worker::RespondCanceled(2)",
+                    "Worker::RespondCanceled(3)",
                 ]
             };
             assert_eq!(unexplained(judge(&mut guest, cancel(Some(code)))), expected);
@@ -349,7 +360,15 @@ fn refused(response: protocol::Response, code: protocol::RefusalCode) {
 
 #[test]
 fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
-    let mut guest = Guest::new(runtime());
+    let world = activity::World::new(
+        3,
+        Some(activity::Ticks(1)),
+        Some(activity::Ticks(1)),
+        None,
+        None,
+        false,
+    );
+    let mut guest = Guest::new(umpire_runtime::Runtime::new(world, Realization::default()));
     let Some(Outcome::Explore(exploration)) =
         call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
     else {
@@ -490,7 +509,15 @@ fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_
             response.unpack().unwrap_or_else(|e| panic!("{e:?}"));
         response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2;
         observed.result = Some(ObservationResult::Response(Any::pack(&response)));
-        let state = activity::Model { phase: activity::Phase::Scheduled, attempt: 1 };
+        let state = activity::Model {
+            phase: activity::Phase::Scheduled,
+            attempt: 1,
+            cancel_requested: false,
+            schedule_to_start_remaining: None,
+            start_to_close_remaining: None,
+            schedule_to_close_remaining: None,
+            heartbeat_remaining: None,
+        };
         let Projection::Candidates(paths) = Realization::default()
             .observe(&Any::pack(&observed), &state)
             .unwrap_or_else(|e| panic!("{e:?}"))

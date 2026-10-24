@@ -20,6 +20,8 @@ path = "boundary.rs"
 workspace = true
 
 [dev-dependencies]
+umpire-front.workspace = true
+syn.workspace = true
 umpire-dsl.workspace = true
 umpire-checker.workspace = true
 umpire-testing.workspace = true

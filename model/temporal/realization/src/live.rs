@@ -291,7 +291,7 @@ impl LiveRuntime {
                 Some(LiveTransaction { change: Change::Freeze { receipt, refusal } }),
             ));
         };
-        let world = activity::World::new(maximum_attempts);
+        let world = activity::World::new(maximum_attempts, None, None, None, None, false);
         let starts = world.starts();
         let [initial] = starts.as_slice() else {
             return Err(state("admitted World requires exactly one start"));

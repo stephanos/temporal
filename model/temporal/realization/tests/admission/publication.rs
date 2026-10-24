@@ -99,7 +99,7 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
                     else {
                         panic!("explore")
                     };
-                    assert_eq!(result.reached, 6);
+                    assert_eq!(result.reached, 5);
                 }
                 "freeze" => {
                     refused(judge(&mut guest, &describe(1, 1, 1)), protocol::RefusalCode::State);

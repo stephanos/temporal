@@ -557,11 +557,15 @@ pub mod catalog {
     /// Binds every Model action, including explicitly environmental deadlines.
     pub fn bind(action: &ModelAction) -> Binding {
         umpire_temporal_api::bind_workflow_action!(action,
-            ModelAction::Deadline(deadline) => match deadline {
-                Deadline::ScheduleToStart => Binding::Environmental("abstract \
-                    schedule-to-start deadline"),
-                Deadline::StartToClose => Binding::Environmental("abstract \
-                    start-to-close deadline"),
+            ModelAction::Deadline(Deadline::Tick)
+            | ModelAction::Worker(Worker::Heartbeat | Worker::RespondCanceled(_)) => {
+                if matches!(action, ModelAction::Deadline(Deadline::Tick)) {
+                    Binding::Environmental("abstract deadline tick")
+                } else if matches!(action, ModelAction::Worker(Worker::Heartbeat)) {
+                    Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat")
+                } else {
+                    Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled")
+                }
             }
         )
     }

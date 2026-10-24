@@ -356,7 +356,7 @@ impl Realization {
         Ok(
             Self::project_phase(
                 state,
-                &activity::Model { phase, attempt },
+                &Self::observed_state(phase, attempt),
                 terminal_retryable,
             ),
         )
@@ -412,6 +412,17 @@ impl Realization {
             failure
         }
         observed.map(content) == expected.map(content)
+    }
+    fn observed_state(phase: Phase, attempt: u8) -> activity::Model {
+        activity::Model {
+            phase,
+            attempt,
+            cancel_requested: false,
+            schedule_to_start_remaining: None,
+            start_to_close_remaining: None,
+            schedule_to_close_remaining: None,
+            heartbeat_remaining: None,
+        }
     }
     fn project_phase(
         state: &activity::Model,

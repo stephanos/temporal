@@ -78,7 +78,7 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 				continue
 			}
 			h := guest(t)
-			expected := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}
+			expected := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)"}
 			if closed {
 				explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 				expected = []string{"Client::Cancel"}
@@ -305,7 +305,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		bad      func(*testing.T) *anypb.Any
 		expected []string
 	}{
-		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { deliver(t, h) }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}},
+		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { deliver(t, h) }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Worker::Heartbeat", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)"}},
 		{"opposite terminal after closure", func(t *testing.T, h *model.Host) {
 			deliver(t, h)
 			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::RespondCompleted")
@@ -404,9 +404,9 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 			if tc.delivered {
 				deliver(t, h)
 			}
-			want := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}
+			want := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)"}
 			if tc.delivered {
-				want = []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}
+				want = []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Worker::Heartbeat", "Worker::RespondCanceled(2)", "Worker::RespondCanceled(3)"}
 			}
 			unexplained(t, judge(t, h, observation(t, tc.status, 0)), want...)
 			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})

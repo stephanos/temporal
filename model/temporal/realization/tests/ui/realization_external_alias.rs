@@ -21,7 +21,7 @@ impl Binding {
 }
 
 fn main() {
-    let _ = activity::World::new(3);
+    let _ = activity::World::new(3, None, None, None, None, false);
     let _ = Active;
     let _ = sample();
 }
