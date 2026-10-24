@@ -508,7 +508,6 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | 🚧 Running | Exhaustive check inventory, actual proof catalog and explicit gaps; exact stage contracts |
 | [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
 | [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
 | [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
