@@ -7,14 +7,15 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-237-activity-timeouts-heartbeat-and"
+    "fn-237-activity-timeouts-heartbeat-and",
+    "fn-250-shared-value-type-and-trace-layer-for"
   ],
   "id": "fn-245-finite-collections-sets-maps-and",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_reviewed_at": "2026-10-24T22:12:13.339958Z",
   "ready": true,
   "spec_path": ".flow/specs/fn-245-finite-collections-sets-maps-and.md",
   "status": "open",
@@ -30,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T15:56:08.167947Z"
+  "updated_at": "2026-10-24T22:12:34.006504Z"
 }

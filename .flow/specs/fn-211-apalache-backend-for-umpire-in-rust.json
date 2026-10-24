@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine",
     "fn-212-tla-lifting-and-the-tlc-backend-for",
-    "fn-227-parameterized-models-declared-worlds"
+    "fn-227-parameterized-models-declared-worlds",
+    "fn-250-shared-value-type-and-trace-layer-for"
   ],
   "id": "fn-211-apalache-backend-for-umpire-in-rust",
   "impl_review_rounds": {
@@ -19,8 +20,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-21T17:32:06.322815Z",
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": "2026-10-24T22:12:11.214071Z",
   "review_attempts": [
     {
       "artifact_sha256": "77987ecbbb1c61685912a1c87bd3aed01958a8e501396085918a2952f348a0a3",
@@ -593,5 +594,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T04:02:53.707043Z"
+  "updated_at": "2026-10-24T22:12:35.734219Z"
 }
