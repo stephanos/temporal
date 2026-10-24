@@ -1,0 +1,11 @@
+{
+  "reviewed_source_commit": "64b41a2692",
+  "source_hashes_match_last_green": true,
+  "classifier_exit": 1,
+  "classifier_output": "FULL: unmatched: MILESTONES.md",
+  "full_gate_defined_by_task": false,
+  "focused_gate_reused": "25 complete process tests and all-target Clippy exit0 before review; source unchanged since passes",
+  "tests_rerun_after_ship": false,
+  "full_gate_receipt_minted": false,
+  "byte_compatibility_gate": "waived by owner; prior observations retained historically"
+}
