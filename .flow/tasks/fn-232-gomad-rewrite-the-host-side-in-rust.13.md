@@ -284,3 +284,10 @@ Task .14 explicitly follows .13; encode that dependency while preserving its exi
 Tasks .15, .16 and .17 are implemented, independently reviewed SHIP, integrated into gomad and verified done in Flow. Their focused regressions and full mandatory gates pass; the final combined gate on b15d9b5e0eb0c044612c8fb28db9a701aeea25de passed all 583 driver tests. Evidence and review receipts: /home/agent/wt/evidence/fn232-split-closure/.
 
 The next actual cycle uses launch-next.py in that evidence directory, with an explicit current clean HEAD and fresh output tag. It authenticates reusable semantic inputs without changing their original build provenance and genuinely regenerates the R4 bridge-helper receipt for the executed commit. C4 remains a failed validate attempt with zero passing stage receipts. This task remains open until the actual green 96-stage cycle and all existing receiving/size/evidence reconciliation obligations are satisfied.
+
+
+### C99 terminal validation accounting failure (2026-10-24)
+
+The actual cycle on 69fcf11c1390840d7d3d9b3a7c20ee254653bbae used configuration SHA c99dfd99e0570eda779b7cbccfe500c041cd8282a42d9681b110f941090566ea. Assembly exited 0; driver exited 1 without signal after 879.272929 seconds. Validate failed, with zero passing stage receipts and 95 unstarted stages. The selector fix passed its real selected runs. Go listing/run commands 0017/0018 exited 0, and all 543 listed roots ran/passed twice; verify_go rejected four package-level no-test-files skip events. New task .18 owns the narrow authenticated package-accounting repair, preserving strict real test/subtest skips.
+
+Retain the complete failed attempt at /home/agent/wt/evidence/fn232-split-closure/resume-closure-cycle1 and terminal identity/receiving observations under evidence-preparation. Execution Results, ringpop preservation/replay, R4 release comparisons and final 145-ID reader remain unexecuted/pending. No source or sealed evidence changed during the run. The full cycle and all existing acceptance obligations remain required.

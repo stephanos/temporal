@@ -83,12 +83,19 @@ initialization). Tasks .15 and .17 may run in parallel; .16 follows .17 because 
 the broad-stage call site. Task .13 retains the complete acceptance gate and waits for all
 three fixes. Completed tasks .1–.12 and the separate .14 reach-porting scope are preserved.
 
-All three closure fixes are now reviewed, integrated and marked done in Flow. The final
+All three initial closure fixes are now reviewed, integrated and marked done in Flow. The final
 mandatory gate passed on `b15d9b5e0eb0c044612c8fb28db9a701aeea25de`, including all 583
 driver tests. The next cycle uses the fresh-output controller
 `/home/agent/wt/evidence/fn232-split-closure/launch-next.py`; it authenticates retained
 implementation inputs and produces a genuine current-commit R4 bridge-helper receipt.
 These checks do not supply a qualification pass. Source remains unchanged during the run.
+
+The C99 run on `69fcf11c13` assembled successfully and reached validation beyond the old
+selector failure. It then stopped because the static reader rejected four standard Go
+package-level `[no test files]` records. The Go listing/run both exited 0 and all 543 listed
+roots ran/passed twice. Task fn-232.18 owns authenticated empty-package accounting while
+keeping real skipped-test refusals strict. C99 is retained as INCOMPLETE/exit 1, with zero
+passing stage receipts and 95 unstarted stages. No qualification result is inferred.
 
 The composition preserves the flake/reach fixes, operator cluster-failure checks and
 artifact detached/kill-resume families. Children load their driver configuration explicitly;
@@ -102,7 +109,7 @@ Other local inputs, using the rewritten refs:
 - `fn232-reach-fixes-2` (`1f85fbfcf95604757a6742d54a934e13395c2bc4`): fn-232.14 progress; its handover retains the remaining partial entries and pending full gate.
 
 Next, in order:
-1. Run `driver.py parallel` for all 96 stages on current `gomad`, with the reviewed .15–.17 fixes integrated. Retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
+1. Complete fn-232.18, then run `driver.py parallel` for all 96 stages on current `gomad`. Retain command exits/signals and actual candidate/input identities. One green cycle closes fn-232.13.
 2. Merge the sweep and launch fn-221.2; run stress and the fn-233 rerun after the cycle. Cycle support claims stay provisional until fn-242 requalification.
 3. Finish fn-232.14 and restore strict reach completeness.
 
@@ -406,7 +413,8 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.15](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.15.md) | Done | Go selector accounting; reviewed and integrated, mandatory gate green |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.17](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.17.md) | Done | Shared harness initialization; reviewed and integrated, mandatory gate green |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.16](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.16.md) | Done | Counterfactual declaration/reach and child configuration; reviewed and integrated |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Running | Retirement and .15–.17 merged; closes on one green full cycle on `gomad` |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.18](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.18.md) | 🚧 Running | Authenticate no-test Go packages without relaxing real test skips |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | 🚧 Parked | Retirement and .15–.17 merged; waits for .18, then one green full cycle |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.14](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.14.md) | Todo | Close the remaining test-wasm reach-map gaps after .13 |
 
 ### Go-command interception — [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md)
