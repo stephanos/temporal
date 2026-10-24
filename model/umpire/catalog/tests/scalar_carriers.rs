@@ -46,13 +46,13 @@ fn selected_empty_scalars_are_present_and_map_entries_are_text()
         (Source::Token(vec![0; 4]), "bytes.max_len"),
     ] {
         let wire = Wire { source: Some(source), ..Default::default() };
-        let findings = umpire_annotations::validate(&wire, &catalog);
+        let findings = umpire_catalog::validate(&wire, &catalog);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].constraint, constraint);
     }
     let baseline = Wire { source: Some(Source::Name("ok".into())), ..Default::default() };
     for case in catalog.probe_cases() {
-        let probe = catalog.probe(&baseline, &case, &mut umpire_annotations::Rng::new(1))?;
+        let probe = catalog.probe(&baseline, &case, &mut umpire_catalog::Rng::new(1))?;
         assert!(matches!(
             (case.violation.path.as_str(), probe.message.source),
             ("fixture.Wire.name", Some(Source::Name(_)))
@@ -61,7 +61,7 @@ fn selected_empty_scalars_are_present_and_map_entries_are_text()
     }
     let entry_catalog = WireCatalog::__tags_entry_catalog(&Limits)?;
     assert!(
-        entry_catalog.fields().all(|field| matches!(field.kind, umpire_annotations::Kind::Text(_)))
+        entry_catalog.fields().all(|field| matches!(field.kind, umpire_catalog::Kind::Text(_)))
     );
     let mut tags = std::collections::BTreeMap::from([("key".to_owned(), "value".to_owned())]);
     let projected = <_ as umpire_catalog::View<Map<Text, Text>>>::view(&tags);

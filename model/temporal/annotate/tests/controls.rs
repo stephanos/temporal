@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 use std::fmt::Write;
-use umpire_annotations::{Consequence, Rng, Tag, Timestamp, fill, validate};
+use umpire_catalog::{Consequence, Rng, Tag, Timestamp, fill, validate};
 use umpire_temporal_annotate::annotate;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -133,7 +133,7 @@ fn typed_projection_fills_and_validates_actual_wrapper_fields()
 -> Result<(), Box<dyn std::error::Error>> {
     let catalog = controls::response()?;
     let mut message = Response::default();
-    assert_ne!(validate(&message, &catalog), [] as [umpire_annotations::Violation; 0]);
+    assert_ne!(validate(&message, &catalog), [] as [umpire_catalog::Violation; 0]);
     fill(&mut message, &catalog, &mut Rng::new(5))?;
     assert_eq!(validate(&message, &catalog), []);
     assert!(message.timestamp.is_some());

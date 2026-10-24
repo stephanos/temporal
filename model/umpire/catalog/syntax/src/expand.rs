@@ -40,9 +40,9 @@ pub fn expand(catalog: &crate::Catalog) -> syn::Result<TokenStream> {
 
             /// Every explicitly declared expectation, independent of RPC probe registration.
             pub fn expected_probe_cases() -> ::core::result::Result<
-                ::std::vec::Vec<::umpire_annotations::ProbeCase>, ::umpire_annotations::AdmissionErrors
+                ::std::vec::Vec<::umpire_catalog::ProbeCase>, ::umpire_catalog::AdmissionErrors
             > {
-                let mut cases: ::std::vec::Vec<::umpire_annotations::ProbeCase> = ::std::vec::Vec::new();
+                let mut cases: ::std::vec::Vec<::umpire_catalog::ProbeCase> = ::std::vec::Vec::new();
                 #(cases.extend(#probe_factories()?.probe_cases());)*
                 cases.sort_by(|a, b| a.id.cmp(&b.id));
                 Ok(cases)
@@ -67,13 +67,13 @@ fn message(message: &Message) -> TokenStream {
     quote! {
         #[doc = concat!("Admits the exhaustive catalog for `", #proto, "`.")]
         pub fn #factory() -> ::core::result::Result<
-            ::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors
+            ::umpire_catalog::Catalog<#ty>, ::umpire_catalog::AdmissionErrors
         > {
             let _: fn(&#ty) = |message| {
                 #pattern
                 #(#checks)*
             };
-            ::umpire_annotations::Catalog::<#ty>::#policy(#proto)
+            ::umpire_catalog::Catalog::<#ty>::#policy(#proto)
                 #(#fields)*
                 #(.rule(#rules))*
                 .build()
@@ -109,12 +109,12 @@ fn field_check(field: &Field) -> TokenStream {
         };
         let repeated = field.constraints.iter().any(|(name, _)| is_repeated(name)).then(|| {
             quote! {
-                ::umpire_annotations::types::check_repeated(#value);
+                ::umpire_catalog::types::check_repeated(#value);
             }
         });
         quote! {
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::#marker, _
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::#marker, _
             >(#value);
             #repeated
         }
@@ -134,7 +134,7 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
                 let variant_path = &variant.path;
                 let path = format!("{}.{}", proto.value(), variant.proto.value());
                 quote! {
-                    .ignored(::umpire_annotations::IgnoredField::projected(
+                    .ignored(::umpire_catalog::IgnoredField::projected(
                         #path, #kind,
                         |message: &#ty| match message.#name.as_ref() {
                             Some(#variant_path(value)) => Some(value.clone()),
@@ -148,7 +148,7 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
             return quote! { #(#fields)* };
         }
         return quote! {
-            .ignored(::umpire_annotations::IgnoredField::new(
+            .ignored(::umpire_catalog::IgnoredField::new(
                 #path, #kind,
                 |message: &#ty| &message.#name,
                 |message: &mut #ty| &mut message.#name,
@@ -166,7 +166,7 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
             annotated_field(
                 field,
                 &quote! {
-                    ::umpire_annotations::Field::<#ty, Option<#projected>>::projected(
+                    ::umpire_catalog::Field::<#ty, Option<#projected>>::projected(
                         #path, #kind,
                         |message: &#ty| {
                             if matches!(message.#name.as_ref(), Some(#variant_path(_))) {
@@ -195,13 +195,13 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
         let get = &projection.get;
         let set = &projection.set;
         quote! {
-            ::umpire_annotations::Field::<#ty, #projected>::projected(
+            ::umpire_catalog::Field::<#ty, #projected>::projected(
                 #path, #kind, #get, #set,
             )
         }
     } else {
         quote! {
-            ::umpire_annotations::Field::new(
+            ::umpire_catalog::Field::new(
                 #path, #kind,
                 |message: &#ty| &message.#name,
                 |message: &mut #ty| &mut message.#name,
@@ -247,7 +247,7 @@ fn kind(field: &Field) -> TokenStream {
                 quote! { #name: Some(#value) }
             });
         quote! {
-            ::umpire_annotations::Kind::#name(::umpire_annotations::#rules_name {
+            ::umpire_catalog::Kind::#name(::umpire_catalog::#rules_name {
                 #(#fields,)* ..::core::default::Default::default()
             })
         }
@@ -265,12 +265,12 @@ fn kind(field: &Field) -> TokenStream {
             .find(|(name, _)| name == "defined_only")
             .map_or_else(|| quote! { true }, |(_, value)| quote! { #value });
         quote! {
-            ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
+            ::umpire_catalog::Kind::Enum(::umpire_catalog::EnumRules {
                 defined_only: #defined_only, values: #values,
             })
         }
     } else {
-        quote! { ::umpire_annotations::Kind::#name }
+        quote! { ::umpire_catalog::Kind::#name }
     }
 }
 
@@ -292,7 +292,7 @@ fn repeated(field: &Field) -> TokenStream {
         }
     });
     quote! {
-        .repeated(::umpire_annotations::RepeatedRules {
+        .repeated(::umpire_catalog::RepeatedRules {
             #(#fields,)* ..::core::default::Default::default()
         })
     }
@@ -305,14 +305,14 @@ fn expectation(expected: &Expected) -> TokenStream {
             .as_ref()
             .map_or_else(|| quote! { None }, |value| quote! { Some(#value.to_owned()) });
         quote! {
-            ::umpire_annotations::Expectation::Rejects {
+            ::umpire_catalog::Expectation::Rejects {
                 code: #code, message_pattern: #message.to_owned(), details_type: #details,
             }
         }
     } else {
-        quote! { ::umpire_annotations::Expectation::#outcome }
+        quote! { ::umpire_catalog::Expectation::#outcome }
     };
-    quote! { ::umpire_annotations::Expected { expectation: #expectation } }
+    quote! { ::umpire_catalog::Expected { expectation: #expectation } }
 }
 
 fn rule(rule: &Rule) -> TokenStream {
@@ -338,8 +338,8 @@ fn rule(rule: &Rule) -> TokenStream {
         },
     );
     quote! {
-        ::umpire_annotations::Rule {
-            presence: ::umpire_annotations::Presence::#operator(#args), expected: #expected,
+        ::umpire_catalog::Rule {
+            presence: ::umpire_catalog::Presence::#operator(#args), expected: #expected,
         }
     }
 }
@@ -389,16 +389,16 @@ fn consequence(tag: &Tag) -> TokenStream {
     let name = &tag.name;
     match (name.to_string().as_str(), &tag.argument) {
         ("Cached", Some(ttl)) => {
-            quote! { ::umpire_annotations::Consequence::Cached { ttl: ::core::time::Duration::from_secs(#ttl) } }
+            quote! { ::umpire_catalog::Consequence::Cached { ttl: ::core::time::Duration::from_secs(#ttl) } }
         }
         ("EventuallyConsistent", Some(polls)) => {
-            quote! { ::umpire_annotations::Consequence::EventuallyConsistent { polls: #polls } }
+            quote! { ::umpire_catalog::Consequence::EventuallyConsistent { polls: #polls } }
         }
         ("Ignored", Some(reason)) => {
-            quote! { ::umpire_annotations::Consequence::Ignored(#reason.to_owned()) }
+            quote! { ::umpire_catalog::Consequence::Ignored(#reason.to_owned()) }
         }
         ("Monotone" | "Immutable" | "IdempotencyKey" | "Decided" | "Observed", _) => {
-            quote! { ::umpire_annotations::Consequence::#name }
+            quote! { ::umpire_catalog::Consequence::#name }
         }
         _ => quote! { #name },
     }
@@ -409,19 +409,19 @@ fn custom_tag(tag: &CustomTag) -> TokenStream {
     let consequence = consequence(&tag.consequence);
     let kinds = tag.kinds.iter().map(|kind| {
         if matches!(kind.to_string().as_str(), "Uuid" | "Secret") {
-            quote! { ::umpire_annotations::Kind::#kind }
+            quote! { ::umpire_catalog::Kind::#kind }
         } else {
-            quote! { ::umpire_annotations::Kind::#kind(_) }
+            quote! { ::umpire_catalog::Kind::#kind(_) }
         }
     });
     quote! {
         #[doc = concat!("Declarative `", stringify!(#name), "` annotation tag.")]
         pub struct #name;
 
-        impl ::umpire_annotations::Tag for #name {
+        impl ::umpire_catalog::Tag for #name {
             fn name(&self) -> &str { stringify!(#name) }
-            fn consequence(&self) -> ::umpire_annotations::Consequence { #consequence }
-            fn applies_to(&self, kind: &::umpire_annotations::Kind) -> bool {
+            fn consequence(&self) -> ::umpire_catalog::Consequence { #consequence }
+            fn applies_to(&self, kind: &::umpire_catalog::Kind) -> bool {
                 matches!(kind, #(#kinds)|*)
             }
         }

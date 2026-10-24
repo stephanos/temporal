@@ -1,6 +1,6 @@
 //! Fixed 2026-10-21 scope review; identities are listed, never matched by prefix.
 
-use umpire_annotations::AcceptedGap;
+use umpire_catalog::AcceptedGap;
 
 struct Group {
     method: &'static str,

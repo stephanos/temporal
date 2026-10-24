@@ -8,9 +8,9 @@ publish = false
 [workspace]
 
 [dependencies]
-umpire-dsl = { path = "../../umpire/dsl" }
+umpire-dsl = { path = "../../umpire/author/dsl" }
 umpire-ir = { path = "../../umpire/ir" }
-umpire-checker = { path = "../../umpire/checker" }
+umpire-checker = { path = "../../umpire/backends/native" }
 
 [profile.dev]
 overflow-checks = true

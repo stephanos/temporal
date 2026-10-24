@@ -12,7 +12,7 @@ error[E0277]: the trait bound `u8: FieldValue` is not satisfied
             u64
   = note: required for `Vec<u8>` to implement `SupportsRepeated`
 note: required by a bound in `check_repeated`
- --> $WORKSPACE/umpire/annotations/src/types.rs
+ --> $WORKSPACE/umpire/catalog/src/types.rs
   |
   | pub fn check_repeated<T: SupportsRepeated>(_field: &T) {}
   |                          ^^^^^^^^^^^^^^^^ required by this bound in `check_repeated`

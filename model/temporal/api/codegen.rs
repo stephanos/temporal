@@ -13,6 +13,6 @@ pub(crate) fn generate(
         config,
         upstream,
         schema,
-        &[include, &include.join("../../umpire/proto")],
+        &[include, &include.join("../../umpire/protocol/proto")],
     )
 }

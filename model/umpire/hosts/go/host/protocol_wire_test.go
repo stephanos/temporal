@@ -49,7 +49,7 @@ func TestProtocolWireCompatibility(t *testing.T) {
 			t.Fatalf("refusal number changed: %s = %d", name, code)
 		}
 	}
-	data, err := os.ReadFile("../../../proto/tests/protocol-wire.txt")
+	data, err := os.ReadFile("../../../protocol/proto/tests/protocol-wire.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestCoreProtocolWireCompatibility(t *testing.T) {
 		"judge_unexplained": &modelv1.Response{Outcome: &modelv1.Response_Judge{Judge: &modelv1.JudgeResponse{Judgment: &modelv1.JudgeResponse_Unexplained{Unexplained: &modelv1.Unexplained{}}}}},
 		"answer_response":   &modelv1.Response{Outcome: &modelv1.Response_Answer{Answer: &modelv1.AnswerResponse{Reply: opaque}}},
 	}
-	data, err := os.ReadFile("../../../proto/tests/protocol-core-wire.txt")
+	data, err := os.ReadFile("../../../protocol/proto/tests/protocol-core-wire.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

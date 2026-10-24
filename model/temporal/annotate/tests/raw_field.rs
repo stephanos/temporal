@@ -18,7 +18,7 @@ fn keyword_field_uses_the_source_path() -> Result<(), Box<dyn std::error::Error>
     let catalog = controls::message()?;
     assert_eq!(catalog.fields().next().ok_or("missing field")?.path, "example.Message.type");
     assert_eq!(
-        umpire_annotations::validate(&Message::default(), &catalog)[0].fields,
+        umpire_catalog::validate(&Message::default(), &catalog)[0].fields,
         ["example.Message.type"]
     );
     Ok(())

@@ -31,7 +31,7 @@ directly rather than TLA+.
 | `main.rs` + Kettle snapshots | 251 | driver, controls, scaled Kettle |
 
 Input is `World::__umpire_lifted().model`, the embedded `umpire_ir::Lifted`; no source parsing,
-no `umpire-lift`, no `umpire-front` at run time. The fixture's negative control `never_beeps`
+no `umpire-tla`, no `umpire-front` at run time. The fixture's negative control `never_beeps`
 is added as one IR expression.
 
 ## Measurements

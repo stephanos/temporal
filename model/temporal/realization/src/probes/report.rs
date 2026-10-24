@@ -1,6 +1,6 @@
 use super::{Entry, Result, dispositions, generic};
 use std::{collections::BTreeSet, fmt::Write};
-use umpire_annotations::{Expectation, GapEntry, GapOutcome, GapReport, ProbeResult};
+use umpire_catalog::{Expectation, GapEntry, GapOutcome, GapReport, ProbeResult};
 use umpire_runtime::annotations::ProbeResponse;
 use umpire_temporal_api::umpire::temporal::v1::ProbeRequest;
 

@@ -366,7 +366,7 @@ fn reference_observation(case: &umpire_runtime::annotations::ProbeCase) -> Probe
 #[test]
 fn source_dispositions_validate_before_applying_a_dated_waiver()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_annotations::{
+    use umpire_catalog::{
         AcceptedGap, Expectation, Expected, GapEntry, GapOutcome, ProbeResult, Violation,
     };
     let gap =
@@ -478,9 +478,9 @@ fn declaration_universe_includes_nested_response_expectations()
         })
         .collect::<Result<_, _>>()?;
     let mut registered: Vec<_> = registered.into_iter().collect();
-    umpire_annotations::verify_probe_coverage(&declared, &registered)?;
+    umpire_catalog::verify_probe_coverage(&declared, &registered)?;
     registered.pop();
-    assert!(umpire_annotations::verify_probe_coverage(&declared, &registered).is_err());
+    assert!(umpire_catalog::verify_probe_coverage(&declared, &registered).is_err());
     Ok(())
 }
 

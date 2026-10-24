@@ -6,8 +6,11 @@ use std::{
     panic::{AssertUnwindSafe, catch_unwind},
 };
 use umpire_dsl::{ActionValues, Claim, IntoValue, Machine, Values, Verdict};
-use umpire_lift::{Concrete, Literal, Module, Type as SourceType};
-use umpire_tlc::{Refusal, Schema, State, TraceState, Type, Value};
+use umpire_tla::{Concrete, Literal, Module, Type as SourceType};
+use umpire_tla::{
+    Refusal,
+    values::{Schema, State, TraceState, Type, Value},
+};
 
 const ERROR: &str = "__umpire_arithmetic_error";
 const INVALID: &str = "__umpire_invalid_step";
@@ -496,7 +499,7 @@ enum Category {
 fn selected_property<'a>(
     module: &'a Module,
     operator: &str,
-) -> Result<(Category, &'a umpire_lift::Property), Refusal> {
+) -> Result<(Category, &'a umpire_tla::Property), Refusal> {
     let meta = &module.metadata;
     let mut matching = [
         (Category::Invariant, &meta.invariants),

@@ -230,8 +230,12 @@ impl Environment {
     /// A path's meaning inside `umpire_dsl`, written in full or through the module's imports.
     pub(crate) fn dsl_path(&self, path: &syn::Path) -> Option<String> {
         let mut segments = path.segments.iter().map(|segment| segment.ident.to_string());
+        let spelling = segments.clone().collect::<Vec<_>>().join("::");
+        if let Some(member) = crate::syntax::dsl_path(&spelling) {
+            return Some(member.to_owned());
+        }
         let first = segments.next()?;
-        let head = if first == "umpire_dsl" { None } else { Some(self.dsl.get(&first)?.clone()) };
+        let head = Some(self.dsl.get(&first)?.clone());
         let parts: Vec<_> = head.into_iter().chain(segments).collect();
         (!parts.is_empty()).then(|| parts.join("::"))
     }

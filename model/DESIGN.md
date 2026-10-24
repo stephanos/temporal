@@ -19,7 +19,7 @@ Both checkers read a Model through one front end and differ only in their back e
   retains shared scalar/container printing. A new IR field needs no printer registration.
 - **Native back end.** `umpire-dsl-macros` generates the executable Model from the front end's
   declarations; the native checker explores the compiled bodies.
-- **Emission back end.** `umpire-lift` emits TLA+ and `.cfg` from the embedded tree with the
+- **Emission back end.** `umpire-tla` emits TLA+ and `.cfg` from the embedded tree with the
   same-process World, starts and catalog. It reads `tests.rs` for hook claims, and `model.rs` only
   to locate a refusal when the checked World embeds no `#[machine]` (`kettle_cut`,
   `kettle_progress`, `progress_dead_end`). fn-211's Apalache projection will be another emitter.
@@ -122,7 +122,7 @@ took 14.56 s (`fn2384-compile.log`); no pre-.4 counterpart was measured.
 
 ## TLC source backend (fn-212)
 
-`umpire-lift` emits modules, configurations and typed decoding metadata from the embedded
+`umpire-tla` emits modules, configurations and typed decoding metadata from the embedded
 admitted Model at test time; it never calls the native explorer. fn-223 deleted the manual-trait
 lowering (the lifter went from 5,048 to 2,978 lines) and what only that form produced: explicit
 start lists, tuple-state labels, multi-file inputs, and per-branch choice indices and facts.
@@ -176,7 +176,7 @@ admitted, including supported helpers, phase access and stock closure-law calls.
 The system-owned activity root also has actual TLC agreement for selected Worlds 1 and 3.
 
 Trait-form shared fixtures (fn-223). Each manual `Machine` fixture that shared the corpus was
-rewritten as a `#[machine]` Model or moved to `umpire/checker/tests/fixtures/` (no TLC
+rewritten as a `#[machine]` Model or moved to `umpire/backends/native/tests/fixtures/` (no TLC
 goldens), so the lifter needs to read one source form. A rewrite keeps every behaviour
 golden byte-identical except two spellings: state `State { 0: n }` → `Model { value: n }`
 and action `Action::X` → `User::X` (or `Environment::X` for the internal actor). Its TLC
@@ -231,10 +231,10 @@ TLC second opinion remain deferred to fn-212; neither is part of this verdict.
 
 The three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`. Both sides use
-generated messages from `umpire/proto/umpire/model/v1/model.proto` (renamed from
+generated messages from `umpire/protocol/proto/umpire/model/v1/model.proto` (renamed from
 the original oracle namespace by fn-216); Refusal is a
 case of the common Response envelope, separate from a checker verdict or trap.
-The guest includes `umpire/checker/tests/fixtures/sample_kettle_trait/kettle.rs` directly.
+The guest includes `umpire/backends/native/tests/fixtures/sample_kettle_trait/kettle.rs` directly.
 
 Rust exports these names directly using the stock linker. The buffer-release name
 avoids WASI libc's internal `free` symbol. The default gate compiles and runs the
@@ -288,7 +288,7 @@ Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
 ## Attribute Kettle and the authoring sketch (final flat form)
 
-The canonical `umpire/fixtures/fixtures/sample_kettle/model.rs` uses the owner-approved
+The canonical `umpire/dev/fixtures/fixtures/sample_kettle/model.rs` uses the owner-approved
 flat surface derived from the historical `Kettle.attrs.rs` sketch, retaining its separate
 `User` and `Heater` enums, transition bodies and claim predicates.
 
@@ -499,7 +499,7 @@ its native/WASM reference payloads remain byte-identical.
 
 ## Kettle construct comparison
 
-These anchors compare the final [attribute source](umpire/fixtures/fixtures/sample_kettle/model.rs)
+These anchors compare the final [attribute source](umpire/dev/fixtures/fixtures/sample_kettle/model.rs)
 with frozen [Kettle.scala](archived/framework/samples/Kettle.scala), including its imports and
 declarations. They compare authored constructs, not a claim of general front-end equivalence.
 
@@ -576,7 +576,7 @@ ported Scala samples. Test and fixture `.rs` source outside expected snapshots c
 the shared Model sources above are additional to that runner. Macro expansion snapshots are
 reported separately and do not inflate the runtime rows.
 
-For example, from the repository root, `git ls-files 'model/umpire/checker/src/*.rs'` selects
+For example, from the repository root, `git ls-files 'model/umpire/backends/native/src/*.rs'` selects
 the checker row and `xargs awk 'FNR == 1 {files++} {physical++} NF {nonblank++} END
 {print files, physical, nonblank}'` counts it. Apply the same selector to each crate's `src/`
 (DSL's macro crate has its own path). For the single-file authoring proxy use
@@ -785,7 +785,7 @@ lives beside the `Catalog` derive.
 
 ### Layering and admission
 
-`umpire/annotations` owns system-free catalogs, kinds, tags, presence, expectations, seeded `fill`, `validate` and gap classification.
+`umpire/catalog` owns system-free catalogs, kinds, tags, presence, expectations, seeded `fill`, `validate` and gap classification.
 Temporal owns derive mirrors, descriptors, declarations, transport and probes. The source-boundary gate rejects Temporal names in `umpire/`.
 Each field has one kind (Uuid, Identifier, Timestamp, Duration, Counter, Flag, Number, Secret, Enum, Text or Bytes) and compatible tags. `View<K>` checks the prost field or typed projection.
 Admission rejects contradictory roles (`Decided + Ignored`, `Secret + Observed`, `Random + Decided`),
@@ -860,7 +860,7 @@ and read as permission for any step. Admission is lexical: `#[machine]` rewrites
 the effect, helper and outside forms). A helper is refused rather than followed as `reject!`'s
 is, because a mark that silently depends on call depth is easier to misread than to forbid.
 
-`umpire-lift` strips `stay!()` from an arm's top level and sets the branch's
+`umpire-tla` strips `stay!()` from an arm's top level and sets the branch's
 `preserve_self_loop`, which drops the changed-state conjunct and emits the existing authored
 self-loop observer step; weak fairness stays on authored fair actions only. A `stay!()` nested
 in a condition is refused with a located warning. `accepted_self_loops` pins the `Accepted`

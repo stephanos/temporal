@@ -1,8 +1,8 @@
 //! Typed projections from wire carriers to annotation values.
 
 pub use crate::kinds;
+use crate::{EnumValidator, FieldValue, GenerationError, Kind};
 use prost::Message;
-use umpire_annotations::{EnumValidator, FieldValue, GenerationError, Kind};
 use umpire_runtime::google::protobuf::{Duration, Timestamp};
 
 /// The protobuf entry carrier used by generated metadata map catalogs.
@@ -82,18 +82,18 @@ pub trait MessageOneof<M> {
     fn field(
         self,
         path: &str,
-        text: umpire_annotations::StringRules,
-        bytes: umpire_annotations::BytesRules,
-    ) -> umpire_annotations::Field<M, Option<Vec<u8>>>;
+        text: crate::StringRules,
+        bytes: crate::BytesRules,
+    ) -> crate::Field<M, Option<Vec<u8>>>;
 }
 impl<M: 'static, T: Message + Default + 'static> MessageOneof<M> for OneofProjection<M, T> {
     fn field(
         self,
         path: &str,
-        _: umpire_annotations::StringRules,
-        bytes: umpire_annotations::BytesRules,
-    ) -> umpire_annotations::Field<M, Option<Vec<u8>>> {
-        umpire_annotations::Field::try_projected(
+        _: crate::StringRules,
+        bytes: crate::BytesRules,
+    ) -> crate::Field<M, Option<Vec<u8>>> {
+        crate::Field::try_projected(
             path,
             Kind::Bytes(bytes),
             move |message| (self.get)(message).map(Message::encode_to_vec),
@@ -112,11 +112,11 @@ macro_rules! scalar_oneof {
             pub fn field(
                 self,
                 path: &str,
-                text: umpire_annotations::StringRules,
-                bytes: umpire_annotations::BytesRules,
-            ) -> umpire_annotations::Field<M, Option<$ty>> {
+                text: crate::StringRules,
+                bytes: crate::BytesRules,
+            ) -> crate::Field<M, Option<$ty>> {
                 let _ = (&text, &bytes);
-                umpire_annotations::Field::try_projected(
+                crate::Field::try_projected(
                     path,
                     Kind::$kind((text, bytes).$rules),
                     move |message| (self.get)(message).cloned(),
@@ -136,8 +136,8 @@ impl<C> crate::Inspect<C> for String {
         &self,
         _: &C,
         _: bool,
-        _: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        _: &mut Vec<crate::Violation>,
+    ) -> Result<(), crate::AdmissionErrors> {
         Ok(())
     }
 }
@@ -146,8 +146,8 @@ impl<C> crate::Inspect<C> for u8 {
         &self,
         _: &C,
         _: bool,
-        _: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        _: &mut Vec<crate::Violation>,
+    ) -> Result<(), crate::AdmissionErrors> {
         Ok(())
     }
 }
@@ -309,9 +309,9 @@ pub fn uuid(value: &str) -> Option<String> {
 }
 
 impl View<kinds::RawDuration> for Option<Duration> {
-    type Out = Option<umpire_annotations::Duration>;
+    type Out = Option<crate::Duration>;
     fn view(&self) -> Self::Out {
-        self.as_ref().map(|v| umpire_annotations::Duration { seconds: v.seconds, nanos: v.nanos })
+        self.as_ref().map(|v| crate::Duration { seconds: v.seconds, nanos: v.nanos })
     }
     fn set(&mut self, value: Self::Out) -> Result<(), GenerationError> {
         *self = value.map(|v| Duration { seconds: v.seconds, nanos: v.nanos });
@@ -319,7 +319,7 @@ impl View<kinds::RawDuration> for Option<Duration> {
     }
 }
 impl View<kinds::Duration> for Option<Duration> {
-    type Out = Option<umpire_annotations::Duration>;
+    type Out = Option<crate::Duration>;
     fn view(&self) -> Self::Out {
         let value = <Self as View<kinds::RawDuration>>::view(self)?;
         if value.seconds == 0 && value.nanos == 0 {
@@ -330,7 +330,7 @@ impl View<kinds::Duration> for Option<Duration> {
         }
         let total = (i128::from(value.seconds) * 1_000_000_000 + i128::from(value.nanos))
             .clamp(i128::from(i64::MIN), 3_153_600_000_000_000_000);
-        Some(umpire_annotations::Duration {
+        Some(crate::Duration {
             seconds: i64::try_from(total / 1_000_000_000).unwrap_or(i64::MIN),
             nanos: i32::try_from(total % 1_000_000_000).unwrap_or(0),
         })
@@ -340,9 +340,9 @@ impl View<kinds::Duration> for Option<Duration> {
     }
 }
 impl View<kinds::Timestamp> for Option<Timestamp> {
-    type Out = Option<umpire_annotations::Timestamp>;
+    type Out = Option<crate::Timestamp>;
     fn view(&self) -> Self::Out {
-        self.as_ref().map(|v| umpire_annotations::Timestamp { seconds: v.seconds, nanos: v.nanos })
+        self.as_ref().map(|v| crate::Timestamp { seconds: v.seconds, nanos: v.nanos })
     }
     fn set(&mut self, value: Self::Out) -> Result<(), GenerationError> {
         *self = value.map(|v| Timestamp { seconds: v.seconds, nanos: v.nanos });

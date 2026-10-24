@@ -1,5 +1,5 @@
 use prost::Message;
-use umpire_annotations::{Catalog, validate};
+use umpire_catalog::{Catalog, validate};
 use umpire_dsl::Machine;
 use umpire_runtime::{
     Dispatch, Runtime, Transaction,
@@ -458,7 +458,7 @@ fn explained() -> Outcome {
 }
 fn checked<T: 'static>(
     value: &T,
-    catalog: Result<Catalog<T>, umpire_annotations::AdmissionErrors>,
+    catalog: Result<Catalog<T>, umpire_catalog::AdmissionErrors>,
 ) -> Result<(), Refusal> {
     let catalog =
         catalog.map_err(|_| Refusal::unsupported("Start validation catalog admission failed"))?;

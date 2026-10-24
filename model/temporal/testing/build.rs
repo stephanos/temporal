@@ -1,6 +1,6 @@
 //! Discover Temporal Models through the shared fixture discovery source.
 
-#[path = "../../umpire/testing/src/discovery.rs"]
+#[path = "../../umpire/dev/testing/src/discovery.rs"]
 #[allow(unreachable_pub)]
 mod discovery;
 

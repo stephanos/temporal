@@ -43,7 +43,7 @@ func TestKettleParity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wantReport, err := os.ReadFile("../../checker/tests/fixtures/sample_kettle_trait/expected/report.snap.txt")
+	wantReport, err := os.ReadFile("../../backends/native/tests/fixtures/sample_kettle_trait/expected/report.snap.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestKettleParity(t *testing.T) {
 			rows.WriteString(row)
 		}
 	}
-	wantRows, err := os.ReadFile("../../checker/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt")
+	wantRows, err := os.ReadFile("../../backends/native/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

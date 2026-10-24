@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
         .file_descriptor_set_path(&descriptor)
         .compile_protos(
             &["proto/kettle/v1/kettle.proto", "proto/kettle/v1/probe.proto"],
-            &["proto", "../../proto"],
+            &["proto", "../../protocol/proto"],
         )?;
     let root = PathBuf::from(
         env::var_os("CARGO_MANIFEST_DIR").ok_or_else(|| io::Error::other("manifest missing"))?,

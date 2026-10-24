@@ -24,12 +24,12 @@ design history, not evidence of implemented Rust capabilities.
 
 | Current source | Evidence relevant to a second checker |
 | --- | --- |
-| [Attribute Kettle](../umpire/fixtures/fixtures/sample_kettle/model.rs) and [manual Kettle](../umpire/checker/tests/fixtures/sample_kettle_trait/kettle.rs) | Separate authoring implementations of the same small machine. The attribute [report](../umpire/fixtures/fixtures/sample_kettle/expected/report.snap.txt) records 81 starts, 283 reached states, 424 edges, no cut and four verified claims. |
-| [Kettle progress questions](../umpire/fixtures/fixtures/kettle_progress/model.rs) | The [golden](../umpire/fixtures/fixtures/kettle_progress/expected/report.snap.txt) distinguishes 81/141-step room/cold bounds, an unrestricted cycle, a filtered dead end, a missed deadline and an unknown budget cut. |
-| [Fairness graph](../umpire/checker/tests/fixtures/progress_self_loop/model.rs) and its fixtures | Explicit fair actions cover continuous versus intermittent enabledness, excluded fair actions, multiple choices, self-loops, multiple starts and target barriers. [Native progress](../umpire/checker/src/progress.rs) searches target-avoiding components and checks weak-fairness obligations. |
+| [Attribute Kettle](../umpire/dev/fixtures/fixtures/sample_kettle/model.rs) and [manual Kettle](../umpire/backends/native/tests/fixtures/sample_kettle_trait/kettle.rs) | Separate authoring implementations of the same small machine. The attribute [report](../umpire/dev/fixtures/fixtures/sample_kettle/expected/report.snap.txt) records 81 starts, 283 reached states, 424 edges, no cut and four verified claims. |
+| [Kettle progress questions](../umpire/dev/fixtures/fixtures/kettle_progress/model.rs) | The [golden](../umpire/dev/fixtures/fixtures/kettle_progress/expected/report.snap.txt) distinguishes 81/141-step room/cold bounds, an unrestricted cycle, a filtered dead end, a missed deadline and an unknown budget cut. |
+| [Fairness graph](../umpire/backends/native/tests/fixtures/progress_self_loop/model.rs) and its fixtures | Explicit fair actions cover continuous versus intermittent enabledness, excluded fair actions, multiple choices, self-loops, multiple starts and target barriers. [Native progress](../umpire/backends/native/src/progress.rs) searches target-avoiding components and checks weak-fairness obligations. |
 | [Activity Model](../temporal/feature/activity/model.rs) | One real Temporal slice. Its [report](../temporal/feature/activity/expected/report.snap.txt) records six states and seven edges. It has atomic cancellation and fatal failure, with no retry branch or progress registration. Its terminal-preservation tests exercise the antecedent directly and reject a hypothetical reopening; the verified edge report alone is vacuous at terminal states. |
-| [Choices fixture](../umpire/checker/tests/fixtures/choices/model.rs) and [Machine trait](../umpire/dsl/src/machine.rs) | The engine already permits several ordered choices, outcomes and facts, including repeated destinations. The attribute macro currently emits unit outcomes/facts and only changed-state edges. |
-| [Brute-force oracle](../umpire/checker/tests/oracle.rs) | A separate finite-universe reference compares reached sets, rows, safety/progress verdicts and witnesses over 256 generated worlds per property-test run, including exclusions, explicit fairness and numeric bounds. It still executes Rust `Machine::step`. |
+| [Choices fixture](../umpire/backends/native/tests/fixtures/choices/model.rs) and [Machine trait](../umpire/author/dsl/src/machine.rs) | The engine already permits several ordered choices, outcomes and facts, including repeated destinations. The attribute macro currently emits unit outcomes/facts and only changed-state edges. |
+| [Brute-force oracle](../umpire/backends/native/tests/oracle.rs) | A separate finite-universe reference compares reached sets, rows, safety/progress verdicts and witnesses over 256 generated worlds per property-test run, including exclusions, explicit fairness and numeric bounds. It still executes Rust `Machine::step`. |
 
 At the pinned tree above (`654d639`), the 24 shared fixtures were chiefly Kettle and checker
 controls, not 24 independent product Models. The current native DSL/checker has no refinement-checking API;
@@ -38,7 +38,7 @@ has arrived. No current Rust Model here declares a refinement requiring TLC.
 
 ## What TLC buys
 
-The native [explorer](../umpire/checker/src/explore.rs) retains states, completed
+The native [explorer](../umpire/backends/native/src/explore.rs) retains states, completed
 action rows, transitions and predecessor information in memory. Its progress
 checker also builds graph structures for claim evaluation. TLC offers a separate
 engine with [disk-backed reachable-state storage](https://nightly.tlapl.us/doc/model/tlc-options-page.html),
@@ -70,7 +70,7 @@ implementation nor support beyond the admitted subset and completed graph.
 
 ## Machinery and semantic work
 
-`umpire-lift` would own source admission, a typed internal tree, local name/type
+`umpire-tla` would own source admission, a typed internal tree, local name/type
 resolution and translation of ordered mutations into one next-state relation.
 Kettle already needs guarded enum matches, `+=`, multiple sequential assignments,
 `check!`, before-state postconditions, starts and assumption builders. Activity
@@ -144,14 +144,14 @@ but an opt-in check gives no agreement evidence when it is not run.
 
 Choose a build-time `syn` pass. It can read both current Kettles and the manual
 `Machine` controls through one source route, retain file locations, and leave
-`#[machine]` registration-only. The existing [fixture discovery entry point](../umpire/fixtures/build.rs)
+`#[machine]` registration-only. The existing [fixture discovery entry point](../umpire/dev/fixtures/build.rs)
 already identifies selected source roots; lifting should track those inputs and
 their admitted helper dependencies as Cargo build inputs. `syn` is already a
 workspace dependency. Reading source does not imply that every manual trait body
 belongs to the liftable subset.
 
 Token recording has a real advantage for the preferred attribute surface. The
-[macro](../umpire/dsl/macros/src/machine.rs) already receives its inline module's
+[macro](../umpire/author/dsl/macros/src/machine.rs) already receives its inline module's
 tokens, so capture avoids rediscovering that module. It still supplies no resolved
 types and cannot capture the unannotated manual Kettle. Extending it with source
 metadata publication and a separate manual-source path would add coupling and two
@@ -164,7 +164,7 @@ Keep the small typer and fail-closed subset in the proposed scope, and reassess
 ## Implementation and assessment points
 
 Proceed with [fn-212's lifting task](../../.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
-Build the source reader, small typer and internal lifted tree in `umpire-lift`,
+Build the source reader, small typer and internal lifted tree in `umpire-tla`,
 then the TLA+ module/config emitter and `umpire/backends/tlc` runner. Keep each
 supported source dependency explicit. Warn by location on the subset boundary
 and refuse emission for unsupported behavior; never silently omit a declaration.

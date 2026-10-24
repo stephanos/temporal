@@ -1,0 +1,10 @@
+---
+source: umpire/catalog/tests/catalog.rs
+expression: errors.to_string()
+---
+UnsupportedKind { path: "count", kind: Counter(NumberRules { gt: None, gte: None, lt: None, lte: None }), rust_type: "alloc::string::String" }
+ConflictingTags { path: "example.Message.name", tags: ["Decided", "Ignored"] }
+MissingIgnoreReason { path: "example.Message.name" }
+IgnoredRuleField("example.Message.name")
+UnknownRuleField("example.Message.missing")
+MissingExpectation { path: "example.Message", constraint: "required" }

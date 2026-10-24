@@ -23,14 +23,14 @@ mod view_tests {
         let original = Payload { data: vec![1], ..Default::default() };
         let mut value = Some(original.clone());
         let result = <_ as View<kinds::Message<Payload>>>::set(&mut value, Some(vec![0xff]));
-        assert_eq!(result, Err(umpire_annotations::GenerationError::InvalidEncoding));
+        assert_eq!(result, Err(umpire_catalog::GenerationError::InvalidEncoding));
         assert_eq!(value, Some(original));
     }
 
     #[test]
     fn malformed_generated_message_bytes_propagate_through_catalog_fill()
     -> Result<(), Box<dyn std::error::Error>> {
-        use umpire_annotations::{
+        use umpire_catalog::{
             BytesRules, Catalog, Expectation, Expected, Field, FillError, GenerationError, Kind,
             ProbeError, Rng, fill,
         };
@@ -71,7 +71,7 @@ mod view_tests {
 
     #[test]
     fn conditional_retry_setter_produces_a_real_invalid_coefficient()
-    -> Result<(), umpire_annotations::GenerationError> {
+    -> Result<(), umpire_catalog::GenerationError> {
         let mut retry = umpire_temporal_api::temporal::api::common::v1::RetryPolicy::default();
         conditional::backoff_coefficient::set(&mut retry, 0)?;
         assert_eq!(conditional::backoff_coefficient::view(&retry), 0);
@@ -79,7 +79,7 @@ mod view_tests {
     }
 
     #[test]
-    fn message_setters_decode_projected_bytes() -> Result<(), umpire_annotations::GenerationError> {
+    fn message_setters_decode_projected_bytes() -> Result<(), umpire_catalog::GenerationError> {
         let payload = Payload { data: vec![1, 2, 3], ..Default::default() };
         let mut optional = None;
         <Option<Payload> as View<kinds::Message<Payload>>>::set(
@@ -104,8 +104,8 @@ mod view_tests {
     }
 
     #[test]
-    fn time_views_preserve_raw_values_and_write_back()
-    -> Result<(), umpire_annotations::GenerationError> {
+    fn time_views_preserve_raw_values_and_write_back() -> Result<(), umpire_catalog::GenerationError>
+    {
         use umpire_runtime::google::protobuf::Duration;
         let mut value = Some(Duration { seconds: i64::MAX, nanos: 0 });
         let raw = <_ as View<kinds::RawDuration>>::view(&value);
@@ -114,7 +114,7 @@ mod view_tests {
         assert_eq!(normal.map(|v| v.seconds), Some(3_153_600_000));
         <_ as View<kinds::Duration>>::set(
             &mut value,
-            Some(umpire_annotations::Duration { seconds: 5, nanos: 12 }),
+            Some(umpire_catalog::Duration { seconds: 5, nanos: 12 }),
         )?;
         assert_eq!(value, Some(Duration { seconds: 5, nanos: 12 }));
         assert!(<_ as View<kinds::Duration>>::view(&Some(Duration::default())).is_none());
@@ -123,7 +123,7 @@ mod view_tests {
 
     #[test]
     fn map_setters_decode_entries_and_projection_is_order_independent()
-    -> Result<(), umpire_annotations::GenerationError> {
+    -> Result<(), umpire_catalog::GenerationError> {
         use std::collections::HashMap;
         type Metadata = kinds::Map<kinds::Text, kinds::Bytes>;
         let mut first = HashMap::from([("b".to_owned(), vec![2]), ("a".to_owned(), vec![1])]);
@@ -137,7 +137,7 @@ mod view_tests {
 
     #[test]
     fn generated_payload_map_round_trips_through_its_actual_carrier()
-    -> Result<(), umpire_annotations::GenerationError> {
+    -> Result<(), umpire_catalog::GenerationError> {
         type Metadata = kinds::Map<kinds::Text, kinds::Secret>;
         let mut payload = Payload::default();
         let entry =

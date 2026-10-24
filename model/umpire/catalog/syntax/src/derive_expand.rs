@@ -43,9 +43,9 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             let extra = DeriveCatalog::supplemental_field(field, additional)?;
             let expanded = field_expansion(catalog, &extra)?;
             supplemental_factories.push(quote! {
-                fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors> {
+                fn #factory(limits: &#context) -> Result<::umpire_catalog::Catalog<#ty>, ::umpire_catalog::AdmissionErrors> {
                     let _ = limits;
-                    ::umpire_annotations::Catalog::<#ty>::#policy(#proto) #expanded .build()
+                    ::umpire_catalog::Catalog::<#ty>::#policy(#proto) #expanded .build()
                 }
             });
             supplemental_names.push(factory);
@@ -60,18 +60,18 @@ pub fn expand_derive(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         impl #name {
             /// Admits the typed catalog with the supplied dynamic configuration.
             pub fn catalog(limits: &#context) -> ::core::result::Result<
-                ::umpire_annotations::Catalog<#ty>, ::umpire_annotations::AdmissionErrors
+                ::umpire_catalog::Catalog<#ty>, ::umpire_catalog::AdmissionErrors
             > {
                 #pattern
                 let _ = limits;
-                ::umpire_annotations::Catalog::<#ty>::#policy(#proto)
+                ::umpire_catalog::Catalog::<#ty>::#policy(#proto)
                     .description(#description)
                     #(#fields)*
                     #(#rules)*
                     .build()
             }
             /// All primary and supplemental field intents for this mirror.
-            pub fn catalogs(limits: &#context) -> Result<Vec<::umpire_annotations::Catalog<#ty>>, ::umpire_annotations::AdmissionErrors> {
+            pub fn catalogs(limits: &#context) -> Result<Vec<::umpire_catalog::Catalog<#ty>>, ::umpire_catalog::AdmissionErrors> {
                 Ok(vec![Self::catalog(limits)?, #(Self::#supplemental_names(limits)?),*])
             }
             #(#supplemental_factories)*
@@ -119,7 +119,7 @@ fn constraint_value(name: &Ident, value: &Expr, numeric: bool) -> TokenStream {
 fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> {
     let ty = crate::derive::semantic_type(ty)?;
     if crate::derive::secret_map(ty)? {
-        return Ok(quote!(::umpire_annotations::Kind::Secret));
+        return Ok(quote!(::umpire_catalog::Kind::Secret));
     }
     let kind = &marker(ty)?.ident;
     let kind_name = kind.to_string();
@@ -138,7 +138,7 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
                 if #defined_only {
                     ::umpire_catalog::defined_enum::<#enum_type>()
                 } else {
-                    ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
+                    ::umpire_catalog::Kind::Enum(::umpire_catalog::EnumRules {
                         defined_only: false,
                         values: ::std::vec::Vec::new(),
                     })
@@ -171,26 +171,26 @@ fn kind_expansion(ty: &Type, attrs: &ApiAttributes) -> syn::Result<TokenStream> 
                 quote!(#name: Some(#value))
             });
         Ok(
-            quote!(::umpire_annotations::Kind::#runtime(::umpire_annotations::#rules { #(#values,)* ..::core::default::Default::default() })),
+            quote!(::umpire_catalog::Kind::#runtime(::umpire_catalog::#rules { #(#values,)* ..::core::default::Default::default() })),
         )
     } else {
-        Ok(quote!(::umpire_annotations::Kind::#runtime))
+        Ok(quote!(::umpire_catalog::Kind::#runtime))
     }
 }
 
 fn expected_expansion(expected: &ApiExpectation) -> TokenStream {
     let value = match expected {
-        ApiExpectation::Accepts => quote!(::umpire_annotations::Expectation::Accepts),
-        ApiExpectation::Unobservable => quote!(::umpire_annotations::Expectation::Unobservable),
-        ApiExpectation::AnyStatus => quote!(::umpire_annotations::Expectation::RejectsAnyStatus),
+        ApiExpectation::Accepts => quote!(::umpire_catalog::Expectation::Accepts),
+        ApiExpectation::Unobservable => quote!(::umpire_catalog::Expectation::Unobservable),
+        ApiExpectation::AnyStatus => quote!(::umpire_catalog::Expectation::RejectsAnyStatus),
         ApiExpectation::Rejects(code, Some(pattern)) => {
-            quote!(::umpire_annotations::Expectation::Rejects { code: ::umpire_annotations::Code::#code as i32, message_pattern: #pattern.to_owned(), details_type: None })
+            quote!(::umpire_catalog::Expectation::Rejects { code: ::umpire_catalog::Code::#code as i32, message_pattern: #pattern.to_owned(), details_type: None })
         }
         ApiExpectation::Rejects(code, None) => {
-            quote!(::umpire_annotations::Expectation::RejectsCode(::umpire_annotations::Code::#code))
+            quote!(::umpire_catalog::Expectation::RejectsCode(::umpire_catalog::Code::#code))
         }
     };
-    quote!(::umpire_annotations::Expected { expectation: #value })
+    quote!(::umpire_catalog::Expected { expectation: #value })
 }
 
 fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<TokenStream> {
@@ -225,8 +225,8 @@ fn field_expansion(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<
                 use ::umpire_catalog::views::MessageOneof as _;
                 ::umpire_catalog::views::OneofProjection::new(#get, #set).field(
                     #path,
-                    ::umpire_annotations::StringRules { #(#string_rules,)* ..Default::default() },
-                    ::umpire_annotations::BytesRules { #(#bytes_rules,)* ..Default::default() },
+                    ::umpire_catalog::StringRules { #(#string_rules,)* ..Default::default() },
+                    ::umpire_catalog::BytesRules { #(#bytes_rules,)* ..Default::default() },
                 )
             });
             expansions.push(field_projection(catalog, field, Some((path, projection)))?);
@@ -267,7 +267,7 @@ fn field_projection(
         attrs.tags.iter().find(|tag| tag.name == "Ignored").and_then(|tag| tag.argument.as_ref())
     {
         return Ok(quote! {
-            .ignored(::umpire_annotations::IgnoredField::new(
+            .ignored(::umpire_catalog::IgnoredField::new(
                 #path, #kind, |message: &#ty| &message.#name,
                 |message: &mut #ty| &mut message.#name, #reason,
             ))
@@ -285,9 +285,9 @@ fn field_projection(
     let tags = attrs.tags.iter().map(|tag| {
         let name = &tag.name;
         let value = match name.to_string().as_str() {
-            "Cached" => { let value = &tag.argument; quote!(::umpire_annotations::Consequence::Cached { ttl: ::core::time::Duration::from_secs(#value) }) },
-            "EventuallyConsistent" => { let value = &tag.argument; quote!(::umpire_annotations::Consequence::EventuallyConsistent { polls: #value }) },
-            _ => quote!(::umpire_annotations::Consequence::#name),
+            "Cached" => { let value = &tag.argument; quote!(::umpire_catalog::Consequence::Cached { ttl: ::core::time::Duration::from_secs(#value) }) },
+            "EventuallyConsistent" => { let value = &tag.argument; quote!(::umpire_catalog::Consequence::EventuallyConsistent { polls: #value }) },
+            _ => quote!(::umpire_catalog::Consequence::#name),
         };
         quote!(.tag(&#value))
     });
@@ -306,13 +306,13 @@ fn field_projection(
             if name == "unique" { quote!(#name: #value) } else { quote!(#name: Some(#value)) }
         })
         .collect();
-    let repeated = (!repeated.is_empty()).then(|| quote!(.repeated(::umpire_annotations::RepeatedRules { #(#repeated,)* ..::core::default::Default::default() })));
+    let repeated = (!repeated.is_empty()).then(|| quote!(.repeated(::umpire_catalog::RepeatedRules { #(#repeated,)* ..::core::default::Default::default() })));
     let repeated_check =
-        repeated.as_ref().map(|_| quote!(::umpire_annotations::types::check_repeated(&value);));
+        repeated.as_ref().map(|_| quote!(::umpire_catalog::types::check_repeated(&value);));
     let projected_field = if let Some((_, projection)) = projection {
         projection
     } else {
-        quote!(::umpire_annotations::Field::try_projected(
+        quote!(::umpire_catalog::Field::try_projected(
             #path, #kind, |message: &#ty| { let value = #get; #repeated_check value }, |message: &mut #ty, value| { #set },
         ))
     };
@@ -334,9 +334,9 @@ fn presence(rule: &DeriveRule) -> TokenStream {
     );
     let fields = rule.fields.iter().map(|field| field.unraw().to_string());
     if rule.operator == "requires" || rule.operator == "excludes" {
-        quote!(::umpire_annotations::Presence::#operator(#(#fields.to_owned()),*))
+        quote!(::umpire_catalog::Presence::#operator(#(#fields.to_owned()),*))
     } else {
-        quote!(::umpire_annotations::Presence::#operator(vec![#(#fields.to_owned()),*]))
+        quote!(::umpire_catalog::Presence::#operator(vec![#(#fields.to_owned()),*]))
     }
 }
 
@@ -344,7 +344,7 @@ fn rule_expansion(rule: &DeriveRule) -> TokenStream {
     let presence = presence(rule);
     let expected = rule.expected.as_ref().map(expected_expansion);
     let expected = expected.map_or_else(|| quote!(None), |expected| quote!(Some(#expected)));
-    quote!(.rule(::umpire_annotations::Rule { presence: #presence, expected: #expected }))
+    quote!(.rule(::umpire_catalog::Rule { presence: #presence, expected: #expected }))
 }
 
 fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<TokenStream> {
@@ -367,19 +367,19 @@ fn map_factory(catalog: &DeriveCatalog, field: &DeriveField) -> syn::Result<Toke
     let value_kind = kind_expansion(value, &ApiAttributes::default())?;
     Ok(quote! {
         /// Admits the generated protobuf map-entry catalog.
-        pub fn #factory(limits: &#context) -> Result<::umpire_annotations::Catalog<#entry>, ::umpire_annotations::AdmissionErrors> {
+        pub fn #factory(limits: &#context) -> Result<::umpire_catalog::Catalog<#entry>, ::umpire_catalog::AdmissionErrors> {
             let _ = limits;
-            ::umpire_annotations::Catalog::response(#proto)
-                .field(::umpire_annotations::Field::try_projected(
+            ::umpire_catalog::Catalog::response(#proto)
+                .field(::umpire_catalog::Field::try_projected(
                     #key_path, #key_kind,
                     |entry: &#entry| <_ as ::umpire_catalog::views::View<#key>>::view(&entry.key),
                     |entry: &mut #entry, value| <_ as ::umpire_catalog::views::View<#key>>::set(&mut entry.key, value),
-                ).tag(&::umpire_annotations::Consequence::Decided))
-                .field(::umpire_annotations::Field::try_projected(
+                ).tag(&::umpire_catalog::Consequence::Decided))
+                .field(::umpire_catalog::Field::try_projected(
                     #value_path, #value_kind,
                     |entry: &#entry| <_ as ::umpire_catalog::views::View<#value>>::view(&entry.value),
                     |entry: &mut #entry, value| <_ as ::umpire_catalog::views::View<#value>>::set(&mut entry.value, value),
-                ).tag(&::umpire_annotations::Consequence::Decided))
+                ).tag(&::umpire_catalog::Consequence::Decided))
                 .build()
         }
     })
@@ -392,7 +392,7 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
     let response_checks = catalog.response_checks.as_ref().map(|checks| {
         quote! {
             if response {
-                output.extend(::umpire_annotations::validate(self, &#checks::catalog(context)?));
+                output.extend(::umpire_catalog::validate(self, &#checks::catalog(context)?));
             }
         }
     });
@@ -426,7 +426,7 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
             );
             nested.push(quote! {
                 for entry in ::umpire_catalog::views::#entries(&self.#name) {
-                    output.extend(::umpire_annotations::validate(&entry, &#mirror::#factory(context)?));
+                    output.extend(::umpire_catalog::validate(&entry, &#mirror::#factory(context)?));
                 }
             });
         }
@@ -453,8 +453,8 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
         if field.attributes.tags.iter().any(|tag| tag.name == "IdempotencyKey") {
             fill_ids.push(quote! {
                 if self.#name.is_empty() {
-                    let mut rng = ::umpire_annotations::Rng::new(seed);
-                    self.#name = <String as ::umpire_annotations::FieldValue>::generate(&::umpire_annotations::Kind::Uuid, &mut rng)?;
+                    let mut rng = ::umpire_catalog::Rng::new(seed);
+                    self.#name = <String as ::umpire_catalog::FieldValue>::generate(&::umpire_catalog::Kind::Uuid, &mut rng)?;
                     changed = true;
                 }
             });
@@ -462,16 +462,16 @@ fn inspect_expansion(catalog: &DeriveCatalog) -> syn::Result<TokenStream> {
     }
     Ok(quote! {
         impl ::umpire_catalog::Inspect<#context> for #ty {
-            fn inspect(&self, context: &#context, response: bool, output: &mut Vec<::umpire_annotations::Violation>) -> Result<(), ::umpire_annotations::AdmissionErrors> {
+            fn inspect(&self, context: &#context, response: bool, output: &mut Vec<::umpire_catalog::Violation>) -> Result<(), ::umpire_catalog::AdmissionErrors> {
                 for catalog in #mirror::catalogs(context)? {
-                    output.extend(::umpire_annotations::validate(self, &catalog));
+                    output.extend(::umpire_catalog::validate(self, &catalog));
                 }
                 #response_checks
                 #(#nested)*
                 let _ = response;
                 Ok(())
             }
-            fn fill_ids(&mut self, seed: u64) -> Result<bool, ::umpire_annotations::GenerationError> {
+            fn fill_ids(&mut self, seed: u64) -> Result<bool, ::umpire_catalog::GenerationError> {
                 let mut changed = false;
                 let _ = seed;
                 #(#fill_ids)*

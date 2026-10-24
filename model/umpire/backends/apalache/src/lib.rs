@@ -10,7 +10,7 @@ use std::{
     process::Command,
     time::Duration,
 };
-use umpire_tlc::{
+use umpire_tla::{
     Limits, Refusal,
     process::{Scratch, java_command, pinned_java, run_process},
 };
@@ -176,7 +176,7 @@ impl Apalache {
     /// Check one declared property, preserving the original ITF witness before cleanup.
     pub fn check(
         &self,
-        module: &umpire_lift::Module,
+        module: &umpire_tla::Module,
         invariant: &str,
         length: usize,
     ) -> Result<Bounded, Refusal> {
@@ -187,7 +187,7 @@ impl Apalache {
     #[allow(clippy::print_stderr)]
     pub fn check_cancelled(
         &self,
-        module: &umpire_lift::Module,
+        module: &umpire_tla::Module,
         invariant: &str,
         length: usize,
         cancelled: &std::sync::atomic::AtomicBool,
@@ -226,7 +226,7 @@ impl Apalache {
                     .arg(format!("--inv={invariant}"))
                     .arg(format!("--length={length}"))
                     .arg(&file);
-                match umpire_tlc::process::run_process_cancelled(
+                match umpire_tla::process::run_process_cancelled(
                     &mut command,
                     &scratch.0,
                     "check",
@@ -416,10 +416,10 @@ mod tests {
     #[test]
     fn successful_substring_is_not_a_bounded_proof() -> Result<(), Refusal> {
         let (scratch, tool) = fake("echo 'The outcome is: NoError'")?;
-        let module = umpire_lift::Tla::safety(
-            &umpire_lift::Lift::parse(
+        let module = umpire_tla::Tla::safety(
+            &umpire_tla::Lift::parse(
                 "control.rs",
-                include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
+                include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
             )
             .map_err(|e| Refusal(e.to_string()))?,
         )
@@ -502,10 +502,10 @@ mod tests {
 
     #[test]
     fn fake_execution_failures_never_pass_and_scratch_is_removed() -> Result<(), Refusal> {
-        let module = umpire_lift::Tla::safety(
-            &umpire_lift::Lift::parse(
+        let module = umpire_tla::Tla::safety(
+            &umpire_tla::Lift::parse(
                 "kettle.rs",
-                include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
+                include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
             )
             .map_err(|e| Refusal(e.to_string()))?,
         )

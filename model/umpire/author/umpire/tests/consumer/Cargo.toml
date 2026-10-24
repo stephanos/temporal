@@ -1,0 +1,14 @@
+[package]
+name = "umpire-author-consumer"
+description = "Compile and runtime proof of facade-only Model authoring"
+version.workspace = true
+edition.workspace = true
+publish = false
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+author-kit = { package = "umpire", path = "../.." }

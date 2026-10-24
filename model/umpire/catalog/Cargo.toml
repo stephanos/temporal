@@ -1,6 +1,6 @@
 [package]
 name = "umpire-catalog"
-description = "Typed exhaustive annotation catalogs"
+description = "Typed annotation catalogs, validation, generation and inspection"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
@@ -13,8 +13,8 @@ workspace = true
 [dependencies]
 prost.workspace = true
 umpire-runtime.workspace = true
-umpire-annotations.workspace = true
 umpire-catalog-macros.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
 trybuild.workspace = true

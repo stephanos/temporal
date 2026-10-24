@@ -478,7 +478,7 @@ fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
 pub mod catalog {
     use super::{Binding, Client, Deadline, ModelAction, Worker, a, c, dc, f, q, w};
     pub use crate::foundation::enum_inventory::enum_inventory::*;
-    use umpire_annotations::{AdmissionErrors, Catalog, ProbeCase};
+    use umpire_catalog::{AdmissionErrors, Catalog, ProbeCase};
     pub use umpire_temporal_api::RPC_BINDINGS;
 
     use crate::foundation::api as foundation;
@@ -570,31 +570,25 @@ pub mod catalog {
 /// UUID intent for request IDs accepted without UUID syntax by the server.
 pub fn start_request_id_intent(
     limits: &dc::Limits,
-) -> Result<
-    umpire_annotations::Catalog<w::StartActivityExecutionRequest>,
-    umpire_annotations::AdmissionErrors,
-> {
+) -> Result<Catalog<w::StartActivityExecutionRequest>, umpire_catalog::AdmissionErrors> {
     StartActivityExecutionRequest::__request_id_also_0(limits)
 }
 
 /// UUID intent for cancellation request IDs.
 pub fn cancel_request_id_intent(
     limits: &dc::Limits,
-) -> Result<
-    umpire_annotations::Catalog<w::RequestCancelActivityExecutionRequest>,
-    umpire_annotations::AdmissionErrors,
-> {
+) -> Result<Catalog<w::RequestCancelActivityExecutionRequest>, umpire_catalog::AdmissionErrors> {
     RequestCancelActivityExecutionRequest::__request_id_also_0(limits)
 }
 
 /// Worker-supplied failures require application failure information.
 pub fn worker_failure_presence(
     limits: &dc::Limits,
-) -> Result<umpire_annotations::Catalog<f::Failure>, umpire_annotations::AdmissionErrors> {
+) -> Result<Catalog<f::Failure>, umpire_catalog::AdmissionErrors> {
     crate::foundation::api::WorkerFailure::catalog(limits)
 }
 
 /// Source-reviewed dispositions keyed by complete contextual probe identity.
-pub(crate) fn accepted_probe_gaps() -> Vec<(String, umpire_annotations::AcceptedGap)> {
+pub(crate) fn accepted_probe_gaps() -> Vec<(String, umpire_catalog::AcceptedGap)> {
     Vec::new()
 }

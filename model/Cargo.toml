@@ -1,32 +1,33 @@
 # model: the Umpire framework in Rust. Current scope: what model/archived/framework/samples/Kettle.scala
-# uses today. Shared Models and their end-to-end goldens live in umpire/fixtures.
+# uses today. Shared Models and their end-to-end goldens live in umpire/dev/fixtures.
 [workspace]
 resolver = "3"
 members = [
-    "umpire/annotations",
-    "umpire/catalog",
-    "umpire/catalog/macros",
-    "umpire/catalog/syntax",
-    "umpire/catalog-build",
-    "umpire/dsl",
-    "umpire/dsl/macros",
-    "umpire/checker",
-    "umpire/fixtures",
-    "umpire/testing",
-    "umpire/suite",
-    "umpire/ir",
-    "umpire/ir-derive",
+    "umpire/author/umpire",
+    "umpire/author/umpire/tests/consumer",
+    "umpire/author/dsl",
+    "umpire/author/dsl/macros",
+    "umpire/author/suite",
     "umpire/front",
-    "umpire/lift",
+    "umpire/ir",
+    "umpire/ir/derive",
+    "umpire/backends/native",
+    "umpire/backends/tla",
     "umpire/backends/tlc",
     "umpire/backends/apalache",
+    "umpire/protocol/runtime",
+    "umpire/protocol/runtime/guests/stock",
+    "umpire/protocol/runtime/guests/control",
+    "umpire/protocol/runtime/guests/caught-panic",
+    "umpire/protocol/runtime/guests/overflow",
+    "umpire/catalog",
+    "umpire/catalog/syntax",
+    "umpire/catalog/macros",
+    "umpire/catalog/build",
     "umpire/reference/kettle",
     "umpire/reference/kettle/guest",
-    "umpire/runtime",
-    "umpire/runtime/guests/stock",
-    "umpire/runtime/guests/control",
-    "umpire/runtime/guests/caught-panic",
-    "umpire/runtime/guests/overflow",
+    "umpire/dev/testing",
+    "umpire/dev/fixtures",
     "temporal/api",
     "temporal/annotate",
     "temporal/annotate/macros",
@@ -45,24 +46,24 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
+umpire = { version = "0.0.1", path = "umpire/author/umpire" }
 umpire-reference-kettle = { version = "0.0.1", path = "umpire/reference/kettle" }
 umpire-catalog = { version = "0.0.1", path = "umpire/catalog" }
 umpire-catalog-macros = { version = "0.0.1", path = "umpire/catalog/macros" }
 umpire-catalog-syntax = { version = "0.0.1", path = "umpire/catalog/syntax" }
-umpire-catalog-build = { version = "0.0.1", path = "umpire/catalog-build" }
-umpire-annotations = { version = "0.0.1", path = "umpire/annotations" }
-umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
-umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
-umpire-checker = { version = "0.0.1", path = "umpire/checker" }
-umpire-testing = { version = "0.0.1", path = "umpire/testing" }
-umpire-suite = { version = "0.0.1", path = "umpire/suite" }
-umpire-ir-derive = { version = "0.0.1", path = "umpire/ir-derive" }
+umpire-catalog-build = { version = "0.0.1", path = "umpire/catalog/build" }
+umpire-dsl = { version = "0.0.1", path = "umpire/author/dsl" }
+umpire-dsl-macros = { version = "0.0.1", path = "umpire/author/dsl/macros" }
+umpire-checker = { version = "0.0.1", path = "umpire/backends/native" }
+umpire-testing = { version = "0.0.1", path = "umpire/dev/testing" }
+umpire-suite = { version = "0.0.1", path = "umpire/author/suite" }
+umpire-ir-derive = { version = "0.0.1", path = "umpire/ir/derive" }
 umpire-ir = { version = "0.0.1", path = "umpire/ir" }
 umpire-front = { version = "0.0.1", path = "umpire/front" }
-umpire-lift = { version = "0.0.1", path = "umpire/lift" }
+umpire-tla = { version = "0.0.1", path = "umpire/backends/tla" }
 umpire-apalache = { version = "0.0.1", path = "umpire/backends/apalache" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
-umpire-runtime = { version = "0.0.1", path = "umpire/runtime" }
+umpire-runtime = { version = "0.0.1", path = "umpire/protocol/runtime" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
 umpire-temporal-annotate = { version = "0.0.1", path = "temporal/annotate" }
 umpire-temporal-annotate-macros = { version = "0.0.1", path = "temporal/annotate/macros" }
@@ -82,10 +83,11 @@ thiserror = "2.0"
 # Already resolved by trybuild; strict backend wire decoding uses its duplicate-key visitor.
 serde = "1.0"
 serde_json = "1.0"
-# the host interface (fn-210 R31): protobuf messages, generated from umpire/proto with the mise protoc
+# the host interface (fn-210 R31): protobuf messages, generated from umpire/protocol/proto with the mise protoc
 prost = "0.14"
 prost-build = "0.14"
 # proc macros
+proc-macro-crate = "3.5.0"
 syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = { version = "1.0", features = ["span-locations"] }

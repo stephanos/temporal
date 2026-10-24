@@ -1,0 +1,17 @@
+[package]
+name = "umpire"
+description = "Model authoring facade: DSL, suites and catalog derives"
+version.workspace = true
+edition.workspace = true
+publish = false
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+umpire-dsl.workspace = true
+umpire-suite.workspace = true
+umpire-catalog.workspace = true
+umpire-runtime.workspace = true

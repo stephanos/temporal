@@ -839,10 +839,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "umpire-annotations"
+name = "umpire"
 version = "0.0.1"
 dependencies = [
- "insta",
+ "umpire-catalog",
+ "umpire-dsl",
+ "umpire-runtime",
+ "umpire-suite",
 ]
 
 [[package]]
@@ -852,19 +855,26 @@ dependencies = [
  "imbl",
  "serde",
  "serde_json",
+ "umpire",
  "umpire-checker",
  "umpire-dsl",
- "umpire-lift",
- "umpire-tlc",
+ "umpire-tla",
+]
+
+[[package]]
+name = "umpire-author-consumer"
+version = "0.0.1"
+dependencies = [
+ "umpire",
 ]
 
 [[package]]
 name = "umpire-catalog"
 version = "0.0.1"
 dependencies = [
+ "insta",
  "prost",
  "trybuild",
- "umpire-annotations",
  "umpire-catalog-macros",
  "umpire-runtime",
 ]
@@ -884,6 +894,9 @@ dependencies = [
 name = "umpire-catalog-macros"
 version = "0.0.1"
 dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
  "syn 3.0.9",
  "umpire-catalog-syntax",
 ]
@@ -953,6 +966,7 @@ dependencies = [
  "insta",
  "manyhow",
  "prettyplease 0.3.0",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn 3.0.9",
@@ -968,11 +982,10 @@ name = "umpire-fixtures"
 version = "0.0.1"
 dependencies = [
  "imbl",
+ "umpire",
  "umpire-checker",
- "umpire-dsl",
- "umpire-lift",
- "umpire-suite",
  "umpire-testing",
+ "umpire-tla",
  "umpire-tlc",
 ]
 
@@ -1014,19 +1027,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "umpire-lift"
-version = "0.0.1"
-dependencies = [
- "imbl",
- "proc-macro2",
- "syn 3.0.9",
- "umpire-checker",
- "umpire-dsl",
- "umpire-front",
- "umpire-tlc",
-]
-
-[[package]]
 name = "umpire-overflow-guest"
 version = "0.0.1"
 dependencies = [
@@ -1041,7 +1041,7 @@ dependencies = [
  "prost",
  "prost-build",
  "trybuild",
- "umpire-annotations",
+ "umpire",
  "umpire-catalog",
  "umpire-catalog-build",
  "umpire-catalog-syntax",
@@ -1072,6 +1072,7 @@ name = "umpire-suite"
 version = "0.0.1"
 dependencies = [
  "thiserror",
+ "umpire",
  "umpire-checker",
  "umpire-dsl",
  "umpire-testing",
@@ -1083,7 +1084,6 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "trybuild",
- "umpire-annotations",
  "umpire-catalog",
  "umpire-dsl",
  "umpire-runtime",
@@ -1099,7 +1099,6 @@ dependencies = [
  "insta",
  "prost",
  "trybuild",
- "umpire-annotations",
  "umpire-catalog",
  "umpire-runtime",
  "umpire-temporal-annotate-macros",
@@ -1135,7 +1134,7 @@ version = "0.0.1"
 dependencies = [
  "prost",
  "prost-build",
- "umpire-annotations",
+ "umpire-catalog",
  "umpire-catalog-build",
  "umpire-runtime",
  "umpire-temporal-annotate-syntax",
@@ -1167,12 +1166,12 @@ dependencies = [
  "prost",
  "umpire-checker",
  "umpire-dsl",
- "umpire-lift",
  "umpire-runtime",
  "umpire-suite",
  "umpire-temporal",
  "umpire-temporal-api",
  "umpire-testing",
+ "umpire-tla",
  "umpire-tlc",
 ]
 
@@ -1183,7 +1182,21 @@ dependencies = [
  "insta",
  "umpire-checker",
  "umpire-dsl",
- "umpire-lift",
+ "umpire-tla",
+ "umpire-tlc",
+]
+
+[[package]]
+name = "umpire-tla"
+version = "0.0.1"
+dependencies = [
+ "imbl",
+ "proc-macro2",
+ "syn 3.0.9",
+ "thiserror",
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-front",
  "umpire-tlc",
 ]
 
@@ -1194,7 +1207,7 @@ dependencies = [
  "thiserror",
  "umpire-checker",
  "umpire-dsl",
- "umpire-lift",
+ "umpire-tla",
 ]
 
 [[package]]

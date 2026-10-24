@@ -7,3 +7,10 @@ pub(crate) fn attr<'a>(attrs: &'a [syn::Attribute], name: &str) -> Option<&'a sy
 pub(crate) fn path_name(name: &str) -> String {
     name.replace(' ', "")
 }
+
+/// A DSL member through its defining crate or the author facade.
+pub(crate) fn dsl_path(path: &str) -> Option<&str> {
+    ["umpire_dsl::", "umpire::dsl::", "umpire::"]
+        .into_iter()
+        .find_map(|prefix| path.strip_prefix(prefix))
+}

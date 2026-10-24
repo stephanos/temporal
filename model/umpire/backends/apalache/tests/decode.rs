@@ -1,7 +1,7 @@
 //! Strict ITF admission at the source typed-value boundary.
 use std::collections::BTreeMap;
 use umpire_apalache::decode_itf;
-use umpire_tlc::{Schema, Type, Value};
+use umpire_tla::values::{Schema, Type, Value};
 
 #[test]
 fn typed_itf_checks_declarations_shapes_and_limits() -> Result<(), Box<dyn std::error::Error>> {
@@ -88,14 +88,13 @@ fn declared_wire_types_must_match_the_source_schema() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn observer_only_safety_assignment_keeps_legacy_tlc_empty_state_refusal()
+fn observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal()
 -> Result<(), Box<dyn std::error::Error>> {
     let schema = Schema {
         fields: BTreeMap::new(),
         observers: BTreeMap::from([("flag".into(), Type::Bool)]),
     };
     assert!(schema.validate().is_err());
-    assert!(umpire_tlc::decode_state("flag = TRUE", &schema).is_err());
     let raw = r##"{"#meta":{"format":"ITF"},"vars":["flag"],"states":[{"#meta":{"index":0},"flag":true}]}"##;
     assert_eq!(decode_itf(raw, &schema, &BTreeMap::new(), 0)?.states[0].state, BTreeMap::new());
     Ok(())

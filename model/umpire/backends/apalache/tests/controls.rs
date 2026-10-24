@@ -6,10 +6,10 @@ use std::{
 use umpire_apalache::{Apalache, Confirmation, Replay, native_bound};
 use umpire_dsl::Machine;
 #[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
-#[path = "../../../fixtures/fixtures/sample_kettle/model.rs"]
+#[path = "../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod selected_kettle;
-use umpire_lift::{Lift, Tla};
-const KETTLE: &str = include_str!("../../../fixtures/fixtures/sample_kettle/model.rs");
+use umpire_tla::{Lift, Tla};
+const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 // Apalache stays out of `UMPIRE_BACKENDS=require` until fn-211 resumes; opt in separately.
 fn required() -> bool {
     std::env::var("UMPIRE_APALACHE").as_deref() == Ok("require")
@@ -19,7 +19,7 @@ fn evidence_root() -> PathBuf {
 }
 fn retain(
     label: &str,
-    module: &umpire_lift::Module,
+    module: &umpire_tla::Module,
     result: &umpire_apalache::Bounded,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let root = evidence_root().join(label);
@@ -75,7 +75,7 @@ mod authored;
 #[test]
 fn real_arithmetic_faults_are_reachable_and_guards_remain_total()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_lift::{Binding, Concrete, Literal};
+    use umpire_tla::{Binding, Concrete, Literal};
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = if required() { Some(Apalache::discover(&root)?) } else { None };
     for (mode, start, divisor, fails) in [
@@ -228,7 +228,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = Apalache::discover(&root)?;
-    let source = include_str!("../../../lift/tests/fixtures/vector.rs");
+    let source = include_str!("../../tla/tests/fixtures/vector.rs");
     let module = Tla::safety(&Lift::parse("vector.rs", source)?)?;
     for (property, violated) in
         [("Invariant_contents", false), ("Invariant_never_two", true), ("ArithmeticSafe", false)]
@@ -237,7 +237,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
         retain(&format!("vector-{property}"), &module, &result)?;
         assert_eq!(result.violated()?, violated, "{}", result.output());
     }
-    let source = include_str!("../../../lift/tests/fixtures/vector_fallback.rs");
+    let source = include_str!("../../tla/tests/fixtures/vector_fallback.rs");
     let module = Tla::safety(&Lift::parse("fallback.rs", source)?)?;
     let result = tool.check(&module, "ArithmeticSafe", 1)?;
     retain("eager-vector-fallback", &module, &result)?;
@@ -257,7 +257,7 @@ fn pinned_installer_and_runner_agree() {
 
 #[test]
 fn real_payload_identity_and_outcome_history_are_typed() -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_lift::{Binding, Concrete, Literal};
+    use umpire_tla::{Binding, Concrete, Literal};
     if !required() {
         return Ok(());
     }
@@ -358,7 +358,7 @@ fn real_start_evaluation_respects_field_order_before_empty_domains()
 
 #[test]
 fn real_discarded_condition_keeps_its_evaluation_guard() -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_lift::{Binding, Concrete, Literal};
+    use umpire_tla::{Binding, Concrete, Literal};
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
     let tool = if required() { Some(Apalache::discover(&root)?) } else { None };
     for enabled in [true, false] {
@@ -488,7 +488,7 @@ mod replay_fixture;
 #[test]
 fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn std::error::Error>>
 {
-    use umpire_lift::{Binding, Concrete, Literal};
+    use umpire_tla::{Binding, Concrete, Literal};
     if !required() {
         return Ok(());
     }
@@ -578,7 +578,7 @@ fn real_later_start_fault_preserves_partial_binding() -> Result<(), Box<dyn std:
     Ok(())
 }
 
-#[path = "../../../lift/tests/fixtures/vector.rs"]
+#[path = "../../tla/tests/fixtures/vector.rs"]
 mod vector_fixture;
 #[test]
 fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error::Error>> {
@@ -594,7 +594,7 @@ fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error
     let tool = Apalache::discover(&root)?;
     let module = Tla::safety(&Lift::parse(
         "vector.rs",
-        include_str!("../../../lift/tests/fixtures/vector.rs"),
+        include_str!("../../tla/tests/fixtures/vector.rs"),
     )?)?;
     let result = tool.check(&module, "Invariant_never_two", 2)?;
     retain("vector-replay", &module, &result)?;

@@ -2,7 +2,7 @@
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
 #[allow(unreachable_pub, reason = "shared public fixture")]
-#[path = "../../../fixtures/fixtures/sample_kettle/model.rs"]
+#[path = "../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod selected;
 #[test]
 fn replay_refuses_an_undeclared_property_before_reading_a_witness()
@@ -10,9 +10,9 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
     let world = selected::kettle::world();
     let starts = world.starts();
     let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?;
-    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
+    let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse(
         "kettle.rs",
-        include_str!("../../../fixtures/fixtures/sample_kettle/model.rs"),
+        include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs"),
     )?)?;
     let negatives: Vec<Claim<_>> = Vec::new();
     let replay =
@@ -29,7 +29,7 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
 mod authored;
 use serde_json::{Value as Json, json};
 use umpire_dsl::{ActionValues, Value as NativeValue, Values};
-use umpire_lift::{Binding, Concrete, Literal, Module};
+use umpire_tla::{Binding, Concrete, Literal, Module};
 const SOURCE: &str = include_str!("fixtures/replay.rs");
 const HOOK: &str = r#"
 umpire_testing::fixture!(inputs::World::new(2),100,Claim::new("never_two",|_,s:&inputs::Model|(s.value!=2).into()));
@@ -54,22 +54,22 @@ where
 }
 fn module() -> Result<Module, Box<dyn std::error::Error>> {
     let w = authored::inputs::World::new(2);
-    Ok(umpire_lift::Tla::safety(
-        &umpire_lift::Lift::parse("inputs.rs", &format!("{SOURCE}{HOOK}"))?.bind(&Binding {
+    Ok(umpire_tla::Tla::safety(
+        &umpire_tla::Lift::parse("inputs.rs", &format!("{SOURCE}{HOOK}"))?.bind(&Binding {
             world: exported(w.values()),
             starts: w.starts().iter().map(|s| exported(s.values())).collect(),
             actions: w.actions().iter().map(concrete::<authored::inputs::World>).collect(),
         })?,
     )?)
 }
-fn default(ty: &umpire_lift::Type) -> Json {
+fn default(ty: &umpire_tla::Type) -> Json {
     match ty {
-        umpire_lift::Type::Bool => json!(false),
-        umpire_lift::Type::Int { .. } => json!({"#bigint":"0"}),
-        umpire_lift::Type::Text => json!(""),
-        umpire_lift::Type::Enum { variants, .. } => json!(variants[0]),
-        umpire_lift::Type::Seq(_) | umpire_lift::Type::Unit => json!([]),
-        umpire_lift::Type::Tuple(v) => json!({"#tup":v.iter().map(default).collect::<Vec<_>>()}),
+        umpire_tla::Type::Bool => json!(false),
+        umpire_tla::Type::Int { .. } => json!({"#bigint":"0"}),
+        umpire_tla::Type::Text => json!(""),
+        umpire_tla::Type::Enum { variants, .. } => json!(variants[0]),
+        umpire_tla::Type::Seq(_) | umpire_tla::Type::Unit => json!([]),
+        umpire_tla::Type::Tuple(v) => json!({"#tup":v.iter().map(default).collect::<Vec<_>>()}),
     }
 }
 fn initial(module: &Module, value: u8) -> Json {
@@ -215,9 +215,9 @@ fn retained_pinned_kettle_witness_replays_deterministically()
         r#"{}
         umpire_testing::fixture!(kettle::world(),1000,Claim::new("never_beeps",|_,s:&kettle::Model|(!s.beeping).into()));
     "#,
-        include_str!("../../../fixtures/fixtures/sample_kettle/model.rs")
+        include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs")
     );
-    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse("kettle.rs", &source)?)?;
+    let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("kettle.rs", &source)?)?;
     let negatives =
         [Claim::new("never_beeps", |_, s: &selected::kettle::Model| (!s.beeping).into())];
     let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &negatives };
@@ -363,7 +363,7 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
     let world = prefix_fixture::prefix::World;
     let starts = world.starts();
     let actions = world.actions();
-    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse(
+    let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse(
         "prefix.rs",
         include_str!("fixtures/arithmetic_prefix.rs"),
     )?)?;
@@ -381,7 +381,7 @@ fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
         umpire_apalache::Confirmation::Arithmetic { index: 2, .. }
     ));
     assert_eq!(confirmed.steps.len(), 1);
-    assert_eq!(confirmed.steps[0].state["value"], umpire_tlc::Value::Int(255));
+    assert_eq!(confirmed.steps[0].state["value"], umpire_tla::values::Value::Int(255));
     for (position, field, bad) in [
         (1, "__umpire_arithmetic_error", json!(true)),
         (2, "__umpire_arithmetic_error", json!(false)),
@@ -412,7 +412,7 @@ fn selected_property_category_cannot_alias_authored_names() -> Result<(), Box<dy
         "{}\numpire_testing::fixture!(categories::world(),10,Claim::new(\"shared\",|_,s:&categories::Model|(s.value!=0).into()));",
         include_str!("fixtures/categories.rs")
     );
-    let module = umpire_lift::Tla::safety(&umpire_lift::Lift::parse("categories.rs", &source)?)?;
+    let module = umpire_tla::Tla::safety(&umpire_tla::Lift::parse("categories.rs", &source)?)?;
     let negative = [Claim::new("shared", |_, s: &categories::Model| (s.value != 0).into())];
     let replay = Replay { world: &world, starts: &starts, actions: &actions, negative: &negative };
     for (property, value, accepted) in [

@@ -376,10 +376,10 @@ fn request_duration_validation_mirrors_server_normalization_without_repair()
     let catalog = umpire_temporal::activity_api::start_request_id_intent(&Limits::default())?;
     let mut request = start();
     request.request_id = "supplied".into();
-    let violations = umpire_annotations::validate(&request, &catalog);
+    let violations = umpire_catalog::validate(&request, &catalog);
     assert!(matches!(
         violations[0].expected.as_ref().map(|expected| &expected.expectation),
-        Some(umpire_annotations::Expectation::Accepts)
+        Some(umpire_catalog::Expectation::Accepts)
     ));
     Ok(())
 }

@@ -1,7 +1,7 @@
 use super::{Entry as StrictEntry, Result, baseline, method, recipe};
 use crate::foundation::dc::{BLOB_SIZE_ERROR, Limits, MAX_ID_LENGTH};
 use std::{collections::BTreeSet, sync::OnceLock};
-use umpire_annotations::{
+use umpire_catalog::{
     Expectation, GapEntry, MutationApplicability, ProbeResult, Violation, WireCase,
     mutation_entries, wire_cases,
 };

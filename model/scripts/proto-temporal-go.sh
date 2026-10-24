@@ -23,7 +23,7 @@ elif [ "$#" -ne 0 ]; then
   printf 'usage: proto-temporal-go.sh [--check]\n' >&2
   exit 1
 fi
-mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=temporal/proto --proto_path=umpire/proto \
+mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=temporal/proto --proto_path=umpire/protocol/proto \
   --go_out="$output" --go_opt=paths=source_relative \
   temporal/proto/umpire/temporal/v1/temporal.proto temporal/proto/umpire/temporal/v1/probe.proto
 if [ "${1:-}" = --check ]; then

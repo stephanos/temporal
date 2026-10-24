@@ -19,8 +19,10 @@ pub fn forbidden() {
 }
 '
 printf '%s' "$cat_source" > "$scratch/control.rs"
-for core in dsl checker; do
-  if CLIPPY_CONF_DIR="$PWD/umpire/$core" mise exec -- clippy-driver --edition=2024 \
+for pair in dsl:author/dsl checker:backends/native; do
+  core=${pair%%:*}
+  directory=${pair#*:}
+  if CLIPPY_CONF_DIR="$PWD/umpire/$directory" mise exec -- clippy-driver --edition=2024 \
     --crate-type=lib --emit=metadata --out-dir "$scratch" "$scratch/control.rs" \
     -D clippy::disallowed_methods -D clippy::disallowed_types > "$scratch/$core.log" 2>&1; then
     printf 'capability negative control unexpectedly compiled: %s\n' "$core" >&2

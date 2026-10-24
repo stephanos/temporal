@@ -282,7 +282,7 @@ func TestArchivedVocabularyChecksSourceAndProse(t *testing.T) {
 		{"model/archived/temporal/features/example/Product.scala", `scenario("example")`, true},
 		{"model/archived/README.md", "a protocol machine", true},
 		{"model/archived/framework/SEMANTICS.md", "a system contract", true},
-		{"model/umpire/checker/src/lib.rs", `scenario("example")`, false},
+		{"model/umpire/backends/native/src/lib.rs", `scenario("example")`, false},
 	} {
 		t.Run(test.path, func(t *testing.T) {
 			require.Equal(t, test.found, retiredVocabularyMention(test.path, test.line))
@@ -594,7 +594,7 @@ func TestModelFilesLeaveOutTheBuildCaches(t *testing.T) {
 		"model/archived/gen/model-scala.classpath":                    "/repo/model/gen/model-scala.jar",
 		"model/archived/temporal/features/gen/Generated.scala":        "package gen",
 		"model/archived/temporal/features/build/.scala-build/x.scala": "x",
-		"model/umpire/checker/src/lib.rs":                             "pub struct RustModel;",
+		"model/umpire/backends/native/src/lib.rs":                     "pub struct RustModel;",
 		"model/target/debug/build/generated.rs":                       "pub struct BuildOutput;",
 	}
 	for rel, content := range files {

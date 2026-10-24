@@ -14,6 +14,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         workflow_id: "workflow".into(),
         run_id: "a13cd9da-521c-48d4-ab9c-6ab174876f25".into(),
     };
-    assert_eq!(umpire_annotations::validate(&message, &catalog), []);
+    assert_eq!(umpire_catalog::validate(&message, &catalog), []);
     Ok(())
 }

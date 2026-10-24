@@ -11,12 +11,12 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
-umpire-tlc.workspace = true
-umpire-lift.workspace = true
+umpire-tla.workspace = true
 umpire-checker.workspace = true
 umpire-dsl.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+umpire.workspace = true
 imbl.workspace = true

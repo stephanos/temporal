@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeSet, fs, path::Path};
 
-use umpire_lift::{Lift, Tla};
+use umpire_tla::{Lift, Tla};
 use umpire_tlc::{State, Tlc, Value, Verdict};
 
 #[path = "fixtures/scaling_model.rs"]

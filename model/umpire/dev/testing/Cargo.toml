@@ -1,0 +1,18 @@
+[package]
+name = "umpire-testing"
+description = "Shared Umpire fixture discovery and golden runner"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+umpire-checker.workspace = true
+umpire-dsl.workspace = true
+umpire-tla.workspace = true
+umpire-tlc.workspace = true
+insta.workspace = true

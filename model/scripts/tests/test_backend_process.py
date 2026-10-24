@@ -12,7 +12,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-SUPERVISOR = Path(__file__).resolve().parents[2] / "umpire/backends/tlc/src/process.py"
+SUPERVISOR = Path(__file__).resolve().parents[2] / "umpire/backends/tla/src/process.py"
 
 spec = importlib.util.spec_from_file_location("backend_process", SUPERVISOR)
 backend_process = importlib.util.module_from_spec(spec)

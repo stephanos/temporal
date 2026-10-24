@@ -1,7 +1,7 @@
 //! Native checks of shared derived catalogs.
 
 use super::{api::*, dc};
-use umpire_annotations::{AdmissionErrors, Consequence, Kind, Rng, validate};
+use umpire_catalog::{AdmissionErrors, Consequence, Kind, Rng, validate};
 use umpire_temporal_api::temporal::api::failure::v1 as failure;
 
 #[test]

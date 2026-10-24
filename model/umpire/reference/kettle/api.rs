@@ -210,7 +210,7 @@ mod water_source {
     pub(super) fn set(
         message: &mut k::fill_request::FillOptions,
         value: i32,
-    ) -> Result<(), umpire_annotations::GenerationError> {
+    ) -> Result<(), umpire_catalog::GenerationError> {
         message.water_kind = value;
         Ok(())
     }
@@ -235,7 +235,7 @@ mod heating_action {
     pub(super) fn set(
         message: &mut k::RespondHeatingRequest,
         value: i32,
-    ) -> Result<(), umpire_annotations::GenerationError> {
+    ) -> Result<(), umpire_catalog::GenerationError> {
         message.action = value;
         Ok(())
     }
@@ -266,7 +266,7 @@ mod labels {
     pub(super) fn set(
         message: &mut k::fill_request::FillOptions,
         value: Vec<Vec<u8>>,
-    ) -> Result<(), umpire_annotations::GenerationError> {
+    ) -> Result<(), umpire_catalog::GenerationError> {
         <_ as View<Map<Text, Text>>>::set(&mut message.labels, value)
     }
 }
@@ -280,7 +280,7 @@ pub mod catalog {
         k, kettle,
     };
     use std::fmt::Write;
-    use umpire_annotations::{AdmissionErrors, ProbeCase};
+    use umpire_catalog::{AdmissionErrors, ProbeCase};
 
     /// Every Model action has an explicit service binding.
     pub fn bind(action: &ModelAction) -> umpire_catalog::Binding {
@@ -296,7 +296,7 @@ pub mod catalog {
         }
     }
 
-    fn append_coverage<M: 'static>(output: &mut String, catalog: &umpire_annotations::Catalog<M>) {
+    fn append_coverage<M: 'static>(output: &mut String, catalog: &umpire_catalog::Catalog<M>) {
         writeln!(
             output,
             "{} {}",
@@ -361,7 +361,7 @@ pub fn request_findings(
     method: KettleServiceMethod,
     bytes: &[u8],
     kettle_id: &str,
-) -> Result<Vec<umpire_annotations::Violation>, Box<dyn std::error::Error>> {
+) -> Result<Vec<umpire_catalog::Violation>, Box<dyn std::error::Error>> {
     use prost::Message;
     use umpire_catalog::Inspect;
     let limits = config::Limits::for_kettle(kettle_id);

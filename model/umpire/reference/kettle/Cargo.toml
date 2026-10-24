@@ -11,12 +11,12 @@ rust-version.workspace = true
 path = "lib.rs"
 
 [dependencies]
+umpire.workspace = true
 umpire-runtime.workspace = true
 umpire-dsl.workspace = true
 umpire-checker.workspace = true
 prost.workspace = true
 umpire-catalog.workspace = true
-umpire-annotations.workspace = true
 
 [dev-dependencies]
 umpire-catalog-syntax.workspace = true

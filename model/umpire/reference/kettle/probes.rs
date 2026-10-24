@@ -8,7 +8,7 @@ use crate::{
 };
 use prost::Message;
 use std::{collections::BTreeSet, fmt::Write};
-use umpire_annotations::{
+use umpire_catalog::{
     Expectation, GapReport, MutationApplicability, ProbeResult, Violation, WireCase,
     mutation_entries, wire_cases,
 };

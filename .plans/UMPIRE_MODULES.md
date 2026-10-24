@@ -22,7 +22,38 @@ eager Tables, Scala catalog/equivalence walks and Query totals; .4/.5 add native
 amendment is approved here. Earlier migration compatibility passages retain their historical scope;
 they do not require full Tables or their old fingerprint encoding for the new architecture.
 
-## Module ownership
+## Current Rust framework ownership
+
+The active Cargo workspace is under `model/`; the former Scala framework is frozen under
+`model/archived/`. The crate map in [model/README.md](../model/README.md#crate-map) identifies
+author-facing crates. Paths in this table are relative to `model/umpire/`, and dependencies
+name normal domain dependencies; test-only dependencies do not reverse the production graph.
+
+| Crate and path | One job and public interface | Permitted domain dependencies |
+| --- | --- | --- |
+| `umpire`, `author/umpire` | Model author facade: DSL declarations, suite questions, `Catalog` and `annotate`; named `dsl`, `suite` and `catalog` module roots. | DSL, suite and catalog; runtime re-export for generated support. |
+| `umpire-dsl`, `author/dsl` | Model, World, state, action, outcome, claim and path contracts; native Models embed the admitted tree. | DSL macros; IR on native targets. |
+| `umpire-dsl-macros`, `author/dsl/macros` | Generate author declarations and preserve existing direct-crate macro expansion. | Front and IR; no backend. |
+| `umpire-front`, `front` | Read declarations once and admit bodies into the typed tree, with located diagnostics. | IR; no backend or system Model. |
+| `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; derive constructor tokens. | IR depends on its derive support; no front or backend import. |
+| `umpire-checker`, `backends/native` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
+| `umpire-suite`, `author/suite` | Authored `Run`, `Space`, path search, coverage and verification questions. | DSL and native checker. |
+| `umpire-tla`, `backends/tla` | Bind a selected World and emit TLA+ from the admitted tree; shared bounded process supervision and typed assignment/schema admission. | Front; no normal TLC or Apalache dependency. |
+| `umpire-tlc`, `backends/tlc` | Run pinned TLC, decode complete reachable sets and typed counterexamples, distinguish execution/evaluation failures from verdicts. | TLA+ support. |
+| `umpire-apalache`, `backends/apalache` | Run optional bounded safety checks, decode typed ITF and confirm exact traces by native replay. | TLA+ support, DSL and native checker; no TLC dependency. |
+| `umpire-runtime`, `protocol/runtime`; schemas in `protocol/proto` | Generated Model/realization/annotation envelopes, transactional dispatch and core-wasm ABI; guests select their Model and realization. | DSL and native checker; schemas carry no system policy. |
+| `umpire-catalog`, `catalog` | Typed field `Catalog<M>`, validation, generation, gap reports, inspection and semantic views; `Catalog` derive and `annotate`. | Runtime and catalog macros. |
+| `umpire-catalog-syntax`, `catalog/syntax`; `umpire-catalog-macros`, `catalog/macros`; `umpire-catalog-build`, `catalog/build` | Admit exhaustive declarations; expose derive entry points; generate descriptor-checked API dispatch and wire mutations. | Macros depend on syntax; syntax on runtime; build support on syntax and runtime. |
+| `umpire-testing`, `dev/testing`; `umpire-fixtures`, `dev/fixtures` | Deterministic fixture discovery/golden comparison; shared Models and authored tests consume the facade. | Testing uses DSL, native checker, TLA+ and TLC; fixtures use author and test support, never system Models. |
+| `umpire-reference-kettle`, `reference/kettle` | Independent reference Model and realization, with its own guest and Go service/parity controls. | Generic DSL, native checker, catalog and runtime; no Temporal extension. |
+
+The default model gate leaves Apalache opt-in (`UMPIRE_APALACHE=require`); required TLC
+agreement uses `UMPIRE_BACKENDS=require`. `model/temporal/` owns system Models, API acquisition,
+annotation defaults, realization, guest and its Go adapter. Generic crates retain the source
+boundary against system-specific imports and names. The Go host, Runner, generated protocol
+and Kettle module ownership rows below describe their current paths.
+
+## Historical Scala and Go migration ownership
 
 Paths below are destinations, except the explicitly planned Answering module. Public entry points
 list current signatures unless a fn-173 replacement is marked planned. Current eager table,

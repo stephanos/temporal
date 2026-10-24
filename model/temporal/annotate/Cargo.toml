@@ -14,7 +14,6 @@ workspace = true
 umpire-catalog.workspace = true
 prost.workspace = true
 umpire-runtime.workspace = true
-umpire-annotations.workspace = true
 umpire-temporal-annotate-macros.workspace = true
 
 [dev-dependencies]

@@ -1,4 +1,18 @@
-//! Typed exhaustive annotation catalogs.
+//! Typed annotation catalogs, validation, generation and inspection.
+
+mod black_box;
+mod catalog;
+mod gap;
+mod kind;
+mod negative;
+pub mod types;
+mod value;
+
+pub use black_box::*;
+pub use catalog::*;
+pub use gap::*;
+pub use kind::*;
+pub use value::*;
 
 pub use umpire_catalog_macros::{Catalog, annotate};
 
@@ -14,10 +28,10 @@ pub trait Inspect<C> {
         &self,
         context: &C,
         response: bool,
-        output: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors>;
+        output: &mut Vec<Violation>,
+    ) -> Result<(), AdmissionErrors>;
     /// Fills declared request identifiers without replacing supplied values.
-    fn fill_ids(&mut self, _seed: u64) -> Result<bool, umpire_annotations::GenerationError> {
+    fn fill_ids(&mut self, _seed: u64) -> Result<bool, GenerationError> {
         Ok(false)
     }
 }
@@ -27,14 +41,14 @@ impl<C, T: Inspect<C>> Inspect<C> for Option<T> {
         &self,
         context: &C,
         response: bool,
-        output: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        output: &mut Vec<Violation>,
+    ) -> Result<(), AdmissionErrors> {
         if let Some(value) = self {
             value.inspect(context, response, output)?;
         }
         Ok(())
     }
-    fn fill_ids(&mut self, seed: u64) -> Result<bool, umpire_annotations::GenerationError> {
+    fn fill_ids(&mut self, seed: u64) -> Result<bool, GenerationError> {
         self.as_mut().map_or(Ok(false), |value| value.fill_ids(seed))
     }
 }
@@ -43,14 +57,14 @@ impl<C, T: Inspect<C>> Inspect<C> for Vec<T> {
         &self,
         context: &C,
         response: bool,
-        output: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        output: &mut Vec<Violation>,
+    ) -> Result<(), AdmissionErrors> {
         for value in self {
             value.inspect(context, response, output)?;
         }
         Ok(())
     }
-    fn fill_ids(&mut self, seed: u64) -> Result<bool, umpire_annotations::GenerationError> {
+    fn fill_ids(&mut self, seed: u64) -> Result<bool, GenerationError> {
         let mut changed = false;
         for value in self {
             changed |= value.fill_ids(seed)?;
@@ -63,11 +77,11 @@ impl<C, T: Inspect<C>> Inspect<C> for Box<T> {
         &self,
         context: &C,
         response: bool,
-        output: &mut Vec<umpire_annotations::Violation>,
-    ) -> Result<(), umpire_annotations::AdmissionErrors> {
+        output: &mut Vec<Violation>,
+    ) -> Result<(), AdmissionErrors> {
         self.as_ref().inspect(context, response, output)
     }
-    fn fill_ids(&mut self, seed: u64) -> Result<bool, umpire_annotations::GenerationError> {
+    fn fill_ids(&mut self, seed: u64) -> Result<bool, GenerationError> {
         self.as_mut().fill_ids(seed)
     }
 }

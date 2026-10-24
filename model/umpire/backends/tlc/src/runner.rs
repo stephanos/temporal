@@ -3,41 +3,18 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
-    time::Duration,
 };
 
-use crate::{Error, Evaluation, Refusal, Schema, State, TraceState, decode_dump, decode_state};
+use crate::{
+    Error, Evaluation, Limits, Refusal, Schema, State, TraceState, decode_dump, decode_state,
+};
 
 /// Official stable release artifact admitted by this backend.
 pub const JAR_VERSION: &str = "1.7.4";
 /// SHA-256 of the official v1.7.4 release asset.
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
-use crate::process::{Scratch, bounded_text, java_command, pinned_java, run_process};
-
-/// Hard subprocess admission limits. A limit produces a refusal, never a verdict.
-#[derive(Clone, Copy, Debug)]
-pub struct Limits {
-    /// Maximum wall time per Java process.
-    pub timeout: Duration,
-    /// Combined maximum stdout/stderr bytes per process and per check.
-    pub output_bytes: u64,
-    /// Maximum reachable dump size.
-    pub dump_bytes: u64,
-    /// Maximum Java heap in MiB.
-    pub heap_mb: u32,
-}
-
-impl Default for Limits {
-    fn default() -> Self {
-        Self {
-            timeout: Duration::from_secs(60),
-            output_bytes: 8 * 1024 * 1024,
-            dump_bytes: 128 * 1024 * 1024,
-            heap_mb: 512,
-        }
-    }
-}
+use umpire_tla::process::{Scratch, bounded_text, java_command, pinned_java, run_process};
 
 /// An admitted property result.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -96,7 +73,7 @@ impl Tlc {
     ///
     /// # Errors
     /// A refusal, or TLC's typed evaluation error naming the property and state it failed in.
-    pub fn check_module(&self, module: &umpire_lift::Module) -> Result<TlcResult, Error> {
+    pub fn check_module(&self, module: &umpire_tla::Module) -> Result<TlcResult, Error> {
         let schema = crate::module::schema(module)?;
         let mut result = self.check(&module.name, &module.tla, &module.cfg, &schema)?;
         for cfg in module
@@ -570,6 +547,7 @@ fn decode_trace(messages: &[(u32, String)], schema: &Schema) -> Result<Trace, Re
 mod tests {
     use super::*;
     use crate::{Type, Value};
+    use std::time::Duration;
 
     #[test]
     fn located_property_invariants_name_only_the_selected_operator() -> Result<(), Refusal> {
@@ -604,7 +582,7 @@ mod tests {
     #[test]
     fn typed_module_refuses_inconsistent_declarations_before_spawning()
     -> Result<(), Box<dyn std::error::Error>> {
-        let module = umpire_lift::Tla::emit(&umpire_lift::Lift::parse(
+        let module = umpire_tla::Tla::emit(&umpire_tla::Lift::parse(
             "scaling.rs",
             include_str!("../tests/fixtures/scaling_model.rs"),
         )?)?;
@@ -629,7 +607,7 @@ mod tests {
                 .is_some_and(|error| error.to_string().contains("duplicate observer"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.observer_types.insert("undeclared".into(), umpire_lift::Type::Bool);
+        invalid.metadata.observer_types.insert("undeclared".into(), umpire_tla::Type::Bool);
         assert!(
             tlc.check_module(&invalid)
                 .err()
@@ -643,7 +621,7 @@ mod tests {
                 .is_some_and(|error| error.to_string().contains("collides"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.fields[0].ty = umpire_lift::Type::Int { min: 3, max: 2 };
+        invalid.metadata.fields[0].ty = umpire_tla::Type::Int { min: 3, max: 2 };
         assert!(
             tlc.check_module(&invalid)
                 .err()
@@ -651,7 +629,7 @@ mod tests {
         );
         let mut invalid = module.clone();
         invalid.metadata.fields[0].ty =
-            umpire_lift::Type::Enum { name: "Empty".into(), variants: Vec::new() };
+            umpire_tla::Type::Enum { name: "Empty".into(), variants: Vec::new() };
         assert!(
             tlc.check_module(&invalid)
                 .err()

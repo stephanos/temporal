@@ -23,11 +23,11 @@ elif [ "$#" -ne 0 ]; then
   printf 'usage: proto-go.sh [--check]\n' >&2
   exit 1
 fi
-mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
-  --go_out="$output" --go_opt=paths=source_relative umpire/proto/umpire/model/v1/model.proto \
-  umpire/proto/umpire/realization/v1/realization.proto \
-  umpire/proto/umpire/annotations/v1/annotations.proto \
-  umpire/proto/umpire/run/v1/run.proto
+mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/protocol/proto \
+  --go_out="$output" --go_opt=paths=source_relative umpire/protocol/proto/umpire/model/v1/model.proto \
+  umpire/protocol/proto/umpire/realization/v1/realization.proto \
+  umpire/protocol/proto/umpire/annotations/v1/annotations.proto \
+  umpire/protocol/proto/umpire/run/v1/run.proto
 if [ "${1:-}" = --check ]; then
   linked=$(find umpire/hosts/go/gen -type l -print -quit)
   if [ -n "$linked" ]; then

@@ -45,9 +45,9 @@ fn projected_oneof_tracks_source_paths_and_selected_empty_payloads()
         ["example.Response.failure", "example.Response.result"]
     );
     for choice in [Choice::Result(vec![]), Choice::Failure(vec![])] {
-        assert_eq!(umpire_annotations::validate(&Response { value: Some(choice) }, &catalog), []);
+        assert_eq!(umpire_catalog::validate(&Response { value: Some(choice) }, &catalog), []);
     }
-    let missing = umpire_annotations::validate(&Response::default(), &catalog);
+    let missing = umpire_catalog::validate(&Response::default(), &catalog);
     assert_eq!(missing.len(), 1);
     assert_eq!(missing[0].constraint, "one_of");
     assert_eq!(missing[0].fields, ["example.Response.result", "example.Response.failure"]);
@@ -55,7 +55,7 @@ fn projected_oneof_tracks_source_paths_and_selected_empty_payloads()
         (Choice::Result(vec![1, 2]), "example.Response.result"),
         (Choice::Failure(vec![1, 2]), "example.Response.failure"),
     ] {
-        let findings = umpire_annotations::validate(&Response { value: Some(choice) }, &catalog);
+        let findings = umpire_catalog::validate(&Response { value: Some(choice) }, &catalog);
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].path, path);
         assert_eq!(findings[0].constraint, "bytes.max_len");

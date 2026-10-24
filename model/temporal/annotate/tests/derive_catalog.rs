@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use umpire_annotations::{Kind, validate};
+use umpire_catalog::{Kind, validate};
 use umpire_temporal_annotate::{Catalog, Inspect, kinds::*};
 
 mod foundation {
@@ -63,8 +63,8 @@ fn repeated_constraints_retain_request_and_response_expectations() {
                 && findings[0].constraint == "repeated.max_items"
                 && matches!(
                     findings[0].expected.as_ref().map(|expected| &expected.expectation),
-                    Some(umpire_annotations::Expectation::RejectsCode(
-                        umpire_annotations::Code::InvalidArgument
+                    Some(umpire_catalog::Expectation::RejectsCode(
+                        umpire_catalog::Code::InvalidArgument
                     ))
                 )
         });

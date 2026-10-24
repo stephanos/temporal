@@ -8,17 +8,17 @@ mod controls {
     use super::*;
     #[doc = concat!("Declarative `", stringify!(Visibility), "` annotation tag.")]
     pub struct Visibility;
-    impl ::umpire_annotations::Tag for Visibility {
+    impl ::umpire_catalog::Tag for Visibility {
         fn name(&self) -> &str {
             stringify!(Visibility)
         }
-        fn consequence(&self) -> ::umpire_annotations::Consequence {
-            ::umpire_annotations::Consequence::EventuallyConsistent {
+        fn consequence(&self) -> ::umpire_catalog::Consequence {
+            ::umpire_catalog::Consequence::EventuallyConsistent {
                 polls: 3,
             }
         }
-        fn applies_to(&self, kind: &::umpire_annotations::Kind) -> bool {
-            matches!(kind, ::umpire_annotations::Kind::Timestamp(_))
+        fn applies_to(&self, kind: &::umpire_catalog::Kind) -> bool {
+            matches!(kind, ::umpire_catalog::Kind::Timestamp(_))
         }
     }
     #[doc = concat!("Converts a known `", "test.Status", "` discriminant.")]
@@ -42,53 +42,53 @@ mod controls {
     }
     #[doc = concat!("Admits the exhaustive catalog for `", "test.Request", "`.")]
     pub fn request() -> ::core::result::Result<
-        ::umpire_annotations::Catalog<Request>,
-        ::umpire_annotations::AdmissionErrors,
+        ::umpire_catalog::Catalog<Request>,
+        ::umpire_catalog::AdmissionErrors,
     > {
         let _: fn(&Request) = |message| {
             let Request { id: _, count: _, status: _ } = message;
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::Uuid,
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::Uuid,
                 _,
             >(&message.id);
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::Counter,
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::Counter,
                 _,
             >(&message.count);
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::Enum,
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::Enum,
                 _,
             >(&message.status);
         };
-        ::umpire_annotations::Catalog::<Request>::request("test.Request")
+        ::umpire_catalog::Catalog::<Request>::request("test.Request")
             .field(
-                ::umpire_annotations::Field::new(
+                ::umpire_catalog::Field::new(
                         "test.Request.id",
-                        ::umpire_annotations::Kind::Uuid,
+                        ::umpire_catalog::Kind::Uuid,
                         |message: &Request| &message.id,
                         |message: &mut Request| &mut message.id,
                     )
-                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .tag(&::umpire_catalog::Consequence::Decided)
                     .expects(
-                        &::umpire_annotations::Expected {
-                            expectation: ::umpire_annotations::Expectation::Accepts,
+                        &::umpire_catalog::Expected {
+                            expectation: ::umpire_catalog::Expectation::Accepts,
                         },
                     ),
             )
             .field(
-                ::umpire_annotations::Field::new(
+                ::umpire_catalog::Field::new(
                         "test.Request.count",
-                        ::umpire_annotations::Kind::Counter(::umpire_annotations::NumberRules {
+                        ::umpire_catalog::Kind::Counter(::umpire_catalog::NumberRules {
                             gte: Some(1),
                             ..::core::default::Default::default()
                         }),
                         |message: &Request| &message.count,
                         |message: &mut Request| &mut message.count,
                     )
-                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .tag(&::umpire_catalog::Consequence::Decided)
                     .expects(
-                        &::umpire_annotations::Expected {
-                            expectation: ::umpire_annotations::Expectation::Rejects {
+                        &::umpire_catalog::Expected {
+                            expectation: ::umpire_catalog::Expectation::Rejects {
                                 code: 3,
                                 message_pattern: "bad".to_owned(),
                                 details_type: None,
@@ -97,36 +97,36 @@ mod controls {
                     ),
             )
             .field(
-                ::umpire_annotations::Field::new(
+                ::umpire_catalog::Field::new(
                         "test.Request.status",
-                        ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
+                        ::umpire_catalog::Kind::Enum(::umpire_catalog::EnumRules {
                             defined_only: true,
                             values: status_values(),
                         }),
                         |message: &Request| &message.status,
                         |message: &mut Request| &mut message.status,
                     )
-                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .tag(&::umpire_catalog::Consequence::Decided)
                     .expects(
-                        &::umpire_annotations::Expected {
-                            expectation: ::umpire_annotations::Expectation::Accepts,
+                        &::umpire_catalog::Expected {
+                            expectation: ::umpire_catalog::Expectation::Accepts,
                         },
                     ),
             )
-            .rule(::umpire_annotations::Rule {
-                presence: ::umpire_annotations::Presence::Required(
+            .rule(::umpire_catalog::Rule {
+                presence: ::umpire_catalog::Presence::Required(
                     ::std::vec!["id".to_owned()],
                 ),
-                expected: Some(::umpire_annotations::Expected {
-                    expectation: ::umpire_annotations::Expectation::Accepts,
+                expected: Some(::umpire_catalog::Expected {
+                    expectation: ::umpire_catalog::Expectation::Accepts,
                 }),
             })
             .build()
     }
     #[doc = concat!("Admits the exhaustive catalog for `", "test.Response", "`.")]
     pub fn response() -> ::core::result::Result<
-        ::umpire_annotations::Catalog<Response>,
-        ::umpire_annotations::AdmissionErrors,
+        ::umpire_catalog::Catalog<Response>,
+        ::umpire_catalog::AdmissionErrors,
     > {
         let _: fn(&Response) = |message| {
             let Response {
@@ -137,12 +137,12 @@ mod controls {
                 opaque: _,
                 choice: _,
             } = message;
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::Uuid,
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::Uuid,
                 _,
             >(&message.id);
-            ::umpire_annotations::types::check::<
-                ::umpire_annotations::types::Timestamp,
+            ::umpire_catalog::types::check::<
+                ::umpire_catalog::types::Timestamp,
                 _,
             >(
                 &(|m: &Response| {
@@ -166,22 +166,22 @@ mod controls {
                 None => {}
             }
         };
-        ::umpire_annotations::Catalog::<Response>::response("test.Response")
+        ::umpire_catalog::Catalog::<Response>::response("test.Response")
             .field(
-                ::umpire_annotations::Field::new(
+                ::umpire_catalog::Field::new(
                     "test.Response.id",
-                    ::umpire_annotations::Kind::Uuid,
+                    ::umpire_catalog::Kind::Uuid,
                     |message: &Response| &message.id,
                     |message: &mut Response| &mut message.id,
                 ),
             )
             .field(
-                ::umpire_annotations::Field::<
+                ::umpire_catalog::Field::<
                     Response,
                     Timestamp,
                 >::projected(
                         "test.Response.timestamp",
-                        ::umpire_annotations::Kind::Timestamp(::umpire_annotations::NumberRules {
+                        ::umpire_catalog::Kind::Timestamp(::umpire_catalog::NumberRules {
                             gte: Some(1),
                             ..::core::default::Default::default()
                         }),
@@ -205,9 +205,9 @@ mod controls {
                     .tag(&Visibility),
             )
             .ignored(
-                ::umpire_annotations::IgnoredField::new(
+                ::umpire_catalog::IgnoredField::new(
                     "test.Response.flag",
-                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                    ::umpire_catalog::Kind::Bytes(::umpire_catalog::BytesRules {
                         ..::core::default::Default::default()
                     }),
                     |message: &Response| &message.flag,
@@ -216,9 +216,9 @@ mod controls {
                 ),
             )
             .ignored(
-                ::umpire_annotations::IgnoredField::new(
+                ::umpire_catalog::IgnoredField::new(
                     "test.Response.labels",
-                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                    ::umpire_catalog::Kind::Bytes(::umpire_catalog::BytesRules {
                         ..::core::default::Default::default()
                     }),
                     |message: &Response| &message.labels,
@@ -227,9 +227,9 @@ mod controls {
                 ),
             )
             .ignored(
-                ::umpire_annotations::IgnoredField::new(
+                ::umpire_catalog::IgnoredField::new(
                     "test.Response.opaque",
-                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                    ::umpire_catalog::Kind::Bytes(::umpire_catalog::BytesRules {
                         ..::core::default::Default::default()
                     }),
                     |message: &Response| &message.opaque,
@@ -238,9 +238,9 @@ mod controls {
                 ),
             )
             .ignored(
-                ::umpire_annotations::IgnoredField::projected(
+                ::umpire_catalog::IgnoredField::projected(
                     "test.Response.text",
-                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                    ::umpire_catalog::Kind::Bytes(::umpire_catalog::BytesRules {
                         ..::core::default::Default::default()
                     }),
                     |message: &Response| match message.choice.as_ref() {
@@ -254,9 +254,9 @@ mod controls {
                 ),
             )
             .ignored(
-                ::umpire_annotations::IgnoredField::projected(
+                ::umpire_catalog::IgnoredField::projected(
                     "test.Response.choice_flag",
-                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                    ::umpire_catalog::Kind::Bytes(::umpire_catalog::BytesRules {
                         ..::core::default::Default::default()
                     }),
                     |message: &Response| match message.choice.as_ref() {
@@ -291,10 +291,10 @@ mod controls {
     }
     /// Every explicitly declared expectation, independent of RPC probe registration.
     pub fn expected_probe_cases() -> ::core::result::Result<
-        ::std::vec::Vec<::umpire_annotations::ProbeCase>,
-        ::umpire_annotations::AdmissionErrors,
+        ::std::vec::Vec<::umpire_catalog::ProbeCase>,
+        ::umpire_catalog::AdmissionErrors,
     > {
-        let mut cases: ::std::vec::Vec<::umpire_annotations::ProbeCase> = ::std::vec::Vec::new();
+        let mut cases: ::std::vec::Vec<::umpire_catalog::ProbeCase> = ::std::vec::Vec::new();
         cases.extend(request()?.probe_cases());
         cases.extend(response()?.probe_cases());
         cases.sort_by(|a, b| a.id.cmp(&b.id));

@@ -8,7 +8,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-umpire-annotations.workspace = true
+umpire-catalog.workspace = true
 umpire-runtime.workspace = true
 prost.workspace = true
 

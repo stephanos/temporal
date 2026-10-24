@@ -117,11 +117,13 @@ runs the activity Model through the Runner behind an allowlist fence, and every 
 
 Filed on 2026-10-24 at the owner's request; the owner approved the aggressive layout and both open
 choices as recommended. Crates move into role directories (`author/`, `front/`, `ir/`, `backends/`,
-`protocol/`, `catalog/`, `hosts/go/`, `reference/kettle/`, `dev/`); `umpire-lift` becomes
-`umpire-tla` and owns the subprocess supervision TLC and Apalache share; `umpire-annotations` merges
-into `umpire-catalog`; a new `umpire` facade gives Model authors one dependency; the Go module splits
-into `host`, `runner` and `gen`; `model/README.md` gains a crate map. The owner placed both tasks before fn-243 on 2026-10-24. The Go split (.2) is complete and committed with reviewed default-model, live slice/gaps and importer checks; the serialized Rust freeze (.1) is in progress. No behaviour change; goldens
-byte-identical except listed path-embedding snapshots; the guest is rebuilt.
+`protocol/`, `catalog/`, `hosts/go/`, `reference/kettle/`, `dev/`); `umpire-tla` owns the subprocess
+supervision TLC and Apalache share; `umpire-catalog` absorbs annotation metadata; a new `umpire`
+facade gives Model authors one dependency; the Go module splits into `host`, `runner` and `gen`;
+`model/README.md` gains a crate map. The owner placed both tasks before fn-243 on 2026-10-24. The Go
+split (.2) is complete and committed with reviewed default-model, live slice/gaps and importer
+checks; the serialized Rust freeze (.1) is in progress. No behaviour change; goldens byte-identical
+except listed path-embedding snapshots; the guest is rebuilt.
 [Spec](.flow/specs/fn-244-package-layout-of-modelumpire.md).
 
 | Name | Status | What |

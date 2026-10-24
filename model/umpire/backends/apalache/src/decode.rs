@@ -4,7 +4,10 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fmt,
 };
-use umpire_tlc::{Refusal, Schema, State, TraceState, Type, Value};
+use umpire_tla::{
+    Refusal,
+    values::{Schema, State, TraceState, Type, Value},
+};
 
 const BYTES: usize = 4 * 1024 * 1024;
 const ITEMS: usize = 100_000;

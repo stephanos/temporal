@@ -5,7 +5,7 @@ fn world() -> World { World::new(3) }
 
 fn bound_for(world: World) -> umpire_testing::Bound<World> { umpire_testing::bound(world, 64, None) }
 
-pub(crate) fn lifted(source: &std::path::Path) -> Result<umpire_lift::Module, String> {
+pub(crate) fn lifted(source: &std::path::Path) -> Result<umpire_tla::Module, String> {
     bound_for(world()).lift(source)
 }
 
@@ -349,8 +349,8 @@ fn actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model() ->
         assert_eq!(module.metadata.catalog[usize::try_from(ordinal)?].action, name);
         let native_fields: Vec<_> = fields.into_iter().map(|(name, value)| {
             let literal = match value {
-                umpire_dsl::Value::Int(value) => umpire_lift::Literal::Int(value),
-                umpire_dsl::Value::Bool(value) => umpire_lift::Literal::Bool(value),
+                umpire_dsl::Value::Int(value) => umpire_tla::Literal::Int(value),
+                umpire_dsl::Value::Bool(value) => umpire_tla::Literal::Bool(value),
                 other => panic!("unexpected activity action field: {other:?}"),
             };
             (name.into(), literal)

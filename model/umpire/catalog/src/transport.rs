@@ -1,8 +1,8 @@
 //! Typed annotation processing shared by service dispatchers.
 
 use crate::Inspect;
+use crate::{Expectation, Violation};
 use prost::Message;
-use umpire_annotations::{Expectation, Violation};
 use umpire_runtime::protocol::Refusal;
 
 /// Filled request bytes or untouched response bytes, with value-free findings.

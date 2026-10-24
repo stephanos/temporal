@@ -1,6 +1,6 @@
 //! The first real derive mirror retains the reviewed Start catalog.
 
-use umpire_annotations::validate;
+use umpire_catalog::validate;
 use umpire_temporal::{activity_api, foundation::dc};
 use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
@@ -13,10 +13,7 @@ fn start_mirror_retains_fields_reasons_limits_and_expected_errors()
     let ignored: Vec<_> = catalog
         .fields()
         .filter(|field| {
-            field
-                .tags
-                .iter()
-                .any(|(_, tag)| matches!(tag, umpire_annotations::Consequence::Ignored(_)))
+            field.tags.iter().any(|(_, tag)| matches!(tag, umpire_catalog::Consequence::Ignored(_)))
         })
         .collect();
     assert_eq!(ignored.len(), 7);

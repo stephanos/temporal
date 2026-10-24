@@ -1,5 +1,5 @@
 ---
-source: umpire/testing/src/runner.rs
+source: umpire/dev/testing/src/runner.rs
 extension: txt
 snapshot_kind: binary
 ---

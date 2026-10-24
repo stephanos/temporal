@@ -50,9 +50,7 @@ pub fn annotate(
                 crate::foundation::api::WorkerFailure::catalog(&limits).map_err(|_| {
                     Refusal::unsupported("activity annotation catalog admission failed")
                 })?;
-            result
-                .violations
-                .extend(findings(umpire_annotations::validate(&failure, &catalog), false));
+            result.violations.extend(findings(umpire_catalog::validate(&failure, &catalog), false));
         }
     }
     result.violations.sort();

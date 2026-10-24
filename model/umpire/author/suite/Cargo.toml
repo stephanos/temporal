@@ -1,0 +1,20 @@
+[package]
+name = "umpire-suite"
+description = "A Model's own tests: authored examples replayed through the Model"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+umpire-dsl.workspace = true
+umpire-checker.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+umpire.workspace = true
+umpire-testing.workspace = true

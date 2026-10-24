@@ -27,7 +27,7 @@ func TestProposalWireContract(t *testing.T) {
 		"refusal_quiescent":   &modelv1.Response{Outcome: &modelv1.Response_Refusal{Refusal: &modelv1.Refusal{Code: modelv1.RefusalCode_REFUSAL_CODE_QUIESCENT, Message: "x"}}},
 	}
 	wants["judge_poll_go"] = wants["judge_poll"]
-	data, err := os.ReadFile("../../../proto/tests/proposal-wire.txt")
+	data, err := os.ReadFile("../../../protocol/proto/tests/proposal-wire.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

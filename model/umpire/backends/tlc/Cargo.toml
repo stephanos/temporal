@@ -12,7 +12,7 @@ workspace = true
 
 [dependencies]
 thiserror.workspace = true
-umpire-lift.workspace = true
+umpire-tla.workspace = true
 
 [dev-dependencies]
 umpire-dsl.workspace = true

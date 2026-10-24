@@ -32,7 +32,13 @@ are relative to the new Umpire repository.
 
 | Source | Destination and treatment |
 | --- | --- |
-| `model/umpire/{dsl,checker,testing,fixtures,runtime,proto}/` | Same directories at repository root; preserve complete fixture groups |
+| `model/umpire/author/` | `author/`, preserving the facade, DSL/macros and suite crates |
+| `model/umpire/front/`, `model/umpire/ir/` | `front/`, `ir/`, including nested derives |
+| `model/umpire/backends/` | `backends/`, preserving native, TLA+, TLC and Apalache boundaries |
+| `model/umpire/protocol/` | `protocol/`, including schemas, runtime and stock/control guest sources |
+| `model/umpire/catalog/` | `catalog/`, including syntax, macros and build support |
+| `model/umpire/dev/` | `dev/`, preserving testing tools and complete shared fixture groups |
+| `model/umpire/reference/kettle/` | `reference/kettle/`, preserving Rust reference/guest and its separate Go module |
 | `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
 | `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files containing only generic members/dependencies; remove their `umpire/` prefix and retain a separate Temporal consumer workspace |
 | `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
@@ -73,7 +79,8 @@ that development property; extraction and publication have not run.
 
 Rust consumers use Cargo `path` dependencies pointing to the exact Umpire crate
 directories. For example, from a consumer manifest at `temporal/model/Cargo.toml`,
-`umpire-dsl` resolves through `../../umpire/dsl`; compute paths from each actual
+`umpire` resolves through `../../umpire/author/umpire`; direct `umpire-dsl` consumers use
+`../../umpire/author/dsl`. Compute paths from each actual
 manifest, not from the shell's working directory. Share these declarations through
 the consumer workspace where appropriate. Keep transitive Umpire crates on the same
 local checkout, including the proc-macro crate. Do not introduce git dependencies or
@@ -137,9 +144,12 @@ retain pre-move history; unrelated Temporal/Scala content is absent from the exp
 ### 3. Make the workspace self-contained
 
 Apply the destination map. Rebase workspace member/dependency paths, scripts and
-Cargo aliases on the new root. Preserve sibling-relative discovery imports in
-`dsl/build.rs`, `checker/build.rs` and `tests/build.rs`, the wasm fixture inclusion,
-and the schema path used by `wasm/build.rs`.
+Cargo aliases on the new root. Preserve discovery imports from `dev/testing` in
+`author/dsl/build.rs`, `backends/native/build.rs` and `dev/fixtures/build.rs`,
+the stock guest's reference-fixture inclusion, and the schema paths used by
+`protocol/runtime/build.rs`. Keep catalog build/syntax/macros nested under `catalog`,
+and shared backend supervision and typed value admission in `backends/tla`; the
+Apalache adapter remains independent of the TLC adapter.
 
 Extract only the Rust gate recipes, exposing `make check`, `make fmt`, `make update`
 and `make time` at the new root. Carry every current check, not just Cargo tests:
@@ -230,9 +240,9 @@ separate completion claims from preparing this plan.
 
 ## Pattern Survey
 
-Recorded on 2026-10-18 before fn-210.17 moved the host. Paths and line references
-below retain that survey's historical source evidence; current host paths are in
-the source and destination map above.
+The original survey was recorded on 2026-10-18 before fn-210.17 moved the host.
+The references below name current utilities; historical migration evidence is retained
+in the linked Flow records and Git history.
 
 ### Analogous Features
 
@@ -242,21 +252,20 @@ the source and destination map above.
 
 ### Reusable Utilities
 
-- `Makefile:1424` — `model-check` combines timing and capability controls, protobuf freshness, formatting, linting, documentation, native tests, wasm builds and Go-host parity. Its commands depend on the surrounding Temporal repository layout.
-- `model/scripts/proto-go.sh:3` — The generation/freshness helper resolves the workspace and parent repository, uses parent `.bin/protoc-gen-go-v1.36.6`, enforces protoc 29.5, and compares generated Go bytes.
-- `model/scripts/time-gate.sh:27` — The timing helper measures the actual parent-repository `model-check` target and the checker’s edit/test loop, with 3-second and 30-second budgets.
-- `model/umpire/testing/src/discovery.rs:10` — `discover` validates fixture inputs and expected directories, then sorts fixtures deterministically. `generate` at line 43 builds their runner.
-- `model/umpire/checker/build.rs:5` — Build scripts include the shared discovery source by relative path; the wasm build script separately compiles the sibling protocol (`model/umpire/runtime/build.rs:4`).
+- `Makefile` — `model-check` combines timing and capability controls, protobuf freshness, formatting, linting, documentation, native tests, wasm builds and Go-host parity. Its commands depend on the surrounding Temporal repository layout.
+- `model/scripts/proto-go.sh` — The generation/freshness helper resolves the workspace and parent repository, uses the pinned Go protobuf generator, enforces the protoc version and compares generated Go bytes.
+- `model/scripts/time-gate.sh` — The timing helper measures the actual parent-repository `model-check` target and the checker's edit/test loop, reporting the 10-second inner-loop and 60-second gate soft budgets.
+- `model/umpire/dev/testing/src/discovery.rs` — Fixture discovery validates inputs and expected directories, sorts fixtures deterministically and generates their runner.
+- `model/umpire/backends/native/build.rs` — Build scripts reuse shared discovery; `model/umpire/protocol/runtime/build.rs` compiles the shared schemas.
 
 ### Convention Anchors
 
-- Workspace ownership: `model/Cargo.toml:5` defines six members beneath `umpire/`; shared package metadata, dependencies and lint policies live above that subtree. `model/README.md:20` also identifies external formatting, Clippy, toolchain and dependency-policy files.
-- Tool provisioning: `mise.toml:3` pins protoc and line 6 pins Rust. `Makefile:306` provisions the Go protobuf generator, while `Makefile:1436` supplies the wasm artifact and disables CGO for host tests.
-- Fixture ownership: `model/README.md:77` assigns shared Models to `umpire/fixtures`, checker-specific fixtures to the checker, and spelling fixtures to the DSL.
-- Golden integrity: `model/README.md` defines each expected output as snapshot metadata and its payload. Go parity tests read the payloads directly; there are no fixture symlink aliases.
-- Host coupling: `model/hosts/go/host_test.go:578` defaults to `../../target`; lines 604 and 621 read `../../umpire/fixtures` goldens. Moving the host changes these relative relationships.
-- Go identity: `model/hosts/go/go.mod:1`, `model/umpire/proto/umpire/oracle/v1/oracle.proto:4` and `model/hosts/go/host.go:14` share `umpire.local/oracle`; generated descriptors and imports therefore participate in any module-path change.
-- Archive boundary: `model/README.md:7` explicitly freezes Scala and excludes it from the Rust workspace and gate.
+- Workspace ownership: `model/Cargo.toml` declares generic crates beneath `umpire/` and the Temporal extension beneath `temporal/`, with shared package metadata, dependencies and lint policies. The crate map in `model/README.md` describes each role.
+- Tool provisioning: `mise.toml` pins protoc and Rust; the Makefile provisions the Go protobuf generator, builds guests and disables CGO for host parity tests.
+- Fixture ownership: shared Models live in `umpire/dev/fixtures`, checker-specific fixtures with the native checker and spelling fixtures with the DSL. Preserve snapshot metadata and payloads separately; Go parity tests read the payloads directly.
+- Host coupling: the three Go modules under `model/umpire/hosts/go`, `model/umpire/reference/kettle` and `model/temporal/hosts/go` use local replacement paths. Host tests reference guest artifacts and source-owned goldens; preserve those relationships during extraction.
+- Protocol identity: shared schemas live under `model/umpire/protocol/proto`; generated packages live under `hosts/go/gen`. Module/import and `go_package` changes must stay in step without changing protobuf wire identities.
+- Archive boundary: `model/archived` is frozen and excluded from the Rust workspace and gate.
 
 ### Proposed Alignment
 

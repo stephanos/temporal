@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use umpire_lift::{Module, Type as LiftType};
+use umpire_tla::{Module, Type as LiftType};
 
 use crate::{Refusal, Schema, Type, runner::split_cfg};
 

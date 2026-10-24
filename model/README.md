@@ -16,6 +16,50 @@ mise exec -- cargo build --workspace
 mise exec -- cargo test --workspace
 ```
 
+## Crate map
+
+Paths below are relative to `model/umpire/`. Role directories group crates; each crate's
+proc macros, syntax, build support and derives live beneath that crate.
+
+| Path | Crate | Job | Used by Model authors |
+| --- | --- | --- | --- |
+| `author/umpire` | `umpire` | Author facade for DSL declarations, suite questions and catalog derives. | Yes; shared fixtures use it. |
+| `author/dsl` | `umpire-dsl` | Model, World, action, claim and path contracts. | Yes; available directly. |
+| `author/dsl/macros` | `umpire-dsl-macros` | Generate declarations from the shared front end. | Through the DSL or facade. |
+| `author/suite` | `umpire-suite` | Authored runs, searches, coverage and verification. | Through the facade or directly. |
+| `front` | `umpire-front` | Read declarations and admit typed Model bodies once. | No; compiler support. |
+| `ir` | `umpire-ir` | Admitted typed tree, expressions and embedded values. | No; compiler/checker interface. |
+| `ir/derive` | `umpire-ir-derive` | Generate embedded tree construction. | No; IR implementation. |
+| `backends/native` | `umpire-checker` | Explore and check Models natively. | Through the suite; direct engine use is available. |
+| `backends/tla` | `umpire-tla` | Bind and emit TLA+, supervise backend processes and admit shared typed values. | No; backend support. |
+| `backends/tlc` | `umpire-tlc` | Execute TLC and decode complete state sets and counterexamples. | No; backend adapter. |
+| `backends/apalache` | `umpire-apalache` | Execute bounded safety checks and confirm traces by native replay. | No; optional backend adapter. |
+| `protocol/proto` | — | Shared protobuf schemas and ABI contract. | For host/realization integration. |
+| `protocol/runtime` | `umpire-runtime` | Protocol messages, transactional dispatch and core-wasm ABI. | For guest/realization integration. |
+| `protocol/runtime/guests/stock` | `umpire-stock-guest` | Stock independent checker guest. | No; ABI/parity control. |
+| `protocol/runtime/guests/control` | `umpire-control-guest` | Stateful dispatch and transaction controls. | No; ABI control. |
+| `protocol/runtime/guests/caught-panic` | `umpire-caught-panic-guest` | Native/wasm caught-panic comparison. | No; fault control. |
+| `protocol/runtime/guests/overflow` | `umpire-overflow-guest` | Checked-arithmetic failure control. | No; fault control. |
+| `catalog` | `umpire-catalog` | Typed field catalogs, validation, generation, gaps, inspection and derives. | Through the facade or directly. |
+| `catalog/syntax` | `umpire-catalog-syntax` | Admit catalog declarations and descriptor coverage. | No; catalog compiler support. |
+| `catalog/macros` | `umpire-catalog-macros` | Generate exhaustive catalogs and inspection. | Through catalog or facade. |
+| `catalog/build` | `umpire-catalog-build` | Generate descriptor-checked API dispatch and wire mutations. | In API consumers' build scripts. |
+| `dev/testing` | `umpire-testing` | Discover fixtures and compare deterministic golden outputs. | For fixture harnesses. |
+| `dev/fixtures` | `umpire-fixtures` | Shared end-to-end Models, authored tests and goldens. | Reference examples and regression inputs. |
+| `reference/kettle` | `umpire-reference-kettle` | Independent reference Model and realization, with its own Go server/tests. | Reference integration example. |
+| `reference/kettle/guest` | `umpire-kettle-guest` | Kettle realization over the shared ABI. | Reference guest example. |
+
+The `umpire` facade exports DSL and suite items at its root, including `machine`, `Action`,
+`State`, `World`, `path`, `Space`, `Run` and `verify_all`, plus `Catalog` and `annotate`.
+The same surfaces are available as `umpire::{dsl, suite, catalog}`. It reduces author
+dependencies while the underlying crates remain independently usable. Backend adapters share
+supervision and typed assignments through `umpire-tla`;
+`umpire-apalache` has no dependency on `umpire-tlc`. Apalache remains opt-in with
+`UMPIRE_APALACHE=require`; the required TLC gate uses `UMPIRE_BACKENDS=require`.
+`author/umpire/tests/consumer` proves authoring with one renamed facade dependency.
+`protocol/runtime/guests` contains stock/control guest packages; `reference/kettle/guest`
+contains the reference guest. The Temporal guest and extension remain under `model/temporal/`.
+
 ## Hygiene
 
 One lint policy for all crates lives in the workspace `Cargo.toml` (`[workspace.lints]`: clippy
@@ -37,8 +81,8 @@ make model-time    # time the actual gate; note overruns of 10 s inner-loop / 60
 
 The gate rejects retired crate names in active files, preserving archived source and historical
 evidence. It also checks resolved core capability restrictions and their negative controls,
-the generic source boundary, both protobuf modules' freshness, the wasm32-wasip1 core
-and guest builds, committed Temporal guest freshness, and CGO-disabled Go host parity for both modules.
+the generic source boundary, all three protobuf modules' freshness, the wasm32-wasip1 core
+and guest builds, committed Temporal guest freshness, and CGO-disabled Go host parity for all three modules.
 It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
 target on first use; warm runs need no network. Rust generation uses prost-build and
 the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, run
@@ -92,7 +136,7 @@ Umpire ships no prebuilt stock/control guests. See [GUEST_BUILDS.md](GUEST_BUILD
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`; see
-`umpire/proto/README.md` for ownership and refusal contracts, and `umpire/hosts/go/README.md`
+`umpire/protocol/proto/README.md` for ownership and refusal contracts, and `umpire/hosts/go/README.md`
 for reproduction and measurements. Rust exports these functions directly with the stock
 linker. Go checks the built module's exact application exports and signatures, including
 negative controls for missing, unexpected and mis-typed exports.
@@ -101,13 +145,15 @@ exceptions only on the three named export attributes. DSL/checker retain `forbid
 
 From inside `model/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
 `model-time` measures the actual `make model-check`, including every current gate step. Its inner
-loop defaults to touching `umpire/checker/src/lib.rs` and testing `umpire-checker`; select another
+loop defaults to touching `umpire/backends/native/src/lib.rs` and testing `umpire-checker`; select another
 crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model/`). Timed
 command failures fail the helper; exceeding a time budget prints a warning and succeeds.
 
 ## Catalog tooling
 
-`umpire-catalog` owns inspection, identifier fill, semantic views and `derive(Catalog)`.
+`umpire-catalog` owns typed field catalogs, validation, generation, gap reports, inspection,
+identifier fill, semantic views and `derive(Catalog)`. The struct `Catalog<M>` and the
+`Catalog` derive occupy Rust's separate type and macro namespaces.
 Mirror items select their generated API root and limit context with
 `#[mirror(api = crate::api, context = crate::Limits, request = "example.v1.Request")]`;
 without overrides the defaults are `crate` and `crate::CatalogContext`. Explicit `type`
@@ -266,7 +312,7 @@ fn selected_world() -> umpire_testing::TestResult {
 }
 ```
 
-This exact block compiles as [the DSL README fixture](umpire/dsl/tests/readme/parameterized.rs),
+This exact block compiles as [the DSL README fixture](umpire/author/dsl/tests/readme/parameterized.rs),
 checked against the README by `mise exec -- cargo test -p umpire-dsl --test readme` from
 `model/`. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
@@ -446,7 +492,7 @@ Generic Any helpers derive canonical type URLs from generated `prost::Name`; onl
 Describe and cancel RPC method paths are realization constants. The policy parser and reply constructor
 keep the remaining realization specific to Temporal.
 
-The shared envelopes live under `umpire/proto`, in `umpire.realization.v1`: Observation carries a method,
+The shared envelopes live under `umpire/protocol/proto`, in `umpire.realization.v1`: Observation carries a method,
 a response Any or error, and an optional actual-request Any at tag 4, Callback a task Any,
 and Reply a request Any. Error retains the same code/message fields. The enclosing Any
 type URLs migrate to the shared package; protobuf payload encodings and tags remain fixed.
@@ -529,7 +575,7 @@ domains and `&World` parameters, and `path.rs` the `path!` language. The macros 
 errors. `shape.rs` takes the same declarations and admits the subset, delegating each body to
 `body/` with a typed environment; these refusals are soft, since the Model still checks natively.
 Body lowering reads no module items; `tree.rs` holds the admitted tree and `expr.rs` its typed
-expressions. Its `Diagnostic` carries line, column and message; `umpire-lift` reads the source
+expressions. Its `Diagnostic` carries line, column and message; `umpire-tla` reads the source
 files for hook claims and refusal locations, names the file in each refusal, gives the embedded tree its TLA+ names
 (`names.rs`), binds the selected World (`bind.rs`) and emits TLA+.
 
@@ -539,7 +585,7 @@ produces (`model.rs`, `tests.rs` and `expected/`). "Fixture", not
 
 - behaviour: each fixture's `expected/report.snap.txt`, `states.snap.txt`, `rows.snap.txt` and `paths/<claim>.snap.txt`
   (`insta`; review with `cargo insta review`);
-- refusals: `trybuild` `.rs` + `.stderr` under `umpire/dsl/tests/ui/`;
+- refusals: `trybuild` `.rs` + `.stderr` under `umpire/author/dsl/tests/ui/`;
 - expansion: insta snapshots of each macro's implementation function, formatted by
   `prettyplease`;
 - one property test against a brute-force reference explorer, the check that goldens are right
@@ -549,7 +595,7 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 shared fixture folder without `model.rs`, `tests.rs` or `expected/` fails the build naming it. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-fixtures` at `umpire/fixtures/` owns 12 shared fixtures in `fixtures/<name>/`, all
+`umpire-fixtures` at `umpire/dev/fixtures/` owns 12 shared fixtures in `fixtures/<name>/`, all
 `#[machine]` Models or adapters of one. `sample_kettle` is the canonical authoring example;
 focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
@@ -562,7 +608,7 @@ Folder names that are not plain lowercase identifiers compile under an escaped `
 The lifter reads a hook's supplemental claims from `tests.rs`.
 The attribute Kettle lives in its fixture's `model.rs`; native and wasm hosts can include
 that source by path. Checker-specific failures, panics, overflows, holes, budget cuts and
-refusals remain in `umpire/checker/tests/fixtures/`, together with the manual-trait Models the
+refusals remain in `umpire/backends/native/tests/fixtures/`, together with the manual-trait Models the
 attribute surface cannot state (DESIGN.md lists each with its gap). Among them,
 `sample_kettle_trait` is the independent manual-trait engine reference: its Model is
 `kettle.rs`, which the stock wasm guest includes, and its report, states and rows goldens are
@@ -570,7 +616,7 @@ the Go host's expected payloads. DSL formatting fixtures remain with the DSL.
 The historical authoring sketches have been retired after preserving their comparison in
 [DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
-`umpire-suite` at `umpire/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
+`umpire-suite` at `umpire/author/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
 an authored path: `Run::from(state)`, `.step(action)`, `.repeat(n, action)` and `.state()` replay it
 through `Machine::checked_step`, and `Run::along(path![state, .., |s| ..])` fills in the gaps with
 the shortest path through every waypoint, retaining exact explored rows. A disabled action, one emitting several
@@ -594,7 +640,7 @@ paths. Pattern progress spends no Model-state budget, even when a witness revisi
 A cut graph can answer only when its unexplored frontier cannot hide a shorter witness; a bounded
 pattern anchored at one concrete state can also settle absence before that frontier.
 The refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures
-in `umpire/suite/tests/fixtures/`.
+in `umpire/author/suite/tests/fixtures/`.
 
 ### Test-space patterns
 
@@ -709,7 +755,7 @@ To write a Model's tests, add `mod examples` and `mod explorations` to its `test
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
 fails the test with its message; `cargo test` and the gate run them, nothing registers them
 (`umpire-suite` is a dev-dependency of the crate that compiles the fixture). Kettle's
-`umpire/fixtures/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
+`umpire/dev/fixtures/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
 `Kettle.test.scala` that the surface admits (the press/heat/depress table from the coldest and room
 starts, the 99-to-100 boundary and the `>=` failover guard refuting `fails_over_at_boiling` at 101,
 the 81 steps from switching on to the beep, every start from -40 to 40, `never_beeps` refuted by a
@@ -737,7 +783,7 @@ surface does not admit, and why:
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must
 contain `model.rs`, `expected/`, and at least one consumer-owned expected file; shared fixture
-roots (`umpire/fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
+roots (`umpire/dev/fixtures/fixtures/`, `temporal/feature/`) also require `tests.rs`, while synthetic
 control roots keep the hook in `model.rs`. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.

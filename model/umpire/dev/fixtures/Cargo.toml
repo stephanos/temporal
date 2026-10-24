@@ -1,0 +1,29 @@
+[package]
+name = "umpire-fixtures"
+description = "Shared end-to-end Umpire Model fixtures"
+version.workspace = true
+edition.workspace = true
+publish = false
+license.workspace = true
+rust-version.workspace = true
+autotests = false
+
+[[test]]
+name = "fixtures"
+path = "fixtures.rs"
+
+[[test]]
+name = "interpreted"
+path = "interpreted.rs"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+umpire.workspace = true
+umpire-checker.workspace = true
+umpire-testing.workspace = true
+umpire-tla.workspace = true
+umpire-tlc.workspace = true
+imbl.workspace = true
+

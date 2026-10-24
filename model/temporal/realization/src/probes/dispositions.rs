@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use umpire_annotations::{AcceptedGap, GapEntry, GapOutcome, ProbeResult};
+use umpire_catalog::{AcceptedGap, GapEntry, GapOutcome, ProbeResult};
 
 #[path = "../../../feature/activity/probe_gaps.rs"]
 mod known;

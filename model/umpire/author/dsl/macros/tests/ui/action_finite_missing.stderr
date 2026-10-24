@@ -1,0 +1,17 @@
+error[E0277]: `Opaque` has no finite action-input domain
+ --> tests/ui/action_finite_missing.rs:8:9
+  |
+8 |     Set(Opaque),
+  |         ^^^^^^ not `Finite`
+  |
+help: the trait `Finite` is not implemented for `Opaque`
+ --> tests/ui/action_finite_missing.rs:4:1
+  |
+4 | struct Opaque;
+  | ^^^^^^^^^^^^^
+  = note: derive `Finite`, or give the field `#[inputs(..)]` or a World-bound `#[domain(path)]`
+help: the trait `Finite` is implemented for `bool`
+ --> $WORKSPACE/umpire/author/dsl/src/finite.rs
+  |
+  | impl Finite for bool {
+  | ^^^^^^^^^^^^^^^^^^^^

@@ -11,7 +11,7 @@ use crate::activity_api::{
 };
 use prost::Message;
 use std::{collections::BTreeSet, sync::OnceLock};
-use umpire_annotations::{
+use umpire_catalog::{
     Catalog, Expectation, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation,
     validate,
 };
@@ -219,10 +219,7 @@ fn verify_inventory(entries: &[Entry]) -> Result<()> {
     let mut declared = catalog::expected_probe_cases(&Limits::default())?;
     declared.extend(worker_failure_presence(&Limits::default())?.probe_cases());
     let registered: BTreeSet<_> = entries.iter().map(|entry| entry.target.id.clone()).collect();
-    umpire_annotations::verify_probe_coverage(
-        &declared,
-        &registered.into_iter().collect::<Vec<_>>(),
-    )?;
+    umpire_catalog::verify_probe_coverage(&declared, &registered.into_iter().collect::<Vec<_>>())?;
     Ok(())
 }
 

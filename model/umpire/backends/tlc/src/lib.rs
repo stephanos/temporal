@@ -2,23 +2,11 @@
 
 mod decode;
 mod module;
-#[doc(hidden)]
-pub mod process;
 mod runner;
 
 pub use decode::*;
 pub use runner::*;
-
-/// A backend admission, execution or decoding failure; never a property verdict.
-#[derive(Debug, thiserror::Error)]
-#[error("TLC refusal: {0}")]
-pub struct Refusal(pub String);
-
-impl From<std::io::Error> for Refusal {
-    fn from(error: std::io::Error) -> Self {
-        Self(error.to_string())
-    }
-}
+pub use umpire_tla::{Limits, Refusal, values::*};
 
 /// TLC's own evaluation of the emitted module failed, such as an integer overflow past TLC's
 /// 32-bit integers or a failed `Assert`: a located finding, never a property verdict.

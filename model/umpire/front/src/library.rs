@@ -1,8 +1,8 @@
 //! Umpire library declarations that Models call, read from `umpire-dsl`'s own source, so their
 //! lowered meaning is the authored one; nothing is recognized by its name alone.
 
-const CLOSABLE: &str = include_str!("../../dsl/src/closable.rs");
-const PHASED: &str = include_str!("../../dsl/src/phased.rs");
+const CLOSABLE: &str = include_str!("../../author/dsl/src/closable.rs");
+const PHASED: &str = include_str!("../../author/dsl/src/phased.rs");
 
 /// The public function `name` of `umpire_dsl::closable`.
 pub(crate) fn law(name: &str) -> Option<syn::ItemFn> {

@@ -25,7 +25,7 @@ elif [ "$#" -ne 0 ]; then
   exit 1
 fi
 mise exec -- protoc --plugin="protoc-gen-go=$plugin" --plugin="protoc-gen-go-grpc=$grpc_plugin" \
-  --proto_path=umpire/reference/kettle/proto --proto_path=umpire/proto --go_out="$output" --go_opt=paths=source_relative \
+  --proto_path=umpire/reference/kettle/proto --proto_path=umpire/protocol/proto --go_out="$output" --go_opt=paths=source_relative \
   --go-grpc_out="$output" --go-grpc_opt=paths=source_relative \
   umpire/reference/kettle/proto/kettle/v1/kettle.proto \
   umpire/reference/kettle/proto/kettle/v1/probe.proto

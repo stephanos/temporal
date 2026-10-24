@@ -55,9 +55,7 @@ pub(crate) fn parse(
         checks: std::cell::RefCell::default(),
         dsl: imports(items)
             .into_iter()
-            .filter_map(|(_, name, path)| {
-                Some((name, path.strip_prefix("umpire_dsl::")?.to_owned()))
-            })
+            .filter_map(|(_, name, path)| Some((name, crate::syntax::dsl_path(&path)?.to_owned())))
             .collect(),
     };
     for item in items {
@@ -487,10 +485,9 @@ const READ_BY_NAME: [&str; 6] = ["check", "stay", "reject", "unknown", "path", "
 fn admit_imports(items: &[Item]) -> Result<bool> {
     let mut vector = false;
     for (item, name, path) in imports(items) {
-        let umpire = path == format!("umpire_dsl::{name}") && name != "matches";
-        if (name == "*" && path != "umpire_dsl::*")
-            || (READ_BY_NAME.contains(&name.as_str()) && !umpire)
-        {
+        let dsl = crate::syntax::dsl_path(&path);
+        let umpire = dsl == Some(name.as_str()) && name != "matches";
+        if (name == "*" && dsl != Some("*")) || (READ_BY_NAME.contains(&name.as_str()) && !umpire) {
             return Err(Diagnostic::at(
                 item,
                 format!("`use {path}` can rebind a macro the subset reads as Umpire's"),
@@ -499,4 +496,48 @@ fn admit_imports(items: &[Item]) -> Result<bool> {
         vector |= name == "Vector" && path == "imbl::Vector";
     }
     Ok(vector)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn facade_roots_preserve_admission_and_library_paths() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let source = r"
+#[machine]
+mod counter {
+    use ROOT::{Action, State, check};
+    #[derive(State)]
+    struct Model { value: u8 }
+    #[derive(Action, Copy)]
+    enum User { Step }
+    impl Model {
+        #[on(User)]
+        fn user(&mut self, action: User) {
+            match action {
+                User::Step if self.value < 2 => self.value += 1,
+                _ => {}
+            }
+        }
+        #[invariant]
+        fn bounded(&self) { check!(self.value <= 2); }
+    }
+}
+";
+        let mut canonical = None;
+        for root in ["umpire_dsl", "umpire::dsl", "umpire"] {
+            let ast = syn::parse_file(&source.replace("ROOT", root))?;
+            let (model, _, _) = crate::read(&ast, &[]).map_err(|error| format!("{error:?}"))?;
+            let printed = format!("{model:?}");
+            if let Some(expected) = &canonical {
+                assert_eq!(&printed, expected);
+            } else {
+                canonical = Some(printed);
+            }
+            let environment = crate::body::Environment::of(&model);
+            let path = syn::parse_str(&format!("{root}::closable::terminal_remains"))?;
+            assert_eq!(environment.dsl_path(&path).as_deref(), Some("closable::terminal_remains"));
+        }
+        Ok(())
+    }
 }

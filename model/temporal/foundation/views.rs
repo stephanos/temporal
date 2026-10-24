@@ -1,6 +1,6 @@
 //! Conditional projections whose semantics depend on sibling fields.
 
-use umpire_annotations::{Duration, GenerationError};
+use umpire_catalog::{Duration, GenerationError};
 use umpire_temporal_annotate::{View, kinds};
 use umpire_temporal_api::temporal::api::{
     common::v1::RetryPolicy, failure::v1::ActivityFailureInfo,

@@ -32,7 +32,7 @@ if [ "${1:-}" = --step ]; then
 fi
 
 inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
-inner_file=${UMPIRE_INNER_SOURCE:-umpire/checker/src/lib.rs}
+inner_file=${UMPIRE_INNER_SOURCE:-umpire/backends/native/src/lib.rs}
 printf '%-32s %7s\n' "step (warm)" "time"
 printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check\n'
 gate_log=$(mktemp)
