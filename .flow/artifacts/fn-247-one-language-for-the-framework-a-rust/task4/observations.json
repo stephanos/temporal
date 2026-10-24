@@ -1,0 +1,79 @@
+{
+  "base_commit": "60c65fcb2922e953a558541343c65a4998519e2f",
+  "external_metadata_commit": "2c9a6959086b4ac4ce736fe3d14f276705bff6ab",
+  "baseline": "green: 8 Rust process tests, 6 Python controls, scoped Clippy before edits",
+  "final_commands": [
+    {
+      "command": "cd model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-final-target mise exec -- cargo test -p umpire-backend-process --locked",
+      "exit": 0,
+      "tests_passed": 22,
+      "log": "focused-test.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo clippy -p umpire-backend-process --all-targets -- -D warnings",
+      "exit": 0,
+      "tests_passed": null,
+      "log": "clippy.log"
+    },
+    {
+      "command": "cd model && mise exec -- cargo test -p umpire-tlc -p umpire-apalache --lib --locked",
+      "exit": 0,
+      "tests_passed": 21,
+      "log": "backend-unit.log"
+    },
+    {
+      "command": "cd model && UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-tlc --test controls real_tlc_initial_invariant_has_a_typed_counterexample --locked -- --exact",
+      "exit": 0,
+      "tests_passed": 1,
+      "log": "real-tlc.log"
+    },
+    {
+      "command": "cd model && UMPIRE_APALACHE=require mise exec -- cargo test -p umpire-apalache --test controls real_evaluated_start_failure_cannot_disappear_into_an_empty_range --locked -- --exact",
+      "exit": 0,
+      "tests_passed": 1,
+      "log": "real-apalache.log"
+    },
+    {
+      "command": "BASH_ENV=/dev/null bash .flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task4/run-cold-consumer.sh",
+      "exit": 0,
+      "tests_passed": null,
+      "log": "cold-consumer.log"
+    },
+    {
+      "command": "BASH_ENV=/dev/null bash .flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task4/run-corpus.sh",
+      "exit": 0,
+      "tests_passed": null,
+      "log": "corpus.log"
+    }
+  ],
+  "final_test_identities": 45,
+  "old_control_counterparts": 14,
+  "process_tests": 22,
+  "linux_allocator_stress": {
+    "allocator_threads": 4,
+    "run_threads": 4,
+    "supervised_execs": 48,
+    "concurrent_std_process_spawn_thread": 1
+  },
+  "native_platform": "Linux aarch64 glibc 2.43 uid/euid1000",
+  "native_darwin": "unavailable; no SDK link or native execution claim",
+  "source_hashes": {
+    "model/umpire/backends/process/tests/process.rs": "a1914a3d92093adc1d703e4384b6adf800e7a3fea9f6dfc898374dafdc037678",
+    "model/umpire/backends/process/src/tests.rs": "b047a8f6b58b31abf17b9b8c8d2c6b612252cf856ab59c8419d6e7b4162084a9",
+    "model/umpire/backends/process/src/support.rs": "58126a8582f9e713f4ab1b69795b12f0438d0a0de81f49a626121513306ad189",
+    "model/umpire/backends/process/src/lib.rs": "08d4412f777c7872fd50874ca53198a8f6691ccd76eee3b08755493207939d4b",
+    "model/umpire/backends/process/src/syscall.rs": "5cd45c0b36476a0eb529bb2ccab7f9e5e2a4ac3dfaec6cba4c89b74cb664132c",
+    "model/umpire/backends/process/src/syscall/calls.rs": "5d1b254d45f55cb16d465f8b3fe06890b482493e34377ada81d5157bd57a7bef",
+    "model/umpire/backends/process/tests/fixtures/process_fixture.rs": "86cf0883273397351c88be4cd52372b2100d52073178c6dcbf4253edb3d9f4f2"
+  },
+  "failed_observations": [
+    "cold baseline direct consumer runtime exit1 ENOENT (expected missing feature)",
+    "first-fork libc mutant named atfork regression exit101, child99 (expected red)",
+    "target-fork libc mutant named atfork regression exit101, child99 (expected red)",
+    "initial rawfork cold suite deadlocked in inherited glibc abortlock; task-owned supervisors killed to release command; observed exit101, retained focused-deadlock.log",
+    "intermediate Clippy exits101 retained; resolved without broad lint relaxation",
+    "initial cargo fmt exited1 for fixture-relative calls module path; explicit path fixed",
+    "supplemental source fetch HTTP429/curl22 retained in wrapper-audit/extra-probe.log; later exact API/source fetches succeeded"
+  ],
+  "scope": "No full Model gate here; final task3 retains one combined required backend pipeline. No source/Model/guest/golden meaning or bytes changed outside canonical process scope."
+}

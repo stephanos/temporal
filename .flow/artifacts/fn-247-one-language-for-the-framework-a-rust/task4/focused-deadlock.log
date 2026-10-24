@@ -1,0 +1,92 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.191
+   Compiling thiserror v2.0.21
+   Compiling syn v3.0.9
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.47s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-focused-target/debug/deps/umpire_backend_process-e7d9c6953b360575)
+
+running 5 tests
+test support::tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test syscall::tests::all_darwin_helpers_prevent_process_creation ... ok
+test syscall::supported::tests::supervisor_retains_first_stop_signal ... ok
+test syscall::tests::unsupported_platform_is_an_explicit_refusal ... ok
+test syscall::supported::tests::supervisor_owner_eof_returns_125 ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/process.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2474-focused-target/debug/deps/process-269b1cf996e603c2)
+
+running 17 tests
+test cold_native_execution_does_not_need_python_or_a_sibling_supervisor ... ok
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... ok
+test simulated_darwin_helper_cannot_start_an_escaped_descendant ... ok
+test substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test substituted_log_symlink_cannot_modify_an_external_file ... ok
+test bounded_reads_dump_and_scratch_fail_closed ... ok
+test timeout_cleans_descendants_before_return ... ok
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin has been running for over 60 seconds
+test diagnostic_text_cannot_make_a_hung_preflight_pass has been running for over 60 seconds
+test direct_helper_timeout_retains_output_and_cleans_scratch has been running for over 60 seconds
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 has been running for over 60 seconds
+test installer_containment_preflight_requires_no_descendants has been running for over 60 seconds
+test java_environment_is_clean_and_supervisor_group_is_private has been running for over 60 seconds
+test launch_status_and_prepared_command_contracts_are_preserved has been running for over 60 seconds
+test owner_death_terminates_and_reaps_separate_session_descendants has been running for over 60 seconds
+test owner_group_and_direct_supervisor_termination_reap_owned_tree has been running for over 60 seconds
+test parent_allocator_threads_do_not_deadlock_forked_supervisors has been running for over 60 seconds
+test cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... FAILED
+test java_environment_is_clean_and_supervisor_group_is_private ... FAILED
+test launch_status_and_prepared_command_contracts_are_preserved ... FAILED
+test owner_death_terminates_and_reaps_separate_session_descendants ... ok
+test parent_allocator_threads_do_not_deadlock_forked_supervisors ... FAILED
+test direct_helper_timeout_retains_output_and_cleans_scratch ... FAILED
+test failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... FAILED
+test installer_containment_preflight_requires_no_descendants ... ok
+test owner_group_and_direct_supervisor_termination_reap_owned_tree ... ok
+test diagnostic_text_cannot_make_a_hung_preflight_pass ... ok
+
+failures:
+
+---- cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin stdout ----
+Error: Refusal("No such file or directory (os error 2)")
+
+---- java_environment_is_clean_and_supervisor_group_is_private stdout ----
+Error: Refusal("subprocess limit or unsafe output (policy)")
+
+---- launch_status_and_prepared_command_contracts_are_preserved stdout ----
+Error: Refusal("subprocess limit or unsafe output (missing)")
+
+---- parent_allocator_threads_do_not_deadlock_forked_supervisors stdout ----
+Error: Refusal("subprocess limit or unsafe output (stress-0)")
+
+---- direct_helper_timeout_retains_output_and_cleans_scratch stdout ----
+
+thread 'direct_helper_timeout_retains_output_and_cleans_scratch' (518678) panicked at umpire/backends/process/tests/process.rs:91:5:
+assertion `left == right` failed
+  left: ""
+ right: "started\n"
+
+---- failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 stdout ----
+
+thread 'failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8' (518679) panicked at umpire/backends/process/tests/process.rs:216:9:
+assertion `left == right` failed
+  left: ""
+ right: "abcdef"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin
+    direct_helper_timeout_retains_output_and_cleans_scratch
+    failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8
+    java_environment_is_clean_and_supervisor_group_is_private
+    launch_status_and_prepared_command_contracts_are_preserved
+    parent_allocator_threads_do_not_deadlock_forked_supervisors
+
+test result: FAILED. 11 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 156.10s
+
+error: test failed, to rerun pass `-p umpire-backend-process --test process`

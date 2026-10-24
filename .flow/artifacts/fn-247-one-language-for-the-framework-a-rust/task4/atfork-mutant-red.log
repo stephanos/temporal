@@ -1,0 +1,23 @@
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running tests/process.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/process-269b1cf996e603c2)
+
+running 1 test
+
+thread 'pthread_atfork_handlers_do_not_run_in_supervisor_or_target' (516912) panicked at umpire/backends/process/tests/process.rs:493:5:
+
+thread 'main' (516913) panicked at umpire/backends/process/tests/fixtures/process_fixture.rs:121:17:
+pthread_atfork child handler ran: exit status: 99
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test pthread_atfork_handlers_do_not_run_in_supervisor_or_target ... FAILED
+
+failures:
+
+failures:
+    pthread_atfork_handlers_do_not_run_in_supervisor_or_target
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-backend-process --test process`

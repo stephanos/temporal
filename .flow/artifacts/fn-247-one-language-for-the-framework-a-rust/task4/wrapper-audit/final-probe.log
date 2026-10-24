@@ -1,0 +1,93 @@
+/tmp/fn2474-wrapper-audit/final-probe.py:24: SyntaxWarning: "\+" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\+"? A raw string is also an option.
+  ('apple-thread.c','osfmk/kern/thread.c','size \+= roundup\(uthread_size|ZC_SEQUESTER \| ZC_ZFREE_CLEARMEM|uthread_init\(parent_task'),
+/tmp/fn2474-wrapper-audit/final-probe.py:25: SyntaxWarning: "\(" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\("? A raw string is also an option.
+  ('apple-kern_fork.c','bsd/kern/kern_fork.c','^uthread_init\(|uth->uu_flag \|= UT_LP64|uth->uu_sigmask = uth_parent'),
+/tmp/fn2474-wrapper-audit/final-probe.py:26: SyntaxWarning: "\(" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\("? A raw string is also an option.
+  ('apple-kern_sig.c','bsd/kern/kern_sig.c','^__pthread_canceled\(|UT_CANCELDISABLE|case 2:'),
+/tmp/fn2474-wrapper-audit/final-probe.py:32: SyntaxWarning: "\(" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\("? A raw string is also an option.
+  command(['rg','-n','t->cancel_state =|_pthread_struct_init\(thread',str(root/'apple-pthread.c')])
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/linux-mipsn32.tbl.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/mips/kernel/syscalls/syscall_n32.tbl?ref=v6.12']
+command_rc=0
+Decoded API source: https://github.com/torvalds/linux/blob/v6.12/arch/mips/kernel/syscalls/syscall_n32.tbl blob_sha=953f5b7dc723f60254ed7e5b256d3b611ae7dd13
+COMMAND: ['rg', '-n', 'ppoll|clock_nanosleep|tv_sec|tv_nsec', '/tmp/fn2474-wrapper-audit/linux-mipsn32.tbl']
+239:228	n32	clock_nanosleep			sys_clock_nanosleep_time32
+276:265	n32	ppoll				compat_sys_ppoll_time32
+349:407	n32	clock_nanosleep_time64		sys_clock_nanosleep
+356:414	n32	ppoll_time64			compat_sys_ppoll_time64
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/linux-time_types.h.json', 'https://api.github.com/repos/torvalds/linux/contents/include/uapi/linux/time_types.h?ref=v6.12']
+command_rc=0
+Decoded API source: https://github.com/torvalds/linux/blob/v6.12/include/uapi/linux/time_types.h blob_sha=bcc0002115d3995c231dd47cb1dd9fb712079e53
+COMMAND: ['rg', '-n', 'ppoll|clock_nanosleep|tv_sec|tv_nsec', '/tmp/fn2474-wrapper-audit/linux-time_types.h']
+8:	__kernel_time64_t       tv_sec;                 /* seconds */
+9:	long long               tv_nsec;                /* nanoseconds */
+26:	__kernel_long_t tv_sec;
+32:	__kernel_old_time_t	tv_sec;		/* seconds */
+33:	long			tv_nsec;	/* nanoseconds */
+42:	__s64 tv_sec;
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/linux-x86.tbl.json', 'https://api.github.com/repos/torvalds/linux/contents/arch/x86/entry/syscalls/syscall_64.tbl?ref=v6.12']
+command_rc=0
+Decoded API source: https://github.com/torvalds/linux/blob/v6.12/arch/x86/entry/syscalls/syscall_64.tbl blob_sha=7093ee21c0d1c0410dbf17a77cb70a6bc6736f04
+COMMAND: ['rg', '-n', 'ppoll|clock_nanosleep|tv_sec|tv_nsec', '/tmp/fn2474-wrapper-audit/linux-x86.tbl']
+242:230	common	clock_nanosleep		sys_clock_nanosleep
+283:271	common	ppoll			sys_ppoll
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-kern_exec.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/kern/kern_exec.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'For execve case|CLONEPROC_EXEC|new_uthread->uu_sigmask', '/tmp/fn2474-wrapper-audit/apple-kern_exec.c']
+4183:		 * For execve case, create a new proc, task and thread
+4189:		imgp->ip_new_thread = cloneproc(old_task, NULL, p, CLONEPROC_EXEC);
+5180:		new_uthread->uu_sigmask = old_uthread->uu_sigmask;
+5427:		 * For execve case, create a new proc, task and thread
+5433:		imgp->ip_new_thread = cloneproc(old_task, NULL, p, CLONEPROC_EXEC);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-thread.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/osfmk/kern/thread.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'size \\+= roundup\\(uthread_size|ZC_SEQUESTER \\| ZC_ZFREE_CLEARMEM|uthread_init\\(parent_task', '/tmp/fn2474-wrapper-audit/apple-thread.c']
+259:	size += roundup(uthread_size, _Alignof(struct thread));
+262:	    ZC_SEQUESTER | ZC_ZFREE_CLEARMEM, ZONE_ID_THREAD, NULL);
+1358:	uthread_init(parent_task, get_bsdthread_info(new_thread),
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-kern_fork.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/kern/kern_fork.c']
+command_rc=0
+COMMAND: ['rg', '-n', '^uthread_init\\(|uth->uu_flag \\|= UT_LP64|uth->uu_sigmask = uth_parent', '/tmp/fn2474-wrapper-audit/apple-kern_fork.c']
+1298:uthread_init(task_t task, uthread_t uth, thread_ro_t tro_tpl, int workq_thread)
+1318:		uth->uu_flag |= UT_LP64;
+1363:			uth->uu_sigmask = uth_parent->uu_oldmask;
+1365:			uth->uu_sigmask = uth_parent->uu_sigmask;
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-kern_sig.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/kern/kern_sig.c']
+command_rc=0
+COMMAND: ['rg', '-n', '^__pthread_canceled\\(|UT_CANCELDISABLE|case 2:', '/tmp/fn2474-wrapper-audit/apple-kern_sig.c']
+907:	uth->uu_flag |= (UT_NO_SIGMASK | UT_CANCELDISABLE);
+923:	if ((uthread->uu_flag & (UT_CANCELDISABLE | UT_CANCEL | UT_CANCELED)) == UT_CANCEL) {
+955:		    && ((uth->uu_flag & UT_CANCELDISABLE) == 0)) {
+970:__pthread_canceled(__unused proc_t p,
+982:		uth->uu_flag &= ~UT_CANCELDISABLE;
+984:	case 2:
+985:		uth->uu_flag |= UT_CANCELDISABLE;
+989:		if ((uth->uu_flag & (UT_CANCELDISABLE | UT_CANCEL | UT_CANCELED)) == UT_CANCEL) {
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-zalloc.h', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/osfmk/kern/zalloc.h']
+command_rc=0
+COMMAND: ['rg', '-n', 'Force the created zone|ZC_ZFREE_CLEARMEM', '/tmp/fn2474-wrapper-audit/apple-zalloc.h']
+147:	/** Force the created zone to clear every allocation on free */
+148:	ZC_ZFREE_CLEARMEM       = 0x02000000,
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-resource.h', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/sys/resource.h']
+command_rc=0
+COMMAND: ['rg', '-n', 'RLIMIT_NPROC|RLIMIT_POSIX_FLAG', '/tmp/fn2474-wrapper-audit/apple-resource.h']
+513:#define RLIMIT_NPROC    7               /* number of processes */
+519:#define _RLIMIT_POSIX_FLAG      0x1000  /* Set bit for strict POSIX */
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-pthread.c', 'https://raw.githubusercontent.com/apple-oss-distributions/libpthread/42d026df5b07825070f60134b980a1ec2552dfee/src/pthread.c']
+command_rc=0
+COMMAND: ['rg', '-n', 't->cancel_state =|_pthread_struct_init\\(thread', '/tmp/fn2474-wrapper-audit/apple-pthread.c']
+956:	t->cancel_state = PTHREAD_CANCEL_ENABLE | PTHREAD_CANCEL_DEFERRED;
+2148:	_pthread_struct_init(thread, &_pthread_attr_default,
+command_rc=0
+COMMAND: ['rg', '-n', '__pthread_canceled', '/tmp/fn2474-wrapper-audit/apple-syscalls.master']
+504:333	AUE_NULL	ALL	{ int __pthread_canceled(int  action); }
+command_rc=0
+All observed fetch/inspection commands exited zero. Darwin conclusions remain source-only; no native/SDK link observation.

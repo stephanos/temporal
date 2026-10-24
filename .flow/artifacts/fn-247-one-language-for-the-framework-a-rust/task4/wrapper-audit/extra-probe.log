@@ -1,0 +1,51 @@
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/glibc-dlsym.c https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/dlfcn/dlsym.c
+command_rc=0
+COMMAND: rg -n lock\|unlock\|_dl_sym\|dlsym /tmp/fn2474-wrapper-audit/glibc-dlsym.c
+24:struct dlsym_args
+26:  /* The arguments to dlsym_doit.  */
+31:  /* The return value of dlsym_doit.  */
+36:dlsym_doit (void *a)
+38:  struct dlsym_args *args = (struct dlsym_args *) a;
+40:  args->sym = _dl_sym (args->handle, args->name, args->who);
+44:dlsym_implementation (void *handle, const char *name, void *dl_caller)
+46:  struct dlsym_args args;
+52:  __rtld_lock_lock_recursive (GL(dl_load_lock));
+54:  void *result = (_dlerror_run (dlsym_doit, &args) ? NULL : args.sym);
+56:  __rtld_lock_unlock_recursive (GL(dl_load_lock));
+63:___dlsym (void *handle, const char *name)
+66:    return GLRO (dl_dlfcn_hook)->dlsym (handle, name, RETURN_ADDRESS (0));
+68:    return dlsym_implementation (handle, name, RETURN_ADDRESS (0));
+70:versioned_symbol (libc, ___dlsym, dlsym, GLIBC_2_34);
+73:compat_symbol (libdl, ___dlsym, dlsym, GLIBC_2_0);
+79:__dlsym (void *handle, const char *name, void *dl_caller)
+81:  return dlsym_implementation (handle, name, dl_caller);
+85:___dlsym (void *handle, const char *name)
+87:  return __dlsym (handle, name, RETURN_ADDRESS (0));
+89:weak_alias (___dlsym, dlsym)
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/glibc-errno.h https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/include/errno.h
+command_rc=0
+COMMAND: rg -n errno\|tls_model /tmp/fn2474-wrapper-audit/glibc-errno.h
+2:#include <stdlib/errno.h>
+15:/* The dynamic linker uses its own private errno variable.
+16:   All access to errno inside the dynamic linker is serialized,
+19:#  undef  errno
+20:#  define errno rtld_errno
+21:extern int rtld_errno attribute_hidden;
+25:#  undef  errno
+27:#   define errno __libc_errno
+29:#   define errno errno		/* For #ifndef errno tests.  */
+31:extern __thread int errno attribute_tls_model_ie;
+35:# define __set_errno(val) (errno = (val))
+37:extern int *__errno_location (void) __THROW __attribute_const__
+42:libc_hidden_proto (__errno_location)
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/apple-resource.h https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/sys/resource.h
+command_rc=0
+COMMAND: rg -n RLIMIT_POSIX_FLAG\|RLIMIT_NPROC /tmp/fn2474-wrapper-audit/apple-resource.h
+513:#define RLIMIT_NPROC    7               /* number of processes */
+519:#define _RLIMIT_POSIX_FLAG      0x1000  /* Set bit for strict POSIX */
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-wrapper-audit/linux-mipsn32.tbl https://raw.githubusercontent.com/torvalds/linux/v6.12/arch/mips/kernel/syscalls/syscall_n32.tbl
+curl: (22) The requested URL returned error: 429
+command_rc=22

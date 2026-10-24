@@ -1,0 +1,592 @@
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-open.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/open.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-open.c']
+1:/* Linux open syscall implementation, non-LFS.
+24:#include <sysdep-cancel.h>
+43:  return SYSCALL_CANCEL (openat, AT_FDCWD, file, oflag, mode);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-read.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/read.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-read.c']
+1:/* Linux read syscall implementation.
+20:#include <sysdep-cancel.h>
+26:  return SYSCALL_CANCEL (read, fd, buf, nbytes);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-write.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/write.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-write.c']
+1:/* Linux write syscall implementation.
+20:#include <sysdep-cancel.h>
+26:  return SYSCALL_CANCEL (write, fd, buf, nbytes);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-close.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/close.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-close.c']
+1:/* Linux close syscall implementation.
+20:#include <sysdep-cancel.h>
+21:#include <not-cancel.h>
+27:  return SYSCALL_CANCEL (close, fd);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-poll.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/poll.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-poll.c']
+19:#include <errno.h>
+22:#include <sysdep-cancel.h>
+23:#include <sys/syscall.h>
+29:  return SYSCALL_CANCEL (poll, fds, nfds, timeout);
+41:  return SYSCALL_CANCEL (ppoll, fds, nfds, timeout_ts_p, NULL, 0);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-wait4.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/wait4.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-wait4.c']
+22:#include <sysdep-cancel.h>
+26:__wait4_time64 (pid_t pid, int *stat_loc, int options, struct __rusage64 *usage)
+28:#ifdef __NR_wait4
+30:  return SYSCALL_CANCEL (wait4, pid, stat_loc, options, usage);
+35:  ret = SYSCALL_CANCEL (wait4, pid, stat_loc, options,
+61:  if (SYSCALL_CANCEL (waitid, idtype, pid, &infop, options, usage) < 0)
+66:    if (SYSCALL_CANCEL (waitid, idtype, pid, &infop, options, &usage32) < 0)
+102:   process.  It is possible to emulate wait4 it by calling getpgid for
+103:   PID 0, however, it would require an additional syscall and it is inherent
+107:# error "The kernel ABI does not provide a way to implement wait4"
+112:libc_hidden_def (__wait4_time64)
+115:__wait4 (pid_t pid, int *stat_loc, int options, struct rusage *usage)
+120:  ret = __wait4_time64 (pid, stat_loc, options,
+129:libc_hidden_def (__wait4);
+130:weak_alias (__wait4, wait4)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-waitpid.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/posix/waitpid.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-waitpid.c']
+18:#include <errno.h>
+38:  return __wait4 (pid, stat_loc, options, NULL);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-nanosleep.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/nanosleep.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-nanosleep.c']
+20:#include <errno.h>
+23:__nanosleep64 (const struct __timespec64 *req, struct __timespec64 *rem)
+25:  int ret = __clock_nanosleep_time64 (CLOCK_REALTIME, 0, req, rem);
+28:      __set_errno (ret);
+34:libc_hidden_def (__nanosleep64)
+37:__nanosleep (const struct timespec *req, struct timespec *rem)
+42:  int ret = __nanosleep64 (&treq64, rem != NULL ? &trem64 : NULL);
+44:  if (ret != 0 && errno == EINTR && rem != NULL)
+49:libc_hidden_def (__nanosleep)
+50:weak_alias (__nanosleep, nanosleep)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-clock_nanosleep.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/clock_nanosleep.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-clock_nanosleep.c']
+20:#include <errno.h>
+22:#include <sysdep-cancel.h>
+27:/* We can simply use the syscall.  The CPU clocks are not supported
+30:__clock_nanosleep_time64 (clockid_t clock_id, int flags,
+40:     it returns a positive value similar to errno.  */
+42:#ifndef __NR_clock_nanosleep_time64
+43:# define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
+48:  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags, req,
+53:      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags,
+62:      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep, clock_id, flags, &ts32,
+64:      if (INTERNAL_SYSCALL_ERROR_P (r))
+75:libc_hidden_def (__clock_nanosleep_time64)
+78:__clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
+85:  r = __clock_nanosleep_time64 (clock_id, flags, &treq64,
+94:libc_hidden_def (__clock_nanosleep)
+95:versioned_symbol (libc, __clock_nanosleep, clock_nanosleep, GLIBC_2_17);
+96:/* clock_nanosleep moved to libc in version 2.17;
+99:strong_alias (__clock_nanosleep, __clock_nanosleep_2);
+100:compat_symbol (libc, __clock_nanosleep_2, clock_nanosleep, GLIBC_2_2);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-dup2.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/dup2.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-dup2.c']
+26:__dup2 (int fd, int fd2)
+28:#ifdef __NR_dup2
+29:  return INLINE_SYSCALL_CALL (dup2, fd, fd2);
+36:  return INLINE_SYSCALL_CALL (dup3, fd, fd2, 0);
+39:libc_hidden_def (__dup2)
+40:weak_alias (__dup2, dup2)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-setrlimit.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/setrlimit.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-setrlimit.c']
+25:/* The compatibility symbol is meant to match the old __NR_getrlimit syscall
+47:  return INLINE_SYSCALL_CALL (prlimit64, 0, resource, &rlim64, NULL);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-lseek.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/lseek.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-lseek.c']
+23:#include <errno.h>
+37:  __set_errno (EOVERFLOW);
+50:  int rc = INLINE_SYSCALL_CALL (_llseek, fd,
+55:  return INLINE_SYSCALL_CALL (lseek, fd, offset, whence);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-exit.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/_exit.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-exit.c']
+18:#include <errno.h>
+26:_exit (int status)
+30:      INLINE_SYSCALL (exit_group, 1, status);
+37:libc_hidden_def (_exit)
+38:rtld_hidden_def (_exit)
+39:weak_alias (_exit, _Exit)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-errno.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/csu/errno-loc.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-errno.c']
+1:/* MT support function to get address of `errno' variable, non-threaded
+20:#include <errno.h>
+24:__errno_location (void)
+26:  return &errno;
+28:libc_hidden_def (__errno_location)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-aarch64-syscall.S', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/aarch64/syscall.S']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-aarch64-syscall.S']
+21:/* syscall (int nr, ...)
+29:ENTRY (syscall)
+38:	svc	0x0
+44:PSEUDO_END (syscall)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-x86_64-syscall.S', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/x86_64/syscall.S']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-x86_64-syscall.S']
+23:/* Usage: long syscall (syscall_number, arg1, arg2, arg3, arg4, arg5, arg6)
+29:ENTRY (syscall)
+37:	syscall			/* Do the system call.  */
+42:PSEUDO_END (syscall)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-aarch64-sysdep.h', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/aarch64/sysdep.h']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-aarch64-sysdep.h']
+32:/* In order to get __set_errno() definition in INLINE_SYSCALL.  */
+34:#include <errno.h>
+46:/* Linux uses a negative return value to indicate syscall errors,
+53:   is a real error number.  Linus said he will make sure the no syscall
+101:	adrp	x1, C_SYMBOL_NAME(rtld_errno);			\
+103:	str     w0, [x1, :lo12:C_SYMBOL_NAME(rtld_errno)];	\
+110:	adrp	x1, :gottprel:errno;				\
+112:	ldr	PTR_REG(1), [x1, :gottprel_lo12:errno];		\
+126:	syscall number	x8
+137:	syscall number	in the DO_CALL macro
+151:    svc 0
+179:# undef INTERNAL_SYSCALL_RAW
+180:# define INTERNAL_SYSCALL_RAW(name, nr, args...)		\
+185:       asm volatile ("svc	0	// syscall " # name     \
+191:# undef INTERNAL_SYSCALL
+192:# define INTERNAL_SYSCALL(name, nr, args...)			\
+193:	INTERNAL_SYSCALL_RAW(SYS_ify(name), nr, args)
+195:# undef INTERNAL_SYSCALL_AARCH64
+196:# define INTERNAL_SYSCALL_AARCH64(name, nr, args...)		\
+197:	INTERNAL_SYSCALL_RAW(__ARM_NR_##name, nr, args)
+239:# undef INTERNAL_SYSCALL_NCS
+240:# define INTERNAL_SYSCALL_NCS(number, nr, args...)	\
+241:	INTERNAL_SYSCALL_RAW (number, nr, args)
+265:/* Do clear ZA state of SME before making normal clone syscall.  */
+269:  INLINE_SYSCALL_CALL (clone, a0, a1, a2, a3, a4);	\
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-linux-syscalls.list', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/sysv/linux/syscalls.list']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-linux-syscalls.list']
+12:execve		-	execve		i:spp	__execve	execve
+50:prctl		EXTRA	prctl		i:iiiii	__prctl		prctl __prctl_time64
+67:setpgid		-	setpgid		i:ii	__setpgid	setpgid
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-unix-syscalls.list', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/sysdeps/unix/syscalls.list']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-unix-syscalls.list']
+8:chdir		-	chdir		i:s	__chdir		chdir
+15:dup2		-	dup2		i:ii	__dup2		dup2
+17:fchdir		-	fchdir		i:i	__fchdir	fchdir
+68:setpgid		-	setpgrp		i:ii	__setpgid	setpgid
+73:setsid		-	setsid		i:	__setsid	setsid
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-cancellation.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/nptl/cancellation.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-cancellation.c']
+22:/* Called by the INTERNAL_SYSCALL_CANCEL macro, check for cancellation and
+23:   returns the syscall value or its negative error code.  */
+25:__internal_syscall_cancel (__syscall_arg_t a1, __syscall_arg_t a2,
+28:			   __SYSCALL_CANCEL7_ARG_DEF
+34:  /* If cancellation is not enabled, call the syscall directly and also
+35:     for thread terminatation to avoid call __syscall_do_cancel while
+37:  int ch = atomic_load_relaxed (&pd->cancelhandling);
+38:  if (SINGLE_THREAD_P || !cancel_enabled (ch) || cancel_exiting (ch))
+40:      result = INTERNAL_SYSCALL_NCS_CALL (nr, a1, a2, a3, a4, a5, a6
+41:					  __SYSCALL_CANCEL7_ARCH_ARG7);
+42:      if (INTERNAL_SYSCALL_ERROR_P (result))
+43:	return -INTERNAL_SYSCALL_ERRNO (result);
+49:  result = __syscall_cancel_arch (&pd->cancelhandling, nr, a1, a2, a3, a4, a5,
+50:			          a6 __SYSCALL_CANCEL7_ARCH_ARG7);
+52:  /* If the cancellable syscall was interrupted by SIGCANCEL and it has no
+53:     side-effect, cancel the thread if cancellation is enabled.  */
+54:  ch = atomic_load_relaxed (&pd->cancelhandling);
+57:     language for close, and in theory the close syscall could return EINTR
+60:  if (result == -EINTR && cancel_enabled_and_canceled (ch))
+61:    __syscall_do_cancel ();
+66:/* Called by the SYSCALL_CANCEL macro, check for cancellation and return the
+67:   syscall expected success value (usually 0) or, in case of failure, -1 and
+68:   sets errno to syscall return value.  */
+70:__syscall_cancel (__syscall_arg_t a1, __syscall_arg_t a2,
+73:		  __SYSCALL_CANCEL7_ARG_DEF __syscall_arg_t nr)
+75:  long int r = __internal_syscall_cancel (a1, a2, a3, a4, a5, a6,
+76:					  __SYSCALL_CANCEL7_ARG nr);
+77:  return __glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (r))
+78:	 ? SYSCALL_ERROR_LABEL (INTERNAL_SYSCALL_ERRNO (r))
+82:/* Called by __syscall_cancel_arch or function above start the thread
+83:   cancellation.  */
+85:__syscall_do_cancel (void)
+89:  /* Disable thread cancellation to avoid cancellable entrypoints calling
+90:     __syscall_do_cancel recursively.  We atomic load relaxed to check the
+91:     state of cancelhandling, there is no particular ordering requirement
+92:     between the syscall call and the other thread setting our cancelhandling
+95:     POSIX Issue 7 notes that the cancellation occurs asynchronously on the
+98:  int oldval = atomic_load_relaxed (&self->cancelhandling);
+104:      if (atomic_compare_exchange_weak_acquire (&self->cancelhandling,
+109:  __do_cancel (PTHREAD_CANCELED);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-sigaction.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/signal/sigaction.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-sigaction.c']
+18:#include <errno.h>
+26:__sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
+30:      __set_errno (EINVAL);
+39:  int r = __libc_sigaction (sig, act, oact);
+46:libc_hidden_def (__sigaction)
+47:weak_alias (__sigaction, sigaction)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/glibc-pthread_sigmask.c', 'https://raw.githubusercontent.com/bminor/glibc/04e750e75b73957cf1c791535a3f4319534a52fc/nptl/pthread_sigmask.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/glibc-pthread_sigmask.c']
+40:  int result = INTERNAL_SYSCALL_CALL (rt_sigprocmask, how, newmask,
+43:  return (INTERNAL_SYSCALL_ERROR_P (result)
+44:	  ? INTERNAL_SYSCALL_ERRNO (result)
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-sigaction.c', 'https://raw.githubusercontent.com/apple-oss-distributions/Libc/71bbe350ab79eef58113991d817ccc6165061a64/sys/sigaction.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-sigaction.c']
+34:#include <errno.h>
+39:extern int __platform_sigaction (int sig,
+40:		const struct sigaction * __restrict nsv,
+41:		struct sigaction * __restrict osv);
+44:sigaction (int sig, const struct sigaction * __restrict nsv,
+45:		struct sigaction * __restrict osv)
+47:	int ret = __platform_sigaction(sig, nsv, osv);
+50:	// is live, and in a register, after __sigaction so it is visible in the
+52:	if (ret == -1 && errno == ENOTSUP && sig != 0) {
+53:		CRSetCrashLogMessage("sigaction on fatal signals is not supported");
+64:_sigaction_nobind (sig, nsv, osv)
+66:	register const struct sigaction *nsv;
+67:        register struct sigaction *osv;
+69:    return sigaction(sig, nsv, osv);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-platform-sigaction.c', 'https://raw.githubusercontent.com/apple-oss-distributions/libplatform/2512ffd8bb5c6caff3c8ea83331ab8a0adc820c3/src/setjmp/generic/sigaction.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-platform-sigaction.c']
+26: *	@(#)sigaction.c	1.0
+33:#include <errno.h>
+39: *	Intercept the sigaction syscall and use our signal trampoline
+43:extern int __sigaction (int, struct __sigaction * __restrict,
+44:		struct sigaction * __restrict);
+47:__platform_sigaction (int sig, const struct sigaction * __restrict nsv,
+48:		struct sigaction * __restrict osv)
+51:	struct __sigaction sa;
+52:	struct __sigaction *sap;
+56:	        errno = EINVAL;
+59:	sap = (struct __sigaction *)0;
+67:	ret = __sigaction(sig, sap, osv);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-waitpid.c', 'https://raw.githubusercontent.com/apple-oss-distributions/Libc/71bbe350ab79eef58113991d817ccc6165061a64/gen/FreeBSD/waitpid.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-waitpid.c']
+44:#include <errno.h>
+47:int __wait4(pid_t, int *, int , struct rusage *);
+49:int __wait4_nocancel(pid_t, int *, int , struct rusage *);
+56:	/* POSIX: Validate waitpid() options before calling wait4() */
+58:		errno = EINVAL;
+64:	return (__wait4(pid, istat, options, (struct rusage *)0));
+66:	return (__wait4_nocancel(pid, istat, options, (struct rusage *)0));
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-errno.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/custom/errno.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-errno.c']
+35: * cerror takes the return value of the syscall, being non-zero, and
+36: * stores it in errno. It needs to return -1 to indicate failure but
+46:extern void _pthread_exit_if_canceled(int error);
+48:#undef errno
+49:int errno;
+52:__error(void)
+54:	void *ptr = _os_tsd_get_direct(__TSD_ERRNO);
+58:	return &errno;
+63:cerror_nocancel(int err)
+65:	errno = err;
+66:	int *tsderrno = (int*)_os_tsd_get_direct(__TSD_ERRNO);
+67:	if (tsderrno) {
+68:		*tsderrno = err;
+77:	_pthread_exit_if_canceled(err);
+78:	return cerror_nocancel(err);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-tsd.h', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/os/tsd.h']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-tsd.h']
+37:#define __TSD_ERRNO 1
+123:_os_tsd_get_direct(unsigned long slot)
+177:_os_tsd_get_direct(unsigned long slot)
+195:	return (uintptr_t)_os_tsd_get_direct(__TSD_PTR_MUNGE);
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-kill.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/wrappers/kill.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-kill.c']
+32: * case the call is called directly via syscall(), since for most uses,
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-setrlimit.c', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/wrappers/unix03/setrlimit.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-setrlimit.c']
+command_rc=1
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-syscalls.master', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/kern/syscalls.master']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-syscalls.master']
+8:;	.../xnu/bsd/sys/syscall.h
+20:;					"T" for syscall table (in init_sysent.c)
+21:;					"N" for syscall names (in syscalls.c)
+22:;					"H" for syscall headers (in syscall.h)
+23:;					"P" for syscall prototypes (in sysproto.h)
+45:0	AUE_NULL	ALL	{ int nosys(void); }   { indirect syscall }
+52:7	AUE_WAIT4	ALL	{ int wait4(int pid, user_addr_t status, int options, user_addr_t rusage) NO_SYSCALL_STUB; }
+57:12	AUE_CHDIR	ALL	{ int sys_chdir(user_addr_t path); }
+58:13	AUE_FCHDIR	ALL	{ int sys_fchdir(int fd); }
+100:46	AUE_SIGACTION	ALL	{ int sigaction(int signum, struct __sigaction *nsa, struct sigaction *osa) NO_SYSCALL_STUB; }
+102:48	AUE_SIGPROCMASK	ALL	{ int sigprocmask(int how, user_addr_t mask, user_addr_t omask); }
+113:59	AUE_EXECVE	ALL	{ int execve(char *fname, char **argp, char **envp) NO_SYSCALL_STUB; }
+140:82	AUE_SETPGRP	ALL	{ int setpgid(int pid, int pgid); }
+148:90	AUE_DUP2	ALL	{ int sys_dup2(u_int from, u_int to); }
+231:147	AUE_SETSID	ALL	{ int setsid(void); }
+487:316	AUE_NULL	ALL	{ int aio_cancel(int fd, user_addr_t aiocbp); }
+503:332	AUE_NULL	ALL	{ int __pthread_markcancel(int thread_port); }
+504:333	AUE_NULL	ALL	{ int __pthread_canceled(int  action); }
+529:348	AUE_NULL	ALL	{ int __pthread_chdir(user_addr_t path); }
+530:349	AUE_NULL	ALL	{ int __pthread_fchdir(int fd); }
+561:380	AUE_MAC_EXECVE	ALL	{ int __mac_execve(char *fname, char **argp, char **envp, struct mac *mac_p); }
+589:395	AUE_SELECT	ALL	{ int pselect_nocancel(int nd, u_int32_t *in, u_int32_t *ou, u_int32_t *ex, const struct timespec *ts, const struct sigset_t *mask) NO_SYSCALL_STUB; }
+590:396	AUE_NULL	ALL	{ user_ssize_t read_nocancel(int fd, user_addr_t cbuf, user_size_t nbyte) NO_SYSCALL_STUB; }
+591:397	AUE_NULL	ALL	{ user_ssize_t write_nocancel(int fd, user_addr_t cbuf, user_size_t nbyte) NO_SYSCALL_STUB; }
+592:398	AUE_OPEN_RWTC	ALL	{ int open_nocancel(user_addr_t path, int flags, int mode) NO_SYSCALL_STUB; }
+593:399	AUE_CLOSE	ALL	{ int sys_close_nocancel(int fd) NO_SYSCALL_STUB; }
+594:400	AUE_WAIT4	ALL	{ int wait4_nocancel(int pid, user_addr_t status, int options, user_addr_t rusage) NO_SYSCALL_STUB; }
+596:401	AUE_RECVMSG	ALL	{ int recvmsg_nocancel(int s, struct msghdr *msg, int flags) NO_SYSCALL_STUB; }
+597:402	AUE_SENDMSG	ALL	{ int sendmsg_nocancel(int s, caddr_t msg, int flags) NO_SYSCALL_STUB; }
+598:403	AUE_RECVFROM	ALL	{ int recvfrom_nocancel(int s, void *buf, size_t len, int flags, struct sockaddr *from, int *fromlenaddr) NO_SYSCALL_STUB; }
+599:404	AUE_ACCEPT	ALL	{ int accept_nocancel(int s, caddr_t name, socklen_t	*anamelen) NO_SYSCALL_STUB; }
+606:405	AUE_MSYNC	ALL	{ int msync_nocancel(caddr_ut addr, size_ut len, int flags) NO_SYSCALL_STUB; }
+607:406	AUE_FCNTL	ALL	{ int sys_fcntl_nocancel(int fd, int cmd, long arg) NO_SYSCALL_STUB; }
+608:407	AUE_SELECT	ALL	{ int select_nocancel(int nd, u_int32_t *in, u_int32_t *ou, u_int32_t *ex, struct timeval *tv) NO_SYSCALL_STUB; }
+609:408	AUE_FSYNC	ALL	{ int fsync_nocancel(int fd) NO_SYSCALL_STUB; }
+611:409	AUE_CONNECT	ALL	{ int connect_nocancel(int s, caddr_t name, socklen_t namelen) NO_SYSCALL_STUB; }
+615:410	AUE_NULL	ALL	{ int sigsuspend_nocancel(sigset_t mask) NO_SYSCALL_STUB; }
+616:411	AUE_READV	ALL	{ user_ssize_t readv_nocancel(int fd, struct iovec *iovp, u_int iovcnt) NO_SYSCALL_STUB; }
+617:412	AUE_WRITEV	ALL	{ user_ssize_t writev_nocancel(int fd, struct iovec *iovp, u_int iovcnt) NO_SYSCALL_STUB; }
+619:413	AUE_SENDTO	ALL	{ int sendto_nocancel(int s, caddr_t buf, size_t len, int flags, caddr_t to, socklen_t tolen) NO_SYSCALL_STUB; }
+623:414	AUE_PREAD	ALL	{ user_ssize_t pread_nocancel(int fd, user_addr_t buf, user_size_t nbyte, off_t offset) NO_SYSCALL_STUB; }
+624:415	AUE_PWRITE	ALL	{ user_ssize_t pwrite_nocancel(int fd, user_addr_t buf, user_size_t nbyte, off_t offset) NO_SYSCALL_STUB; }
+625:416	AUE_WAITID	ALL	{ int waitid_nocancel(idtype_t idtype, id_t id, siginfo_t *infop, int options) NO_SYSCALL_STUB; }
+626:417	AUE_POLL	ALL	{ int poll_nocancel(struct pollfd *fds, u_int nfds, int timeout) NO_SYSCALL_STUB; }
+628:418	AUE_MSGSND	ALL	{ int msgsnd_nocancel(int msqid, void *msgp, size_t msgsz, int msgflg) NO_SYSCALL_STUB; }
+629:419	AUE_MSGRCV	ALL	{ user_ssize_t msgrcv_nocancel(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg) NO_SYSCALL_STUB; }
+634:420	AUE_SEMWAIT	ALL	{ int sem_wait_nocancel(sem_t *sem) NO_SYSCALL_STUB; }
+635:421	AUE_NULL	ALL	{ int aio_suspend_nocancel(user_addr_t aiocblist, int nent, user_addr_t timeoutp) NO_SYSCALL_STUB; }
+636:422	AUE_SIGWAIT	ALL	{ int __sigwait_nocancel(user_addr_t set, user_addr_t sig) NO_SYSCALL_STUB; }
+637:423     AUE_SEMWAITSIGNAL       ALL     { int __semwait_signal_nocancel(int cond_sem, int mutex_sem, int timeout, int relative, int64_t tv_sec, int32_t tv_nsec); }
+718:464	AUE_OPENAT_RWTC	ALL	{ int openat_nocancel(int fd, user_addr_t path, int flags, int mode) NO_SYSCALL_STUB; }
+854:542	AUE_PREADV	ALL	{ user_ssize_t sys_preadv_nocancel(int fd, struct iovec *iovp, int iovcnt, off_t offset) NO_SYSCALL_STUB; }
+855:543	AUE_PWRITEV	ALL	{ user_ssize_t sys_pwritev_nocancel(int fd, struct iovec *iovp, int iovcnt, off_t offset) NO_SYSCALL_STUB; }
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-create-syscalls.pl', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/xcodescripts/create-syscalls.pl']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-create-syscalls.pl']
+29:# files to create the double-underbar syscall stubs.  It reads the
+30:# syscall.master file to get the symbol names and number of arguments,
+117:    "syscall" => {
+118:        c_sym => "syscall",
+119:        syscall => "syscall",
+130:# An explicit list of cancelable syscalls. For creating stubs that call the
+131:# cancellable version of cerror.
+148:	wait4 waitid write writev
+156:# Read the syscall.master file and collect the system call names and number
+160:# The `sys_` prefix is stripped from syscall names, and is only kept for
+164:# For the #if lines in syscall.master, all macros are assumed to be defined,
+236:            syscall => $name,
+276:    my $genericMap = File::Spec->join($platformDir, "syscall.map");
+292:        my $syscallFile = File::Spec->join($platformDir, $platformName, $arch, "syscall.map");
+355:    my %is_cancel;
+356:    for (@Cancelable) { $is_cancel{$_} = 1 };
+361:        printf $f "#ifdef SYS_%s\n", $$symbol{syscall};
+365:        printf $f "#ifndef SYS_%s\n", $$symbol{syscall};
+366:        printf $f "#error \"SYS_%s not defined. The header files libsyscall is building against do not match syscalls.master.\"\n", $$symbol{syscall};
+370:    my $nc = ($is_cancel{$$symbol{syscall}} ? "cerror" : "cerror_nocancel");
+381:        printf $f "SYSCALL_NONAME(%s, %d, %s)\n", $$symbol{syscall}, $$symbol{nargs}, $nc;
+388:        printf $f "__SYSCALL2(%s, %s, %d, %s)\n", $$symbol{asm_sym}, $$symbol{syscall}, $$symbol{nargs}, $nc;
+391:            printf $f "__SYSCALL2(%s, %s, %d, %s)\n", "__".$$symbol{asm_sym}, $$symbol{syscall}, $$symbol{nargs}, $nc;
+412:        printf $f "#ifdef SYS_%s\n", $$symbol{syscall};
+426:						printf $f "\t.globl\t$alias_sym\n";
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-syscall.map', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/Platforms/syscall.map']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-syscall.map']
+1:___sandbox_me	___mac_execve
+5:__exit	___exit
+16:_wait4	___wait4_nocancel
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-arm64-syscall.map', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/Platforms/MacOSX/arm64/syscall.map']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-arm64-syscall.map']
+1:_accept$NOCANCEL	___accept_nocancel
+2:_aio_suspend$NOCANCEL	___aio_suspend_nocancel
+3:_close$NOCANCEL	___close_nocancel
+4:_connect$NOCANCEL	___connect_nocancel
+8:_fsync$NOCANCEL	___fsync_nocancel
+12:_msgrcv$NOCANCEL	___msgrcv_nocancel
+13:_msgsnd$NOCANCEL	___msgsnd_nocancel
+14:_msync$NOCANCEL	___msync_nocancel
+15:_poll$NOCANCEL	___poll_nocancel
+16:_pread$NOCANCEL	___pread_nocancel
+17:_preadv$NOCANCEL	___preadv_nocancel
+18:_pwrite$NOCANCEL	___pwrite_nocancel
+19:_pwritev$NOCANCEL	___pwritev_nocancel
+20:_read$NOCANCEL	___read_nocancel
+21:_readv$NOCANCEL	___readv_nocancel
+22:_recvfrom$NOCANCEL	___recvfrom_nocancel
+23:_recvmsg$NOCANCEL	___recvmsg_nocancel
+25:_select$DARWIN_EXTSN$NOCANCEL	___select_nocancel
+26:_sem_wait$NOCANCEL	___sem_wait_nocancel
+27:_sendmsg$NOCANCEL	___sendmsg_nocancel
+28:_sendto$NOCANCEL	___sendto_nocancel
+31:_waitid$NOCANCEL	___waitid_nocancel
+32:_write$NOCANCEL	___write_nocancel
+33:_writev$NOCANCEL	___writev_nocancel
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-x86-syscall.map', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/Platforms/MacOSX/x86_64/syscall.map']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-x86-syscall.map']
+1:_accept$NOCANCEL	___accept_nocancel
+2:_aio_suspend$NOCANCEL	___aio_suspend_nocancel
+3:_close$NOCANCEL	___close_nocancel
+4:_connect$NOCANCEL	___connect_nocancel
+8:_fsync$NOCANCEL	___fsync_nocancel
+11:_msgrcv$NOCANCEL	___msgrcv_nocancel
+12:_msgsnd$NOCANCEL	___msgsnd_nocancel
+14:_msync$NOCANCEL	___msync_nocancel
+15:_poll$NOCANCEL	___poll_nocancel
+16:_pread$NOCANCEL	___pread_nocancel
+17:_pwrite$NOCANCEL	___pwrite_nocancel
+18:_pwritev$NOCANCEL	___pwritev_nocancel
+19:_read$NOCANCEL	___read_nocancel
+20:_readv$NOCANCEL	___readv_nocancel
+21:_preadv$NOCANCEL	___preadv_nocancel
+22:_recvfrom$NOCANCEL	___recvfrom_nocancel
+23:_recvmsg$NOCANCEL	___recvmsg_nocancel
+25:_select$DARWIN_EXTSN$NOCANCEL	___select_nocancel
+26:_sem_wait$NOCANCEL	___sem_wait_nocancel
+28:_sendmsg$NOCANCEL	___sendmsg_nocancel
+29:_sendto$NOCANCEL	___sendto_nocancel
+32:_waitid$NOCANCEL	___waitid_nocancel
+33:_write$NOCANCEL	___write_nocancel
+34:_writev$NOCANCEL	___writev_nocancel
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-fork.s', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/custom/__fork.s']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-fork.s']
+44: * and errno if needed.
+112:	swi	#SWI_SYSCALL				// make the syscall
+140:	svc		#SWI_SYSCALL				// Trap to kernel
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-SYS.h', 'https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/custom/SYS.h']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-SYS.h']
+49:#include <sys/syscall.h>
+64:	.globl	tramp_cerror				;\
+73:	.globl	tramp_cerror				;\
+98:	.globl	tramp_cerror_nocancel			;\
+102:	BRANCH_EXTERN(tramp_cerror_nocancel) 		;\
+132:	syscall
+135:	.globl	cerror								;\
+145:	.globl	cerror								;\
+212:	.globl	var								;\
+217:	.globl	var								;\
+223:	.globl	var				;\
+228:	.globl	var								;\
+235:	.globl  name							;\
+238:/* load the syscall number into r12 and trap */
+245:	mov		r12, #((num) & 0xffffff00)	/* top half of the syscall number */ ;\
+316:/* select the appropriate syscall code, based on the number of arguments */
+413:	.globl pseudo						;\
+453:	svc   #SWI_SYSCALL                    %%\
+467:   .globl sym                %% \
+477:  .globl  name			%%	\
+483:  .globl pseudo						%%		\
+command_rc=0
+COMMAND: ['curl', '-fsSL', '-o', '/tmp/fn2474-wrapper-audit/apple-pthread-cancellation.c', 'https://raw.githubusercontent.com/apple-oss-distributions/libpthread/42d026df5b07825070f60134b980a1ec2552dfee/src/pthread_cancelable.c']
+command_rc=0
+COMMAND: ['rg', '-n', 'SYSCALL_CANCEL|INTERNAL_SYSCALL|INLINE_SYSCALL|sigaction|sigprocmask|cancel|__TSD_ERRNO|__error|errno|_exit|execve|setpgid|setsid|chdir|prctl|dup2|read\\$|write\\$|close\\$|poll\\$|wait4|clock_nanosleep|nanosleep|\\bsvc\\b|\\bsyscall\\b|\\.globl|_os_tsd_get_direct', '/tmp/fn2474-wrapper-audit/apple-pthread-cancellation.c']
+57:#include <errno.h>	/* For __mach_errno_addr() prototype. */
+71:_pthread_update_cancel_state(pthread_t thread, int mask, int state)
+74:	os_atomic_rmw_loop(&thread->cancel_state, oldstate, newstate, relaxed, {
+82:/* When a thread exits set the cancellation state to DISABLE and DEFERRED */
+84:_pthread_setcancelstate_exit(pthread_t thread, void *value_ptr)
+86:	_pthread_update_cancel_state(thread,
+97:pthread_cancel(pthread_t thread)
+107:	int state = os_atomic_or(&thread->cancel_state, _PTHREAD_CANCEL_PENDING, relaxed);
+110:		if (kport) __pthread_markcancel(kport);
+116: * Query/update the cancelability 'state' of a thread
+120:pthread_setcancelstate(int state, int *oldstateptr)
+128:		__pthread_canceled(1);
+131:		__pthread_canceled(2);
+137:	int oldstate = _pthread_update_cancel_state(self, _PTHREAD_CANCEL_STATE_MASK, state);
+145: * Query/update the cancelability 'type' of a thread
+149:pthread_setcanceltype(int type, int *oldtype)
+158:	int oldstate = _pthread_update_cancel_state(self, _PTHREAD_CANCEL_TYPE_MASK, type);
+168:_pthread_is_canceled(pthread_t thread)
+171:	int state = os_atomic_load(&thread->cancel_state, seq_cst);
+177:_pthread_get_exit_value(pthread_t thread)
+179:	if (os_unlikely(_pthread_is_canceled(thread))) {
+182:	return thread->tl_exit_value;
+186:pthread_testcancel(void)
+189:	if (os_unlikely(_pthread_is_canceled(self))) {
+192:		self->canceled = true;
+194:		pthread_exit(PTHREAD_CANCELED);
+199:_pthread_markcancel_if_canceled(pthread_t thread, mach_port_t kport)
+201:	if (os_unlikely(_pthread_is_canceled(thread))) {
+202:		__pthread_markcancel(kport);
+207:_pthread_exit_if_canceled(int error)
+209:	if ((error & 0xff) == EINTR && __pthread_canceled(0) == 0) {
+213:		self->cancel_error = error;
+214:		self->canceled = true;
+215:		pthread_exit(PTHREAD_CANCELED);
+225:		err = errno;
+244:	if (ctx->value_ptr) *ctx->value_ptr = _pthread_get_exit_value(thread);
+254:	if (!ctx->detached && thread->tl_exit_gate != MACH_PORT_DEAD) {
+261:		thread->tl_exit_gate = MACH_PORT_NULL;
+272:	uint32_t *exit_gate = &thread->tl_exit_gate;
+296:			 *   As specified, either the pthread_join() call is canceled, or it
+298:			 *   application, since either a cancellation handler is run or
+302:			 * canceled, and if we have, we try to abort the wait.
+305:			 * were being canceled and commited the waiter to return from
+307:			 * over the cancelation which will be acted upon at the next
+308:			 * cancelation point.
+311:					_pthread_is_canceled(ctx->waiter))) {
+313:					ctx->waiter->canceled = true;
+314:					pthread_exit(PTHREAD_CANCELED);
+364:	} else if (thread->tl_exit_gate == MACH_PORT_DEAD) {
+368:		if (value_ptr) *value_ptr = _pthread_get_exit_value(thread);
+371:		thread->tl_exit_gate = ctx.kport;
+392:		// so this can't be a cancelation point.
+394:			kr = __semwait_signal_nocancel(ctx.custom_stack_sema, 0, 0, 0, 0, 0);
+416:_pthread_testcancel_if_cancelable_variant(void)
+419:	pthread_testcancel();
+426:	_pthread_testcancel_if_cancelable_variant();
+448:	_pthread_testcancel_if_cancelable_variant();
+451:		err = errno;
+453:		_pthread_testcancel_if_cancelable_variant();
+456:		 * EINTR that isn't a result of pthread_cancel()
+command_rc=0
+fetch_or_tool_failures=[]

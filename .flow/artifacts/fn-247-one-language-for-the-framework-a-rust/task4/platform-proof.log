@@ -1,0 +1,53 @@
+COMMAND: curl -fsSL -o /tmp/fn2474-platform-fork.c https://raw.githubusercontent.com/apple-oss-distributions/Libc/71bbe350ab79eef58113991d817ccc6165061a64/sys/fork.c
+command_rc=0
+COMMAND: rg -n extern\ pid_t\ __fork\|ret\ =\ __fork\|_libSystem_atfork_child_v2\\\(flags\\\) /tmp/fn2474-platform-fork.c
+31:extern pid_t __fork(void);
+71:	ret = __fork();
+87:			_libSystem_atfork_child_v2(flags);
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-platform-__fork.s https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/custom/__fork.s
+command_rc=0
+COMMAND: rg -n LEAF\\\(___fork\|MI_ENTRY_POINT\\\(___fork\|zero\ eax\|mov.\*w0\,\ #0\|mov.\*-1 /tmp/fn2474-platform-__fork.s
+51:LEAF(___fork, 0)
+59:	movl	$-1,%eax
+68:	xorl	%eax,%eax	// zero eax
+77:LEAF(___fork, 0)
+86:	movq	$-1, %rax
+106:MI_ENTRY_POINT(___fork)
+126:	mov	r0,#-1					// set the error
+135:MI_ENTRY_POINT(___fork)
+146:	mov		w0, #0	
+153:	mov		w0, #-1						// Return value is -1
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-platform-SYS.h https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/custom/SYS.h
+command_rc=0
+COMMAND: sed -n 474\,479p /tmp/fn2474-platform-SYS.h
+#define MI_ENTRY_POINT(name)				\
+  .text					%% \
+  .align 2	            %% \
+  .globl  name			%%	\
+name:
+
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-platform-asm_help.h https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/EXTERNAL_HEADERS/architecture/i386/asm_help.h
+command_rc=0
+COMMAND: sed -n 205\,214p /tmp/fn2474-platform-asm_help.h
+ * LEAF -- declare global leaf procedure
+ * NOTE: Control SHOULD NOT FLOW into a LEAF!  A LEAF should only
+ * be jumped to.  (A leaf may do an align.)  Use a LABEL() if you
+ * need control to flow into the label.
+ */
+#define	LEAF(name, localvarsize)			\
+	.globl	name					;\
+	ALIGN						;\
+name:							;\
+	LEAF_FUNCTION_PROLOGUE(localvarsize)
+command_rc=0
+COMMAND: curl -fsSL -o /tmp/fn2474-platform-Libsyscall.xcconfig https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/libsyscall/Libsyscall.xcconfig
+command_rc=0
+COMMAND: rg -n PRODUCT_NAME\ =\ kernel\|DYLIB_LDFLAGS\|LINK_WITH_STANDARD_LIBRARIES /tmp/fn2474-platform-Libsyscall.xcconfig
+24:PRODUCT_NAME = kernel
+65:DYLIB_LDFLAGS = -umbrella System -all_load $(BUILT_PRODUCTS_DIR)/$(EXECUTABLE_PREFIX)$(PRODUCT_NAME).a
+72:LINK_WITH_STANDARD_LIBRARIES = NO
+command_rc=0
+Evidence type: source declarations, assembly and build recipe; no SDK/native Darwin observation.

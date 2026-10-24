@@ -1,0 +1,75 @@
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+error: binding's name is too similar to existing binding
+   --> umpire/backends/process/tests/fixtures/process_fixture.rs:230:13
+    |
+230 |         let owned = fs::read_to_string(&cleanup.pids)?;
+    |             ^^^^^
+    |
+note: existing binding defined here
+   --> umpire/backends/process/tests/fixtures/process_fixture.rs:207:13
+    |
+207 |         let owner = Command::new(env::current_exe()?)
+    |             ^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#similar_names
+    = note: `-D clippy::similar-names` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::similar_names)]`
+
+error: this function has too many lines (114/100)
+  --> umpire/backends/process/tests/fixtures/process_fixture.rs:32:5
+   |
+32 |     pub(super) fn main() -> Result<(), Box<dyn std::error::Error>> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+  --> umpire/backends/process/tests/fixtures/process_fixture.rs:34:15
+   |
+34 |         match args.get(1).map(String::as_str).unwrap_or("") {
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#map_unwrap_or
+   = note: `-D clippy::map-unwrap-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::map_unwrap_or)]`
+help: use `map_or(<a>, <f>)` instead
+   |
+34 -         match args.get(1).map(String::as_str).unwrap_or("") {
+34 +         match args.get(1).map_or("", String::as_str) {
+   |
+
+error: used `assert!` to check that a value is empty
+  --> umpire/backends/process/tests/fixtures/process_fixture.rs:44:17
+   |
+44 |                 assert!(input.is_empty());
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+   |
+44 -                 assert!(input.is_empty());
+44 +                 assert_eq!(input, "");
+   |
+
+error: could not compile `umpire-backend-process` (bin "umpire-process-fixture") due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: used `assert!` to check that a value is empty
+   --> umpire/backends/process/tests/process.rs:441:5
+    |
+441 |     assert!(output.stderr.is_empty());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#assert_is_empty
+    = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+    |
+441 -     assert!(output.stderr.is_empty());
+441 +     assert_eq!(output.stderr, [] as [u8; 0]);
+    |
+
+error: could not compile `umpire-backend-process` (test "process") due to 1 previous error
+error: could not compile `umpire-backend-process` (bin "umpire-process-fixture" test) due to 4 previous errors

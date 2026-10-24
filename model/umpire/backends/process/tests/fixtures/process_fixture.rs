@@ -127,7 +127,12 @@ mod fixture {
                 println!("value:{}", env::var("UMPIRE_PROCESS_VALUE")?);
                 println!("removed:{}", env::var_os("UMPIRE_PROCESS_REMOVED").is_none());
             }
+            "restricted-exec" => {
+                syscall::restrict_descendants()?;
+                return Err(Command::new("bash").arg(&args[2]).exec().into());
+            }
             "descendant-attempt" => {
+                syscall::restrict_descendants()?;
                 match Command::new(env::current_exe()?).arg("sleep").process_group(0).spawn() {
                     Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
                         println!("descendant creation refused");

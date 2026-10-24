@@ -1,0 +1,114 @@
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+error: duplicated attribute
+ --> umpire/backends/process/src/syscall.rs:7:10
+  |
+7 | #![allow(unsafe_code)]
+  |          ^^^^^^^^^^^
+  |
+note: first defined here
+ --> umpire/backends/process/src/lib.rs:2:9
+  |
+2 | #[allow(unsafe_code)]
+  |         ^^^^^^^^^^^
+help: remove this attribute
+ --> umpire/backends/process/src/syscall.rs:7:10
+  |
+7 | #![allow(unsafe_code)]
+  |          ^^^^^^^^^^^
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#duplicated_attributes
+  = note: `-D clippy::duplicated-attributes` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::duplicated_attributes)]`
+
+error: unnecessary qualification
+  --> umpire/backends/process/src/syscall.rs:62:45
+   |
+62 |             let (owner_read, owner_write) = std::io::pipe()?;
+   |                                             ^^^^^^^^^^^^^
+   |
+   = note: `-D unused-qualifications` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_qualifications)]`
+help: remove the unnecessary path segments
+   |
+62 -             let (owner_read, owner_write) = std::io::pipe()?;
+62 +             let (owner_read, owner_write) = io::pipe()?;
+   |
+
+error: duplicated attribute
+ --> umpire/backends/process/src/support.rs:1:11
+  |
+1 | #![forbid(unsafe_code)]
+  |           ^^^^^^^^^^^
+  |
+note: first defined here
+ --> umpire/backends/process/src/lib.rs:4:10
+  |
+4 | #[forbid(unsafe_code)]
+  |          ^^^^^^^^^^^
+help: remove this attribute
+ --> umpire/backends/process/src/support.rs:1:11
+  |
+1 | #![forbid(unsafe_code)]
+  |           ^^^^^^^^^^^
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#duplicated_attributes
+
+error: implicit borrow as raw pointer
+  --> umpire/backends/process/src/syscall.rs:78:37
+   |
+78 |                 unsafe { child_main(&context, &mask.original) }
+   |                                     ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#borrow_as_ptr
+   = note: `-D clippy::borrow-as-ptr` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::borrow_as_ptr)]`
+help: use a raw pointer instead
+   |
+78 |                 unsafe { child_main(&raw const context, &mask.original) }
+   |                                      +++++++++
+
+error: implicit borrow as raw pointer
+  --> umpire/backends/process/src/syscall.rs:78:47
+   |
+78 |                 unsafe { child_main(&context, &mask.original) }
+   |                                               ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#borrow_as_ptr
+help: use a raw pointer instead
+   |
+78 |                 unsafe { child_main(&context, &raw const mask.original) }
+   |                                                +++++++++
+
+error: binding to `_` prefixed variable with no side-effect
+   --> umpire/backends/process/src/syscall.rs:213:17
+    |
+213 |             let _owners = (&self.arguments, &self.environment);
+    |                 ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#no_effect_underscore_binding
+    = note: `-D clippy::no-effect-underscore-binding` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::no_effect_underscore_binding)]`
+
+error: manual `RangeInclusive::contains` implementation
+   --> umpire/backends/process/src/syscall.rs:536:24
+    |
+536 |                     if byte >= b'0' && byte <= b'9' {
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(b'0'..=b'9').contains(&byte)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#manual_range_contains
+    = note: `-D clippy::manual-range-contains` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_range_contains)]`
+
+error: could not compile `umpire-backend-process` (lib) due to 7 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: method `pid` is never used
+   --> umpire/backends/process/src/syscall.rs:114:23
+    |
+ 50 |     impl Running {
+    |     ------------ method in this implementation
+...
+114 |         pub(crate) fn pid(&self) -> u32 {
+    |                       ^^^
+    |
+    = note: `-D dead-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: could not compile `umpire-backend-process` (lib test) due to 8 previous errors

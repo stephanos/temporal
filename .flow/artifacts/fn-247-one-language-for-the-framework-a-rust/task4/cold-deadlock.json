@@ -1,0 +1,16 @@
+{
+  "test_parent": 518673,
+  "symptom": "raw supervisors after setpgid blocked in libc futex before target launch",
+  "terminated_supervisors": [
+    518700,
+    518701,
+    518702,
+    518706,
+    518707,
+    518708,
+    518709,
+    518711,
+    518712
+  ],
+  "gate": "failed: fork safety deadlock; not a green observation"
+}

@@ -82,6 +82,7 @@ fixedbitset = "0.5"
 enum-iterator = "2.3"
 imbl = "7.0"
 thiserror = "2.0"
+libc = "=0.2.191"
 # Already resolved by trybuild; strict backend wire decoding uses its duplicate-key visitor.
 serde = "1.0"
 serde_json = "1.0"

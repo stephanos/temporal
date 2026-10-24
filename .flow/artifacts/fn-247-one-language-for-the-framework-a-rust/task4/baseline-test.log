@@ -1,0 +1,27 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling thiserror-impl v2.0.21
+   Compiling thiserror v2.0.21
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.60s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_backend_process-ab9c4ed2440d160f)
+
+running 8 tests
+test tests::wrong_java_version_vendor_and_failed_launch_are_refused ... ok
+test tests::substituted_log_fifo_returns_without_waiting_for_a_reader ... ok
+test tests::substituted_log_symlink_cannot_modify_an_external_file ... ok
+test tests::java_environment_is_clean_and_supervisor_group_is_private ... ok
+test tests::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin ... ok
+test tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8 ... ok
+test tests::timeout_cleans_descendants_before_return ... ok
+test tests::direct_helper_timeout_retains_output_and_cleans_scratch ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+   Doc-tests umpire_backend_process
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

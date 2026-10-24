@@ -1,0 +1,130 @@
+{
+  "source_inventory": "../task1/control-owner-mapping.json",
+  "retained_rust_controls": 8,
+  "ported_python_controls": 6,
+  "total_retained_controls": 14,
+  "rows": [
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::direct_helper_timeout_retains_output_and_cleans_scratch",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::direct_helper_timeout_retains_output_and_cleans_scratch",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::timeout_cleans_descendants_before_return",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::timeout_cleans_descendants_before_return",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::cancellation_reaps_descendants_in_separate_sessions_and_closes_stdin",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::wrong_java_version_vendor_and_failed_launch_are_refused",
+      "rust_counterpart": "model/umpire/backends/process/src/tests.rs::wrong_java_version_vendor_and_failed_launch_are_refused",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::java_environment_is_clean_and_supervisor_group_is_private",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::java_environment_is_clean_and_supervisor_group_is_private",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::substituted_log_symlink_cannot_modify_an_external_file",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::substituted_log_symlink_cannot_modify_an_external_file",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::substituted_log_fifo_returns_without_waiting_for_a_reader",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::substituted_log_fifo_returns_without_waiting_for_a_reader",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/umpire/backends/tla/src/process.rs::tests::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::failed_captures_keep_one_combined_budget_and_refuse_invalid_utf8",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_all_darwin_helpers_prevent_process_creation",
+      "rust_counterpart": "model/umpire/backends/process/src/syscall.rs::all_darwin_helpers_prevent_process_creation",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_simulated_darwin_helper_cannot_start_an_escaped_descendant",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::simulated_darwin_helper_cannot_start_an_escaped_descendant",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_installer_containment_preflight_requires_no_descendants",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::installer_containment_preflight_requires_no_descendants",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_diagnostic_text_cannot_make_a_hung_preflight_pass",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::diagnostic_text_cannot_make_a_hung_preflight_pass",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_owner_group_and_direct_supervisor_termination_reap_owned_tree",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::owner_group_and_direct_supervisor_termination_reap_owned_tree",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "before": "model/scripts/tests/test_backend_process.py::test_owner_death_terminates_and_reaps_separate_session_descendants",
+      "rust_counterpart": "model/umpire/backends/process/tests/process.rs::owner_death_terminates_and_reaps_separate_session_descendants",
+      "requirements": [
+        "R1",
+        "R3"
+      ]
+    }
+  ],
+  "additional_controls": [
+    "cold_native_execution_does_not_need_python_or_a_sibling_supervisor",
+    "parent_allocator_threads_do_not_deadlock_forked_supervisors",
+    "bounded_reads_dump_and_scratch_fail_closed",
+    "launch_status_and_prepared_command_contracts_are_preserved",
+    "pthread_atfork_handlers_do_not_run_in_supervisor_or_target",
+    "supervisor_owner_eof_returns_125",
+    "supervisor_retains_first_stop_signal",
+    "unsupported_platform_is_an_explicit_refusal"
+  ]
+}

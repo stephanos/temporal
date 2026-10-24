@@ -6,24 +6,29 @@
 //! exit is `_exit`. In particular, no child drops parent-owned Rust values.
 #![allow(unsafe_code)]
 
-use std::{fs::File, io, path::Path, process::{Command, ExitStatus}};
+use std::{
+    fs::File,
+    io,
+    path::Path,
+    process::{Command, ExitStatus},
+};
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[path = "syscall/calls.rs"]
+mod calls;
 
 fn platform_policy(platform: &str, uid: u32, euid: u32) -> io::Result<()> {
     match platform {
         "linux" => Ok(()),
         "macos" if uid != 0 && euid != 0 => Ok(()),
-        "macos" => Err(io::Error::other(
-            "Darwin descendant prevention requires a non-root user",
-        )),
-        _ => Err(io::Error::other(
-            "backend process ownership supports Linux and macOS only",
-        )),
+        "macos" => Err(io::Error::other("Darwin descendant prevention requires a non-root user")),
+        _ => Err(io::Error::other("backend process ownership supports Linux and macOS only")),
     }
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 mod supported {
-    use super::{Command, ExitStatus, File, Path, io, platform_policy};
+    use super::{Command, ExitStatus, File, Path, calls, io, platform_policy};
     use std::{
         collections::BTreeMap,
         ffi::{CString, OsStr, OsString},
@@ -37,6 +42,10 @@ mod supported {
     };
 
     const BUFFER_BYTES: usize = 4096;
+    #[cfg(target_os = "linux")]
+    type SignalSet = [u64; 32];
+    #[cfg(target_os = "macos")]
+    type SignalSet = libc::sigset_t;
     #[cfg(not(target_has_atomic = "32"))]
     compile_error!("backend signal ownership requires lock-free 32-bit atomics");
     static STOP_SIGNAL: AtomicI32 = AtomicI32::new(0);
@@ -66,12 +75,15 @@ mod supported {
             let errors = duplicate(err.as_raw_fd())?;
             let null = duplicate(null.as_raw_fd())?;
             let context = prepared.context(
-                input.as_raw_fd(), output.as_raw_fd(), errors.as_raw_fd(), null.as_raw_fd(),
+                input.as_raw_fd(),
+                output.as_raw_fd(),
+                errors.as_raw_fd(),
+                null.as_raw_fd(),
             );
-            let mask = SignalMask::block()?;
+            let mask = SignalMask::block(&context)?;
             // SAFETY: all child memory and descriptors are live across fork. Only
             // the child takes child_main, which cannot return or drop these values.
-            let pid = unsafe { fork_without_handlers() };
+            let pid = unsafe { fork_without_handlers(&prepared.api) };
             if pid == 0 {
                 // SAFETY: context points to immutable prepared tables and one
                 // uniquely owned parsing buffer in this process's private memory.
@@ -109,7 +121,6 @@ mod supported {
                 }
             }
         }
-
     }
 
     impl Drop for Running {
@@ -119,7 +130,9 @@ mod supported {
                 loop {
                     // SAFETY: a null status pointer is permitted by waitpid.
                     let result = unsafe { libc::waitpid(self.pid, ptr::null_mut(), 0) };
-                    if result >= 0 || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted {
+                    if result >= 0
+                        || io::Error::last_os_error().kind() != io::ErrorKind::Interrupted
+                    {
                         break;
                     }
                 }
@@ -139,6 +152,7 @@ mod supported {
     }
 
     struct Prepared {
+        api: calls::Api,
         directory: CString,
         executable: CString,
         _arguments: Vec<CString>,
@@ -149,25 +163,36 @@ mod supported {
         close_limit: RawFd,
         signal_limit: libc::c_int,
         launch_error: libc::c_int,
+        #[cfg(target_os = "macos")]
         default_action: libc::sigaction,
         stop_action: libc::sigaction,
-        all_signals: libc::sigset_t,
-        empty_signals: libc::sigset_t,
+        all_signals: SignalSet,
+        empty_signals: SignalSet,
+        #[cfg(target_os = "linux")]
+        kernel_signal_bytes: usize,
+        #[cfg(target_os = "linux")]
+        kernel_default_action: [u64; 32],
     }
 
     impl Prepared {
         fn new(command: &Command, fallback_directory: &Path) -> io::Result<Self> {
-            let directory = command.get_current_dir().unwrap_or(fallback_directory).canonicalize()?;
+            let api = calls::Api::new()?;
+            let directory =
+                command.get_current_dir().unwrap_or(fallback_directory).canonicalize()?;
             let environment = environment(command)?;
-            let (executable, launch_error) = executable(command.get_program(), &directory, &environment)?;
+            let (executable, launch_error) =
+                executable(command.get_program(), &directory, &environment)?;
             let mut arguments = vec![cstring(command.get_program())?];
             arguments.extend(command.get_args().map(cstring).collect::<io::Result<Vec<_>>>()?);
-            let environment = environment.into_iter().map(|(key, value)| {
-                let mut bytes = key.as_bytes().to_vec();
-                bytes.push(b'=');
-                bytes.extend_from_slice(value.as_bytes());
-                CString::new(bytes).map_err(io::Error::other)
-            }).collect::<io::Result<Vec<_>>>()?;
+            let environment = environment
+                .into_iter()
+                .map(|(key, value)| {
+                    let mut bytes = key.as_bytes().to_vec();
+                    bytes.push(b'=');
+                    bytes.extend_from_slice(value.as_bytes());
+                    CString::new(bytes).map_err(io::Error::other)
+                })
+                .collect::<io::Result<Vec<_>>>()?;
             let mut argv = arguments.iter().map(|arg| arg.as_ptr()).collect::<Vec<_>>();
             argv.push(ptr::null());
             let mut envp = environment.iter().map(|arg| arg.as_ptr()).collect::<Vec<_>>();
@@ -180,38 +205,91 @@ mod supported {
             let signal_limit = libc::NSIG;
             // SAFETY: these structures are initialized by the named libc set
             // functions before the child can read them.
-            let (default_action, stop_action, all_signals, empty_signals) = unsafe {
-                let mut default_action = std::mem::zeroed::<libc::sigaction>();
-                let mut stop_action = std::mem::zeroed::<libc::sigaction>();
-                let mut all = std::mem::zeroed::<libc::sigset_t>();
-                let mut empty = std::mem::zeroed::<libc::sigset_t>();
-                if libc::sigfillset(&raw mut default_action.sa_mask) != 0
-                    || libc::sigfillset(&raw mut stop_action.sa_mask) != 0
-                    || libc::sigfillset(&raw mut all) != 0
-                    || libc::sigemptyset(&raw mut empty) != 0 {
+            let stop_action = unsafe {
+                let mut action = std::mem::zeroed::<libc::sigaction>();
+                if libc::sigfillset(&raw mut action.sa_mask) != 0 {
                     return Err(io::Error::last_os_error());
                 }
-                default_action.sa_sigaction = libc::SIG_DFL;
-                stop_action.sa_sigaction = request_stop as *const () as usize;
-                (default_action, stop_action, all, empty)
+                action.sa_sigaction = request_stop as *const () as usize;
+                action
             };
+            #[cfg(target_os = "macos")]
+            let default_action = unsafe {
+                let mut action = std::mem::zeroed::<libc::sigaction>();
+                if libc::sigfillset(&raw mut action.sa_mask) != 0 {
+                    return Err(io::Error::last_os_error());
+                }
+                action.sa_sigaction = libc::SIG_DFL;
+                action
+            };
+            #[cfg(target_os = "linux")]
+            let (all_signals, empty_signals) = ([u64::MAX; 32], [0; 32]);
+            #[cfg(target_os = "macos")]
+            let (all_signals, empty_signals) = unsafe {
+                let mut all = std::mem::zeroed::<libc::sigset_t>();
+                let mut empty = std::mem::zeroed::<libc::sigset_t>();
+                if libc::sigfillset(&raw mut all) != 0 || libc::sigemptyset(&raw mut empty) != 0 {
+                    return Err(io::Error::last_os_error());
+                }
+                (all, empty)
+            };
+            #[cfg(target_os = "linux")]
+            let kernel_signal_bytes =
+                usize::try_from((signal_limit - 1) / 8).map_err(io::Error::other)?;
             Ok(Self {
-                default_action, stop_action, all_signals, empty_signals,
-                directory: cstring(directory.as_os_str())?, executable, _arguments: arguments, _environment: environment,
-                argv, envp, buffer: Box::new([0; BUFFER_BYTES]), close_limit, signal_limit,
+                api,
+                #[cfg(target_os = "macos")]
+                default_action,
+                stop_action,
+                all_signals,
+                empty_signals,
+                #[cfg(target_os = "linux")]
+                kernel_default_action: [0; 32],
+                #[cfg(target_os = "linux")]
+                kernel_signal_bytes,
+                directory: cstring(directory.as_os_str())?,
+                executable,
+                _arguments: arguments,
+                _environment: environment,
+                argv,
+                envp,
+                buffer: Box::new([0; BUFFER_BYTES]),
+                close_limit,
+                signal_limit,
                 launch_error,
             })
         }
 
-        fn context(&mut self, input: RawFd, output: RawFd, errors: RawFd, null: RawFd) -> ChildContext {
+        fn context(
+            &mut self,
+            input: RawFd,
+            output: RawFd,
+            errors: RawFd,
+            null: RawFd,
+        ) -> ChildContext {
             ChildContext {
-                directory: self.directory.as_ptr(), executable: self.executable.as_ptr(),
-                argv: self.argv.as_ptr(), envp: self.envp.as_ptr(),
-                buffer: self.buffer.as_mut_ptr(), close_limit: self.close_limit,
-                signal_limit: self.signal_limit, launch_error: self.launch_error,
-                input, output, errors, null,
-                default_action: &raw const self.default_action, stop_action: &raw const self.stop_action,
-                all_signals: &raw const self.all_signals, empty_signals: &raw const self.empty_signals,
+                api: &raw const self.api,
+                directory: self.directory.as_ptr(),
+                executable: self.executable.as_ptr(),
+                argv: self.argv.as_ptr(),
+                envp: self.envp.as_ptr(),
+                buffer: self.buffer.as_mut_ptr(),
+                close_limit: self.close_limit,
+                signal_limit: self.signal_limit,
+                launch_error: self.launch_error,
+                input,
+                output,
+                errors,
+                null,
+                #[cfg(target_os = "macos")]
+                default_action: &raw const self.default_action,
+                stop_action: &raw const self.stop_action,
+                all_signals: &raw const self.all_signals,
+                empty_signals: &raw const self.empty_signals,
+                #[cfg(target_os = "linux")]
+                kernel_default_action: self.kernel_default_action.as_ptr(),
+                #[cfg(target_os = "linux")]
+                kernel_signal_bytes: self.kernel_signal_bytes,
             }
         }
     }
@@ -243,14 +321,21 @@ mod supported {
         if program.as_bytes().contains(&b'/') {
             return Ok((cstring(program)?, 0));
         }
-        let path = environment.get(OsStr::new("PATH")).map_or(OsStr::new("/bin:/usr/bin"), |v| v.as_os_str());
+        let path = environment
+            .get(OsStr::new("PATH"))
+            .map_or(OsStr::new("/bin:/usr/bin"), |v| v.as_os_str());
         let mut failure = libc::ENOENT;
         for entry in std::env::split_paths(path) {
             let candidate = directory.join(entry).join(program);
             let candidate = cstring(candidate.as_os_str())?;
             // SAFETY: the candidate is a live NUL-terminated pathname.
-            if unsafe { libc::faccessat(libc::AT_FDCWD, candidate.as_ptr(), libc::X_OK, libc::AT_EACCESS) } == 0 {
-                if std::fs::metadata(OsStr::from_bytes(candidate.as_bytes())).is_ok_and(|m| m.is_file()) {
+            if unsafe {
+                libc::faccessat(libc::AT_FDCWD, candidate.as_ptr(), libc::X_OK, libc::AT_EACCESS)
+            } == 0
+            {
+                if std::fs::metadata(OsStr::from_bytes(candidate.as_bytes()))
+                    .is_ok_and(|m| m.is_file())
+                {
                     return Ok((candidate, 0));
                 }
                 failure = libc::EACCES;
@@ -275,7 +360,8 @@ mod supported {
         // Existing descriptors can exceed a subsequently lowered soft limit.
         for entry in std::fs::read_dir("/dev/fd")? {
             let entry = entry?;
-            if let Some(fd) = entry.file_name().to_str().and_then(|name| name.parse::<RawFd>().ok()) {
+            if let Some(fd) = entry.file_name().to_str().and_then(|name| name.parse::<RawFd>().ok())
+            {
                 maximum = maximum.max(fd.saturating_add(1));
             }
         }
@@ -283,34 +369,50 @@ mod supported {
     }
 
     struct SignalMask {
-        original: libc::sigset_t,
+        original: SignalSet,
+        #[cfg(target_os = "linux")]
+        kernel_signal_bytes: usize,
     }
 
     impl SignalMask {
-        fn block() -> io::Result<Self> {
-            // SAFETY: libc writes only to these properly sized signal sets.
+        fn block(context: &ChildContext) -> io::Result<Self> {
+            // SAFETY: the original mask storage is writable and both Linux
+            // masks cover every kernel signal, including NPTL's reserved pair.
             unsafe {
-                let mut all = std::mem::zeroed::<libc::sigset_t>();
-                let mut original = std::mem::zeroed::<libc::sigset_t>();
-                if libc::sigfillset(&raw mut all) != 0 {
+                let mut original = std::mem::zeroed::<SignalSet>();
+                if replace_mask(context, context.all_signals, &raw mut original) != 0 {
                     return Err(io::Error::last_os_error());
                 }
-                let result = libc::pthread_sigmask(libc::SIG_SETMASK, &raw const all, &raw mut original);
-                if result != 0 {
-                    return Err(io::Error::from_raw_os_error(result));
-                }
-                Ok(Self { original })
+                Ok(Self {
+                    original,
+                    #[cfg(target_os = "linux")]
+                    kernel_signal_bytes: context.kernel_signal_bytes,
+                })
             }
         }
 
         fn restore(self) -> io::Result<()> {
-            // SAFETY: original is the initialized mask saved on the same thread.
-            let result = unsafe { libc::pthread_sigmask(libc::SIG_SETMASK, &raw const self.original, ptr::null_mut()) };
-            if result == 0 { Ok(()) } else { Err(io::Error::from_raw_os_error(result)) }
+            // SAFETY: only this parent thread reads its saved initialized mask.
+            #[cfg(target_os = "linux")]
+            let result = unsafe {
+                libc::syscall(
+                    libc::SYS_rt_sigprocmask,
+                    libc::SIG_SETMASK,
+                    &raw const self.original,
+                    ptr::null_mut::<libc::c_void>(),
+                    self.kernel_signal_bytes,
+                )
+            };
+            #[cfg(target_os = "macos")]
+            let result = unsafe {
+                libc::sigprocmask(libc::SIG_SETMASK, &raw const self.original, ptr::null_mut())
+            };
+            if result == 0 { Ok(()) } else { Err(io::Error::last_os_error()) }
         }
     }
 
     struct ChildContext {
+        api: *const calls::Api,
         directory: *const libc::c_char,
         executable: *const libc::c_char,
         argv: *const *const libc::c_char,
@@ -323,10 +425,15 @@ mod supported {
         output: RawFd,
         errors: RawFd,
         null: RawFd,
+        #[cfg(target_os = "macos")]
         default_action: *const libc::sigaction,
         stop_action: *const libc::sigaction,
-        all_signals: *const libc::sigset_t,
-        empty_signals: *const libc::sigset_t,
+        all_signals: *const SignalSet,
+        empty_signals: *const SignalSet,
+        #[cfg(target_os = "linux")]
+        kernel_signal_bytes: usize,
+        #[cfg(target_os = "linux")]
+        kernel_default_action: *const u64,
     }
 
     // SAFETY: all child-only functions below are reached with signals blocked,
@@ -334,100 +441,169 @@ mod supported {
     // by the successful read length (at most BUFFER_BYTES); decimal arithmetic is
     // checked against pid_t::MAX before multiplication. No index, formatting,
     // heap operation, Rust destructor or unwinding path occurs in this region.
-    unsafe fn child_main(context: *const ChildContext, original_mask: *const libc::sigset_t) -> ! {
+    unsafe fn child_main(context: *const ChildContext, original_mask: *const SignalSet) -> ! {
         unsafe {
             let context = &*context;
+            let api = &*context.api;
+            #[cfg(target_os = "macos")]
+            if api.cancel_state(2) != 0 {
+                child_error(api, c"cannot disable backend pthread cancellation".as_ptr());
+            }
             STOP_SIGNAL.store(0, Ordering::Relaxed);
-            if libc::setpgid(0, 0) != 0 || !install_signals(context) {
-                child_error(c"cannot establish backend supervisor".as_ptr());
+            if api.dup2(context.input, 0) < 0
+                || api.dup2(context.output, 1) < 0
+                || api.dup2(context.errors, 2) < 0
+                || api.dup2(context.null, 3) < 0
+            {
+                child_error(api, c"cannot prepare backend descriptors".as_ptr());
             }
-            if libc::dup2(context.input, 0) < 0 || libc::dup2(context.output, 1) < 0
-                || libc::dup2(context.errors, 2) < 0 || libc::dup2(context.null, 3) < 0 {
-                child_error(c"cannot prepare backend descriptors".as_ptr());
+            if api.setpgid(0, 0) != 0 || !install_signals(context) {
+                child_error(api, c"cannot establish backend supervisor".as_ptr());
             }
-            close_descriptors(4, context.close_limit);
+            close_descriptors(api, 4, context.close_limit);
             #[cfg(target_os = "linux")]
             let children = {
-                if libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) != 0 {
-                    child_error(c"cannot establish backend subreaper".as_ptr());
+                if !api.subreaper() {
+                    child_error(api, c"cannot establish backend subreaper".as_ptr());
                 }
-                let fd = libc::open(c"/proc/thread-self/children".as_ptr(), libc::O_RDONLY | libc::O_CLOEXEC);
-                if fd < 0 { child_error(c"cannot inspect backend descendants".as_ptr()); }
+                let fd = calls::open_children(api);
+                if fd < 0 {
+                    child_error(api, c"cannot inspect backend descendants".as_ptr());
+                }
                 fd
             };
-            if libc::sigprocmask(libc::SIG_SETMASK, context.empty_signals, ptr::null_mut()) != 0 {
-                child_error(c"cannot establish backend signal mask".as_ptr());
+            if replace_mask(context, context.empty_signals, ptr::null_mut()) != 0 {
+                child_error(api, c"cannot establish backend signal mask".as_ptr());
             }
             let stopped = STOP_SIGNAL.load(Ordering::Relaxed);
-            if stopped != 0 { libc::_exit(128 + stopped); }
-            let target = fork_without_handlers();
-            if target < 0 { child_error(c"cannot fork backend subprocess".as_ptr()); }
-            if target == 0 { target_main(context, original_mask); }
+            if stopped != 0 {
+                api.exit(128 + stopped);
+            }
+            let target = fork_without_handlers(api);
+            if target < 0 {
+                child_error(api, c"cannot fork backend subprocess".as_ptr());
+            }
+            if target == 0 {
+                target_main(context, original_mask);
+            }
+            let (status, completed, mut failed) = wait_for_target(context, target);
+            if api.kill(-target, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH {
+                failed = true;
+            }
+            if !completed {
+                if api.kill(target, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH {
+                    failed = true;
+                }
+                loop {
+                    let result = calls::waitpid(api, target, ptr::null_mut(), 0);
+                    if result == target {
+                        break;
+                    }
+                    if result < 0 && errno(api) != libc::EINTR {
+                        failed = true;
+                        break;
+                    }
+                }
+            }
+            #[cfg(target_os = "linux")]
+            if !reap_descendants(api, children, context.buffer) {
+                failed = true;
+            }
+            let stopped = STOP_SIGNAL.load(Ordering::Relaxed);
+            if stopped != 0 {
+                api.exit(128 + stopped);
+            }
+            if failed {
+                api.exit(1);
+            }
+            if !completed {
+                api.exit(125);
+            }
+            if libc::WIFEXITED(status) {
+                api.exit(libc::WEXITSTATUS(status));
+            }
+            if libc::WIFSIGNALED(status) {
+                api.exit(128 + libc::WTERMSIG(status));
+            }
+            api.exit(1)
+        }
+    }
+
+    unsafe fn wait_for_target(
+        context: &ChildContext,
+        target: libc::pid_t,
+    ) -> (libc::c_int, bool, bool) {
+        unsafe {
+            let api = &*context.api;
             let mut status = 0;
             let mut completed = false;
             let mut failed = false;
             while STOP_SIGNAL.load(Ordering::Relaxed) == 0 {
-                let result = libc::waitpid(target, &raw mut status, libc::WNOHANG);
-                if result == target { completed = true; break; }
-                if result < 0 && errno() != libc::EINTR { failed = true; break; }
+                let result = calls::waitpid(api, target, &raw mut status, libc::WNOHANG);
+                if result == target {
+                    completed = true;
+                    break;
+                }
+                if result < 0 && errno(api) != libc::EINTR {
+                    failed = true;
+                    break;
+                }
                 let mut owner = libc::pollfd { fd: 0, events: libc::POLLIN, revents: 0 };
-                let polled = libc::poll(&raw mut owner, 1, 5);
-                if polled < 0 && errno() != libc::EINTR { failed = true; break; }
+                let polled = calls::poll_owner(api, &raw mut owner);
+                if polled < 0 && errno(api) != libc::EINTR {
+                    failed = true;
+                    break;
+                }
                 if polled > 0 {
                     let mut byte = 0u8;
-                    let read = libc::read(0, (&raw mut byte).cast(), 1);
-                    if read == 0 { break; }
-                    if read < 0 && errno() != libc::EINTR { failed = true; break; }
+                    let read = calls::read(api, 0, (&raw mut byte).cast(), 1);
+                    if read == 0 {
+                        break;
+                    }
+                    if read < 0 && errno(api) != libc::EINTR {
+                        failed = true;
+                        break;
+                    }
                 }
             }
-            if libc::kill(-target, libc::SIGKILL) != 0 && errno() != libc::ESRCH { failed = true; }
-            if !completed {
-                if libc::kill(target, libc::SIGKILL) != 0 && errno() != libc::ESRCH { failed = true; }
-                loop {
-                    let result = libc::waitpid(target, ptr::null_mut(), 0);
-                    if result == target { break; }
-                    if result < 0 && errno() != libc::EINTR { failed = true; break; }
-                }
-            }
-            #[cfg(target_os = "linux")]
-            if !reap_descendants(children, context.buffer) { failed = true; }
-            let stopped = STOP_SIGNAL.load(Ordering::Relaxed);
-            if stopped != 0 { libc::_exit(128 + stopped); }
-            if failed { libc::_exit(1); }
-            if !completed { libc::_exit(125); }
-            if libc::WIFEXITED(status) { libc::_exit(libc::WEXITSTATUS(status)); }
-            if libc::WIFSIGNALED(status) { libc::_exit(128 + libc::WTERMSIG(status)); }
-            libc::_exit(1)
+            (status, completed, failed)
         }
     }
 
-    unsafe fn target_main(context: &ChildContext, original_mask: *const libc::sigset_t) -> ! {
+    unsafe fn target_main(context: &ChildContext, original_mask: *const SignalSet) -> ! {
         unsafe {
+            let api = &*context.api;
+            #[cfg(target_os = "macos")]
+            if api.cancel_state(2) != 0 {
+                child_error(api, c"cannot disable backend pthread cancellation".as_ptr());
+            }
             // Reset dispositions while still blocking stop signals, so no
             // application handler can run in either forked process.
-            if libc::sigprocmask(libc::SIG_SETMASK, context.all_signals, ptr::null_mut()) != 0 {
-                child_error(c"cannot prepare backend signal mask".as_ptr());
+            if replace_mask(context, context.all_signals, ptr::null_mut()) != 0 {
+                child_error(api, c"cannot prepare backend signal mask".as_ptr());
             }
-            if !reset_signals(context) || libc::setsid() < 0
-                || libc::dup2(3, 0) < 0 || libc::chdir(context.directory) != 0 {
-                child_error(c"cannot prepare backend subprocess".as_ptr());
+            if !reset_signals(context)
+                || api.setsid() < 0
+                || api.dup2(3, 0) < 0
+                || api.chdir(context.directory) != 0
+            {
+                child_error(api, c"cannot prepare backend subprocess".as_ptr());
             }
-            close_descriptors(3, context.close_limit);
+            close_descriptors(api, 3, context.close_limit);
             #[cfg(target_os = "macos")]
             {
-                let limit = libc::rlimit { rlim_cur: 0, rlim_max: 0 };
-                if libc::setrlimit(libc::RLIMIT_NPROC, &raw const limit) != 0 {
-                    child_error(c"cannot prevent backend descendants".as_ptr());
+                if !prevent_descendants(api) {
+                    child_error(api, c"cannot prevent backend descendants".as_ptr());
                 }
             }
-            if libc::sigprocmask(libc::SIG_SETMASK, original_mask, ptr::null_mut()) != 0 {
-                child_error(c"cannot restore backend signal mask".as_ptr());
+            if replace_mask(context, original_mask, ptr::null_mut()) != 0 {
+                child_error(api, c"cannot restore backend signal mask".as_ptr());
             }
             if context.launch_error != 0 {
-                child_error(c"cannot execute backend subprocess".as_ptr());
+                child_error(api, c"cannot execute backend subprocess".as_ptr());
             }
-            libc::execve(context.executable, context.argv, context.envp);
-            child_error(c"cannot execute backend subprocess".as_ptr())
+            api.execve(context.executable, context.argv, context.envp);
+            child_error(api, c"cannot execute backend subprocess".as_ptr())
         }
     }
 
@@ -439,11 +615,14 @@ mod supported {
 
     unsafe fn reset_signals(context: &ChildContext) -> bool {
         unsafe {
+            let api = &*context.api;
             let mut signal = 1;
             while signal < context.signal_limit {
-                if signal != libc::SIGKILL && signal != libc::SIGSTOP
-                    && libc::sigaction(signal, context.default_action, ptr::null_mut()) != 0
-                    && errno() != libc::EINVAL {
+                if signal != libc::SIGKILL
+                    && signal != libc::SIGSTOP
+                    && !reset_signal(context, signal)
+                    && errno(api) != libc::EINVAL
+                {
                     return false;
                 }
                 signal += 1;
@@ -452,79 +631,152 @@ mod supported {
         }
     }
 
+    unsafe fn reset_signal(context: &ChildContext, signal: libc::c_int) -> bool {
+        unsafe {
+            let api = &*context.api;
+            #[cfg(target_os = "linux")]
+            {
+                // Every kernel field is zero: SIG_DFL, no restorer, no mask.
+                // This bypasses glibc's abort lock and reserved-signal filtering.
+                (api.syscall())(
+                    libc::SYS_rt_sigaction,
+                    signal,
+                    context.kernel_default_action,
+                    ptr::null_mut::<libc::c_void>(),
+                    context.kernel_signal_bytes,
+                ) == 0
+            }
+            #[cfg(target_os = "macos")]
+            {
+                api.sigaction(signal, context.default_action, ptr::null_mut()) == 0
+            }
+        }
+    }
+
+    unsafe fn replace_mask(
+        context: &ChildContext,
+        set: *const SignalSet,
+        old: *mut SignalSet,
+    ) -> libc::c_long {
+        unsafe {
+            let api = &*context.api;
+            #[cfg(target_os = "linux")]
+            {
+                (api.syscall())(
+                    libc::SYS_rt_sigprocmask,
+                    libc::SIG_SETMASK,
+                    set,
+                    old,
+                    context.kernel_signal_bytes,
+                )
+            }
+            #[cfg(target_os = "macos")]
+            {
+                libc::c_long::from(api.sigprocmask(libc::SIG_SETMASK, set, old))
+            }
+        }
+    }
+
+    unsafe fn prevent_descendants(api: &calls::Api) -> bool {
+        unsafe {
+            let limit = libc::rlimit { rlim_cur: 0, rlim_max: 0 };
+            #[cfg(target_os = "macos")]
+            let resource = libc::RLIMIT_NPROC | 0x1000;
+            #[cfg(target_os = "linux")]
+            let resource = libc::RLIMIT_NPROC;
+            api.setrlimit(resource, &raw const limit) == 0
+        }
+    }
+
     unsafe fn install_signals(context: &ChildContext) -> bool {
         unsafe {
-            if !reset_signals(context) { return false; }
-            libc::sigaction(libc::SIGTERM, context.stop_action, ptr::null_mut()) == 0
-                && libc::sigaction(libc::SIGINT, context.stop_action, ptr::null_mut()) == 0
-                && libc::sigaction(libc::SIGHUP, context.stop_action, ptr::null_mut()) == 0
-                && libc::sigaction(libc::SIGQUIT, context.stop_action, ptr::null_mut()) == 0
+            let api = &*context.api;
+            if !reset_signals(context) {
+                return false;
+            }
+            api.sigaction(libc::SIGTERM, context.stop_action, ptr::null_mut()) == 0
+                && api.sigaction(libc::SIGINT, context.stop_action, ptr::null_mut()) == 0
+                && api.sigaction(libc::SIGHUP, context.stop_action, ptr::null_mut()) == 0
+                && api.sigaction(libc::SIGQUIT, context.stop_action, ptr::null_mut()) == 0
         }
     }
 
     #[allow(clippy::cast_possible_truncation)]
-    unsafe fn fork_without_handlers() -> libc::pid_t {
+    unsafe fn fork_without_handlers(api: &calls::Api) -> libc::pid_t {
         #[cfg(target_os = "linux")]
         unsafe {
             // SIGCHLD with no shared-address-space flags gives fork semantics.
             // Null arguments make clone's architecture-dependent argument order
             // immaterial; libc's syscall shim invokes no pthread_atfork handlers.
             let zero: libc::c_long = 0;
-            libc::syscall(libc::SYS_clone, libc::c_long::from(libc::SIGCHLD), zero, zero, zero, zero) as libc::pid_t
+            (api.syscall())(
+                libc::SYS_clone,
+                libc::c_long::from(libc::SIGCHLD),
+                zero,
+                zero,
+                zero,
+                zero,
+            ) as libc::pid_t
         }
         #[cfg(target_os = "macos")]
-        unsafe { darwin_fork() }
+        unsafe {
+            api.fork()
+        }
     }
 
-    #[cfg(target_os = "macos")]
-    unsafe extern "C" {
-        // Apple's libsyscall shim fixes up the kernel's two-register fork return
-        // without Libc's application callbacks. Its ABI is private; native Darwin
-        // validation remains distinct from source/compile evidence.
-        #[link_name = "__fork"]
-        fn darwin_fork() -> libc::pid_t;
-    }
-
-    unsafe fn close_descriptors(first: RawFd, limit: RawFd) {
+    unsafe fn close_descriptors(api: &calls::Api, first: RawFd, limit: RawFd) {
         unsafe {
             #[cfg(target_os = "linux")]
-            if libc::syscall(libc::SYS_close_range, first.cast_unsigned(), u32::MAX, 0) == 0 { return; }
+            if (api.syscall())(libc::SYS_close_range, first.cast_unsigned(), u32::MAX, 0) == 0 {
+                return;
+            }
             let mut fd = first;
             while fd < limit {
-                libc::close(fd);
+                calls::close(api, fd);
                 fd += 1;
             }
         }
     }
 
     #[cfg(target_os = "linux")]
-    unsafe fn reap_descendants(children: RawFd, buffer: *mut u8) -> bool {
+    unsafe fn reap_descendants(api: &calls::Api, children: RawFd, buffer: *mut u8) -> bool {
         unsafe {
             let mut success = true;
             loop {
-                let reaped = libc::waitpid(-1, ptr::null_mut(), libc::WNOHANG);
-                if reaped > 0 { continue; }
+                let reaped = calls::waitpid(api, -1, ptr::null_mut(), libc::WNOHANG);
+                if reaped > 0 {
+                    continue;
+                }
                 if reaped < 0 {
-                    if errno() == libc::ECHILD { return success; }
-                    if errno() == libc::EINTR { continue; }
+                    if errno(api) == libc::ECHILD {
+                        return success;
+                    }
+                    if errno(api) == libc::EINTR {
+                        continue;
+                    }
                     return false;
                 }
-                if !kill_adopted(children, buffer) { success = false; }
-                let delay = libc::timespec { tv_sec: 0, tv_nsec: 5_000_000 };
-                libc::nanosleep(&raw const delay, ptr::null_mut());
+                if !kill_adopted(api, children, buffer) {
+                    success = false;
+                }
+                calls::pause(api);
             }
         }
     }
 
     #[cfg(target_os = "linux")]
-    unsafe fn kill_adopted(children: RawFd, buffer: *mut u8) -> bool {
+    unsafe fn kill_adopted(api: &calls::Api, children: RawFd, buffer: *mut u8) -> bool {
         unsafe {
-            if libc::lseek(children, 0, libc::SEEK_SET) < 0 { return false; }
+            if api.lseek(children, 0, libc::SEEK_SET) < 0 {
+                return false;
+            }
             let mut pid = 0;
             loop {
-                let count = libc::read(children, buffer.cast(), BUFFER_BYTES);
+                let count = calls::read(api, children, buffer.cast(), BUFFER_BYTES);
                 if count < 0 {
-                    if errno() == libc::EINTR { continue; }
+                    if errno(api) == libc::EINTR {
+                        continue;
+                    }
                     return false;
                 }
                 let mut offset = 0;
@@ -532,41 +784,60 @@ mod supported {
                     let byte = *buffer.offset(offset);
                     if byte.wrapping_sub(b'0') <= 9 {
                         let digit = libc::pid_t::from(byte - b'0');
-                        if pid > (libc::pid_t::MAX - digit) / 10 { return false; }
+                        if pid > (libc::pid_t::MAX - digit) / 10 {
+                            return false;
+                        }
                         pid = pid * 10 + digit;
                     } else if byte == b' ' || byte == b'\n' {
-                        if pid > 0 && libc::kill(pid, libc::SIGKILL) != 0 && errno() != libc::ESRCH { return false; }
+                        if pid > 0 && api.kill(pid, libc::SIGKILL) != 0 && errno(api) != libc::ESRCH
+                        {
+                            return false;
+                        }
                         pid = 0;
-                    } else { return false; }
+                    } else {
+                        return false;
+                    }
                     offset += 1;
                 }
                 if count == 0 {
-                    return pid == 0 || libc::kill(pid, libc::SIGKILL) == 0 || errno() == libc::ESRCH;
+                    return pid == 0
+                        || api.kill(pid, libc::SIGKILL) == 0
+                        || errno(api) == libc::ESRCH;
                 }
             }
         }
     }
 
-    unsafe fn child_error(message: *const libc::c_char) -> ! {
+    unsafe fn child_error(api: &calls::Api, message: *const libc::c_char) -> ! {
         unsafe {
             let mut length = 0;
-            while *message.add(length) != 0 { length += 1; }
+            while *message.add(length) != 0 {
+                length += 1;
+            }
             let mut offset = 0;
             while offset < length {
-                let count = libc::write(2, message.add(offset).cast(), length - offset);
-                if count > 0 { offset += count.cast_unsigned(); }
-                else if count == 0 || errno() != libc::EINTR { break; }
+                let count = calls::write(api, 2, message.add(offset).cast(), length - offset);
+                if count > 0 {
+                    offset += count.cast_unsigned();
+                } else if count == 0 || errno(api) != libc::EINTR {
+                    break;
+                }
             }
-            libc::write(2, c"\n".as_ptr().cast(), 1);
-            libc::_exit(1)
+            calls::write(api, 2, c"\n".as_ptr().cast(), 1);
+            api.exit(1)
         }
     }
 
-    unsafe fn errno() -> libc::c_int {
-        #[cfg(target_os = "linux")]
-        unsafe { *libc::__errno_location() }
-        #[cfg(target_os = "macos")]
-        unsafe { *libc::__error() }
+    unsafe fn errno(api: &calls::Api) -> libc::c_int {
+        unsafe { *api.errno }
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn restrict_descendants() -> io::Result<()> {
+        // SAFETY: the fixture deliberately restricts only its own process;
+        // production calls the identical helper in the target before exec.
+        let api = calls::Api::new()?;
+        if unsafe { prevent_descendants(&api) } { Ok(()) } else { Err(io::Error::last_os_error()) }
     }
 
     #[allow(dead_code)]
@@ -584,7 +855,9 @@ mod supported {
         // SAFETY: this option takes only integer arguments and modifies the caller.
         if unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) } == 0 {
             Ok(())
-        } else { Err(io::Error::last_os_error()) }
+        } else {
+            Err(io::Error::last_os_error())
+        }
     }
 
     #[cfg(target_os = "linux")]
@@ -592,10 +865,16 @@ mod supported {
     pub(crate) fn reap_owned_children() -> io::Result<()> {
         loop {
             // SAFETY: null status is permitted; the isolated harness owns all children.
-            if unsafe { libc::waitpid(-1, ptr::null_mut(), 0) } >= 0 { continue; }
+            if unsafe { libc::waitpid(-1, ptr::null_mut(), 0) } >= 0 {
+                continue;
+            }
             let error = io::Error::last_os_error();
-            if error.raw_os_error() == Some(libc::ECHILD) { return Ok(()); }
-            if error.kind() != io::ErrorKind::Interrupted { return Err(error); }
+            if error.raw_os_error() == Some(libc::ECHILD) {
+                return Ok(());
+            }
+            if error.kind() != io::ErrorKind::Interrupted {
+                return Err(error);
+            }
         }
     }
 
@@ -616,11 +895,15 @@ mod supported {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use std::{fs, thread, time::{Duration, Instant}};
+        use std::{
+            fs, thread,
+            time::{Duration, Instant},
+        };
 
         #[test]
         fn supervisor_owner_eof_returns_125() -> io::Result<()> {
-            let directory = std::env::temp_dir().join(format!("umpire-owner-eof-{}", std::process::id()));
+            let directory =
+                std::env::temp_dir().join(format!("umpire-owner-eof-{}", std::process::id()));
             fs::create_dir(&directory)?;
             let out = File::create(directory.join("stdout"))?;
             let err = File::create(directory.join("stderr"))?;
@@ -630,7 +913,9 @@ mod supported {
             drop(running.owner.take());
             let deadline = Instant::now() + Duration::from_secs(5);
             let result = loop {
-                if let Some(status) = running.try_wait()? { break status.code(); }
+                if let Some(status) = running.try_wait()? {
+                    break status.code();
+                }
                 assert!(Instant::now() < deadline, "supervisor ignored owner EOF");
                 thread::sleep(Duration::from_millis(5));
             };
@@ -655,7 +940,7 @@ mod supported {
 pub(crate) use supported::Running;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 #[allow(unused_imports)]
-pub(crate) use supported::parent_identity;
+pub(crate) use supported::{parent_identity, restrict_descendants};
 #[cfg(target_os = "linux")]
 #[allow(unused_imports)]
 pub(crate) use supported::{poison_atfork_child, reap_owned_children, set_subreaper};
@@ -682,7 +967,10 @@ mod tests {
     fn all_darwin_helpers_prevent_process_creation() {
         assert!(platform_policy("macos", 501, 501).is_ok());
         for (uid, euid) in [(0, 501), (501, 0), (0, 0)] {
-            assert!(platform_policy("macos", uid, euid).is_err_and(|e| e.to_string().contains("non-root")));
+            assert!(
+                platform_policy("macos", uid, euid)
+                    .is_err_and(|e| e.to_string().contains("non-root"))
+            );
         }
         assert!(platform_policy("linux", 0, 0).is_ok());
     }

@@ -237,6 +237,17 @@ fn parent_allocator_threads_do_not_deadlock_forked_supervisors() -> Result<(), R
             })
         })
         .collect();
+    let spawning = {
+        let stop = stop.clone();
+        thread::spawn(move || -> Result<(), Refusal> {
+            while !stop.load(Ordering::Relaxed) {
+                if !Command::new("true").status()?.success() {
+                    return Err(Refusal("concurrent spawn failed".into()));
+                }
+            }
+            Ok(())
+        })
+    };
     let result = (|| {
         let runs: Vec<_> = (0..4)
             .map(|_| {
@@ -266,6 +277,7 @@ fn parent_allocator_threads_do_not_deadlock_forked_supervisors() -> Result<(), R
     for worker in workers {
         join(worker)?;
     }
+    spawning.join().map_err(|_| Refusal("spawn stress panicked".into()))??;
     result
 }
 
@@ -342,11 +354,8 @@ fn non_root() -> Result<bool, Refusal> {
     Ok(true)
 }
 fn restricted(script: &Path) -> Command {
-    let mut command = Command::new("bash");
-    command
-        .args(["-c", "ulimit -u 0; exec bash \"$1\"", "control"])
-        .arg(script)
-        .env("BASH_ENV", "/dev/null");
+    let mut command = fixture("restricted-exec");
+    command.arg(script).env("BASH_ENV", "/dev/null");
     command
 }
 
@@ -357,10 +366,7 @@ fn simulated_darwin_helper_cannot_start_an_escaped_descendant() -> Result<(), Re
         return Ok(());
     }
     let scratch = Scratch::new(&root()?)?;
-    let mut command = Command::new("bash");
-    command
-        .args(["-c", "ulimit -u 0; exec \"$1\" descendant-attempt", "control", FIXTURE])
-        .env("BASH_ENV", "/dev/null");
+    let mut command = fixture("descendant-attempt");
     let (status, output) = run_process(&mut command, &scratch.0, "nproc", Limits::default(), None)?;
     assert_eq!(status.code(), Some(75));
     assert_eq!(output, "descendant creation refused\n");

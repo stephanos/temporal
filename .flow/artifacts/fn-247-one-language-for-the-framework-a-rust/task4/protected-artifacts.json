@@ -1,0 +1,6 @@
+{
+  "manifest": "../task1/baseline-artifacts.json",
+  "verified_count": 752,
+  "failures": [],
+  "guest_sha256": "eaf6efd637e0e33b1a9f1e02b24cd8595c1f73706b5695fcde86151e884515f0"
+}
