@@ -211,7 +211,7 @@ impl Realization {
         Ok(self.context.is_some()
             && observed.method
                 == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
-            && state.phase == Phase::Scheduled)
+            && !umpire_dsl::Phase::closed(&state.phase))
     }
 
     #[observe(WorkflowService::RequestCancelActivityExecution)]

@@ -49,69 +49,20 @@ message: temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
   ignored info.sdk_version - SDK identity is outside the lifecycle projection
   ignored info.start_delay - Timing policy is outside the lifecycle projection
   ignored info.execution_time - Observed timestamps are outside the lifecycle projection
-  ignored input - Describe input does not evidence callback delivery
+  ignored input - Application input is independent of the worker scenario
   ignored outcome - Lifecycle projection reads status rather than result contents
   ignored long_poll_token - Transport polling state is outside the Model
   ignored callbacks - Callback registration is outside the Model
 
-incoming callback: /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue
-message: temporal.api.workflowservice.v1.PollActivityTaskQueueResponse
-  ignored task_token - The SDK owns task-token transport
-  ignored workflow_namespace - The SDK owns namespace transport
-  ignored workflow_type - Workflow identity is outside this callback projection
-  ignored workflow_execution - Workflow identity is outside this callback projection
-  ignored activity_type - Activity type is outside the callback policy
-  ignored activity_id - Activity identity is bound by the owning run
-  ignored header - Application headers are outside the callback policy
-  mapped input.payloads.metadata
-  mapped input.payloads.data
-  ignored input.payloads.external_payloads - External references are accepted then removed from completed results
-  ignored heartbeat_details - Heartbeat payloads are outside the callback policy
-  ignored scheduled_time - Server timing is outside the callback policy
-  ignored current_attempt_scheduled_time - Retry timing is outside the callback policy
-  ignored started_time - Server timing is outside the callback policy
-  mapped attempt
-  ignored schedule_to_close_timeout - Timing policy is outside the callback projection
-  ignored start_to_close_timeout - Timing policy is outside the callback projection
-  ignored heartbeat_timeout - Heartbeat timing is outside the callback projection
-  ignored retry_policy - Retry policy is outside the six-phase Model
-  ignored poller_scaling_decision - Worker scaling is outside the Model
-  ignored priority - Scheduling priority is outside the Model
-  ignored activity_run_id - Run identity is outside the callback policy
-  ignored poller_group_infos - Poller routing is outside the Model
-  ignored poller_groups_info - Poller routing is outside the Model
-
-outgoing request: /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted
-message: temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest
-  ignored task_token - The SDK supplies the task token
-  mapped result
-  ignored identity - The SDK supplies worker identity
-  ignored namespace - The SDK supplies the namespace
-  ignored resource_id - The SDK owns resource transport
-  ignored worker_version - The SDK supplies worker version metadata
-  ignored deployment - The SDK supplies deployment metadata
-  ignored deployment_options - The SDK supplies deployment routing
-
-outgoing request: /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed
-message: temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest
-  ignored task_token - The SDK supplies the task token
-  mapped failure
-  ignored identity - The SDK supplies worker identity
-  ignored namespace - The SDK supplies the namespace
-  ignored resource_id - The SDK owns resource transport
-  ignored last_heartbeat_details - The callback emits no heartbeat payloads
-  ignored worker_version - The SDK supplies worker version metadata
-  ignored deployment - The SDK supplies deployment metadata
-  ignored deployment_options - The SDK supplies deployment routing
-  unsupported cause
-
 Model-action RPCs without an observation handler:
   /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
-    covered only as incoming callback
+    no realization context
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
-    covered only as outgoing request
+    no realization context
   /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed
-    covered only as outgoing request
+    no realization context
 
 Model-action RPCs without any realization context:
-  (none)
+  /temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue -> Worker::Poll
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompleted -> Worker::RespondCompleted
+  /temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailed -> Worker::RespondFailed

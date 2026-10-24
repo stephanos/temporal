@@ -66,6 +66,9 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if err != nil || response.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_READ || response.GetAction() != "" {
 		t.Fatalf("response read: %v %v", response, err)
 	}
+	if current := judge(t, h, started(t)); !current.GetContinuePolling() {
+		t.Fatalf("an unchanged Started read must continue: %v", current)
+	}
 	result = judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0))
 	explained(t, result, "Worker::RespondCompleted")
 	if result.GetContinuePolling() {

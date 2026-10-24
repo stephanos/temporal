@@ -306,4 +306,15 @@ fn read_finishes_when_retry_skips_started_and_the_next_read_waits_for_change() {
         call(&mut guest, 6, &protocol::ProposeRequest { seed: 0 }),
         protocol::RefusalCode::State,
     );
+    let Some(Outcome::Judge(started)) = judge(&mut guest, &common::describe(2, 1, 2)).outcome
+    else {
+        panic!("started")
+    };
+    assert!(!started.continue_polling);
+    assert_eq!(propose(&mut guest, 1).kind(), protocol::ProposalKind::Read);
+    let Some(Outcome::Judge(current)) = judge(&mut guest, &common::describe(2, 1, 2)).outcome
+    else {
+        panic!("current started")
+    };
+    assert!(current.continue_polling);
 }
