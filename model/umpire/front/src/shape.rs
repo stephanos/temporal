@@ -52,6 +52,11 @@ pub(crate) fn parse(
         vector_imported: admit_imports(items)?,
         outcome_type: if declared.rejecting { Type::outcome() } else { Type::Unit },
         fact_type: Type::Unit,
+        fact_shadows: ["Option", "Some", "None", "core", "std"]
+            .into_iter()
+            .filter(|name| declare::shadows(items, name))
+            .map(str::to_owned)
+            .collect(),
         phased: false,
         checks: std::cell::RefCell::default(),
         dsl: imports(items)
@@ -98,6 +103,9 @@ pub(crate) fn parse(
             }
             parser.enums.insert(name.clone(), Type::Enum { name, variants });
         }
+    }
+    if let Some(fact) = &declared.fact {
+        parser.fact_type = parser.enums[&fact.to_string()].clone();
     }
     for stock in [Type::outcome(), Type::rejection()] {
         if let Type::Enum { name, .. } = &stock {
@@ -312,7 +320,12 @@ pub(crate) fn parse(
                 for action in
                     actions.iter_mut().filter(|a| a.name.starts_with(&format!("{actor}::")))
                 {
-                    let branches = parser.branches(matched, action, &parser.method_env(method)?)?;
+                    let branches = parser.branches(
+                        matched,
+                        action,
+                        &parser.method_env(method)?,
+                        registered.fact,
+                    )?;
                     action.branches.extend(branches);
                 }
             }

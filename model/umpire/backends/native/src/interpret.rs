@@ -69,6 +69,7 @@ struct Arm {
     updates: Vec<(usize, Node)>,
     checks: Vec<Node>,
     outcome: Node,
+    facts: Node,
     preserve_self_loop: bool,
 }
 
@@ -352,6 +353,8 @@ where
                     changes.push((*slot, value));
                 }
             }
+            let facts =
+                frame.eval(&arm.facts).into_elements().iter().map(M::__umpire_fact).collect();
             // The stock outcome's first variant is `Outcome::Accepted`.
             let rejected = self.program.rejecting && outcome != Value::Enum(0);
             if rejected && !changes.is_empty() {
@@ -362,7 +365,7 @@ where
                 for (slot, value) in &changes {
                     M::__umpire_set(&mut next, *slot, value);
                 }
-                steps.push((M::__umpire_outcome(&outcome), Vec::new(), next));
+                steps.push((M::__umpire_outcome(&outcome), facts, next));
             }
             break;
         }
@@ -641,6 +644,7 @@ impl Resolver<'_> {
                 .map(|check| resolver.node(check))
                 .collect::<Result<_, String>>()?,
             outcome: resolver.node(&branch.outcome)?,
+            facts: resolver.node(&branch.facts)?,
             preserve_self_loop: branch.preserve_self_loop,
         })
     }

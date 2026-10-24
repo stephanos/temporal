@@ -1,0 +1,8 @@
+TLC 1.7.4; complete source-lifted exploration
+states: 7; native: 7; agreement: yes
+claim never_a: Refuted; native: Refuted; agreement: yes
+claim never_b: Refuted; native: Refuted; agreement: yes
+claim never_c: Refuted; native: Refuted; agreement: yes
+claim never_clear: Refuted; native: Refuted; agreement: yes
+claim never_d: Refuted; native: Refuted; agreement: yes
+counterexamples replayed: 5

@@ -1,0 +1,6 @@
+error: fact carrier requires a nongeneric nonempty fieldless enum with derived Debug and no discriminants
+  --> tests/ui/optional_facts_payload.rs:13:5
+   |
+13 | /     #[derive(Debug)]
+14 | |     enum Fact { A(bool) }
+   | |_________________________^

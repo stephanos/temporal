@@ -239,6 +239,19 @@ that also changes state is an ordinary step, and a rejection in the same step wi
 in an `#[effect]`, claim, helper or outside `#[machine]` it is a compile error. The lifter admits
 it at an arm's top level and refuses it nested in a condition.
 
+A handler may return `Option<F>` for one local, nongeneric, nonempty fieldless enum
+with derived `Debug`. All fact-returning handlers in a machine use that same enum;
+unit handlers may coexist with them. Each enabled step carries either no facts or the
+single returned variant. State change, rejection and `stay!()` retain their enabledness
+rules: returning `Some` alone does not enable an unchanged handler.
+
+The independent source subset admits `None`, `Some(F::Variant)` and exhaustive tail
+`if/else` trees over those leaves, after supported effects and locals. Conditions read
+the state and locals at their authored position. Effect helpers remain unit-returning;
+a direct `reject!` in an optional handler fails Rust return typing. A completed optional
+result after an unchanged rejecting helper retains both the rejection and the fact.
+An ordinary step clears earlier facts; observer-only backend steps preserve them.
+
 ### Fixed parameters and computed starts
 
 A module may declare one named-field `#[derive(World)] struct World`. Its fields stay fixed

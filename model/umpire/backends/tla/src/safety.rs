@@ -64,7 +64,7 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         ),
         ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
         ("__umpire_outcome".into(), model.outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
+        ("__umpire_facts".into(), Type::Seq(Box::new(model.fact_type.clone()))),
     ]);
     for field in &model.fields {
         observers.insert(format!("__umpire_before_{}", field.name), field.ty.clone());
@@ -290,6 +290,13 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
     valid.extend(updates.iter().flatten().map(|v| v.valid.clone()));
     let outcome = values.emit(&branch.outcome);
     valid.push(outcome.valid.clone());
+    let facts = if model.fact_type == Type::Unit {
+        None
+    } else {
+        let facts = values.emit(&branch.facts);
+        valid.push(facts.valid.clone());
+        Some(facts)
+    };
     let ok = values.condition(conjoin(valid));
     let changed = disjoin(
         model
@@ -329,7 +336,10 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
             outcome.value,
             default(&model.outcome_type)
         ),
-        "__umpire_facts' = <<>>".into(),
+        facts.map_or_else(
+            || "__umpire_facts' = <<>>".into(),
+            |facts| format!("__umpire_facts' = IF {ok} THEN {} ELSE <<>>", facts.value),
+        ),
         format!("{ERROR}' = (~({ok}) \\/ ~({claims}))"),
     ]);
     let unchanged = conjoin(model.fields.iter().map(|f| format!("{}' = {}", f.name, f.name)));

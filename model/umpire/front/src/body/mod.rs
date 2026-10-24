@@ -95,6 +95,7 @@ pub(crate) struct Environment {
     /// The step outcome type: unit, or the stock outcome of a rejecting Model.
     pub(crate) outcome_type: Type,
     pub(crate) fact_type: Type,
+    pub(crate) fact_shadows: Vec<String>,
     /// Whether the State implements `umpire_dsl::Phased`, whose default methods it then has.
     pub(crate) phased: bool,
     /// The module's `use umpire_dsl::...` bindings: bound name to the path after `umpire_dsl::`.
@@ -128,6 +129,7 @@ impl Environment {
         {
             enums(ty, &mut known);
         }
+        enums(&model.fact_type, &mut known);
         Self {
             state: model.state_name.clone(),
             fields: model.fields.clone(),
@@ -141,6 +143,7 @@ impl Environment {
             vector_imported: model.fields.iter().any(|field| matches!(field.ty, Type::Seq(_))),
             outcome_type: model.outcome_type.clone(),
             fact_type: model.fact_type.clone(),
+            fact_shadows: Vec::new(),
             phased: false,
             dsl: BTreeMap::new(),
             checks: std::cell::RefCell::default(),

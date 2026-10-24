@@ -1,0 +1,934 @@
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/optional_facts:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 113 and seed -2430443261378133153 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076299] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:26)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:26.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.9E-16
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(5) at 2026-10-24 04:09:26: 248 states generated (49,271 s/min), 57 distinct states found (11,324 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+248 states generated, 57 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 5.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 9 and the 95th percentile is 4).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 305ms at (2026-10-24 04:09:26)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 35 and seed -3651810351523160683 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076328] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:27)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:27.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_a is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::A">>
+/\ __umpire_action = "Signal::A"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 1
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:27: 2 states generated (437 s/min), 2 distinct states found (437 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+2 states generated, 2 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 277ms at (2026-10-24 04:09:27)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 4 and seed -7918624609634797876 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076357] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:27)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:27.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_b is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::B">>
+/\ __umpire_action = "Signal::B"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 2
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:27: 3 states generated (649 s/min), 3 distinct states found (649 ds/min), 1 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+3 states generated, 3 distinct states found, 1 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 280ms at (2026-10-24 04:09:27)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 118 and seed -8459402214778838896 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076387] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:28)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:28.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_c is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::C">>
+/\ __umpire_action = "Signal::C"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 3
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:28: 4 states generated (808 s/min), 4 distinct states found (808 ds/min), 2 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+4 states generated, 4 distinct states found, 2 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 300ms at (2026-10-24 04:09:28)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 20 and seed -3064659941046379478 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076416] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:29)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:29.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_d is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::D">>
+/\ __umpire_action = "Signal::D"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 4
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:29: 5 states generated (1,067 s/min), 5 distinct states found (1,067 ds/min), 3 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+5 states generated, 5 distinct states found, 3 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 284ms at (2026-10-24 04:09:29)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 50 and seed 6122841681864511593 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076445] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-1/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:29)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:29.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_clear is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::A">>
+/\ __umpire_action = "Signal::A"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 1
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+3: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = "Ordinary::Clear"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 5
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-24 04:09:29: 13 states generated (2,662 s/min), 13 distinct states found (2,662 ds/min), 10 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+13 states generated, 13 distinct states found, 10 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 9 (minimum is 9, the maximum 9 and the 95th percentile is 9).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 297ms at (2026-10-24 04:09:29)
+@!@!@ENDMSG 2186 @!@!@
+
+TLC raw output for /Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/fixtures/fixtures/optional_facts:
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 78 and seed -4638153193334657825 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076530] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:30)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:30.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2193:0 @!@!@
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.9E-16
+@!@!@ENDMSG 2193 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(5) at 2026-10-24 04:09:30: 248 states generated (49,600 s/min), 57 distinct states found (11,400 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+248 states generated, 57 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 5.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 9 and the 95th percentile is 4).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 304ms at (2026-10-24 04:09:30)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 100 and seed -8501746736845409937 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076558] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:31)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:31.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_a is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::A">>
+/\ __umpire_action = "Signal::A"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 1
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:31: 2 states generated (425 s/min), 2 distinct states found (425 ds/min), 0 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+2 states generated, 2 distinct states found, 0 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 284ms at (2026-10-24 04:09:31)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 117 and seed -1317305422933676965 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076586] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:31)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:31.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_b is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::B">>
+/\ __umpire_action = "Signal::B"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 2
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:31: 3 states generated (631 s/min), 3 distinct states found (631 ds/min), 1 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+3 states generated, 3 distinct states found, 1 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 287ms at (2026-10-24 04:09:31)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 22 and seed 5807852247871801382 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076614] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:32)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:32.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_c is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::C">>
+/\ __umpire_action = "Signal::C"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 3
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:32: 4 states generated (879 s/min), 4 distinct states found (879 ds/min), 2 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+4 states generated, 4 distinct states found, 2 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 276ms at (2026-10-24 04:09:32)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 129 and seed 7734814768988023422 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076644] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:32)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:33.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_d is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::D">>
+/\ __umpire_action = "Signal::D"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 4
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(2) at 2026-10-24 04:09:33: 5 states generated (1,145 s/min), 5 distinct states found (1,145 ds/min), 3 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+5 states generated, 5 distinct states found, 3 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 2.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 265ms at (2026-10-24 04:09:33)
+@!@!@ENDMSG 2186 @!@!@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 37 and seed -6360542469055365931 with 1 worker on 12 cores with 511MB heap and 64MB offheap memory [pid: 2076672] (Linux 7.0.14 aarch64, Eclipse Adoptium 27 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Facts.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Integers.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/TLC.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Sequences.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/Naturals.tla
+Parsing file /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/tlc/run-2076238-3/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Facts
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-10-24 04:09:33)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2189:0 @!@!@
+Computing initial states...
+@!@!@ENDMSG 2189 @!@!@
+@!@!@STARTMSG 2190:0 @!@!@
+Finished computing initial states: 1 distinct state generated at 2026-10-24 04:09:33.
+@!@!@ENDMSG 2190 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Invariant_never_clear is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: <Initial predicate>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = ""
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 0
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = TRUE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<"Fact::A">>
+/\ __umpire_action = "Signal::A"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 1
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+3: <Edge line 73, col 9 to line 73, col 114 of module Facts>
+/\ __umpire_edge_tick = FALSE
+/\ __umpire_choice = 0
+/\ __umpire_facts = <<>>
+/\ __umpire_action = "Ordinary::Clear"
+/\ __umpire_steps = 0
+/\ __umpire_outcome = "Outcome::Accepted"
+/\ value = 5
+/\ __umpire_pending = 0
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2200:0 @!@!@
+Progress(3) at 2026-10-24 04:09:33: 13 states generated (2,954 s/min), 13 distinct states found (2,954 ds/min), 10 states left on queue.
+@!@!@ENDMSG 2200 @!@!@
+@!@!@STARTMSG 2199:0 @!@!@
+13 states generated, 13 distinct states found, 10 states left on queue.
+@!@!@ENDMSG 2199 @!@!@
+@!@!@STARTMSG 2194:0 @!@!@
+The depth of the complete state graph search is 3.
+@!@!@ENDMSG 2194 @!@!@
+@!@!@STARTMSG 2268:0 @!@!@
+The average outdegree of the complete state graph is 9 (minimum is 9, the maximum 9 and the 95th percentile is 9).
+@!@!@ENDMSG 2268 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 266ms at (2026-10-24 04:09:33)
+@!@!@ENDMSG 2186 @!@!@
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Snapshot Summary ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Snapshot file: /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2371-generate/optional_facts/expected/Facts@cfg.snap
+Snapshot: Facts@cfg
+Source: umpire/dev/testing/src/runner.rs:354
+────────────────────────────────────────────────────────────────────────────────
++new results: ]8;;file:///Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2371-generate/optional_facts/expected/Facts@cfg.snap.new.cfg\/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2371-generate/optional_facts/expected/Facts@cfg.snap.new.cfg]8;;\

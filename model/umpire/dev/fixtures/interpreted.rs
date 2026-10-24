@@ -9,6 +9,10 @@ extern crate umpire as umpire_dsl;
 #[allow(unreachable_pub, missing_docs)]
 mod sample_kettle;
 
+#[path = "fixtures/optional_facts/model.rs"]
+#[allow(unreachable_pub, missing_docs)]
+mod optional_facts;
+
 #[path = "../../backends/tla/tests/fixtures/linear_returns.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod linear_returns;
@@ -70,8 +74,8 @@ mod usize_lengths;
 
 use sample_kettle::kettle;
 use umpire::dsl::__lifted::{
-    Lifted, Lifts,
-    expr::{Expr, ExprKind},
+    Lifted, Lifts, Type,
+    expr::{Expr, ExprKind, Op},
     tree::Start,
 };
 use umpire_checker::{Checker, Interpreted};
@@ -332,6 +336,102 @@ where
         .err()
         .map(|error| error.to_string())
         .ok_or_else(|| "a mutant tree agreed with its compiled Model".to_owned())
+}
+
+#[test]
+fn interpreted_facts_fail_closed() -> TestResult {
+    use umpire::dsl::Machine;
+
+    for facts in [
+        Expr::unit(),
+        Expr { kind: ExprKind::Sequence(vec![Expr::unit()]), ty: Type::Seq(Box::new(Type::Unit)) },
+    ] {
+        let mut tree = kettle_tree()?;
+        let branch = &mut tree.actions[0].branches[0];
+        branch.guard = Expr::bool(true);
+        branch.updates.clear();
+        branch.facts = facts;
+        let world = Interpreted::from_tree(kettle::world(), &tree)?;
+        let state = world.starts().remove(0);
+        let action = world.actions().remove(0);
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            world.checked_step(&state, action)
+        }));
+        assert!(result.is_err(), "forged facts on a disabled unit handler were discarded");
+    }
+    Ok(())
+}
+
+#[test]
+fn interpreted_facts_evaluate_disabled_tail() -> TestResult {
+    use umpire::dsl::Machine;
+
+    let mut tree = kettle_tree()?;
+    let branch = &mut tree.actions[0].branches[0];
+    branch.guard = Expr::bool(true);
+    branch.updates.clear();
+    let integer = Type::Int { min: -128, max: 127 };
+    let condition = Expr::binary(
+        Op::Eq,
+        Expr::binary(Op::Div, Expr::int(1, integer.clone()), Expr::int(0, integer.clone())),
+        Expr::int(0, integer),
+    );
+    branch.facts = Expr::select(condition, branch.facts.clone(), branch.facts.clone());
+    let world = Interpreted::from_tree(kettle::world(), &tree)?;
+    let state = world.starts().remove(0);
+    let action = world.actions().remove(0);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        world.checked_step(&state, action)
+    }));
+    let panic = result.err().ok_or("a disabled handler skipped its failing fact condition")?;
+    assert_eq!(panic.downcast_ref::<&str>().copied(), Some("attempt to divide by zero"));
+    Ok(())
+}
+
+#[test]
+fn interpreted_fact_decoder_checks_admitted_values() {
+    use optional_facts::facts::World;
+    use umpire::dsl::__lifted::{Interprets, value::Value};
+
+    for (index, expected) in ["A", "B", "C", "D"].into_iter().enumerate() {
+        assert_eq!(format!("{:?}", World::__umpire_fact(&Value::Enum(index))), expected);
+    }
+    for value in [Value::Enum(4), Value::Unit, Value::Bool(false)] {
+        assert!(std::panic::catch_unwind(|| World::__umpire_fact(&value)).is_err());
+    }
+}
+
+#[test]
+fn fact_only_tree_mutant_disagrees() -> TestResult {
+    use optional_facts::facts::World;
+
+    let world = || World::new(false);
+    interpreted(world, None, Checker::BUDGET, None)?;
+    let mut mutant = World::__umpire_lifted().model.map_err(|refusal| refusal.message)?;
+    let action = mutant
+        .actions
+        .iter_mut()
+        .find(|action| action.name == "Signal::A")
+        .ok_or("no Signal::A")?;
+    let mut changed = false;
+    for branch in &mut action.branches {
+        rewrite(&mut branch.facts, &mut |kind| {
+            if !changed && *kind == ExprKind::Enum("Fact::A".into()) {
+                *kind = ExprKind::Enum("Fact::B".into());
+                changed = true;
+            }
+        });
+    }
+    assert!(changed, "the source tree has no Fact::A on Signal::A");
+    let interpreted = Interpreted::from_tree(world(), &mutant)?;
+    let compiled = umpire_testing::render(&Checker::explore(&world(), Checker::BUDGET)?)?;
+    let evaluated = umpire_testing::render(&Checker::explore(&interpreted, Checker::BUDGET)?)?;
+    assert_eq!(compiled["states.txt"], evaluated["states.txt"]);
+    let found = disagreement(world, &mutant)?;
+    assert!(found.contains("rows.txt line"), "{found}");
+    assert!(found.contains("facts=[A]"), "{found}");
+    assert!(found.contains("facts=[B]"), "{found}");
+    Ok(())
 }
 
 /// Each seeded change to a tree explores differently from the compiled Model, and the

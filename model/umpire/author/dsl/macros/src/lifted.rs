@@ -59,6 +59,17 @@ fn interprets(
     let progress = 0..model.progress.len();
     let outcome = decode(&model.outcome_type, &quote!(value));
     let outcome_value = encode(&model.outcome_type, &quote!((*outcome)));
+    let fact = (model.fact_type != Type::Unit).then(|| {
+        let value = decode(&model.fact_type, &quote!(value));
+        quote! {
+            fn __umpire_fact(
+                value: &::umpire_dsl::__lifted::value::Value,
+            ) -> <Self as ::umpire_dsl::Machine>::Fact {
+                use ::umpire_dsl::__lifted::value::Value as __UmpireValue;
+                #value
+            }
+        }
+    });
     syn::parse_quote! {
         #[cfg(not(target_arch = "wasm32"))]
         #[doc(hidden)]
@@ -88,6 +99,7 @@ fn interprets(
                 use ::umpire_dsl::__lifted::value::Value as __UmpireValue;
                 #outcome
             }
+            #fact
             fn __umpire_outcome_value(
                 outcome: &<Self as ::umpire_dsl::Machine>::Outcome,
             ) -> ::umpire_dsl::__lifted::value::Value {

@@ -1,0 +1,13 @@
+{
+  "observed_at": "2026-10-24T11:00:45.207567+00:00",
+  "manifest_base_commit": "b2d4383ff12d8a2754aa6f27bcc937119ead509c",
+  "head_commit": "a7e9bfcad8ba399d1a24e5b1f4e9c8aeb78e4de8",
+  "summary": {
+    "manifest_entries": 799,
+    "manifest_all_match": true,
+    "manifest_failures": [],
+    "compat_entries": 15,
+    "compat_all_match": true,
+    "compat_failures": []
+  }
+}

@@ -274,7 +274,8 @@ pub fn machine(args: &TokenStream, input: &ItemMod) -> Result<Machine> {
     let (state, visibility, actors, actions) = catalog(items, &input.ident)?;
     let world = declared_world(items, &input.ident)?;
     let idents: Vec<_> = actors.iter().map(|actor| actor.ident.clone()).collect();
-    let methods = registrations(items, &state, &idents, world)?;
+    let mut methods = registrations(items, &state, &idents, world)?;
+    let fact = handler_facts(items, &mut methods)?;
     if methods.iter().any(|method| method.kind == Kind::Starts) {
         computed_starts(items, &state)?;
     }
@@ -303,7 +304,7 @@ pub fn machine(args: &TokenStream, input: &ItemMod) -> Result<Machine> {
         rejecting: invokes(tokens.clone(), "reject"),
         staying: invokes(tokens, "stay"),
         methods,
-        fact: None,
+        fact,
         enums,
     })
 }
@@ -514,7 +515,9 @@ fn transition_actor<'a>(
     if let Some(asyncness) = method.sig.asyncness {
         bail!(asyncness, "#[on] methods must be synchronous");
     }
-    if !matches!(method.sig.output, syn::ReturnType::Default) {
+    if !matches!(method.sig.output, syn::ReturnType::Default)
+        && optional_carrier(&method.sig.output).is_none()
+    {
         bail!(&method.sig.output, "#[on] methods return nothing; enabledness is a changed state");
     }
     let actor =
@@ -537,6 +540,114 @@ fn transition_actor<'a>(
             "an #[on] method takes its actor enum: fn user(&mut self, action: User)",
         )),
     }
+}
+
+/// Canonical Option paths only; a bare carrier names a declaration in this module.
+fn optional_carrier(output: &syn::ReturnType) -> Option<&syn::Ident> {
+    let syn::ReturnType::Type(_, ty) = output else { return None };
+    let syn::Type::Path(ty) = ty.as_ref() else { return None };
+    if ty.qself.is_some() {
+        return None;
+    }
+    let path = &ty.path;
+    let names: Vec<_> = path.segments.iter().map(|s| s.ident.to_string()).collect();
+    if !matches!(
+        names.join("::").as_str(),
+        "Option" | "core::option::Option" | "std::option::Option"
+    ) || (names.len() == 1 && path.leading_colon.is_some())
+        || path
+            .segments
+            .iter()
+            .take(path.segments.len() - 1)
+            .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+    {
+        return None;
+    }
+    let syn::PathArguments::AngleBracketed(args) = &path.segments.last()?.arguments else {
+        return None;
+    };
+    if args.args.len() != 1 {
+        return None;
+    }
+    let syn::GenericArgument::Type(syn::Type::Path(carrier)) = args.args.first()? else {
+        return None;
+    };
+    if carrier.qself.is_some() {
+        return None;
+    }
+    carrier.path.get_ident()
+}
+
+/// Refuse bindings that change a constructor path the bounded grammar resolves by identity.
+pub(crate) fn shadows(items: &[Item], name: &str) -> bool {
+    fn bound(tree: &syn::UseTree, name: &str) -> bool {
+        match tree {
+            syn::UseTree::Path(p) => bound(&p.tree, name),
+            syn::UseTree::Name(n) => n.ident == name,
+            syn::UseTree::Rename(n) => n.rename == name,
+            syn::UseTree::Group(g) => g.items.iter().any(|t| bound(t, name)),
+            syn::UseTree::Glob(_) => true,
+        }
+    }
+    items.iter().any(|item| match item {
+        Item::Use(i) => bound(&i.tree, name),
+        Item::Enum(i) => i.ident == name,
+        Item::Struct(i) => i.ident == name,
+        Item::Type(i) => i.ident == name,
+        Item::Union(i) => i.ident == name,
+        Item::Mod(i) => i.ident == name,
+        Item::Fn(i) => i.sig.ident == name,
+        Item::Const(i) => i.ident == name,
+        Item::Static(i) => i.ident == name,
+        Item::ExternCrate(i) => i.rename.as_ref().map_or(&i.ident, |(_, n)| n) == name,
+        _ => false,
+    })
+}
+
+fn handler_facts(items: &[Item], methods: &mut [Method]) -> Result<Option<syn::Ident>> {
+    let mut selected = None;
+    for registered in methods.iter_mut().filter(|m| m.kind == Kind::On) {
+        let Item::Impl(implementation) = &items[registered.item] else { unreachable!() };
+        let ImplItem::Fn(method) = &implementation.items[registered.index] else { unreachable!() };
+        let Some(carrier) = optional_carrier(&method.sig.output) else { continue };
+        let syn::ReturnType::Type(_, ty) = &method.sig.output else { unreachable!() };
+        let syn::Type::Path(ty) = ty.as_ref() else { unreachable!() };
+        let root = &ty.path.segments[0].ident;
+        if (ty.path.leading_colon.is_none() || ty.path.segments.len() == 1)
+            && shadows(items, &root.to_string())
+        {
+            bail!(
+                &method.sig.output,
+                "optional fact result requires an unshadowed canonical Option path"
+            );
+        }
+        let Some(value) = items.iter().find_map(|item| match item {
+            Item::Enum(value) if value.ident == *carrier => Some(value),
+            _ => None,
+        }) else {
+            bail!(carrier, "fact carrier must be a local fieldless enum");
+        };
+        if !value.generics.params.is_empty()
+            || value.generics.where_clause.is_some()
+            || value.variants.is_empty()
+            || value
+                .variants
+                .iter()
+                .any(|v| !matches!(v.fields, syn::Fields::Unit) || v.discriminant.is_some())
+            || !derives(&value.attrs, "Debug")?
+        {
+            bail!(
+                value,
+                "fact carrier requires a nongeneric nonempty fieldless enum with derived Debug and no discriminants"
+            );
+        }
+        if selected.as_ref().is_some_and(|known| known != carrier) {
+            bail!(&method.sig.output, "all optional handlers must use the same fact carrier");
+        }
+        registered.fact = true;
+        selected = Some(carrier.clone());
+    }
+    Ok(selected)
 }
 
 fn check_claim(method: &syn::ImplItemFn) -> Result<()> {

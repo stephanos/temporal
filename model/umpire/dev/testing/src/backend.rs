@@ -680,6 +680,232 @@ mod tests {
         Ok(())
     }
 
+    #[derive(Debug)]
+    enum Fact {
+        A,
+        B,
+        C,
+        D,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+    struct FactAction(u8);
+
+    impl std::fmt::Display for FactAction {
+        fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            out.write_str(&fact_input(self).action)
+        }
+    }
+
+    struct FactEdges;
+
+    impl Machine for FactEdges {
+        type State = Polled;
+        type Action = FactAction;
+        type Outcome = ();
+        type Fact = Fact;
+
+        fn starts(&self) -> Vec<Polled> {
+            vec![Polled(0)]
+        }
+        fn actions(&self) -> Vec<FactAction> {
+            (1..=5).map(FactAction).collect()
+        }
+        fn internal(&self, _: &FactAction) -> bool {
+            false
+        }
+        fn step(&self, state: &Polled, action: FactAction) -> umpire_dsl::Steps<Polled, (), Fact> {
+            let action = action.0;
+            let mut steps = umpire_dsl::Steps::new();
+            if state.0 == 0 {
+                let fact = match action {
+                    1 => Some(Fact::A),
+                    2 => Some(Fact::B),
+                    3 => Some(Fact::C),
+                    4 => Some(Fact::D),
+                    _ => None,
+                };
+                if let Some(fact) = fact {
+                    steps.push(((), vec![fact], Polled(action)));
+                }
+            } else if state.0 < 5 && action == 5 {
+                steps.push(((), Vec::new(), Polled(5)));
+            }
+            steps
+        }
+    }
+
+    fn fact_input(action: &FactAction) -> Concrete {
+        let variant = match action.0 {
+            1 => "A",
+            2 => "B",
+            3 => "C",
+            4 => "D",
+            _ => "Clear",
+        };
+        Concrete { action: format!("Signal::{variant}"), fields: Vec::new() }
+    }
+
+    const FACT_SOURCE: &str = r"
+            #[machine]
+            mod facts {
+                #[derive(World)] struct World {}
+                #[derive(Debug)] enum Fact { A, B, C, D }
+                #[derive(Action, Copy)] enum Signal { A, B, C, D, Clear }
+                #[derive(State)] struct Model { value: u8 }
+                impl Model {
+                    #[on(Signal)]
+                    fn signal(&mut self, action: Signal) -> Option<Fact> {
+                        match action {
+                            Signal::A if self.value == 0 => { self.value = 1; Some(Fact::A) }
+                            Signal::B if self.value == 0 => { self.value = 2; Some(Fact::B) }
+                            Signal::C if self.value == 0 => { self.value = 3; Some(Fact::C) }
+                            Signal::D if self.value == 0 => { self.value = 4; Some(Fact::D) }
+                            Signal::Clear if self.value > 0 && self.value < 5 => {
+                                self.value = 5; None
+                            }
+                            _ => None,
+                        }
+                    }
+                    #[invariant] fn never_a(&self) { check!(self.value != 1); }
+                    #[invariant] fn never_b(&self) { check!(self.value != 2); }
+                    #[invariant] fn never_c(&self) { check!(self.value != 3); }
+                    #[invariant] fn never_d(&self) { check!(self.value != 4); }
+                    #[invariant] fn never_clear(&self) { check!(self.value != 5); }
+                }
+            }
+    ";
+
+    #[test]
+    fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
+        if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+            return Ok(());
+        }
+        let source = FACT_SOURCE;
+        let binding = umpire_tla::Binding {
+            world: Vec::new(),
+            starts: vec![vec![("value".into(), Literal::Int(0))]],
+            actions: FactEdges.actions().iter().map(fact_input).collect(),
+        };
+        let emit = |source: &str| -> Result<Module, Box<dyn std::error::Error>> {
+            Ok(umpire_tla::Tla::emit(
+                &umpire_tla::Lift::parse("facts.rs", source)?.bind(&binding)?,
+            )?)
+        };
+        let module = emit(source)?;
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+        let tlc = umpire_tlc::Tlc::discover(&root)?;
+        let result = tlc.check_module(&module)?;
+        let starts = FactEdges.starts();
+        let reached: Vec<_> = (0..=5).map(Polled).collect();
+        let native = reached.iter().map(|state| (state.to_string(), state)).collect();
+        for (name, expected) in [
+            ("never_a", "A"),
+            ("never_b", "B"),
+            ("never_c", "C"),
+            ("never_d", "D"),
+            ("never_clear", ""),
+        ] {
+            let property = &result.properties[&format!("Invariant_{name}")];
+            assert_eq!(property.verdict, umpire_tlc::Verdict::Refuted);
+            let trace = property.trace.as_ref().ok_or("missing fact witness")?;
+            replay(&FactEdges, &starts, &module, &native, trace, Some(&fact_input))?;
+            let edge = trace.states.last().ok_or("empty fact witness")?;
+            let facts = if expected.is_empty() {
+                Vec::new()
+            } else {
+                vec![Value::Text(format!("Fact::{expected}"))]
+            };
+            assert_eq!(edge.observers["__umpire_facts"], Value::Seq(facts));
+            let replacements = if expected.is_empty() {
+                vec![Value::Seq(vec![Value::Text("Fact::A".into())])]
+            } else {
+                let wrong = if expected == "A" { "B" } else { "A" };
+                vec![
+                    Value::Seq(vec![Value::Text(format!("Fact::{wrong}"))]),
+                    Value::Seq(Vec::new()),
+                    Value::Seq(vec![Value::Text(format!("Fact::{expected}")); 2]),
+                ]
+            };
+            for replacement in replacements {
+                let mut forged = trace.clone();
+                forged
+                    .states
+                    .last_mut()
+                    .ok_or("empty forged trace")?
+                    .observers
+                    .insert("__umpire_facts".into(), replacement);
+                let error =
+                    replay(&FactEdges, &starts, &module, &native, &forged, Some(&fact_input))
+                        .err()
+                        .ok_or("forged facts replayed")?;
+                assert!(error.to_string().contains("outcome/facts differ"), "{error}");
+            }
+            let mut omitted = trace.clone();
+            omitted
+                .states
+                .last_mut()
+                .ok_or("empty omitted trace")?
+                .observers
+                .remove("__umpire_facts");
+            let error = replay(&FactEdges, &starts, &module, &native, &omitted, Some(&fact_input))
+                .err()
+                .ok_or("missing fact observer replayed")?;
+            assert!(error.to_string().contains("missing TLC facts"), "{error}");
+        }
+        let mutant = emit(&source.replacen("Some(Fact::A)", "Some(Fact::B)", 1))?;
+        assert_ne!(module.tla, mutant.tla);
+        let changed = tlc.check_module(&mutant)?;
+        let trace = changed.properties["Invariant_never_a"]
+            .trace
+            .as_ref()
+            .ok_or("mutant has no A-target witness")?;
+        let error = replay(&FactEdges, &starts, &mutant, &native, trace, Some(&fact_input))
+            .err()
+            .ok_or("source-only fact mutant replayed")?;
+        assert!(error.to_string().contains("outcome/facts differ"), "{error}");
+        Ok(())
+    }
+
+    #[test]
+    fn nonempty_facts_are_typed_and_preserved_on_observer_activation() -> crate::TestResult {
+        let variants = ["A", "B", "C", "D"].map(|value| format!("Fact::{value}")).to_vec();
+        let schema = umpire_tlc::Schema {
+            fields: BTreeMap::from([("value".into(), umpire_tlc::Type::Bool)]),
+            observers: BTreeMap::from([(
+                "__umpire_facts".into(),
+                umpire_tlc::Type::Seq(Box::new(umpire_tlc::Type::Enum(variants))),
+            )]),
+        };
+        umpire_tlc::decode_state("value = FALSE /\\ __umpire_facts = <<\"Fact::A\">>", &schema)?;
+        for invalid in ["<<\"Fact::Unknown\">>", "<<TRUE>>", "\"Fact::A\""] {
+            assert!(
+                umpire_tlc::decode_state(
+                    &format!("value = FALSE /\\ __umpire_facts = {invalid}"),
+                    &schema
+                )
+                .is_err(),
+                "{invalid}"
+            );
+        }
+        let mut before = polled(1, true, "Signal::A", 0);
+        before
+            .observers
+            .insert("__umpire_facts".into(), Value::Seq(vec![Value::Text("Fact::A".into())]));
+        before.observers.insert("__umpire_pending".into(), Value::Int(0));
+        before.observers.insert("__umpire_steps".into(), Value::Int(0));
+        let mut after = before.clone();
+        after.observers.insert("__umpire_pending".into(), Value::Int(1));
+        let module = module(Vec::new(), Vec::new());
+        validate_projection(&module, &before, &after)?;
+        after.observers.insert("__umpire_facts".into(), Value::Seq(Vec::new()));
+        let error = validate_projection(&module, &before, &after)
+            .err()
+            .ok_or("activation cleared facts")?;
+        assert!(error.to_string().contains("__umpire_facts"), "{error}");
+        Ok(())
+    }
+
     #[test]
     fn agreement_compares_complete_sets_and_every_verdict() -> crate::TestResult {
         let native = Files::from([

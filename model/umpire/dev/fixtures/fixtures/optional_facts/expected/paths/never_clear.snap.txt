@@ -1,0 +1,4 @@
+start: Model { value: 0 }
+1: Signal::A choice=0 -> Model { value: 1 }
+2: Ordinary::Clear choice=0 -> Model { value: 5 }
+failure: check!(self.value != 5) failed at Model { value: 5 }

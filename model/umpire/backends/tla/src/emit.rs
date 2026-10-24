@@ -516,7 +516,7 @@ fn step<'e>(
         format!("__umpire_action' = {}", text(action)),
         "__umpire_choice' = 0".into(),
         format!("__umpire_outcome' = {}", value(&branch.outcome)),
-        "__umpire_facts' = <<>>".into(),
+        format!("__umpire_facts' = {}", value(&branch.facts)),
     ]);
     if model.has_inputs()
         && let Some(identity) = identity
@@ -913,7 +913,7 @@ fn observer_types(model: &Lifted) -> BTreeMap<String, Type> {
         ("__umpire_action".into(), Type::Text),
         ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
         ("__umpire_outcome".into(), model.outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
+        ("__umpire_facts".into(), Type::Seq(Box::new(model.fact_type.clone()))),
     ]);
     if model.has_inputs() {
         let max = i128::try_from(model.catalog.as_ref().map_or(0, Vec::len).saturating_sub(1))

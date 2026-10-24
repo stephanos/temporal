@@ -447,13 +447,61 @@ fn progress_helpers(enabled: bool, state: &syn::Ident) -> Option<TokenStream> {
     })
 }
 
-fn stepping(
-    handlers: &[(syn::Ident, syn::Ident, bool)],
+fn fact_dispatch(
+    actor: &syn::Ident,
+    method: &syn::Ident,
+    argument: Option<&TokenStream>,
     rejecting: bool,
     staying: bool,
 ) -> TokenStream {
-    let dispatch = handlers.iter().map(|(actor, method, world)| {
+    let evaluate = if rejecting && staying {
+        quote!(let (outcome, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| { fact = next.#method(value #argument); });)
+    } else if rejecting {
+        quote!(let outcome = ::umpire_dsl::outcome::evaluate(|| { fact = next.#method(value #argument); }); let stayed = false;)
+    } else if staying {
+        quote!(let (_, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| { fact = next.#method(value #argument); }); let outcome = ();)
+    } else {
+        quote!(let fact = next.#method(value #argument); let outcome = (); let stayed = false;)
+    };
+    let capture =
+        (rejecting || staying).then(|| quote!(let mut fact = ::core::option::Option::None;));
+    let rejected = if rejecting {
+        quote!(matches!(outcome, ::umpire_dsl::Outcome::Rejected(_)))
+    } else {
+        quote!(false)
+    };
+    let mutation_check = rejecting.then(|| {
+        quote! {
+            if rejected && next != *state {
+                return ::core::result::Result::Err(::umpire_dsl::StepError::RejectedAfterMutation);
+            }
+        }
+    });
+    let result = if rejecting { quote!(::core::result::Result::Ok(steps)) } else { quote!(steps) };
+    quote!(Action::#actor(value) => {
+        let mut next = state.clone();
+        #capture
+        #evaluate
+        let rejected = #rejected;
+        #mutation_check
+        let mut steps = ::umpire_dsl::Steps::new();
+        if next != *state || rejected || stayed {
+            steps.push((outcome, fact.into_iter().collect(), next));
+        }
+        #result
+    })
+}
+
+fn stepping(
+    handlers: &[(syn::Ident, syn::Ident, bool, bool)],
+    rejecting: bool,
+    staying: bool,
+) -> TokenStream {
+    let dispatch = handlers.iter().map(|(actor, method, world, fact)| {
         let argument = world.then(|| quote!(, self));
+        if *fact {
+            return fact_dispatch(actor, method, argument.as_ref(), rejecting, staying);
+        }
         if rejecting && staying {
             return quote!(Action::#actor(value) => {
                 let mut next = state.clone();
@@ -557,11 +605,12 @@ fn world_type(
     state: &syn::Ident,
     outcome: &TokenStream,
     actors: &[syn::Ident],
+    fact: &TokenStream,
 ) -> TokenStream {
     if matches!(visibility, syn::Visibility::Public(_)) {
         quote!(World)
     } else {
-        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = #outcome, Fact = (), Action: #(::core::convert::From<#actors> + ::umpire_dsl::ActorProjection<#actors>)+*>)
+        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = #outcome, Fact = #fact, Action: #(::core::convert::From<#actors> + ::umpire_dsl::ActorProjection<#actors>)+*>)
     }
 }
 
@@ -635,6 +684,7 @@ fn association(
     state: &syn::Ident,
     outcome: &TokenStream,
     actors: &[syn::Ident],
+    fact: &TokenStream,
 ) -> (Option<TokenStream>, TokenStream, Option<TokenStream>) {
     if declared {
         return (
@@ -643,7 +693,7 @@ fn association(
             None,
         );
     }
-    let world_type = world_type(visibility, state, outcome, actors);
+    let world_type = world_type(visibility, state, outcome, actors, fact);
     (
         Some(quote! {
             #[doc = "The module's registered state machine."]
@@ -695,6 +745,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
     let (state, visibility) = (&machine.state, &machine.visibility);
     let actors = machine.actor_idents();
     let outcome_type = if machine.rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
+    let fact_type = machine.fact.as_ref().map_or_else(|| quote!(()), |fact| quote!(#fact));
     let outcome_catalog = outcome_catalog(machine.rejecting);
     let mut input = input.clone();
     input.attrs.insert(0, syn::parse_quote!(#[forbid(unsafe_code)]));
@@ -722,6 +773,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
                     .unwrap_or_else(|| unreachable!("an #[on] method names its actor")),
                 registered.ident.clone(),
                 registered.world,
+                registered.fact,
             )
         })
         .collect();
@@ -734,7 +786,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
     let actor_projections = actor_projections(&actors, state);
     let admission = catalog_admission(&machine.actors);
     let (world, association, registered) =
-        association(machine.world, visibility, state, &outcome_type, &actors);
+        association(machine.world, visibility, state, &outcome_type, &actors, &fact_type);
     let generated = quote! {
         #world
 
@@ -763,7 +815,7 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
             type State = #state;
             type Action = Action;
             type Outcome = #outcome_type;
-            type Fact = ();
+            type Fact = #fact_type;
             fn starts(&self) -> ::std::vec::Vec<Self::State> { #start }
             fn actions(&self) -> ::std::vec::Vec<Self::Action> {
                 let mut actions = ::std::vec::Vec::new();

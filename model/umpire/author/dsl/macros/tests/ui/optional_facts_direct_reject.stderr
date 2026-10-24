@@ -1,0 +1,25 @@
+error[E0069]: `return;` in a function whose return type is not `()`
+  --> tests/ui/optional_facts_direct_reject.rs:21:21
+   |
+18 |         fn user(&mut self, action: User) -> Option<Fact> {
+   |                                             ------------ expected `Option<Fact>` because of this return type
+...
+21 |                     reject!(Rejection::FailedPrecondition);
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ return type is not `()`
+   |
+   = note: this error originates in the macro `reject` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: give the `return` a value of the expected type
+  --> $WORKSPACE/umpire/author/dsl/src/outcome.rs
+   |
+   |         return None;
+   |                ++++
+
+warning: unreachable expression
+  --> tests/ui/optional_facts_direct_reject.rs:22:21
+   |
+21 |                     reject!(Rejection::FailedPrecondition);
+   |                     -------------------------------------- any code following this expression is unreachable
+22 |                     Some(Fact::A)
+   |                     ^^^^^^^^^^^^^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default

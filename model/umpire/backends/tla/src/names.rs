@@ -180,6 +180,7 @@ pub(crate) fn assign(source: &Source, model: &mut umpire_front::Lifted) -> Names
             branch.updates.values_mut().for_each(rename_branch);
             branch.checks.iter_mut().for_each(rename_branch);
             rename_branch(&mut branch.outcome);
+            rename_branch(&mut branch.facts);
         }
     }
     for claim in model.invariants.iter_mut().chain(&mut model.negative) {
