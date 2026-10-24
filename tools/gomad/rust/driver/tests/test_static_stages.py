@@ -293,7 +293,7 @@ class StaticStageContract(unittest.TestCase):
         action = dict(kind='go-tests', argv=['/pinned/go', 'test', '-tags=test_dep', '-count=2', './model/...'],
                       cwd='/source', repeats=2)
         root, evidence, command, report, check = self.reader_fixture('portable', action)
-        producer = static.Execution({}, dict(root=str(root)), 'portable')
+        producer = static.Execution({}, dict(root=str(root/'producer')), 'portable')
         def call(argv, cwd, env):
             name = command(argv, listed if '-list' in argv else ran)
             producer.rows.append(dict(name=name))
