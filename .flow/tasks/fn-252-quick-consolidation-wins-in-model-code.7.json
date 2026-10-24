@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:11:11.939524Z",
+  "depends_on": [],
+  "id": "fn-252-quick-consolidation-wins-in-model-code.7",
+  "priority": null,
+  "spec": "fn-252-quick-consolidation-wins-in-model-code",
+  "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.7.md",
+  "status": "todo",
+  "title": "Tooling: one proto-go script, wasm env variable, workspace lints for guests",
+  "updated_at": "2026-10-24T22:11:11.939524Z"
+}

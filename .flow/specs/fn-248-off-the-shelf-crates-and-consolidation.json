@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-248-off-the-shelf-crates-and-consolidation",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T22:01:46.381646Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-247-one-language-for-the-framework-a-rust"
+  ],
+  "id": "fn-248-off-the-shelf-crates-and-consolidation",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": "2026-10-24T22:12:14.395528Z",
+  "spec_path": ".flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md",
+  "status": "open",
+  "title": "Off-the-shelf crates and consolidation in existing model code (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T22:12:14.909319Z"
+}

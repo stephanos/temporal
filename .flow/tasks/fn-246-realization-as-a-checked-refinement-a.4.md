@@ -13,7 +13,7 @@ Implement R5's generic Refinement fixture consumer and connect the activity decl
 
 ## Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Add the typed concrete-to-abstract relation alongside existing CHECKER/SUITE consumers at `runner.rs`, selecting it through expected/refinement.txt with deterministic discovery/rendering. Reuse existing Machine exploration, action catalogs, outcomes and typed replay; no Temporal special case or second step evaluator.
 2. Require an explicit mapping classification of mapped action/outcome/facts, declared full-state stutter or unmapped gap. Check every concrete start/edge and exact typed emitted Facts, including ExpiredDeadline, in the admitted World. Mapped disabled/wrong-outcome/wrong-fact and changed-state/visible-emission stutters violate; unmapped edges are coverage-incomplete. Permit extra feature edges. Do not weaken facts to phase/outcome equality or add Clone bounds to arbitrary emissions.
@@ -26,7 +26,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 - `model/umpire/dev/testing/src/runner.rs:7,28,91`, `discovery.rs` and `render.rs` for consumer ownership.
 - `model/umpire/backends/native` and `model/umpire/protocol/runtime/src/runtime.rs:581-616` for exploration/catalog/checked replay patterns.
-- `model/temporal/feature/activity/compatibility/checkpoint.rs:36-93` and original manifest for retained independent evidence.
+- `model/temporal/feature/activity/compatibility/checkpoint.rs:36-93` (semantic lifecycle comparison against the originals) for retained independent evidence.
 - `model/temporal/annotate/syntax/src/realize.rs` and generated dispatch owner for declaration admission.
 - .3's actual `model/temporal/feature/activity/realization.rs` projection owner and protocol task's shared state types.
 - `model/umpire/dev/fixtures` current positive/negative fixture conventions.
@@ -40,7 +40,7 @@ From model/: `mise exec -- cargo test -p umpire-testing -p umpire-fixtures -p um
 - [ ] Generic fixture consumer reports all concrete starts/edges as mapped, stutter, gap or violation in deterministic comparable scopes and preserves extra feature-edge permissiveness.
 - [ ] Changed protocol edge, removed feature edge, wrong state/action projection, wrong start/outcome, mapped-disabled edge, changed-state/visible-outcome stutter and incomplete graph controls fail. Explicit unmapped gap is coverage-incomplete and never a pass.
 - [ ] Activity full-state refinement and online observable-target compatibility share and commute through the neutral visible contract. Every World/state field and dynamic budget remains accounted; erased/defaulted budgets, wrong timer/reset/spanning/priority/fact and visible-equal/full-state-changing stutters fail. Missing/duplicate/incompatible declarations fail without changing Models or fabricating snapshot state.
-- [ ] Independent original checkpoint/manifest remains byte/hash exact; native relation report and protocol TLC own-invariant report stay distinct. Focused generic/Temporal fixture, syntax, fmt and strict clippy evidence passes.
+- [ ] The semantic lifecycle checkpoint passes (no byte/hash check on the originals); native relation report and protocol TLC own-invariant report stay distinct. Focused generic/Temporal fixture, syntax, fmt and strict clippy evidence passes.
 
 ## Done summary
 TBD

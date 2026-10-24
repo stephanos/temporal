@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:03:33.299645Z",
+  "depends_on": [
+    "fn-248-off-the-shelf-crates-and-consolidation.1"
+  ],
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.4",
+  "priority": 3,
+  "spec": "fn-248-off-the-shelf-crates-and-consolidation",
+  "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.4.md",
+  "status": "todo",
+  "title": "heck, darling and quote in the macro and build crates",
+  "updated_at": "2026-10-24T22:03:33.299645Z"
+}

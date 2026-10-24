@@ -12,12 +12,12 @@ Implement the R3 action-declaration seam after capabilities. This task owns gene
 
 ### Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Reanchor the final fn-237.6/fn-237.3 action declaration context. Extend the existing action-variant expansion with inert per-variant metadata forwarding only. Keep machine body, transition semantics, catalogs and backend lowering unchanged.
 2. Add Temporal-owned rpc/environmental/entity/read declarations using descriptor/type identity admission and existing realization syntax owners. Normalize registry rows once and expose typed classification, fill and evidence access to the capabilities; consumers must not rebuild per-action tables.
 3. Preserve actual generated enum/result type proofs. Test omitted/added actions and claimed fields against independent descriptor/type inventories rather than the declaration being checked. Keep correlation/read configuration typed and reject conflicting/unknown/duplicate declarations with located diagnostics.
-4. Prove a generic non-Temporal Machine still expands and its artifacts remain byte-identical. Use synthetic Temporal examples to compile client proposal, worker fill and probe-baseline access before the activity switches. Refinement syntax is owned by .4 after its typed consumer exists.
+4. Prove a generic non-Temporal Machine still expands and keeps the same checking results (goldens may be re-accepted after review). Use synthetic Temporal examples to compile client proposal, worker fill and probe-baseline access before the activity switches. Refinement syntax is owned by .4 after its typed consumer exists.
 
 ### Investigation targets
 
@@ -36,7 +36,7 @@ From model/: `mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p um
 ## Acceptance
 - [ ] One typed variant registry serves synthetic proposal, worker row and probe baseline/evidence consumers. Generic metadata support contains no Temporal imports or semantics.
 - [ ] Added/omitted actions, unknown/duplicate attributes, wrong descriptor/request/response/result type, conflicting entity/read settings and uncovered claimed variants produce located compile diagnostics.
-- [ ] Generic bounds, empty enums and renamed facade controls pass; existing non-Temporal Model rows and artifact hashes remain exact. No transition/body/backend semantics change.
+- [ ] Generic bounds, empty enums and renamed facade controls pass; existing non-Temporal Model rows keep their checking results. No transition/body/backend semantics change.
 - [ ] Focused macro/front tests, compile controls, snapshots, strict clippy and boundary verification pass; activity migration can consume the interface without another per-action table.
 
 

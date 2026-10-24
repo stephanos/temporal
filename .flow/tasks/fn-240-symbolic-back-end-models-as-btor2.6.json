@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-240-symbolic-back-end-models-as-btor2.6.md",
   "status": "todo",
   "title": "Rest of the admitted subset: action inputs, non-unit outcomes, bounded sequences, Rust widths on Type::Int; action_inputs and shared_returns goldens",
-  "updated_at": "2026-10-23T14:49:58.464911Z"
+  "updated_at": "2026-10-24T22:03:34.796200Z"
 }

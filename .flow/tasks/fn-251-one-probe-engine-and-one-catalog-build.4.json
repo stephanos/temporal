@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:11:06.525975Z",
+  "depends_on": [
+    "fn-251-one-probe-engine-and-one-catalog-build.3"
+  ],
+  "id": "fn-251-one-probe-engine-and-one-catalog-build.4",
+  "priority": null,
+  "spec": "fn-251-one-probe-engine-and-one-catalog-build",
+  "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.4.md",
+  "status": "todo",
+  "title": "One generic probe engine for Kettle and Temporal",
+  "updated_at": "2026-10-24T22:11:06.525975Z"
+}

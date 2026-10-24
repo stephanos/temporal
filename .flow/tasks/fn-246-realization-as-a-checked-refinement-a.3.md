@@ -13,7 +13,7 @@ Migrate the activity onto the completed shared registry/catalog/lens contracts f
 
 ## Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Reanchor and freeze the integrated final fn-237.3 semantic graph and original compatibility artifacts. Record per-file/line Model, mapping and shared ownership plus exact before probe inventory and serialized/live judgment baseline. Registry attributes on Model declarations count as mapping.
 2. Add the one-per-variant registry, entity/read declarations and fillers. Replace classify/bind/response/baseline switches and duplicate correlation with shared consumers. Keep semantic Model transitions and facts unchanged; metadata cannot alter action domains or outcomes.
@@ -27,7 +27,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 - `model/temporal/feature/activity/temporal.rs:149,311-410,507` for original correlation, complete evidence and response filling.
 - `model/temporal/feature/activity/{model.rs,api.rs,api_transport.rs,phase.rs,probe_gaps.rs}` for exact semantic/mapping baseline.
-- `model/temporal/feature/activity/compatibility/checkpoint.rs` and original manifest for independent graph evidence.
+- `model/temporal/feature/activity/compatibility/checkpoint.rs` (semantic lifecycle comparison against the originals) for independent graph evidence.
 - `model/temporal/realization/tests/{realization,proposal,program_history,probes}.rs` for existing mutation and response-validation controls.
 - `model/temporal/testing/realization.rs` and `realization_control.rs` for fixture parity.
 - `model/dev/xtask` as fn-247 leaves it for the Rust count command and existing-dependency inventory/verification conventions.
@@ -38,7 +38,7 @@ From model/: `mise exec -- cargo test -p umpire-temporal -p umpire-temporal-test
 
 ## Acceptance
 
-- [ ] Feature transition graph/facts/outcomes and independent checkpoint hashes remain exact; the binding uses the registry/lens/projection/claims/fillers without duplicate classify/bind/response/correlation/baseline tables.
+- [ ] Feature transition graph/facts/outcomes remain exact (the checkpoint hash integrity check is dropped); the binding uses the registry/lens/projection/claims/fillers without duplicate classify/bind/response/correlation/baseline tables.
 - [ ] Same-Describe controls independently mutate terminal failure, retained last_failure/payload metadata, attempt/entity/correlation, rejected delivery and actual worker evidence with the existing Refused/Unexplained distinction and publication rollback.
 - [ ] Feature-local World adapter shares the exact checked neutral contract with the protocol-local adapter; omitted/misnamed fields, wrong kind/bounds, clamping/default substitution and absence/present-zero changes fail without generic imported-World source admission.
 - [ ] Snapshot target uses only observed facts and shared visible compatibility; full-state map accounts every budget. Completed bounded-history/publication support preserves all required global/heartbeat continuations without rewriting prior reports. View commutation, erased/default budgets, unsupported Tick and Canceled-without-cause controls discriminate. Pre-.4 timeout-absent admission and narrow missing-cause scope remain exact, without waiving the fully evidenced ambiguity counterexample or losing an original live row.

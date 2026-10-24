@@ -13,9 +13,9 @@ Complete integrated R1-R7 evidence, counts/timing and author documentation after
 
 ## Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
-1. Run an exact protected-artifact manifest against the integrated pre-fn-246 baseline. Protect old generic/v1 guest+Run fixtures, Kettle except listed Reach outputs, original compatibility/checkpoint/hash and terminal-only program bytes. Allow only individually listed new prefix2 guest metadata/record outputs, Kettle Reach, protocol/refinement and approved feature derived-name/key outputs. No blanket legacy-guest rebuild/metadata addition or broad normalization; unexpected added/deleted/changed artifacts fail.
+1. Run a protected-artifact review against the integrated pre-fn-246 baseline. Old generic/v1 guest+Run fixtures keep their checking and replay results; original compatibility/checkpoint artifacts are not edited and keep passing their independent verification; old terminal-only programs stay readable by existing executors. List every changed golden (prefix2 guest metadata/record outputs, Kettle Reach, protocol/refinement, feature derived-name/key outputs) for review and re-acceptance. No blanket legacy-guest metadata addition; unexpected added or deleted artifacts fail.
 2. Rebuild and commit the Temporal guest through the existing builder before live verification; run freshness checks with CI-set fail-closed prerequisites. Record source/guest parity, hash/size and native/wasm/Go host results. Generated bindings remain current through existing three-module scripts.
 3. Run full model/required-TLC and boundary/claim/annotation/refinement/strategy controls, production prefix2 metadata retention/type coupling, legacy1/new2/unknown/malformed/mismatched version admission and exact old/new record replay. Include the non-equivalent latent-budget counterexample, typed expiry Facts, negative earlier-prefix/latest-only witness and atomic publication/retry controls. Execute all current actual raw/nativeSDK explore/live rows with fresh guest and retained identifiers/counts. fn-237.4's admission/evidence/journal/gates/original cooperative witnesses and fn-243.5's original unheld proof stay open; neither a new version nor a generic mock discharges them.
 4. Rerun reproducible baseline/final mapping counts with semantic Model, mapping metadata/fillers/predicates, generated, shared handwritten and shared protocol components separately. Report exact file/line classifications and <=2x ratio. Any feature semantics moved into shared remain in the feature charge. An over-target result fails without a written owner exception; no smaller/easier feature substitution.
@@ -29,7 +29,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 - `Makefile:1278-1305` for current model-check/freshness/parity/timing owners.
 - `model/README.md:63-152,478-637` and `model/DESIGN.md` for current authoring/runtime and R30 claims.
 - `model/GUEST_BUILDS.md`, `model/dev/xtask` and retained shell launchers as fn-247 leaves them for current builder/protobuf freshness ownership.
-- `model/temporal/feature/activity/compatibility/checkpoint.rs` and original manifest for exact protected evidence.
+- `model/temporal/feature/activity/compatibility/checkpoint.rs` (semantic lifecycle comparison against the originals) for protected evidence.
 - .3's count/inventory harness and .5's independent policy/decision manifest for final measurement.
 - Current fn-243.5/fn-237.4 task contracts and actual `tests/testpilot_model*test.go` for mandatory retained live rows.
 
@@ -43,7 +43,7 @@ Use `make model-validate` for remaining final validation. It runs one complete g
 
 ## Acceptance
 
-- [ ] Exact manifest allows only listed opt-in prefix2 metadata/record, Kettle Reach, protocol/refinement and feature program/key outputs. Legacy1 guest+Run bytes, Exact/Kettle contract, independent checkpoint and old terminal-only bytes remain pinned. No default metadata addition to all guests, unexplained artifact change or broad normalization.
+- [ ] Every changed golden (opt-in prefix2 metadata/record, Kettle Reach, protocol/refinement and feature program/key outputs) is listed and reviewed before re-acceptance. Legacy1 guest+Run behavior and the Exact/Kettle contract hold, the independent checkpoint still verifies, and old terminal-only programs stay readable. No default metadata addition to all guests.
 - [ ] Fresh committed guest passes CI-set freshness plus native/wasm/Go parity; full model/required-TLC, annotation/refinement/policy mutants and actual current raw/SDK slice/gaps/explore/replay rows execute with retained output/count evidence.
 - [ ] Production metadata/type coupling, legacy1/new2/unknown/malformed/mismatched admission/replay and version-aware prefix presentation execute. Latent global/local budget continuations, typed expiry Facts, negative earlier-prefix/latest-only witness, unsafe merge and failed-publication/retry controls pass without rewriting prior Runs.
 - [ ] Exact baseline/final file/line inventory meets mapping <=2x semantic Model lines with honest shared/generated/protocol ownership; registry metadata is mapping and moved feature semantics stay charged. No unwritten ratio exception.

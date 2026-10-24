@@ -7,7 +7,9 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-247-one-language-for-the-framework-a-rust"
+    "fn-247-one-language-for-the-framework-a-rust",
+    "fn-251-one-probe-engine-and-one-catalog-build",
+    "fn-252-quick-consolidation-wins-in-model-code"
   ],
   "id": "fn-246-realization-as-a-checked-refinement-a",
   "impl_review_rounds": {},
@@ -30,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T21:17:28.345310Z"
+  "updated_at": "2026-10-24T22:12:33.399685Z"
 }

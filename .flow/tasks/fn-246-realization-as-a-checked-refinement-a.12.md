@@ -12,7 +12,7 @@ Implement R3's descriptor catalog/claims and the inventory semantics needed by R
 
 ### Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Capture the complete previous descriptor-driven probe inventory and accepted-gap IDs, mutations, applicability and predictions before changing admission. Preserve `wire_cases`' generic shape-only behavior and Kettle's inventory.
 2. Generate the shared WorkflowService mirrors/service inventory from the pinned descriptors through the current generator owner. Define shared field kinds and reject patterns once. Claims cover actual reads and fills; unclaimed descriptor fields become Ignored, with an explicit generated reason. Check exhaustiveness against independent claimed descriptor/type inventories.

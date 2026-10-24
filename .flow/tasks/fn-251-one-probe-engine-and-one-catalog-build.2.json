@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:11:05.392368Z",
+  "depends_on": [
+    "fn-251-one-probe-engine-and-one-catalog-build.1"
+  ],
+  "id": "fn-251-one-probe-engine-and-one-catalog-build.2",
+  "priority": null,
+  "spec": "fn-251-one-probe-engine-and-one-catalog-build",
+  "spec_path": ".flow/tasks/fn-251-one-probe-engine-and-one-catalog-build.2.md",
+  "status": "todo",
+  "title": "System::generate replaces build-configuration layers",
+  "updated_at": "2026-10-24T22:11:05.392368Z"
+}

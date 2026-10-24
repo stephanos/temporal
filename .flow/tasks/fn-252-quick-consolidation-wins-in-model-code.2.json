@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:11:09.233196Z",
+  "depends_on": [
+    "fn-252-quick-consolidation-wins-in-model-code.1"
+  ],
+  "id": "fn-252-quick-consolidation-wins-in-model-code.2",
+  "priority": null,
+  "spec": "fn-252-quick-consolidation-wins-in-model-code",
+  "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.2.md",
+  "status": "todo",
+  "title": "Path stores only a Pattern",
+  "updated_at": "2026-10-24T22:11:09.233196Z"
+}

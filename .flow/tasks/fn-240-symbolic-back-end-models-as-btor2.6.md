@@ -10,7 +10,7 @@ Extend the emitter: action inputs over finite domains as free inputs constrained
 - action_inputs and shared_returns have expected/symbolic.txt with every property agreeing and replayed violations carrying the decoded inputs.
 - Type::Int carries the Rust width; emitted widths match the Rust type for every fixture, with the range as a constraint.
 - A bounded sequence Model emits and agrees; an unbounded one refuses naming the field.
-- Earlier goldens are byte-identical or each change is justified in the task evidence.
+- Earlier fixtures keep the same verdicts and agreement; their goldens may be re-accepted after review.
 
 ## Done summary
 TBD

@@ -75,17 +75,21 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-247 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and before fn-237.4; fn-228 closed on 2026-10-24 with R40 discharged by pointer to fn-243 (owner decision), its live unheld-cancellation proof owned by fn-243.5; fn-245 (finite collections) follows fn-237.5 and precedes any fn-240 revival; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 → fn-238 → fn-237 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is complete; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-233 (Kettle service, filed 2026-10-21) depends on fn-217 alone: on 2026-10-22 the owner dropped its fn-227 dependency, since its task .1 needs only fn-227.12's request evidence, which is complete. fn-233 is complete. Remaining order is fn-247 → fn-248 → (fn-250 ∥ fn-251 ∥ fn-252) → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245, ordered for throughput on 2026-10-24: consolidation (fn-248, fn-250, fn-251, fn-252, from the owner's crate and duplication review) lands before the feature work that would otherwise repeat each change in every copy, and the three consolidation specs run as parallel lanes (the owner placed all of fn-244 before fn-243 on 2026-10-24; the programmed-worker implementation precedes fn-228.7 so R40 is written once, and fn-243.4 checks the write-up before fn-237 uses the hold fault; fn-242 is complete before fn-237.1); fn-246 (realization shape, filed 2026-10-24) is placed by the owner after fn-243.4 and before fn-237.4; fn-228 closed on 2026-10-24 with R40 discharged by pointer to fn-243 (owner decision), its live unheld-cancellation proof owned by fn-243.5; fn-245 (finite collections) follows fn-237.5 and fn-250 and precedes any fn-240 revival; fn-240 and fn-211 also wait for fn-250; fn-249 (Flow tooling) is independent; fn-211 is deferred at the owner’s request on 2026-10-22; fn-240 (symbolic back end, filed 2026-10-23 after the native symbolic spike) is deferred at the owner’s request on 2026-10-23. On 2026-10-23 the owner reactivated fn-238.5/.6 and all five fn-237 tasks at the end of that queue; their existing acceptance and measurement gates remain in force. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225, fn-226 and fn-229 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
 The 2026-10-24 cancellation counterexample adds a checkpoint boundary without moving the
-independently planned Model work forward. The remaining task order is fn-247, fn-246, fn-237.4, fn-243.5, then fn-237.5. fn-243 remains
+independently planned Model work forward. The remaining order is fn-247, fn-248, then fn-250, fn-251 and fn-252 as parallel lanes, then fn-246, fn-237.4, fn-243.5, fn-237.5 and fn-245.
+Throughput rule (owner, 2026-10-24): consolidate before building on the duplicated code, so each later change is made once.
+fn-251 (one probe engine) and fn-252 (one search, shared test harness) precede fn-246, which rewrites the same probes and
+reuses the search; fn-250 (one value, schema and replay layer) precedes fn-245, which would otherwise add sets and maps to every
+conversion copy. Byte-for-byte compatibility requirements are dropped across open specs; goldens are re-accepted after review. fn-243 remains
 open until fn-243.5 supplies the deferred unheld-cancellation proof (fn-228 closed on 2026-10-24 with R40
 discharged by pointer; the live proof is this spec's).
 The current atomic Model explicitly refuses unheld cancellation of an open activity before
 a Cancel RPC. Held-before-start and terminal cancellation remain supported. The CLI cannot
-encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit blocked reasons;
+encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit blocked reasons and fn-245.1 names fn-248.3 in its description;
 the conductor clears each only after the named prerequisite's closure is committed in `umpire`.
 
 Sections follow the remaining execution order (first open task first); deferred specs come last.
@@ -97,24 +101,98 @@ supervision leaves the TLA+ emitter, and then asked why Python exists at all ("y
 `process.py` supervisor and the five `model/scripts` helpers from fn-230 were workarounds for the dependency
 policy and for build glue without a Cargo home. `umpire-backend-process` at `backends/process` takes the
 process support with a Rust supervisor (`libc` promoted under R18, the fn-211.3 precedent); a `dev/xtask`
-binary crate replaces every script with identical arguments and output; Python leaves the prerequisites.
-No behaviour change; guest bytes and goldens identical. Its eight-task plan passed primary review,
+binary crate replaces every script with the same arguments and behaviour; Python leaves the prerequisites.
+On 2026-10-24 the owner dropped byte-for-byte compatibility and allowed crates admitted under R18: the xtask uses `sha2`,
+plain `serde_json` and in-process `tar` + `flate2` for the Apalache archive, guest regeneration is allowed (old/new hashes recorded),
+and the process crate adopts `rustix` and `tempfile` after .4. Its eight-task plan passed primary review,
 including cold freshness admission before xtask bootstrap and the owner-approved single-pass validation.
 Shared process support is extracted and single-pass validation is delivered: one required gate plus benchmark
 passed in about 17 minutes, with focused default-mode controls and unchanged legacy commands. The supervisor
 replacement is in progress; helper ports remain queued. Placed before fn-246.1, which depends on it,
-since fn-246 and fn-240 build on the process crate. Scope includes the retained-original verifier's
-Rust port, preserving its independent authority and artifacts.
+since fn-246 and fn-240 build on the process crate. The retained-original hash integrity check is thrown away (verifier and `manifest.json` deleted); the originals stay in Git and the semantic lifecycle comparison stays.
 [Spec](.flow/specs/fn-247-one-language-for-the-framework-a-rust.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-247.4 | 🔄 in progress | Committed .1 and .8 verified: allocation-free Rust supervisor, cold consumers and actual descendant-cleanup controls (R1, R3) |
 | fn-247.2 | ⬜ todo | After .4: host-only xtask, lock closure and rustc identity normalization (R2, R3) |
-| fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission and unchanged guest bytes (R2, R3) |
-| fn-247.6 | ⬜ todo | After .5: pinned Apalache installer, archive/publication/concurrency controls (R2, R3) |
-| fn-247.7 | ⬜ todo | After .6: retired-name filtering and immutable original-artifact verifier (R2, R3) |
-| fn-247.3 | ⬜ todo | After .7: Rust-only gate/docs, exact parity and one combined-backend model-validate run (R3, R4, R5) |
+| fn-247.9 | ⬜ todo | After .4: `rustix` safe wrappers for parent-side syscalls and `tempfile` scratch directories in the process crate (R6) |
+| fn-247.5 | ⬜ todo | After .2: guest orchestration and freshness, cold admission, guest regeneration with recorded hashes (R2, R3) |
+| fn-247.6 | ⬜ todo | After .5: pinned Apalache installer reading the archive in-process (`tar` + `flate2`), `File::lock`, publication controls (R2, R3) |
+| fn-247.7 | ⬜ todo | After .6: retired-name filtering in Rust (keeps `grep -E`); delete the original-artifact hash verifier and `manifest.json` (R2, R3) |
+| fn-247.3 | ⬜ todo | After .7 and .9: Rust-only gate/docs, behavioral evidence and one combined-backend model-validate run (R3, R4, R5) |
+
+### fn-248: Off-the-shelf crates and consolidation in existing model code (model)
+
+Filed on 2026-10-24 from the owner's review of where crates could replace hand-rolled code (42 scored options;
+the owner took 1–27, dropped `enum-iterator` and byte-for-byte compatibility, and asked to move custom goldens to
+insta). Guests are regenerated as their inputs change. Goldens move to insta, and the fixture runner to text snapshots, which ends its decoding of insta's binary
+snapshot file names; repeated helpers exist once; `ExprKind::children`/`children_mut` collapse recursion-only walks
+(fn-245.1 builds on them); `heck`, `darling`, `quote`, `thiserror`, `prost-types` and a serde-derived ITF envelope
+replace hand-written code. The `sha2` jar digest lands in fn-250.5. After fn-247, which owns the process crate,
+the xtask and the guest regeneration.
+[Spec](.flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-248.1 | ⬜ todo | Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots; first, so later tasks re-accept through insta (R4) |
+| fn-248.2 | ⬜ todo | One copy each: panic message, SplitMix64, probe applicability, front error collector, test edit and hex helpers (R2) |
+| fn-248.3 | ⬜ todo | IR `children`/`children_mut` and the recursion-only walks; before fn-245.1 (R3) |
+| fn-248.4 | ⬜ todo | After .1: `heck`, `darling` and `quote` in the macro and build crates (R1) |
+| fn-248.5 | ⬜ todo | After .1: `thiserror` and `prost-types`; remove `enum-iterator` (R1) |
+| fn-248.6 | ⬜ todo | After .1: serde-derived ITF envelope (R1) |
+
+### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
+
+Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive the same things from the IR: a wire
+`Type` mirroring `ir::Type` (lowered five times), `Schema` from `Module` (five times), a `Literal` mirroring the DSL
+`Value` (converted in about eight places), the observer names as literals, and one trace replay each for TLC and
+Apalache. One layer replaces them (about 600–800 lines). A parallel lane after fn-248; fn-245, fn-240 and fn-211 wait for it.
+[Spec](.flow/specs/fn-250-shared-value-type-and-trace-layer-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-250.1 | ⬜ todo | `Literal` in umpire-ir with one `admit`; `Binding::of`, `Concrete::of` (R1) |
+| fn-250.4 | ⬜ todo | Shared operator table and leaf rendering for the two TLA+ lowerings (R4) |
+| fn-250.5 | ⬜ todo | `PinnedJar::admit` with in-process `sha2` and one `identifier()` for TLC and Apalache (R5) |
+| fn-250.2 | ⬜ todo | After .1: `Schema` keyed by `ir::Type`; no wire `Type`; one Snowcat printer (R2) |
+| fn-250.3 | ⬜ todo | After .2: observer names in one module; one trace-replay core for TLC and Apalache (R3) |
+
+### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
+
+Filed on 2026-10-24 from the owner's duplication review. Kettle and Temporal each implement the probe engine, the
+descriptor-to-Rust graph builder, annotation/probe transport dispatch and build-configuration layers; Temporal also
+hand-writes a `Wire` enum over catalogs the derived `Inspect` already walks, and keeps two facade crates. Each moves
+to one system-neutral place in `model/umpire` (about 850–950 lines and two crates). A parallel lane after fn-248,
+before fn-246, which rewrites the same probes.
+[Spec](.flow/specs/fn-251-one-probe-engine-and-one-catalog-build.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-251.1 | ⬜ todo | Shared descriptor graph builder; `#[realization]` names no Temporal crate (R1) |
+| fn-251.6 | ⬜ todo | Delete the `temporal/annotate` facade crates (R6) |
+| fn-251.2 | ⬜ todo | After .1: `System::generate` replaces the build-configuration layers (R2) |
+| fn-251.3 | ⬜ todo | After .2: generated `request_findings` replaces Temporal's `Wire` enum (R3) |
+| fn-251.5 | ⬜ todo | After .2: generated annotation dispatch and `AnnotationRuntime::with_probes` (R5) |
+| fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
+
+### fn-252: Quick consolidation wins in model code, tests and tooling (model)
+
+Filed on 2026-10-24 from the owner's duplication review: independent small consolidations (about 1,100–1,300 lines,
+plus ~12.9k lines of committed spike output). A parallel lane after fn-248, before fn-246, which reuses the search
+and migrates the activity tests.
+[Spec](.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-252.1 | ⬜ todo | One shortest-path search in the suite (R1) |
+| fn-252.3 | ⬜ todo | Delete committed spike output; no copied Kettle in the spike (R3) |
+| fn-252.4 | ⬜ todo | Native fixtures reuse `Tiny`; one `SpaceBinding` impl (R4) |
+| fn-252.5 | ⬜ todo | After fn-251.6 where it touches `temporal/annotate`: trybuild cases to tables, guest test harness, `protocol::Method`, catalog-syntax tests (R5) |
+| fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
+| fn-252.7 | ⬜ todo | One proto-go script, one wasm environment variable, workspace lints for guests (R7) |
+| fn-252.8 | ⬜ todo | Move the stock test fixture out of `umpire_runtime` (R8) |
+| fn-252.2 | ⬜ todo | After .1: `Path` stores only a `Pattern` (R2) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
@@ -132,7 +210,8 @@ Ambiguous timer paths retain full state and evidence cursors; an opt-in versione
 keeps later explanations consistent. Production metadata retention and actual SDK heartbeat delivery
 remain early implementation gates. The earlier worker codec capability moves here; fn-237.4 retains
 all original actual live proofs, with its downstream amendment still pending application.
-Placed after committed fn-243.4, fn-228.7, fn-237.3 and all of fn-247, before fn-237.4.
+Placed after committed fn-243.4, fn-228.7, fn-237.3, all of fn-247, and (for throughput, 2026-10-24) all of fn-251 and fn-252, before fn-237.4.
+Reach reuses the suite's search core; strategy enumeration may use `itertools` under a budget.
 The obsolete whole-fn-243 dependency is removed; the whole-fn-247 dependency remains.
 [Spec](.flow/specs/fn-246-realization-as-a-checked-refinement-a.md).
 
@@ -203,15 +282,26 @@ forms are additive later (Apalache or SMT arrays own those); authors write `imbl
 and `imbl::Vector` with a plain method table, no DSL vocabulary; placed after fn-237.5 and before fn-240
 is revived, since it edits the same front-end, IR, interpreter and TLC crates as fn-237.1/.2. Three
 fixtures (`finite_sets`, `finite_maps`, `bounded_queue`) carry lift, interpreter and TLC goldens; the set
-fixture supplies the measurement fn-238.6 could not take. Depends on fn-237.
+fixture supplies the measurement fn-238.6 could not take. Depends on fn-237 and fn-250 (sets and maps are added once to the
+shared `Literal` and `Schema`), and its .1 starts after fn-248.3's IR traversal helpers, which it extends.
 [Spec](.flow/specs/fn-245-finite-collections-sets-maps-and.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-245.1 | ⬜ todo | After fn-237.5: IR set/map types, canonical values, expression nodes (R1) |
+| fn-245.1 | ⬜ todo | After fn-237.5, fn-250 and fn-248.3: IR set/map types, canonical values, expression nodes (R1) |
 | fn-245.2 | ⬜ todo | After .1: front-end admission and method table, native value export, interpreter evaluation (R2, R3) |
 | fn-245.3 | ⬜ todo | After .1: TLA+ emission (subsets, functions with `Absent`, quantifiers, Head/Tail) and typed TLC decoding (R4) |
 | fn-245.4 | ⬜ todo | After .2, .3: the three fixtures with goldens, differential and TLC agreement, fn-238.6 sets measurement, DESIGN and README (R3 to R6) |
+
+### fn-249: Review validation cost at actual spec completion (Flow tooling)
+
+Flow-tooling work, independent of the Model order: an opted-in project records a durable validation-cost report when a
+spec closes, enforced by `spec close`. No dependencies.
+[Spec](.flow/specs/fn-249-durable-validation-cost-review-at-spec.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-249.1 | ⬜ todo | Opt-in close-time report, content-addressed artifact, repository-owned patch and controls (R1–R4) |
 
 ### fn-240: Symbolic back end: Models as BTOR2 transition systems checked by rIC3, witnesses replayed natively (model) — deferred
 
@@ -222,7 +312,8 @@ property, a pinned rIC3 built into `model/build/ric3` running IC3 for unbounded 
 depth plus one for violations, witnesses replayed through `checked_step` with the claim re-judged natively,
 a consumer selected by `expected/symbolic.txt` under `UMPIRE_BACKENDS=require`, then symbolic Worlds (fn-211's
 R6 moves here) and the rest of the admitted subset. A proof counts as evidence only with native agreement.
-No liveness; TLC owns progress claims. fn-211 stays deferred until set-valued state is admitted. Deferred at
+No liveness; TLC owns progress claims. Depends on fn-245 and fn-250 (shared replay core); the emitter hash-conses every node and
+runs rIC3 through the process crate. fn-211 stays deferred until set-valued state is admitted. Deferred at
 the owner's request on 2026-10-23; no task started. The probe remains runnable for measurements.
 [Spec](.flow/specs/fn-240-symbolic-back-end-models-as-btor2.md).
 
@@ -251,7 +342,8 @@ inner loop 7.893s met 10s. Task .2 is complete locally: pinned bounded checking,
 Kettle bound 63, installer admission and shared process ownership passed review, both audits and
 all 17 required gate stages. Gate 903.818s exceeded its 60s soft target; inner loop 7.229s met 10s.
 Task .3 is complete locally: strict typed ITF replay, selected property and arithmetic refusal validation, legacy and native Vector projections passed review and both audits. Fresh guest/slice/gaps proof passed with guest `d96f123b6ec669e7385e9fff75f711f2d20e0f15a0d918928238f7e263221217`. All 17 required gate stages passed: gate 824.431s exceeded 60s; inner loop 7.632s met 10s. The first full run failed with its causal output discarded; its cause remains unknown. A reviewed timing-wrapper correction now preserves failed child diagnostics; the logged workspace diagnostic and final retry passed. Fixture integration and symbolic Worlds are deferred at the owner’s request on 2026-10-22. The unfinished .4 consumer is preserved on local branch `work/fn2114-deferred` at `fee5fc56ae`, including its tracked handoff; no completion review or final gate is claimed. Execution moves to fn-228. On 2026-10-23 the owner took Apalache out of the required gate
-(`UMPIRE_APALACHE=require` runs its real-tool controls); resuming fn-211 restores it.
+(`UMPIRE_APALACHE=require` runs its real-tool controls); resuming fn-211 restores it. Since 2026-10-24 it depends on fn-250 and resumes on the
+shared `Literal`, `Schema` and replay core.
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |

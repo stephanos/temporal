@@ -7,16 +7,16 @@ satisfies: [R2, R3]
 Port Apalache installation and its security/concurrency controls (R2, R3), after guest integration establishes shared xtask helpers. This isolates archive admission from the other helper ports.
 
 **Size:** M
-**Files:** `model/dev/xtask/{src/fetch_apalache*,tests/apalache*}`, `model/scripts/{fetch-apalache.py,tests/test_apalache.py}`, `model/umpire/backends/apalache/tests/controls.rs`, `Makefile`.
-**Touches:** [model/dev/xtask/**, model/scripts/fetch-apalache.py, model/scripts/tests/test_apalache.py, model/umpire/backends/apalache/tests/controls.rs, Makefile]
+**Files:** `model/dev/xtask/{Cargo.toml,src/fetch_apalache*,tests/apalache*}`, `model/{Cargo.toml,Cargo.lock}`, `model/scripts/{fetch-apalache.py,tests/test_apalache.py}`, `model/umpire/backends/apalache/tests/controls.rs`, `Makefile`.
+**Touches:** [model/dev/xtask/**, model/Cargo.toml, model/Cargo.lock, model/scripts/fetch-apalache.py, model/scripts/tests/test_apalache.py, model/umpire/backends/apalache/tests/controls.rs, Makefile]
 
 ### Approach
 
-- Read `.flow/tmp/fn247-archive-feasibility/report.md` and its actual28-case evidence first. Python getmember chooses the LAST duplicate; do not invent duplicate refusal. Plain `tar -xOf` concatenates duplicate data, contiguous type7 is a Python file, BSD link metadata cannot be decided from the first mode byte, and gzip trailer differences occur only after deliberately replacing the archive pin in research.
-- Retain the actual fixed SHA-pinned release through the old path at implementation time and prove exact-member metadata and old/new bytes plus appropriately tested GNU/BSD command behavior. Filter the known ASCII member before numeric listing, validate complete selected records and keep extraction stdout-only. No arbitrary caller-supplied archive grammar is introduced. Preserve every existing test counterpart. Distinguish BSD executable tests/source evidence from native macOS execution; if tooling is absent, report the remaining contract evidence and consider a disposable executable without a project prerequisite or new unavailable-hardware gate. Ambiguous listing or a failed actual-pin proof returns a concrete counterexample before any dependency amendment. Earlier process/guest tasks remain valid.
+- Add R18-admitted host-only `tar` 0.4.46 (`default-features = false`, no xattr) and `flate2` 1.1.10 (miniz_oxide backend) to xtask; record before/after inventory with each new transitive package's R18 basis and no guest-closure change.
+- Verify the downloaded archive's SHA-256 (in-process `sha2`) before any parsing. Then stream it through `flate2::read::GzDecoder` and `tar::Archive`, select the one exact named member, require it to be a regular file, read its bytes in memory and verify the jar SHA-256. No system tar, member filtering, verbose listing, GNU/BSD parity proof or macOS receipt. No arbitrary caller-supplied archive grammar is introduced; duplicate/type7/gzip-trailer research cases cannot pass the archive hash and need no handling.
 - Keep one Rust pin authority for version/archive hash/jar hash; update the backend's source-include pin consistency control to reference it without copying a second authority.
-- Preserve download curl arguments, existing path/status interface, regular no-follow lock and exclusive concurrency, containment/component/symlink checks, partial/wrong installation refusal and private staging cleanup. Verify archive hash before inspection, require the exact named regular archive member, verify jar hash, and atomically publish only validated bytes. Do not replace member-type checks with unchecked tar extraction.
-- Port every mocked-download/malicious-lock/archive/staging/concurrency test to Rust. Concurrent installers must still perform one publication and return the same admitted path. Switch only the installer Makefile caller, then remove its Python source/control.
+- Preserve download curl arguments, existing path/status interface, containment/component/symlink checks, partial/wrong installation refusal and private staging cleanup. Open the lock file with `O_NOFOLLOW`, require a regular file, and take the exclusive lock with std `File::lock()` (stable since Rust 1.89). Atomically publish only validated jar bytes; never unpack the archive to disk.
+- Port every mocked-download/malicious-lock/archive/staging/concurrency test to Rust, building fixture archives with `tar`/`flate2` in the test. Concurrent installers must still perform one publication and return the same admitted path. Switch only the installer Makefile caller, then remove its Python source/control.
 
 ### Investigation targets
 
@@ -37,10 +37,10 @@ cd model && mise exec -- cargo test -p umpire-apalache --test controls --locked
 Use controlled download/archive fixtures for installer tests; real required Apalache execution belongs to the final gate.
 
 ## Acceptance
-- [ ] Actual pinned-release old/new comparison proves exact-name/regular-member admission and stdout-only extraction, with complete selected-record checks; archive/jar hashes and version remain under one Rust pin authority. Duplicate refusal is not invented from the research fixtures.
-- [ ] Every old installer case has a Rust counterpart; wrong/partial/symlink/nonregular-lock/hash/member/cleanup controls fail as before and concurrent installers publish once.
-- [ ] Recorded deterministic installer diagnostics/statuses compare equal; dynamic curl/path output is validated by the parent contract.
-- [ ] Makefile and Apalache pin-consistency controls use Rust; installer Python/control removed only after parity proof.
+- [ ] Archive SHA-256 is verified before parsing; the exact named regular member is read in-process via `tar` + `flate2` and its jar SHA-256 verified before atomic publication; no system tar is invoked. Archive/jar hashes and version remain under one Rust pin authority. The real pinned release installs and the final gate's required Apalache run uses it.
+- [ ] Every old installer case has a Rust counterpart; wrong/partial/symlink/nonregular-lock/hash/missing-or-nonregular-member/cleanup controls fail and concurrent installers (std `File::lock()`) publish once.
+- [ ] Installer statuses and declared diagnostics match the old contract; dynamic curl/path output is validated structurally.
+- [ ] `tar`/`flate2` admissions are recorded with R18 basis and no guest-closure change; Makefile and Apalache pin-consistency controls use Rust; installer Python/control removed after its Rust counterparts pass.
 
 
 ## Done summary

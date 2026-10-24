@@ -12,7 +12,7 @@ Author R5's independent standalone-activity protocol Model and native/TLC fixtur
 
 ### Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Reanchor final World domains, bounded Tick/timeout/failure/cancel/heartbeat dimensions and pinned standalone API/cancellation contract before authoring. Document the independent contract/protocol evidence behind each state class, RPC outcome and invariant. Existing feature transitions are a comparison target, never the source of protocol edges.
 2. Define a plain full protocol machine with independently authored latent timers/Remaining budgets, RPC/gRPC outcomes and a separate public snapshot view. Finite attempt/time/budget domains come from its local selected World via the shared exact parameter contract. Author complete starts, arming/reset/spanning/decrement/priority, expiry cause/fact and terminal-clearing semantics; do not erase hidden state to fit a visible snapshot table or feature graph. Keep terminal outcome and retained failure separate and pending cancellation/heartbeat/ACK distinct, without inventing worker evidence production owned by fn-237.4. Explicit protocol timer actions remain where required by its independent semantics.
@@ -27,7 +27,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 - `model/temporal/foundation/api.rs` and pinned standalone API/cancellation protocol evidence for independent request/snapshot types.
 - `model/umpire/dev/testing/src/runner.rs` and `backend.rs` for native/TLC fixture ownership.
 - `model/temporal/testing/fixtures.rs` and `build.rs` for current fixture discovery.
-- `model/temporal/feature/activity/compatibility/checkpoint.rs:82-93` and retained original manifest for independent evidence.
+- `model/temporal/feature/activity/compatibility/checkpoint.rs:82-93` (semantic lifecycle comparison) for independent evidence; the original-artifact hash manifest is removed.
 - `model/umpire/backends/tlc` existing World/state-set agreement tests for comparable-scope controls.
 
 ### Verification
@@ -40,7 +40,7 @@ From model/: `mise exec -- cargo test -p umpire-temporal-tests --test fixtures`;
 - [ ] Native graphs/goldens and required TLC own-invariant/state-set agreement execute for comparable finite scopes; wrong World, incomplete, unsupported and mismatching answers fail.
 - [ ] Terminal outcome, retained retry history, cancellation/heartbeat/acknowledgement and rejected RPC outcomes remain distinct; no projected feature edge defines protocol behavior.
 - [ ] Shared parameter contract and protocol-local adapter account for every independently declared World field with exact name/kind/domain/type provenance. Omission, misnaming, wrong bounds/kind, clamping/default substitution and None/present-zero mutants fail; no imported-World front-end admission is added.
-- [ ] Original checkpoint/manifest and feature semantics remain byte/hash exact. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
+- [ ] Original checkpoint/manifest still passes its independent verification and feature semantics are unchanged. Focused backend/fixture evidence includes actual counts, bounds and tool identity; no online or TLC-refinement proof is claimed here.
 
 
 ## Done summary

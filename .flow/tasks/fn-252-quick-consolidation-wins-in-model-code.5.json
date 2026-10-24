@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-24T22:11:10.855485Z",
+  "depends_on": [],
+  "id": "fn-252-quick-consolidation-wins-in-model-code.5",
+  "priority": null,
+  "spec": "fn-252-quick-consolidation-wins-in-model-code",
+  "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.5.md",
+  "status": "todo",
+  "title": "Test consolidation: trybuild cases, guest harness, protocol::Method, catalog-syntax tests",
+  "updated_at": "2026-10-24T22:11:10.855485Z"
+}

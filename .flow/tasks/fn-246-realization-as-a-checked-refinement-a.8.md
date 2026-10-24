@@ -12,7 +12,7 @@ Implement the conductor-selected semantic-version discovery amendment for R1/R2 
 
 ### Approach
 
-All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors, golden hashes and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
 1. Reanchor fn-247's Rust guest builder and pinned wasm32-wasip1 fat-LTO/strip flags. Begin with a production-profile opt-in custom-section fixture plus unchanged default-v1 artifact guard. Rust #[used] does not alone guarantee final-link retention. If the closed metadata cannot survive the actual builder, report the exact blocker; no version export, probe RPC, Python helper, metadata postprocessor or new dependency is assumed.
 2. Define one closed immutable `umpire.proof-semantics` custom section containing exactly four little-endian bytes encoding one unsigned semantic version, derived from the actual framework-owned proof-mode type/configuration. Legacy macro path emits no new section. Prefix2 opt-in path couples its metadata to whole-prefix semantics; forwarding annotation/facade wrappers retain that mode. Compile controls reject or make unrepresentable mismatched proof-mode advertisement/legacy export. No caller numeric version flag. A narrowly scoped unsafe link-section attribute allowance, if necessary, must be explicitly documented/reviewed; no blanket unsafe policy change.
@@ -32,10 +32,10 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 
 ### Verification
 
-At implementation only, use the actual production guest builder/xtask, strict native/wasm checks and existing generic Go-host tests with test_dep. Inspect exact metadata and preserve v1 bytes/export sets. The planning audit ran no build/probe and does not claim linker retention proved.
+At implementation only, use the actual production guest builder/xtask, strict native/wasm checks and existing generic Go-host tests with test_dep. Inspect exact metadata and keep default v1 guests unmarked with the same export sets. The planning audit ran no build/probe and does not claim linker retention proved.
 
 ## Acceptance
-- [ ] Production fat-LTO/strip builder retains exactly the opt-in proof-mode-derived prefix2 metadata; default unmarked v1 guest bytes/export whitelist stay pinned. Mode mismatch and removed-prefix metadata fail compile/producer/freshness/hash controls without fabricated caller stamping.
+- [ ] Production fat-LTO/strip builder retains exactly the opt-in proof-mode-derived prefix2 metadata; default v1 guests stay unmarked with the same export whitelist. Mode mismatch and removed-prefix metadata fail compile/producer/freshness/hash controls without fabricated caller stamping.
 - [ ] Updated Host discovers immutable semantics through pinned wazero metadata inspection before application/Driver I/O. One immutable `umpire.proof-semantics` section contains exactly four little-endian bytes for an unsigned version. Absence is legacy1, explicit1 is delta and explicit2 is prefix; zero/unknown values, duplicate sections, other lengths and unsupported advertisements refuse explicitly with no probe RPCs or added function export.
 - [ ] Any metadata link-section attribute exception is narrow and reviewed; no new unsafe execution, dependency, Python, Wasm rewriter or schema field. Concrete production-retention failure remains blocking, not papered over by a version export.
 - [ ] Legacy host limitations and stripped-metadata ambiguity are stated truthfully; updated reader preserves unmodified v1 guests and exact old fixtures while version2 artifacts require the updated admitted reader.

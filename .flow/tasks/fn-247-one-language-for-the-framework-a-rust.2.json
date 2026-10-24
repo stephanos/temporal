@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-247-one-language-for-the-framework-a-rust.2.md",
   "status": "todo",
   "title": "Port lock closure and rustc identity normalization into host-only xtask",
-  "updated_at": "2026-10-24T18:51:31.486738Z"
+  "updated_at": "2026-10-24T22:07:19.390784Z"
 }
