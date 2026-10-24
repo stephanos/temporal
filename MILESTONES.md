@@ -88,6 +88,8 @@ a Cancel RPC. Held-before-start and terminal cancellation remain supported. The 
 encode cross-spec task dependencies, so fn-243.5 and fn-237.5 have explicit blocked reasons;
 the conductor clears each only after the named prerequisite's closure is committed in `umpire`.
 
+Sections follow the remaining execution order (first open task first); deferred specs come last.
+
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation (model, temporal)
 
 Split from fn-227 on 2026-10-21 by owner decision; depends on fn-227. Carries the four optional
@@ -106,31 +108,6 @@ Facts and bounded optional-value support are complete: native/interpreted/TLC ag
 | fn-237.3 | ⬜ todo | After .1, .2, .6 and fn-227.3: deadlines, Tick, Heartbeat, cooperative cancel, final compatibility refinement (R2, R3) |
 | fn-237.4 | ⬜ todo | After .3: live timeout admission and cooperative cancellation evidence (R4) |
 | fn-237.5 | ⏸️ blocked | After .4 and committed fn-243.5: final DESIGN.md timeout and cancellation write-up (R5) |
-
-### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
-
-Filed on 2026-10-23 after the owner deferred the Shim and asked for pre-programmed workers: in a
-cloud setup no worker can reach Umpire. Reworked with the owner on 2026-10-24: the program is a
-table keyed by what a worker sees, constant per Model and World, issued once on Reset and written by
-`umpire program`; per-Run variation travels in an `umpire-scenario` header the Model stamps when it
-proposes a Start. A feature-agnostic `WorkerProgram` envelope carries per-feature key types (activity
-now; workflow by kitchen sink script later). Two executors, raw (the fake worker for features without
-SDK support) and sdk, live under `model/temporal/hosts/go/reference/worker`; the worker is part of the
-system under test and the Run records which ran. Worker actions are observed, never proposed (new
-Read proposal kind); a hold fault in the proposal's instruction replaces the Driver's gate; judgment
-reads Describe's outcome and last failure; a deviation is Unexplained, an unprogrammed task is Refused.
-Supersedes the Shim (fn-228.5). Design of record:
-[programmed-workers.md](model/design/programmed-workers.md). Placed by the owner on 2026-10-24 after
-fn-228.6 and fn-244.2 and before fn-228.7's architecture write-up; fn-237 needs the
-hold fault and follows the completed fn-243.4 documentation checkpoint. The frozen atomic Model cannot
-explain acknowledged cancellation that remains pending on a started attempt. The current
-checkpoint refuses that unheld scope; fn-243.5 consumes fn-237's independent cooperative
-semantics and proves restored admission. This parent stays open until that follow-up passes.
-[Spec](.flow/specs/fn-243-programmed-workers-the-model-issues.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-243.5 | ⏸️ blocked | After .4, fn-246 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40 live evidence (R2, R5) |
 
 ### fn-247: One language for the framework: Rust process supervisor and xtask replace the Python helpers (model)
 
@@ -172,6 +149,31 @@ Depends on fn-243 and fn-247.
 | fn-246.4 | ⬜ todo | After .1: protocol Model of the activity API, `Refinement` consumer, `#[refines]` on the activity (R5) |
 | fn-246.5 | ⬜ todo | After .3: strategies enumerated from the Model replace hand scenarios; derived program rows (R6) |
 | fn-246.6 | ⬜ todo | After .3, .4, .5: DESIGN.md and README write-up, counts, model-time (R7) |
+
+### fn-243: Programmed workers: the Model issues each worker program before it runs (model, temporal)
+
+Filed on 2026-10-23 after the owner deferred the Shim and asked for pre-programmed workers: in a
+cloud setup no worker can reach Umpire. Reworked with the owner on 2026-10-24: the program is a
+table keyed by what a worker sees, constant per Model and World, issued once on Reset and written by
+`umpire program`; per-Run variation travels in an `umpire-scenario` header the Model stamps when it
+proposes a Start. A feature-agnostic `WorkerProgram` envelope carries per-feature key types (activity
+now; workflow by kitchen sink script later). Two executors, raw (the fake worker for features without
+SDK support) and sdk, live under `model/temporal/hosts/go/reference/worker`; the worker is part of the
+system under test and the Run records which ran. Worker actions are observed, never proposed (new
+Read proposal kind); a hold fault in the proposal's instruction replaces the Driver's gate; judgment
+reads Describe's outcome and last failure; a deviation is Unexplained, an unprogrammed task is Refused.
+Supersedes the Shim (fn-228.5). Design of record:
+[programmed-workers.md](model/design/programmed-workers.md). Placed by the owner on 2026-10-24 after
+fn-228.6 and fn-244.2 and before fn-228.7's architecture write-up; fn-237 needs the
+hold fault and follows the completed fn-243.4 documentation checkpoint. The frozen atomic Model cannot
+explain acknowledged cancellation that remains pending on a started attempt. The current
+checkpoint refuses that unheld scope; fn-243.5 consumes fn-237's independent cooperative
+semantics and proves restored admission. This parent stays open until that follow-up passes.
+[Spec](.flow/specs/fn-243-programmed-workers-the-model-issues.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-243.5 | ⏸️ blocked | After .4, fn-246 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40 live evidence (R2, R5) |
 
 ### fn-245: Finite collections: sets, maps and bounded lists in Models (model)
 
