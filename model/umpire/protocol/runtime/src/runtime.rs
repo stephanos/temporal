@@ -425,11 +425,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         state: M::State,
         explanation: protocol::Explanation,
     ) -> Prepared<M> {
-        let completed_read = self.admitted
-            && self.pending.as_ref().is_some_and(|pending| pending.action.is_none())
-            && !explanation.steps.is_empty();
         let continues = self.pending.is_some()
-            && !completed_read
             && self.realization.continue_polling(
                 observation,
                 &state,

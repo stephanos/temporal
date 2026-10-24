@@ -85,8 +85,8 @@ Realize defaults to unsupported programs, answers and proposals, no bootstrap an
 realizations correlate actual observations with the pending request; a final Explained
 clears pending, an intermediate Explained publishes continue_polling (Judge tag 3), and
 Unexplained freezes without continuing. The continuation hook sees the prospective state
-and typed pending action. A Read finishes when a correlated nonempty path is explained;
-zero-step reads use the continuation hook. Callbacks may commit delivery between polls without clearing it.
+and typed pending action. The continuation hook decides when a correlated Read finishes;
+intermediate progress commits while the Read remains pending. Callbacks may commit delivery between polls without clearing it.
 Bootstrap requires a positively matched current start, never a replayed transition.
 All pending/admission/state changes share response-publication transactions. Reset clears
 pending and frozen state and, for bootstrap realizations, admission.

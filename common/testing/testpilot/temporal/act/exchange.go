@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.temporal.io/api/workflowservice/v1"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
@@ -16,7 +17,7 @@ import (
 )
 
 // exchange is one proposed request in flight. One goroutine runs it: it numbers and sends the
-// events, and waits for each decision before its next dependent read or worker reply.
+// events, and waits for each decision before its next dependent read.
 type exchange struct {
 	driver  *Driver
 	request uint64
@@ -25,10 +26,11 @@ type exchange struct {
 	events  chan runner.Event
 	done    chan struct{}
 
-	mu      sync.Mutex
-	next    uint64
-	closed  bool
-	waiting map[uint64]*waiter
+	mu       sync.Mutex
+	next     uint64
+	closed   bool
+	waiting  map[uint64]*waiter
+	buffered *anypb.Any
 }
 
 type waiter struct {
@@ -36,10 +38,8 @@ type waiter struct {
 	decision chan decision
 }
 
-// decision is a Runner decision, with a callback's reply already converted for the SDK.
-type decision struct {
-	runner.Decision
-}
+// decision is the judgment returned for one observation.
+type decision = runner.Decision
 
 func newExchange(d *Driver, request uint64) *exchange {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -62,12 +62,12 @@ func (x *exchange) Respond(_ context.Context, event uint64, d runner.Decision) e
 	if w == nil {
 		return fmt.Errorf("event %d awaits no decision", event)
 	}
-	resolved := decision{Decision: d}
+	resolved := d
 	switch {
 	case d.Refusal != nil:
 	case w.kind == runner.EventObservation && d.Judgment != nil:
 	default:
-		return fmt.Errorf("event %d: the decision does not answer a %s", event, kindName(w.kind))
+		return fmt.Errorf("event %d: the decision does not answer an observation", event)
 	}
 	delete(x.waiting, event)
 	w.decision <- resolved
@@ -81,24 +81,24 @@ func (x *exchange) Close() error {
 	x.cancel()
 	<-x.done
 	x.driver.forget(x)
+	x.mu.Lock()
+	defer x.mu.Unlock()
+	if x.buffered != nil {
+		evidence := x.buffered
+		x.buffered = nil
+		return &acknowledgedError{evidence: evidence}
+	}
 	return nil
 }
 
-func kindName(kind runner.EventKind) string {
-	if kind == runner.EventCallback {
-		return "callback"
-	}
-	return "observation"
-}
-
-// emit sends one event and, for an Observation or Callback, returns where its decision arrives.
+// emit sends one event and returns where an Observation decision arrives.
 // It returns nil when the exchange was closed first.
-func (x *exchange) emit(kind runner.EventKind, payload *anypb.Any, workerCall uint64, fault string) (chan decision, bool) {
+func (x *exchange) emit(kind runner.EventKind, payload *anypb.Any, fault string) (chan decision, bool) {
 	x.mu.Lock()
 	x.next++
-	event := runner.Event{ID: x.next, Request: x.request, Kind: kind, Payload: payload, Call: workerCall, Fault: fault}
+	event := runner.Event{ID: x.next, Request: x.request, Kind: kind, Payload: payload, Fault: fault}
 	var ch chan decision
-	if kind == runner.EventObservation || kind == runner.EventCallback {
+	if kind == runner.EventObservation {
 		ch = make(chan decision, 1)
 		x.waiting[event.ID] = &waiter{kind: kind, decision: ch}
 	}
@@ -111,8 +111,22 @@ func (x *exchange) emit(kind runner.EventKind, payload *anypb.Any, workerCall ui
 	}
 }
 
+type acknowledgedError struct{ evidence *anypb.Any }
+
+func (*acknowledgedError) Error() string {
+	return "exchange closed before its acknowledged request could be judged"
+}
+func (e *acknowledgedError) Evidence() *anypb.Any { return e.evidence }
+
 func (x *exchange) fault(format string, values ...any) {
-	x.emit(runner.EventFault, nil, 0, fmt.Sprintf(format, values...))
+	x.mu.Lock()
+	evidence := x.buffered
+	x.mu.Unlock()
+	if _, ok := x.emit(runner.EventFault, evidence, fmt.Sprintf(format, values...)); ok {
+		x.mu.Lock()
+		x.buffered = nil
+		x.mu.Unlock()
+	}
 }
 
 // await waits for a decision. ok is false when the exchange ended or the wait's bound passed.
@@ -133,7 +147,11 @@ func (x *exchange) observe(ctx context.Context, observation *realizationv1.Obser
 		x.fault("%v: %v", errMalformed, err)
 		return nil, false
 	}
-	ch, ok := x.emit(runner.EventObservation, payload, 0, "")
+	return x.observePayload(ctx, payload, observation.GetMethod() == workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName)
+}
+
+func (x *exchange) observePayload(ctx context.Context, payload *anypb.Any, acknowledged bool) (*modelv1.JudgeResponse, bool) {
+	ch, ok := x.emit(runner.EventObservation, payload, "")
 	if !ok {
 		return nil, false
 	}
@@ -144,7 +162,11 @@ func (x *exchange) observe(ctx context.Context, observation *realizationv1.Obser
 		}
 		return nil, false
 	}
-	// A refusal or an Unexplained judgment ends the Run; the Runner closes the exchange.
+	if acknowledged {
+		x.mu.Lock()
+		x.buffered = nil
+		x.mu.Unlock()
+	}
 	if d.Refusal != nil || d.Judgment.GetUnexplained() != nil {
 		return nil, false
 	}
@@ -152,7 +174,7 @@ func (x *exchange) observe(ctx context.Context, observation *realizationv1.Obser
 }
 
 // unary sends one request and reports its single Observation.
-func (x *exchange) unary(request *anypb.Any, held uint64) {
+func (x *exchange) unary(request *anypb.Any, held uint64, notFoundRead *temporalv1.ObserveActivity) {
 	ctx, cancel := context.WithTimeout(x.ctx, x.driver.opts.RPCTimeout)
 	defer cancel()
 	observation, reached, err := call(ctx, x.driver.conn, request)
@@ -178,13 +200,78 @@ func (x *exchange) unary(request *anypb.Any, held uint64) {
 		x.fault("the server did not answer %s: %v", request.GetTypeUrl(), err)
 		return
 	}
+	if notFoundRead != nil && observation.GetError().GetCode() == int32(codes.NotFound) {
+		evidence, err := pack(observation)
+		if err != nil {
+			x.fault("pack acknowledged request: %v", err)
+			return
+		}
+		x.mu.Lock()
+		x.buffered = evidence
+		x.mu.Unlock()
+		if !x.reconcile(notFoundRead) {
+			return
+		}
+	}
 	judgment, ok := x.observe(x.ctx, observation)
 	switch {
 	case !ok:
 	case judgment.GetContinuePolling():
 		x.fault("the Model asked to read %s again, which is not a read", observation.GetMethod())
 	default:
-		x.emit(runner.EventDone, nil, 0, "")
+		x.emit(runner.EventDone, nil, "")
+	}
+}
+
+// reconcile delivers a fresh read before the buffered acknowledgment. Network order is
+// request, read; judgment order is read, acknowledgment, so worker progress is checked first.
+func (x *exchange) reconcile(instruction *temporalv1.ObserveActivity) bool {
+	timeout := time.Duration(instruction.GetReadTimeoutMs()) * time.Millisecond
+	if limit := x.driver.opts.MaxReadTimeout; limit > 0 && timeout > limit {
+		timeout = limit
+	}
+	ctx, cancel := context.WithTimeout(x.ctx, timeout)
+	defer cancel()
+	for {
+		observation, reached, err := call(ctx, x.driver.conn, instruction.GetRequest())
+		switch {
+		case x.ctx.Err() != nil:
+			return false
+		case errors.Is(err, errMalformed):
+			x.fault("%v", err)
+			return false
+		case !reached.answered.Load() && ctx.Err() != nil:
+			x.fault("read timeout without Model acceptance")
+			return false
+		case !reached.answered.Load():
+			if !x.sleep(ctx, time.Duration(instruction.GetBackoffMs())*time.Millisecond) {
+				return false
+			}
+			continue
+		default:
+		}
+		current, err := pack(observation)
+		if err != nil {
+			x.fault("pack reconciliation read: %v", err)
+			return false
+		}
+		x.mu.Lock()
+		ack := x.buffered
+		x.mu.Unlock()
+		payload, err := pack(&temporalv1.ReconciledObservation{Acknowledged: ack, Current: current})
+		if err != nil {
+			x.fault("pack reconciliation evidence: %v", err)
+			return false
+		}
+		judgment, ok := x.observePayload(ctx, payload, true)
+		if !ok {
+			return false
+		}
+		if !judgment.GetContinuePolling() {
+			x.fault("reconciliation read ended the pending request before its acknowledgment")
+			return false
+		}
+		return true
 	}
 }
 
@@ -228,7 +315,7 @@ func (x *exchange) read(instruction *temporalv1.ObserveActivity) {
 			return
 		}
 		if !judgment.GetContinuePolling() {
-			x.emit(runner.EventDone, nil, 0, "")
+			x.emit(runner.EventDone, nil, "")
 			return
 		}
 		if !x.sleep(ctx, interval) {
@@ -262,6 +349,7 @@ func (x *exchange) run(request *anypb.Any) {
 	}
 	var held uint64
 	hold := false
+	var notFoundRead *temporalv1.ObserveActivity
 	if request.MessageIs(&temporalv1.TemporalInstruction{}) {
 		instruction := new(temporalv1.TemporalInstruction)
 		if err := request.UnmarshalTo(instruction); err != nil {
@@ -269,6 +357,13 @@ func (x *exchange) run(request *anypb.Any) {
 			return
 		}
 		hold = instruction.GetHoldWorkerPolls()
+		if instruction.GetNotFoundRead() != nil {
+			notFoundRead = new(temporalv1.ObserveActivity)
+			if err := instruction.GetNotFoundRead().UnmarshalTo(notFoundRead); err != nil {
+				x.fault("reconciliation read does not decode: %v", err)
+				return
+			}
+		}
 		request = instruction.GetRequest()
 	}
 	if hold && x.driver.polls == nil {
@@ -295,7 +390,7 @@ func (x *exchange) run(request *anypb.Any) {
 		x.read(instruction)
 		return
 	}
-	x.unary(request, held)
+	x.unary(request, held, notFoundRead)
 }
 
 // validStart reports why a proposal cannot be sent at all, or nil.
@@ -307,6 +402,14 @@ func validStart(request *anypb.Any) error {
 		}
 		if instruction.GetRequest() == nil {
 			return errors.New("the instruction names no request")
+		}
+		if instruction.GetNotFoundRead() != nil {
+			if !instruction.GetNotFoundRead().MessageIs(&temporalv1.ObserveActivity{}) {
+				return errors.New("reconciliation instruction names no read")
+			}
+			if err := validStart(instruction.GetNotFoundRead()); err != nil {
+				return err
+			}
 		}
 		request = instruction.GetRequest()
 	}

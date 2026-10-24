@@ -46,6 +46,7 @@ func statefulGuest(t *testing.T) []byte {
 // step is one event a fake exchange emits. A zero id or request takes the correct one; async
 // emits the next step before this one's decision arrives.
 type step struct {
+	payload *anypb.Any
 	kind    EventKind
 	value   byte
 	call    uint64
@@ -199,7 +200,7 @@ func (x *fakeExchange) run(steps []step) {
 	}
 	for _, s := range steps {
 		next++
-		event := Event{ID: next, Request: x.request, Kind: s.kind, Call: s.call, Fault: s.fault}
+		event := Event{ID: next, Request: x.request, Kind: s.kind, Call: s.call, Fault: s.fault, Payload: s.payload}
 		if s.id != 0 {
 			event.ID = s.id
 		}

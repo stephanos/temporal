@@ -211,13 +211,22 @@ fn filled_bootstrap_is_seeded_from_explicit_configuration_and_failed_configurati
 }
 
 #[test]
-fn pending_cancel_rejects_describe_until_its_matching_invocation_finishes() {
+fn pending_cancel_rejects_unrequested_describe_until_its_matching_invocation_finishes() {
     let mut guest = Guest::new(annotation_runtime());
     configure(&mut guest);
     admit(&mut guest);
     let cancel = propose(&mut guest, 0);
     assert_eq!(cancel.action, "Client::Cancel");
-    refused(judge(&mut guest, &common::describe(1, 2, 0)), protocol::RefusalCode::State);
+    let mut unrequested = common::describe(1, 2, 0);
+    let mut request: DescribeActivityExecutionRequest = unrequested
+        .request
+        .as_ref()
+        .unwrap_or_else(|| panic!("Describe request"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    request.include_outcome = false;
+    unrequested.request = Some(Any::pack(&request));
+    refused(judge(&mut guest, &unrequested), protocol::RefusalCode::State);
     refused(
         call(&mut guest, 6, &protocol::ProposeRequest { seed: 0 }),
         protocol::RefusalCode::State,
@@ -286,7 +295,7 @@ fn read_proposals_correlate_observations_and_never_name_worker_actions() {
 }
 
 #[test]
-fn read_finishes_when_retry_skips_started_and_the_next_read_waits_for_change() {
+fn read_remains_pending_through_retry_and_delivery_until_terminal_evidence() {
     let mut guest = Guest::new(annotation_runtime());
     configure(&mut guest);
     admit_seed(&mut guest, 1);
@@ -294,12 +303,15 @@ fn read_finishes_when_retry_skips_started_and_the_next_read_waits_for_change() {
     let Some(Outcome::Judge(retry)) = judge(&mut guest, &common::describe(2, 1, 1)).outcome else {
         panic!("retry")
     };
-    assert!(!retry.continue_polling);
+    assert!(retry.continue_polling);
     let Some(protocol::judge_response::Judgment::Explained(explanation)) = retry.judgment else {
         panic!("explained")
     };
     assert_eq!(explanation.steps, ["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"]);
-    assert_eq!(propose(&mut guest, 1).kind(), protocol::ProposalKind::Read);
+    refused(
+        call(&mut guest, 6, &protocol::ProposeRequest { seed: 1 }),
+        protocol::RefusalCode::State,
+    );
     let Some(Outcome::Judge(current)) = judge(&mut guest, &common::describe(2, 1, 1)).outcome
     else {
         panic!("current")
@@ -313,11 +325,25 @@ fn read_finishes_when_retry_skips_started_and_the_next_read_waits_for_change() {
     else {
         panic!("started")
     };
-    assert!(!started.continue_polling);
-    assert_eq!(propose(&mut guest, 1).kind(), protocol::ProposalKind::Read);
+    assert!(started.continue_polling);
+    refused(
+        call(&mut guest, 6, &protocol::ProposeRequest { seed: 1 }),
+        protocol::RefusalCode::State,
+    );
     let Some(Outcome::Judge(current)) = judge(&mut guest, &common::describe(2, 1, 2)).outcome
     else {
         panic!("current started")
     };
     assert!(current.continue_polling);
+    let Some(Outcome::Judge(completed)) = judge(&mut guest, &common::describe(2, 2, 0)).outcome
+    else {
+        panic!("completed")
+    };
+    assert!(!completed.continue_polling);
+    let Some(protocol::judge_response::Judgment::Explained(explanation)) = completed.judgment
+    else {
+        panic!("terminal explanation")
+    };
+    assert_eq!(explanation.steps, ["Worker::RespondCompleted"]);
+    assert_eq!(propose(&mut guest, 0).action, "Client::Cancel");
 }

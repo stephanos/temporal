@@ -22,17 +22,16 @@ impl Realization {
                 ..Default::default()
             },
         );
+        let read = Any::pack(
+            &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+                request: Some(describe),
+                poll_interval_ms: 10,
+                read_timeout_ms: 30_000,
+                backoff_ms: 10,
+            },
+        );
         if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
-            return Ok(Proposal::Read {
-                request: Any::pack(
-                    &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
-                        request: Some(describe),
-                        poll_interval_ms: 10,
-                        read_timeout_ms: 30_000,
-                        backoff_ms: 10,
-                    },
-                ),
-            });
+            return Ok(Proposal::Read { request: read });
         }
         Ok(Proposal::Action {
             action: Client::Cancel.into(),
@@ -49,6 +48,7 @@ impl Realization {
                         ),
                     ),
                     hold_worker_polls: state.phase == Phase::Scheduled && seed & 2 != 0,
+                    not_found_read: Some(read),
                 },
             ),
         })
@@ -58,29 +58,93 @@ impl Realization {
             .context
             .as_ref()
             .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
-        let observation: umpire_runtime::realization::Observation = observation
-            .unpack()?;
+        let observed = crate::support::Observed::new(observation)?;
+        let observation = observed.current();
         let actual = observation
             .request
+            .as_ref()
             .ok_or_else(|| Refusal::malformed("actual request is missing"))?;
         if request.type_url
             == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()
         {
             let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = request
                 .unpack()?;
-            return if observation.method
+            if observation.method
                 == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-                && instruction.request.as_ref() == Some(&actual)
             {
-                Ok(())
-            } else {
-                Err(
-                    Refusal::new(
+                if observed.acknowledged().is_some() {
+                    return Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "compound evidence requires the reconciliation read",
+                        ),
+                    );
+                }
+                return if instruction.request.as_ref() == Some(actual) {
+                    Ok(())
+                } else {
+                    Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "observation does not match cancellation invocation",
+                        ),
+                    )
+                };
+            }
+            if observation.method
+                == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+            {
+                let read: umpire_temporal_api::umpire::temporal::v1::ObserveActivity = Any::required(
+                        instruction.not_found_read,
+                    )?
+                    .unpack()?;
+                let acknowledged = observed
+                    .acknowledged()
+                    .ok_or_else(|| Refusal::new(
                         umpire_runtime::protocol::RefusalCode::State,
-                        "observation does not match cancellation invocation",
-                    ),
-                )
-            };
+                        "reconciliation requires the actual cancellation acknowledgment",
+                    ))?;
+                if acknowledged.method
+                    != "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+                    || acknowledged.request.as_ref() != instruction.request.as_ref()
+                    || !matches!(
+                        & acknowledged.result,
+                        Some(umpire_runtime::realization::observation::Result::Error(error))
+                        if error.code == 5
+                    )
+                {
+                    return Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "reconciliation acknowledgment does not match cancellation NotFound",
+                        ),
+                    );
+                }
+                return if read.request.as_ref() == Some(actual) {
+                    Ok(())
+                } else {
+                    Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "Describe differs from cancellation reconciliation read",
+                        ),
+                    )
+                };
+            }
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "observation does not match cancellation invocation",
+                ),
+            );
+        }
+        if observed.acknowledged().is_some() {
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "compound evidence requires a pending cancellation",
+                ),
+            );
         }
         if observation.method
             != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -132,13 +196,12 @@ impl Realization {
         state: &activity::Model,
         action: Option<&Action>,
     ) -> Result<bool, Refusal> {
-        let _ = action;
-        let observed = umpire_runtime::Observed::new(observation)?;
+        let observed = crate::support::Observed::new(observation)?;
         Ok(
             self.context.is_some()
                 && observed.method
                     == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
-                && !umpire_dsl::Phase::closed(&state.phase),
+                && (action.is_some() || !umpire_dsl::Phase::closed(&state.phase)),
         )
     }
     #[allow(

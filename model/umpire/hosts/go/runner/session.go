@@ -127,7 +127,19 @@ func (s *session) append(event *runv1.Event) {
 }
 
 func (s *session) fault(driverEvent uint64, reason string) {
-	s.append(&runv1.Event{DriverEvent: driverEvent, Kind: &runv1.Event_DriverFault{DriverFault: &runv1.DriverFault{Reason: reason}}})
+	s.faultEvidence(driverEvent, reason, nil)
+}
+
+func (s *session) faultEvidence(driverEvent uint64, reason string, evidence *anypb.Any) {
+	s.append(&runv1.Event{DriverEvent: driverEvent, Kind: &runv1.Event_DriverFault{DriverFault: &runv1.DriverFault{Reason: reason, Evidence: proto.CloneOf(evidence)}}})
+}
+
+func errorEvidence(err error) *anypb.Any {
+	var carrier interface{ Evidence() *anypb.Any }
+	if errors.As(err, &carrier) {
+		return carrier.Evidence()
+	}
+	return nil
 }
 
 func (s *session) eventsSpent() bool { return len(s.run.Events) >= s.opts.EventBudget }
@@ -394,7 +406,7 @@ func (s *session) exchange(parent, ctx context.Context, driver Driver, proposal 
 			}
 			return nil
 		case EventFault:
-			s.fault(event.ID, event.Fault)
+			s.faultEvidence(event.ID, event.Fault, event.Payload)
 			return nil
 		default:
 		}
@@ -536,7 +548,7 @@ func (s *session) closeExchange(exchange Exchange) {
 	select {
 	case err := <-done:
 		if err != nil {
-			s.fault(0, "close: "+err.Error())
+			s.faultEvidence(0, "close: "+err.Error(), errorEvidence(err))
 		}
 	case <-wait.Done():
 		s.fault(0, "close did not return within the read timeout")

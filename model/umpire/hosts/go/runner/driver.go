@@ -43,7 +43,8 @@ type Exchange interface {
 	Events() <-chan Event
 	// Respond delivers the decision for an Observation, Callback or Annotate event.
 	Respond(ctx context.Context, event uint64, decision Decision) error
-	// Close cancels and joins the exchange's work.
+	// Close cancels and joins the exchange's work. An error implementing
+	// Evidence() *anypb.Any supplies opaque evidence for the recorded Driver fault.
 	Close() error
 }
 
@@ -70,7 +71,7 @@ type Event struct {
 	ID      uint64
 	Request uint64
 	Kind    EventKind
-	// Payload is the Observation, Callback or Annotate input.
+	// Payload is the Observation, Callback or Annotate input, or opaque fault evidence.
 	Payload *anypb.Any
 	// Call correlates a Callback with the worker call it came from.
 	Call uint64

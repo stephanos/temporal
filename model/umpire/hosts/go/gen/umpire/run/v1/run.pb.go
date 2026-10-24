@@ -789,8 +789,10 @@ func (x *Refusal) GetCall() uint64 {
 // A transport failure: an unreachable endpoint, a timeout without Model acceptance, a crossed
 // or duplicate event, a stream closed without completion. It is never a verdict about the system.
 type DriverFault struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Reason        string                 `protobuf:"bytes,1,opt,name=reason,proto3" json:"reason,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Reason string                 `protobuf:"bytes,1,opt,name=reason,proto3" json:"reason,omitempty"`
+	// Opaque evidence supplied by the Driver; never interpreted by the Runner.
+	Evidence      *anypb.Any `protobuf:"bytes,2,opt,name=evidence,proto3" json:"evidence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -830,6 +832,13 @@ func (x *DriverFault) GetReason() string {
 		return x.Reason
 	}
 	return ""
+}
+
+func (x *DriverFault) GetEvidence() *anypb.Any {
+	if x != nil {
+		return x.Evidence
+	}
+	return nil
 }
 
 type Verdict struct {
@@ -1137,9 +1146,10 @@ const file_umpire_run_v1_run_proto_rawDesc = "" +
 	"\x06method\x18\x01 \x01(\x0e2\x17.umpire.model.v1.MethodR\x06method\x12\x18\n" +
 	"\arequest\x18\x02 \x01(\fR\arequest\x122\n" +
 	"\arefusal\x18\x03 \x01(\v2\x18.umpire.model.v1.RefusalR\arefusal\x12\x12\n" +
-	"\x04call\x18\x04 \x01(\x04R\x04call\"%\n" +
+	"\x04call\x18\x04 \x01(\x04R\x04call\"W\n" +
 	"\vDriverFault\x12\x16\n" +
-	"\x06reason\x18\x01 \x01(\tR\x06reason\"\xc2\x01\n" +
+	"\x06reason\x18\x01 \x01(\tR\x06reason\x120\n" +
+	"\bevidence\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\bevidence\"\xc2\x01\n" +
 	"\aVerdict\x128\n" +
 	"\texplained\x18\x01 \x01(\v2\x18.umpire.run.v1.ExplainedH\x00R\texplained\x12>\n" +
 	"\vunexplained\x18\x02 \x01(\v2\x1a.umpire.run.v1.UnexplainedH\x00R\vunexplained\x122\n" +
@@ -1228,15 +1238,16 @@ var file_umpire_run_v1_run_proto_depIdxs = []int32{
 	25, // 20: umpire.run.v1.Annotation.response:type_name -> umpire.model.v1.AnnotateResponse
 	26, // 21: umpire.run.v1.Refusal.method:type_name -> umpire.model.v1.Method
 	27, // 22: umpire.run.v1.Refusal.refusal:type_name -> umpire.model.v1.Refusal
-	12, // 23: umpire.run.v1.Verdict.explained:type_name -> umpire.run.v1.Explained
-	13, // 24: umpire.run.v1.Verdict.unexplained:type_name -> umpire.run.v1.Unexplained
-	14, // 25: umpire.run.v1.Verdict.refused:type_name -> umpire.run.v1.Refused
-	0,  // 26: umpire.run.v1.Explained.termination:type_name -> umpire.run.v1.Termination
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	15, // 23: umpire.run.v1.DriverFault.evidence:type_name -> google.protobuf.Any
+	12, // 24: umpire.run.v1.Verdict.explained:type_name -> umpire.run.v1.Explained
+	13, // 25: umpire.run.v1.Verdict.unexplained:type_name -> umpire.run.v1.Unexplained
+	14, // 26: umpire.run.v1.Verdict.refused:type_name -> umpire.run.v1.Refused
+	0,  // 27: umpire.run.v1.Explained.termination:type_name -> umpire.run.v1.Termination
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_umpire_run_v1_run_proto_init() }

@@ -26,4 +26,12 @@ message Rule {
 message TemporalInstruction {
   google.protobuf.Any request = 1;
   bool hold_worker_polls = 2;
+  // Read server history before judging a NotFound acknowledgment of the enclosed request.
+  google.protobuf.Any not_found_read = 3;
+}
+
+// Two actual RPC observations retained together when a read reconciles an acknowledgment.
+message ReconciledObservation {
+  google.protobuf.Any acknowledged = 1;
+  google.protobuf.Any current = 2;
 }

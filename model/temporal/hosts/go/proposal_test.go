@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
@@ -14,14 +15,19 @@ import (
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
-func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeResponse) {
+func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeResponse, *temporalv1.WorkerProgram) {
 	t.Helper()
 	h := unboundGuest(t)
 	captured := new(realizationv1.Observation)
 	if err := startObservation(t, 3).UnmarshalTo(captured); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := h.Reset(context.Background(), &modelv1.ResetRequest{Configuration: captured.GetRequest()}); err != nil {
+	reset, err := h.Reset(context.Background(), &modelv1.ResetRequest{Configuration: captured.GetRequest()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	program := new(temporalv1.WorkerProgram)
+	if err := reset.GetProgram().UnmarshalTo(program); err != nil {
 		t.Fatal(err)
 	}
 	bootstrap, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
@@ -30,12 +36,60 @@ func configuredGuest(t *testing.T, seed uint64) (*model.Host, *modelv1.ProposeRe
 	}
 	captured.Request = bootstrap.GetRequest()
 	explained(t, judge(t, h, pack(t, captured)))
-	return h, bootstrap
+	return h, bootstrap, program
+}
+
+func programResponse(t *testing.T, program *temporalv1.WorkerProgram, scenario string, attempt int32) *anypb.Any {
+	t.Helper()
+	for _, rule := range program.GetRules() {
+		key := new(temporalv1.ActivityTaskKey)
+		if err := rule.GetKey().UnmarshalTo(key); err != nil {
+			t.Fatal(err)
+		}
+		if key.GetScenario() == scenario && key.GetAttempt() == attempt {
+			if len(rule.GetRespond()) != 1 {
+				t.Fatalf("program row: %v", rule)
+			}
+			return rule.GetRespond()[0]
+		}
+	}
+	t.Fatalf("program has no %s attempt %d row", scenario, attempt)
+	return nil
+}
+
+func configuredObservation(t *testing.T, request *anypb.Any, value *anypb.Any, program *temporalv1.WorkerProgram, scenario string, attempt int32) *anypb.Any {
+	t.Helper()
+	observed := new(realizationv1.Observation)
+	if err := value.UnmarshalTo(observed); err != nil {
+		t.Fatal(err)
+	}
+	response := new(workflowservice.DescribeActivityExecutionResponse)
+	if err := observed.GetResponse().UnmarshalTo(response); err != nil {
+		t.Fatal(err)
+	}
+	observed.Request = proto.Clone(request).(*anypb.Any)
+	response.Info.Attempt = attempt
+	if attempt > 1 {
+		failed := new(workflowservice.RespondActivityTaskFailedRequest)
+		if err := programResponse(t, program, scenario, attempt-1).UnmarshalTo(failed); err != nil {
+			t.Fatal(err)
+		}
+		response.Info.LastFailure = failed.GetFailure()
+	}
+	if response.GetInfo().GetStatus() == enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED {
+		completed := new(workflowservice.RespondActivityTaskCompletedRequest)
+		if err := programResponse(t, program, scenario, attempt).UnmarshalTo(completed); err != nil {
+			t.Fatal(err)
+		}
+		response.Outcome = &activitypb.ActivityExecutionOutcome{Value: &activitypb.ActivityExecutionOutcome_Result{Result: completed.GetResult()}}
+	}
+	observed.Result = &realizationv1.Observation_Response{Response: pack(t, response)}
+	return pack(t, observed)
 }
 
 func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	ctx := context.Background()
-	h, bootstrap := configuredGuest(t, 1)
+	h, bootstrap, program := configuredGuest(t, 0)
 	seed := &modelv1.ProposeRequest{Seed: 1}
 	poll, err := h.Propose(ctx, seed)
 	if err != nil || poll.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_READ || poll.GetAction() != "" {
@@ -49,27 +103,25 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if err := instruction.GetRequest().UnmarshalTo(read); err != nil {
 		t.Fatal(err)
 	}
-	if read.GetRunId() != receiptRun || instruction.GetPollIntervalMs() != 10 || instruction.GetReadTimeoutMs() != 30000 || instruction.GetBackoffMs() != 10 {
+	if !read.GetIncludeOutcome() || !read.GetIncludeLastFailure() || read.GetRunId() != receiptRun || instruction.GetPollIntervalMs() != 10 || instruction.GetReadTimeoutMs() != 30000 || instruction.GetBackoffMs() != 10 {
 		t.Fatalf("instruction: %v", instruction)
 	}
-	if result := judge(t, h, scheduled(t)); !result.GetContinuePolling() {
+	if result := judge(t, h, configuredObservation(t, instruction.GetRequest(), scheduled(t), program, "Complete", 1)); !result.GetContinuePolling() {
 		t.Fatalf("scheduled read must continue: %v", result)
 	}
 	_, err = h.Propose(ctx, seed)
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
-	result := judge(t, h, started(t))
+	result := judge(t, h, configuredObservation(t, instruction.GetRequest(), started(t), program, "Complete", 1))
 	explained(t, result, "Worker::Poll(1)")
-	if result.GetContinuePolling() {
-		t.Fatalf("delivery read is final: %v", result)
+	if !result.GetContinuePolling() {
+		t.Fatalf("Started progress must preserve pending read: %v", result)
 	}
-	response, err := h.Propose(ctx, seed)
-	if err != nil || response.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_READ || response.GetAction() != "" {
-		t.Fatalf("response read: %v %v", response, err)
-	}
-	if current := judge(t, h, started(t)); !current.GetContinuePolling() {
+	_, err = h.Propose(ctx, seed)
+	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+	if current := judge(t, h, configuredObservation(t, instruction.GetRequest(), started(t), program, "Complete", 1)); !current.GetContinuePolling() {
 		t.Fatalf("an unchanged Started read must continue: %v", current)
 	}
-	result = judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0))
+	result = judge(t, h, configuredObservation(t, instruction.GetRequest(), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), program, "Complete", 1))
 	explained(t, result, "Worker::RespondCompleted")
 	if result.GetContinuePolling() {
 		t.Fatalf("response is final: %v", result)
@@ -85,7 +137,7 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 	if _, err := h.Reset(ctx, &modelv1.ResetRequest{}); err != nil {
 		t.Fatal(err)
 	}
-	again, err := h.Propose(ctx, seed)
+	again, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 0})
 	if err != nil || !proto.Equal(again, bootstrap) {
 		t.Fatalf("reused configuration: %v %v", again, err)
 	}
@@ -102,29 +154,41 @@ func TestProposalReviewedRaces(t *testing.T) {
 	for _, scenario := range []string{"retry before first Started read", "Describe cannot finish Cancel"} {
 		t.Run(scenario, func(t *testing.T) {
 			ctx := context.Background()
-			h, _ := configuredGuest(t, 1)
+			bootstrapSeed := uint64(0)
 			if scenario == "retry before first Started read" {
-				if _, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1}); err != nil {
+				bootstrapSeed = 1
+			}
+			h, _, program := configuredGuest(t, bootstrapSeed)
+			if scenario == "retry before first Started read" {
+				read, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1})
+				if err != nil {
 					t.Fatal(err)
 				}
-				observed := new(realizationv1.Observation)
-				if err := scheduled(t).UnmarshalTo(observed); err != nil {
+				instruction := new(temporalv1.ObserveActivity)
+				if err := read.GetRequest().UnmarshalTo(instruction); err != nil {
 					t.Fatal(err)
 				}
-				response := new(workflowservice.DescribeActivityExecutionResponse)
-				if err := observed.GetResponse().UnmarshalTo(response); err != nil {
-					t.Fatal(err)
-				}
-				response.Info.Attempt = 2
-				observed.Result = &realizationv1.Observation_Response{Response: pack(t, response)}
-				result := judge(t, h, pack(t, observed))
+				observed := configuredObservation(t, instruction.GetRequest(), scheduled(t), program, "RetryThenComplete", 2)
+				result := judge(t, h, observed)
 				explained(t, result, "Worker::Poll(1)", "Worker::RespondFailed { retryable: true }")
+				if !result.GetContinuePolling() {
+					t.Fatalf("retry Scheduled progress must preserve pending read: %v", result)
+				}
+				_, err = h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1})
+				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+				result = judge(t, h, configuredObservation(t, instruction.GetRequest(), started(t), program, "RetryThenComplete", 2))
+				explained(t, result, "Worker::Poll(2)")
+				if !result.GetContinuePolling() {
+					t.Fatalf("retry Started progress must preserve pending read: %v", result)
+				}
+				result = judge(t, h, configuredObservation(t, instruction.GetRequest(), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), program, "RetryThenComplete", 2))
+				explained(t, result, "Worker::RespondCompleted")
 				if result.GetContinuePolling() {
-					t.Fatalf("validated retry must finish prior read: %v", result)
+					t.Fatalf("terminal retry result must finish read: %v", result)
 				}
 				next, err := h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1})
-				if err != nil || next.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_READ || next.GetAction() != "" {
-					t.Fatalf("next attempt: %v %v", next, err)
+				if err != nil || next.GetAction() != "Client::Cancel" {
+					t.Fatalf("post-terminal proposal: %v %v", next, err)
 				}
 			} else {
 				deliver(t, h)
@@ -132,7 +196,7 @@ func TestProposalReviewedRaces(t *testing.T) {
 				if err != nil || cancel.GetAction() != "Client::Cancel" {
 					t.Fatalf("cancel: %v %v", cancel, err)
 				}
-				_, err = h.Judge(ctx, &modelv1.JudgeRequest{Observation: observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)})
+				_, err = h.Judge(ctx, &modelv1.JudgeRequest{Observation: configuredObservation(t, pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun, IncludeOutcome: true, IncludeLastFailure: true}), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), program, "Complete", 1)})
 				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 				_, err = h.Propose(ctx, &modelv1.ProposeRequest{})
 				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
@@ -148,7 +212,7 @@ func TestProposalReviewedRaces(t *testing.T) {
 
 func TestCancelHoldIsSeededWithoutChangingTheAction(t *testing.T) {
 	for _, seed := range []uint64{0, 2} {
-		h, _ := configuredGuest(t, 0)
+		h, _, _ := configuredGuest(t, 0)
 		proposal, err := h.Propose(context.Background(), &modelv1.ProposeRequest{Seed: seed})
 		if err != nil || proposal.GetAction() != "Client::Cancel" || proposal.GetKind() != modelv1.ProposalKind_PROPOSAL_KIND_ACTION {
 			t.Fatalf("cancel: %v %v", proposal, err)

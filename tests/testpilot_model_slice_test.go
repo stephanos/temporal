@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	model "umpire.local/model/host"
 	"umpire.local/model/runner"
 
@@ -36,6 +35,7 @@ func modelSliceAny(t *testing.T, message proto.Message) *anypb.Any {
 
 func TestTestpilotModelSlice(t *testing.T) {
 	t.Run("Transport", modelSliceProgrammedTransport)
+	t.Run("Reconciliation", modelSliceReconciliation)
 	t.Run("Annotations", func(t *testing.T) { modelSliceAnnotationControls(t, temporalmodel.Guest()) })
 }
 
@@ -85,21 +85,9 @@ func modelSliceProgrammedTransport(t *testing.T) {
 				if packed == nil {
 					continue
 				}
-				observation := new(realizationv1.Observation)
-				require.NoError(t, packed.UnmarshalTo(observation))
-				for _, response := range []bool{false, true} {
-					message := observation.GetRequest()
-					if response {
-						message = observation.GetResponse()
-					}
-					if message == nil {
-						continue
-					}
-					decoded, err := message.UnmarshalNew()
-					require.NoError(t, err)
-					require.NoError(t, annotations.annotate(observation.Method, response, decoded))
-				}
+				annotations.actual(t, packed)
 			}
+
 			_, err = workflowservice.NewWorkflowServiceClient(conn).PollActivityExecution(t.Context(), &workflowservice.PollActivityExecutionRequest{Namespace: start.Namespace, ActivityId: start.ActivityId})
 			require.NoError(t, err)
 		}

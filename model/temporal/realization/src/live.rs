@@ -42,6 +42,7 @@ pub struct LiveRuntime {
     frozen: Option<Refusal>,
     configuration: Option<Any>,
     bootstrap: Option<Any>,
+    pending: Option<Any>,
 }
 
 /// Owned facade effects, installed only after the complete response is published.
@@ -51,6 +52,7 @@ pub struct LiveTransaction {
 
 enum Change {
     Model(Transaction<activity::World>),
+    Pending { model: Transaction<activity::World>, request: Option<Any> },
     Admit { model: Box<ModelRuntime>, receipt: Receipt },
     Freeze { receipt: Receipt, refusal: Refusal },
     Reset(Transaction<activity::World>),
@@ -60,7 +62,14 @@ enum Change {
 
 impl LiveRuntime {
     pub(super) fn new() -> Self {
-        Self { model: runtime(), receipt: None, frozen: None, configuration: None, bootstrap: None }
+        Self {
+            model: runtime(),
+            receipt: None,
+            frozen: None,
+            configuration: None,
+            bootstrap: None,
+            pending: None,
+        }
     }
 
     fn prepare_method(&self, method: u32, bytes: &[u8]) -> Prepared {
@@ -102,18 +111,21 @@ impl LiveRuntime {
         let request = protocol::JudgeRequest::decode(bytes)
             .map_err(|_| Refusal::malformed("malformed Judge request"))?;
         let value = Any::required(request.observation)?;
-        let observed = umpire_runtime::Observed::new(&value)?;
+        let observed = crate::support::Observed::new(&value)?;
+        if observed.acknowledged().is_some() && self.pending.is_none() {
+            return Err(state("compound evidence requires a pending cancellation"));
+        }
         if observed.method == START {
             return self.start(&value);
         }
-        let observation: Observation = value.unpack()?;
+        let observation = observed.current();
         match observation.method.as_str() {
             DESCRIBE => {
                 let response: DescribeActivityExecutionResponse = observed.response()?;
                 let info =
                     response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
                 let _ = activity::Phase::try_from(info.clone())?;
-                let request: DescribeActivityExecutionRequest = required_request(&observation)?;
+                let request: DescribeActivityExecutionRequest = required_request(observation)?;
                 let receipt = self.receipt()?;
                 receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
                 receipt.matches(&request.namespace, &info.activity_id, &info.run_id)?;
@@ -131,8 +143,7 @@ impl LiveRuntime {
                     let _: RequestCancelActivityExecutionResponse =
                         observed.response().map_err(|error| Refusal::malformed(error.message))?;
                 }
-                let request: RequestCancelActivityExecutionRequest =
-                    required_request(&observation)?;
+                let request: RequestCancelActivityExecutionRequest = required_request(observation)?;
                 self.receipt()?.matches(
                     &request.namespace,
                     &request.activity_id,
@@ -205,9 +216,17 @@ impl LiveRuntime {
 
     fn delegate(&self, method: u32, bytes: &[u8]) -> Prepared {
         let (response, transaction) = self.model.prepare(method, bytes);
+        let outcome = response.outcome.ok_or_else(|| state("Model response is missing"))?;
+        let pending = match &outcome {
+            Outcome::Propose(proposal) => proposal.request.as_ref().filter(|request| request.type_url == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()).cloned(),
+            Outcome::Judge(judgment) if !judgment.continue_polling => None,
+            _ => self.pending.clone(),
+        };
         Ok((
-            response.outcome.ok_or_else(|| state("Model response is missing"))?,
-            transaction.map(|transaction| LiveTransaction { change: Change::Model(transaction) }),
+            outcome,
+            transaction.map(|model| LiveTransaction {
+                change: Change::Pending { model, request: pending },
+            }),
         ))
     }
 
@@ -331,6 +350,10 @@ impl Dispatch for LiveRuntime {
     fn commit(&mut self, transaction: LiveTransaction) {
         match transaction.change {
             Change::Model(transaction) => self.model.commit(transaction),
+            Change::Pending { model, request } => {
+                self.model.commit(model);
+                self.pending = request;
+            }
             Change::Admit { model, receipt } => {
                 self.model = *model;
                 self.receipt = Some(receipt);
@@ -346,11 +369,13 @@ impl Dispatch for LiveRuntime {
                 self.configuration = Some(configuration);
                 self.receipt = None;
                 self.bootstrap = None;
+                self.pending = None;
                 self.frozen = None;
             }
             Change::Propose(request) => self.bootstrap = Some(request),
             Change::Reset(transaction) => {
                 self.model.commit(transaction);
+                self.pending = None;
                 self.frozen = None;
             }
         }

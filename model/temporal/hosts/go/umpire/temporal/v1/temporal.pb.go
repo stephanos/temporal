@@ -141,8 +141,10 @@ type TemporalInstruction struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Request         *anypb.Any             `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
 	HoldWorkerPolls bool                   `protobuf:"varint,2,opt,name=hold_worker_polls,json=holdWorkerPolls,proto3" json:"hold_worker_polls,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Read server history before judging a NotFound acknowledgment of the enclosed request.
+	NotFoundRead  *anypb.Any `protobuf:"bytes,3,opt,name=not_found_read,json=notFoundRead,proto3" json:"not_found_read,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TemporalInstruction) Reset() {
@@ -189,6 +191,66 @@ func (x *TemporalInstruction) GetHoldWorkerPolls() bool {
 	return false
 }
 
+func (x *TemporalInstruction) GetNotFoundRead() *anypb.Any {
+	if x != nil {
+		return x.NotFoundRead
+	}
+	return nil
+}
+
+// Two actual RPC observations retained together when a read reconciles an acknowledgment.
+type ReconciledObservation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Acknowledged  *anypb.Any             `protobuf:"bytes,1,opt,name=acknowledged,proto3" json:"acknowledged,omitempty"`
+	Current       *anypb.Any             `protobuf:"bytes,2,opt,name=current,proto3" json:"current,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReconciledObservation) Reset() {
+	*x = ReconciledObservation{}
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReconciledObservation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReconciledObservation) ProtoMessage() {}
+
+func (x *ReconciledObservation) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReconciledObservation.ProtoReflect.Descriptor instead.
+func (*ReconciledObservation) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ReconciledObservation) GetAcknowledged() *anypb.Any {
+	if x != nil {
+		return x.Acknowledged
+	}
+	return nil
+}
+
+func (x *ReconciledObservation) GetCurrent() *anypb.Any {
+	if x != nil {
+		return x.Current
+	}
+	return nil
+}
+
 var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
@@ -201,10 +263,14 @@ const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\x05rules\x18\x03 \x03(\v2\x18.umpire.temporal.v1.RuleR\x05rules\"^\n" +
 	"\x04Rule\x12&\n" +
 	"\x03key\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x03key\x12.\n" +
-	"\arespond\x18\x02 \x03(\v2\x14.google.protobuf.AnyR\arespond\"q\n" +
+	"\arespond\x18\x02 \x03(\v2\x14.google.protobuf.AnyR\arespond\"\xad\x01\n" +
 	"\x13TemporalInstruction\x12.\n" +
 	"\arequest\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\arequest\x12*\n" +
-	"\x11hold_worker_polls\x18\x02 \x01(\bR\x0fholdWorkerPollsB*Z(umpire.local/temporal/umpire/temporal/v1P\x00P\x01b\x06proto3"
+	"\x11hold_worker_polls\x18\x02 \x01(\bR\x0fholdWorkerPolls\x12:\n" +
+	"\x0enot_found_read\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\fnotFoundRead\"\x81\x01\n" +
+	"\x15ReconciledObservation\x128\n" +
+	"\facknowledged\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\facknowledged\x12.\n" +
+	"\acurrent\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\acurrentB*Z(umpire.local/temporal/umpire/temporal/v1P\x00P\x01b\x06proto3"
 
 var (
 	file_umpire_temporal_v1_temporal_proto_rawDescOnce sync.Once
@@ -218,23 +284,27 @@ func file_umpire_temporal_v1_temporal_proto_rawDescGZIP() []byte {
 	return file_umpire_temporal_v1_temporal_proto_rawDescData
 }
 
-var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_umpire_temporal_v1_temporal_proto_goTypes = []any{
-	(*WorkerProgram)(nil),       // 0: umpire.temporal.v1.WorkerProgram
-	(*Rule)(nil),                // 1: umpire.temporal.v1.Rule
-	(*TemporalInstruction)(nil), // 2: umpire.temporal.v1.TemporalInstruction
-	(*anypb.Any)(nil),           // 3: google.protobuf.Any
+	(*WorkerProgram)(nil),         // 0: umpire.temporal.v1.WorkerProgram
+	(*Rule)(nil),                  // 1: umpire.temporal.v1.Rule
+	(*TemporalInstruction)(nil),   // 2: umpire.temporal.v1.TemporalInstruction
+	(*ReconciledObservation)(nil), // 3: umpire.temporal.v1.ReconciledObservation
+	(*anypb.Any)(nil),             // 4: google.protobuf.Any
 }
 var file_umpire_temporal_v1_temporal_proto_depIdxs = []int32{
 	1, // 0: umpire.temporal.v1.WorkerProgram.rules:type_name -> umpire.temporal.v1.Rule
-	3, // 1: umpire.temporal.v1.Rule.key:type_name -> google.protobuf.Any
-	3, // 2: umpire.temporal.v1.Rule.respond:type_name -> google.protobuf.Any
-	3, // 3: umpire.temporal.v1.TemporalInstruction.request:type_name -> google.protobuf.Any
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 1: umpire.temporal.v1.Rule.key:type_name -> google.protobuf.Any
+	4, // 2: umpire.temporal.v1.Rule.respond:type_name -> google.protobuf.Any
+	4, // 3: umpire.temporal.v1.TemporalInstruction.request:type_name -> google.protobuf.Any
+	4, // 4: umpire.temporal.v1.TemporalInstruction.not_found_read:type_name -> google.protobuf.Any
+	4, // 5: umpire.temporal.v1.ReconciledObservation.acknowledged:type_name -> google.protobuf.Any
+	4, // 6: umpire.temporal.v1.ReconciledObservation.current:type_name -> google.protobuf.Any
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_temporal_proto_init() }
@@ -250,7 +320,7 @@ func file_umpire_temporal_v1_temporal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_temporal_proto_rawDesc), len(file_umpire_temporal_v1_temporal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

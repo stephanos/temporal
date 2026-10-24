@@ -90,6 +90,8 @@ message Refusal {
 // or duplicate event, a stream closed without completion. It is never a verdict about the system.
 message DriverFault {
   string reason = 1;
+  // Opaque evidence supplied by the Driver; never interpreted by the Runner.
+  google.protobuf.Any evidence = 2;
 }
 
 enum Termination {

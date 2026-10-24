@@ -23,7 +23,7 @@ import (
 // service is the generated WorkflowService descriptor every proposed request is sent through.
 var service = workflowservice.File_temporal_api_workflowservice_v1_service_proto.Services().ByName("WorkflowService")
 
-// errMalformed marks evidence the Driver refuses to report: it never reaches Judge or Answer.
+// errMalformed marks evidence the Driver refuses to report: it never reaches Judge.
 var errMalformed = errors.New("malformed evidence")
 
 // method resolves the one WorkflowService method whose input is the request's message.

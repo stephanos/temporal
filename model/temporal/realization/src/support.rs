@@ -2,11 +2,57 @@
 
 use umpire_dsl::Rejection;
 use umpire_runtime::protocol::Refusal;
-pub use umpire_runtime::{Observed, callback, reply};
+pub use umpire_runtime::{callback, reply};
 use umpire_temporal_api::temporal::api::{
     common::v1::Payload,
     failure::v1::{ApplicationFailureInfo, Failure, failure::FailureInfo},
 };
+
+/// A Temporal observation, optionally retaining the acknowledgment its current read reconciles.
+pub struct Observed {
+    inner: umpire_runtime::Observed,
+    current: umpire_runtime::realization::Observation,
+    acknowledged: Option<umpire_runtime::realization::Observation>,
+}
+
+impl Observed {
+    /// Admit ordinary evidence or a pair of unchanged actual RPC observations.
+    pub fn new(value: &umpire_runtime::google::protobuf::Any) -> Result<Self, Refusal> {
+        use umpire_runtime::google::protobuf::Any;
+        use umpire_temporal_api::umpire::temporal::v1::ReconciledObservation;
+        let (current, acknowledged) =
+            if value.type_url == <ReconciledObservation as prost::Name>::type_url() {
+                let pair: ReconciledObservation = value.unpack()?;
+                let acknowledged = Any::required(pair.acknowledged)?;
+                let _ = umpire_runtime::Observed::new(&acknowledged)?;
+                (Any::required(pair.current)?, Some(acknowledged.unpack()?))
+            } else {
+                (value.clone(), None)
+            };
+        Ok(Self {
+            inner: umpire_runtime::Observed::new(&current)?,
+            current: current.unpack()?,
+            acknowledged,
+        })
+    }
+
+    /// The current actual RPC observation used for dispatch and projection.
+    pub fn current(&self) -> &umpire_runtime::realization::Observation {
+        &self.current
+    }
+
+    /// The earlier actual acknowledgment retained by compound evidence.
+    pub fn acknowledged(&self) -> Option<&umpire_runtime::realization::Observation> {
+        self.acknowledged.as_ref()
+    }
+}
+
+impl std::ops::Deref for Observed {
+    type Target = umpire_runtime::Observed;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
 
 /// Translate the supported gRPC statuses into Model rejections.
 pub fn rejection(code: i32) -> Option<Rejection> {

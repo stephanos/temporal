@@ -233,3 +233,306 @@ fn failure_contents_are_checked_while_sdk_diagnostics_are_not_program_fields() {
         );
     }
 }
+
+fn cancel_ack(request: Option<Any>) -> Observation {
+    Observation {
+        method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+            .into(),
+        request,
+        result: Some(ResultValue::Error(umpire_runtime::realization::Error {
+            code: 5,
+            message: "activity execution closed".into(),
+        })),
+    }
+}
+fn reconciled(acknowledged: &Observation, current: &Observation) -> Any {
+    Any::pack(&umpire_temporal_api::umpire::temporal::v1::ReconciledObservation {
+        acknowledged: Some(Any::pack(acknowledged)),
+        current: Some(Any::pack(current)),
+    })
+}
+fn cancellation(
+    runtime: &mut impl Dispatch,
+) -> umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
+    let Outcome::Propose(proposal) = invoke(runtime, 6, &protocol::ProposeRequest { seed: 0 })
+    else {
+        panic!("cancel")
+    };
+    proposal
+        .request
+        .unwrap_or_else(|| panic!("instruction"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"))
+}
+
+#[test]
+fn cancel_not_found_reconciles_only_programmed_terminal_server_evidence() {
+    for (seed, scenario, wrong) in
+        [(0, "Complete", false), (2, "Fail", false), (0, "Complete", true), (2, "Fail", true)]
+    {
+        let (mut runtime, program) = setup(seed);
+        assert!(matches!(
+            invoke(
+                &mut runtime,
+                4,
+                &protocol::JudgeRequest {
+                    observation: Some(Any::pack(&common::describe(1, 1, 2)))
+                }
+            ),
+            Outcome::Judge(_)
+        ));
+        let Outcome::Propose(cancel) =
+            invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 })
+        else {
+            panic!("cancel")
+        };
+        let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = cancel
+            .request
+            .unwrap_or_else(|| panic!("instruction"))
+            .unpack()
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        let mut observation = terminal(&program, scenario, 1, wrong && scenario != "Fail");
+        if wrong && scenario == "Fail" {
+            let Some(ResultValue::Response(value)) = observation.result.take() else {
+                panic!("response")
+            };
+            let mut response: DescribeActivityExecutionResponse =
+                value.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+            let Some(Value::Failure(failure)) =
+                response.outcome.as_mut().and_then(|outcome| outcome.value.as_mut())
+            else {
+                panic!("failure")
+            };
+            failure.message = "wrong failure".into();
+            observation.result = Some(ResultValue::Response(Any::pack(&response)));
+        }
+        let outcome = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest {
+                observation: Some(reconciled(
+                    &cancel_ack(instruction.request.clone()),
+                    &observation,
+                )),
+            },
+        );
+        let Outcome::Judge(judgment) = outcome else {
+            panic!("terminal must correlate with cancel: {outcome:?}")
+        };
+        assert_eq!(
+            matches!(judgment.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))),
+            wrong
+        );
+        if wrong {
+            continue;
+        }
+        assert!(
+            judgment.continue_polling,
+            "the pending cancel still needs its actual acknowledgment"
+        );
+        assert!(matches!(
+            invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
+            Outcome::Refusal(_)
+        ));
+        let ack = Observation {
+            method:
+                "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+                    .into(),
+            request: instruction.request,
+            result: Some(ResultValue::Error(umpire_runtime::realization::Error {
+                code: 5,
+                message: "activity execution closed".into(),
+            })),
+        };
+        let Outcome::Judge(judgment) =
+            invoke(&mut runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(&ack)) })
+        else {
+            panic!("cancel acknowledgment")
+        };
+        let Some(protocol::judge_response::Judgment::Explained(explanation)) = judgment.judgment
+        else {
+            panic!("explained")
+        };
+        assert_eq!(explanation.steps, ["Client::Cancel"]);
+        assert_eq!(explanation.outcomes, ["Rejected(NotFound)"]);
+        assert!(!judgment.continue_polling);
+        assert!(matches!(
+            invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
+            Outcome::Propose(_)
+        ));
+    }
+}
+
+#[test]
+fn cancel_reconciliation_describe_must_match_the_exact_instruction_request() {
+    for field in ["include_outcome", "include_last_failure", "namespace", "activity_id", "run_id"] {
+        let (mut runtime, program) = setup(0);
+        let instruction = cancellation(&mut runtime);
+        let mut observation = terminal(&program, "Complete", 1, false);
+        let mut request: DescribeActivityExecutionRequest = observation
+            .request
+            .as_ref()
+            .unwrap_or_else(|| panic!("request"))
+            .unpack()
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        match field {
+            "include_outcome" => request.include_outcome = false,
+            "include_last_failure" => request.include_last_failure = false,
+            "namespace" => request.namespace = "other".into(),
+            "activity_id" => request.activity_id = "other".into(),
+            "run_id" => request.run_id = "other".into(),
+            _ => unreachable!(),
+        }
+        observation.request = Some(Any::pack(&request));
+        let Outcome::Refusal(refusal) = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest {
+                observation: Some(reconciled(
+                    &cancel_ack(instruction.request.clone()),
+                    &observation,
+                )),
+            },
+        ) else {
+            panic!("refusal for {field}")
+        };
+        assert_eq!(refusal.code(), protocol::RefusalCode::State);
+    }
+}
+
+#[test]
+fn cancel_reconciliation_requires_the_actual_not_found_acknowledgment() {
+    let (mut runtime, program) = setup(0);
+    assert!(matches!(
+        invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
+        Outcome::Propose(_)
+    ));
+    let observation = terminal(&program, "Complete", 1, false);
+    let outcome = invoke(
+        &mut runtime,
+        4,
+        &protocol::JudgeRequest { observation: Some(Any::pack(&observation)) },
+    );
+    assert!(
+        matches!(outcome, Outcome::Refusal(_)),
+        "missing acknowledgment must refuse: {outcome:?}"
+    );
+}
+
+#[test]
+fn compound_reconciliation_rejects_wrong_acknowledgments_and_non_cancel_contexts() {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest;
+    use umpire_temporal_api::umpire::temporal::v1::ReconciledObservation;
+    for case in [
+        "missing_ack",
+        "missing_current",
+        "wrong_ack_type",
+        "wrong_current_type",
+        "malformed_ack",
+        "malformed_current",
+        "missing_ack_request",
+        "wrong_method",
+        "wrong_code",
+        "no_result",
+        "success",
+        "namespace",
+        "activity_id",
+        "run_id",
+        "invalid_status",
+        "invalid_run_state",
+        "no_pending",
+        "read_pending",
+        "reset",
+    ] {
+        let (mut runtime, program) = setup(0);
+        let instruction = cancellation(&mut runtime);
+        let mut ack = cancel_ack(instruction.request);
+        let mut current = terminal(&program, "Complete", 1, false);
+        match case {
+            "wrong_method" => ack.method = "other".into(),
+            "wrong_code" => ack.result = Some(ResultValue::Error(umpire_runtime::realization::Error { code: 3, message: String::new() })),
+            "no_result" => ack.result = None,
+            "missing_ack_request" => ack.request = None,
+            "success" => ack.result = Some(ResultValue::Response(Any::pack(&umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse::default()))),
+            "namespace" | "activity_id" | "run_id" => { let mut request: RequestCancelActivityExecutionRequest = ack.request.as_ref().unwrap_or_else(|| panic!("request")).unpack().unwrap_or_else(|error| panic!("{error:?}")); match case { "namespace" => request.namespace = "other".into(), "activity_id" => request.activity_id = "other".into(), _ => request.run_id = "other".into() } ack.request = Some(Any::pack(&request)); },
+            "invalid_status" | "invalid_run_state" => {
+                let Some(ResultValue::Response(value)) = current.result.take() else { panic!("response") };
+                let mut response: DescribeActivityExecutionResponse = value.unpack().unwrap_or_else(|error| panic!("{error:?}"));
+                let info = response.info.as_mut().unwrap_or_else(|| panic!("info"));
+                if case == "invalid_status" { info.status = 999; } else { info.run_state = 999; }
+                current.result = Some(ResultValue::Response(Any::pack(&response)));
+            }
+            "no_pending" => { let (fresh, _) = setup(0); runtime = fresh; },
+            "read_pending" => { let (fresh, _) = setup(0); runtime = fresh; assert!(matches!(invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 1 }), Outcome::Propose(_))); },
+            "reset" => { let _ = invoke(&mut runtime, 3, &protocol::ResetRequest::default()); },
+            _ => {}
+        }
+        let mut pair = ReconciledObservation {
+            acknowledged: Some(Any::pack(&ack)),
+            current: Some(Any::pack(&current)),
+        };
+        match case {
+            "missing_ack" => pair.acknowledged = None,
+            "missing_current" => pair.current = None,
+            "wrong_ack_type" => {
+                pair.acknowledged = Some(Any::pack(&protocol::ResetRequest::default()));
+            }
+            "wrong_current_type" => {
+                pair.current = Some(Any::pack(&protocol::ResetRequest::default()));
+            }
+            "malformed_current" => {
+                pair.current.as_mut().unwrap_or_else(|| panic!("current")).value = vec![255];
+            }
+            "malformed_ack" => {
+                pair.acknowledged.as_mut().unwrap_or_else(|| panic!("ack")).value = vec![255];
+            }
+            _ => {}
+        }
+        let outcome = invoke(
+            &mut runtime,
+            4,
+            &protocol::JudgeRequest { observation: Some(Any::pack(&pair)) },
+        );
+        assert!(matches!(outcome, Outcome::Refusal(_)), "{case}: {outcome:?}");
+    }
+}
+
+#[test]
+fn reconciliation_context_changes_only_after_publication_and_clears_on_final_ack() {
+    let (mut runtime, program) = setup(0);
+    let (proposal, transaction) =
+        runtime.prepare(6, &protocol::ProposeRequest { seed: 0 }.encode_to_vec());
+    let Some(Outcome::Propose(proposal)) = proposal.outcome else { panic!("cancel") };
+    let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = proposal
+        .request
+        .unwrap_or_else(|| panic!("instruction"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    let ack = cancel_ack(instruction.request);
+    let request = protocol::JudgeRequest {
+        observation: Some(reconciled(&ack, &terminal(&program, "Complete", 1, false))),
+    };
+    assert!(
+        matches!(invoke(&mut runtime, 4, &request), Outcome::Refusal(_)),
+        "unpublished proposal cannot authorize compound evidence"
+    );
+    runtime.commit(transaction.unwrap_or_else(|| panic!("proposal transaction")));
+    let (unpublished, _) = runtime.prepare(4, &request.encode_to_vec());
+    assert!(matches!(unpublished.outcome, Some(Outcome::Judge(_))));
+    assert!(matches!(
+        invoke(&mut runtime, 6, &protocol::ProposeRequest { seed: 0 }),
+        Outcome::Refusal(_)
+    ));
+    let Outcome::Judge(judgment) = invoke(&mut runtime, 4, &request) else {
+        panic!("reconciliation")
+    };
+    let Some(protocol::judge_response::Judgment::Explained(explanation)) = judgment.judgment else {
+        panic!("explained")
+    };
+    assert_eq!(explanation.steps, ["Worker::Poll(1)", "Worker::RespondCompleted"]);
+    let _ = invoke(&mut runtime, 4, &protocol::JudgeRequest { observation: Some(Any::pack(&ack)) });
+    assert!(
+        matches!(invoke(&mut runtime, 4, &request), Outcome::Refusal(_)),
+        "final acknowledgment consumes reconciliation context"
+    );
+}

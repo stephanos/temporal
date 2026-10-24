@@ -23,10 +23,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	model "umpire.local/model/host"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 type modelSliceAnnotations struct {
@@ -482,7 +484,7 @@ func modelSliceAnnotationControls(t *testing.T, wasm []byte) {
 	})
 }
 
-func TestModelSliceCoverageRejectsMissingWorkerTraffic(t *testing.T) {
+func TestTestpilotModelSliceCoverageRejectsMissingWorkerTraffic(t *testing.T) {
 	a := &modelSliceAnnotations{coverage: map[string]int{}}
 	for _, method := range modelSliceTransportMethods {
 		for _, response := range []bool{false, true} {
@@ -495,5 +497,30 @@ func TestModelSliceCoverageRejectsMissingWorkerTraffic(t *testing.T) {
 		delete(a.coverage, key)
 		a.coverage[fmt.Sprintf("method=%s response=true scope=out_of_scope:missing instrumentation", method)] = 1
 		require.Contains(t, a.missingCoverage(), key)
+	}
+}
+
+func (a *modelSliceAnnotations) actual(t *testing.T, evidence *anypb.Any) {
+	t.Helper()
+	if evidence.MessageIs(new(temporalv1.ReconciledObservation)) {
+		compound := new(temporalv1.ReconciledObservation)
+		require.NoError(t, evidence.UnmarshalTo(compound))
+		a.actual(t, compound.Acknowledged)
+		a.actual(t, compound.Current)
+		return
+	}
+	observation := new(realizationv1.Observation)
+	require.NoError(t, evidence.UnmarshalTo(observation))
+	for _, response := range []bool{false, true} {
+		value := observation.GetRequest()
+		if response {
+			value = observation.GetResponse()
+		}
+		if value == nil {
+			continue
+		}
+		message, err := value.UnmarshalNew()
+		require.NoError(t, err)
+		require.NoError(t, a.annotate(observation.Method, response, message))
 	}
 }
