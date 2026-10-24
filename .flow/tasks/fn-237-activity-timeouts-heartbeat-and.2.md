@@ -61,9 +61,38 @@ Current Files ownership is the Touches list above: it supersedes stale pre-fn-23
 
 
 ## Done summary
-TBD
+Stored bounded nominal values and their optional forms now preserve authored identity, backing and bounds through native export, source binding, IR/interpreter, TLA emission, exact TLC decoding and typed replay. The independent no-fact optional_ticks fixture covers None/one/max countdowns, malformed values, eager defaults, all five CFG families and selected-World replay; activity policy and World-dependent fairness authoring remain outside this task.
 
+Tier: session jev-unavailable(no_key); explicit AGENTS implementer gpt-6.1-sol medium / reviewer gpt-6.1-sol high. Primary reviewer execution is evidenced by the explicit codex:gpt-6.1-sol:high command and three session receipts; review uses the same model family. No actual implementer model is inferred.
+
+stage: impl-review - ran [2026-10-24T15:11:10.948654Z..2026-10-24T15:17:40.261785Z], SHIP. Correctness/contracts/integration each report 0 introduced and 0 pre_existing findings. Raw reports, raw output archives, metadata and final receipt are retained under .flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-*.
+
+Baseline: green make model-check before source edits at e2f25dc292cf048d3b61e33b9b2b25e97fedaf97, actual kernel wait status/exit 0. The initial wrong-directory attempt is inconclusive and receives no credit. Early optional source refused before implementation. Compatibility controls for ordinary Some/None constants and fieldless Option enum failed 101 before the final no-bounded-descriptor guards, then all five source controls passed. Seven semantic mutants were detected by executed failing tests.
+
+Final executable source: 6f0fb85f56b20dfa1e94fbeb286f17ce2ae61a41. Subsequent commits contain Flow/evidence only. Actual final gates:
+
+- make model-check: exit 0, 498.206s, 679 passed test summaries.
+- UMPIRE_BACKENDS=require make model-check: exit 0, 635.305s, 679 passed test summaries; real TLC agreement and replay required.
+- make model-time: exit 0, wall 381.736s; gate 374.886s misses inherited 60s soft target, inner 6.660s meets 10s. No added wrapper kill timeouts.
+- make umpire-check-model-slice: exit 0, 65.546s.
+- make umpire-check-model-gaps: exit 0, 379.728s, both canonical mandatory parent assertions present. A stopped diagnostic reader may have consumed intermediate pipe stdout; diagnostic observation is inconclusive, with no verification credit or exact-output/count claim for that interval. The gate itself was unchanged and completed normally.
+- Final workspace fmt check: exit 0. Final full gates include strict workspace Clippy, docs, tests and wasm/Go consumers; focused affected-crate tests/strict Clippy and required fixture controls also passed as retained in implementation evidence.
+
+Final Verify classified FULL and the strict CLI honored all three final-source receipts:
+GATE_SKIPPED:model-check:green-receipt 6f0fb85f
+GATE_SKIPPED:model-check-required:green-receipt 6f0fb85f
+GATE_SKIPPED:model-time:green-receipt 6f0fb85f
+
+Native/interpreted None/one/max have states 2/3/5, edges 1/2/4, and exactly 0/1/3 Tick edges. Required TLC checks cover these selected Worlds and replay false claims. Native factories and source binding reject malformed selections; authored native invariants separately refute forged invalid starts/updates. Generic World::new/Machine/Checker remain infallible association/exploration boundaries. Apalache adaptation is compile-through, with no live optional-value claim.
+
+Fresh parallel quality audits found correctness 1 and standards 4 issues initially; the main-CFG selected-binding anchor, continuation refusal and module/document extraction fixes resolved them. Final and compatibility follow-ups both report 0 remaining/0 new; reports are preserved verbatim.
+
+All 827 pre-existing active artifacts and 15 original compatibility comparisons remain byte-exact, including metadata; only the new optional_ticks fixture has new expectations. Guest SHA-256 remains b4a4f57f1a64525ae568bd56a73eff85b0b253aeae44d9e4de3e2d88f546cf2a; no refresh or canary repin occurred. Original fn243 evidence and existing F fixture/bridge are preserved. The inherited broader legacy tools Go failure is not an all-repository green claim.
+
+Continuation guard: parent fn237 and fn243/fn228 remain open. Root owns future fairness prerequisite, Model3, binding4, fn2435 and fn2375 sequencing; no cancellation/fairness policy or MILESTONES edits were implemented here. Full evidence is optional-values-implementation-evidence.json, protected authority is optional-values-preserved-manifest.json, and the reproducible guard is optional-values-preserved-audit.py in the same artifact directory.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 546dd249311d401762e64639869f1afce3f5b4a8, 5ae259444b4231d4a509ea4606ba4739122b0558, 6573d847d44afc37fda1e4b7364459d7deb13dc7, 8e089c6888f0097c30cd5bfa3274fcafe550e216, 04da78e42a2278de95f1dc08c9ec46bfff2c6981, 2daa834c671e4f64e8660d50b5b702bf0c11466e, 5fc7ee3413e350ff46b8d7586cc69e6fc12496e2, 968500b6de5d313549295ddd5d94cff5f7589f82, e58f21366e24b261f2dee8dcf6a52772430ad61f, 1fcf8dad86c9dca376533c4933085f83c83ebcff, 58027c27b8d5c33c9c24cc62544bd103a7a8a010, 47cf0beea6c2ddf4e727a5a1891c20d575e29011, 5c59b5edc92b4e7afcf02a82eceb18ca0a83d18d, 785651730bd37d1a73ce24884d4d5cd6b9609934, 6f0fb85f56b20dfa1e94fbeb286f17ce2ae61a41, cb8789a8e48d214841ec9f2f9cb540ddf419ce45, 2e50739c07dd0aef6aa87f2e9a8c7f4e61c5cfb0, 41561bce9100ade48132cc4eebaa2962db7520b0
+- Tests: make model-check, UMPIRE_BACKENDS=require make model-check, make model-time, make umpire-check-model-slice, make umpire-check-model-gaps, cd model && mise exec -- cargo test -p umpire-front -p umpire-ir -p umpire-dsl-macros -p umpire-dsl -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures -p umpire-apalache, cd model && mise exec -- cargo clippy -p umpire-front -p umpire-ir -p umpire-dsl-macros -p umpire-dsl -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-testing -p umpire-fixtures -p umpire-apalache --all-targets --all-features -- -D warnings, cd model && mise exec -- cargo test -p umpire-tla --test optional_source, cd model && mise exec -- cargo fmt --all --check, GATE_SKIPPED:model-check:green-receipt 6f0fb85f, GATE_SKIPPED:model-check-required:green-receipt 6f0fb85f, GATE_SKIPPED:model-time:green-receipt 6f0fb85f
 - PRs:
