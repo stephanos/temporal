@@ -4,7 +4,12 @@
   "claimed_at": null,
   "created_at": "2026-10-24T15:44:34.104458Z",
   "depends_on": [
-    "fn-242-gomad-shrink-the-qualification.1"
+    "fn-242-gomad-shrink-the-qualification.1",
+    "fn-242-gomad-shrink-the-qualification.11",
+    "fn-242-gomad-shrink-the-qualification.12",
+    "fn-242-gomad-shrink-the-qualification.13",
+    "fn-242-gomad-shrink-the-qualification.14",
+    "fn-242-gomad-shrink-the-qualification.15"
   ],
   "id": "fn-242-gomad-shrink-the-qualification.2",
   "priority": null,
@@ -12,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-242-gomad-shrink-the-qualification.2.md",
   "status": "todo",
   "title": "Rust cycle verb: stage DAG, resource scheduler, serial and parallel dispatch",
-  "updated_at": "2026-10-24T17:59:43.142312Z"
+  "updated_at": "2026-10-24T18:09:44.497854Z"
 }
