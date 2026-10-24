@@ -160,9 +160,7 @@ func derive(stock, semantics, output string) (inventory, error) {
 			return result, err
 		}
 		name := filepath.ToSlash(relative)
-		if strings.HasPrefix(name, "runtime/") {
-			name = strings.TrimPrefix(name, "runtime/")
-		}
+		name = strings.TrimPrefix(name, "runtime/")
 		result.OverlayInputs["output/"+name] = replacement
 	}
 	for _, name := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {

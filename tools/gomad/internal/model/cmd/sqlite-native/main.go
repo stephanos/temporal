@@ -50,7 +50,7 @@ func read(path string, maximum int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 	actual, err := stream.Stat()
 	if err != nil {
 		return nil, err

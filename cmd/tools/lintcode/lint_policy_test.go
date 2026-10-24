@@ -3,11 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"go/format"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
