@@ -71,6 +71,9 @@ No Model, DSL, protocol, IR, checker semantics or Temporal feature refactor; onl
 
 ## Decision Context
 
+2026-10-24, owner: "can we paralleize more aggressively?" and "can we take more risks, too?". Use isolated concurrent implementation lanes even when Cargo-file edits will conflict; reconcile those copies centrally at integration. Accept rework and narrow inherited-blocker fixes. Keep dependency admission, meaningful correctness/safety checks and reviewed-source immutability; another isolated lane may continue while the main checkout is reviewed.
+
+
 Maintainability (plan review): duplication - Task .3 would duplicate process/xtask controls between the replaced unittest stage and retained workspace stage; resolved by assigning them exclusively to the workspace stage. structure - none identified. Shared Cargo ownership for .9/.2/.6 is explicitly serialized while preserving independent source lanes.
 
 

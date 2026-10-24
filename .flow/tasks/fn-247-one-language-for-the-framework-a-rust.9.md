@@ -8,11 +8,13 @@ Adopt the R18-admitted `tempfile` 3.27 and `rustix` 1.1 in `umpire-backend-proce
 
 **Size:** S
 **Files:** `model/umpire/backends/process/{Cargo.toml,src/support.rs,src/syscall.rs,src/syscall/**}`, `model/{Cargo.toml,Cargo.lock}`.
-**Touches:** [model/umpire/backends/process/**, model/Cargo.toml, model/Cargo.lock]
+**Touches:** [model/umpire/backends/process/**, model/umpire/backends/tlc/**, model/umpire/backends/apalache/**, model/Cargo.toml, model/Cargo.lock]
 
 ### Approach
 
-- Shared Cargo.toml/Cargo.lock mutations have one conductor-assigned owner. Task .9 must serialize those edits with .2 and .6; dependency independence is not permission for concurrent shared-file writes. After .2 integrates, .9 process-source work may run beside .5 native guest-source work in isolated lanes, using separate build targets and integration before final guest/reproducibility evidence. No extra dependency edge or full gate is required.
+- Native Scratch ownership may use a path accessor; mechanically migrate affected TLC/Apalache callers if needed instead of preserving a tuple layout solely for backward compatibility. Keep this adaptation narrow and retain all functional process controls.
+
+- Shared Cargo.toml/Cargo.lock mutations have one conductor-assigned owner. Task .9 may implement concurrently with .2, .5 or .6 in an isolated checkout with its own Cargo files and build target. The conductor serializes reconciliation of Cargo edits in the integration checkout and gathers combined evidence before completion; accept ordinary merge/rework risk rather than serializing whole tasks. No extra dependency edge or full gate is required.
 
 - First record the audited unsafe site count (`unsafe` blocks/fns in `src/**`) and the before/after package/feature inventory; both crates are already resolved, so no new resolution is expected. Request only needed features (`rustix`: process/fs/system as used) and keep them out of guest closures.
 - `support.rs`: create scratch directories with `tempfile::Builder` (prefix, 0700 permissions, `tempdir_in`, explicit `close()` so cleanup failure stays observable). The symlink-refusing workspace-relative walk stays hand-written.
