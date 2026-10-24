@@ -500,11 +500,53 @@ CI, PR, or push authority.
 
 ## Open specs
 
-Listed in delivery order (2026-10-23). fn-232 comes first. fn-233 and fn-188 are next because they land in its final freeze. The rest follow its candidate.
+Listed by spec dependencies and the current delivery order (2026-10-24): fn-242 → fn-240 → fn-246 → fn-232 acceptance closeout. Deferred work follows the active ladder.
+
+### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
+
+Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 checkpoint, before the complete fn-240 extraction. Each retained check names a failure it catches; the Python cycle driver becomes a Rust `gomad` verb. Local completion proves implementation/cutover and focused handoff. Actual full-cycle qualification remains pending in fn-246 after both cleanup specs.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | 🚧 Running | Exhaustive check inventory, actual proof catalog and explicit gaps; exact stage contracts |
+| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
+| [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
+| [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
+| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
+| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
+| [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |
+| [fn-242.10](.flow/tasks/fn-242-gomad-shrink-the-qualification.10.md) | ⬜ Todo | Rust producer adapters; preserve leaf commands and prove replacement contracts |
+| [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Zero-gap proof audit and cutover: remove Python, repoint commands/inventory, record sizes |
+| [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
+
+### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
+
+Owner's 8–12 crate target stands (ruling 10). Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
+| [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
+| [fn-240.3](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md) | ⬜ Todo | Extract `wasm-sim` (clock, network, volume, event_order, sim controller) |
+| [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide next cuts |
+
+### Final qualification after cleanup — [fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md)
+
+Runs after fn-242 and the complete fn-240 scope. Original acceptance remains pending until actual final-candidate proof and receiving reconciliation.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-246.1](.flow/tasks/fn-246-gomad-final-qualification-after-driver.1.md) | ⬜ Todo | Close remaining behavioral reach and restore strict admission |
+| [fn-246.2](.flow/tasks/fn-246-gomad-final-qualification-after-driver.2.md) | ⬜ Todo | Audit every literal payload bound and prove boundary behavior |
+| [fn-246.3](.flow/tasks/fn-246-gomad-final-qualification-after-driver.3.md) | ⬜ Todo | Measure SQLite/multi-instance World budgets and pass standalones |
+| [fn-246.4](.flow/tasks/fn-246-gomad-final-qualification-after-driver.4.md) | ⬜ Todo | Prepare the final candidate and produce the complete qualification cycle |
+| [fn-246.5](.flow/tasks/fn-246-gomad-final-qualification-after-driver.5.md) | ⬜ Todo | Independently receive runtime, workloads, retained/operator and ringpop proof |
+| [fn-246.6](.flow/tasks/fn-246-gomad-final-qualification-after-driver.6.md) | ⬜ Todo | Independently receive R4, public18, retirement, custody and size proof |
+| [fn-246.7](.flow/tasks/fn-246-gomad-final-qualification-after-driver.7.md) | ⬜ Todo | Audit coverage and reconcile actual proof into original acceptance owners |
 
 ### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
 
-First in the delivery order (owner decision 2026-10-20). New evidence lineage; behavioral equivalence gate; Go overlay, models, generator and corpora stay.
+Original acceptance closes from fn-246 receiving after fn-242 and fn-240. New evidence lineage; behavioral equivalence gate; Go overlay, models, generator and corpora stay.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -517,7 +559,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232.31](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.31.md) | ⛔ Blocked | Measure sqlite/multi-instance World transition budgets under enforced recording before the cycle reaches them; .13 depends on it |
 | [fn-232.32](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.32.md) | ⛔ Blocked | Unify literal payload read bounds with authenticated limits (same class as the .30 replay refusal) |
 
-Tasks .21–.26 are closure predecessors of the already-running .13. The conductor
+Historical closure plan, superseded by the cleanup-first amendment above: tasks .21–.26 were closure predecessors of the already-running .13. The conductor
 launches one fresh cycle after the integrated .21 and .26 repairs pass; .22–.25 prepare independently and finish
 from its actual outputs. They do not depend on .13 being done. All original
 acceptance and post-cycle ordering remain unchanged; .13 owns final composition.
@@ -569,48 +611,6 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 | --- | --- | --- |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⏸ Parked | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
-
-### Qualification machinery cleanup — [fn-242](.flow/specs/fn-242-gomad-shrink-the-qualification.md)
-
-Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 checkpoint, before the complete fn-240 extraction. Each retained check names a failure it catches; the Python cycle driver becomes a Rust `gomad` verb. Local completion proves implementation/cutover and focused handoff. Actual full-cycle qualification remains pending in fn-246 after both cleanup specs.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-242.1](.flow/tasks/fn-242-gomad-shrink-the-qualification.1.md) | 🚧 Running | Exhaustive check inventory, actual proof catalog and explicit gaps; exact stage contracts |
-| [fn-242.2](.flow/tasks/fn-242-gomad-shrink-the-qualification.2.md) | ⬜ Todo | Rust cycle verb: DAG, resource scheduler, serial and parallel dispatch |
-| [fn-242.3](.flow/tasks/fn-242-gomad-shrink-the-qualification.3.md) | ⬜ Todo | Port kept core, receiving and cell readers into the verb |
-| [fn-242.4](.flow/tasks/fn-242-gomad-shrink-the-qualification.4.md) | ⬜ Todo | Port kept final readers: profiles, retained, terminal, reach, onebox, cost |
-| [fn-242.5](.flow/tasks/fn-242-gomad-shrink-the-qualification.5.md) | ⬜ Todo | Parity-lane disposition; preserve baseline custody for final receiving |
-| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | ⬜ Todo | Remove duplicated measurement checking |
-| [fn-242.9](.flow/tasks/fn-242-gomad-shrink-the-qualification.9.md) | ⬜ Todo | Rust candidate preparation/configuration composition with focused genuine-input proof |
-| [fn-242.10](.flow/tasks/fn-242-gomad-shrink-the-qualification.10.md) | ⬜ Todo | Rust producer adapters; preserve leaf commands and prove replacement contracts |
-| [fn-242.7](.flow/tasks/fn-242-gomad-shrink-the-qualification.7.md) | ⬜ Todo | Zero-gap proof audit and cutover: remove Python, repoint commands/inventory, record sizes |
-| [fn-242.8](.flow/tasks/fn-242-gomad-shrink-the-qualification.8.md) | ⬜ Todo | Focused implementation handoff; actual qualification transferred to fn-246 |
-
-### Context-sized Rust crates — [fn-240](.flow/specs/fn-240-gomad-context-sized-rust-crates-with.md)
-
-Owner's 8–12 crate target stands (ruling 10). Survey landed 2026-10-23 (`.flow/artifacts/fn240-crate-survey-2026-10-23.md`); extractions follow fn-242.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-240.1](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.1.md) | ⏸ Parked | Survey done; `cargo build --timings` baseline still to record |
-| [fn-240.2](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.2.md) | ⬜ Todo | Extract `gomad-evidence` with boundary tests (three listed back-edges first) |
-| [fn-240.3](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.3.md) | ⬜ Todo | Extract `wasm-sim` (clock, network, volume, event_order, sim controller) |
-| [fn-240.4](.flow/tasks/fn-240-gomad-context-sized-rust-crates-with.4.md) | ⬜ Todo | Measure and decide next cuts |
-
-### Final qualification after cleanup — [fn-246](.flow/specs/fn-246-gomad-final-qualification-after-driver.md)
-
-Runs after fn-242 and the complete fn-240 scope. Original acceptance remains pending until actual final-candidate proof and receiving reconciliation.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-246.1](.flow/tasks/fn-246-gomad-final-qualification-after-driver.1.md) | ⬜ Todo | Close remaining behavioral reach and restore strict admission |
-| [fn-246.2](.flow/tasks/fn-246-gomad-final-qualification-after-driver.2.md) | ⬜ Todo | Audit every literal payload bound and prove boundary behavior |
-| [fn-246.3](.flow/tasks/fn-246-gomad-final-qualification-after-driver.3.md) | ⬜ Todo | Measure SQLite/multi-instance World budgets and pass standalones |
-| [fn-246.4](.flow/tasks/fn-246-gomad-final-qualification-after-driver.4.md) | ⬜ Todo | Prepare the final candidate and produce the complete qualification cycle |
-| [fn-246.5](.flow/tasks/fn-246-gomad-final-qualification-after-driver.5.md) | ⬜ Todo | Independently receive runtime, workloads, retained/operator and ringpop proof |
-| [fn-246.6](.flow/tasks/fn-246-gomad-final-qualification-after-driver.6.md) | ⬜ Todo | Independently receive R4, public18, retirement, custody and size proof |
-| [fn-246.7](.flow/tasks/fn-246-gomad-final-qualification-after-driver.7.md) | ⬜ Todo | Audit coverage and reconcile actual proof into original acceptance owners |
 
 ### Race profile for wasip1 — [fn-241](.flow/specs/fn-241-gomad-a-race-profile-for-wasip1-deferred.md)
 
