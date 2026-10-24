@@ -5,7 +5,7 @@ satisfies: [R2]
 
 **Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
 
-**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**, tools/gomad/rust/gomad/src/cycle/readers/core_codec/**, tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs, tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs, tools/gomad/rust/wasmhost/src/volume/image.rs, tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs
+**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**, tools/gomad/rust/gomad/src/cycle/readers/core_codec/**, tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs, tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs, tools/gomad/rust/wasmhost/src/volume/image.rs, tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs, tools/gomad/rust/gomad/src/cycle/build/identity.rs, tools/gomad/rust/gomad/src/cycle/build/mod.rs
 
 ## Description
 Port receiving common helpers and command/artifact/preparation/result admission, plus core_identity. Admit one bounded authenticated byte buffer per read. Reuse qualify::spec::strict and qualify Result/PublicationReceipt APIs for their actual schemas; retain alias, mode, size and change-during-read checks at every independent open.
@@ -49,3 +49,7 @@ B04 additionally owns the three wasmhost files in Touches solely to expose immut
 ## Exclusive-owner receiving fixture
 
 B04 additionally owns the exact existing custody/owner_fixture.rs solely to add its command/RetainedSession family dispatch through the real CycleOwner token. Preserve B01 source/inputs/build arms and B03 bindings arm. This one fixture file is an explicit additive overlap across isolated B03/B04 worktrees: each batch owns only its named arm, and the conductor integrates both. No new Cargo target, direct-rustc bridge or process ownership API.
+
+## Shared helper identity visibility
+
+B04 additionally owns exactly build/identity.rs to make helper_identity crate-visible and build/mod.rs to re-export it crate-visibly. Reuse this existing authoritative helper identity implementation from the command receiver and remove the duplicate include. No source list, algorithm, schema, identity behavior or unrelated build code changes; no duplicate-mod lint exemption.

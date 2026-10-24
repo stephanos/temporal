@@ -6289,7 +6289,9 @@
         "tools/gomad/rust/wasmhost/src/linked_storage_inspection.rs",
         "tools/gomad/rust/wasmhost/src/linked_storage_inspection/state.rs",
         "tools/gomad/rust/wasmhost/src/volume/image.rs",
-        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/cycle/build/identity.rs",
+        "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.18": "**Touches:** tools/gomad/rust/gomad/src/cycle/readers/command/**",
@@ -6675,7 +6677,14 @@
           "correction": "For original compound row reader:core_codec:recovery_image:430:8, the historical Python sum(durable object bytes)<=volume capacity guard is erroneous: the authoritative volume/image.rs validate_tree contract admits dependency-closed partial durable states above volume capacity, while volatile growth and recovered-namespace resource bounds remain enforced. Preserve that current behavior rather than add a new receiver refusal. Keep the original row retained for inode<next_inode and all surviving integrity/bounds terms; identify the corrected byte-capacity term explicitly and prove an actually accepted partial-durability over-capacity control through the real decoder/receiver, plus retained-boundary catchers. This is a receiving correctness correction, not a legacy byte-compatibility waiver or an automatic caught/retired row.",
           "authority": "fn-242-gomad-shrink-the-qualification.21 Recovery capacity contract correction"
         }
-      ]
+      ],
+      "helper_identity_visibility_extension": {
+        "files": [
+          "tools/gomad/rust/gomad/src/cycle/build/identity.rs",
+          "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
+        ],
+        "purpose": "B04 additionally owns exactly build/identity.rs to make helper_identity crate-visible and build/mod.rs to re-export it crate-visibly. Reuse this existing authoritative helper identity implementation from the command receiver and remove the duplicate include. No source list, algorithm, schema, identity behavior or unrelated build code changes; no duplicate-mod lint exemption."
+      }
     },
     {
       "id": "B05",
