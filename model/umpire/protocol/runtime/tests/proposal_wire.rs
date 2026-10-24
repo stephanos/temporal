@@ -9,6 +9,7 @@ fn proposal_method_kind_and_poll_wire_contract() {
     assert_eq!(protocol::Method::Propose as i32, 6);
     assert_eq!(protocol::Method::Annotate as i32, 7);
     assert_eq!(protocol::ProposalKind::Unspecified as i32, 0);
+    assert_eq!(protocol::ProposalKind::Read as i32, 3);
     assert_eq!(protocol::RefusalCode::Quiescent as i32, 9);
     let opaque = Any { type_url: "x".into(), value: vec![1, 2] };
     for line in include_str!("../../proto/tests/proposal-wire.txt").lines() {
@@ -20,7 +21,7 @@ fn proposal_method_kind_and_poll_wire_contract() {
             }
             _ => {
                 let outcome = match name {
-                    "propose_action" | "propose_bootstrap" => {
+                    "propose_action" | "propose_bootstrap" | "propose_read" => {
                         Outcome::Propose(protocol::ProposeResponse {
                             request: Some(opaque.clone()),
                             action: if name == "propose_action" {
@@ -30,10 +31,15 @@ fn proposal_method_kind_and_poll_wire_contract() {
                             },
                             kind: if name == "propose_action" {
                                 protocol::ProposalKind::Action as i32
+                            } else if name == "propose_read" {
+                                protocol::ProposalKind::Read as i32
                             } else {
                                 protocol::ProposalKind::Bootstrap as i32
                             },
                         })
+                    }
+                    "reset_program" => {
+                        Outcome::Reset(protocol::ResetResponse { program: Some(opaque.clone()) })
                     }
                     "judge_poll" | "judge_poll_go" => Outcome::Judge(protocol::JudgeResponse {
                         judgment: Some(protocol::judge_response::Judgment::Explained(

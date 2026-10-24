@@ -269,9 +269,9 @@ func validateProposal(proposal *modelv1.ProposeResponse) error {
 		if proposal.GetAction() == "" {
 			return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Action proposal requires an action"}
 		}
-	case modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP:
+	case modelv1.ProposalKind_PROPOSAL_KIND_BOOTSTRAP, modelv1.ProposalKind_PROPOSAL_KIND_READ:
 		if proposal.GetAction() != "" {
-			return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Bootstrap action must be empty"}
+			return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Bootstrap and Read actions must be empty"}
 		}
 	default:
 		return &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED, Message: "unknown proposal kind"}

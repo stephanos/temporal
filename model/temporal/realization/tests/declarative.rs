@@ -1,8 +1,6 @@
 //! Generated handler conversion and contextual reply controls.
 
-use umpire_runtime::realization::Callback;
 use umpire_runtime::realization::Observation;
-use umpire_runtime::realization::Reply;
 use umpire_runtime::realization::observation::Result as ObservationResult;
 
 use umpire_dsl::{Machine, Outcome};
@@ -11,10 +9,10 @@ use umpire_runtime::{
     google::protobuf::Any,
     protocol::{Refusal, RefusalCode},
 };
-use umpire_temporal::{Realization, Step, activity, realization};
+use umpire_temporal::{Step, activity, realization};
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
-    common::v1::{Payload, Payloads},
+    common::v1::Payloads,
     workflowservice::v1::{
         DescribeActivityExecutionResponse, RequestCancelActivityExecutionResponse,
     },
@@ -143,74 +141,5 @@ fn opaque_ignored_catalog_fields_still_have_real_decoded_presence() {
         } else {
             assert!(matches!(result, Ok(Projection::Current)));
         }
-    }
-}
-
-#[test]
-fn reply_requests_are_partial_and_wrapped_exactly_once() {
-    use std::collections::BTreeMap;
-    use umpire_temporal_api::temporal::api::{
-        failure::v1::failure::FailureInfo,
-        workflowservice::v1::{
-            RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
-        },
-    };
-    let state = activity::World::new(3).starts().remove(0);
-    for policy in [b"Complete".as_slice(), b"Fail".as_slice()] {
-        let callback = Any::pack(&Callback { task: Some(Any::pack(
-            &umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueResponse {
-                input: Some(Payloads { payloads: vec![Payload {
-                    metadata: BTreeMap::from([("encoding".into(), b"binary/plain".to_vec())]),
-                    data: policy.to_vec(), ..Default::default()
-                }] }), attempt: 1, ..Default::default()
-            }
-        )) });
-        let plan = Realization::default()
-            .answer(&callback, &state)
-            .unwrap_or_else(|error| panic!("{error:?}"));
-        let reply: Reply = plan.reply.unpack().unwrap_or_else(|error| panic!("{error:?}"));
-        let request = reply.request.unwrap_or_else(|| panic!("missing request"));
-        if policy == b"Complete" {
-            let decoded: RespondActivityTaskCompletedRequest =
-                request.unpack().unwrap_or_else(|error| panic!("{error:?}"));
-            assert_eq!(decoded.task_token, [] as [u8; 0]);
-            assert_eq!(
-                decoded.result.unwrap_or_else(|| panic!("missing result")).payloads[0].data,
-                b"Complete"
-            );
-            assert_eq!(
-                request.value,
-                b"\x12\x26\x0a\x24\x0a\x18\x0a\x08encoding\x12\x0cbinary/plain\x12\x08Complete"
-            );
-        } else {
-            let decoded: RespondActivityTaskFailedRequest =
-                request.unpack().unwrap_or_else(|error| panic!("{error:?}"));
-            assert_eq!(decoded.task_token, [] as [u8; 0]);
-            let failure = decoded.failure.unwrap_or_else(|| panic!("missing failure"));
-            assert_eq!(failure.message, "Fail");
-            let Some(FailureInfo::ApplicationFailureInfo(info)) = failure.failure_info else {
-                panic!("wrong failure kind");
-            };
-            assert_eq!(info.r#type, "MiniActivityFailure");
-            assert!(info.non_retryable);
-            assert_eq!(
-                request.value,
-                b"\x12\x1f\x0a\x04Fail\x2a\x17\x0a\x13MiniActivityFailure\x10\x01"
-            );
-        }
-    }
-    let outgoing: Vec<_> = Realization::REALIZATION
-        .iter()
-        .filter(|context| context.kind == "outgoing request")
-        .collect();
-    assert_eq!(outgoing.len(), 2);
-    for context in outgoing {
-        assert!(
-            context
-                .fields
-                .iter()
-                .any(|field| field.path == "task_token" && field.class == "ignored")
-        );
-        assert_eq!(context.fields.iter().filter(|field| field.class == "mapped").count(), 1);
     }
 }

@@ -17,79 +17,39 @@ impl Realization {
                 namespace: context.start.namespace.clone(),
                 activity_id: context.start.activity_id.clone(),
                 run_id: context.run_id.clone(),
+                include_last_failure: true,
                 ..Default::default()
             },
         );
-        let mut eligible = vec![
-            (Action::from(Client::Cancel), Any::pack(&
-            RequestCancelActivityExecutionRequest { namespace : context.start.namespace
-            .clone(), activity_id : context.start.activity_id.clone(), run_id : context
-            .run_id.clone(), ..Default::default() }),)
-        ];
-        if state.phase == Phase::Scheduled {
-            eligible
-                .push((
-                    Worker::Poll(state.attempt).into(),
-                    Any::pack(
-                        &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
-                            request: Some(describe.clone()),
-                            poll_interval_ms: 10,
-                            read_timeout_ms: 30_000,
-                            backoff_ms: 10,
-                            worker_tasks: 1,
-                        },
-                    ),
-                ));
+        if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
+            return Ok(Proposal::Read {
+                request: Any::pack(
+                    &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+                        request: Some(describe),
+                        poll_interval_ms: 10,
+                        read_timeout_ms: 30_000,
+                        backoff_ms: 10,
+                    },
+                ),
+            });
         }
-        if let Some((task, response)) = &context.response
-            && task.attempt == i32::from(state.attempt) && state.phase == Phase::Started
-        {
-            let reply = Self::respond(task.clone(), state)?;
-            if reply.request == *response {
-                eligible
-                    .push((
-                        reply.action.into(),
+        Ok(Proposal::Action {
+            action: Client::Cancel.into(),
+            request: Any::pack(
+                &umpire_temporal_api::umpire::temporal::v1::TemporalInstruction {
+                    request: Some(
                         Any::pack(
-                            &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
-                                request: Some(describe),
-                                poll_interval_ms: 10,
-                                read_timeout_ms: 30_000,
-                                backoff_ms: 10,
-                                worker_tasks: 0,
+                            &RequestCancelActivityExecutionRequest {
+                                namespace: context.start.namespace.clone(),
+                                activity_id: context.start.activity_id.clone(),
+                                run_id: context.run_id.clone(),
+                                ..Default::default()
                             },
                         ),
-                    ));
-            }
-        }
-        let attempts = context
-            .start
-            .retry_policy
-            .as_ref()
-            .map_or(0, |p| p.maximum_attempts);
-        let maximum = u8::try_from(attempts)
-            .map_err(|_| Refusal::unsupported("invalid configured attempts"))?;
-        let world = activity::World::new(maximum);
-        eligible
-            .retain(|(action, _)| {
-                !world.internal(action)
-                    && world
-                        .checked_step(state, action.clone())
-                        .is_ok_and(|steps| !steps.is_empty())
-            });
-        if eligible.is_empty() {
-            return Err(
-                Refusal::new(
-                    umpire_runtime::protocol::RefusalCode::Quiescent,
-                    "no external action",
-                ),
-            );
-        }
-        let index = usize::try_from(seed % eligible.len() as u64)
-            .map_err(|_| Refusal::malformed("seed selection overflow"))?;
-        let (action, request) = eligible.swap_remove(index);
-        Ok(Proposal::Action {
-            action,
-            request,
+                    ),
+                    hold_worker_polls: state.phase == Phase::Scheduled && seed & 2 != 0,
+                },
+            ),
         })
     }
     fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
@@ -103,11 +63,13 @@ impl Realization {
             .request
             .ok_or_else(|| Refusal::malformed("actual request is missing"))?;
         if request.type_url
-            == <RequestCancelActivityExecutionRequest as prost::Name>::type_url()
+            == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()
         {
+            let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = request
+                .unpack()?;
             return if observation.method
                 == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-                && actual == *request
+                && instruction.request.as_ref() == Some(&actual)
             {
                 Ok(())
             } else {
@@ -169,43 +131,14 @@ impl Realization {
         state: &activity::Model,
         action: Option<&Action>,
     ) -> Result<bool, Refusal> {
-        if self.context.is_none() || action.is_none() {
-            return Ok(false);
-        }
+        let _ = action;
         let observed = umpire_runtime::Observed::new(observation)?;
-        if observed.method
-            != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
-            || umpire_dsl::Phase::closed(&state.phase)
-        {
-            return Ok(false);
-        }
-        for attempt in 1..=3 {
-            if action == Some(&Worker::Poll(attempt).into()) {
-                return Ok(
-                    state.attempt <= attempt
-                        && (state.phase != Phase::Started || state.attempt != attempt),
-                );
-            }
-        }
-        if action
-            == Some(
-                &Worker::RespondFailed {
-                    retryable: true,
-                }
-                    .into(),
-            )
-        {
-            let context = self
-                .context
-                .as_ref()
-                .ok_or_else(|| Refusal::unsupported("proposal context required"))?;
-            if let Some((task, _)) = &context.response && state.phase == Phase::Scheduled
-                && i32::from(state.attempt) == task.attempt + 1
-            {
-                return Ok(false);
-            }
-        }
-        Ok(true)
+        Ok(
+            self.context.is_some()
+                && observed.method
+                    == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+                && state.phase == Phase::Scheduled,
+        )
     }
     #[allow(
         clippy::unnecessary_wraps,
@@ -248,9 +181,7 @@ impl Realization {
             .map_err(|_| Refusal::unsupported(
                 "Describe attempt is outside maximum_attempts",
             ))?;
-        let retry = state.phase == Phase::Started && phase == Phase::Scheduled
-            && state.attempt.checked_add(1) == Some(attempt);
-        if state.attempt != attempt && !retry {
+        if !(state.attempt..=3).contains(&attempt) {
             return Err(
                 Refusal::new(
                     umpire_runtime::protocol::RefusalCode::State,
@@ -265,53 +196,62 @@ impl Realization {
         observed: &activity::Model,
     ) -> Projection<Action> {
         if state == observed {
-            Projection::Current
-        } else {
-            if state.phase == Phase::Started && observed.phase == Phase::Scheduled
-                && state.attempt.checked_add(1) == Some(observed.attempt)
-            {
-                return Projection::step(
-                    Worker::RespondFailed {
+            return Projection::Current;
+        }
+        if umpire_dsl::Phase::closed(&state.phase) {
+            return Projection::steps([]);
+        }
+        let mut phase = state.phase;
+        let mut path = Vec::new();
+        for attempt in state.attempt..observed.attempt {
+            if phase == Phase::Scheduled {
+                path.push(Action::from(Worker::Poll(attempt)).into());
+            }
+            path.push(
+                Action::from(Worker::RespondFailed {
                         retryable: true,
-                    }
-                        .into(),
-                );
-            }
-            if state.attempt != observed.attempt {
-                return Projection::steps([]);
-            }
+                    })
+                    .into(),
+            );
+            phase = Phase::Scheduled;
+        }
+        if phase == Phase::Scheduled
+            && matches!(
+                observed.phase, Phase::Started | Phase::Completed | Phase::Failed
+            )
+        {
+            path.push(Action::from(Worker::Poll(observed.attempt)).into());
+            phase = Phase::Started;
+        }
+        if phase == Phase::Started {
             match observed.phase {
-                Phase::Completed => Projection::step(Worker::RespondCompleted.into()),
-                Phase::Failed => {
-                    Projection::step(
-                        Worker::RespondFailed {
-                            retryable: false,
-                        }
-                            .into(),
-                    )
+                Phase::Started => {}
+                Phase::Completed => {
+                    path.push(Action::from(Worker::RespondCompleted).into());
+                    phase = Phase::Completed;
                 }
-                _ => Projection::steps([]),
+                Phase::Failed => {
+                    path.push(
+                        Action::from(Worker::RespondFailed {
+                                retryable: false,
+                            })
+                            .into(),
+                    );
+                    phase = Phase::Failed;
+                }
+                _ if observed.attempt == state.attempt => return Projection::steps([]),
+                _ => {}
             }
         }
+        if path.is_empty() || phase != observed.phase {
+            Projection::steps([])
+        } else {
+            Projection::steps([path])
+        }
     }
-    #[allow(
-        clippy::unnecessary_wraps,
-        reason = "Realization handlers share a fallible return contract"
-    )]
-    fn respond(
-        task: PollActivityTaskQueueResponse,
-        state: &activity::Model,
-    ) -> Result<Reply<Worker>, Refusal> {
-        let input = task
-            .input
-            .ok_or_else(|| Refusal::malformed("callback input is missing"))?;
-        let [payload] = input.payloads.as_slice() else {
-            return Err(
-                Refusal::malformed("callback requires exactly one input payload"),
-            );
-        };
-        let (action, response) = match plain_text(payload)? {
-            b"RetryThenComplete" if task.attempt == 1 => {
+    fn response(scenario: &str, attempt: i32) -> Result<(Worker, Any), Refusal> {
+        let response = match scenario {
+            "RetryThenComplete" if attempt == 1 => {
                 (
                     Worker::RespondFailed {
                         retryable: true,
@@ -326,23 +266,25 @@ impl Realization {
                     ),
                 )
             }
-            b"Complete" | b"RetryThenComplete" => {
-                let mut payload = payload.clone();
-                payload.external_payloads.clear();
-                payload.data = b"Complete".to_vec();
+            "Complete" | "RetryThenComplete" => {
                 (
                     Worker::RespondCompleted,
                     Any::pack(
                         &RespondActivityTaskCompletedRequest {
                             result: Some(Payloads {
-                                payloads: vec![payload],
+                                payloads: vec![
+                                    Payload { metadata :
+                                    std::collections::BTreeMap::from([("encoding".into(),
+                                    b"binary/plain".to_vec(),)]), data : b"Complete".to_vec(),
+                                    ..Default::default() }
+                                ],
                             }),
                             ..Default::default()
                         },
                     ),
                 )
             }
-            b"Fail" => {
+            "Fail" => {
                 (
                     Worker::RespondFailed {
                         retryable: false,
@@ -357,24 +299,8 @@ impl Realization {
                     ),
                 )
             }
-            _ => return Err(Refusal::unsupported("unsupported callback policy")),
+            _ => return Err(Refusal::unsupported("unsupported worker scenario")),
         };
-        let attempt = u8::try_from(task.attempt)
-            .map_err(|_| Refusal::unsupported(
-                "callback attempt is outside maximum_attempts",
-            ))?;
-        if attempt != state.attempt {
-            return Err(
-                Refusal::new(
-                    umpire_runtime::protocol::RefusalCode::State,
-                    "callback attempt does not match the current attempt",
-                ),
-            );
-        }
-        Ok(Reply {
-            delivery: vec![Worker::Poll(attempt)],
-            action,
-            request: response,
-        })
+        Ok(response)
     }
 }

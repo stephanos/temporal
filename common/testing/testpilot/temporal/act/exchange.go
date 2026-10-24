@@ -203,13 +203,6 @@ func (x *exchange) read(instruction *temporalv1.ObserveActivity) {
 	}
 	ctx, cancel := context.WithTimeout(x.ctx, timeout)
 	defer cancel()
-	tasks := instruction.GetWorkerTasks()
-	if tasks > 0 {
-		if err := x.driver.ensureWorker(ctx); err != nil {
-			x.fault("worker: %v", err)
-			return
-		}
-	}
 	interval := time.Duration(instruction.GetPollIntervalMs()) * time.Millisecond
 	backoff := time.Duration(instruction.GetBackoffMs()) * time.Millisecond
 	for {
@@ -239,15 +232,6 @@ func (x *exchange) read(instruction *temporalv1.ObserveActivity) {
 			x.emit(runner.EventDone, nil, 0, "")
 			return
 		}
-		if tasks > 0 {
-			took, ok := x.work(ctx, interval)
-			if !ok {
-				return
-			}
-			if took {
-				tasks--
-			}
-		}
 		if !x.sleep(ctx, interval) {
 			return
 		}
@@ -273,6 +257,10 @@ func (x *exchange) sleep(ctx context.Context, d time.Duration) bool {
 func (x *exchange) run(request *anypb.Any) {
 	defer close(x.done)
 	defer close(x.events)
+	if request.MessageIs(&temporalv1.TemporalInstruction{}) {
+		x.fault("programmed worker execution is unsupported by this Driver")
+		return
+	}
 	if request.MessageIs(&temporalv1.ObserveActivity{}) {
 		instruction := new(temporalv1.ObserveActivity)
 		if err := request.UnmarshalTo(instruction); err != nil {
@@ -287,6 +275,16 @@ func (x *exchange) run(request *anypb.Any) {
 
 // validStart reports why a proposal cannot be sent at all, or nil.
 func validStart(request *anypb.Any) error {
+	if request.MessageIs(&temporalv1.TemporalInstruction{}) {
+		instruction := new(temporalv1.TemporalInstruction)
+		if err := request.UnmarshalTo(instruction); err != nil {
+			return err
+		}
+		if instruction.GetRequest() == nil {
+			return errors.New("the instruction names no request")
+		}
+		request = instruction.GetRequest()
+	}
 	if request.MessageIs(&temporalv1.ObserveActivity{}) {
 		instruction := new(temporalv1.ObserveActivity)
 		if err := request.UnmarshalTo(instruction); err != nil {
@@ -295,7 +293,6 @@ func validStart(request *anypb.Any) error {
 		if instruction.GetRequest() == nil {
 			return errors.New("the read instruction names no read")
 		}
-		// The poll interval is also how long a worker window waits for a poll.
 		if instruction.GetPollIntervalMs() == 0 || instruction.GetBackoffMs() == 0 || instruction.GetReadTimeoutMs() == 0 {
 			return errors.New("the read instruction needs a poll interval, a backoff and a read timeout")
 		}

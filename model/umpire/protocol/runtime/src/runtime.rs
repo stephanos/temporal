@@ -72,6 +72,11 @@ pub enum Proposal<A> {
         /// Fully filled system request.
         request: Any,
     },
+    /// A system read, with no proposed Model action.
+    Read {
+        /// Fully filled observation instruction.
+        request: Any,
+    },
     /// Admission to a fresh run, outside the Model transition graph.
     Bootstrap {
         /// Fully filled admission request.
@@ -89,6 +94,11 @@ pub trait Realize<M: Machine> {
     /// Whether a fresh run requires admission before callbacks and action proposals.
     fn needs_bootstrap(&self) -> bool {
         false
+    }
+
+    /// Issues the worker program for this realization and its bound World.
+    fn program(&self) -> Result<Any, protocol::Refusal> {
+        Err(protocol::Refusal::unsupported("program unsupported"))
     }
 
     /// Selects a deterministic external request for the current state and seed.
@@ -134,9 +144,11 @@ pub trait Realize<M: Machine> {
     /// Validates the complete callback and selects its delivery path and response.
     fn answer(
         &self,
-        callback: &Any,
-        state: &M::State,
-    ) -> Result<AnswerPlan<M::Action>, protocol::Refusal>;
+        _callback: &Any,
+        _state: &M::State,
+    ) -> Result<AnswerPlan<M::Action>, protocol::Refusal> {
+        Err(protocol::Refusal::unsupported("answer unsupported"))
+    }
 }
 
 /// One independently owned Model, realization, exploration, and current run.
@@ -269,8 +281,13 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                         "stateful run requires exactly one start",
                     )
                 })?;
+                let program = match self.realization.program() {
+                    Ok(program) => Some(program),
+                    Err(refusal) if refusal.code() == protocol::RefusalCode::Unsupported => None,
+                    Err(refusal) => return Err(refusal),
+                };
                 Ok((
-                    protocol::response::Outcome::Reset(protocol::ResetResponse {}),
+                    protocol::response::Outcome::Reset(protocol::ResetResponse { program }),
                     Some(Transaction {
                         change: Change::Run {
                             state,
@@ -408,11 +425,16 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         state: M::State,
         explanation: protocol::Explanation,
     ) -> Prepared<M> {
-        let continues = self.realization.continue_polling(
-            observation,
-            &state,
-            self.pending.as_ref().and_then(|pending| pending.action.as_ref()),
-        )?;
+        let completed_read = self.admitted
+            && self.pending.as_ref().is_some_and(|pending| pending.action.is_none())
+            && !explanation.steps.is_empty();
+        let continues = self.pending.is_some()
+            && !completed_read
+            && self.realization.continue_polling(
+                observation,
+                &state,
+                self.pending.as_ref().and_then(|pending| pending.action.as_ref()),
+            )?;
         let pending = if continues { self.pending.clone() } else { None };
         Ok((
             protocol::response::Outcome::Judge(protocol::JudgeResponse {
@@ -438,8 +460,8 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             ));
         }
         let current = self.current()?;
+        let mut external = false;
         if self.admitted {
-            let mut external = false;
             for action in self.catalog()? {
                 if !self.machine.internal(&action)
                     && !self.checked_step(current, action)?.is_empty()
@@ -448,19 +470,19 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                     break;
                 }
             }
-            if !external {
-                return Err(protocol::Refusal::new(
-                    protocol::RefusalCode::Quiescent,
-                    "no enabled external action",
-                ));
-            }
         }
         let proposal = if self.admitted {
-            self.realization.propose(current, seed)?
+            self.realization.propose(current, seed)
         } else {
-            self.realization.bootstrap(current, seed)?
+            self.realization.bootstrap(current, seed)
         };
-        let (request, action, kind, pending_action) = match proposal {
+        if self.admitted && !external && !matches!(proposal, Ok(Proposal::Read { .. })) {
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::Quiescent,
+                "no enabled external action",
+            ));
+        }
+        let (request, action, kind, pending_action) = match proposal? {
             Proposal::Action { action, request } => {
                 if !self.admitted
                     || !self.catalog()?.contains(&action)
@@ -473,6 +495,15 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                     ));
                 }
                 (request, action.to_string(), protocol::ProposalKind::Action, Some(action))
+            }
+            Proposal::Read { request } => {
+                if !self.admitted {
+                    return Err(protocol::Refusal::new(
+                        protocol::RefusalCode::State,
+                        "read requires bootstrap admission",
+                    ));
+                }
+                (request, String::new(), protocol::ProposalKind::Read, None)
             }
             Proposal::Bootstrap { request } => {
                 if self.admitted || !self.realization.needs_bootstrap() {

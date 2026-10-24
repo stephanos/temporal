@@ -36,7 +36,7 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
             let captured = start(if operation.ends_with("freeze") { 4 } else { 1 });
             if operation == "reset live" {
                 explained(judge(&mut guest, &captured));
-                call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(callback(1)) });
+                advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
             } else if operation == "reset freeze" {
                 refused(judge(&mut guest, &captured), protocol::RefusalCode::Unsupported);
             }

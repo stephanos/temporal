@@ -17,6 +17,7 @@ import (
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	"umpire.local/model/runner"
 	"umpire.local/temporal"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 // world is a Start request the Temporal Model admits.
@@ -124,7 +125,7 @@ func TestAHostRefusedRunRedactsItsEvidenceAndIsTerminatedByClose(t *testing.T) {
 				delivered <- err
 			}
 		}()
-		return d, nil
+		return &callbackDriver{Driver: d, t: t}, nil
 	}
 	run, err := runner.New(temporal.Guest(), newDriver).Run(t.Context(), runner.ModeExplore, runner.Options{World: packed(t, start), Seed: seed, Budget: 3})
 	require.NoError(t, err)
@@ -147,4 +148,16 @@ func TestAHostRefusedRunRedactsItsEvidenceAndIsTerminatedByClose(t *testing.T) {
 	termination := new(workflowservice.TerminateActivityExecutionRequest)
 	require.NoError(t, proto.Unmarshal(terminations[len(terminations)-1], termination))
 	require.Equal(t, runID, termination.GetRunId())
+}
+
+type callbackDriver struct {
+	*Driver
+	t *testing.T
+}
+
+func (d *callbackDriver) Start(ctx context.Context, request uint64, payload *anypb.Any) (runner.Exchange, error) {
+	if payload.MessageIs(&temporalv1.ObserveActivity{}) {
+		return workerExchange(d.t, d.Driver, request, 30*time.Second), nil
+	}
+	return d.Driver.Start(ctx, request, payload)
 }

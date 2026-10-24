@@ -60,4 +60,4 @@ pub mod probes;
 mod temporal;
 
 pub use annotations::{AnnotationRuntime, annotation_runtime};
-pub use temporal::{Realization, activity, runtime};
+pub use temporal::{Realization, SCENARIO_HEADER, activity, runtime};

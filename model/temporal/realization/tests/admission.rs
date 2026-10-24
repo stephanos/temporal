@@ -1,44 +1,21 @@
 //! Actual-request admission and publication controls for the Temporal facade.
 
 use prost::Message;
-use std::{collections::BTreeMap, panic::AssertUnwindSafe};
+use std::panic::AssertUnwindSafe;
 use umpire_runtime::{
     Dispatch, Guest,
     google::protobuf::Any,
     protocol::{self, response::Outcome},
-    realization::{Callback, Observation, observation::Result as ResultValue},
+    realization::{Observation, observation::Result as ResultValue},
 };
 use umpire_temporal::annotation_runtime;
-use umpire_temporal_api::temporal::api::{
-    common::v1::{Payload, Payloads},
-    workflowservice::v1::{
-        DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        PollActivityTaskQueueResponse, StartActivityExecutionRequest,
-        StartActivityExecutionResponse,
-    },
+use umpire_temporal_api::temporal::api::workflowservice::v1::{
+    DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
+    StartActivityExecutionRequest, StartActivityExecutionResponse,
 };
 
 mod common;
 use common::{RUN, describe, start};
-
-fn callback(attempt: i32) -> Any {
-    Any::pack(&Callback {
-        task: Some(Any::pack(&PollActivityTaskQueueResponse {
-            workflow_namespace: "model-slice".into(),
-            activity_id: "activity".into(),
-            activity_run_id: RUN.into(),
-            attempt,
-            input: Some(Payloads {
-                payloads: vec![Payload {
-                    metadata: BTreeMap::from([("encoding".into(), b"binary/plain".to_vec())]),
-                    data: b"Complete".to_vec(),
-                    ..Default::default()
-                }],
-            }),
-            ..Default::default()
-        })),
-    })
-}
 
 fn call(
     guest: &mut Guest<impl Dispatch>,
@@ -84,10 +61,7 @@ fn start_selects_world_and_original_replay_never_resets_progress() {
         panic!("explore")
     };
     assert_eq!(explore.reached, 6);
-    assert!(matches!(
-        call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(callback(1)) }).outcome,
-        Some(Outcome::Answer(_))
-    ));
+    advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
     explained(judge(&mut guest, &captured));
     explained(judge(&mut guest, &describe(1, 1, 2)));
     let mut replay = captured.clone();
@@ -282,7 +256,7 @@ fn malformed_starts(
 }
 
 #[test]
-fn bound_rpc_and_callback_identities_are_required_before_projection() {
+fn bound_rpc_identities_are_required_before_projection() {
     let mut guest = Guest::new(annotation_runtime());
     explained(judge(&mut guest, &start(3)));
     for field in 0..8 {
@@ -307,7 +281,7 @@ fn bound_rpc_and_callback_identities_are_required_before_projection() {
             }
             5 => response.info.as_mut().unwrap_or_else(|| panic!("info")).run_id = "crossed".into(),
             6 => response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 0,
-            7 => response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2,
+            7 => response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 4,
             _ => unreachable!(),
         }
         value.request = Some(Any::pack(&request));
@@ -343,61 +317,17 @@ fn bound_rpc_and_callback_identities_are_required_before_projection() {
         refused(judge(&mut guest, &value), protocol::RefusalCode::State);
         explained(judge(&mut guest, &describe(1, 1, 1)));
     }
-    for field in 0..4 {
-        let mut task: PollActivityTaskQueueResponse =
-            umpire_runtime::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
-        match field {
-            0 => task.workflow_namespace = "crossed".into(),
-            1 => task.activity_id = "crossed".into(),
-            2 => task.activity_run_id.clear(),
-            3 => task.attempt = 2,
-            _ => unreachable!(),
-        }
-        refused(
-            call(
-                &mut guest,
-                5,
-                &protocol::AnswerRequest {
-                    callback: Some(Any::pack(&Callback { task: Some(Any::pack(&task)) })),
-                },
-            ),
-            protocol::RefusalCode::State,
-        );
-        explained(judge(&mut guest, &describe(1, 1, 1)));
-    }
 }
 
 #[test]
-fn actual_retry_describe_advances_attempt_before_the_next_callback() {
+fn actual_retry_describe_advances_attempt_without_worker_callbacks() {
     let mut guest = Guest::new(annotation_runtime());
     explained(judge(&mut guest, &start(2)));
-    let mut task: PollActivityTaskQueueResponse =
-        umpire_runtime::callback(&callback(1)).unwrap_or_else(|e| panic!("{e:?}"));
-    task.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0].data =
-        b"RetryThenComplete".to_vec();
-    assert!(matches!(
-        call(
-            &mut guest,
-            5,
-            &protocol::AnswerRequest {
-                callback: Some(Any::pack(&Callback { task: Some(Any::pack(&task)) }))
-            }
-        )
-        .outcome,
-        Some(Outcome::Answer(_))
-    ));
-    let Some(Outcome::Judge(value)) = judge(&mut guest, &describe(2, 1, 1)).outcome else {
-        panic!("Judge")
-    };
-    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
-        panic!("retry must be explained")
-    };
-    assert_eq!(value.steps, ["Worker::RespondFailed { retryable: true }"]);
-    assert!(matches!(
-        call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(callback(2)) }).outcome,
-        Some(Outcome::Answer(_))
-    ));
-    explained(judge(&mut guest, &describe(2, 1, 2)));
+    advanced(
+        judge(&mut guest, &describe(2, 1, 1)),
+        &["Worker::Poll(1)", "Worker::RespondFailed { retryable: true }"],
+    );
+    advanced(judge(&mut guest, &describe(2, 1, 2)), &["Worker::Poll(2)"]);
 }
 
 #[path = "admission/publication.rs"]
@@ -480,9 +410,18 @@ fn selected_world_cap_rejects_describe_attempts_without_freezing_or_advancing() 
         refused(judge(&mut guest, &describe(attempt, 1, 1)), protocol::RefusalCode::State);
         explained(judge(&mut guest, &describe(1, 1, 1)));
     }
-    call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(callback(1)) });
+    advanced(judge(&mut guest, &describe(1, 1, 2)), &["Worker::Poll(1)"]);
     for attempt in [2, 3] {
         refused(judge(&mut guest, &describe(attempt, 1, 1)), protocol::RefusalCode::State);
         explained(judge(&mut guest, &describe(1, 1, 2)));
     }
+}
+
+fn advanced(response: protocol::Response, steps: &[&str]) {
+    let Some(Outcome::Judge(value)) = response.outcome else { panic!("Judge") };
+    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
+        panic!("Explained")
+    };
+    assert_eq!(value.steps, steps);
+    assert_eq!(value.outcomes, vec!["Accepted"; steps.len()]);
 }

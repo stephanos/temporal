@@ -48,6 +48,7 @@ pub(super) fn describe(attempt: i32, status: i32, run_state: i32) -> Observation
             namespace: "model-slice".into(),
             activity_id: "activity".into(),
             run_id: RUN.into(),
+            include_last_failure: true,
             ..Default::default()
         })),
         result: Some(ResultValue::Response(Any::pack(&DescribeActivityExecutionResponse {

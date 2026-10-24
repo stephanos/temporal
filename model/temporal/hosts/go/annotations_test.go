@@ -9,14 +9,14 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/protobuf/proto"
-	model "umpire.local/model/host"
 	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
+	model "umpire.local/model/host"
 )
 
 func TestAnnotationsPreserveFrozenModelAndActualResponseBytes(t *testing.T) {
 	h := guest(t)
-	frozen := judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0))
+	frozen := judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED, 0))
 	unexplained(t, frozen, "Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart")
 	message, err := proto.Marshal(&workflowservice.DescribeActivityExecutionResponse{
 		Info: &activitypb.ActivityExecutionInfo{Status: 999},

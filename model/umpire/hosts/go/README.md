@@ -141,11 +141,16 @@ The `umpire` command (`tools/umpire/cmd/umpire`, `make umpire`) runs `runner.Mai
 Drivers its build registers:
 
 ```sh
+umpire program --model <guest.wasm> --world <any.binpb> --out <program.binpb>
 umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> [--seed n] [--budget n] [--run <path>] \
   [--world <any.binpb>] [--observation <any.binpb>] [--events n] [--count n] [--store <dir>] [--driver <name>]
 ```
 
-It exits 0 when the deciding Run is Explained, 1 when Unexplained, 2 when Refused, and 3 when
+`program` Resets a fresh guest with the selected World and writes its program as a binary
+`google.protobuf.Any`, without decoding the system-owned payload or starting a Driver. It fails
+if Reset refuses or returns no program. A successful extraction exits 0; errors exit 3.
+
+The loop exits 0 when the deciding Run is Explained, 1 when Unexplained, 2 when Refused, and 3 when
 the loop could not run. Explore, reduce and repeat need a Driver and `--store`. The tests drive
 the stateful control guest through a fake Driver; stock Kettle refuses Propose. The command
 registers the Drivers its build links (`tools/umpire/README.md`).

@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
@@ -32,6 +36,8 @@ var actImports = []string{
 var forbiddenPrefixes = []string{serverModule + "tests", serverModule + "tools/umpire", serverModule + "tools/canary"}
 
 type testpilotPackage struct {
+	Dir          string
+	GoFiles      []string
 	ImportPath   string
 	Imports      []string
 	TestImports  []string
@@ -90,6 +96,16 @@ func TestTestpilotDependencyBoundary(t *testing.T) {
 	}
 	require.Contains(t, paths, actPackage)
 	require.Empty(t, boundaryProblems(packages))
+	for _, pkg := range packages {
+		if pkg.ImportPath != actPackage {
+			continue
+		}
+		for _, name := range pkg.GoFiles {
+			source, err := os.ReadFile(filepath.Join(pkg.Dir, name))
+			require.NoError(t, err)
+			require.Empty(t, programReferences(t, source), name)
+		}
+	}
 }
 
 func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
@@ -106,6 +122,8 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			other + " imports " + serverModule + "tools/canary/policy"},
 		"another package imports the Runner": {testpilotPackage{ImportPath: other, Imports: []string{"umpire.local/model/runner"}},
 			other + " imports the Model host umpire.local/model/runner"},
+		"the Driver imports a worker executor": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal/reference/worker/raw"}},
+			actPackage + " imports the Model host umpire.local/temporal/reference/worker/raw"},
 		"the Driver imports the Host": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/model/host"}},
 			actPackage + " imports the Model host umpire.local/model/host"},
 		"the Driver imports the guest outside its tests": {testpilotPackage{ImportPath: actPackage, Imports: []string{"umpire.local/temporal"}},
@@ -118,4 +136,26 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 	require.Empty(t, boundaryProblems([]testpilotPackage{{
 		ImportPath: actPackage, Imports: actImports, XTestImports: []string{"umpire.local/temporal"},
 	}}), "the Driver's own imports and its tests' guest are allowed")
+}
+
+func programReferences(t *testing.T, source []byte) []string {
+	t.Helper()
+	file, err := parser.ParseFile(token.NewFileSet(), "driver.go", source, 0)
+	require.NoError(t, err)
+	var references []string
+	ast.Inspect(file, func(node ast.Node) bool {
+		selector, ok := node.(*ast.SelectorExpr)
+		if ok && slices.Contains([]string{"WorkerProgram", "ActivityTaskKey", "Rule"}, selector.Sel.Name) {
+			references = append(references, selector.Sel.Name)
+		}
+		return true
+	})
+	return references
+}
+
+func TestDriverProgramBoundaryRejectsProgramDecoders(t *testing.T) {
+	for _, name := range []string{"WorkerProgram", "ActivityTaskKey", "Rule"} {
+		source := []byte("package act; var decoded = new(temporalv1." + name + ")")
+		require.Equal(t, []string{name}, programReferences(t, source))
+	}
 }

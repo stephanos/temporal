@@ -124,10 +124,7 @@ func (g *rawGuest) call(t *testing.T, method modelv1.Method, request proto.Messa
 
 func (g *rawGuest) deliver(t *testing.T) {
 	t.Helper()
-	response := g.call(t, modelv1.Method_METHOD_ANSWER, &modelv1.AnswerRequest{Callback: callback(t, "Complete")}, false)
-	if response.GetAnswer().GetReply() == nil {
-		t.Fatalf("delivery reply = %v", response)
-	}
+	explained(t, g.judge(t, started(t)), "Worker::Poll(1)")
 }
 
 func (g *rawGuest) judge(t *testing.T, observation *anypb.Any) *modelv1.JudgeResponse {
@@ -146,8 +143,8 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 		method            modelv1.Method
 		request           func(*testing.T) proto.Message
 	}{
-		{"answer delivery", false, false, modelv1.Method_METHOD_ANSWER, func(t *testing.T) proto.Message {
-			return &modelv1.AnswerRequest{Callback: callback(t, "Complete")}
+		{"observed delivery", false, false, modelv1.Method_METHOD_JUDGE, func(t *testing.T) proto.Message {
+			return &modelv1.JudgeRequest{Observation: started(t)}
 		}},
 		{"judge terminal", true, false, modelv1.Method_METHOD_JUDGE, func(t *testing.T) proto.Message {
 			return &modelv1.JudgeRequest{Observation: observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)}

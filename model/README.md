@@ -942,30 +942,27 @@ dependency needs the same check and a line in the spec.
 
 ## Configured activity proposals
 
-`Host.Propose` uses method 6; the guest selects requests from enabled external Model actions.
-The Temporal guest opts into bootstrap with `ResetRequest.configuration` containing a typed
-`StartActivityExecutionRequest`. This is explicit run configuration: namespace, activity/queue
-identity, retry policy and callback input remain caller-selected. Propose fills absent declared
-identifiers through the existing annotation catalog using its seed. Record the exact configuration
-and Reset call for replay. An empty Reset on an already configured guest retains configuration
-and starts a fresh admission; unconfigured guests preserve legacy Reset behavior.
+`Host.Propose` uses method 6. The Temporal guest accepts a typed
+`StartActivityExecutionRequest` in `ResetRequest.configuration`; namespace, activity identity,
+task queue, retry policy and application input remain caller-selected. Reset returns an opaque
+`WorkerProgram` for that World. The table enumerates every scenario and admitted attempt through
+one response policy. An unconfigured Reset returns no program, and an empty Reset on a configured
+guest retains its configuration. `umpire program --model <guest.wasm> --world <any.binpb> --out
+<program.binpb>` provisions the same program without starting a Run.
 
-The first proposal is BOOTSTRAP with an empty action. Only successful actual Start evidence with
-that exact filled request installs its World and immutable per-run receipt. Missing, failed or
-crossed evidence cannot admit. Callbacks refuse before admission. Configuration, admission, pending
-requests, callback context and Model state change only after response publication.
+The first proposal is BOOTSTRAP with an empty action. Propose fills absent declared identifiers
+using its seed and stamps the chosen scenario into the `umpire-scenario` header. Successful Start
+evidence for that exact request installs the World and immutable per-run receipt. Missing, failed
+or crossed evidence cannot admit. Configuration, admission, pending requests and Model state change
+only after response publication.
 
-Action proposals name the exact checked Model action. A cancellation request is sent normally.
-An `umpire.temporal.v1.ObserveActivity` instead requests a Describe read, with explicit poll interval,
-read timeout and backoff in milliseconds (10, 30000 and 10). Its `worker_tasks` says how many worker
-tasks the Driver's worker may take while the read is pending: 1 for a worker poll, 0 for a read that
-observes a response already sent. It carries no worker response to resend.
-The immediate Answer reply remains the only worker response instruction; a successfully published
-Answer retains validated callback context so a later proposal can observe that same response.
-Delivery proposals complete at Started or a validated later attempt; worker responses at their corresponding completion or
-retry state, and cancellation only at its matching RPC result. Intermediate reads retain pending; Answer
-may commit delivery between those reads. Final evidence invalidates the corresponding callback
-context. Rejected Cancel self-loops remain eligible after closure; a bounded Run may stop by budget.
+Cancellation is an Action proposal wrapped in `TemporalInstruction`, whose seeded hold requests
+that worker polls wait for the request acknowledgment. An `ObserveActivity` is a READ proposal
+with no Model action; its poll interval, read timeout and backoff are 10, 30000 and 10 milliseconds.
+Worker delivery and responses are projected from Describe observations. Temporal Answer refuses;
+workers receive their replies from the program. Rejected Cancel self-loops remain eligible after
+closure. The executor integration and Driver hold mechanics follow in fn-243 task 2; at this
+protocol boundary the Driver refuses unsupported programmed instructions as Driver faults.
 
 Realization authoring uses `#[propose]` on one `(&self, state, seed)` handler returning typed
 `Proposal<Action>`. Optional `matches = method` and `continue_polling = method` arguments delegate

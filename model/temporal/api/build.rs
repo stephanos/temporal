@@ -27,6 +27,7 @@ fn main() -> io::Result<()> {
     println!("cargo:rerun-if-changed={}", upstream.display());
     println!("cargo:rerun-if-changed={schema}");
     println!("cargo:rerun-if-changed=../proto/umpire/temporal/v1/probe.proto");
+    println!("cargo:rerun-if-changed=../proto/umpire/temporal/v1/activity.proto");
     let linked = PathBuf::from(
         env::var_os("OUT_DIR").ok_or_else(|| io::Error::other("OUT_DIR is missing"))?,
     )

@@ -61,8 +61,13 @@ fn annotation_findings_preserve_server_bytes_and_do_not_change_frozen_judgment()
         4,
         &protocol::JudgeRequest { observation: Some(Any::pack(&common::start(3))) },
     );
+    call(
+        &mut guest,
+        4,
+        &protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 2, 0))) },
+    );
     let observation =
-        protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 2, 0))) };
+        protocol::JudgeRequest { observation: Some(Any::pack(&common::describe(1, 3, 0))) };
     let frozen = call(&mut guest, 4, &observation);
     assert!(
         matches!(&frozen.outcome, Some(protocol::response::Outcome::Judge(value)) if matches!(&value.judgment, Some(protocol::judge_response::Judgment::Unexplained(_))))

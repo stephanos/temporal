@@ -143,11 +143,11 @@ func explained(continuePolling bool) runner.Decision {
 
 var cancelRequest = &workflowservice.RequestCancelActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity", RunId: "run"}
 
-func describeInstruction(t *testing.T, readTimeout time.Duration, workerTasks uint32) *anypb.Any {
+func describeInstruction(t *testing.T, readTimeout time.Duration) *anypb.Any {
 	t.Helper()
 	return packed(t, &temporalv1.ObserveActivity{
 		Request:        packed(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: "namespace", ActivityId: "activity", RunId: "run"}),
-		PollIntervalMs: 1, ReadTimeoutMs: uint64(readTimeout.Milliseconds()), BackoffMs: 1, WorkerTasks: workerTasks,
+		PollIntervalMs: 1, ReadTimeoutMs: uint64(readTimeout.Milliseconds()), BackoffMs: 1,
 	})
 }
 
@@ -240,7 +240,7 @@ func TestStartRefusesWhatNoMethodTakes(t *testing.T) {
 
 func TestReadRepeatsUntilTheModelAccepts(t *testing.T) {
 	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	x := start(t, testDriver(t, server.address, Options{}), 3, describeInstruction(t, 30*time.Second, 0))
+	x := start(t, testDriver(t, server.address, Options{}), 3, describeInstruction(t, 30*time.Second))
 	for i := 1; i <= 3; i++ {
 		event := next(t, x)
 		require.Equal(t, uint64(i), event.ID)
@@ -254,7 +254,7 @@ func TestReadRepeatsUntilTheModelAccepts(t *testing.T) {
 
 func TestAReadTimeoutWithoutAcceptanceIsAFault(t *testing.T) {
 	server := newFakeServer(t, func(string) ([]byte, error) { return describeResponse(t), nil })
-	x := start(t, testDriver(t, server.address, Options{}), 1, describeInstruction(t, 200*time.Millisecond, 0))
+	x := start(t, testDriver(t, server.address, Options{}), 1, describeInstruction(t, 200*time.Millisecond))
 	for {
 		event := next(t, x)
 		if event.Kind == runner.EventFault {
@@ -266,14 +266,14 @@ func TestAReadTimeoutWithoutAcceptanceIsAFault(t *testing.T) {
 }
 
 func TestAnUnansweredReadIsRetriedUntilTheReadTimeout(t *testing.T) {
-	x := start(t, testDriver(t, unreachable(t), Options{}), 1, describeInstruction(t, 200*time.Millisecond, 0))
+	x := start(t, testDriver(t, unreachable(t), Options{}), 1, describeInstruction(t, 200*time.Millisecond))
 	event := next(t, x)
 	require.Equal(t, runner.EventFault, event.Kind)
 	require.Equal(t, "read timeout without Model acceptance", event.Fault)
 }
 
 func TestTheDriverCapsTheInstructionsReadTimeout(t *testing.T) {
-	x := start(t, testDriver(t, unreachable(t), Options{MaxReadTimeout: 100 * time.Millisecond}), 1, describeInstruction(t, time.Hour, 0))
+	x := start(t, testDriver(t, unreachable(t), Options{MaxReadTimeout: 100 * time.Millisecond}), 1, describeInstruction(t, time.Hour))
 	require.Equal(t, "read timeout without Model acceptance", next(t, x).Fault)
 }
 
@@ -395,4 +395,19 @@ func completedReply(t *testing.T, payloads ...*commonpb.Payload) *anypb.Any {
 	return packed(t, &realizationv1.Reply{Request: packed(t, &workflowservice.RespondActivityTaskCompletedRequest{
 		Result: &commonpb.Payloads{Payloads: payloads},
 	})})
+}
+
+func TestProgrammedInstructionIsADriverFault(t *testing.T) {
+	server := newFakeServer(t, func(string) ([]byte, error) {
+		t.Error("an unsupported hold reached the server")
+		return nil, nil
+	})
+	d := testDriver(t, server.address, Options{})
+	x := start(t, d, 1, packed(t, &temporalv1.TemporalInstruction{
+		Request: packed(t, cancelRequest), HoldWorkerPolls: true,
+	}))
+	event := next(t, x)
+	require.Equal(t, runner.EventFault, event.Kind)
+	require.Contains(t, event.Fault, "programmed worker execution is unsupported")
+	requireClosed(t, x)
 }

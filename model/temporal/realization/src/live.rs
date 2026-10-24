@@ -8,12 +8,11 @@ use umpire_runtime::{
     realization::{Observation, observation::Result as ResultValue},
 };
 use umpire_temporal_api::temporal::api::{
-    common::v1::link,
+    common::v1::{Header, Payload, link},
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
-        RequestCancelActivityExecutionResponse, StartActivityExecutionRequest,
-        StartActivityExecutionResponse,
+        RequestCancelActivityExecutionRequest, RequestCancelActivityExecutionResponse,
+        StartActivityExecutionRequest, StartActivityExecutionResponse,
     },
 };
 
@@ -43,7 +42,6 @@ pub struct LiveRuntime {
     frozen: Option<Refusal>,
     configuration: Option<Any>,
     bootstrap: Option<Any>,
-    callback: Option<(PollActivityTaskQueueResponse, Any)>,
 }
 
 /// Owned facade effects, installed only after the complete response is published.
@@ -53,38 +51,16 @@ pub struct LiveTransaction {
 
 enum Change {
     Model(Transaction<activity::World>),
-    Admit {
-        model: Box<ModelRuntime>,
-        receipt: Receipt,
-    },
-    Freeze {
-        receipt: Receipt,
-        refusal: Refusal,
-    },
+    Admit { model: Box<ModelRuntime>, receipt: Receipt },
+    Freeze { receipt: Receipt, refusal: Refusal },
     Reset(Transaction<activity::World>),
     Configure(Any),
     Propose(Any),
-    Answer {
-        transaction: Transaction<activity::World>,
-        task: Box<PollActivityTaskQueueResponse>,
-        response: Any,
-    },
-    Observe {
-        transaction: Transaction<activity::World>,
-        clear_callback: bool,
-    },
 }
 
 impl LiveRuntime {
     pub(super) fn new() -> Self {
-        Self {
-            model: runtime(),
-            receipt: None,
-            frozen: None,
-            configuration: None,
-            bootstrap: None,
-            callback: None,
-        }
+        Self { model: runtime(), receipt: None, frozen: None, configuration: None, bootstrap: None }
     }
 
     fn prepare_method(&self, method: u32, bytes: &[u8]) -> Prepared {
@@ -94,9 +70,10 @@ impl LiveRuntime {
                     .map_err(|_| Refusal::malformed("malformed Reset request"))?;
                 let configuration = request.configuration.or_else(|| self.configuration.clone());
                 if let Some(configuration) = configuration {
-                    let _: StartActivityExecutionRequest = configuration.unpack()?;
+                    let start: StartActivityExecutionRequest = configuration.unpack()?;
+                    let program = Realization::worker_program(&start)?;
                     return Ok((
-                        Outcome::Reset(protocol::ResetResponse {}),
+                        Outcome::Reset(protocol::ResetResponse { program: Some(program) }),
                         Some(LiveTransaction { change: Change::Configure(configuration) }),
                     ));
                 }
@@ -108,7 +85,7 @@ impl LiveRuntime {
                 ))
             }
             4 => self.judge(bytes),
-            5 => self.answer(bytes),
+            5 => Err(Refusal::unsupported("Temporal workers follow the Reset program")),
             6 => self.propose(bytes),
             _ => {
                 let (response, transaction) = self.model.prepare(method, bytes);
@@ -130,14 +107,12 @@ impl LiveRuntime {
             return self.start(&value);
         }
         let observation: Observation = value.unpack()?;
-        let mut clear_callback = false;
         match observation.method.as_str() {
             DESCRIBE => {
                 let response: DescribeActivityExecutionResponse = observed.response()?;
                 let info =
                     response.info.ok_or_else(|| Refusal::malformed("activity info is missing"))?;
-                let phase = activity::Phase::try_from(info.clone())?;
-                clear_callback = phase != activity::Phase::Started;
+                let _ = activity::Phase::try_from(info.clone())?;
                 let request: DescribeActivityExecutionRequest = required_request(&observation)?;
                 let receipt = self.receipt()?;
                 receipt.matches(&request.namespace, &request.activity_id, &request.run_id)?;
@@ -153,7 +128,6 @@ impl LiveRuntime {
             }
             CANCEL => {
                 if observed.code()?.is_none() {
-                    clear_callback = true;
                     let _: RequestCancelActivityExecutionResponse =
                         observed.response().map_err(|error| Refusal::malformed(error.message))?;
                 }
@@ -178,17 +152,6 @@ impl LiveRuntime {
         if receipt.maximum_attempts.is_none() {
             return Err(state("live Start was not admitted"));
         }
-        if self.configuration.is_some() {
-            let transaction = match prepared.1 {
-                Some(LiveTransaction { change: Change::Model(transaction) }) => {
-                    Some(LiveTransaction {
-                        change: Change::Observe { transaction, clear_callback },
-                    })
-                }
-                other => other,
-            };
-            return Ok((prepared.0, transaction));
-        }
         Ok(prepared)
     }
 
@@ -211,8 +174,20 @@ impl LiveRuntime {
         if filled.out_of_scope.is_some() || !filled.violations.is_empty() {
             return Err(Refusal::malformed("configured Start violates its catalog"));
         }
-        let start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
+        let mut start = StartActivityExecutionRequest::decode(filled.bytes.as_slice())
             .map_err(|_| Refusal::malformed("filled Start is malformed"))?;
+        let scenario = crate::temporal::SCENARIOS[(request.seed % 3) as usize];
+        start.header.get_or_insert_with(Header::default).fields.insert(
+            crate::temporal::SCENARIO_HEADER.into(),
+            Payload {
+                metadata: std::collections::BTreeMap::from([(
+                    "encoding".into(),
+                    b"binary/plain".to_vec(),
+                )]),
+                data: scenario.as_bytes().to_vec(),
+                ..Default::default()
+            },
+        );
         let request = Any::pack(&start);
         Ok((
             Outcome::Propose(protocol::ProposeResponse {
@@ -226,44 +201,6 @@ impl LiveRuntime {
 
     fn receipt(&self) -> Result<&Receipt, Refusal> {
         self.receipt.as_ref().ok_or_else(|| state("live Start admission is required"))
-    }
-
-    fn answer(&self, bytes: &[u8]) -> Prepared {
-        let request = protocol::AnswerRequest::decode(bytes)
-            .map_err(|_| Refusal::malformed("malformed Answer request"))?;
-        let value = Any::required(request.callback)?;
-        let task: PollActivityTaskQueueResponse = umpire_runtime::callback(&value)?;
-        let receipt = self.receipt()?;
-        receipt.matches(&task.workflow_namespace, &task.activity_id, &task.activity_run_id)?;
-        if self.frozen.is_some() {
-            return Err(state("admission is frozen until Reset"));
-        }
-        if receipt.maximum_attempts.is_none() {
-            return Err(state("live Start was not admitted"));
-        }
-        let (outcome, transaction) = self.delegate(5, bytes)?;
-        if self.configuration.is_some() {
-            if let (
-                Outcome::Answer(answer),
-                Some(LiveTransaction { change: Change::Model(transaction) }),
-            ) = (&outcome, transaction)
-            {
-                let reply: umpire_runtime::realization::Reply =
-                    Any::required(answer.reply.clone())?.unpack()?;
-                return Ok((
-                    outcome,
-                    Some(LiveTransaction {
-                        change: Change::Answer {
-                            transaction,
-                            task: Box::new(task),
-                            response: Any::required(reply.request)?,
-                        },
-                    }),
-                ));
-            }
-            return Ok((outcome, None));
-        }
-        Ok((outcome, transaction))
     }
 
     fn delegate(&self, method: u32, bytes: &[u8]) -> Prepared {
@@ -358,11 +295,7 @@ impl LiveRuntime {
                 .unpack()
                 .unwrap_or_else(|_| unreachable!("validated Start receipt"));
             self.model.replace_realization(Realization::configured(
-                crate::temporal::ProposalContext {
-                    start: request,
-                    run_id: receipt.run_id.clone(),
-                    response: self.callback.clone(),
-                },
+                crate::temporal::ProposalContext { start: request, run_id: receipt.run_id.clone() },
             ));
         }
     }
@@ -402,7 +335,6 @@ impl Dispatch for LiveRuntime {
                 self.model = *model;
                 self.receipt = Some(receipt);
                 self.bootstrap = None;
-                self.callback = None;
                 self.install_context();
             }
             Change::Freeze { receipt, refusal } => {
@@ -414,22 +346,9 @@ impl Dispatch for LiveRuntime {
                 self.configuration = Some(configuration);
                 self.receipt = None;
                 self.bootstrap = None;
-                self.callback = None;
                 self.frozen = None;
             }
             Change::Propose(request) => self.bootstrap = Some(request),
-            Change::Answer { transaction, task, response } => {
-                self.model.commit(transaction);
-                self.callback = Some((*task, response));
-                self.install_context();
-            }
-            Change::Observe { transaction, clear_callback } => {
-                self.model.commit(transaction);
-                if clear_callback {
-                    self.callback = None;
-                }
-                self.install_context();
-            }
             Change::Reset(transaction) => {
                 self.model.commit(transaction);
                 self.frozen = None;

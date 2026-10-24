@@ -324,3 +324,149 @@ fn runtime_owns_quiescence_before_default_proposal_policy() {
         protocol::RefusalCode::Quiescent,
     );
 }
+
+struct ReadRealization {
+    refuse_program: bool,
+}
+impl<M> umpire_runtime::Realize<M> for ReadRealization
+where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >,
+{
+    fn program(&self) -> Result<umpire_runtime::google::protobuf::Any, protocol::Refusal> {
+        if self.refuse_program {
+            Err(protocol::Refusal::new(protocol::RefusalCode::State, "program refused"))
+        } else {
+            Ok(support::any(42))
+        }
+    }
+    fn propose(
+        &self,
+        _: &support::State,
+        _: u64,
+    ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
+        Ok(umpire_runtime::Proposal::Read { request: support::any(99) })
+    }
+    fn observe(
+        &self,
+        value: &umpire_runtime::google::protobuf::Any,
+        state: &support::State,
+    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
+    {
+        if support::payload(value)? == 20 {
+            return Ok(umpire_runtime::Projection::Current);
+        }
+        umpire_runtime::Realize::observe(&support::Realization, value, state)
+    }
+    fn matches(
+        &self,
+        request: &umpire_runtime::google::protobuf::Any,
+        value: &umpire_runtime::google::protobuf::Any,
+    ) -> Result<(), protocol::Refusal> {
+        assert_eq!(request, &support::any(99));
+        if matches!(support::payload(value)?, 1 | 20) {
+            Ok(())
+        } else {
+            Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed read"))
+        }
+    }
+    fn continue_polling(
+        &self,
+        value: &umpire_runtime::google::protobuf::Any,
+        _: &support::State,
+        action: Option<&support::Action>,
+    ) -> Result<bool, protocol::Refusal> {
+        assert!(action.is_none());
+        Ok(matches!(support::payload(value)?, 1 | 20))
+    }
+}
+
+#[test]
+fn read_remains_pending_until_correlated_final_explanation_publishes() {
+    let mut guest = Guest::new(umpire_runtime::Runtime::new(
+        support::World { starts: 1 },
+        ReadRealization { refuse_program: false },
+    ));
+    let Some(Outcome::Judge(unproposed)) =
+        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(20)) })
+            .outcome
+    else {
+        panic!("unproposed observation")
+    };
+    assert!(!unproposed.continue_polling);
+    let propose = protocol::ProposeRequest { seed: 7 };
+    let Some(Outcome::Propose(read)) = call(&mut guest, 6, &propose).outcome else {
+        panic!("read")
+    };
+    assert_eq!(read.kind(), protocol::ProposalKind::Read);
+    assert_eq!(read.action, "");
+    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
+    refused(
+        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(2)) }),
+        protocol::RefusalCode::State,
+    );
+    let Some(Outcome::Judge(intermediate)) =
+        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(20)) })
+            .outcome
+    else {
+        panic!("intermediate")
+    };
+    assert!(intermediate.continue_polling);
+    assert!(intermediate.judgment.is_some());
+    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
+    let final_read = protocol::JudgeRequest { observation: Some(support::any(1)) };
+    assert!(!guest.dispatch_to(4, &final_read.encode_to_vec(), |_| false));
+    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
+    let Some(Outcome::Judge(final_result)) = call(&mut guest, 4, &final_read).outcome else {
+        panic!("final")
+    };
+    assert!(!final_result.continue_polling);
+    let Some(protocol::judge_response::Judgment::Explained(explanation)) = final_result.judgment
+    else {
+        panic!("explained")
+    };
+    assert_eq!(explanation.steps, ["Deliver"]);
+    assert!(matches!(call(&mut guest, 6, &propose).outcome, Some(Outcome::Propose(_))));
+}
+
+#[test]
+fn read_does_not_require_enabled_external_model_action() {
+    let mut runtime = umpire_runtime::Runtime::new(
+        InternalWorld { external: false },
+        ReadRealization { refuse_program: false },
+    );
+    let Some(Outcome::Propose(read)) = runtime.dispatch(6, &[]).outcome else { panic!("read") };
+    assert_eq!(read.kind(), protocol::ProposalKind::Read);
+}
+
+#[test]
+fn reset_program_and_refusing_defaults_preserve_run_transactions() {
+    let mut legacy = support::runtime();
+    let Some(Outcome::Reset(reset)) = legacy.dispatch(3, &[]).outcome else { panic!("reset") };
+    assert!(reset.program.is_none());
+    let mut runtime = umpire_runtime::Runtime::new(
+        support::World { starts: 1 },
+        ReadRealization { refuse_program: false },
+    );
+    for _ in 0..2 {
+        let Some(Outcome::Reset(reset)) = runtime.dispatch(3, &[]).outcome else {
+            panic!("reset program")
+        };
+        assert_eq!(reset.program, Some(support::any(42)));
+    }
+    refused(
+        runtime.dispatch(
+            5,
+            &protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec(),
+        ),
+        protocol::RefusalCode::Unsupported,
+    );
+    runtime.dispatch(6, &[]);
+    runtime.replace_realization(ReadRealization { refuse_program: true });
+    refused(runtime.dispatch(3, &[]), protocol::RefusalCode::State);
+    runtime.replace_realization(ReadRealization { refuse_program: false });
+    refused(runtime.dispatch(6, &[]), protocol::RefusalCode::State);
+}

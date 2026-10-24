@@ -5,3 +5,5 @@ judge_poll 2a040a001801
 reset_configuration 0a070a017812020102
 refusal_quiescent 1a050809120178
 judge_poll_go 2a0418010a00
+propose_read 4a0b0a070a0178120201021803
+reset_program 22090a070a017812020102

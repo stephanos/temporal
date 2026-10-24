@@ -1,11 +1,8 @@
 //! Native realization controls against the independently fixed activity Model.
 
-use umpire_runtime::realization::Callback;
 use umpire_runtime::realization::Error;
 use umpire_runtime::realization::Observation;
 use umpire_runtime::realization::observation::Result as ObservationResult;
-
-use std::collections::BTreeMap;
 
 use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
@@ -17,10 +14,9 @@ use umpire_runtime::{
 use umpire_temporal::{Realization, activity, runtime};
 use umpire_temporal_api::temporal::api::{
     activity::v1::ActivityExecutionInfo,
-    common::v1::{Payload, Payloads},
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        PollActivityTaskQueueResponse, RequestCancelActivityExecutionRequest,
+        RequestCancelActivityExecutionRequest,
     },
 };
 
@@ -67,31 +63,6 @@ fn observation(status: i32, run_state: i32) -> Any {
     )
 }
 
-fn callback(policy: &[u8]) -> Any {
-    any(
-        "umpire.realization.v1.Callback",
-        &Callback {
-            task: Some(any(
-                "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse",
-                &PollActivityTaskQueueResponse {
-                    input: Some(Payloads {
-                        payloads: vec![Payload {
-                            metadata: BTreeMap::from([(
-                                "encoding".into(),
-                                b"binary/plain".to_vec(),
-                            )]),
-                            data: policy.into(),
-                            ..Default::default()
-                        }],
-                    }),
-                    attempt: 1,
-                    ..Default::default()
-                },
-            )),
-        },
-    )
-}
-
 fn call(
     guest: &mut Guest<impl Dispatch>,
     method: u32,
@@ -108,10 +79,6 @@ fn call(
 
 fn judge(guest: &mut Guest<impl Dispatch>, value: Any) -> protocol::Response {
     call(guest, 4, &protocol::JudgeRequest { observation: Some(value) })
-}
-
-fn answer(guest: &mut Guest<impl Dispatch>, value: Any) -> protocol::Response {
-    call(guest, 5, &protocol::AnswerRequest { callback: Some(value) })
 }
 
 fn explanation(response: protocol::Response) -> protocol::Explanation {
@@ -143,16 +110,16 @@ fn cancel(error: Option<i32>) -> Any {
 
 #[test]
 fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
-    for (policy, terminal, step) in [
-        (b"Complete".as_slice(), 2, "Worker::RespondCompleted"),
-        (b"Fail".as_slice(), 3, "Worker::RespondFailed { retryable: false }"),
-        (b"".as_slice(), 4, "Client::Cancel"),
+    for (terminal, step) in [
+        (2, "Worker::RespondCompleted"),
+        (3, "Worker::RespondFailed { retryable: false }"),
+        (4, "Client::Cancel"),
     ] {
         let mut guest = Guest::new(runtime());
         if terminal == 4 {
             explained(judge(&mut guest, cancel(None)), &[step]);
         } else {
-            answer(&mut guest, callback(policy));
+            explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
             explained(judge(&mut guest, observation(terminal, 0)), &[step]);
         }
         for _ in 0..2 {
@@ -163,7 +130,6 @@ fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
         }
         assert_eq!(unexplained(judge(&mut guest, cancel(None))), ["Client::Cancel"]);
         assert_eq!(unexplained(judge(&mut guest, cancel(Some(5)))), ["Client::Cancel"]);
-        refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
     }
 }
 
@@ -223,7 +189,7 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
                 explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
                 vec!["Client::Cancel"]
             } else if phase == activity::Phase::Started {
-                answer(&mut guest, callback(b"Complete"));
+                explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
                 vec![
                     "Client::Cancel",
                     "Worker::Poll(2)",
@@ -244,7 +210,6 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
             };
             assert_eq!(unexplained(judge(&mut guest, cancel(Some(code)))), expected);
             assert_eq!(unexplained(judge(&mut guest, cancel(None))), expected);
-            refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
             call(&mut guest, 3, &protocol::ResetRequest::default());
             explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
         }
@@ -406,124 +371,6 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
 }
 
 #[test]
-fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step() {
-    for (policy, terminal, step) in [
-        (b"Complete".as_slice(), 2, "Worker::RespondCompleted"),
-        (b"Fail".as_slice(), 3, "Worker::RespondFailed { retryable: false }"),
-    ] {
-        let mut guest = Guest::new(runtime());
-        explained(judge(&mut guest, observation(1, 1)), &[]);
-        explained(judge(&mut guest, observation(1, 1)), &[]);
-        let Some(Outcome::Answer(value)) = answer(&mut guest, callback(policy)).outcome else {
-            panic!("not Answer")
-        };
-        assert_eq!(
-            value.reply.unwrap_or_else(|| panic!("reply missing")).type_url,
-            "type.googleapis.com/umpire.realization.v1.Reply"
-        );
-        explained(judge(&mut guest, observation(1, 2)), &[]);
-        explained(judge(&mut guest, observation(1, 2)), &[]);
-        refused(answer(&mut guest, callback(policy)), protocol::RefusalCode::State);
-        explained(judge(&mut guest, observation(terminal, 0)), &[step]);
-        explained(judge(&mut guest, observation(terminal, 0)), &[]);
-        refused(answer(&mut guest, callback(policy)), protocol::RefusalCode::State);
-        assert_eq!(
-            unexplained(judge(&mut guest, observation(5 - terminal, 0))),
-            ["Client::Cancel"]
-        );
-    }
-}
-
-#[test]
-fn complete_reply_drops_external_payload_references() {
-    use umpire_runtime::realization::Reply;
-    use umpire_temporal_api::temporal::api::{
-        common::v1::payload::ExternalPayloadDetails,
-        workflowservice::v1::RespondActivityTaskCompletedRequest,
-    };
-
-    let mut task: PollActivityTaskQueueResponse =
-        umpire_temporal::support::callback(&callback(b"Complete"))
-            .unwrap_or_else(|error| panic!("{error:?}"));
-    let payload = &mut task.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0];
-    payload.external_payloads.push(ExternalPayloadDetails { size_bytes: 123 });
-    let expected = Payload {
-        metadata: payload.metadata.clone(),
-        data: payload.data.clone(),
-        ..Default::default()
-    };
-    let mut guest = Guest::new(runtime());
-    let Some(Outcome::Answer(value)) =
-        answer(&mut guest, Any::pack(&Callback { task: Some(Any::pack(&task)) })).outcome
-    else {
-        panic!("callback must be admitted")
-    };
-    let reply: Reply = value
-        .reply
-        .unwrap_or_else(|| panic!("reply missing"))
-        .unpack()
-        .unwrap_or_else(|error| panic!("{error:?}"));
-    let request: RespondActivityTaskCompletedRequest = reply
-        .request
-        .unwrap_or_else(|| panic!("request missing"))
-        .unpack()
-        .unwrap_or_else(|error| panic!("{error:?}"));
-    let result = request.result.unwrap_or_else(|| panic!("result missing"));
-    assert_eq!(result.payloads, [expected]);
-    explained(judge(&mut guest, observation(1, 2)), &[]);
-}
-
-#[test]
-fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_reset() {
-    for premature in [observation(1, 2), observation(2, 0), observation(3, 0)] {
-        let mut guest = Guest::new(runtime());
-        let first = unexplained(judge(&mut guest, premature));
-        assert_eq!(
-            first,
-            [
-                "Client::Cancel",
-                "Worker::Poll(1)",
-                "Worker::Poll(2)",
-                "Worker::Poll(3)",
-                "Deadline::ScheduleToStart"
-            ]
-        );
-        assert_eq!(unexplained(judge(&mut guest, observation(1, 1))), first);
-        refused(answer(&mut guest, callback(b"Complete")), protocol::RefusalCode::State);
-        call(&mut guest, 3, &protocol::ResetRequest::default());
-        explained(judge(&mut guest, observation(1, 1)), &[]);
-    }
-    let mut guest = Guest::new(runtime());
-    answer(&mut guest, callback(b"Complete"));
-    assert_eq!(
-        unexplained(judge(&mut guest, observation(1, 1))),
-        [
-            "Client::Cancel",
-            "Worker::Poll(2)",
-            "Worker::Poll(3)",
-            "Worker::RespondCompleted",
-            "Worker::RespondFailed { retryable: false }",
-            "Worker::RespondFailed { retryable: true }",
-            "Deadline::StartToClose"
-        ]
-    );
-    assert_eq!(
-        unexplained(judge(&mut guest, observation(2, 0))),
-        [
-            "Client::Cancel",
-            "Worker::Poll(2)",
-            "Worker::Poll(3)",
-            "Worker::RespondCompleted",
-            "Worker::RespondFailed { retryable: false }",
-            "Worker::RespondFailed { retryable: true }",
-            "Deadline::StartToClose"
-        ]
-    );
-    let mut other = Guest::new(runtime());
-    explained(judge(&mut other, observation(1, 1)), &[]);
-}
-
-#[test]
 fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
     let malformed = protocol::RefusalCode::MalformedRequest;
     let unsupported = protocol::RefusalCode::Unsupported;
@@ -579,6 +426,7 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
         refused(judge(&mut guest, value.clone()), *code);
         explained(judge(&mut guest, observation(1, 1)), &[]);
     }
+    explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
     let first = unexplained(judge(&mut guest, observation(2, 0)));
     for (value, code) in cases {
         refused(judge(&mut guest, value), code);
@@ -589,10 +437,10 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
 #[test]
 fn rejected_publication_rolls_back_delivery_terminal_freeze_and_reset() {
     let mut guest = Guest::new(runtime());
-    let deliver = protocol::AnswerRequest { callback: Some(callback(b"Complete")) }.encode_to_vec();
-    assert!(!guest.dispatch_to(5, &deliver, |_| false));
+    let deliver = protocol::JudgeRequest { observation: Some(observation(1, 2)) }.encode_to_vec();
+    assert!(!guest.dispatch_to(4, &deliver, |_| false));
     explained(judge(&mut guest, observation(1, 1)), &[]);
-    answer(&mut guest, callback(b"Complete"));
+    explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
     let close = protocol::JudgeRequest { observation: Some(observation(2, 0)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &close, |_| false));
     explained(judge(&mut guest, observation(1, 2)), &[]);
@@ -604,117 +452,51 @@ fn rejected_publication_rolls_back_delivery_terminal_freeze_and_reset() {
 }
 
 #[test]
-fn invalid_callback_projection_cannot_partially_commit_poll() {
-    let malformed = protocol::RefusalCode::MalformedRequest;
-    let unsupported = protocol::RefusalCode::Unsupported;
-    let mut cases = vec![
-        (Any { type_url: String::new(), value: vec![] }, malformed),
-        (Any { type_url: "wrong".into(), value: vec![] }, unsupported),
-        (Any { type_url: "type.googleapis.com/umpire.realization.v1.Callback".into(), value: vec![255] }, malformed),
-        (any("umpire.realization.v1.Callback", &Callback { task: None }), malformed),
-        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: String::new(), value: vec![] }) }), malformed),
-        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: "wrong".into(), value: vec![] }) }), unsupported),
-        (any("umpire.realization.v1.Callback", &Callback { task: Some(Any { type_url: "type.googleapis.com/temporal.api.workflowservice.v1.PollActivityTaskQueueResponse".into(), value: vec![255] }) }), malformed),
-        (callback(b"Unknown"), unsupported),
-    ];
-    let valid = PollActivityTaskQueueResponse {
-        input: Some(Payloads {
-            payloads: vec![Payload {
-                metadata: BTreeMap::from([("encoding".into(), b"binary/plain".to_vec())]),
-                data: b"Complete".to_vec(),
-                ..Default::default()
-            }],
-        }),
-        attempt: 1,
-        ..Default::default()
-    };
-    for variant in 0..6 {
-        let mut invalid = valid.clone();
-        match variant {
-            0 => invalid.input = None,
-            1 => invalid.input = Some(Payloads { payloads: vec![] }),
-            2 => {
-                let payloads = invalid.input.as_mut().unwrap_or_else(|| panic!("input"));
-                payloads.payloads.push(payloads.payloads[0].clone());
-            }
-            3 => invalid.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0]
-                .metadata
-                .clear(),
-            4 => {
-                invalid.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0]
-                    .metadata
-                    .insert("encoding".into(), b"json/plain".to_vec());
-            }
-            5 => invalid.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0].data.clear(),
-            _ => unreachable!(),
-        }
-        cases.push((
-            any(
-                "umpire.realization.v1.Callback",
-                &Callback {
-                    task: Some(any(
-                        "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse",
-                        &invalid,
-                    )),
-                },
-            ),
-            if variant < 4 { malformed } else { unsupported },
-        ));
-    }
-    let mut guest = Guest::new(runtime());
-    for (value, code) in cases {
-        refused(answer(&mut guest, value), code);
+fn server_observations_evidence_delivery_and_fast_terminal_paths() {
+    for (terminal, action) in
+        [(2, "Worker::RespondCompleted"), (3, "Worker::RespondFailed { retryable: false }")]
+    {
+        let mut guest = Guest::new(runtime());
+        explained(judge(&mut guest, observation(terminal, 0)), &["Worker::Poll(1)", action]);
+        explained(judge(&mut guest, observation(terminal, 0)), &[]);
+        assert_eq!(
+            unexplained(judge(&mut guest, observation(5 - terminal, 0))),
+            ["Client::Cancel"]
+        );
+        call(&mut guest, 3, &protocol::ResetRequest::default());
         explained(judge(&mut guest, observation(1, 1)), &[]);
     }
-    assert!(matches!(answer(&mut guest, callback(b"Complete")).outcome, Some(Outcome::Answer(_))));
-    explained(judge(&mut guest, observation(1, 2)), &[]);
 }
 
 #[test]
-fn callback_uses_observed_attempt_and_retains_fatal_fail_policy() {
-    for attempt in [1, 3] {
-        let mut task: PollActivityTaskQueueResponse =
-            umpire_temporal::support::callback(&callback(b"Fail"))
-                .unwrap_or_else(|error| panic!("{error:?}"));
-        task.attempt = attempt;
-        let request = Any::pack(&Callback { task: Some(Any::pack(&task)) });
-        let state = activity::Model {
-            phase: activity::Phase::Scheduled,
-            attempt: u8::try_from(attempt).unwrap_or_else(|_| panic!("bounded attempt")),
-        };
-        let plan = Realization::default()
-            .answer(&request, &state)
-            .unwrap_or_else(|error| panic!("{error:?}"));
-        assert_eq!(plan.delivery.len(), 1);
-        assert_eq!(plan.delivery[0].action, activity::Worker::Poll(state.attempt).into());
-        assert_eq!(
-            plan.response_action,
-            activity::Worker::RespondFailed { retryable: false }.into()
-        );
-    }
+fn temporal_has_no_live_answer_policy() {
+    let mut guest = Guest::new(runtime());
+    refused(
+        call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(Any::default()) }),
+        protocol::RefusalCode::Unsupported,
+    );
+    explained(judge(&mut guest, observation(1, 1)), &[]);
 }
 
 #[test]
-fn mismatched_callback_after_delivery_is_refused_without_changing_state() {
-    for policy in [b"Complete".as_slice(), b"Fail".as_slice()] {
-        let mut guest = Guest::new(runtime());
-        assert!(matches!(answer(&mut guest, callback(policy)).outcome, Some(Outcome::Answer(_))));
-        for attempt in [2, 3] {
-            let mut task: PollActivityTaskQueueResponse =
-                umpire_temporal::support::callback(&callback(policy))
-                    .unwrap_or_else(|error| panic!("{error:?}"));
-            task.attempt = attempt;
-            refused(
-                answer(&mut guest, Any::pack(&Callback { task: Some(Any::pack(&task)) })),
-                protocol::RefusalCode::State,
-            );
-            explained(judge(&mut guest, observation(1, 2)), &[]);
-        }
-        let (status, action) = if policy == b"Complete" {
-            (2, "Worker::RespondCompleted")
-        } else {
-            (3, "Worker::RespondFailed { retryable: false }")
+fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_phase() {
+    for status in [4, 6] {
+        let mut observed: Observation =
+            observation(status, 0).unpack().unwrap_or_else(|e| panic!("{e:?}"));
+        let Some(ObservationResult::Response(response)) = observed.result else {
+            panic!("response")
         };
-        explained(judge(&mut guest, observation(status, 0)), &[action]);
+        let mut response: DescribeActivityExecutionResponse =
+            response.unpack().unwrap_or_else(|e| panic!("{e:?}"));
+        response.info.as_mut().unwrap_or_else(|| panic!("info")).attempt = 2;
+        observed.result = Some(ObservationResult::Response(Any::pack(&response)));
+        let state = activity::Model { phase: activity::Phase::Scheduled, attempt: 1 };
+        let Projection::Candidates(paths) = Realization::default()
+            .observe(&Any::pack(&observed), &state)
+            .unwrap_or_else(|e| panic!("{e:?}"))
+        else {
+            panic!("candidates")
+        };
+        assert_eq!(paths.len(), 0);
     }
 }

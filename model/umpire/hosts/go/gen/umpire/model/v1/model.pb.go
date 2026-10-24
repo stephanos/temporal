@@ -162,6 +162,7 @@ const (
 	ProposalKind_PROPOSAL_KIND_UNSPECIFIED ProposalKind = 0
 	ProposalKind_PROPOSAL_KIND_ACTION      ProposalKind = 1
 	ProposalKind_PROPOSAL_KIND_BOOTSTRAP   ProposalKind = 2
+	ProposalKind_PROPOSAL_KIND_READ        ProposalKind = 3
 )
 
 // Enum value maps for ProposalKind.
@@ -170,11 +171,13 @@ var (
 		0: "PROPOSAL_KIND_UNSPECIFIED",
 		1: "PROPOSAL_KIND_ACTION",
 		2: "PROPOSAL_KIND_BOOTSTRAP",
+		3: "PROPOSAL_KIND_READ",
 	}
 	ProposalKind_value = map[string]int32{
 		"PROPOSAL_KIND_UNSPECIFIED": 0,
 		"PROPOSAL_KIND_ACTION":      1,
 		"PROPOSAL_KIND_BOOTSTRAP":   2,
+		"PROPOSAL_KIND_READ":        3,
 	}
 )
 
@@ -535,6 +538,7 @@ func (x *ResetRequest) GetConfiguration() *anypb.Any {
 
 type ResetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Program       *anypb.Any             `protobuf:"bytes,1,opt,name=program,proto3" json:"program,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -567,6 +571,13 @@ func (x *ResetResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ResetResponse.ProtoReflect.Descriptor instead.
 func (*ResetResponse) Descriptor() ([]byte, []int) {
 	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ResetResponse) GetProgram() *anypb.Any {
+	if x != nil {
+		return x.Program
+	}
+	return nil
 }
 
 type JudgeRequest struct {
@@ -1281,8 +1292,9 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\x04code\x18\x01 \x01(\x0e2\x1c.umpire.model.v1.RefusalCodeR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"J\n" +
 	"\fResetRequest\x12:\n" +
-	"\rconfiguration\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\rconfiguration\"\x0f\n" +
-	"\rResetResponse\"F\n" +
+	"\rconfiguration\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\rconfiguration\"?\n" +
+	"\rResetResponse\x12.\n" +
+	"\aprogram\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\aprogram\"F\n" +
 	"\fJudgeRequest\x126\n" +
 	"\vobservation\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\vobservation\"?\n" +
 	"\vExplanation\x12\x14\n" +
@@ -1339,11 +1351,12 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\x17REFUSAL_CODE_ALLOCATION\x10\x06\x12\x1d\n" +
 	"\x19REFUSAL_CODE_SCOPE_ACTION\x10\a\x12\x1c\n" +
 	"\x18REFUSAL_CODE_UNSUPPORTED\x10\b\x12\x1a\n" +
-	"\x16REFUSAL_CODE_QUIESCENT\x10\t*d\n" +
+	"\x16REFUSAL_CODE_QUIESCENT\x10\t*|\n" +
 	"\fProposalKind\x12\x1d\n" +
 	"\x19PROPOSAL_KIND_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROPOSAL_KIND_ACTION\x10\x01\x12\x1b\n" +
-	"\x17PROPOSAL_KIND_BOOTSTRAP\x10\x02B0Z.umpire.local/model/gen/umpire/model/v1;modelv1b\x06proto3"
+	"\x17PROPOSAL_KIND_BOOTSTRAP\x10\x02\x12\x16\n" +
+	"\x12PROPOSAL_KIND_READ\x10\x03B0Z.umpire.local/model/gen/umpire/model/v1;modelv1b\x06proto3"
 
 var (
 	file_umpire_model_v1_model_proto_rawDescOnce sync.Once
@@ -1386,28 +1399,29 @@ var file_umpire_model_v1_model_proto_goTypes = []any{
 var file_umpire_model_v1_model_proto_depIdxs = []int32{
 	1,  // 0: umpire.model.v1.Refusal.code:type_name -> umpire.model.v1.RefusalCode
 	21, // 1: umpire.model.v1.ResetRequest.configuration:type_name -> google.protobuf.Any
-	21, // 2: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
-	11, // 3: umpire.model.v1.JudgeResponse.explained:type_name -> umpire.model.v1.Explanation
-	12, // 4: umpire.model.v1.JudgeResponse.unexplained:type_name -> umpire.model.v1.Unexplained
-	21, // 5: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
-	21, // 6: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
-	21, // 7: umpire.model.v1.ProposeResponse.request:type_name -> google.protobuf.Any
-	2,  // 8: umpire.model.v1.ProposeResponse.kind:type_name -> umpire.model.v1.ProposalKind
-	21, // 9: umpire.model.v1.AnnotateRequest.input:type_name -> google.protobuf.Any
-	21, // 10: umpire.model.v1.AnnotateResponse.output:type_name -> google.protobuf.Any
-	4,  // 11: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
-	6,  // 12: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
-	7,  // 13: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
-	9,  // 14: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
-	13, // 15: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
-	15, // 16: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
-	19, // 17: umpire.model.v1.Response.annotate:type_name -> umpire.model.v1.AnnotateResponse
-	17, // 18: umpire.model.v1.Response.propose:type_name -> umpire.model.v1.ProposeResponse
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	21, // 2: umpire.model.v1.ResetResponse.program:type_name -> google.protobuf.Any
+	21, // 3: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
+	11, // 4: umpire.model.v1.JudgeResponse.explained:type_name -> umpire.model.v1.Explanation
+	12, // 5: umpire.model.v1.JudgeResponse.unexplained:type_name -> umpire.model.v1.Unexplained
+	21, // 6: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
+	21, // 7: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
+	21, // 8: umpire.model.v1.ProposeResponse.request:type_name -> google.protobuf.Any
+	2,  // 9: umpire.model.v1.ProposeResponse.kind:type_name -> umpire.model.v1.ProposalKind
+	21, // 10: umpire.model.v1.AnnotateRequest.input:type_name -> google.protobuf.Any
+	21, // 11: umpire.model.v1.AnnotateResponse.output:type_name -> google.protobuf.Any
+	4,  // 12: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
+	6,  // 13: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
+	7,  // 14: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
+	9,  // 15: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
+	13, // 16: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
+	15, // 17: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
+	19, // 18: umpire.model.v1.Response.annotate:type_name -> umpire.model.v1.AnnotateResponse
+	17, // 19: umpire.model.v1.Response.propose:type_name -> umpire.model.v1.ProposeResponse
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_umpire_model_v1_model_proto_init() }

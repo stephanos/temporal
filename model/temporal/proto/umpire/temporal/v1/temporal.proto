@@ -5,16 +5,25 @@ package umpire.temporal.v1;
 option go_package = "umpire.local/temporal/umpire/temporal/v1";
 
 import public "umpire/temporal/v1/probe.proto";
+import public "umpire/temporal/v1/activity.proto";
 
 import "google/protobuf/any.proto";
 
-// Read an in-flight activity. Answer replies are sent separately and never resent.
-message ObserveActivity {
+// A worker matches rules in order using feature-specific keys. Activity scenarios are
+// carried in the task header named "umpire-scenario", outside application input.
+message WorkerProgram {
+  string namespace = 1;
+  string task_queue = 2;
+  repeated Rule rules = 3;
+}
+
+message Rule {
+  google.protobuf.Any key = 1;
+  repeated google.protobuf.Any respond = 2;
+}
+
+// Hold worker polls until the enclosed request has been acknowledged.
+message TemporalInstruction {
   google.protobuf.Any request = 1;
-  uint64 poll_interval_ms = 2;
-  uint64 read_timeout_ms = 3;
-  uint64 backoff_ms = 4;
-  // How many worker tasks the Driver's worker may take while this read is pending: 1 when the
-  // proposal is a worker poll, 0 when it only observes a response already sent.
-  uint32 worker_tasks = 5;
+  bool hold_worker_polls = 2;
 }

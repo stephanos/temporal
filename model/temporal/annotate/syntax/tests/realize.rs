@@ -470,3 +470,13 @@ fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
     }
     Ok(())
 }
+
+#[test]
+fn observation_only_realizations_inherit_the_refusing_answer_default()
+-> Result<(), Box<dyn std::error::Error>> {
+    let schema = Schema::new(&[], &[])?;
+    let expanded =
+        expand(&syn::parse_str("activity")?, syn::parse_str("impl Realization {}")?, &schema)?;
+    assert!(!expanded.to_string().contains("fn answer"));
+    Ok(())
+}

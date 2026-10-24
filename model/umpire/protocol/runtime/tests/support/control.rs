@@ -76,11 +76,13 @@ impl umpire_runtime::Dispatch for Control {
             let configured =
                 protocol::ResetRequest::decode(bytes).map(|request| request.configuration);
             match configured {
-                Ok(Some(configuration)) if configuration == any(0) => {
+                Ok(Some(configuration)) if configuration == any(0) || configuration == any(42) => {
                     return (
                         protocol::Response {
                             outcome: Some(protocol::response::Outcome::Reset(
-                                protocol::ResetResponse {},
+                                protocol::ResetResponse {
+                                    program: (configuration == any(42)).then(|| any(42)),
+                                },
                             )),
                         },
                         Some(ControlTransaction::Reset(Box::new(Runtime::new(

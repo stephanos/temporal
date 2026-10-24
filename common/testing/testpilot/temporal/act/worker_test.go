@@ -2,8 +2,6 @@ package act
 
 import (
 	"context"
-	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -16,7 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
-	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
 	"umpire.local/model/runner"
 )
 
@@ -91,75 +88,18 @@ func requireBlocked[T any](t *testing.T, ch <-chan T, what string) {
 	}
 }
 
-func TestAWorkerTaskIsTakenOnlyBetweenReadsAndPausesThem(t *testing.T) {
-	server := describing(t)
-	d := testDriver(t, server.address, Options{})
-	polled := make(chan error, 1)
-	go func() { polled <- poll(t.Context(), d, task("token")) }()
-	x := start(t, d, 2, describeInstruction(t, 30*time.Second, 1))
-	first := next(t, x)
-	require.Equal(t, runner.EventObservation, first.Kind)
-	requireBlocked(t, polled, "a poll before the Model asked to continue")
-	require.NoError(t, x.Respond(t.Context(), first.ID, explained(true)))
-	continueUntil(t, x, func() bool { return holding(d) })
-	reads := len(server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName))
-	require.NoError(t, requireReturns(t, polled, "the admitted poll"))
-	type result struct {
-		payload *commonpb.Payload
-		err     error
-	}
-	delivered := make(chan result, 1)
-	go func() {
-		value, err := d.deliver(t.Context(), []byte("token"))
-		delivered <- result{value.Payload(), err}
-	}()
-	callback := next(t, x)
-	require.Equal(t, runner.EventCallback, callback.Kind)
-	require.Equal(t, uint64(1), callback.Call)
-	envelope := new(realizationv1.Callback)
-	require.NoError(t, callback.Payload.UnmarshalTo(envelope))
-	got := new(workflowservice.PollActivityTaskQueueResponse)
-	require.NoError(t, envelope.GetTask().UnmarshalTo(got))
-	require.Equal(t, []byte("token"), got.GetTaskToken(), "the callback carries the captured task")
-	require.Len(t, server.calls(workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName), reads, "reads pause while a task is unanswered")
-	payload := &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}
-	require.NoError(t, x.Respond(t.Context(), callback.ID, completedReplyFor(t, payload)))
-	answered := requireReturns(t, delivered, "the activity")
-	require.NoError(t, answered.err)
-	require.True(t, proto.Equal(payload, answered.payload))
-	second := next(t, x)
-	require.Equal(t, runner.EventObservation, second.Kind)
-	require.NoError(t, x.Respond(t.Context(), second.ID, explained(true)))
-	third := next(t, x)
-	require.Equal(t, runner.EventObservation, third.Kind, "one task per worker poll instruction")
-	require.NoError(t, x.Respond(t.Context(), third.ID, explained(false)))
-	require.Equal(t, runner.EventDone, next(t, x).Kind)
-}
-
-func TestAnEmptyPollResumesReads(t *testing.T) {
-	server := describing(t)
-	d := testDriver(t, server.address, Options{})
-	polled := make(chan error, 1)
-	go func() { polled <- poll(t.Context(), d, nil) }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	continueUntil(t, x, func() bool { return len(polled) > 0 })
-	require.NoError(t, requireReturns(t, polled, "the empty poll"))
-	second := next(t, x)
-	require.Equal(t, runner.EventObservation, second.Kind, "an empty poll resumes reads")
-	go func() { polled <- poll(t.Context(), d, task("token")) }()
-	require.NoError(t, x.Respond(t.Context(), second.ID, explained(true)))
-	continueUntil(t, x, func() bool { return holding(d) })
-	require.NoError(t, requireReturns(t, polled, "the poll of the next window"))
-	go func() { _, _ = d.deliver(t.Context(), []byte("token")) }()
-	require.Equal(t, runner.EventCallback, next(t, x).Kind, "the next window still admits a task")
-}
-
-func TestAReadWithoutWorkerTasksNeverAdmitsAPoll(t *testing.T) {
+func TestReadCannotInvokeAnswer(t *testing.T) {
 	d := testDriver(t, describing(t).address, Options{})
+	d.ensureWorker = func(context.Context) error {
+		t.Error("a read attempted to start the live Answer worker")
+		return nil
+	}
 	ctx, cancel := context.WithCancel(t.Context())
 	polled := make(chan error, 1)
 	go func() { polled <- poll(ctx, d, task("token")) }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 0))
+	instruction := describeInstruction(t, 30*time.Second)
+	instruction.Value = append(instruction.Value, 0x28, 0x01)
+	x := start(t, d, 1, instruction)
 	for i := range 3 {
 		event := next(t, x)
 		require.NoError(t, x.Respond(t.Context(), event.ID, explained(i < 2)))
@@ -210,50 +150,29 @@ func TestAnOutcomeCountsOnlyInTheWindowThatAdmittedItsPoll(t *testing.T) {
 	require.Same(t, second, owner, "a stale window cannot release the current one")
 }
 
-// TestNoReadWhilePollsEndAtOnce plays instant empty polls from jittered pollers against a read
-// that keeps continuing, and checks every read happens with no poll outstanding.
-func TestNoReadWhilePollsEndAtOnce(t *testing.T) {
-	var d *Driver
-	var violations atomic.Int32
-	server := newFakeServer(t, func(string) ([]byte, error) {
-		d.gate.mu.Lock()
-		if d.gate.held != nil {
-			violations.Add(1)
-		}
-		d.gate.mu.Unlock()
-		return describeResponse(t), nil
-	})
-	d = testDriver(t, server.address, Options{})
-	ctx, cancel := context.WithCancel(t.Context())
-	var pollers sync.WaitGroup
-	for i := range 3 {
-		pollers.Go(func() {
-			for ctx.Err() == nil {
-				<-time.After(time.Duration(i) * 100 * time.Microsecond)
-				_ = poll(ctx, d, nil)
-			}
-		})
-	}
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	for range 200 {
-		event := next(t, x)
-		require.Equal(t, runner.EventObservation, event.Kind)
-		require.NoError(t, x.Respond(t.Context(), event.ID, explained(true)))
-	}
-	cancel()
-	require.NoError(t, x.Close())
-	require.NoError(t, d.Close())
-	pollers.Wait()
-	require.Zero(t, violations.Load(), "a read happened while a poll was outstanding")
+func workerExchange(t *testing.T, d *Driver, request uint64, timeout time.Duration) runner.Exchange {
+	t.Helper()
+	x := newExchange(d, request)
+	d.mu.Lock()
+	d.exchanges[x] = true
+	d.mu.Unlock()
+	go func() {
+		defer close(x.done)
+		defer close(x.events)
+		ctx, cancel := context.WithTimeout(x.ctx, timeout)
+		defer cancel()
+		x.work(ctx, timeout)
+	}()
+	return x
 }
 
 func TestCloseRefusesHeldPollsAndCancelsTheAdmittedOne(t *testing.T) {
 	d := testDriver(t, describing(t).address, Options{})
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
+	x := workerExchange(t, d, 1, 30*time.Second)
 	admitted := make(chan error, 1)
 	go func() { admitted <- pollWith(t.Context(), d, hang) }()
 	// Only once the hanging poll holds the gate does a second one start, so it can only be held.
-	continueUntil(t, x, func() bool { return holding(d) })
+	waitForGate(t, d)
 	held := make(chan error, 1)
 	go func() { held <- poll(t.Context(), d, nil) }()
 	requireBlocked(t, held, "a poll while another is admitted")
@@ -266,20 +185,9 @@ func TestCloseRefusesHeldPollsAndCancelsTheAdmittedOne(t *testing.T) {
 	require.ErrorIs(t, poll(t.Context(), d, nil), errStopped, "a poll after Close is refused at once")
 }
 
-// continueUntil answers every Observation with continue until ready holds. A window closes after
-// the poll interval when the poller has not reached the gate yet; the next continued read opens
-// another, so a test waits for the gate's state rather than assuming the first window admits.
-func continueUntil(t *testing.T, x runner.Exchange, ready func() bool) {
+func waitForGate(t *testing.T, d *Driver) {
 	t.Helper()
-	for !ready() {
-		select {
-		case event, open := <-x.Events():
-			require.True(t, open, "the event stream closed")
-			require.Equal(t, runner.EventObservation, event.Kind, "event: %+v", event)
-			require.NoError(t, x.Respond(t.Context(), event.ID, explained(true)))
-		case <-time.After(10 * time.Millisecond):
-		}
-	}
+	await.RequireTrue(t, func() bool { return holding(d) }, 30*time.Second, time.Millisecond)
 }
 
 func holding(d *Driver) bool {
@@ -300,7 +208,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				done := make(chan error, 1)
 				go func() { done <- pollWith(t.Context(), d, hang) }()
-				continueUntil(t, x, func() bool { return holding(d) })
+				waitForGate(t, d)
 				return done
 			},
 			fault: "read timeout without Model acceptance",
@@ -310,7 +218,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				done := make(chan error, 1)
 				go func() { done <- poll(t.Context(), d, task("token")) }()
-				continueUntil(t, x, func() bool { return holding(d) })
+				waitForGate(t, d)
 				require.NoError(t, requireReturns(t, done, "the poll"))
 				return nil
 			},
@@ -321,7 +229,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 			setup: func(t *testing.T, d *Driver, x runner.Exchange) <-chan error {
 				polled := make(chan error, 1)
 				go func() { polled <- poll(t.Context(), d, task("token")) }()
-				continueUntil(t, x, func() bool { return holding(d) })
+				waitForGate(t, d)
 				require.NoError(t, requireReturns(t, polled, "the poll"))
 				done := make(chan error, 1)
 				go func() {
@@ -337,7 +245,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 	for _, w := range waits {
 		t.Run(w.name+"/read timeout", func(t *testing.T) {
 			d := testDriver(t, describing(t).address, Options{})
-			x := start(t, d, 1, describeInstruction(t, 2*time.Second, 1))
+			x := workerExchange(t, d, 1, 2*time.Second)
 			activity := w.setup(t, d, x)
 			event := next(t, x)
 			require.Equal(t, runner.EventFault, event.Kind)
@@ -353,7 +261,7 @@ func TestEveryWaitEndsAtTheReadTimeoutAndAtClose(t *testing.T) {
 		})
 		t.Run(w.name+"/close", func(t *testing.T) {
 			d := testDriver(t, describing(t).address, Options{})
-			x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
+			x := workerExchange(t, d, 1, 30*time.Second)
 			activity := w.setup(t, d, x)
 			began := time.Now()
 			require.NoError(t, d.Close())
@@ -371,8 +279,8 @@ func TestTheDriverNeverAnswersATaskTheModelDidNot(t *testing.T) {
 		d := testDriver(t, describing(t).address, Options{})
 		polled := make(chan error, 1)
 		go func() { polled <- poll(t.Context(), d, task("token")) }()
-		x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-		continueUntil(t, x, func() bool { return holding(d) })
+		x := workerExchange(t, d, 1, 30*time.Second)
+		waitForGate(t, d)
 		require.NoError(t, requireReturns(t, polled, "the poll"))
 		delivered := make(chan error, 1)
 		go func() {
@@ -404,8 +312,8 @@ func TestAnUncapturedTaskIsRefusedBeforeAnswer(t *testing.T) {
 	d := testDriver(t, describing(t).address, Options{})
 	polled := make(chan error, 1)
 	go func() { polled <- poll(t.Context(), d, task("token")) }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	continueUntil(t, x, func() bool { return holding(d) })
+	x := workerExchange(t, d, 1, 30*time.Second)
+	waitForGate(t, d)
 	require.NoError(t, requireReturns(t, polled, "the poll"))
 	go func() { _, _ = d.deliver(t.Context(), []byte("another token")) }()
 	event := next(t, x)
@@ -495,8 +403,8 @@ func TestOnlyAResponseToAnUnansweredTaskIsATeardownFault(t *testing.T) {
 	d := testDriver(t, describing(t).address, Options{})
 	polled := make(chan error, 1)
 	go func() { polled <- poll(t.Context(), d, task("answered")) }()
-	x := start(t, d, 1, describeInstruction(t, 30*time.Second, 1))
-	continueUntil(t, x, func() bool { return holding(d) })
+	x := workerExchange(t, d, 1, 30*time.Second)
+	waitForGate(t, d)
 	require.NoError(t, requireReturns(t, polled, "the poll"))
 	delivered := make(chan error, 1)
 	go func() {

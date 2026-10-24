@@ -48,7 +48,7 @@ message Refusal {
 }
 
 message ResetRequest { google.protobuf.Any configuration = 1; }
-message ResetResponse {}
+message ResetResponse { google.protobuf.Any program = 1; }
 message JudgeRequest { google.protobuf.Any observation = 1; }
 message Explanation {
   repeated string steps = 1;
@@ -68,6 +68,7 @@ enum ProposalKind {
   PROPOSAL_KIND_UNSPECIFIED = 0;
   PROPOSAL_KIND_ACTION = 1;
   PROPOSAL_KIND_BOOTSTRAP = 2;
+  PROPOSAL_KIND_READ = 3;
 }
 message ProposeRequest { uint64 seed = 1; }
 message ProposeResponse {

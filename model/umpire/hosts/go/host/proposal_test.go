@@ -19,6 +19,8 @@ func TestProposalWireContract(t *testing.T) {
 	}
 	opaque := &anypb.Any{TypeUrl: "x", Value: []byte{1, 2}}
 	wants := map[string]proto.Message{
+		"reset_program":       &modelv1.Response{Outcome: &modelv1.Response_Reset_{Reset_: &modelv1.ResetResponse{Program: opaque}}},
+		"propose_read":        &modelv1.Response{Outcome: &modelv1.Response_Propose{Propose: &modelv1.ProposeResponse{Request: opaque, Kind: modelv1.ProposalKind_PROPOSAL_KIND_READ}}},
 		"propose_request":     &modelv1.ProposeRequest{Seed: 150},
 		"reset_configuration": &modelv1.ResetRequest{Configuration: opaque},
 		"propose_action":      &modelv1.Response{Outcome: &modelv1.Response_Propose{Propose: &modelv1.ProposeResponse{Request: opaque, Action: "Act", Kind: modelv1.ProposalKind_PROPOSAL_KIND_ACTION}}},
@@ -115,5 +117,16 @@ func TestControlProposalBootstrapPollingAndCallbackParity(t *testing.T) {
 	again, err := host.Propose(ctx, request)
 	if err != nil || !proto.Equal(again, bootstrap) {
 		t.Fatalf("Reset bootstrap: %v %v", again, err)
+	}
+}
+
+func TestReadProposalHasNoAction(t *testing.T) {
+	proposal := &modelv1.ProposeResponse{Request: controlAny(0), Kind: modelv1.ProposalKind_PROPOSAL_KIND_READ}
+	if err := validateProposal(proposal); err != nil {
+		t.Fatalf("Read proposal: %v", err)
+	}
+	proposal.Action = "Act"
+	if err := validateProposal(proposal); err == nil {
+		t.Fatal("Read accepted an action")
 	}
 }

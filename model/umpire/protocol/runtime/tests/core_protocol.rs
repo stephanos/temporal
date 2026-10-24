@@ -32,7 +32,7 @@ fn new_core_messages_match_shared_literal_bytes() {
             }
             _ => {
                 let outcome = match name {
-                    "reset_response" => Outcome::Reset(protocol::ResetResponse {}),
+                    "reset_response" => Outcome::Reset(protocol::ResetResponse::default()),
                     "judge_explained" => Outcome::Judge(protocol::JudgeResponse {
                         continue_polling: false,
                         judgment: Some(protocol::judge_response::Judgment::Explained(

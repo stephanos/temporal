@@ -16,9 +16,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
-	model "umpire.local/model/host"
 	modelv1 "umpire.local/model/gen/umpire/model/v1"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
+	model "umpire.local/model/host"
 	temporalmodel "umpire.local/temporal"
 )
 
@@ -55,7 +55,7 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 			if tc.policy == "" {
 				explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 			} else {
-				answer(t, h, tc.policy)
+				deliver(t, h)
 				judge(t, h, observation(t, tc.status, 0))
 			}
 			for range 2 {
@@ -86,7 +86,7 @@ func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.
 			unexplained(t, judge(t, h, cancelObservation(t, code)), expected...)
 			unexplained(t, judge(t, h, cancelObservation(t, 0)), expected...)
 			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
-			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 			reset(t, h)
 			explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
 		}
@@ -192,7 +192,7 @@ func observation(t *testing.T, status enumspb.ActivityExecutionStatus, run enums
 	t.Helper()
 	return pack(t, &realizationv1.Observation{
 		Method:  describeMethod,
-		Request: pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun}),
+		Request: pack(t, &workflowservice.DescribeActivityExecutionRequest{Namespace: receiptNamespace, ActivityId: receiptActivity, RunId: receiptRun, IncludeLastFailure: true}),
 		Result: &realizationv1.Observation_Response{Response: pack(t, &workflowservice.DescribeActivityExecutionResponse{RunId: receiptRun, Info: &activitypb.ActivityExecutionInfo{
 			ActivityId: receiptActivity, RunId: receiptRun, Attempt: 1, Status: status, RunState: run,
 		}})},
@@ -257,20 +257,9 @@ func refusal(t *testing.T, err error, code modelv1.RefusalCode) {
 	}
 }
 
-func answer(t *testing.T, h *model.Host, policy string) *realizationv1.Reply {
+func deliver(t *testing.T, h *model.Host) {
 	t.Helper()
-	response, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, policy)})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if response.GetReply().GetTypeUrl() != "type.googleapis.com/umpire.realization.v1.Reply" {
-		t.Fatalf("reply envelope = %v", response)
-	}
-	reply := new(realizationv1.Reply)
-	if err := response.GetReply().UnmarshalTo(reply); err != nil {
-		t.Fatal(err)
-	}
-	return reply
+	explained(t, judge(t, h, started(t)), "Worker::Poll(1)")
 }
 
 func reset(t *testing.T, h *model.Host) {
@@ -281,51 +270,30 @@ func reset(t *testing.T, h *model.Host) {
 	}
 }
 
-func TestAnswerDeliveryAndObservedTerminal(t *testing.T) {
+func TestObservedDeliveryAndTerminal(t *testing.T) {
 	for _, tc := range []struct {
-		policy string
+		name   string
 		status enumspb.ActivityExecutionStatus
 		step   string
 	}{
 		{"Complete", enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, "Worker::RespondCompleted"},
 		{"Fail", enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, "Worker::RespondFailed { retryable: false }"},
 	} {
-		t.Run(tc.policy, func(t *testing.T) {
-			h := guest(t)
-			explained(t, judge(t, h, scheduled(t)))
-			explained(t, judge(t, h, scheduled(t)))
-			reply := answer(t, h, tc.policy)
-			if tc.policy == "Complete" {
-				if reply.Request.GetTypeUrl() != "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest" {
-					t.Fatalf("completion request = %v", reply)
+		t.Run(tc.name, func(t *testing.T) {
+			for _, skipStarted := range []bool{false, true} {
+				h := guest(t)
+				explained(t, judge(t, h, scheduled(t)))
+				explained(t, judge(t, h, scheduled(t)))
+				want := []string{tc.step}
+				if skipStarted {
+					want = append([]string{"Worker::Poll(1)"}, want...)
+				} else {
+					deliver(t, h)
+					explained(t, judge(t, h, started(t)))
 				}
-				request := new(workflowservice.RespondActivityTaskCompletedRequest)
-				if err := reply.Request.UnmarshalTo(request); err != nil {
-					t.Fatal(err)
-				}
-				want := &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("binary/plain")}, Data: []byte("Complete")}}}
-				if !proto.Equal(request.Result, want) || len(request.TaskToken) != 0 || request.Identity != "" {
-					t.Fatalf("partial completion = %v", request)
-				}
-			} else {
-				if reply.Request.GetTypeUrl() != "type.googleapis.com/temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest" {
-					t.Fatalf("failure request = %v", reply)
-				}
-				request := new(workflowservice.RespondActivityTaskFailedRequest)
-				if err := reply.Request.UnmarshalTo(request); err != nil {
-					t.Fatal(err)
-				}
-				failure := request.GetFailure()
-				if failure.GetMessage() != "Fail" || failure.GetApplicationFailureInfo().GetType() != "MiniActivityFailure" || !failure.GetApplicationFailureInfo().GetNonRetryable() || len(request.TaskToken) != 0 || request.Identity != "" {
-					t.Fatalf("partial non-retryable failure = %v", request)
-				}
+				explained(t, judge(t, h, observation(t, tc.status, 0)), want...)
+				explained(t, judge(t, h, observation(t, tc.status, 0)))
 			}
-			explained(t, judge(t, h, started(t)))
-			explained(t, judge(t, h, started(t)))
-			explained(t, judge(t, h, observation(t, tc.status, enumspb.PENDING_ACTIVITY_STATE_UNSPECIFIED)), tc.step)
-			explained(t, judge(t, h, observation(t, tc.status, enumspb.PENDING_ACTIVITY_STATE_UNSPECIFIED)))
-			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, tc.policy)})
-			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 		})
 	}
 }
@@ -337,11 +305,9 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		bad      func(*testing.T) *anypb.Any
 		expected []string
 	}{
-		{"started without delivery", nil, started, []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}},
-		{"terminal without delivery", nil, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0) }, []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}},
-		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { answer(t, h, "Complete") }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}},
+		{"stale scheduled after delivery", func(t *testing.T, h *model.Host) { deliver(t, h) }, scheduled, []string{"Client::Cancel", "Worker::Poll(2)", "Worker::Poll(3)", "Worker::RespondCompleted", "Worker::RespondFailed { retryable: false }", "Worker::RespondFailed { retryable: true }", "Deadline::StartToClose"}},
 		{"opposite terminal after closure", func(t *testing.T, h *model.Host) {
-			answer(t, h, "Complete")
+			deliver(t, h)
 			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::RespondCompleted")
 		}, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0) }, []string{"Client::Cancel"}},
 	} {
@@ -356,61 +322,10 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 				t.Fatalf("frozen result changed: %v -> %v", first, next)
 			}
 			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
-			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 			reset(t, h)
 			explained(t, judge(t, h, scheduled(t)))
-			answer(t, h, "Complete")
-			explained(t, judge(t, h, started(t)))
-		})
-	}
-}
-
-func TestCallbackRefusalPreservesScheduled(t *testing.T) {
-	for _, tc := range []struct {
-		name   string
-		mutate func(*testing.T, *realizationv1.Callback)
-		code   modelv1.RefusalCode
-	}{
-		{"missing task", func(_ *testing.T, c *realizationv1.Callback) { c.Task = nil }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"missing task URL", func(_ *testing.T, c *realizationv1.Callback) { c.Task.TypeUrl = "" }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"wrong task type", func(_ *testing.T, c *realizationv1.Callback) {
-			c.Task.TypeUrl = "type.googleapis.com/temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"
-		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"alternate task URL", func(_ *testing.T, c *realizationv1.Callback) {
-			c.Task.TypeUrl = "other/temporal.api.workflowservice.v1.PollActivityTaskQueueResponse"
-		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"malformed task", func(_ *testing.T, c *realizationv1.Callback) { c.Task.Value = []byte{255} }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"missing input", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1})
-		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"zero payloads", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{}})
-		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"two payloads", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{}, {}}}})
-		}, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-		{"unknown policy", func(t *testing.T, c *realizationv1.Callback) {
-			value := new(realizationv1.Callback)
-			if err := callback(t, "Retry").UnmarshalTo(value); err != nil {
-				t.Fatal(err)
-			}
-			c.Task = value.Task
-		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"wrong encoding", func(t *testing.T, c *realizationv1.Callback) {
-			c.Task = pack(t, &workflowservice.PollActivityTaskQueueResponse{WorkflowNamespace: receiptNamespace, ActivityId: receiptActivity, ActivityRunId: receiptRun, Attempt: 1, Input: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte("Complete")}}}})
-		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			h := guest(t)
-			value := new(realizationv1.Callback)
-			if err := callback(t, "Complete").UnmarshalTo(value); err != nil {
-				t.Fatal(err)
-			}
-			tc.mutate(t, value)
-			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: pack(t, value)})
-			refusal(t, err, tc.code)
-			explained(t, judge(t, h, scheduled(t)))
-			answer(t, h, "Complete")
+			deliver(t, h)
 			explained(t, judge(t, h, started(t)))
 		})
 	}
@@ -467,32 +382,8 @@ func TestObservationRefusalPreservesScheduled(t *testing.T) {
 			_, err := h.Judge(context.Background(), &modelv1.JudgeRequest{Observation: tc.value(t)})
 			refusal(t, err, tc.code)
 			explained(t, judge(t, h, scheduled(t)))
-			answer(t, h, "Complete")
+			deliver(t, h)
 			explained(t, judge(t, h, started(t)))
-		})
-	}
-}
-
-func TestCallbackEnvelopeRefusalPreservesScheduled(t *testing.T) {
-	for _, tc := range []struct {
-		name  string
-		value func(*testing.T) *anypb.Any
-		code  modelv1.RefusalCode
-	}{
-		{"wrong outer type", scheduled, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"alternate outer URL", func(t *testing.T) *anypb.Any {
-			a := callback(t, "Complete")
-			a.TypeUrl = "other/umpire.realization.v1.Callback"
-			return a
-		}, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED},
-		{"malformed envelope", func(t *testing.T) *anypb.Any { a := callback(t, "Complete"); a.Value = []byte{255}; return a }, modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			h := guest(t)
-			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: tc.value(t)})
-			refusal(t, err, tc.code)
-			explained(t, judge(t, h, scheduled(t)))
-			answer(t, h, "Complete")
 		})
 	}
 }
@@ -511,7 +402,7 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h := guest(t)
 			if tc.delivered {
-				answer(t, h, "Complete")
+				deliver(t, h)
 			}
 			want := []string{"Client::Cancel", "Worker::Poll(1)", "Worker::Poll(2)", "Worker::Poll(3)", "Deadline::ScheduleToStart"}
 			if tc.delivered {
@@ -519,19 +410,19 @@ func TestCancelAndTimeoutDoNotInventEvidence(t *testing.T) {
 			}
 			unexplained(t, judge(t, h, observation(t, tc.status, 0)), want...)
 			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
-			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 		})
 	}
 }
 
 func TestRepeatedDeliveryAndInstanceIsolation(t *testing.T) {
 	first, second := guest(t), guest(t)
-	answer(t, first, "Complete")
+	deliver(t, first)
 	_, err := first.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Fail")})
-	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 	explained(t, judge(t, first, started(t)))
 	explained(t, judge(t, second, scheduled(t)))
-	answer(t, second, "Fail")
+	deliver(t, second)
 	explained(t, judge(t, second, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0)), "Worker::RespondFailed { retryable: false }")
 	reset(t, second)
 	explained(t, judge(t, second, scheduled(t)))
@@ -558,7 +449,7 @@ func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
 	_, err := h.Judge(ctx, &modelv1.JudgeRequest{Observation: replay})
 	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 	explained(t, judge(t, h, captured))
-	answer(t, h, "Complete")
+	deliver(t, h)
 	explained(t, judge(t, h, replay))
 	for _, kind := range []string{"unknown wire field", "private changed input", "different execution", "crossed run"} {
 		t.Run(kind, func(t *testing.T) {
@@ -596,5 +487,12 @@ func TestStartReceiptBindsExactCapturedBytesAndRunInWasm(t *testing.T) {
 	}
 	reset(t, h)
 	explained(t, judge(t, h, replay))
+	explained(t, judge(t, h, scheduled(t)))
+}
+
+func TestTemporalAnswerUnsupported(t *testing.T) {
+	h := guest(t)
+	_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
+	refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_UNSUPPORTED)
 	explained(t, judge(t, h, scheduled(t)))
 }

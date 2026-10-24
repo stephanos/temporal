@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package umpire.temporal.v1;
+
+option go_package = "umpire.local/temporal/umpire/temporal/v1";
+
+import "google/protobuf/any.proto";
+
+message ActivityTaskKey {
+  string scenario = 1;
+  int32 attempt = 2;
+  string activity_type = 3;
+}
+
+// Read an in-flight activity while independently provisioned workers execute.
+message ObserveActivity {
+  google.protobuf.Any request = 1;
+  uint64 poll_interval_ms = 2;
+  uint64 read_timeout_ms = 3;
+  uint64 backoff_ms = 4;
+  reserved 5;
+  reserved "worker_tasks";
+}

@@ -945,6 +945,19 @@ fn expand_scoped(
         }
     }
     let proposal = proposal.as_ref().map(|name| proposal_dispatch(model, name));
+    let answer_dispatch = (!answers.is_empty()).then(|| quote! {
+            fn answer(&self, value: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
+                -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
+                let _ = state;
+                let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
+                let __task_any = ::umpire_runtime::google::protobuf::Any::required(__callback.task)?;
+                if __task_any.type_url.is_empty() {
+                    return Err(::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"));
+                }
+                #(#answers)*
+                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported Any type URL"))
+            }
+    });
     let ty = &item.self_ty;
     Ok(quote! {
         #item
@@ -961,17 +974,7 @@ fn expand_scoped(
                 #(#observations)*
                 Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
             }
-            fn answer(&self, value: &::umpire_runtime::google::protobuf::Any, state: &#model::Model)
-                -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
-                let _ = state;
-                let __callback: ::umpire_runtime::realization::Callback = value.unpack()?;
-                let __task_any = ::umpire_runtime::google::protobuf::Any::required(__callback.task)?;
-                if __task_any.type_url.is_empty() {
-                    return Err(::umpire_runtime::protocol::Refusal::malformed("Any type URL is missing"));
-                }
-                #(#answers)*
-                Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported Any type URL"))
-            }
+            #answer_dispatch
         }
     })
 }

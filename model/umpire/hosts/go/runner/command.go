@@ -23,13 +23,14 @@ const (
 	ExitError       = 3
 )
 
-const usage = "usage: umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> [--seed n] [--budget n] [--run <path>] " +
+const usage = "usage: umpire program --model <guest.wasm> --world <any.binpb> --out <file>\n" +
+	"       umpire <question|explore|reduce|replay|repeat> --model <guest.wasm> [--seed n] [--budget n] [--run <path>] " +
 	"[--world <any.binpb>] [--observation <any.binpb>] [--events n] [--count n] [--store <dir>] [--driver <name>] " +
 	"[--event-budget n] [--event-timeout d] [--run-timeout d]"
 
 // Main is the umpire command over the named Drivers. Explore, reduce and repeat need a Driver and
-// a store; question and replay use neither Driver nor network. Progress goes to stderr, each
-// published key and the deciding verdict to stdout.
+// a store; program, question and replay use neither Driver nor network. Progress goes to stderr,
+// each published key and the deciding verdict to stdout.
 func Main(ctx context.Context, args []string, stdout, stderr io.Writer, drivers map[string]NewDriver) int {
 	fail := func(format string, values ...any) int {
 		_, _ = fmt.Fprintf(stderr, "umpire: "+format+"\n", values...)
@@ -37,6 +38,12 @@ func Main(ctx context.Context, args []string, stdout, stderr io.Writer, drivers 
 	}
 	if len(args) == 0 {
 		return fail("%s", usage)
+	}
+	if args[0] == "program" {
+		if err := writeProgram(ctx, args[1:], stderr); err != nil {
+			return fail("program: %v", err)
+		}
+		return ExitExplained
 	}
 	mode, err := ParseMode(args[0])
 	if err != nil {

@@ -75,16 +75,18 @@ messages together with the core contract using `bash model/scripts/proto-go.sh`.
 
 Propose (6) returns a deterministic fully filled request and its typed kind at Response
 tag 9: ACTION (1) names an enabled external Model action; BOOTSTRAP (2) has an empty
-action and admits a fresh run outside the transition graph. Consumers refuse unspecified
-or unknown kinds. QUIESCENT (9) means the Model has no enabled external action;
+action and admits a fresh run outside the transition graph; READ (3) has an empty action
+and observes worker progress without proposing a Model action. Consumers refuse unspecified
+or unknown kinds. QUIESCENT (9) means there is neither a read nor an enabled external action;
 rejected self-loops are still enabled actions. Propose never steps the Model. A second
 proposal while pending refuses STATE. Internal actions cannot be proposed.
 
-Realize defaults to unsupported proposals, no bootstrap and final observations. Opted-in
- realizations correlate actual observations with the pending request; a final Explained
- clears pending, an intermediate Explained publishes continue_polling (Judge tag 3), and
- Unexplained freezes without continuing. The continuation hook sees the prospective state
-and typed pending action; callbacks may commit delivery between polls without clearing it.
+Realize defaults to unsupported programs, answers and proposals, no bootstrap and final observations. Opted-in
+realizations correlate actual observations with the pending request; a final Explained
+clears pending, an intermediate Explained publishes continue_polling (Judge tag 3), and
+Unexplained freezes without continuing. The continuation hook sees the prospective state
+and typed pending action. A Read finishes when a correlated nonempty path is explained;
+zero-step reads use the continuation hook. Callbacks may commit delivery between polls without clearing it.
 Bootstrap requires a positively matched current start, never a replayed transition.
 All pending/admission/state changes share response-publication transactions. Reset clears
 pending and frozen state and, for bootstrap realizations, admission.
@@ -92,7 +94,10 @@ pending and frozen state and, for bootstrap realizations, admission.
 ResetRequest.configuration (Any, tag 1) is an optional system-owned configuration handoff;
 absent fields preserve the old empty Reset wire bytes. The core runtime refuses unknown
 configuration; composing system dispatchers own its validation and transactional install.
-Replay must retain this exact Reset call. Existing wire vectors remain unchanged. The new
+ResetResponse.program (Any, tag 1) optionally carries the realization's World-bound worker
+program; Unsupported from the program hook means no program, while other refusals prevent Reset.
+The host retains this opaque value without decoding its system-owned contents.
+Replay must retain this exact Reset call and response. Existing wire vectors remain unchanged. The new
 Judge response with both a judgment and continue_polling has separate literal Rust/Go
 vectors: protobuf permits field ordering differences (prost writes the oneof first; Go
 writes the scalar first). Both decode to the same message.
