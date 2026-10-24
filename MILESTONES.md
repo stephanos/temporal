@@ -103,7 +103,7 @@ No dependencies; scheduled before the remaining helper ports. It reuses existing
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-249.1 | ⬜ todo | Opt-in close-time report, content-addressed artifact, repository-owned patch and controls (R1–R4) |
+| fn-249.1 | 🔄 in progress | Opt-in close-time report, content-addressed artifact, repository-owned patch and controls (R1–R4) |
 
 ### fn-247: One language for the framework: Rust process supervisor and xtask replace the Python helpers (model)
 
