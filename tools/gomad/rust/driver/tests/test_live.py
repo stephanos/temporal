@@ -347,3 +347,47 @@ class ReachGapSwitch(unittest.TestCase):
                          {'a#TestGap': 'port: missing', 'a#TestPartial': 'partial: one subcase'})
         with patch.object(live, 'REACH_GAPS_BLOCK', True), self.assertRaisesRegex(driver.Refusal, 'reach gap'):
             live.reach_coverage(set(entries), entries, {'rust/x/one'})
+
+
+class DryRunLiveReadiness(unittest.TestCase):
+    def test_partial_dry_run_executes_bound_child_but_final_collection_refuses(self):
+        import live
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);base=root/'stages/ordinary';base.mkdir(parents=True)
+            script=root/'live-backend-observed.py'
+            script.write_text('import sys,json\nfrom pathlib import Path\np=Path(sys.argv[sys.argv.index("--work")+1]);p.mkdir();(p/"observed").write_text("actual child")\n')
+            binary=root/'binary';binary.write_bytes(b'fixture role')
+            work=base/'live-observed'
+            config=dict(root=str(root),repo=str(root),dry_run=True,source_sha256='a'*64,identity={},_config_sha256='b'*64,
+                files={str(p):driver.sha(p) for p in (script,binary,Path(sys.executable))},
+                stages={'ordinary':dict(live_families=['observed'])},
+                live_corpus=dict(families={'observed':dict(stage='ordinary',role='release',argv=[sys.executable,str(script),'--binary',str(binary),'--work',str(work)])}))
+            with patch.object(live,'PARITY',root),patch.object(live,'role',return_value=dict(binary=str(binary))),patch.object(live,'guard'),patch.object(live,'read_family',return_value={}):
+                live.execute_families(config,base,'ordinary')
+                self.assertEqual((work/'observed').read_text(),'actual child')
+                self.assertEqual(driver.read(base/'live-observed.command.json')['exit'],0)
+                for changed in (dict(config,dry_run=False),dict(config,stages={'ordinary':dict(live_families=['observed','observed'])})):
+                    with self.subTest(changed=changed['stages']),self.assertRaises(driver.Refusal):live.planned(changed,'observed')
+            with self.assertRaises((driver.Refusal,KeyError)):
+                live.read_corpus(config,root)
+
+    def test_missing_slim_executions_are_named_deferred_gaps_until_reenabled(self):
+        import live
+        import ordinary_receiving
+        import counterfactual_receiving
+        import counterfactual_lineage
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);mapping=root/'map.json'
+            originals={path+'#'+name for path,name in live.SLIM_SOURCES.items()}
+            entries={path+'#'+name:dict(evidence=['go/go.temporal.io/server/'+path.rsplit('/',1)[0]+'/'+name]) for path,name in live.SLIM_SOURCES.items()}
+            driver.write(mapping,dict(schema='gomad.original-test-wasm-reach/v1',entries=entries))
+            config=dict(root=str(root),source_sha256='a'*64,identity={},_config_sha256='b'*64,files={str(mapping):driver.sha(mapping)},
+                live_corpus=dict(test_wasm_reach=dict(map=str(mapping))))
+            base=root/'stages'/counterfactual_receiving.STAGE;base.mkdir(parents=True)
+            driver.write(base/'receipt.json',dict(stage=counterfactual_receiving.STAGE,status='PASS',exit=0,source='a'*64,identity={},config_sha256='b'*64,subgates=[]))
+            with patch.object(live,'original_callables',return_value=originals),patch.object(ordinary_receiving,'final_read',return_value=dict(actual_cases=[])),patch.object(live,'coverage'),patch.object(counterfactual_receiving,'final_read',return_value=dict(assertion_applicability={},actual_cases=[])),patch.object(counterfactual_lineage,'mapping'),patch.object(live,'stage_subgate_evidence',return_value=set()):
+                gaps=live.test_wasm_reach(config,set())
+                self.assertEqual(set(gaps),originals)
+                self.assertTrue(all('fn-232.14' in reason for reason in gaps.values()))
+                with patch.object(live,'REACH_GAPS_BLOCK',True),self.assertRaises(driver.Refusal):live.test_wasm_reach(config,set())
+                self.assertEqual(live.test_wasm_reach(config,live.SLIM_IDS),{})
