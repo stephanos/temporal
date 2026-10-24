@@ -508,7 +508,6 @@ Owner cleanup-first amendment 2026-10-24: starts after the narrow fn-232.30 chec
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-242.6](.flow/tasks/fn-242-gomad-shrink-the-qualification.6.md) | 🚧 Running | Remove duplicated measurement checking |
 | [fn-242.11](.flow/tasks/fn-242-gomad-shrink-the-qualification.11.md) | 🚧 Running | Independent 96-stage plan and shared cycle contracts |
 | [fn-242.12](.flow/tasks/fn-242-gomad-shrink-the-qualification.12.md) | ⬜ Todo | DAG and resource scheduling with executed mutation proofs |
 | [fn-242.13](.flow/tasks/fn-242-gomad-shrink-the-qualification.13.md) | ⬜ Todo | Real process custody, accounting, busy workers and cleanup |
