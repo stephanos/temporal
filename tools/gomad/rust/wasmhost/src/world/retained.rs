@@ -116,6 +116,10 @@ pub(crate) fn validate_with_transition_limit(
     config: &Config,
     limit: Option<u64>,
 ) -> Result<(), String> {
+    admit(bytes, config, limit).map(|_| ())
+}
+
+pub(crate) fn admit(bytes: &[u8], config: &Config, limit: Option<u64>) -> Result<Model, String> {
     if bytes.is_empty() || bytes.len() > MAXIMUM_BYTES {
         return Err("World expanded byte bound".into());
     }
@@ -198,7 +202,7 @@ pub(crate) fn validate_with_transition_limit(
     if actual != bytes {
         return Err("World snapshot differs from replayed canonical state".into());
     }
-    Ok(())
+    Ok(model)
 }
 
 pub(crate) const COMPRESSED: &str = "gomad/world/compressed-snapshot/v2";

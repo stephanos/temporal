@@ -189,8 +189,22 @@ fn lifecycle_events(
     evidence: &Evidence,
     handles: &BTreeSet<Handle>,
 ) -> Result<BTreeMap<u64, (u64, u8, Handle)>> {
+    lifecycle_records(&evidence.lifecycle, handles)
+}
+
+/// Reads bounded lifecycle bytes through the inspection boundary's owner parser.
+///
+/// # Errors
+/// Rejects malformed framing, unsupported tags and undeclared owners.
+pub fn lifecycle_records(
+    raw: &[u8],
+    handles: &BTreeSet<Handle>,
+) -> Result<BTreeMap<u64, (u64, u8, Handle)>> {
     let invalid = || Error::msg("unsupported or incomplete WASM inspection evidence");
-    let mut lifecycle = Reader(&evidence.lifecycle[8..]);
+    if raw.len() > MAX_METADATA || !raw.starts_with(b"GMWIL\x01\0\0") {
+        return Err(invalid());
+    }
+    let mut lifecycle = Reader(&raw[8..]);
     let mut events = BTreeMap::new();
     let mut order = 0u64;
     while !lifecycle.0.is_empty() {
@@ -204,7 +218,7 @@ fn lifecycle_events(
             return Err(invalid());
         }
         events.insert(
-            (evidence.lifecycle.len() - lifecycle.0.len()) as u64,
+            (raw.len() - lifecycle.0.len()) as u64,
             (order, action, handle),
         );
     }
