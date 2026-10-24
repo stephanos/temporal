@@ -27,9 +27,15 @@ Serially register the complete child ownership tree declared by `module_registra
 - [ ] Execute source-bound proof for its exact inventory IDs and preserve golden source/version/hash and path-substitution rules in proof output.
 
 ## Done summary
-TBD
+Implemented the independent 96-stage Rust plan, shared contracts and production leaf-command authority. Exact original wrapper/stage contracts and all 235 fixed recipes on 88 rows match under both modes and two explicit binding sets (940 recipe comparisons); exact eight dynamic and 32 runtime expansion contracts remain explicit. Actual leaf timeout mutation leaves the wrapper unchanged and is refused. Three owned guard countermutations and the actual leaf-source countermutation each fail the intended selected test; restored final source passes nine focused tests, strict Gomad library lint and formatting. Original golden/inventory and original evidence remain immutable. All ownership module roots compile in the production graph; no callable success placeholder or endpoint success is claimed.
 
+Formal same-receipt Codex re-review returned SHIP, zero blocking findings. Integrated source equals reviewed source. R2 foundation coverage only; actual endpoints, cutover/global R1 audit and full qualification remain successor-owned. Full attempts remain 0 used / 2 available.
+
+Tier: session jev-unavailable(no_key), project implementer pin retained.
+stage: impl-review - ran (model: gpt-6.1-sol high; same family as writer; initial 3-draw NEEDS_WORK, same-receipt fix re-review SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 860e004f2c, af38a745a9, b87cc8f329
+- Tests: cargo +1.99.1 test --locked -p gomad --lib cycle::plan:: -- --nocapture --test-threads=2 (exit 0), cargo +1.99.1 clippy --locked -p gomad --lib --no-deps -- -D warnings (exit 0), cargo +1.99.1 fmt --all -- --check (exit 0)
 - PRs:
