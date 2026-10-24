@@ -16,7 +16,8 @@ def events(rows):
 
 
 def listing(names=('TestA',), package='model'):
-    return events([dict(Action='output', Package=package, Output=name+'\n') for name in names])
+    return events([dict(Action='output', Package=package, Output=name+'\n') for name in names]
+                  + [dict(Action='pass', Package=package)])
 
 
 def execution(names=('TestA',), package='model', repeats=1):
@@ -283,6 +284,57 @@ class StaticStageContract(unittest.TestCase):
                         path.write_text(json.dumps(original))
                         row['argv'] = original['argv']
                         row['command_sha256'] = driver.sha(path)
+
+    def test_go_empty_packages_are_authenticated_without_execution_credit(self):
+        empty = events([dict(Action='start', Package='empty'),
+                        dict(Action='output', Package='empty', Output='?   \tempty\t[no test files]\n'),
+                        dict(Action='skip', Package='empty')])
+        listed, ran = listing() + empty, execution(repeats=2) + empty
+        action = dict(kind='go-tests', argv=['/pinned/go', 'test', '-tags=test_dep', '-count=2', './model/...'],
+                      cwd='/source', repeats=2)
+        root, evidence, command, report, check = self.reader_fixture('portable', action)
+        producer = static.Execution({}, dict(root=str(root)), 'portable')
+        def call(argv, cwd, env):
+            name = command(argv, listed if '-list' in argv else ran)
+            producer.rows.append(dict(name=name))
+            return listed if '-list' in argv else ran
+        with patch.object(producer, 'call', side_effect=call):
+            result = producer.go(action)
+        self.assertEqual(result['roots'], [dict(package='model', name='TestA', repetitions=2)])
+        report['actions'][0]['results'] = [result]
+        self.assertEqual([row['id'] for row in check()['testcases']], ['go/model/TestA', 'go/model/TestA'])
+
+        mutations = [
+            ('listing reason', result['listing'], listed.replace(b'[no test files]', b'[no tests to run]')),
+            ('listing identity', result['listing'], listed.replace(b'?   \tempty\t', b'?   \tforeign\t')),
+            ('listing missing terminal', result['listing'], listing() + events([dict(Action='output', Package='empty', Output='?   \tempty\t[no test files]\n')])),
+            ('listing duplicate terminal', result['listing'], listed + events([dict(Action='skip', Package='empty')])),
+            ('listed tests', result['listing'], listed + events([dict(Action='output', Package='empty', Output='TestHidden\n')])),
+            ('run reason', result['run'], ran.replace(b'[no test files]', b'[no tests to run]')),
+            ('run unknown package', result['run'], ran.replace(b'empty', b'foreign')),
+            ('run missing package', result['run'], execution(repeats=2)),
+            ('run duplicate terminal', result['run'], ran + events([dict(Action='skip', Package='empty')])),
+            ('run wrong terminal', result['run'], execution(repeats=2) + events([dict(Action='pass', Package='empty')])),
+            ('run failed package', result['run'], ran + events([dict(Action='fail', Package='empty')])),
+            ('run duplicate tested terminal', result['run'], ran + events([dict(Action='pass', Package='model')])),
+            ('run real skip', result['run'], ran + events([dict(Action='skip', Package='model', Test='TestA/child')])),
+            ('run empty test', result['run'], ran + execution(package='empty')),
+        ]
+        for label, name, raw in mutations:
+            with self.subTest(mutation=label):
+                row = next(row for row in report['commands'] if row['name'] == name)
+                path = evidence/(name + '.stdout')
+                original = path.read_bytes()
+                path.write_bytes(raw)
+                row['stdout_sha256'] = driver.sha(path)
+                with self.assertRaises(driver.Refusal):
+                    check()
+                path.write_bytes(original)
+                row['stdout_sha256'] = driver.sha(path)
+        path = evidence/(result['run'] + '.stdout')
+        path.write_bytes(ran + b'\n')
+        with self.assertRaisesRegex(driver.Refusal, 'command bytes changed'):
+            check()
 
     def test_go_subtest_selection_refuses_before_any_command(self):
         for flags in (['-run', '^TestA$/child'], ['-run=^TestA$/child']):
