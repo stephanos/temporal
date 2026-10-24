@@ -33,4 +33,4 @@ Replace R40's live worker connection (Answer in process, the Shim for other lang
 
 ## Decision Context
 
-2026-10-23: the owner deferred the Shim. Owner, same day: worker actions are the evidence (no worker logs), and a misbehaving worker must fail the Model's judgment. Earlier and asked for pre-programmed workers. The design note records the conductor's recommendations on the open questions. Placement in the queue awaits the owner; fn-228.5 stays blocked and is superseded once this lands.
+2026-10-23: the owner deferred the Shim. Owner, same day: worker actions are the evidence (no worker logs), and a misbehaving worker must fail the Model's judgment. Earlier and asked for pre-programmed workers. The design note records the conductor's recommendations on the open questions. The owner placed it last, after fn-237 (2026-10-23); fn-228.5 stays blocked and is superseded once this lands.
