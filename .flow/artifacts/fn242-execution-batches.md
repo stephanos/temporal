@@ -75,6 +75,8 @@ Leader dependency additions: fn-242.1.
 - `tools/gomad/rust/gomad/src/cycle/custody/**`
 - `tools/gomad/rust/gomad/src/cycle/preparation/inputs/**`
 
+Conductor integration extension. B01 owns `tools/gomad/rust/gomad/src/campaign/prepare/inventory.rs` solely to expose the existing `cache_output_name` validator as `pub(crate)`. Authenticate genuine generated Go test-main cache bytes through that existing content-address contract, preserve exact `-test` argv and frozen virtual source identity, and retain refusal of other absolute/unclean names. Original acceptance and proof ownership remain unchanged.
+
 ### B02 attempt-admission
 
 Keep fixed enrollment, durable attempt accounting and reservation floors independently reviewable.
