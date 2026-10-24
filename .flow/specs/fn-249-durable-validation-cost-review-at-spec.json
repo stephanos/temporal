@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-249-durable-validation-cost-review-at-spec",
+  "created_at": "2026-10-24T22:02:36.599652Z",
+  "depends_on_epics": [],
+  "id": "fn-249-durable-validation-cost-review-at-spec",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-249-durable-validation-cost-review-at-spec.md",
+  "status": "open",
+  "title": "Durable validation-cost review at spec completion",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-24T22:03:09.682094Z"
+}
