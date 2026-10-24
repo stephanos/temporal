@@ -8561,7 +8561,8 @@
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
       "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target.",
-      "canonical_build_recipe_extension": "Exact static_commands.rs build-role leaves map explicitly to existing B01 DryRun/cargo_command semantics, ordinary-reference to reference-transport; no duplicate builder/parser, independent current expected argv in leaf_tests.rs, preserve stage IDs/resources/actual features/targets and offline policy (authenticated CARGO_NET_OFFLINE=true if needed). No wholesale catalog/golden regeneration or pinned raw discovery edits."
+      "canonical_build_recipe_extension": "Exact static_commands.rs build-role leaves map explicitly to existing B01 DryRun/cargo_command semantics, ordinary-reference to reference-transport; no duplicate builder/parser, independent current expected argv in leaf_tests.rs, preserve stage IDs/resources/actual features/targets and offline policy (authenticated CARGO_NET_OFFLINE=true if needed). No wholesale catalog/golden regeneration or pinned raw discovery edits.",
+      "closed_consumer_control_extension": "A small fixed source-bound shell control under existing authenticated Bash via Runner may exercise actual pipe marker then closing read FD while current CLI is alive; retain real PID/status/source/argv/current retained failed-delivery integrity and whole supervisor descendant cleanup. No unsupervised host std::process launcher, new Cargo target or production Runner changes; genuine refusal/normal controls required."
     },
     {
       "id": "B10",
@@ -8599,7 +8600,10 @@
         "tools/gomad/rust/gomad/src/cycle/producers/build/**",
         "tools/gomad/rust/gomad/src/cycle/producers/identity/**",
         "tools/gomad/rust/gomad/src/cycle/producers/primary/**",
-        "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
+        "tools/gomad/rust/gomad/src/cycle/build/mod.rs",
+        "tools/gomad/rust/gomad/src/cycle/build/tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/preparation/bindings/owner_cases.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.29": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/build/**",
@@ -8995,7 +8999,8 @@
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
-      "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit."
+      "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit.",
+      "explicit_build_environment_extension": "Existing DryRun::build takes explicit environment map; actual effective sealed tools/cache/offline settings pass through owned Runner, fixed target/toolchain/jobs/incremental remain enforced and unsafe Git/SANDBOX/GOROOT overrides refuse. Exact build/tests.rs and bindings/owner_cases.rs/custody fixture changes are signature/environment plumbing and directly catching tests only. No compatibility wrapper or second builder. B10 sole shared build writer; conductor merges additive B03/B04 arms and visibility."
     },
     {
       "id": "B11",
@@ -9036,7 +9041,7 @@
         "tools/gomad/rust/gomad/src/cli/qualify.rs",
         "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
         "tools/gomad/internal/backends/wasm/QUALIFICATION.md",
-        "tools/gomad/rust/gomad/src/measurement/warm.rs"
+        "tools/gomad/rust/gomad/src/qualify/support/inspection.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9294,7 +9299,8 @@
         "admission": "Any nonprovisional cell installation without compile_cache_root refuses status2 namedreason, not only sqlite/multi-instance; provisional behavior preserved. Reuse existing installation accessor.",
         "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
       },
-      "terminal_validator_visibility_extension": "Exact warm.rs only: Run::observed and Run::validate visibility becomes pub(crate), preserving all admission/timing/teardown algorithms; reuse existing terminal validator and real feature controls, no duplicate parser/measurement mechanism."
+      "terminal_reuse": "Use existing three genuine terminal_controls test functions through authenticated counterfactual-harness; actual selected count/pass and command lineage required. No warm.rs visibility edit needed; preserve current timing/teardown guarantees.",
+      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate."
     },
     {
       "id": "B12",
