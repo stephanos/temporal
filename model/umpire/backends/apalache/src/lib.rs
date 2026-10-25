@@ -121,20 +121,15 @@ impl Apalache {
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
         let limits = Limits { timeout: CHECK_TIMEOUT, ..Limits::default() };
         let jar = format!("apalache-{VERSION}/lib/apalache.jar");
-        let PinnedJar { root, jar, java } =
-            PinnedJar::admit(root, "model/build/apalache", &jar, JAR_SHA256, |tool, scratch| {
-                let tool = Self {
-                    root: tool.root.clone(),
-                    jar: tool.jar.clone(),
-                    java: tool.java.clone(),
-                    limits,
-                };
-                let mut command = tool.command(scratch);
-                command.arg("version");
-                let (status, output) = run_process(&mut command, scratch, "version", limits, None)?;
-                validate_version(status.success(), &output)
-            })?;
-        Ok(Self { root, jar, java, limits })
+        PinnedJar::admit(root, "model/build/apalache", &jar, JAR_SHA256, |admitted, scratch| {
+            let PinnedJar { root, jar, java } = admitted;
+            let tool = Self { root, jar, java, limits };
+            let mut command = tool.command(scratch);
+            command.arg("version");
+            let (status, output) = run_process(&mut command, scratch, "version", limits, None)?;
+            validate_version(status.success(), &output)?;
+            Ok(tool)
+        })
     }
     fn command(&self, work: &Path) -> Command {
         let mut command = java_command(&self.java);

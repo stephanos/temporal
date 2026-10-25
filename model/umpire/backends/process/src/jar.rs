@@ -19,14 +19,16 @@ pub struct PinnedJar {
 
 impl PinnedJar {
     /// Admit `root/cache/jar` before any use: no symlink or escape on its path, the exact
-    /// SHA-256, the pinned Java, then `probe` runs the tool's version check in a cache scratch.
-    pub fn admit(
+    /// SHA-256, the pinned Java, then `probe` checks the tool's version in a cache scratch and
+    /// returns the tool built from the admitted jar. Admission vouches for the file only at
+    /// admission time; later replacement in the cache is not re-checked.
+    pub fn admit<T>(
         root: &Path,
         cache: &str,
         jar: &str,
         sha: &str,
-        probe: impl FnOnce(&Self, &Path) -> Result<(), Refusal>,
-    ) -> Result<Self, Refusal> {
+        probe: impl FnOnce(Self, &Path) -> Result<T, Refusal>,
+    ) -> Result<T, Refusal> {
         let root = root.canonicalize()?;
         let jar = contained(&root, &format!("{cache}/{jar}"))?;
         if digest(&jar)? != sha {
@@ -35,9 +37,7 @@ impl PinnedJar {
         let scratch = Scratch::new_in(&root, cache)?;
         let admitted = (|| {
             let java = pinned_java(&root, scratch.path())?;
-            let admitted = Self { root: root.clone(), jar, java };
-            probe(&admitted, scratch.path())?;
-            Ok(admitted)
+            probe(Self { root: root.clone(), jar, java }, scratch.path())
         })();
         scratch.finish(admitted)
     }
@@ -109,9 +109,9 @@ mod tests {
     }
 
     fn admit(root: &Path, jar: &str, sha: &str, probed: &Cell<bool>) -> Result<PinnedJar, Refusal> {
-        PinnedJar::admit(root, "model/build/tool", jar, sha, |_, _| {
+        PinnedJar::admit(root, "model/build/tool", jar, sha, |admitted, _| {
             probed.set(true);
-            Ok(())
+            Ok(admitted)
         })
     }
 
@@ -175,7 +175,7 @@ mod tests {
         assert!(probed.get());
         assert_eq!(admitted.jar, root.canonicalize()?.join("model/build/tool/tool.jar"));
         let error = PinnedJar::admit(root, "model/build/tool", "tool.jar", EMPTY, |_, _| {
-            Err(Refusal("wrong version".into()))
+            Err::<(), _>(Refusal("wrong version".into()))
         })
         .err();
         assert!(error.is_some_and(|e| e.0.contains("wrong version")));

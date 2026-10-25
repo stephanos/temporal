@@ -103,23 +103,23 @@ impl Tlc {
     /// Admit the exact jar and mise-pinned Temurin JDK before any model check.
     pub fn discover(root: &Path) -> Result<Self, Refusal> {
         let jar = format!("tla2tools-{JAR_VERSION}.jar");
-        if !root.join(CACHE).join(&jar).is_file() {
-            return Err(Refusal(format!(
-                "missing pinned jar {CACHE}/{jar}; run bash model/scripts/fetch-tlc.sh"
-            )));
-        }
-        let PinnedJar { root, jar, java } =
-            PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |tool, scratch| {
-                let mut version = java_command(&tool.java);
-                version.args(["-cp"]).arg(&tool.jar).args(["tlc2.TLC", "-h"]).current_dir(scratch);
-                let (status, output) =
-                    run_process(&mut version, scratch, "tlc-version", Limits::default(), None)?;
-                if status.code() != Some(1) || !output.contains(TLC_VERSION) {
-                    return Err(Refusal(format!("wrong TLC version: {output}")));
-                }
-                Ok(())
-            })?;
-        Ok(Self { root, jar, java, limits: Limits::default() })
+        PinnedJar::admit(root, CACHE, &jar, JAR_SHA256, |PinnedJar { root, jar, java }, scratch| {
+            let mut version = java_command(&java);
+            version.args(["-cp"]).arg(&jar).args(["tlc2.TLC", "-h"]).current_dir(scratch);
+            let (status, output) =
+                run_process(&mut version, scratch, "tlc-version", Limits::default(), None)?;
+            if status.code() != Some(1) || !output.contains(TLC_VERSION) {
+                return Err(Refusal(format!("wrong TLC version: {output}")));
+            }
+            Ok(Self { root, jar, java, limits: Limits::default() })
+        })
+        .map_err(|Refusal(message)| {
+            if message.starts_with("missing pinned jar") {
+                Refusal(format!("{message}; run bash model/scripts/fetch-tlc.sh"))
+            } else {
+                Refusal(message)
+            }
+        })
     }
 
     /// Explore without claims first, then independently check every inline PROPERTY/INVARIANT.

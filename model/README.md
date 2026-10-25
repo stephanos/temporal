@@ -848,10 +848,10 @@ make model-validate
 ```
 
 The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TLC 2.19
-version, using the repository's mise-pinned Temurin 27. TLC and Apalache share one
-admission, `umpire_backend_process::PinnedJar::admit`: a symlink-free path inside the
-workspace cache, an in-process `sha2` digest, the pinned Java, then the tool's version probe. Required runs fail for a missing
-or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
+version, using the repository's mise-pinned Temurin 27. TLC and Apalache share one admission,
+`umpire_backend_process::PinnedJar::admit`: a symlink-free path inside the workspace cache, an
+in-process `sha2` digest, the pinned Java, then the tool's version probe. Required runs fail for
+a missing or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
 property difference, or a counterexample that does not replay through the Model.
 The Apalache backend's real-tool controls are not part of the required gate while fn-211 is
 deferred; `UMPIRE_APALACHE=require make model-check` fetches the pinned release and runs them.
@@ -979,8 +979,7 @@ They are declared once in `[workspace.dependencies]`; a crate opts in with `name
 `proc-macro-error2`, `deluxe`, `index_vec`, `stateright`); `cargo deny check bans` enforces it. A new
 dependency needs the same check and a line in the spec. Native tools use the admitted libc,
 rustix/tempfile, toml (std/parse/serde), sha2 and tar/flate2 packages (backend jar admission
-reuses sha2); current lockfile and
-[fn247 inventories](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
+reuses sha2); current lockfile and [fn247 inventories](../.flow/artifacts/fn-247-one-language-for-the-framework-a-rust/task6/dependency-inventory.json)
 record versions/features, transitive R18 accounting and guest-closure separation.
 
 ## Configured activity proposals

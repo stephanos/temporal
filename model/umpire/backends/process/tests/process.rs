@@ -343,7 +343,7 @@ fn bounded_reads_dump_and_scratch_fail_closed() -> Result<(), Refusal> {
         .finish::<(), Refusal>(Err(Refusal("prior failure".into())))
         .err()
         .ok_or_else(|| Refusal("cleanup failure was hidden".into()))?;
-    assert!(failure.0.contains("TLC cleanup failed"));
+    assert!(failure.0.contains("scratch cleanup failed"));
     assert!(failure.0.contains("prior failure"));
     scratch.finish(Ok(()))
 }
