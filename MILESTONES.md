@@ -545,18 +545,18 @@ Execute this spec through [16 owner-authorized batches](.flow/artifacts/fn242-ex
 | [fn-242.24](.flow/tasks/fn-242-gomad-shrink-the-qualification.24.md) | 🚧 Running | Validate actual guest and preparation observations |
 | [fn-242.25](.flow/tasks/fn-242-gomad-shrink-the-qualification.25.md) | ⬜ Todo | Validate inspection decoding, search and refused mappings |
 | [fn-242.35](.flow/tasks/fn-242-gomad-shrink-the-qualification.35.md) | ⬜ Todo | Validate installed inspection and recovery evidence |
-| [fn-242.26](.flow/tasks/fn-242-gomad-shrink-the-qualification.26.md) | ⬜ Todo | Validate retained inputs, presence and mutation matrix |
+| [fn-242.26](.flow/tasks/fn-242-gomad-shrink-the-qualification.26.md) | 🚧 Running | Validate retained inputs, presence and mutation matrix |
 | [fn-242.34](.flow/tasks/fn-242-gomad-shrink-the-qualification.34.md) | ⬜ Todo | Validate mandatory Results, SQLite selections and Temporal histories |
 | [fn-242.45](.flow/tasks/fn-242-gomad-shrink-the-qualification.45.md) | ⬜ Todo | Validate durable cells and broad closure readback |
-| [fn-242.20](.flow/tasks/fn-242-gomad-shrink-the-qualification.20.md) | ⬜ Todo | Validate runtime artifacts and forced replay aggregates |
+| [fn-242.20](.flow/tasks/fn-242-gomad-shrink-the-qualification.20.md) | 🚧 Running | Validate runtime artifacts and forced replay aggregates |
 | [fn-242.22](.flow/tasks/fn-242-gomad-shrink-the-qualification.22.md) | ⬜ Todo | Implement retained, operator and ringpop final sections |
 | [fn-242.23](.flow/tasks/fn-242-gomad-shrink-the-qualification.23.md) | ⬜ Todo | Validate native command observations and role custody |
-| [fn-242.28](.flow/tasks/fn-242-gomad-shrink-the-qualification.28.md) | ⬜ Todo | Execute static and broad adapters with raw publication |
+| [fn-242.28](.flow/tasks/fn-242-gomad-shrink-the-qualification.28.md) | 🚧 Running | Execute static and broad adapters with raw publication |
 | [fn-242.31](.flow/tasks/fn-242-gomad-shrink-the-qualification.31.md) | ⬜ Todo | Execute installed lifecycle, interception and ringpop adapters |
 | [fn-242.29](.flow/tasks/fn-242-gomad-shrink-the-qualification.29.md) | ⬜ Todo | Build and authenticate CLI and broad harness producers |
 | [fn-242.40](.flow/tasks/fn-242-gomad-shrink-the-qualification.40.md) | ⬜ Todo | Execute primary, runtime, cell and corpus adapters |
 | [fn-242.41](.flow/tasks/fn-242-gomad-shrink-the-qualification.41.md) | ⬜ Todo | Execute identity and divergence harnesses |
-| [fn-242.30](.flow/tasks/fn-242-gomad-shrink-the-qualification.30.md) | ⬜ Todo | Execute workload, inspection, recovery and support adapters |
+| [fn-242.30](.flow/tasks/fn-242-gomad-shrink-the-qualification.30.md) | 🚧 Running | Execute workload, inspection, recovery and support adapters |
 | [fn-242.32](.flow/tasks/fn-242-gomad-shrink-the-qualification.32.md) | ⬜ Todo | Execute frozen reference profile and public role preparation |
 | [fn-242.33](.flow/tasks/fn-242-gomad-shrink-the-qualification.33.md) | ⬜ Todo | Execute independent SQLite oracle and terminal controls |
 | [fn-242.39](.flow/tasks/fn-242-gomad-shrink-the-qualification.39.md) | ⬜ Todo | Validate terminal sidecars, compiler inputs, allocation and cost |
@@ -681,7 +681,7 @@ Owner request 2026-10-20: a Go one-liner and `gomad -- make <target>` intercepti
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | 🚧 Running | run-guest launcher verb behind go -exec with intercepted-origin evidence |
+| [fn-233-gomad-intercept-the-go-command-so-make.1](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.1.md) | ⏸ Parked | run-guest launcher verb behind go -exec with intercepted-origin evidence |
 | [fn-233-gomad-intercept-the-go-command-so-make.2](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md) | ⬜ Todo | go shim: argv[0] dispatch, classification, guest build environment, refusals, host passthrough |
 | [fn-233-gomad-intercept-the-go-command-so-make.3](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.3.md) | ⬜ Todo | gomad -- wrapper, gomad.toml and auto-derived installation |
 | [fn-233-gomad-intercept-the-go-command-so-make.4](.flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.4.md) | ⬜ Todo | Temporal Makefile through the wrapper and operator documentation |
