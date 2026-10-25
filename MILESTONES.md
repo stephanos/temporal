@@ -127,7 +127,7 @@ before fn-246, which rewrites the same probes.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-251.3 | ⬜ todo | After .2: generated `request_findings` replaces Temporal's `Wire` enum (R3) |
+| fn-251.3 | 🔄 in progress | Generated `request_findings` replaces Temporal's `Wire` enum, preserving supplemental intents and failure findings (R3) |
 | fn-251.5 | ⬜ todo | After .2: generated annotation dispatch and `AnnotationRuntime::with_probes` (R5) |
 | fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
 
