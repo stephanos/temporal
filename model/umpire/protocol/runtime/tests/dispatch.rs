@@ -4,11 +4,11 @@
 #[allow(unreachable_pub, reason = "the shared reader is public when reexported by umpire-testing")]
 mod snapshot_payload;
 
+#[path = "../guests/stock/src/model.rs"]
+mod stock;
+
 use prost::Message;
-use umpire_runtime::{
-    Model,
-    protocol::{self, response::Outcome},
-};
+use umpire_runtime::protocol::{self, response::Outcome};
 
 #[path = "../src/refusal.rs"]
 mod refusal_mapping;
@@ -85,11 +85,11 @@ fn empty_assumption_refusal_survives_generated_protocol() {
     assert_eq!(refusal.message, "assumption admits no actions");
 }
 
-fn explore(model: &mut Model, budget: u32) -> protocol::Response {
+fn explore(model: &mut stock::Model, budget: u32) -> protocol::Response {
     model.dispatch(1, &protocol::ExploreRequest { budget }.encode_to_vec())
 }
 
-fn rows(model: &mut Model, state_id: u32) -> protocol::Response {
+fn rows(model: &mut stock::Model, state_id: u32) -> protocol::Response {
     model.dispatch(2, &protocol::RowsRequest { state_id }.encode_to_vec())
 }
 
@@ -101,7 +101,7 @@ fn refusal(response: protocol::Response, code: protocol::RefusalCode) {
 
 #[test]
 fn generated_dispatch_matches_trait_kettle_goldens() {
-    let mut model = Model::default();
+    let mut model = stock::model();
     let Some(Outcome::Explore(result)) = explore(&mut model, 1 << 20).outcome else {
         panic!("expected exploration");
     };
@@ -144,7 +144,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
 
 #[test]
 fn invalid_requests_have_typed_refusals() {
-    let mut model = Model::default();
+    let mut model = stock::model();
     refusal(rows(&mut model, 0), protocol::RefusalCode::NotExplored);
     refusal(model.dispatch(123, &[]), protocol::RefusalCode::UnknownMethod);
     for method in [1, 2] {
@@ -157,7 +157,7 @@ fn invalid_requests_have_typed_refusals() {
 
 #[test]
 fn successful_explore_replaces_graph_and_refusal_preserves_it() {
-    let mut model = Model::default();
+    let mut model = stock::model();
     explore(&mut model, 1 << 20);
     refusal(explore(&mut model, 0), protocol::RefusalCode::Budget);
     assert!(matches!(rows(&mut model, 282).outcome, Some(Outcome::Rows(_))));

@@ -11,6 +11,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+umpire-dsl.workspace = true
 umpire-runtime.workspace = true
 
 [lints.rust]

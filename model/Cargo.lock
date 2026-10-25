@@ -1229,6 +1229,7 @@ dependencies = [
 name = "umpire-stock-guest"
 version = "0.0.1"
 dependencies = [
+ "umpire-dsl",
  "umpire-runtime",
 ]
 
