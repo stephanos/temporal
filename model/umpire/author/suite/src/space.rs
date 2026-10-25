@@ -4,10 +4,10 @@
 use std::{fmt, rc::Rc};
 
 use umpire_checker::{Checker, Report};
-use umpire_dsl::{Associated, CheckOutcome, IntoWorldPath, Machine, Path, Registered};
+use umpire_dsl::{Associated, CheckOutcome, Machine, Registered};
 
 use crate::{
-    Refusal,
+    Refusal, WorldPath,
     search::{self, Rooted, Trace},
 };
 
@@ -232,24 +232,12 @@ pub fn refuted<S: Associated>(
 /// within its gap, searched over one Model exploration within the space's state budget.
 // By value, so `find(&space, path![..])` reads as the question it is.
 #[allow(clippy::needless_pass_by_value)]
-pub fn find<S: Associated, A, O, K>(
+pub fn find<S: Associated>(
     space: &impl SpaceBinding<S>,
-    path: Path<S, A, O>,
+    path: WorldPath<S>,
 ) -> Result<Trace<S::World>, Refusal>
 where
-    Path<S, A, O>: IntoWorldPath<S, K>,
     <S::World as Machine>::Action: 'static,
 {
-    let path = path.into_world_path();
-    if path.is_state_only() {
-        drop(path.alternatives(space.alternative_budget())?);
-        return search::through(
-            space.world().as_ref(),
-            space.starts().to_vec(),
-            &path,
-            space.state_budget(),
-            space.catalog_limit(),
-        );
-    }
     crate::covered::find_pattern(space, &path)
 }

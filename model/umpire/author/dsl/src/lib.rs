@@ -12,7 +12,6 @@ pub mod outcome;
 mod path;
 #[doc(hidden)]
 pub mod path_build;
-mod path_input;
 mod phased;
 mod progress;
 mod scope;
@@ -30,9 +29,6 @@ pub use path::{
     ActionDomain, ActionPredicate, Alternative, Gap, InputDomain, InputRange, IntoWaypoint,
     OutcomePredicate, Path, PathNode, Pattern, PatternError, Waypoint,
 };
-pub use path_input::IntoWorldPath;
-#[doc(hidden)]
-pub use path_input::kind as world_path_kind;
 pub use phased::{Phase, Phased};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};

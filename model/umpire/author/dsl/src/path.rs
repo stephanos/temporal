@@ -299,12 +299,14 @@ fn product<S, A, O>(
         .collect()
 }
 
-impl<S, A: 'static, O> Pattern<S, A, O> {
+impl<S, A, O> Pattern<S, A, O> {
     /// Wraps one state waypoint.
     pub fn state(waypoint: Waypoint<S>) -> Self {
         Self::State(Rc::new(waypoint))
     }
+}
 
+impl<S, A: 'static, O> Pattern<S, A, O> {
     /// Builds a typed action pattern.
     pub fn action(
         domain: ActionDomain<A>,
@@ -568,19 +570,17 @@ impl<S> Waypoint<S> {
     }
 
     /// The path from this waypoint, over `gap`, to `next`.
-    pub const fn then(self, gap: Gap, next: Self) -> Path<S> {
-        Path {
-            first: self,
-            leg: (gap, next),
-            more: Vec::new(),
-            pattern: None,
-            permutation_limit: 6,
-        }
+    pub fn then<A, O>(self, gap: Gap, next: Self) -> Path<S, A, O> {
+        Path::pattern(Pattern::Sequence(vec![
+            Pattern::state(self),
+            Pattern::Gap(gap, None),
+            Pattern::state(next),
+        ]))
     }
 
     /// The path from this waypoint, over `gap`, to a predicate; the predicate's parameter type
     /// is inferred from this waypoint.
-    pub fn then_judged(self, gap: Gap, next: impl Fn(&S) -> bool + 'static) -> Path<S> {
+    pub fn then_judged<A, O>(self, gap: Gap, next: impl Fn(&S) -> bool + 'static) -> Path<S, A, O> {
         self.then(gap, Waypoint::judged(next))
     }
 
@@ -659,29 +659,18 @@ impl<S> IntoWaypoint<S, kind::Is> for S {
 
 const CLAIM_REFUSAL: &str = "a progress claim has one trigger and one target; ask a longer progression with find or Run::along";
 
-/// A finite typed path expression, built with `path!`.
-///
-/// State-only paths retain their first leg inline so a two-waypoint progress claim allocates
-/// nothing beyond its closures. Test-space patterns enumerate concrete nodes instead.
+/// A finite typed path expression, built with `path!`: one pattern and the limit on its
+/// unordered groups.
 #[must_use]
 pub struct Path<S, A = (), O = ()> {
-    first: Waypoint<S>,
-    leg: (Gap, Waypoint<S>),
-    more: Vec<(Gap, Waypoint<S>)>,
-    pattern: Option<Pattern<S, A, O>>,
+    pattern: Pattern<S, A, O>,
     permutation_limit: usize,
 }
 
 impl<S, A, O> Path<S, A, O> {
     /// Builds a path from a typed test-space expression.
     pub fn pattern(pattern: Pattern<S, A, O>) -> Self {
-        Self {
-            first: Waypoint::Holds(true),
-            leg: (Gap::AtMost(0), Waypoint::Holds(true)),
-            more: Vec::new(),
-            pattern: Some(pattern),
-            permutation_limit: 6,
-        }
+        Self { pattern, permutation_limit: 6 }
     }
 
     /// Raises or lowers the maximum number of elements in an unordered group.
@@ -690,23 +679,16 @@ impl<S, A, O> Path<S, A, O> {
         self
     }
 
-    /// Whether this is the original state-waypoint-only path representation.
-    pub const fn is_state_only(&self) -> bool {
-        self.pattern.is_none()
-    }
-
     /// Appends a gap and the waypoint after it.
-    pub fn then(mut self, gap: Gap, waypoint: Waypoint<S>) -> Self {
-        if let Some(pattern) = self.pattern.take() {
-            self.pattern = Some(Pattern::Sequence(vec![
-                pattern,
-                Pattern::Gap(gap, None),
-                Pattern::State(Rc::new(waypoint)),
-            ]));
-            return self;
-        }
-        self.more.push((gap, waypoint));
-        self
+    pub fn then(self, gap: Gap, waypoint: Waypoint<S>) -> Self {
+        let Self { pattern, permutation_limit } = self;
+        let mut parts = match pattern {
+            Pattern::Sequence(parts) => parts,
+            pattern => vec![pattern],
+        };
+        parts.push(Pattern::Gap(gap, None));
+        parts.push(Pattern::state(waypoint));
+        Self { pattern: Pattern::Sequence(parts), permutation_limit }
     }
 
     /// Appends a gap and a predicate, its parameter type inferred from the path.
@@ -714,68 +696,26 @@ impl<S, A, O> Path<S, A, O> {
         self.then(gap, Waypoint::judged(next))
     }
 
-    /// The first waypoint.
-    ///
-    /// # Panics
-    /// Panics for a structured test-space pattern; enumerate its nodes instead.
-    pub const fn first(&self) -> &Waypoint<S> {
-        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of first()");
-        &self.first
-    }
-
-    /// Each later waypoint with the gap before it, in order.
-    ///
-    /// # Panics
-    /// Panics for a structured test-space pattern; enumerate its nodes instead.
-    pub fn legs(&self) -> impl Iterator<Item = (Gap, &Waypoint<S>)> {
-        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of legs()");
-        std::iter::once(&self.leg).chain(&self.more).map(|(gap, waypoint)| (*gap, waypoint))
-    }
-
-    /// The number of waypoints, at least two.
-    ///
-    /// # Panics
-    /// Panics for a structured test-space pattern; count its enumerated nodes instead.
-    pub fn len(&self) -> usize {
-        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of len()");
-        2 + self.more.len()
-    }
-
-    /// Always false for a state-only path, which has two or more waypoints.
-    ///
-    /// # Panics
-    /// Panics for a structured test-space pattern; inspect its enumerated nodes instead.
-    pub const fn is_empty(&self) -> bool {
-        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of is_empty()");
-        false
-    }
-
     /// Splits a claim's path into trigger, gap and target.
     ///
     /// # Panics
     ///
-    /// A path with more than two waypoints is not a claim; `#[machine]` refuses a literal
-    /// `path!` of that shape at compile time and this refuses one built elsewhere.
-    pub fn claim(self) -> (Waypoint<S>, Gap, Waypoint<S>) {
-        assert!(self.pattern.is_none(), "a progress claim is two state predicates");
-        assert!(self.more.is_empty(), "{CLAIM_REFUSAL}");
-        (self.first, self.leg.0, self.leg.1)
-    }
-}
-
-impl<S> Path<S> {
-    /// Adapts a legacy state path to a world's action and outcome types.
-    pub fn into_world<M: crate::Machine<State = S>>(self) -> Path<S, M::Action, M::Outcome> {
-        assert!(
-            self.pattern.is_none(),
-            "only state paths can be adapted without action conversion"
-        );
-        Path {
-            first: self.first,
-            leg: self.leg,
-            more: self.more,
-            pattern: None,
-            permutation_limit: self.permutation_limit,
+    /// A path other than two state waypoints around one ordinary gap is not a claim;
+    /// `#[machine]` refuses a literal `path!` of another shape at compile time and this refuses
+    /// one built elsewhere.
+    pub fn claim(self) -> (Waypoint<S>, Gap, Waypoint<S>)
+    where
+        S: Clone,
+    {
+        let owned = |waypoint: Rc<Waypoint<S>>| {
+            Rc::try_unwrap(waypoint).unwrap_or_else(|shared| (*shared).clone())
+        };
+        let Pattern::Sequence(parts) = self.pattern else { panic!("{CLAIM_REFUSAL}") };
+        match <[_; 3]>::try_from(parts) {
+            Ok([Pattern::State(trigger), Pattern::Gap(gap, None), Pattern::State(target)]) => {
+                (owned(trigger), gap, owned(target))
+            }
+            _ => panic!("{CLAIM_REFUSAL}"),
         }
     }
 }
@@ -783,40 +723,16 @@ impl<S> Path<S> {
 impl<S, A: 'static, O> Path<S, A, O> {
     /// Counts every authored finite alternative without allocating its expansion.
     pub fn alternative_count(&self) -> Result<usize, PatternError> {
-        self.pattern
-            .as_ref()
-            .map_or(Ok(1), |pattern| pattern.size(self.permutation_limit).map(|size| size.0))
+        self.pattern.size(self.permutation_limit).map(|size| size.0)
     }
 
     /// Expands alternatives after admitting their count and concrete storage.
     /// A conservative storage bound admits at most one million concrete nodes
     /// and alternative records combined,
     /// independently of the alternative budget.
-    pub fn alternatives(&self, budget: usize) -> Result<Vec<Alternative<S, A, O>>, PatternError>
-    where
-        S: Clone,
-    {
+    pub fn alternatives(&self, budget: usize) -> Result<Vec<Alternative<S, A, O>>, PatternError> {
         let limit = 1_000_000;
-        let Some(pattern) = &self.pattern else {
-            if budget == 0 {
-                return Err(PatternError::Budget { count: 1, budget });
-            }
-            let length = self
-                .len()
-                .checked_mul(2)
-                .and_then(|length| length.checked_sub(1))
-                .ok_or(PatternError::ExpansionOverflow)?;
-            if length > limit {
-                return Err(PatternError::ExpansionTooLarge { nodes: length, limit });
-            }
-            let mut nodes = vec![PathNode::State(Rc::new(self.first.clone()))];
-            for (gap, state) in self.legs() {
-                nodes.push(PathNode::Gap { gap, exclude: None });
-                nodes.push(PathNode::State(Rc::new(state.clone())));
-            }
-            return Ok(vec![Alternative { nodes, choices: Vec::new() }]);
-        };
-        let (count, length) = pattern.size(self.permutation_limit)?;
+        let (count, length) = self.pattern.size(self.permutation_limit)?;
         if count > budget {
             return Err(PatternError::Budget { count, budget });
         }
@@ -827,28 +743,12 @@ impl<S, A: 'static, O> Path<S, A, O> {
         if nodes > limit {
             return Err(PatternError::ExpansionTooLarge { nodes, limit });
         }
-        Ok(pattern.expand())
-    }
-
-    /// Converts an owned path to its typed expression tree.
-    pub fn into_pattern(self) -> Pattern<S, A, O> {
-        self.pattern.unwrap_or_else(|| {
-            let mut parts = vec![
-                Pattern::state(self.first),
-                Pattern::Gap(self.leg.0, None),
-                Pattern::state(self.leg.1),
-            ];
-            for (gap, waypoint) in self.more {
-                parts.push(Pattern::Gap(gap, None));
-                parts.push(Pattern::state(waypoint));
-            }
-            Pattern::Sequence(parts)
-        })
+        Ok(self.pattern.expand())
     }
 }
 
 /// Constructs a typed path pattern with state checks, actions and optional outcomes.
-/// `path![p, .., q]` retains the state-only form; `..=n` bounds its intervening steps.
+/// `path![p, .., q]` is a state-only sequence; `..=n` bounds its intervening steps.
 /// Tests may add `Actor::Action`, `Actor::Action { field: 0..=3, .. }`, `Actor::*`,
 /// `Actor::Action => Outcome::Value`, `(a | b)`, `[a; n]`, `[a; min..=max]`,
 /// `unordered![a, b]` and action-excluding gaps `..!(a, b)`.

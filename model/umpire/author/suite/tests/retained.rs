@@ -145,14 +145,14 @@ fn legacy_spaces_preserve_unconstrained_configuration_and_auto_traits() {
 }
 
 #[test]
-fn legacy_queries_preserve_explicit_generic_argument_counts() -> Result<(), Refusal> {
+fn queries_take_the_state_as_their_one_explicit_generic_argument() -> Result<(), Refusal> {
     let space = Space::from([Model]);
     assert_eq!(verify_all::<Model>(&space)?.counts.reached, 1);
     assert_eq!(refuted::<Model>(&space, |_| false)?.steps.len(), 0);
     let pattern =
         || Path::<Model, u8, Outcome>::pattern(Pattern::State(Rc::new(Waypoint::Is(Model))));
-    assert_eq!(find::<Model, _, _, _>(&space, pattern())?.steps.len(), 0);
-    assert_eq!(cover::<Model, _, _, _>(&space, Cases(1), pattern())?.len(), 1);
-    assert_eq!(sample::<Model, _, _, _>(&space, pattern(), 1, 7)?.len(), 1);
+    assert_eq!(find::<Model>(&space, pattern())?.steps.len(), 0);
+    assert_eq!(cover::<Model>(&space, Cases(1), pattern())?.len(), 1);
+    assert_eq!(sample::<Model>(&space, pattern(), 1, 7)?.len(), 1);
     Ok(())
 }

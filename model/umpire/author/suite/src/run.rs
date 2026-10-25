@@ -1,11 +1,11 @@
 use std::{fmt, rc::Rc};
 
 use umpire_checker::{Checker, PathStep};
-use umpire_dsl::{Associated, IntoWorldPath, Machine, Path, PathNode, Registered, Waypoint};
+use umpire_dsl::{Associated, Machine, PathNode, Registered, Waypoint};
 
 use crate::{
-    Refusal,
-    search::{self, Trace},
+    Refusal, WorldPath,
+    search::{self, Anchor, Graph, Rooted, Trace},
 };
 
 type Action<S> = <<S as Associated>::World as Machine>::Action;
@@ -26,21 +26,21 @@ impl<S: Registered> From<S> for Run<S> {
 
 impl<S: Registered> Run<S> {
     /// Finds a story using the state's registered world.
-    pub fn along<A, O, K>(path: Path<S, A, O>) -> Result<Self, Refusal>
+    pub fn along(path: WorldPath<S>) -> Result<Self, Refusal>
     where
-        Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
         Self::along_with_budget(path, Checker::BUDGET)
     }
 
     /// Finds a story using the registered world within a state budget.
-    pub fn along_with_budget<A, O, K>(path: Path<S, A, O>, budget: usize) -> Result<Self, Refusal>
+    // By value, matching `Run::along(path![..])`.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn along_with_budget(path: WorldPath<S>, budget: usize) -> Result<Self, Refusal>
     where
-        Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
-        Self::along_with_world(S::world, path, budget)
+        Self::along_with_world(S::world, &path, budget)
     }
 }
 
@@ -83,9 +83,8 @@ impl<S: Associated> Run<S> {
     /// Fills in a story told by its milestones: from the first waypoint, a state, the shortest
     /// path through every waypoint within its gap is found over retained Model rows.
     // By value, so `Run::along(path![..])` reads as the story it is.
-    pub fn along_in<A, O, K>(world: S::World, path: Path<S, A, O>) -> Result<Self, Refusal>
+    pub fn along_in(world: S::World, path: WorldPath<S>) -> Result<Self, Refusal>
     where
-        Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
         Self::along_in_with_budget(world, path, Checker::BUDGET)
@@ -94,43 +93,28 @@ impl<S: Associated> Run<S> {
     /// Finds the shortest path, admitting at most `budget` distinct Model states.
     // By value, matching `Run::along(path![..])`.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn along_in_with_budget<A, O, K>(
+    pub fn along_in_with_budget(
         world: S::World,
-        path: Path<S, A, O>,
+        path: WorldPath<S>,
         budget: usize,
     ) -> Result<Self, Refusal>
     where
-        Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
-        Self::along_with_world(|| world, path, budget)
+        Self::along_with_world(|| world, &path, budget)
     }
 
-    fn along_with_world<A, O, K>(
+    fn along_with_world(
         world: impl FnOnce() -> S::World,
-        path: Path<S, A, O>,
+        path: &WorldPath<S>,
         budget: usize,
     ) -> Result<Self, Refusal>
     where
-        Path<S, A, O>: IntoWorldPath<S, K>,
         Action<S>: 'static,
     {
-        let path = path.into_world_path();
         let count = path.alternative_count()?;
         if count != 1 {
             return Err(Refusal::StoryAlternatives { count });
-        }
-        if path.is_state_only() {
-            let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
-            let world = Rc::new(world());
-            let found = search::through(
-                world.as_ref(),
-                vec![start.clone()],
-                &path,
-                budget,
-                Checker::CATALOG_LIMIT,
-            )?;
-            return Ok(Self::retained(world, found));
         }
         let alternatives = path.alternatives(1)?;
         let Some(PathNode::State(first)) = alternatives[0].nodes.first() else {
@@ -138,11 +122,9 @@ impl<S: Associated> Run<S> {
         };
         let Waypoint::Is(start) = first.as_ref() else { return Err(Refusal::Unanchored) };
         let world = Rc::new(world());
-        let rooted =
-            search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
+        let rooted = Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
         let explored = rooted.explore(budget, Checker::CATALOG_LIMIT)?;
-        let graph = crate::pattern_search::Graph::new(&explored)?;
-        let found = match graph.shortest(&alternatives[0], false) {
+        let found = match Graph::new(&explored)?.shortest(&alternatives[0], Anchor::Starts) {
             Ok(found) => found,
             Err(error @ Refusal::Unbridged { .. }) => {
                 search::failed(&explored.verify_all()?, 0, None)?;

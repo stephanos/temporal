@@ -1,17 +1,11 @@
-use umpire_dsl::{Alternative, Associated, IntoWorldPath, Machine, Path};
+use umpire_dsl::{Alternative, Associated, Machine};
 
 use crate::{
-    Coverage, Refusal, Run, SpaceBinding,
+    Coverage, Refusal, Run, SpaceBinding, WorldPath,
     coverage::{ObservedStep, WitnessObservation, coverage},
-    pattern_search::{Graph, Rng, Witness},
-    search::{self, Rooted, Trace},
+    search::{self, Anchor, Graph, Rng, Rooted, Trace, Witness},
 };
 
-type WorldPath<S> = Path<
-    S,
-    <<S as Associated>::World as Machine>::Action,
-    <<S as Associated>::World as Machine>::Outcome,
->;
 type Choice<S> = Alternative<
     S,
     <<S as Associated>::World as Machine>::Action,
@@ -109,16 +103,16 @@ fn alternative<S: Associated>(index: usize, choice: &Choice<S>, failure: Refusal
 
 /// Finds one shortest witness per authored alternative over one retained Model graph.
 /// A case-count mismatch precedes Model stepping; a cut graph always refuses coverage.
-pub fn cover<S: Associated, A, O, K>(
+// By value, so `cover(&space, Cases(n), path![..])` reads as the question it is.
+#[allow(clippy::needless_pass_by_value)]
+pub fn cover<S: Associated>(
     space: &impl SpaceBinding<S>,
     cases: Cases,
-    path: Path<S, A, O>,
+    path: WorldPath<S>,
 ) -> Result<Covered<S>, Refusal>
 where
-    Path<S, A, O>: IntoWorldPath<S, K>,
     <S::World as Machine>::Action: 'static,
 {
-    let path = path.into_world_path();
     let alternatives = admit::<S>(&path, space.alternative_budget(), Some(cases))?;
     let world = space.world();
     let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
@@ -131,8 +125,9 @@ where
     let mut witnesses = Vec::with_capacity(alternatives.len());
     let mut records = 0usize;
     for (index, choice) in alternatives.iter().enumerate() {
-        let found =
-            graph.shortest(choice, true).map_err(|error| alternative::<S>(index, choice, error))?;
+        let found = graph
+            .shortest(choice, Anchor::Anywhere)
+            .map_err(|error| alternative::<S>(index, choice, error))?;
         charge(&mut records, found.rows.len() + 1)?;
         witnesses.push((index, found));
     }
@@ -143,17 +138,17 @@ where
 /// Performs a finite seeded experiment of actual pattern-admitted random walks.
 /// Each selected alternative must finish within `Space::walk_bound`; cuts refuse the experiment.
 /// Sampling establishes only this experiment, never exhaustive alternative coverage.
-pub fn sample<S: Associated, A, O, K>(
+// By value, matching `cover`.
+#[allow(clippy::needless_pass_by_value)]
+pub fn sample<S: Associated>(
     space: &impl SpaceBinding<S>,
-    path: Path<S, A, O>,
+    path: WorldPath<S>,
     n: usize,
     seed: u64,
 ) -> Result<Covered<S>, Refusal>
 where
-    Path<S, A, O>: IntoWorldPath<S, K>,
     <S::World as Machine>::Action: 'static,
 {
-    let path = path.into_world_path();
     let alternatives = admit::<S>(&path, space.alternative_budget(), None)?;
     if n > MAX_RECORDS {
         return Err(Refusal::SearchLimit { limit: MAX_RECORDS });
@@ -173,7 +168,7 @@ where
         let index = rng.index(alternatives.len());
         let choice = &alternatives[index];
         let found = graph
-            .walk(choice, true, space.walk_bound(), &mut rng)
+            .walk(choice, Anchor::Anywhere, space.walk_bound(), &mut rng)
             .map_err(|error| alternative::<S>(index, choice, error))?;
         charge(&mut records, found.rows.len() + 1)?;
         witnesses.push((index, found));
@@ -272,7 +267,7 @@ where
     let mut best = None;
     let mut refusal = None;
     for choice in &alternatives {
-        match graph.shortest(choice, true) {
+        match graph.shortest(choice, Anchor::Anywhere) {
             Ok(found)
                 if best.as_ref().is_none_or(|old: &Trace<S::World>| {
                     found.trace.steps.len() < old.steps.len()
