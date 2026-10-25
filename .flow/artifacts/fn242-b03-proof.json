@@ -1,0 +1,76 @@
+{
+  "verified_epoch": 1792892648.8940392,
+  "worker_source": "c8627f83b322cde7dae62e5c2cff00a470ef2b95",
+  "source_files": 2982,
+  "green_gates": 11,
+  "original_checks": 69,
+  "functions": 26,
+  "endpoints": 2,
+  "observations": 120,
+  "closure_files": 10245,
+  "closure_bytes": 579847732,
+  "referenced_compiler_original_and_backup_hashes_verified": 10,
+  "raw_proof_pins": 9,
+  "proof_map_sha256": "bf541c6fc7845920b970dcc2f63858ae9c47c5f352c76ac865891e344c03b3f5",
+  "qualification_claim": false,
+  "integration_source_files_equal_worker": [
+    "tools/gomad/rust/Cargo.lock",
+    "tools/gomad/rust/Cargo.toml",
+    "tools/gomad/rust/gomad/Cargo.toml",
+    "tools/gomad/rust/gomad/src/cycle/custody/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/plan/leaf/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/cells.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/owner_cases.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/public.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/publication.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/roles.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/bindings/tests.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/mod.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/static_inputs.rs",
+    "tools/gomad/rust/gomad/src/cycle/preparation/composition/tests.rs",
+    "tools/gomad/rust/gomad/src/cycle/process/mod.rs"
+  ],
+  "owner_fixture_integration": "Preserved B03bindings and reviewedB04command dispatch arms; original enforcing bodies unchanged.",
+  "worker_handoff": "/home/agent/wt/evidence/fn242-b03-bindings-composition/handoff.json",
+  "worker_handoff_sha256": "7f850117a9137a8fb51e5e5d3359ae8cafe7ac858f83b00d5334953e694c1cf7",
+  "proof_map": "/home/agent/wt/evidence/fn242-b03-bindings-composition/proof-map.json",
+  "integration_controls": {
+    "genuine-B03-bindings-pure.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-bindings-pure.log",
+      "sha256": "85a72c36f5b7e5521a26a422bbd30791215370d4c70545f0d8c43b960f5d75fa",
+      "result_lines": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 865 filtered out; finished in 0.04s"
+      ]
+    },
+    "genuine-B03-composition-pure.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-composition-pure.log",
+      "sha256": "41edbe7a32417cd390ac629d78c727be59be73df15861bee50a35eef474c7830",
+      "result_lines": [
+        "test result: FAILED. 11 passed; 1 failed; 0 ignored; 0 measured; 858 filtered out; finished in 1.91s"
+      ]
+    },
+    "genuine-B03-current-inventory-registration.log": {
+      "path": "/home/agent/wt/evidence/fn242-b06-world-lifecycle/genuine-B03-current-inventory-registration.log",
+      "sha256": "6af89a3ea0c582bf8fd6b5ab2d63e4b6766561e4e5f570bd1824111aeacdc6ce",
+      "result_lines": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 869 filtered out; finished in 0.48s"
+      ]
+    }
+  },
+  "integration_control_disposition": "B06combinede624 source compiled0; B03bindings5pass; composition11pass/1integrationfailure correctly refused unregisterednewB06ignoredtest. After exact additive registrydae7c52c97 the affected compiledinventorycase1pass; all12composition cases now have actualpassingevidence. No B03validator/source change for registry correction.",
+  "limits": "No final fullcycle qualification. Role/native evidence authenticworker c862 candidate, not laterintegratedcandidate. Scopeevidence reuses exactownedsource/dependencies; B06World-only implementation differs outsideB03scope.",
+  "review": {
+    "verdict": "NEEDS_WORK",
+    "rid": "0df920b683f541f6a2ac18fb0926f217",
+    "reviewed_head": "aeced47e0c",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "findings": 1,
+    "R2": "Composed HostTests/HelperTests/HostFixture leafpaths are not tied to authenticated CandidateRoles descriptors; genuine freeze-v4 accepted unsealed placeholder paths. Fix requires actualrole mapping/seals and catching currentexecutable/path mutations.",
+    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round1.json",
+    "receipt_sha256": "3b87995d2cd50d8e376f0c61bae3023499b2f9f2d3c71b0581d148561ca59d14",
+    "rereview": "Single same-receipt impl-review after actualproductionfix and greencontrols; no fanoutrestart"
+  },
+  "acceptance": "INCOMPLETE: original69-ID observation map retained as historicalevidence; review proves missing consumed-role closure, so no R2completion or Flowdone."
+}
