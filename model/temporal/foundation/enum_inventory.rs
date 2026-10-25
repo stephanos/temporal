@@ -6,7 +6,7 @@ use umpire_temporal_api::temporal::api::enums::v1::{
     PendingActivityState, RetryState, TaskQueueKind, TimeoutType,
 };
 
-umpire_temporal_annotate::annotate! {
+umpire_catalog::annotate! {
     pub catalog enum_inventory;
     enum retry_state: RetryState = "temporal.api.enums.v1.RetryState" {
         RetryState::Unspecified = "RETRY_STATE_UNSPECIFIED",

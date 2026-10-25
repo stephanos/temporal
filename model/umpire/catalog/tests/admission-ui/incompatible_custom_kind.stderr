@@ -1,0 +1,5 @@
+error: custom tag Visibility is incompatible with kind Uuid
+ --> tests/admission-ui/incompatible_custom_kind.rs:8:69
+  |
+8 |     message response message: Message = "test.Message" { id: Uuid + Visibility; }
+  |                                                                     ^^^^^^^^^^

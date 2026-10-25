@@ -170,8 +170,8 @@ identifier fill, semantic views and `derive(Catalog)`. The struct `Catalog<M>` a
 Mirror items select their generated API root and limit context with
 `#[mirror(api = crate::api, context = crate::Limits, request = "example.v1.Request")]`;
 without overrides the defaults are `crate` and `crate::CatalogContext`. Explicit `type`
-continues to select one message type. Temporal's derive facade supplies its upstream
-API root and dynamic-config context to the same implementation.
+continues to select one message type. Temporal's realization re-exports its generated
+API namespace and aliases `CatalogContext` to its dynamic-config limits at the crate root.
 
 `umpire-catalog-syntax` owns declaration admission and descriptor exhaustiveness, and
 `proto::Graph::new(bytes, rust_root)`: the one descriptor graph (messages, fields, presence,
@@ -456,7 +456,7 @@ comparison and capability boundaries.
 ## Annotating an API
 
 Author each feature's sidecar in `temporal/feature/<feature>/api.rs`, alongside its
-independent Model. Follow the [annotation guide](temporal/annotate/README.md) for
+independent Model. Follow the [annotation guide](temporal/foundation/README.md) for
 derive mirrors, typed projections, constraints, roles and exhaustive mappings;
 [Annotation catalog](DESIGN.md#annotation-catalog) explains admission and the API bump workflow.
 Use the activity catalog as the concrete example. Request constraints need an expectation

@@ -1,5 +1,0 @@
-error: request rule requires an expectation
- --> tests/ui/missing_rule_expectation.rs:8:8
-  |
-8 | #[rule(any_of(id))]
-  |        ^^^^^^

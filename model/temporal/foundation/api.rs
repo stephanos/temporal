@@ -2,7 +2,7 @@
 #![allow(dead_code, reason = "Mirror fields describe the API and are never instantiated")]
 
 use super::{dc, views};
-use umpire_temporal_annotate::{
+use umpire_catalog::{
     Catalog,
     kinds::{
         Counter, Duration, Enum, Flag, Identifier, Ignored, Map, Message, OneOf, RawDuration,

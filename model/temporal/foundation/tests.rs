@@ -70,3 +70,12 @@ fn worker_failure_presence_probe_mutates_the_actual_oneof() -> Result<(), Box<dy
     assert!(baseline.failure_info.is_some());
     Ok(())
 }
+
+#[test]
+fn conditional_retry_setter_produces_a_real_invalid_coefficient()
+-> Result<(), umpire_catalog::GenerationError> {
+    let mut retry = umpire_temporal_api::temporal::api::common::v1::RetryPolicy::default();
+    super::views::backoff_coefficient::set(&mut retry, 0)?;
+    assert_eq!(super::views::backoff_coefficient::view(&retry), 0);
+    Ok(())
+}

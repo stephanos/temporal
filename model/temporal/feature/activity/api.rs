@@ -3,7 +3,7 @@
 
 use crate::activity::{self, Client, Deadline, Worker};
 use crate::foundation::dc;
-use umpire_temporal_annotate::{
+use umpire_catalog::{
     Catalog,
     kinds::{
         Counter, Duration, Enum, Flag, Identifier, Ignored, Message, OneOf, RawDuration, Secret,
@@ -440,7 +440,7 @@ pub struct RequestCancelActivityExecutionRequest {
 pub struct RequestCancelActivityExecutionResponse {}
 
 use crate::foundation::service::{self, RpcRole};
-use umpire_temporal_annotate::Binding;
+use umpire_catalog::Binding;
 use umpire_temporal_api::WorkflowServiceMethod;
 
 /// The RPCs this feature claims; every other RPC is out of scope with its resource family.

@@ -1,0 +1,24 @@
+---
+source: umpire/catalog/tests/controls.rs
+expression: output
+---
+test.Request.count: Counter(NumberRules { gt: None, gte: Some(1), lt: None, lte: None }) [("Decided", Decided)]
+  int32.gte: Expected { expectation: Rejects { code: 3, message_pattern: "bad", details_type: None } }
+test.Request.id: Uuid [("Decided", Decided)]
+  string.uuid: Expected { expectation: Accepts }
+test.Request.status: Enum(EnumRules { defined_only: true, values: [0, 2] }) [("Decided", Decided)]
+  enum.defined_only: Expected { expectation: Accepts }
+test.Response.choice_flag: Bytes(BytesRules { min_len: None, max_len: None }) [("Ignored", Ignored("oneof outside the model"))]
+test.Response.flag: Bytes(BytesRules { min_len: None, max_len: None }) [("Ignored", Ignored("boolean outside the model"))]
+test.Response.id: Uuid []
+test.Response.labels: Bytes(BytesRules { min_len: None, max_len: None }) [("Ignored", Ignored("map outside the model"))]
+test.Response.opaque: Bytes(BytesRules { min_len: None, max_len: None }) [("Ignored", Ignored("nested message outside the model"))]
+test.Response.text: Bytes(BytesRules { min_len: None, max_len: None }) [("Ignored", Ignored("oneof outside the model"))]
+test.Response.timestamp: Timestamp(NumberRules { gt: None, gte: Some(1), lt: None, lte: None }) [("Visibility", EventuallyConsistent { polls: 3 })]
+rule: Rule { presence: Required(["id"]), expected: Some(Expected { expectation: Accepts }) }
+rpc: ("test.Service.Start", "Action", "Client::Start")
+rpc: ("test.Service.Poll", "Observed", "poll")
+rpc: ("test.Service.Other", "OutOfScope", "not represented by this model")
+binding: Rpc("test.Service.Start")
+binding: Environmental("cancellation")
+binding: Observed("poll")

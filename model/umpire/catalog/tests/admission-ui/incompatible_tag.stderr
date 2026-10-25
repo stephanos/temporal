@@ -1,0 +1,5 @@
+error: tag IdempotencyKey is incompatible with kind Counter
+ --> tests/admission-ui/incompatible_tag.rs:9:26
+  |
+9 | struct Mirror { #[mirror(idempotency_key)] count: Counter }
+  |                          ^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: opaque fields require Bytes or Secret and only Ignored(reason)
+ --> tests/admission-ui/ignored_kind_type.rs:9:48
+  |
+9 | struct Mirror { #[mirror(ignored = "outside")] value: Uuid }
+  |                                                ^^^^^

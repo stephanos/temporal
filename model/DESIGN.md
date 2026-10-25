@@ -1032,7 +1032,7 @@ The 87-line increase retains explicit field reasons; this source is longer. The 
 Authors classify the API fields a feature uses in its typed sidecar,
 `temporal/feature/activity/api.rs`. Upstream protos remain unchanged. The catalog
 supplies generation, validation, consequences and expected server errors; the independent
-`model.rs` continues to own transitions. [Authoring syntax](temporal/annotate/README.md)
+`model.rs` continues to own transitions. [Authoring syntax](temporal/foundation/README.md)
 lives beside the `Catalog` derive.
 
 ### Layering and admission

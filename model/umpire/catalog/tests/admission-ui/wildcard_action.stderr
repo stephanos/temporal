@@ -1,0 +1,5 @@
+error: action must name a variant; wildcard bindings hide additions
+  --> tests/admission-ui/wildcard_action.rs:11:29
+   |
+11 |         Action::Client => { _ => Rpc("test.Service.Start"), },
+   |                             ^

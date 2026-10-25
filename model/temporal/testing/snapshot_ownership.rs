@@ -22,7 +22,7 @@ const READERS: &[(&str, &str)] = &[
         "expansion::executable_expansion_and_source_coverage",
     ),
     (
-        "temporal/annotate/tests/snapshots/controls__generated-catalog.snap",
+        "umpire/catalog/tests/snapshots/controls__generated-catalog.snap",
         "controls::generated_catalogs_retain_executable_declaration_metadata",
     ),
     (

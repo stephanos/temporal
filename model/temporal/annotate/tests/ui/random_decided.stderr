@@ -1,5 +1,0 @@
-error: contradictory roles or kind/tag pair
- --> tests/ui/random_decided.rs:7:9
-  |
-7 |         bytes: Random + Decided;
-  |         ^^^^^
