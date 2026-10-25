@@ -2,7 +2,6 @@
 
 use std::collections::BTreeSet;
 
-use heck::ToUpperCamelCase;
 use proc_macro2::TokenStream;
 use prost::Message;
 use quote::quote;
@@ -165,14 +164,7 @@ fn public_type(proto: &str, root: &str) -> String {
 }
 
 pub(super) fn type_name(proto: &str) -> String {
-    let name = proto.to_upper_camel_case();
-    if name == "Self" {
-        format!("{name}_")
-    } else if name.starts_with(char::is_numeric) {
-        format!("_{name}")
-    } else {
-        name
-    }
+    umpire_catalog_syntax::naming::upper_camel(proto)
 }
 
 fn bindings(

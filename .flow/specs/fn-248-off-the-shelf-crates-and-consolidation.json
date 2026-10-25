@@ -12,6 +12,7 @@
   "id": "fn-248-off-the-shelf-crates-and-consolidation",
   "impl_review_rounds": {
     "fn-248-off-the-shelf-crates-and-consolidation.3": 0,
+    "fn-248-off-the-shelf-crates-and-consolidation.4": 1,
     "fn-248-off-the-shelf-crates-and-consolidation.6": 0
   },
   "next_task": 1,
@@ -209,6 +210,58 @@
       "task": "fn-248-off-the-shelf-crates-and-consolidation.6",
       "timestamp": "2026-10-25T02:24:10.322236Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "30e78648bcd4125f17c360d3895fdfe38fa8e697f5aaf1782794bc6b9b6fe8bd",
+      "backend": "codex",
+      "base_sha": "ea98df9ff47c6e98508e7b71b3512d4291df5c1f",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee762b4a40f6ea633ccb58eef31b6e14",
+            "classification": "introduced",
+            "findingId": "finding-ee762b4a40f6ea633ccb58eef31b6e14",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-704b359f3ee773541e2ecf1eb9a792c6",
+            "classification": "introduced",
+            "findingId": "finding-704b359f3ee773541e2ecf1eb9a792c6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1735,
+      "output_sha256": "abed2f5d0d17f28aa525f5622e216a83c7694c4c8edc5e0660a161553f64c8af",
+      "reservation_id": "eea5aaa23c454bd99d36367b018ab724",
+      "round_consumed": true,
+      "scope": "impl:fn-248-off-the-shelf-crates-and-consolidation.4",
+      "superseded_by": null,
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.4",
+      "timestamp": "2026-10-25T02:39:19.293091Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -221,6 +274,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-248-off-the-shelf-crates-and-consolidation.3": 0,
+    "impl:fn-248-off-the-shelf-crates-and-consolidation.4": 0,
     "impl:fn-248-off-the-shelf-crates-and-consolidation.6": 0,
     "plan": 0
   },
@@ -238,5 +292,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T02:24:10.326134Z"
+  "updated_at": "2026-10-25T02:39:19.297646Z"
 }

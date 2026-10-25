@@ -1,7 +1,7 @@
 //! The shared attribute grammar for compiler expansion and descriptor admission.
 
 use darling::{FromMeta, ast::NestedMeta, util::Flag};
-use heck::{ToSnakeCase, ToUpperCamelCase};
+use heck::ToUpperCamelCase;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
@@ -190,7 +190,11 @@ impl syn::parse::Parse for ApiAttributes {
                         syn::MetaNameValue {
                             path: key.into(),
                             eq_token,
-                            value: syn::parse_quote!(#value),
+                            value: Expr::Path(syn::ExprPath {
+                                attrs: Vec::new(),
+                                qself: None,
+                                path: value,
+                            }),
                         },
                     )));
                 }
@@ -672,8 +676,9 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
     let message = parts
         .pop()
         .ok_or_else(|| syn::Error::new(proto.span(), "missing protobuf message name"))?;
-    let message = message.to_upper_camel_case();
-    let package = parts.iter().map(|part| part.to_snake_case()).collect::<Vec<_>>().join("::");
+    let message = crate::naming::upper_camel(message);
+    let package =
+        parts.iter().map(|part| crate::naming::snake(part)).collect::<Vec<_>>().join("::");
     let path = if package == "google::protobuf" {
         format!("::umpire_runtime::google::protobuf::{message}")
     } else {
@@ -687,7 +692,7 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
 
 /// Stable snake-case name used for catalog factories.
 pub fn factory_name(name: &Ident) -> Ident {
-    format_ident!("{}", name.unraw().to_string().to_snake_case())
+    format_ident!("{}", crate::naming::snake(&name.unraw().to_string()))
 }
 
 pub(crate) fn map_entry_proto(parent: &LitStr, field: &Ident) -> String {
@@ -873,6 +878,26 @@ fn validate_kind(ty: &Type, kind: &str) -> syn::Result<()> {
 #[cfg(test)]
 mod attribute_controls {
     use super::*;
+
+    #[test]
+    fn scalar_options_preserve_generic_type_paths() -> syn::Result<()> {
+        for key in ["context", "api", "type", "via", "response_checks"] {
+            let parsed: ApiAttributes = syn::parse_str(&format!("{key} = crate::Context<u32>"))?;
+            let path = match key {
+                "context" => parsed.context,
+                "api" => parsed.api,
+                "type" => parsed.proto_type,
+                "via" => parsed.via,
+                _ => parsed.response_checks,
+            }
+            .ok_or_else(|| syn::Error::new(Span::call_site(), "missing scalar path"))?;
+            assert_eq!(
+                quote::quote!(#path).to_string(),
+                quote::quote!(crate::Context<u32>).to_string()
+            );
+        }
+        Ok(())
+    }
 
     #[test]
     fn scalar_options_refuse_duplicates_at_the_second_occurrence()

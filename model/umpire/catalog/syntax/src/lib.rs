@@ -4,6 +4,7 @@ mod derive;
 mod derive_expand;
 pub mod descriptor;
 mod expand;
+pub mod naming;
 mod parse;
 pub mod services;
 mod tree;
