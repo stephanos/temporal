@@ -1,0 +1,23 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+    Finished `test` profile [unoptimized] target(s) in 3.28s
+     Running tests/core_protocol.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/core_protocol-1db28f45130278f4)
+
+running 5 tests
+test explanation_outcomes_are_additive_at_tag_two ... ok
+test any_admits_only_canonical_urls_and_distinguishes_refusals ... ok
+test new_core_messages_match_shared_literal_bytes ... ok
+test new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals ... ok
+test explained_zero_steps_is_present_and_distinct_from_unexplained ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proposal_wire.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/proposal_wire-ff36eec9e0df30e1)
+
+running 1 test
+test proposal_method_kind_and_poll_wire_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

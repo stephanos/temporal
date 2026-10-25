@@ -1,0 +1,100 @@
+{
+  "source_commit": "b9a1bf3f478574aa69198059077e292b6df1a716",
+  "model_tree": "02c7465f29157ea0a92c9968670d5d221a59c991",
+  "scope": "Batched affected integration boundaries after task8 and task11 fixes. Verified worker full175test/UI/clippy/fmt/boundary evidence retained; skip duplicate UI on this changed-boundary pass. Required full integration gate remains task15 checkpoint/final.",
+  "results": [
+    {
+      "name": "metadata",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-dsl-macros",
+        "--test",
+        "metadata_semantics",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 4.474,
+      "log": ".flow/tmp/milestones-resume-20261024/registry-contract-joined-metadata.log",
+      "log_sha256": "726c83e9c672b68dc38b62030a5a56bb014dc41eb03bc8097a0ed0f79ad25ad9"
+    },
+    {
+      "name": "registry-reach",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal",
+        "--test",
+        "registry",
+        "--locked",
+        "--",
+        "--skip",
+        "registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types"
+      ],
+      "exit_code": 0,
+      "seconds": 16.862,
+      "log": ".flow/tmp/milestones-resume-20261024/registry-contract-joined-registry-reach.log",
+      "log_sha256": "9d15a5d1028ffb7ce57acd711bafd9c56ceddb290cb4a402d4e18da6a04df8d2"
+    },
+    {
+      "name": "registry-expansion",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "--lib",
+        "typed_registry_expansion",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 3.412,
+      "log": ".flow/tmp/milestones-resume-20261024/registry-contract-joined-registry-expansion.log",
+      "log_sha256": "607a86cffec9a9a27a30700adb4154af8f6dc43a1a65c0ae4f55a2809bcad7de"
+    },
+    {
+      "name": "host-parity",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./host",
+        "./runner",
+        "-run",
+        "TestCurrentContractNativeWasmPublishedResponsesAgree|TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes|TestResetProofContractRefusesMissingAndUnknown",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 0.652,
+      "log": ".flow/tmp/milestones-resume-20261024/registry-contract-joined-host-parity.log",
+      "log_sha256": "a57cd43b9ccbd74f8aaf7ead9a2cc8ff5a41581ecbeda3b2864c020583cc4d23"
+    },
+    {
+      "name": "guest-freshness",
+      "command": [
+        "bash",
+        "model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 88.487,
+      "log": ".flow/tmp/milestones-resume-20261024/registry-contract-joined-guest-freshness.log",
+      "log_sha256": "f6a73cf6afd9b21d5f0148664cd88dacca00a28bec3de239900bb14b23e3e8fe"
+    }
+  ],
+  "status": "terminal-passed"
+}

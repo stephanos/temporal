@@ -1,0 +1,54 @@
+{
+  "finding": "integration review P2: opaque metadata affected semantic macro detection",
+  "command": "mise exec -- cargo test -p umpire-dsl-macros --test metadata_semantics",
+  "red_proof": "red3.log: Outcome mismatch for a Machine<Outcome=()> consumer and unit outcome catalog",
+  "green_proof": "green3.log: 2 passed, warning-free; exact native/lifted rows and checking agree for opaque and executable controls",
+  "logs": [
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/red.log",
+      "exit_code": 101,
+      "sha256": "aeff638f2b7979c06fbb6c3fa96793ef982edf7a28863e15bf4791d85f24590e"
+    },
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/red2.log",
+      "exit_code": 101,
+      "sha256": "477e16d67704876265ad550f6bf23f499d3a2f6cb940100074a46602c7402636"
+    },
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/red3.log",
+      "exit_code": 101,
+      "sha256": "38350efe2ca06c7a3aeaebce7da74628756bf4bd2fb4aa6d91d5d5662aa9ac4a"
+    },
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/green.log",
+      "exit_code": 0,
+      "sha256": "d604e4e95a03a7e478c7d04f7befb37e67fdb488ef6330db7ea760edbbfe0d90"
+    },
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/green2.log",
+      "exit_code": 101,
+      "sha256": "1e639e44ae788999902bbb0ccb478dcbb2342db0aa2aadc9dc77fd2eeafad1ee"
+    },
+    {
+      "path": ".flow/tmp/fn24611-review-fixes/generic/green3.log",
+      "exit_code": 0,
+      "sha256": "b0f41f4365f303258638696e8d723f63ee04844f8e8aa4839e0adc7fd0e56216"
+    }
+  ],
+  "sources": [
+    {
+      "path": "model/umpire/front/src/declare/mod.rs",
+      "sha256": "ca012a9e4d246d3e2684189dfc02e5784651b5bafb01f7a7111da79df1f57813"
+    },
+    {
+      "path": "model/umpire/author/dsl/macros/tests/metadata_semantics.rs",
+      "sha256": "c06141e2246404e0c2a234d5c11b61deb5d50572dde327a36006c0359ac0fe4f"
+    }
+  ],
+  "checks": [
+    "scoped rustfmt --check: exit0",
+    "git diff --check: exit0"
+  ],
+  "deferred": "parent owns combined task verification, strict clippy, review and commit",
+  "live_commands": []
+}

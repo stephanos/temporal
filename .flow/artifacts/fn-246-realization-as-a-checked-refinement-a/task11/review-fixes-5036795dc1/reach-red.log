@@ -1,0 +1,676 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+error: #[starts] requires a bounded range, such as 0..=40
+  --> temporal/realization/tests/registry/fixture.rs:43:18
+   |
+43 |         #[starts(false)]
+   |                  ^^^^^
+
+error: #[starts] requires a bounded range, such as 0..=40
+  --> temporal/realization/tests/registry/fixture.rs:45:18
+   |
+45 |         #[starts(false)]
+   |                  ^^^^^
+
+error[E0277]: `fixture::specimen::Model` doesn't implement `std::fmt::Display`
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Associated` is not implemented for `fixture::specimen::Model`
+      but trait `Associated` is implemented for it
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   = note: required for `fixture::specimen::Model` to implement `Associated`
+note: required by a bound in `RegisteredActor`
+  --> umpire/author/dsl/src/action.rs:43:30
+   |
+43 | pub trait RegisteredActor<S: crate::Associated>: ActorValue {}
+   |                              ^^^^^^^^^^^^^^^^^ required by this bound in `RegisteredActor`
+   = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `fixture::specimen::Model: Hash` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Hash` is not implemented for `fixture::specimen::Model`
+   |
+help: the trait `Associated` is not implemented for `fixture::specimen::Model`
+      but trait `Associated` is implemented for it
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   = note: required for `fixture::specimen::Model` to implement `Associated`
+note: required by a bound in `RegisteredActor`
+  --> umpire/author/dsl/src/action.rs:43:30
+   |
+43 | pub trait RegisteredActor<S: crate::Associated>: ActorValue {}
+   |                              ^^^^^^^^^^^^^^^^^ required by this bound in `RegisteredActor`
+   = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `fixture::specimen::Model` with `#[derive(Hash)]`
+   |
+42 +     #[derive(Hash)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Eq` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Eq` is not implemented for `fixture::specimen::Model`
+   |
+help: the trait `Associated` is not implemented for `fixture::specimen::Model`
+      but trait `Associated` is implemented for it
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   = note: required for `fixture::specimen::Model` to implement `Associated`
+note: required by a bound in `RegisteredActor`
+  --> umpire/author/dsl/src/action.rs:43:30
+   |
+43 | pub trait RegisteredActor<S: crate::Associated>: ActorValue {}
+   |                              ^^^^^^^^^^^^^^^^^ required by this bound in `RegisteredActor`
+   = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `fixture::specimen::Model` with `#[derive(Eq)]`
+   |
+42 +     #[derive(Eq)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Clone` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `fixture::specimen::Model`
+   |
+help: the trait `Associated` is not implemented for `fixture::specimen::Model`
+      but trait `Associated` is implemented for it
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   = note: required for `fixture::specimen::Model` to implement `Associated`
+note: required by a bound in `RegisteredActor`
+  --> umpire/author/dsl/src/action.rs:43:30
+   |
+43 | pub trait RegisteredActor<S: crate::Associated>: ActorValue {}
+   |                              ^^^^^^^^^^^^^^^^^ required by this bound in `RegisteredActor`
+   = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `fixture::specimen::Model` with `#[derive(Clone)]`
+   |
+42 +     #[derive(Clone)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: `fixture::specimen::Model` doesn't implement `std::fmt::Display`
+   --> temporal/realization/tests/registry/fixture.rs:42:23
+    |
+ 42 |     pub(crate) struct Model {
+    |                       ^^^^^ unsatisfied trait bound
+    |
+help: the trait `std::fmt::Display` is not implemented for `fixture::specimen::Model`
+   --> temporal/realization/tests/registry/fixture.rs:42:5
+    |
+ 42 |     pub(crate) struct Model {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `Associated`
+   --> umpire/author/dsl/src/machine.rs:109:43
+    |
+109 | pub trait Associated: Clone + Eq + Hash + Display {
+    |                                           ^^^^^^^ required by this bound in `Associated`
+
+error[E0277]: the trait bound `fixture::specimen::Model: Hash` is not satisfied
+   --> temporal/realization/tests/registry/fixture.rs:42:23
+    |
+ 42 |     pub(crate) struct Model {
+    |                       ^^^^^ the trait `Hash` is not implemented for `fixture::specimen::Model`
+    |
+note: required by a bound in `Associated`
+   --> umpire/author/dsl/src/machine.rs:109:36
+    |
+109 | pub trait Associated: Clone + Eq + Hash + Display {
+    |                                    ^^^^ required by this bound in `Associated`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Hash)]`
+    |
+ 42 +     #[derive(Hash)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Eq` is not satisfied
+   --> temporal/realization/tests/registry/fixture.rs:42:23
+    |
+ 42 |     pub(crate) struct Model {
+    |                       ^^^^^ the trait `Eq` is not implemented for `fixture::specimen::Model`
+    |
+note: required by a bound in `Associated`
+   --> umpire/author/dsl/src/machine.rs:109:31
+    |
+109 | pub trait Associated: Clone + Eq + Hash + Display {
+    |                               ^^ required by this bound in `Associated`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Eq)]`
+    |
+ 42 +     #[derive(Eq)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Clone` is not satisfied
+   --> temporal/realization/tests/registry/fixture.rs:42:23
+    |
+ 42 |     pub(crate) struct Model {
+    |                       ^^^^^ the trait `Clone` is not implemented for `fixture::specimen::Model`
+    |
+note: required by a bound in `Associated`
+   --> umpire/author/dsl/src/machine.rs:109:23
+    |
+109 | pub trait Associated: Clone + Eq + Hash + Display {
+    |                       ^^^^^ required by this bound in `Associated`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Clone)]`
+    |
+ 42 +     #[derive(Clone)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0277]: `fixture::specimen::Model` doesn't implement `std::fmt::Display`
+  --> temporal/realization/tests/registry/fixture.rs:42:23
+   |
+42 |     pub(crate) struct Model {
+   |                       ^^^^^ unsatisfied trait bound
+   |
+help: the trait `std::fmt::Display` is not implemented for `fixture::specimen::Model`
+  --> temporal/realization/tests/registry/fixture.rs:42:5
+   |
+42 |     pub(crate) struct Model {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `umpire_dsl::Machine::State`
+  --> umpire/author/dsl/src/machine.rs:15:37
+   |
+15 |     type State: Clone + Eq + Hash + Display;
+   |                                     ^^^^^^^ required by this bound in `Machine::State`
+
+error[E0277]: the trait bound `fixture::specimen::Model: Hash` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:42:23
+   |
+42 |     pub(crate) struct Model {
+   |                       ^^^^^ the trait `Hash` is not implemented for `fixture::specimen::Model`
+   |
+note: required by a bound in `umpire_dsl::Machine::State`
+  --> umpire/author/dsl/src/machine.rs:15:30
+   |
+15 |     type State: Clone + Eq + Hash + Display;
+   |                              ^^^^ required by this bound in `Machine::State`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Hash)]`
+   |
+42 +     #[derive(Hash)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Eq` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:42:23
+   |
+42 |     pub(crate) struct Model {
+   |                       ^^^^^ the trait `Eq` is not implemented for `fixture::specimen::Model`
+   |
+note: required by a bound in `umpire_dsl::Machine::State`
+  --> umpire/author/dsl/src/machine.rs:15:25
+   |
+15 |     type State: Clone + Eq + Hash + Display;
+   |                         ^^ required by this bound in `Machine::State`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Eq)]`
+   |
+42 +     #[derive(Eq)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: the trait bound `fixture::specimen::Model: Clone` is not satisfied
+  --> temporal/realization/tests/registry/fixture.rs:42:23
+   |
+42 |     pub(crate) struct Model {
+   |                       ^^^^^ the trait `Clone` is not implemented for `fixture::specimen::Model`
+   |
+note: required by a bound in `umpire_dsl::Machine::State`
+  --> umpire/author/dsl/src/machine.rs:15:17
+   |
+15 |     type State: Clone + Eq + Hash + Display;
+   |                 ^^^^^ required by this bound in `Machine::State`
+help: consider annotating `fixture::specimen::Model` with `#[derive(Clone)]`
+   |
+42 +     #[derive(Clone)]
+43 |     pub(crate) struct Model {
+   |
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+   --> temporal/realization/tests/registry/fixture.rs:166:19
+    |
+166 |     type Target = umpire_runtime::Exact<specimen::Model>;
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+    |
+    = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `ReachTarget<S>` is conditionally implemented for `Exact<S>`
+   --> umpire/protocol/runtime/src/runtime.rs:41:1
+    |
+ 41 | impl<S: PartialEq> ReachTarget<S> for Exact<S> {
+    | ^^^^^^^^---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |         |
+    |         unsatisfied requirement introduced here: `fixture::specimen::Model: PartialEq`
+    = note: required for `Exact<fixture::specimen::Model>` to implement `ReachTarget<fixture::specimen::Model>`
+note: required by a bound in `umpire_runtime::capability::Snapshot::Target`
+   --> umpire/protocol/runtime/src/capability.rs:59:18
+    |
+ 59 |     type Target: ReachTarget<M::State>;
+    |                  ^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Snapshot::Target`
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+    |
+ 42 +     #[derive(PartialEq)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0599]: no associated function or constant named `starts` found for struct `fixture::specimen::Model` in the current scope
+  --> temporal/realization/tests/registry/fixture.rs:5:1
+   |
+ 5 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^ associated function or constant not found in `fixture::specimen::Model`
+...
+42 |     pub(crate) struct Model {
+   |     ----------------------- associated function or constant `starts` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `starts`, perhaps you need to implement it:
+           candidate #1: `Machine`
+   = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0369]: binary operation `!=` cannot be applied to type `&fixture::specimen::Model`
+ --> temporal/realization/tests/registry/fixture.rs:5:1
+  |
+5 | #[umpire_dsl::machine]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> temporal/realization/tests/registry/fixture.rs:5:1
+  |
+5 | #[umpire_dsl::machine]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  | |
+  | expected `SmallVec<[((), Vec<()>, Model); 1]>`, found `SmallVec<[((), Vec<_>, &Model); 1]>`
+  | expected `smallvec::SmallVec<[((), Vec<()>, fixture::specimen::Model); 1]>` because of return type
+  | this argument has type `((), Vec<_>, &fixture::specimen::Model)`...
+  | ... which causes `steps` to have type `smallvec::SmallVec<[((), Vec<_>, &fixture::specimen::Model); 1]>`
+  |
+  = note: expected struct `SmallVec<[((), Vec<()>, fixture::specimen::Model); 1]>`
+             found struct `SmallVec<[((), Vec<_>, &fixture::specimen::Model); 1]>`
+  = note: this error originates in the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+   --> temporal/realization/tests/registry/fixture.rs:184:68
+    |
+184 |         Ok(umpire_runtime::Projection::Reach(umpire_runtime::Exact(target)))
+    |                                              --------------------- ^^^^^^ expected `Model`, found `&Model`
+    |                                              |
+    |                                              arguments to this struct are incorrect
+    |
+note: `fixture::specimen::Model` does not implement `Clone`, so `&fixture::specimen::Model` was cloned instead
+   --> temporal/realization/tests/registry/fixture.rs:174:26
+    |
+174 |         let mut target = state.clone();
+    |                          ^^^^^
+help: the type constructed contains `&fixture::specimen::Model` due to the type of the argument passed
+   --> temporal/realization/tests/registry/fixture.rs:184:46
+    |
+184 |         Ok(umpire_runtime::Projection::Reach(umpire_runtime::Exact(target)))
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^------^
+    |                                                                    |
+    |                                                                    this argument influences the type of `Exact`
+note: tuple struct defined here
+   --> umpire/protocol/runtime/src/runtime.rs:39:12
+    |
+ 39 | pub struct Exact<S>(pub S);
+    |            ^^^^^
+help: consider annotating `fixture::specimen::Model` with `#[derive(Clone)]`
+    |
+ 42 +     #[derive(Clone)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0599]: no method named `clone` found for struct `fixture::specimen::Model` in the current scope
+   --> temporal/realization/tests/registry.rs:123:36
+    |
+123 |         edge(&world, client.target.clone(), specimen::Worker::Notify { flag: true }.into());
+    |                                    ^^^^^ method not found in `fixture::specimen::Model`
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:42:5
+    |
+ 42 |     pub(crate) struct Model {
+    |     ----------------------- method `clone` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `clone`, perhaps you need to implement one of them:
+            candidate #1: `Clone`
+            candidate #2: `archery::shared_pointer::kind::SharedPointerKind`
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+   --> temporal/realization/tests/registry/reach.rs:47:70
+    |
+ 47 |     let mut guest = Guest::new(Runtime::new(specimen::World::new(4), binding));
+    |                                ------------                          ^^^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+    |                                |
+    |                                required by a bound introduced by this call
+    |
+    = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `SingletonTarget<S>` is conditionally implemented for `Exact<S>`
+   --> umpire/protocol/runtime/src/runtime.rs:111:1
+    |
+111 | impl<S: PartialEq> SingletonTarget<S> for Exact<S> {}
+    | ^^^^^^^^---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |         |
+    |         unsatisfied requirement introduced here: `fixture::specimen::Model: PartialEq`
+    = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+note: required by a bound in `umpire_runtime::Runtime::<M, R>::new`
+   --> umpire/protocol/runtime/src/runtime.rs:397:16
+    |
+397 |     R::Target: SingletonTarget<M::State>,
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Runtime::<M, R>::new`
+...
+400 |     pub fn new(machine: M, realization: R) -> Self {
+    |            --- required by a bound in this associated function
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+   --> temporal/realization/tests/registry/fixture.rs:42:1
+    |
+ 42 +     #[derive(PartialEq)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+    --> temporal/realization/tests/registry/reach.rs:47:21
+     |
+  47 |     let mut guest = Guest::new(Runtime::new(specimen::World::new(4), binding));
+     |                     ^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+     |
+     = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `Dispatch` is conditionally implemented for `umpire_runtime::Runtime<M, R>`
+    --> umpire/protocol/runtime/src/runtime.rs:1209:1
+     |
+1209 | / impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
+1210 | | where
+1211 | |     M::Outcome: PartialEq,
+1212 | |     R::Target: SingletonTarget<M::State>,
+     | |________________-------------------------^
+     |                  |
+     |                  unsatisfied requirement introduced here: `<fixture::Binding as umpire_runtime::capability::Snapshot<fixture::specimen::World>>::Target: SingletonTarget<<fixture::specimen::World as Machine>::State>`
+     = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+     = note: required for `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>` to implement `Dispatch`
+note: required by a bound in `Guest`
+    --> umpire/protocol/runtime/src/abi.rs:11:21
+     |
+  11 | pub struct Guest<D: Dispatch> {
+     |                     ^^^^^^^^ required by this bound in `Guest`
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+    -->  temporal/realization/tests/registry/fixture.rs:42:1
+     |
+  42 +     #[derive(PartialEq)]
+  43 |     pub(crate) struct Model {
+     |
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+    --> temporal/realization/tests/registry/reach.rs:47:21
+     |
+  47 |     let mut guest = Guest::new(Runtime::new(specimen::World::new(4), binding));
+     |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+     |
+     = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `Dispatch` is conditionally implemented for `umpire_runtime::Runtime<M, R>`
+    --> umpire/protocol/runtime/src/runtime.rs:1209:1
+     |
+1209 | / impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
+1210 | | where
+1211 | |     M::Outcome: PartialEq,
+1212 | |     R::Target: SingletonTarget<M::State>,
+     | |________________-------------------------^
+     |                  |
+     |                  unsatisfied requirement introduced here: `<fixture::Binding as umpire_runtime::capability::Snapshot<fixture::specimen::World>>::Target: SingletonTarget<<fixture::specimen::World as Machine>::State>`
+     = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+     = note: required for `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>` to implement `Dispatch`
+note: required by a bound in `Guest`
+    --> umpire/protocol/runtime/src/abi.rs:11:21
+     |
+  11 | pub struct Guest<D: Dispatch> {
+     |                     ^^^^^^^^ required by this bound in `Guest`
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+    -->  temporal/realization/tests/registry/fixture.rs:42:1
+     |
+  42 +     #[derive(PartialEq)]
+  43 |     pub(crate) struct Model {
+     |
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:52:15
+    |
+ 52 |         guest.judge(Any::pack(&wrong)).refusal(if malformed {
+    |               ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:60:11
+    |
+ 60 |     guest.judge(Any::pack(&unsupported)).refusal(RefusalCode::Unsupported);
+    |           ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:61:27
+    |
+ 61 |     let explained = guest.judge(rpc).explanation();
+    |                           ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:67:11
+    |
+ 67 |     guest.judge(Any::pack(&wrong)).refusal(RefusalCode::Unsupported);
+    |           ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:68:27
+    |
+ 68 |     let explained = guest.judge(event).explanation();
+    |                           ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+   --> temporal/realization/tests/registry/reach.rs:71:69
+    |
+ 71 |     let mut zero = Guest::new(Runtime::new(specimen::World::new(4), Binding::default()));
+    |                               ------------                          ^^^^^^^^^^^^^^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+    |                               |
+    |                               required by a bound introduced by this call
+    |
+    = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `SingletonTarget<S>` is conditionally implemented for `Exact<S>`
+   --> umpire/protocol/runtime/src/runtime.rs:111:1
+    |
+111 | impl<S: PartialEq> SingletonTarget<S> for Exact<S> {}
+    | ^^^^^^^^---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |         |
+    |         unsatisfied requirement introduced here: `fixture::specimen::Model: PartialEq`
+    = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+note: required by a bound in `umpire_runtime::Runtime::<M, R>::new`
+   --> umpire/protocol/runtime/src/runtime.rs:397:16
+    |
+397 |     R::Target: SingletonTarget<M::State>,
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Runtime::<M, R>::new`
+...
+400 |     pub fn new(machine: M, realization: R) -> Self {
+    |            --- required by a bound in this associated function
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+   --> temporal/realization/tests/registry/fixture.rs:42:1
+    |
+ 42 +     #[derive(PartialEq)]
+ 43 |     pub(crate) struct Model {
+    |
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+    --> temporal/realization/tests/registry/reach.rs:71:20
+     |
+  71 |     let mut zero = Guest::new(Runtime::new(specimen::World::new(4), Binding::default()));
+     |                    ^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+     |
+     = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `Dispatch` is conditionally implemented for `umpire_runtime::Runtime<M, R>`
+    --> umpire/protocol/runtime/src/runtime.rs:1209:1
+     |
+1209 | / impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
+1210 | | where
+1211 | |     M::Outcome: PartialEq,
+1212 | |     R::Target: SingletonTarget<M::State>,
+     | |________________-------------------------^
+     |                  |
+     |                  unsatisfied requirement introduced here: `<fixture::Binding as umpire_runtime::capability::Snapshot<fixture::specimen::World>>::Target: SingletonTarget<<fixture::specimen::World as Machine>::State>`
+     = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+     = note: required for `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>` to implement `Dispatch`
+note: required by a bound in `Guest`
+    --> umpire/protocol/runtime/src/abi.rs:11:21
+     |
+  11 | pub struct Guest<D: Dispatch> {
+     |                     ^^^^^^^^ required by this bound in `Guest`
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+    -->  temporal/realization/tests/registry/fixture.rs:42:1
+     |
+  42 +     #[derive(PartialEq)]
+  43 |     pub(crate) struct Model {
+     |
+
+error[E0277]: can't compare `fixture::specimen::Model` with `fixture::specimen::Model`
+    --> temporal/realization/tests/registry/reach.rs:71:20
+     |
+  71 |     let mut zero = Guest::new(Runtime::new(specimen::World::new(4), Binding::default()));
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no implementation for `fixture::specimen::Model == fixture::specimen::Model`
+     |
+     = help: the trait `PartialEq` is not implemented for `fixture::specimen::Model`
+help: the trait `Dispatch` is conditionally implemented for `umpire_runtime::Runtime<M, R>`
+    --> umpire/protocol/runtime/src/runtime.rs:1209:1
+     |
+1209 | / impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
+1210 | | where
+1211 | |     M::Outcome: PartialEq,
+1212 | |     R::Target: SingletonTarget<M::State>,
+     | |________________-------------------------^
+     |                  |
+     |                  unsatisfied requirement introduced here: `<fixture::Binding as umpire_runtime::capability::Snapshot<fixture::specimen::World>>::Target: SingletonTarget<<fixture::specimen::World as Machine>::State>`
+     = note: required for `Exact<fixture::specimen::Model>` to implement `SingletonTarget<fixture::specimen::Model>`
+     = note: required for `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>` to implement `Dispatch`
+note: required by a bound in `Guest`
+    --> umpire/protocol/runtime/src/abi.rs:11:21
+     |
+  11 | pub struct Guest<D: Dispatch> {
+     |                     ^^^^^^^^ required by this bound in `Guest`
+help: consider annotating `fixture::specimen::Model` with `#[derive(PartialEq)]`
+    -->  temporal/realization/tests/registry/fixture.rs:42:1
+     |
+  42 +     #[derive(PartialEq)]
+  43 |     pub(crate) struct Model {
+     |
+
+error[E0599]: the method `judge` exists for struct `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>`, but its trait bounds were not satisfied
+   --> temporal/realization/tests/registry/reach.rs:72:10
+    |
+ 72 |     zero.judge(Any::pack(&refresh())).unexplained();
+    |          ^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: umpire/protocol/runtime/src/abi.rs:11:1
+    |
+ 11 | pub struct Guest<D: Dispatch> {
+    | ----------------------------- doesn't satisfy `_: GuestExt`
+    |
+   ::: umpire/protocol/runtime/src/runtime.rs:327:1
+    |
+327 | pub struct Runtime<M: Machine, R: Realize<M>> {
+    | --------------------------------------------- doesn't satisfy `_: Dispatch`
+    |
+    = note: the following trait bounds were not satisfied:
+            `umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>: Dispatch`
+            which is required by `Guest<umpire_runtime::Runtime<fixture::specimen::World, fixture::Binding>>: GuestExt`
+
+Some errors have detailed explanations: E0277, E0308, E0369, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `umpire-temporal` (test "registry") due to 32 previous errors

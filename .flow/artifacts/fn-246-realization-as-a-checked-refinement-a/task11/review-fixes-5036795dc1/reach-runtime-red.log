@@ -1,0 +1,24 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 8.84s
+     Running tests/registry.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/registry-44da4846d12b18b1)
+
+running 1 test
+test reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals ... FAILED
+
+failures:
+
+---- reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals stdout ----
+
+thread 'reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals' (3465762) panicked at umpire/protocol/runtime/src/testing.rs:74:13:
+expected explanation: JudgeResponse { continue_polling: false, judgment: Some(Unexplained(Unexplained { expected_actions: ["Client::Ping"] })) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    reach::runtime_reach_admits_typed_roots_and_preserves_prefixes_and_refusals
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal --test registry`

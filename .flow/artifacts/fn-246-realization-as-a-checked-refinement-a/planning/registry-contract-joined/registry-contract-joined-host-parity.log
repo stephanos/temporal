@@ -1,0 +1,32 @@
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/callback
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/configured
+--- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree (0.05s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary (0.02s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/callback (0.01s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/configured (0.02s)
+=== RUN   TestResetProofContractRefusesMissingAndUnknown
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=true
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=true
+--- PASS: TestResetProofContractRefusesMissingAndUnknown (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=true (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=true (0.00s)
+PASS
+ok  	umpire.local/model/host	0.054s
+=== RUN   TestResetContractAdmissionPrecedesDriver
+=== RUN   TestResetContractAdmissionPrecedesDriver/missing
+=== RUN   TestResetContractAdmissionPrecedesDriver/unknown
+=== RUN   TestResetContractAdmissionPrecedesDriver/current
+--- PASS: TestResetContractAdmissionPrecedesDriver (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/missing (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/unknown (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/current (0.00s)
+=== RUN   TestRunnerOwnsLoadedGuestBytes
+--- PASS: TestRunnerOwnsLoadedGuestBytes (0.00s)
+PASS
+ok  	umpire.local/model/runner	0.005s

@@ -1,0 +1,48 @@
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/callback
+=== RUN   TestCurrentContractNativeWasmPublishedResponsesAgree/configured
+--- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree (0.06s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/ordinary (0.02s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/callback (0.02s)
+    --- PASS: TestCurrentContractNativeWasmPublishedResponsesAgree/configured (0.02s)
+=== RUN   TestProposalWireContract
+--- PASS: TestProposalWireContract (0.00s)
+=== RUN   TestResetProofContractRefusesMissingAndUnknown
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/0/direct=true
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=false
+=== RUN   TestResetProofContractRefusesMissingAndUnknown/99/direct=true
+--- PASS: TestResetProofContractRefusesMissingAndUnknown (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/0/direct=true (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=false (0.00s)
+    --- PASS: TestResetProofContractRefusesMissingAndUnknown/99/direct=true (0.00s)
+=== RUN   TestCoreProtocolWireCompatibility
+=== RUN   TestCoreProtocolWireCompatibility/reset_response
+=== RUN   TestCoreProtocolWireCompatibility/judge_request
+=== RUN   TestCoreProtocolWireCompatibility/answer_request
+=== RUN   TestCoreProtocolWireCompatibility/judge_explained
+=== RUN   TestCoreProtocolWireCompatibility/judge_unexplained
+=== RUN   TestCoreProtocolWireCompatibility/answer_response
+--- PASS: TestCoreProtocolWireCompatibility (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/reset_response (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_explained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_unexplained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_response (0.00s)
+PASS
+ok  	umpire.local/model/host	0.069s
+=== RUN   TestResetContractAdmissionPrecedesDriver
+=== RUN   TestResetContractAdmissionPrecedesDriver/missing
+=== RUN   TestResetContractAdmissionPrecedesDriver/unknown
+=== RUN   TestResetContractAdmissionPrecedesDriver/current
+--- PASS: TestResetContractAdmissionPrecedesDriver (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/missing (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/unknown (0.00s)
+    --- PASS: TestResetContractAdmissionPrecedesDriver/current (0.00s)
+=== RUN   TestRunnerOwnsLoadedGuestBytes
+--- PASS: TestRunnerOwnsLoadedGuestBytes (0.00s)
+PASS
+ok  	umpire.local/model/runner	0.004s

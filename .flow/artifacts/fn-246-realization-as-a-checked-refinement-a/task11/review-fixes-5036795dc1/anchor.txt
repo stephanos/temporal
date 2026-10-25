@@ -1,0 +1,602 @@
+# Worker anchor bundle - fn-246-realization-as-a-checked-refinement-a.11 (spec fn-246-realization-as-a-checked-refinement-a)
+
+Each section is the verbatim output of the command it is labeled with, in fixed order, untruncated. The bundle is a floor, not a ceiling - memory keyword-search and every further read remain available.
+
+===== [1/11] task_show: `flowctl show fn-246-realization-as-a-checked-refinement-a.11 --json` =====
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "",
+  "claimed_at": "2026-10-25T14:38:15.343647Z",
+  "created_at": "2026-10-24T19:06:07.448065Z",
+  "depends_on": [
+    "fn-246-realization-as-a-checked-refinement-a.7"
+  ],
+  "id": "fn-246-realization-as-a-checked-refinement-a.11",
+  "priority": null,
+  "spec": "fn-246-realization-as-a-checked-refinement-a",
+  "spec_path": ".flow/tasks/fn-246-realization-as-a-checked-refinement-a.11.md",
+  "status": "in_progress",
+  "title": "Generic variant metadata and Temporal action/entity/read registry",
+  "updated_at": "2026-10-25T14:38:15.343634Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}
+
+===== [2/11] task_md: `flowctl cat fn-246-realization-as-a-checked-refinement-a.11` =====
+---
+satisfies: [R2, R3]
+---
+# fn-246-realization-as-a-checked-refinement-a.11 Generic variant metadata and Temporal action/entity/read registry
+
+## Description
+Implement the R3 action-declaration seam after capabilities. This task owns generic metadata forwarding and Temporal registry/entity/read syntax, with synthetic consumers proving the interface before activity migration.
+
+**Size:** M
+**Files:** generic front/action macro metadata forwarding, Temporal annotation syntax/derive support and focused pass/fail controls.
+**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/registry.rs, model/temporal/realization/tests/registry/**, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/capabilities.rs, model/temporal/realization/tests/realization.rs, model/temporal/realization/tests/realization_admission.rs, model/temporal/realization/tests/admission/**, model/temporal/realization/tests/ui/**, model/temporal/realization/tests/ui-pass/**]
+
+### Approach
+
+All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
+
+1. Reanchor the final fn-237.6/fn-237.3 action declaration context. Extend the existing action-variant expansion with inert per-variant metadata forwarding only. Keep machine body, transition semantics, catalogs and backend lowering unchanged.
+2. Add Temporal-owned rpc/environmental/entity/read declarations using descriptor/type identity admission and existing realization syntax owners. Normalize registry rows once and expose typed classification, fill and evidence access to the capabilities; consumers must not rebuild per-action tables.
+3. Preserve actual generated enum/result type proofs. Test omitted/added actions and claimed fields against independent descriptor/type inventories rather than the declaration being checked. Keep correlation/read configuration typed and reject conflicting/unknown/duplicate declarations with located diagnostics.
+4. Prove a generic non-Temporal Machine still expands and keeps the same checking results (goldens may be re-accepted after review). Use synthetic Temporal examples to compile client proposal, worker fill and probe-baseline access before the activity switches. Refinement syntax is owned by .4 after its typed consumer exists.
+
+Synthetic registry controls belong in `tests/registry.rs` and `tests/registry/**`, retaining existing declarative, capability, admission, UI and renamed controls. Per-feature program codec/history controls remain with .14. This ownership follows the synthetic-before-activity migration boundary; any additional source owner requires a fresh admission check without reducing verification.
+
+**Dispatch exclusion:** Serialize with .12 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
+### Investigation targets
+
+**Required:**
+
+- `model/umpire/front/src` and `model/umpire/author/dsl/macros/src/action.rs` for current action admission/expansion; resolve exact owner after reanchor.
+- `model/temporal/annotate/syntax/src/realize.rs:739,845,968` for action coverage, result shape and generated dispatch.
+- `model/temporal/annotate/syntax/src/realize/patterns.rs` for existing pattern/type validation.
+- `model/temporal/realization/macros/src/lib.rs` for the actual `#[realization]` entry point, and `model/temporal/realization/src/lib.rs` for typed facade support.
+- `model/temporal/realization/tests/realization_admission.rs`, `tests/ui/**` and `model/umpire/catalog/tests/admission-ui/**` for existing descriptor/action/type diagnostics; add task-specific controls under the current realization test owner.
+
+### Verification
+
+From model/: `mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros`; include generic renamed-facade consumer and syntax snapshots. Run scoped fmt/strict clippy and existing generic source-boundary checks.
+
+## Acceptance
+- [ ] One typed variant registry serves synthetic proposal, worker row and probe baseline/evidence consumers. Generic metadata support contains no Temporal imports or semantics.
+- [ ] Added/omitted actions, unknown/duplicate attributes, wrong descriptor/request/response/result type, conflicting entity/read settings and uncovered claimed variants produce located compile diagnostics.
+- [ ] Generic bounds, empty enums and renamed facade controls pass; existing non-Temporal Model rows keep their checking results. No transition/body/backend semantics change.
+- [ ] Focused macro/front tests, compile controls, snapshots, strict clippy and boundary verification pass; activity migration can consume the interface without another per-action table.
+
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:
+
+===== [3/11] spec_show: `flowctl show fn-246-realization-as-a-checked-refinement-a --json` =====
+{
+  "success": true,
+  "branch_name": "fn-246-realization-as-a-checked-refinement-a",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-24T16:09:22.118666Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-247-one-language-for-the-framework-a-rust",
+    "fn-251-one-probe-engine-and-one-catalog-build",
+    "fn-252-quick-consolidation-wins-in-model-code"
+  ],
+  "id": "fn-246-realization-as-a-checked-refinement-a",
+  "impl_review_rounds": {
+    "fn-246-realization-as-a-checked-refinement-a.1": 0,
+    "fn-246-realization-as-a-checked-refinement-a.11": 1,
+    "fn-246-realization-as-a-checked-refinement-a.12": 0,
+    "fn-246-realization-as-a-checked-refinement-a.14": 1,
+    "fn-246-realization-as-a-checked-refinement-a.7": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-25T15:59:29.669950Z",
+  "ready": true,
+  "review_hash_epoch": {
+    "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.12": 2,
+    "impl:fn-246-realization-as-a-checked-refinement-a.7": 1,
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-246-realization-as-a-checked-refinement-a.1": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.11": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.12": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.14": 0,
+    "impl:fn-246-realization-as-a-checked-refinement-a.7": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
+  "status": "open",
+  "title": "Realization as a checked refinement: a shared Temporal layer, the action registry, Reach, and strategies enumerated from the Model (model, temporal)",
+  "updated_at": "2026-10-25T16:40:18.201105Z",
+  "tasks": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.1",
+      "title": "Transactional bounded Reach and Kettle proof point",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.2",
+      "title": "Shared Temporal entity lens and filler-driven probes with equivalence pins",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.3",
+      "title": "Activity registry/lens/projection migration, exact probe parity and mapping count",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.4",
+      "title": "Generic native Refinement consumer and shared activity declaration",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.11"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.5",
+      "title": "Complete observable-worker policies, coverage construction and filler-derived programs",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.6",
+      "title": "Integrated evidence, artifact/count/timing gates and checked-refinement author docs",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.5"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.7",
+      "title": "Typed capabilities, fillers and internal evidence adapters",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.8",
+      "title": "Default whole-prefix guest protocol and current Host admission",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.9",
+      "title": "Current-format whole-prefix Run recording, replay and presentation",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.8"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.10",
+      "title": "Bounded Reach alternatives and coherent immutable explanation publication",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.11",
+      "title": "Generic variant metadata and Temporal action/entity/read registry",
+      "status": "in_progress",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.12",
+      "title": "Shared descriptor catalog, claims and per-case opaque probe accounting",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.13",
+      "title": "Independent standalone-activity protocol Model and native/TLC invariants",
+      "status": "todo",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.15"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.14",
+      "title": "Heartbeat task key and raw/SDK continuation capability",
+      "status": "in_progress",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.15",
+      "title": "Correct nonpending attempt-timeout retry and renew native/TLC proofs",
+      "status": "todo",
+      "status_source": "committed",
+      "implicit_owner": false,
+      "priority": 0,
+      "depends_on": []
+    }
+  ],
+  "no_plan": false
+}
+
+===== [4/11] spec_md: `flowctl cat fn-246-realization-as-a-checked-refinement-a` =====
+# Realization as a checked refinement
+
+> Local HTML render lens: open `.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/spec.html` locally — regenerable; Markdown is the record. <!-- flow-next:artifact-link -->
+
+## Conversation Evidence
+
+> user (2026-10-24), on the activity Realization's size: "that's way too much. are there ways we can dramatically reduce that? also separate shared code that more/most models need as separate."
+> user (2026-10-24): "also consider abstractions and other patterns ; not just cuts"
+> user (2026-10-24): "walk me through one at a time"
+
+The owner chose a shared protocol Model checked natively and by TLC, with feature Models declared as refinements; generic Reach in umpire-runtime; and Model-enumerated worker strategies following programmed workers. The owner accepted placement after committed fn-243.4, fn-228.7 and fn-237.3, before fn-237.4. The later owner-approved Rust supervisor/xtask prerequisite fn-247 also precedes every fn-246 task. The workflow Model will remeasure the mapping ratio on the shared layer.
+
+## Goal & Context
+
+Feature authors should write the Model and its small binding once. The captured activity inventory was a 156-line Model and about 3,600 non-test binding/shared lines. That historical inventory motivates the change; execution records a fresh baseline after its prerequisites close. The target is at most two handwritten per-feature mapping lines per handwritten semantic Model line. A move into a shared directory cannot satisfy that target while retaining feature semantics.
+
+The binding currently mixes API knowledge, entity admission, snapshot projection, action evidence, request filling, worker policy and transaction mechanics. Split those responsibilities into reusable generic capabilities, a shared Temporal catalog/lens and a feature declaration. Preserve accepted Model behavior and existing live obligations outside the owner-approved timeout-retry correction in task .15. All other tasks consume its committed, independently proved corrected baseline without additional Model-policy changes. Check the full-state relation between independent protocol and feature Models, then use their checked shared observable-compatibility contract online.
+
+## Architecture & Data Models
+
+**Runtime capabilities.** Identity, Snapshot, Evidence<K>, Fill<A> and ReplyPolicy assemble Realize. Required capabilities are Rust trait bounds; optional behavior has explicit defaults. Fill has one associated typed request and receives the action plus declared World, inputs and admitted identity. All four consumers use that definition. The evidence algebra is an internal typed view with Rpc, Snapshot, Reconciled and History kinds. History has no producer here. Existing wire envelopes remain the transport authority; the typed seam can later consume fn-237.4's feature-owned worker-evidence wrapper without moving that wrapper/journal/gate implementation or claiming its live proof here.
+
+**Action registry.** Each Model action variant carries one Temporal declaration. RPC declarations bind the descriptor method, filler and evidence predicate; environmental declarations state the abstract event. Generic DSL metadata forwarding carries inert variant metadata without knowing RPCs. Temporal annotation admission checks descriptor identity, action coverage, actual generated result types and claim coverage. Client proposals, worker rows, probe baselines and catalog examples read the same registry.
+
+**Shared Temporal layer.** A descriptor-generated WorkflowService catalog owns API identity and shared field kinds/limits. Each feature explicitly claims what it reads and fills. Unclaimed fields are Ignored; explicit required/semantic constraints remain authoritative. One entity lens owns bootstrap/admission, identity, receipt, proposal correlation, immutable evidence, read finality, hold instructions, freeze, Reset and program-envelope assembly. It delegates feature semantics through typed projections and policies. Shared API/domain names are valid; imports of feature modules and embedded feature policy are forbidden.
+
+**Reach.** Reach carries an associated typed observable target implementing a pure compatibility check against candidate full Model states. Exact<State> preserves complete-state matching for Kettle and complete observations. The activity target contains only validated actual fields and explicit unobserved fields; a snapshot cannot fabricate Remaining budgets from defaults, configured timeouts, elapsed time or desired outcomes. Full candidates come only from existing checked_step/replay. Partial observations additionally require the bounded compatible-frontier contract below; a typed predicate alone cannot make greedy hidden-state commitment sound.
+
+Reach uses admitted finite depth/work/retention and complete typed evidence. Predicates inspect source, action, choice, outcome, candidate state and evidence cursor/consumption position alongside the complete observation prefix. Target compatibility cannot authorize intermediate edges or replace action/cause/history evidence. Search order is path length, action-catalog order and transition-choice order. Current and ordered Candidates remain available. Canonical first-valid order selects a report witness; it cannot discard future-relevant compatible hidden branches. Exact/singleton state matching retains its semantic meaning under whole-prefix reporting.
+
+A successful replayable match produces the normal prepared judgment after every canonically preceding candidate has been resolved. Longer cyclic or other unexamined alternatives do not force that success to refuse and do not justify global uniqueness or exhaustive-search claims. Complete admitted-scope no-match prepares Unexplained; a no-match is truncated when an otherwise evidence-compatible frontier remains unexamined at the depth/work bound, even if all shorter paths were visited. Truncated no-match, or work exhaustion before canonical precedence can be established, produces a named Refused bound. Later frontier exhaustion does not revoke a valid first match. Search prepares a judgment without mutating state, pending proposals or receipts. Publication precedes commit. Positive current-state evidence, zero-length matching, accepted Model self-loops and protocol stutters have separate evidence rules. An action with absent evidence is traversable only under an explicit compatible stutter declaration; a changed projected state cannot be such a stutter.
+
+Visited-node identity, if deduplication is used, includes full Model state, evidence cursor/consumption state, path position/depth and every history/publication component the evidence contract uses. Preserve distinct typed witness prefixes unless future admission and publication compatibility is established. Equal public views or Model states alone cannot merge evidence-distinct paths or erase a valid continuation.
+
+**Bounded compatible frontier.** Preserve all evidence-compatible full-state/history alternatives required by declared scope and any unexamined compatible search work. Each branch satisfies the entire immutable actual observation prefix and retains typed ancestry/evidence-consumption position; a fresh observation refines all branches through existing checked-step/replay. A selected short report witness does not erase longer unexamined work. All unresolved work must be accounted before a no-match becomes Unexplained. Explicit work/depth/history exhaustion refuses without truncating retained branches or fabricating completeness. Prospective frontier, evidence cut, pending/read policy and report prepare together and commit only after publication. Failed publication/allocation, retry, freeze and Reset preserve those invariants. Proposal/callback/finality decisions require compatible branch-wide actual behavior, never one arbitrary hidden representative; a required disagreement is a concrete finding. This is one bounded extension of the existing runtime, not a new interpreter or general planning engine. Task .1 lifts the reusable budgeted traversal/label primitives from the integrated suite search owner (`model/umpire/author/suite/src/search.rs`; the former `pattern_search.rs` was consolidated by fn-252) into `model/umpire/backends/native/src/search.rs`, exposed through the existing `umpire-checker` dependency. Suite pattern matching and runtime evidence matching remain with their current owners and consume this one core; no runtime-to-suite dependency, new crate or third BFS is introduced. The core accepts caller-owned search identity, canonical ordering, evidence/history labels and admitted budgets rather than assuming state-only deduplication.
+
+Environmental evidence declarations explicitly admit compatible unobserved Tick interleavings as existential internal progression, preserving the counterexample without claiming an observed Tick count/cause. Target matching alone grants no Tick, an absent predicate is insufficient, and visible equality does not make a budget-changing Tick a full-state stutter. Never tighten declarations to hide required interleavings or infer exact ticks from wall time/desired outcomes.
+
+**Protocol Model and refinement.** A plain independently authored protocol Model describes the standalone-activity API, RPC/gRPC outcomes and timer semantics in each selected World. Its full state includes independently authored latent timers/Remaining budgets, attempts, outcomes, retained failure, cancellation and heartbeat dimensions, with a separate public observable view. Public snapshot classes alone cannot represent full state. Native/TLC check starts, arming/reset/spanning/decrement/priority, expiry causes/facts and terminal clearing independently. Feature and protocol Models are never fit to one another or to an observed SUT run.
+
+The refinement declaration maps full concrete protocol states to full feature states and protocol actions/outcomes to a feature action/outcome, an explicit stutter or an unmapped gap. Every World/state field, including all dynamic budgets, has exact accounting and type/domain provenance. Starts correspond and mapped edges replay with compatible outcomes. A declared stutter preserves full projected state and declared visible evidence. Wrong starts, disabled actions, wrong outcomes, erased/misconverted budgets and changed-state stutters are violations. An unmapped source is coverage-incomplete and earns no preservation pass. Extra feature edges are allowed. The native consumer reports each class; TLC checks protocol own invariants only. The independent original checkpoint remains retained.
+
+Shared protocol owns neutral observable-view types and its full-state-to-view conversion. Feature realization owns candidate-Model-state compatibility with that view and the total full-state refinement map. Offline checks prove the observable-view/compatibility contract commutes with the full-state map; snapshot decoding constructs only the typed observable target. It cannot construct a full protocol/feature state. Unobserved budget updates never become evidence-free Tick edges or full-state stutters merely because their public views match.
+
+The Started global=3/heartbeat=2 counterexample requires this frontier in R1. A hidden Tick before Heartbeat leaves global=2/heartbeat=2, while the same public heartbeat snapshot also fits global=3/heartbeat=2. Two later Ticks yield global TimedOut in the first history and pending heartbeat Canceled in the second. Fully evidenced later global expiry must remain explainable. This is not missing cause evidence and cannot be waived by later fn-237.4 admission, budget erasure, weakened laws or an arbitrary representative. Exact pending-expiry cause remains a separate narrow fn-237 scope only when actual cause evidence is absent; refusal never discharges an original mandatory row.
+
+**Default whole-prefix publication.** Task .1 implements bounded singleton prefix retention and publication across Current, Candidates, Reach and callback delivery before .8 advertises this contract; .7 preserves it during capability migration. Task .8 proves actual current guest/Host behavior, and .9 proves current Run/replay/presentation on that independently working singleton path. Task .10 then extends the same owner with compatible alternatives and owns the changed-canonical-past runtime/record/replay controls; .6 reruns the integrated contract. Whole-prefix witnesses are the current default proof contract for all current guests, including Exact/Kettle. Each successful Explanation is a canonical complete witness from Reset against every actual prior observation and required callback/proposal/evidence ordering. Earlier immutable reports remain existential claims for their own prefixes; consumers never concatenate them as deltas. Complete-state matching remains supported without maintaining old delta presentation.
+
+**Current protocol and replay.** Migrate ordinary recorded Reset admission, guest exports, Host, Run and generic presentation to one current whole-prefix contract. Wire/export layouts may change and current bindings/fixtures regenerate together. The actual Reset response declares the framework contract and Host validates it; current replay requires the supported contract and matching model_hash. Incompatible/malformed input fails explicitly. Old readers/guests/recordings need no compatibility path, unmarked fallback or automatic conversion. The former opt-in custom section, four-byte marker and production linker-retention gate are unnecessary. No hidden probe or caller-declared semantics substitutes for the actual contract.
+
+Typed witness/evidence matching retains emitted Facts alongside Outcome, action, choice and full source/target. An exact expiry fact cannot be replaced with matching phase/outcome. Bounded immutable ancestry owns/shares those typed values without imposing new Clone bounds on arbitrary Machine facts/outcomes. Generic Go handles the current protocol, opaque records and whole-prefix presentation only; it contains no Temporal interpretation.
+
+The protocol's shared parameter-contract owner validates an exact typed parameter record against both independently declared World schemas, with field/domain/type provenance. The feature-local realization adapter converts its local World into that neutral record; a protocol-local adapter constructs the protocol's local World from the same checked record. Every field is accounted for and optional absence remains distinct from present zero. Omitted/misnamed fields, wrong kinds/bounds, clamping and default substitution fail. Local declarations may remain separate; no imported/shared World source-admission extension is authorized merely to share a Rust type. Reanchor constructors and nominal accessors after fn-237.3/fn-247.
+
+**Worker strategies.** A strategy is a deterministic policy over actual worker-observable histories and keys, derived from the complete Model decision graph under all client/environment branches. Raw Model states that a worker cannot distinguish must receive compatible policy choices. Canonical identity includes observable decision history, typed action payloads and transition choices. Enumeration explores every implementable policy within the declared finite depth and reports the World, depth, complete decision domain, policy count, program count and separately every unrepresentable raw-state policy/conflict. Depth does not silently cap a finite policy set. Enumeration may use `itertools::multi_cartesian_product` over per-history choice domains, always under an explicit admitted budget counted before or during iteration. Finite resource exhaustion (including that budget) and unbounded domains refuse without claiming completeness.
+
+Every required emitted worker action/outcome decision needs an independent representable coverage witness. The complete decision graph comes from checked_step/emitted edges, not syntactically returning Rust match arms. An unchanged fallthrough without an explicit stay emits no edge. Classify actual Poll delivery, stale rejected Polls, response decisions and any explicit post-prerequisite Heartbeat stays as controllable task decisions, observed delivery/control or declared projection stutters with independent justification. Neither a missing required choice nor a refusal earns coverage credit. Primary review must challenge this classification and the observable-history completeness argument against the reanchored prerequisite graph. The old three scenarios cannot define the universe being proved, and universal closure laws remain intact.
+
+**Executor stage amendment.** Move the approved heartbeat key/codec/raw-and-SDK continuation capability earlier from fn-237.4 into this spec, before strategy derivation, and extend it to bounded actual observable histories required by complete policies. Each exact row chooses one response. Only an actual correlated heartbeat completion advances the key, retaining exact observed bits/order. Duplicate/conflicting prefixes, missing continuations and depth/resource exhaustion refuse without truncating the policy set. No hidden Model budgets, wall-clock inference, Model callback or general sequence interpreter enters the executor. Terminal-response behavior remains tested; key, WorkerProgram and core message layouts may change coherently with the current format. Preserve actual observable histories and default whole-prefix semantics.
+
+Per-executor capability/representability facts are explicit. Native SDK heartbeat has no returned bit and batches calls; actual cancel notification cancels its activity context. Repeated-after-notification delivery is unproven until supported SDK APIs and actual transport controls establish it. A raw RPC surrogate or counted refusal cannot discharge a required SDK choice. True-notification canceled results require the associated SDK-delivered cancellation signal. Missing required choices remain findings. fn-237.4 retains its original one-heartbeat-then-terminal witness unchanged as a mandatory subset with provenance, plus timeout/cooperative admission, actual worker evidence/journal/gates and every original actual live proof.
+
+## API Contracts
+
+- Projection gains a typed-target-carrying Reach variant with pure ReachTarget<State> compatibility and an Exact<State> adapter. Direct and generated Realize implementations explicitly supply compatible target adapters until all generic, Kettle and Temporal guests compile; no unstable associated-type defaults are assumed. Snapshot decoding never fills unobserved Model fields.
+- The generic fixture consumer accepts explicit concrete/abstract Machines and typed projections. It owns starts, mapped edges, stutters, gaps and violations independently of Temporal.
+- Temporal attributes own RPC, environmental, entity, read and refinement declarations. One filler and one evidence policy per action replace handwritten classification/response/baseline tables.
+- Model/Run/generic Observation, guest exports, WorkerProgram and scenario encodings may change. Regenerate all current producers/consumers and document the format break. Default whole-prefix witnesses and current-contract Run/replay/presentation replace old delta readers and metadata negotiation. Actual worker evidence/journal/gates remain fn-237.4 owned. Go remains generic and never interprets Temporal policy.
+
+## Scheduling and admission
+
+Task .13 requires task .15's implementation, renewed native/TLC evidence and Flow closure committed as ancestors of `umpire`. Owner approval resolves the former policy-decision blocker; it does not supply a proof or authorize protocol authoring before that closure.
+
+The conductor admits execution only after committed implementation and Flow closure records for fn-243.4, fn-228.7 and fn-237.3 are ancestors of umpire, retaining fn-237.3's fn-237.6 prerequisite, and the whole fn-247 Rust supervisor/xtask spec has committed completion. The current World/worker/evidence and Rust build-helper interfaces are reanchored then. A ready flag or uncommitted closure is insufficient. Preserve the whole-fn-247 dependency. Whole-fn-243 and whole-fn-237 dependencies would cycle with the accepted queue and are excluded. The current throughput order includes fn-247 then fn-248, followed by the fn-250/fn-251/fn-252 consolidation lanes before dependent feature work. This spec requires committed whole fn-247, fn-251 and fn-252; fn-251/fn-252 each consume fn-248. Fn-250 remains a parallel sibling, without an additional direct dependency on this spec. Then follow fn-246, fn-237.4, fn-243.5 and fn-237.5; downstream fn-245/fn-240 ordering follows the current dependency graph. The conductor gates fn-237.4 on committed fn-246 closure; fn-243.5 follows committed fn-237.4 and retains the original unheld proof.
+
+The conductor applied the owned fn-237 parent/task .4 stage-ownership amendment against fresh canonical content, preserving every original requirement and live witness. Existing task .14 owns only the approved earlier key/codec/raw-and-SDK capability implementation. Fresh plan review remains required before fn-237.4 and fn-246 implementation; metadata adoption is not a review verdict or capability proof. MILESTONES remains root-owned. Final source fields, emitted graph, accessors and Rust helper owners remain pending reanchor after committed fn-237.3 and fn-247 closure.
+
+Task DAG frontiers identify parallel candidates only. The conductor evaluates declared Touches globs, current source ownership and shared Cargo/schema/code-generation resources before dispatch. Overlapping source/export owners and Cargo/schema/code-generation mutations remain serial; independent task roots do not authorize four-way concurrent mutation or builds. Explicit serial exclusions are .11/.12 (annotation syntax/tests), .2/.13 (`model/temporal/realization/src/lib.rs`) and .2/.14 (`model/temporal/realization/tests/program.rs`). The search lift in .1 owns suite/native exports and any necessary existing manifests; .10 consumes that integrated core without a second extraction. These exclusions constrain dispatch without changing task or priority dependencies.
+
+## Edge Cases & Constraints
+
+- Reach controls cover first-valid/multiple/no paths, a successful short path with longer cyclic frontier, complete versus truncated no-match, canonical-precedence work exhaustion, equal states with different evidence cursors/consumption histories/outcomes, one observable target matching distinct reachable budget states, unknown/absent/present-zero distinctions, choice indices, exact/beyond-depth paths, explicit current/stutter authorization, checked-step errors, malformed/stale/crossed evidence, failed publication/allocation and retry.
+- Capability/annotation controls cover missing required capabilities, valid defaults, empty action enums, generic Machine bounds, duplicate/unknown registry entries, wrong descriptors/results, invalid claim/rule combinations and uncovered claimed enum variants.
+- Probe accounting retains every old ID unless an actual opaque/claim rule removes that mutation. Explicit required Secret presence survives. Conditional queue-name and retry-ordering controls remain mandatory even though opaque bounds cannot explain them.
+- Strategy controls cover every worker choice, repeated retryable failures, non-retryable failures, revisits, environment/client branches, duplicate identities/keys, incompatible rows, empty programs, unbounded choices and finite resource exhaustion. Unsupported policies remain visible and cannot count as executed strategy coverage.
+- Non-Temporal fixtures retain checking results and independent lifecycle evidence retains its semantic refinement role. Regenerate reviewed current goldens/wire formats as needed; old-byte/hash and old-reader gates are unnecessary. Any semantic case or coverage loss still fails.
+- The guest is rebuilt before live tests and its committed bytes pass freshness checking. Mandatory raw and SDK slices, actual worker evidence/replay, hold/cancellation, Complete, retry-then-complete, Fail, HostRefusal and context cancellation retain their prerequisites' exact obligations. A pending future obligation is never discharged by a refusal or unrelated successful run.
+
+## Quick commands
+
+```bash
+make model-validate
+make umpire-guest
+make umpire-check-model-slice
+make umpire-check-model-gaps
+```
+
+Tasks carry focused crate commands. The integrated final gate records command exits, executed live rows, counts, bounds, guest hash/freshness, raw/SDK judgments and actual timing. R30's 10-second inner-loop and 60-second gate figures remain soft targets with measured overruns, never fabricated timings.
+
+## Acceptance Criteria
+
+- **R1:** Generic Reach uses typed targets, existing checked-step/replay and a bounded evidence-compatible frontier preserving all required latent continuations, built on the suite's search core rather than a third BFS; Exact/Kettle retains complete-state matching under current whole-prefix reporting. The global=3/heartbeat=2 hidden-Tick/Heartbeat and fully evidenced global/heartbeat expiries discriminate greedy commitment. Canonical order chooses report witnesses without pruning distinct continuations/work or claiming hidden-state measurement/uniqueness/completeness. Current reports replay from Reset against all prior observations and typed emitted Facts; earlier reports remain immutable existential prefix claims. The actual current guest/Host/Run contract and exact current-format replay agree; malformed/incompatible inputs refuse. Complete no-match is Unexplained; unresolved work/precedence/resource bounds are Refused without branch loss. Atomic publication/frontier/cursor/pending, failed publication/retry, negative-prefix/fact, unsafe-merge, fabricated-state and current-contract mismatch controls pass. No ambiguity is waived through fn-237.4's missing-cause scope.
+- **R2:** Fill/capabilities compose Realize for direct, derived, generic-guest, Kettle and activity consumers, preserving the publication transaction while migrating current protocol/export formats and the feature-capability amendments in API Contracts. Missing required capabilities name compile errors; defaults/empty enums/generic declarations have positive controls; malformed typed evidence remains refused through existing validation.
+- **R3:** The shared Temporal catalog, claims, field kinds, entity lens, correlation, reads, hold, receipt/freeze/Reset, program-envelope, filler-driven probes and support contain no feature-module coupling or embedded feature policy. Errors include invalid/duplicate claims, descriptor/result mismatch, claimed-field/enum omissions and feature-semantic leakage. Required API/domain names remain valid.
+- **R4:** The activity binding consists of registry declarations, entity/read configuration, snapshot/semantic projection, claimed field rules, fillers and evidence predicates. Old handwritten classification, response, correlation and probe-baseline tables disappear. Before/after live judgments agree and every previous probe ID has an audited retained/removed outcome. The accepted-gap list empties only when every remaining semantic case has an independently justified typed semantic/applicability prediction with primary contract provenance and every removal follows the independently specified opaque/unclaimed-tree rule. Errors include any unexplained case loss, weakened claimed constraint, inferred opaque bound or residual unaccounted gap. Original conditional queue-name and retry-ordering paired live controls remain mandatory.
+- **R5:** After task .15's committed approved correction and proof renewal, the independently authored full protocol Model, including latent timer semantics and separate public view, has native fixtures and required TLC own-invariant agreement. Native refinement accounts for every full World/state field, preserves all budgets/expiry/reset/spanning laws and proves its observable-view compatibility commutes with online target matching. Reports retain starts, mapped edges, stutters, gaps and violations. Changed protocol edge, removed feature edge, wrong projection/start/outcome/budget, erased timer field, mapped-disabled edge and visible-equal/full-state-changing stutter controls fail. A gap is incomplete coverage, never preservation success. Exact missing live expiry cause retains fn-237's predeclared narrow scope without inferring cause from Canceled or discharging original rows. The independent checkpoint remains a semantic refinement check against original lifecycle evidence; no TLC-side refinement is claimed.
+- **R6:** Every implementable worker policy over actual observable histories/keys within the declared finite depth is enumerated from the complete checked_step/emitted Model decision graph, with canonical names, typed choices and filler-derived programs replacing handwritten scenarios/response selection. The moved key/codec/raw-and-SDK continuation capability supports required heartbeat/acknowledgement decisions. An independent coverage construction proves every required emitted worker action/outcome decision has a representable witness across client/environment branches; unrepresentable raw-state policies/conflicts remain separately reported. Poll delivery, stale rejected Polls, response decisions and explicit Heartbeat stays are classified from the reanchored prerequisite graph; empty Rust fallthroughs earn no edge or coverage. Terminal-only behavior remains tested in the current format; universal closure laws and all original mandatory live rows remain retained. Errors include unbounded choices, finite resource or enumeration-budget exhaustion, duplicate/incompatible keys, malformed or missing actual notification, unsupported SDK programs, observable-history conflicts and any missing required choice. Refusal and partial programs earn no completeness or live-coverage credit.
+- **R7:** Reproducible before/after activity counts meet mapping <=2x semantic Model lines and report handwritten/generated/shared/protocol ownership separately. Mapping metadata cannot inflate the denominator; moving feature semantics cannot reduce the numerator. DESIGN explains the checked-refinement architecture, layout, counts and actual model-time; README explains authoring. The workflow Model is the later remeasurement gate. Errors include missing files/count classifications, feature semantics charged as generic, unexplained excluded lines and an over-target ratio; only a written owner exception can relax the ratio.
+
+## Early proof point
+
+Task .1 proves Reach can explain Kettle observations through the existing prepare/publication/commit and typed replay path, including incomplete search and retry controls. If it fails, revise the runtime contract before migrating capability and Temporal consumers.
+
+The executor-capability task begins with an actual supported native-SDK transport control before binding/strategy integration relies on repeated heartbeat. It must establish repeated-false, false-to-true, after-true delivery/cancellation, throttle/coalescing, real terminal RPC and Run-owned shutdown/join behavior. Detached-context delivery remains a hypothesis until this control passes; a genuinely missing required choice blocks integration.
+
+## Boundaries
+
+- Preserve activity transition semantics outside task .15's approved nonpending attempt-timeout retry correction, independent Models and all other accepted behavior; add no new Temporal feature and no History producer.
+- TLC refinement mapping and workflow ratio measurement remain named later checkpoints.
+- No Cargo dependency beyond those admitted under fn-210 R18 (`itertools` is admitted for strategy enumeration); no Python helper, broad generated-API drift scanner, CI workflow, parallel interpreter or Temporal concept in generic core. Build/count/artifact glue extends the predecessor's Rust xtask owner.
+- Root owns MILESTONES, integration/admission and downstream sequencing. Source work, builds, tests and implementation are outside this planning pass.
+
+## Decision Context
+
+Owner-approved timeout-retry correction (2026-10-25): task .15 supersedes the earlier selected terminal-only rule solely for nonpending StartToClose and Heartbeat expiry when another attempt and the remaining overall timeout budget permit retry. Preserve the selected exact expiry fact, increment once, apply existing retry rearming and retain the spanning global countdown. Pending attempt expiry, exhausted attempts, ScheduleToStart/global expiry, cancellation, worker-failure rules, priority and other lifecycle semantics retain their selected meaning. Renew independent native/source-TLC evidence before task .13 admission. The original retained single-attempt lifecycle checkpoint remains separately checked. No Model is fitted to a deployment or another Model; R5's complete field/edge/fact/budget/view obligations and every original mandatory live proof remain required. Approval and primary provenance are retained under `planning/timeout-retry-correction` in this spec's artifacts.
+
+2026-10-24, owner amendment: "can we drop byte-for-byte compatability from open tasks to speed things up? we don't need backwards compatabiltiy". Remaining work may change guest/wire/API formats and regenerate bindings/goldens together. Old-format readers, old-byte/hash pins and historical-layout preservation are unnecessary. Preserve semantic Model/refinement obligations, the meaning and provenance of original lifecycle/counterexample evidence, current source/guest freshness and identity, deterministic replay within the current format, actual raw/native-SDK live proofs and discriminating negative controls. This supersedes older compatibility-only restrictions without changing completed task records.
+
+
+Owner decisions and accepted queue remain authoritative. Planning clarifies ordered candidate selection, bounded incompleteness, internal evidence, projection direction, independent gap classification and count ownership from existing owners. On 2026-10-24 the conductor, acting under the autonomous goal, accepted R4's per-case opaque/strict-semantic accounting and amended the captured all-state worker function to an observable-history policy. The conductor moved fn-237.4's already-approved key/codec/executor capability earlier to satisfy full required strategy coverage here; fn-237.4 retains its admission/evidence/live proof. These are explicit contract/stage amendments for primary review. The declined broad API-drift-verification concept stays excluded; focused existing descriptor/protobuf/guest freshness and artifact checks remain required.
+
+On 2026-10-24 the conductor supplied the global/heartbeat counterexample and selected whole-prefix existential witnesses for sound bounded ambiguity. The latest owner amendment makes that contract the current default and drops the earlier backward-only delta readers, opt-in metadata and marker-retention machinery. Every actual earlier observation, typed Outcome/Facts and atomic publication obligation remains; hidden-state and causality laws are not weakened.
+
+2026-10-24, owner (fn-248 crate review): new Cargo dependencies remain admitted under fn-210 R18 (`itertools` 0.14, already resolved, admitted for this spec). Non-Temporal fixtures retain checking results while goldens regenerate. Reach and the bounded frontier reuse the suite search core (`search.rs`, `pattern_search.rs`) rather than a third BFS; worker-policy enumeration may use `itertools::multi_cartesian_product` under an explicit budget and exhaustion still refuses. Current guest freshness and independent semantic lifecycle/counterexample evidence remain required; earlier marker/reader preservation is superseded by the current-format amendment.
+
+## Early current-protocol proof gate
+
+Task .1 first establishes bounded singleton whole-prefix runtime retention/publication, including nonempty history followed by Current and callback delivery. Before frontier integration, task .8 establishes the actual current whole-prefix contract through ordinary recorded Reset, current guest/Host calls and production native/wasm parity. Task .9 records and replays the current format. No opt-in marker, legacy unmarked guest, dual-reader or linker-section retention proof remains. Task .9 proves current recording/replay against that singleton behavior. Task .10 still proves the bounded frontier, changed-canonical-past recording/replay and immutable whole-prefix publication contract. No earlier task claims partial-observation ambiguity correctness from the singleton path.
+
+## Verification adoption
+
+Use `make model-validate` for remaining final validation. It runs one complete gate with TLC required and one inner-loop benchmark. Apalache remains independently opt-in; none of these prior plans required it. Keep all standalone focused controls, actual raw/SDK live slice/gaps/replay and SUT proofs, and preserved original semantic counterexample evidence. Label new gate timing as required-mode and historical default-mode timing as historical; retain actual command provenance. Current focused commands remain available. No TLC batching, caching or reduced case coverage is introduced.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Generic Reach uses typed targets, existing checked-step/replay and a bounded evidence-compatible frontier preserving all required latent continuations, built on the suite's search core rather than a third BFS; Exact/Kettle retains complete-state matching under current whole-prefix reporting. The global=3/heartbeat=2 hidden-Tick/Heartbeat and fully evidenced global/heartbeat expiries discriminate greedy commitment. Canonical order chooses report witnesses without pruning distinct continuations/work or claiming hidden-state measurement/uniqueness/completeness. Current reports replay from Reset against all prior observations and typed emitted Facts; earlier reports remain immutable existential prefix claims. The actual current guest/Host/Run contract and exact current-format replay agree; malformed/incompatible inputs refuse. Complete no-match is Unexplained; unresolved work/precedence/resource bounds are Refused without branch loss. Atomic publication/frontier/cursor/pending, failed publication/retry, negative-prefix/fact, unsafe-merge, fabricated-state and current-contract mismatch controls pass. No ambiguity is waived through fn-237.4's missing-cause scope. | fn-246-realization-as-a-checked-refinement-a.1, fn-246-realization-as-a-checked-refinement-a.10, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.8, fn-246-realization-as-a-checked-refinement-a.9 | — |
+| R2 | Fill/capabilities compose Realize for direct, derived, generic-guest, Kettle and activity consumers, preserving the publication transaction while migrating current protocol/export formats and the feature-capability amendments in API Contracts. Missing required capabilities name compile errors; defaults/empty enums/generic declarations have positive controls; malformed typed evidence remains refused through existing validation. | fn-246-realization-as-a-checked-refinement-a.11, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.7, fn-246-realization-as-a-checked-refinement-a.8 | — |
+| R3 | The shared Temporal catalog, claims, field kinds, entity lens, correlation, reads, hold, receipt/freeze/Reset, program-envelope, filler-driven probes and support contain no feature-module coupling or embedded feature policy. Errors include invalid/duplicate claims, descriptor/result mismatch, claimed-field/enum omissions and feature-semantic leakage. Required API/domain names remain valid. | fn-246-realization-as-a-checked-refinement-a.11, fn-246-realization-as-a-checked-refinement-a.12, fn-246-realization-as-a-checked-refinement-a.2, fn-246-realization-as-a-checked-refinement-a.6 | — |
+| R4 | The activity binding consists of registry declarations, entity/read configuration, snapshot/semantic projection, claimed field rules, fillers and evidence predicates. Old handwritten classification, response, correlation and probe-baseline tables disappear. Before/after live judgments agree and every previous probe ID has an audited retained/removed outcome. The accepted-gap list empties only when every remaining semantic case has an independently justified typed semantic/applicability prediction with primary contract provenance and every removal follows the independently specified opaque/unclaimed-tree rule. Errors include any unexplained case loss, weakened claimed constraint, inferred opaque bound or residual unaccounted gap. Original conditional queue-name and retry-ordering paired live controls remain mandatory. | fn-246-realization-as-a-checked-refinement-a.12, fn-246-realization-as-a-checked-refinement-a.3, fn-246-realization-as-a-checked-refinement-a.6 | — |
+| R5 | After task .15's committed approved correction and proof renewal, the independently authored full protocol Model, including latent timer semantics and separate public view, has native fixtures and required TLC own-invariant agreement. Native refinement accounts for every full World/state field, preserves all budgets/expiry/reset/spanning laws and proves its observable-view compatibility commutes with online target matching. Reports retain starts, mapped edges, stutters, gaps and violations. Changed protocol edge, removed feature edge, wrong projection/start/outcome/budget, erased timer field, mapped-disabled edge and visible-equal/full-state-changing stutter controls fail. A gap is incomplete coverage, never preservation success. Exact missing live expiry cause retains fn-237's predeclared narrow scope without inferring cause from Canceled or discharging original rows. The independent checkpoint remains a semantic refinement check against original lifecycle evidence; no TLC-side refinement is claimed. | fn-246-realization-as-a-checked-refinement-a.10, fn-246-realization-as-a-checked-refinement-a.15, fn-246-realization-as-a-checked-refinement-a.13, fn-246-realization-as-a-checked-refinement-a.4, fn-246-realization-as-a-checked-refinement-a.6, fn-246-realization-as-a-checked-refinement-a.9 | — |
+| R6 | Every implementable worker policy over actual observable histories/keys within the declared finite depth is enumerated from the complete checked_step/emitted Model decision graph, with canonical names, typed choices and filler-derived programs replacing handwritten scenarios/response selection. The moved key/codec/raw-and-SDK continuation capability supports required heartbeat/acknowledgement decisions. An independent coverage construction proves every required emitted worker action/outcome decision has a representable witness across client/environment branches; unrepresentable raw-state policies/conflicts remain separately reported. Poll delivery, stale rejected Polls, response decisions and explicit Heartbeat stays are classified from the reanchored prerequisite graph; empty Rust fallthroughs earn no edge or coverage. Terminal-only behavior remains tested in the current format; universal closure laws and all original mandatory live rows remain retained. Errors include unbounded choices, finite resource or enumeration-budget exhaustion, duplicate/incompatible keys, malformed or missing actual notification, unsupported SDK programs, observable-history conflicts and any missing required choice. Refusal and partial programs earn no completeness or live-coverage credit. | fn-246-realization-as-a-checked-refinement-a.14, fn-246-realization-as-a-checked-refinement-a.5, fn-246-realization-as-a-checked-refinement-a.6 | — |
+| R7 | Reproducible before/after activity counts meet mapping <=2x semantic Model lines and report handwritten/generated/shared/protocol ownership separately. Mapping metadata cannot inflate the denominator; moving feature semantics cannot reduce the numerator. DESIGN explains the checked-refinement architecture, layout, counts and actual model-time; README explains authoring. The workflow Model is the later remeasurement gate. Errors include missing files/count classifications, feature semantics charged as generic, unexplained excluded lines and an over-target ratio; only a written owner exception can relax the ratio. | fn-246-realization-as-a-checked-refinement-a.3, fn-246-realization-as-a-checked-refinement-a.6 | — |
+
+===== [5/11] git_status: `git status --short --branch` =====
+## work/fn24611-registry
+
+===== [6/11] git_log: `git log -5 --oneline` =====
+0ebef03d4d docs(flow): retain registry Reach and metadata review findings
+b251ac522b test(flow): retain joined registry verification and freshness
+25fd6261cf build(temporal): reconcile renamed fixture checker dependency
+5143f3b644 test(temporal): refresh authored binding snapshot after heartbeat integration
+142e537b0b docs(milestones): reflect integrated registry verification
+
+===== [7/11] git_branch: `git rev-parse --abbrev-ref HEAD` =====
+work/fn24611-registry
+
+===== [8/11] memory_enabled: `flowctl config get memory.enabled --json` =====
+{
+  "success": true,
+  "key": "memory.enabled",
+  "value": true
+}
+
+===== [9/11] glossary: `flowctl glossary list --json --match "<task title + description>"` =====
+(no glossary entry matches the task title or description - skipped)
+
+===== [10/11] memory_index: `flowctl memory list` =====
+bug/build-errors/
+  track-schema-inputs-before-reusing-2026-09-07 — "Track schema inputs before reusing generated Lean modules" (module: model/lakefile.lean)
+  glossary-renames-can-reintroduce-names-2026-09-13 — "Glossary renames can reintroduce names the vocabulary gate retired" (module: tools/umpire/internal/retiredvocabulary/check.go)
+  ci-job-timeout-must-exceed-a-gates-go-2026-09-26 — "CI job timeout must exceed a gate's Go -timeout or output is lost" (module: .github/workflows/umpire.yml)
+  slicescollectmapskeys-turns-empty-into-2026-09-27 — "slices.Collect(maps.Keys) turns empty into nil; cmp.Or[error] trips SA4023" (module: common/testing/testpilot/temporal/worker)
+  package-only-model-headers-need-normal-2026-10-06 — "Package-only Model headers need normal compilation in every caller" (module: Makefile)
+  isolate-scala-cli-author-builds-after-2026-10-16 — "Isolate Scala CLI author builds after local macro jar changes" (module: model/framework/README.md)
+  match-enum-values-rather-than-2026-10-18 — "Match enum values rather than references in empty derives" (module: model2/umpire/dsl/macros/src/action.rs)
+  resolve-model-impl-identity-in-its-2026-10-19 — "Resolve Model impl identity in its original lexical and trait context" (module: model/umpire/dsl/macros/src/machine.rs)
+  preserve-generic-declaration-context-in-2026-10-21 — "Preserve generic declaration context in generated adapters" (module: model/umpire/dsl/macros/src/machine/declared.rs)
+  preserve-generic-paths-and-prost-2026-10-25 — "Preserve generic paths and prost escaping during macro consolidation" (module: model/umpire/catalog/syntax)
+
+bug/data/
+  joined-composition-keys-must-be-checked-2026-09-28 — "Joined composition keys must be checked injective before keying rows" (module: model/Umpire/Command/Compose.lean)
+  preserve-git-conversion-policy-for-2026-10-24 — "Preserve Git conversion policy for content-addressed closure reports" (module: tools/flow/validation-review.patch)
+
+bug/integration/
+  portable-execution-boundaries-must-2026-09-03 — "Portable execution boundaries must preserve runtime context" (module: tools/umpire/runner/runner.go)
+  portable-model-plans-need-exact-2026-09-03 — "Portable model plans need exact artifacts and checked obligations" (module: model/Temporal/Tool/PortableEvaluationContract.lean)
+  portable-schemas-must-preserve-source-2026-09-03 — "Portable schemas must preserve source semantic kinds and cardinalities" (module: proto/internal/temporal/server/api/umpire/v1/portable_test_plan.proto)
+  behavior-neutral-refactors-must-not-2026-09-04 — "Behavior-neutral refactors must not strengthen validation" (module: model/Umpire/Observation/Evaluation/Admission.lean)
+  contract-work-bounds-must-follow-typed-2026-09-04 — "Contract work bounds must follow typed values" (module: tools/umpire/verification)
+  full-integration-gates-must-select-the-2026-09-04 — "Full integration gates must select the complete migrated suite" (module: Makefile)
+  program-admission-must-validate-2026-09-04 — "Program admission must validate producer kinds and bound repeated lookups" (module: tools/umpire/internal/execution)
+  coverage-findings-must-retain-2026-09-05 — "Coverage findings must retain independent obligations and evidence" (module: model/Umpire/Planning/CaseAnalysis.lean)
+  default-empty-extensions-must-preserve-2026-09-05 — "Default-empty extensions must preserve canonical fingerprints" (module: model/Umpire/Property/Check.lean)
+  joint-conflict-scopes-require-realized-2026-09-05 — "Joint conflict scopes require realized trigger identity" (module: model/Umpire/Planning/CaseAnalysis.lean)
+  keep-raw-semantics-behind-checked-input-2026-09-05 — "Keep raw semantics behind checked input boundaries" (module: model/Umpire/Property/Evaluation.lean)
+  nested-admission-diagnostics-must-2026-09-05 — "Nested admission diagnostics must retain exact source coordinates" (module: model/Umpire/Property/Check.lean)
+  reconciliation-must-preserve-authority-2026-09-05 — "Reconciliation must preserve authority, IDs, and references" (module: .plans/UMPIRE4_SPEC.md)
+  reusable-cases-need-run-coordinates-and-2026-09-05 — "Reusable Cases need run coordinates and event-aligned captures" (module: model/Temporal/CaseRuntime.lean)
+  validate-protobuf-descriptor-structure-2026-09-05 — "Validate protobuf descriptor structure before accepting same-name responses" (module: tools/umpire/internal/ir/runtime_value.go)
+  moved-conformance-tests-must-not-import-2026-09-06 — "Moved conformance tests must not import functional adapters" (module: common/testing/testpilot/conformance_test.go)
+  check-unbounded-lean-numbers-before-2026-09-07 — "Check unbounded Lean numbers before protobuf narrowing" (module: model/Umpire/Case/Compiler.lean)
+  dual-purpose-coverage-maps-need-per-2026-09-09 — "Dual-purpose coverage maps need per-entry admissibility" (module: model/Umpire/Observation/Projection/Coverage.lean)
+  homogeneous-owner-index-blocked-mixed-2026-09-09 — "Homogeneous owner index blocked mixed-schema field Properties" (module: model/Umpire/Property/Evaluation.lean)
+  keyed-capture-operands-must-be-checked-2026-09-09 — "Keyed capture operands must be checked against their declaration" (module: model/Umpire/Property/Check.lean)
+  portable-carriers-must-keep-the-checked-2026-09-09 — "Portable carriers must keep the checked namespace and type rules" (module: model/Testpilot/Scoped.lean)
+  consolidated-extractor-dropped-a-2026-09-27 — "Consolidated extractor dropped a caller's nonempty-field rejection" (module: common/testing/testpilot/temporal/driver.go)
+  every-scenario-command-scenario-carries-2026-09-27 — "Every scenario-command Scenario carries ordering; pinned schedules decide it" (module: model/Umpire/Search/Product/Scenario.lean)
+  test-output-parsers-must-accept-tlog-2026-09-27 — "Test output parsers must accept t.Log file:line decoration" (module: tools/umpire/cmd/umpire-repeat/signature.go)
+  a-checked-artifact-cannot-supply-its-2026-09-28 — "A checked artifact cannot supply its own completeness universe" (module: model/Umpire/Command/ComposeProofs.lean)
+  feature-modules-must-import-temporal-2026-09-28 — "Feature modules must import Temporal conventions or IDs change family" (module: model/Temporal/Case/Conventions.lean)
+  channel-catalogs-and-visible-results-2026-09-30 — "Channel catalogs and visible results must survive source lifting" (module: model/scalav2/lifter/Lift.scala)
+  realized-controls-constrain-admission-2026-09-30 — "Realized controls constrain admission evidence compatibility" (module: model/scalav2/specimens/activity.md)
+  paired-level-validators-must-check-each-2026-10-06 — "Paired level validators must check each artifact independently" (module: model/irgen/src/main/scala/modelir/lint/Structure.scala)
+  transition-table-reads-must-omit-2026-10-06 — "Transition-table reads must omit realization-only refinement metadata" (module: tools/umpire/model/compose.go)
+  retired-protobuf-names-must-guard-every-2026-10-09 — "Retired protobuf names must guard every top-level declaration kind" (module: tools/umpire/ir/schema_test.go)
+  schema-closure-tests-must-compile-2026-10-09 — "Schema closure tests must compile imported generated declarations" (module: model/check/test/Gate.test.scala)
+  output-relocation-must-scope-shared-2026-10-11 — "Output relocation must scope shared readers and publication" (module: tools/umpire/cmd/umpire-gen-cases)
+  preserve-explicit-replay-bindings-when-2026-10-13 — "Preserve explicit replay bindings when sharing a Model" (module: tools/umpire/check/checking.go)
+  encode-fixture-folder-names-before-2026-10-18 — "Encode fixture folder names before generating Rust identifiers" (module: model2/umpire/testing/src/discovery.rs)
+  separate-archived-scan-roots-from-2026-10-18 — "Separate archived scan roots from historical source paths" (module: tools/umpire/ir)
+  use-file-snapshots-for-reviewable-2026-10-18 — "Use file snapshots for reviewable external insta goldens" (module: model2/framework/samples/tests/kettle.rs)
+  match-complete-macro-invocations-when-2026-10-19 — "Match complete macro invocations when selecting machine outcomes" (module: model/umpire/dsl/macros/src/machine.rs)
+  preserve-rust-expression-and-inference-2026-10-20 — "Preserve Rust expression and inference contracts in path macros" (module: model/umpire/dsl/macros/src/path.rs)
+  prove-result-shape-before-propagating-2026-10-21 — "Prove result shape before propagating generated-enum coverage" (module: model/temporal/annotate/syntax/src/realize.rs)
+  required-numeric-generation-must-sample-2026-10-21 — "Required numeric generation must sample present candidates" (module: model/umpire/annotations/src/value.rs)
+  preserve-scalar-bound-identities-when-2026-10-22 — "Preserve scalar bound identities when naming shared IR expressions" (module: model/umpire/front/src/body/vector.rs)
+  rejected-delivery-steps-must-not-2026-10-22 — "Rejected delivery steps must not authorize callback replies" (module: model/temporal/feature/activity/temporal.rs)
+  correlate-pending-proposals-with-2026-10-23 — "Correlate pending proposals with operation completion evidence" (module: model/temporal/feature/activity/temporal.rs)
+  preserve-arithmetic-evaluation-roots-2026-10-23 — "Preserve arithmetic evaluation roots across empty domains and unused values" (module: model/umpire/lift/src/safety.rs)
+  preserve-property-categories-and-bound-2026-10-23 — "Preserve property categories and bound native start-failure replay" (module: model/umpire/backends/apalache/src/replay.rs)
+  facade-admission-must-normalize-dsl-2026-10-24 — "Facade admission must normalize DSL prefixes through grouped imports" (module: model/umpire/author/dsl/macros/src/roots.rs)
+  match-terminal-failure-and-retained-2026-10-24 — "Match terminal failure and retained retry history separately" (module: model/temporal/feature/activity/temporal.rs)
+  catalog-claims-must-cover-consumed-2026-10-25 — "Catalog claims must cover consumed leaves and preserve map value kinds" (module: model/umpire/catalog/build/src/claims.rs)
+
+bug/performance/
+  authoring-comparisons-must-force-equal-2026-09-06 — "Authoring comparisons must force equal checker work" (module: model/Temporal/Feature/Nexus2/AuthoringTests.lean)
+  canonical-identity-embeds-whole-2026-09-09 — "Canonical identity embeds whole generated schema (27MB per payload)" (module: model/Umpire/Operation/Canonical.lean)
+  build-counterexample-paths-only-for-2026-10-18 — "Build counterexample paths only for failing predicates" (module: model2/framework/checker/src/explore.rs)
+
+bug/runtime-errors/
+  interface-nil-checks-must-cover-every-2026-09-04 — "Interface nil checks must cover every nil-capable kind" (module: tools/umpire/temporal/nexus/runner.go)
+  monitor-closure-must-honor-cancellation-2026-09-04 — "Monitor closure must honor cancellation without rebuilding proofs" (module: tools/umpire/verification)
+  freeze-contract-transitions-when-2026-09-05 — "Freeze Contract transitions when execution becomes incomplete" (module: tools/umpire/verification)
+  retain-opaque-completion-authority-2026-09-05 — "Retain opaque completion authority across rejected acceptance" (module: tools/umpire/temporal/server)
+  workflow-replay-must-complete-2026-09-05 — "Workflow replay must complete unfinished admissions once" (module: tools/umpire/temporal/worker)
+  replay-rejection-lost-to-2026-09-27 — "Replay rejection lost to finalizePlanning's unsatisfiable-Scenario priority" (module: model/Umpire/Search.lean)
+  field-alterations-must-range-over-2026-09-28 — "Field alterations must range over structure fields, not the reachable catalog" (module: model/Umpire/Command/Predicate.lean)
+  finite-ir-admission-must-count-work-2026-09-30 — "Finite IR admission must count work before listing catalogs" (module: model/scalav2/goir)
+  finite-search-requires-injective-2026-09-30 — "Finite search requires injective identity and bounded admission" (module: model/go/umpire)
+  reconstruct-crash-resets-and-budget-2026-10-16 — "Reconstruct crash resets and budget updates atomically" (module: model/framework/dsl/StateField.scala)
+  reject-async-methods-before-discarding-2026-10-19 — "Reject async methods before discarding generated call results" (module: model/umpire/dsl/macros/src/machine.rs)
+  prepare-all-path-candidates-before-2026-10-24 — "Prepare all PATH candidates before allocation-free exec fallback" (module: model/umpire/backends/process/src/syscall.rs)
+  raw-clone-needs-architecture-specific-2026-10-24 — "Raw clone needs architecture-specific arguments and child results" (module: model/umpire/backends/process/src/syscall.rs)
+  duration-relations-and-witnesses-must-2026-10-25 — "Duration relations and witnesses must use the shared projection" (module: model/temporal/foundation/views.rs)
+  evidence-admission-refusals-must-remain-2026-10-25 — "Evidence admission refusals must remain distinct from predicate rejection" (module: model/umpire/protocol/runtime/src/runtime.rs)
+  preserve-filter-errors-when-upstream-2026-10-25 — "Preserve filter errors when upstream receives SIGPIPE" (module: model/scripts/retired-names.sh)
+
+bug/security/
+  retain-backend-capture-handles-across-2026-10-23 — "Retain backend capture handles across untrusted process execution" (module: model/umpire/backends/tlc/src/process.rs)
+
+bug/test-failures/
+  differentials-must-enumerate-every-2026-09-28 — "Differentials must enumerate every search caller, not only declarations" (module: model/Umpire/Search/Tests/Differential.lean)
+  gate-retry-polling-before-observing-2026-10-22 — "Gate retry polling before observing Scheduled evidence" (module: tests/testpilot_model_slice_test.go)
+  test-loader-inheritance-across-native-2026-10-25 — "Test loader inheritance across native fixtures" (module: model/dev/xtask/tests/guest_pipeline.rs)
+
+knowledge/decisions/
+  host-verified-model-provenance-without-2026-09-03 — "Host-verified model provenance without protocol signatures" (module: Umpire PortableTestPlan provenance)
+
+===== [11/11] dependencies: ids, titles, statuses, done summaries =====
+- fn-246-realization-as-a-checked-refinement-a.7 [done] - Typed capabilities, fillers and internal evidence adapters
+    Implemented R2 through Identity, Snapshot, Evidence<K>, Fill<A> and ReplyPolicy assembled at the existing Realize entry point. Stock, Kettle, generic/renamed controls and generated Temporal consumers share the typed filler signature. Rpc/Snapshot/Reconciled views preserve typed admission and same-invocation identity; History remains declared without a producer.
+    
+    Review found admission errors being converted into rejected Reach candidates. The committed red regression and fix propagate original refusals through new observations and retained-prefix validation, preserve pending/history/immutable reports, avoid freezing on refusal and allow successful retry. Missing capability, optional default, generic bounds, renamed dependency, empty enum, callback and publication controls remain covered.
+    
+    Actual primary re-review SHIP: session01a17312-8385-74d1-9b7b-a7c6e27eec56 at2a0630292f. Worker verification passed202 tests (one existing explicit live-import ignore), strict clippy/fmt, six guests/native panic and fresh Kettle Go checks. The final conductor six-crate integrated suite passed at2ded674203 (143.340s); source/model tree matched the reviewed2a0630292f. The first attempts exposed stale cross-worktree runtime/checker metadata; exact package cleans repaired the cache without source edits, and both failed attempts are retained. Embedded guest09efe079c5198322e39b04ebde3cb0d0376b973fff644b4cb6e93461ba303411 was promoted at2a0630292f.
+    
+    The parent full required gate remains outstanding: the current411.859s run failed an Apalache subprocess safety/limit refusal. Six focused reruns passed but do not repair that gate. Parent full validation, task8 protocol declaration, task9 recording, task10 compatible frontier, task14 production continuation and fn237.4 live wrapper proof remain with their declared owners. Per-task closure uses the rolling scheduler's focused verification; no parent gate receipt is claimed.
+    
+    Tier: explicit AGENTS implementer gpt-6.1-sol/medium, reviewer gpt-6.1-sol/high (same family); judge unavailable(no_key). Memory captured as bug/runtime-errors/evidence-admission-refusals-must-remain-2026-10-25. stage: plan-sync skipped(policy: rolling scheduler).
+    
+    stage: plan-sync - skipped(config: planSync.enabled != true)
+

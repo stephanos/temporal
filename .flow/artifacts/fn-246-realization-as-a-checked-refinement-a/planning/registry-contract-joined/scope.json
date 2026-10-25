@@ -1,0 +1,13 @@
+{
+  "combined_source": "467103e678",
+  "metadata_only_followup": "b9a1bf3f47",
+  "worker_whole_tests_reused": "Task8 exactmodeltree376fc72d and task11 all175/UI/clippy/fmt/boundary receipts; fresh changed-boundary tests validate combinedsource",
+  "root_native_metadata": 2,
+  "root_current_contract_parity": "ordinary/configured/callback 25 calls via actual production native andWasm assets",
+  "changed_go_fmt_exit": 0,
+  "changed_nested_go_lint_exit": 0,
+  "make_fast_lint_exit": 0,
+  "fast_lint_scope": "No rootmodulechangedGo; nestedgenericHost/Runner separatelylinted withactualGo-onlypatch; inherited unchangedRunner findings notclaimedfixed.",
+  "guest_freshness": "combinedsource0; embeddedfa1f checkpoint stillmatchesactualproductionbuild",
+  "full_gate": "Deferred to existing required task15 integration checkpoint/final, no scope waived"
+}

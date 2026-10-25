@@ -1,0 +1,17 @@
+{
+  "registry-contract-joined-metadata.log": "726c83e9c672b68dc38b62030a5a56bb014dc41eb03bc8097a0ed0f79ad25ad9",
+  "registry-contract-joined-registry-expansion.log": "607a86cffec9a9a27a30700adb4154af8f6dc43a1a65c0ae4f55a2809bcad7de",
+  "fn2468-joined-go-lint.log": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+  "fn2468-joined-runtime.log": "57a686cfe79033421461d49f2bb1be5e30940c54c33a520b3d851b9a8a3c3f1b",
+  "scope.json": "3e02d408b55a14364e8c53ede6decb831d70de780f04e45171bb1abc2858de10",
+  "registry-contract-joined-verification.json": "1835ceb94eb819b84920943496c441104143fbbb2320ffc7b5b12dfc8685e5c8",
+  "registry-contract-joined-guest-freshness.log": "f6a73cf6afd9b21d5f0148664cd88dacca00a28bec3de239900bb14b23e3e8fe",
+  "fn2468-joined-fast-lint.log": "189777baf01a1f7a2788fbffb301f153ab7044ff664de20c80d2c2fe0bad4fa4",
+  "fn2468-joined-build-guests.log": "590e7625f715ec88d3c9d5387d403b745496222477436554ec52d476938f9442",
+  "fn2468-joined-protobuf.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "registry-contract-joined-host-parity.log": "a57cd43b9ccbd74f8aaf7ead9a2cc8ff5a41581ecbeda3b2864c020583cc4d23",
+  "fn2468-joined-gofmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fn2468-joined-verification.json": "8f14b6eac9cf05253303ad8295cc5f42a39346774325037d637f563099b2d568",
+  "registry-contract-joined-registry-reach.log": "9d15a5d1028ffb7ce57acd711bafd9c56ceddb290cb4a402d4e18da6a04df8d2",
+  "fn2468-joined-host-admission-parity.log": "0b142c21fd0ee58faaf6b6aaeceac112cb22d2ee2852a6355c4d2f8bcb6fd3d1"
+}

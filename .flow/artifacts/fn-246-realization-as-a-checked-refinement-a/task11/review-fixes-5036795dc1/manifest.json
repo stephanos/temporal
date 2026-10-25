@@ -1,0 +1,244 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.11",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry",
+  "base_commit": "0ebef03d4db26afae1661b2f887c04c367747c13",
+  "commits": [
+    "e78e5aa417f483d5ae19c1314d82433b6dc116ff",
+    "5036795dc1cafbf2872a4b80a4fe5389de19373b"
+  ],
+  "head": "5036795dc1cafbf2872a4b80a4fe5389de19373b",
+  "model_tree": "2640908316616b79779248f75cc0a5c3cf0c7652",
+  "implemented_findings": [
+    "finding-f1dcb29e5da3360dac2e71b4ccd8d53b",
+    "finding-3230f667764744b3f1368f0f04a383b8"
+  ],
+  "review": "conductor resumes the original primary receipt; writer issued no verdict",
+  "checks": [
+    {
+      "id": "focused",
+      "command": "mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "log": "focused.log",
+      "exit_code": 0,
+      "source": "e78e5aa417",
+      "rust_totals": {
+        "passed": 175,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "id": "clippy",
+      "command": "mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings",
+      "log": "clippy2.log",
+      "exit_code": 0,
+      "source": "5036795dc1cafbf2872a4b80a4fe5389de19373b",
+      "rust_totals": null
+    },
+    {
+      "id": "fmt",
+      "command": "mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check",
+      "log": "fmt.log",
+      "exit_code": 0,
+      "source": "5036795dc1cafbf2872a4b80a4fe5389de19373b",
+      "rust_totals": null
+    },
+    {
+      "id": "boundary",
+      "command": "mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+      "log": "boundary.log",
+      "exit_code": 0,
+      "source": "5036795dc1cafbf2872a4b80a4fe5389de19373b",
+      "rust_totals": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0
+      }
+    }
+  ],
+  "worker_attempts": [
+    {
+      "log": "boundary.log",
+      "exit_code": 0
+    },
+    {
+      "log": "clippy.log",
+      "exit_code": 101
+    },
+    {
+      "log": "clippy2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fmt.log",
+      "exit_code": 0
+    },
+    {
+      "log": "focused.log",
+      "exit_code": 0
+    },
+    {
+      "log": "reach-green.log",
+      "exit_code": 0
+    },
+    {
+      "log": "reach-red.log",
+      "exit_code": 101
+    },
+    {
+      "log": "reach-red2.log",
+      "exit_code": 101
+    },
+    {
+      "log": "reach-runtime-red.log",
+      "exit_code": 101
+    },
+    {
+      "log": "reach-runtime-red2.log",
+      "exit_code": 101
+    },
+    {
+      "log": "registry-diagnostics.log",
+      "exit_code": 0
+    },
+    {
+      "log": "registry-snapshot.log",
+      "exit_code": 0
+    }
+  ],
+  "red_proofs": {
+    "P1": "reach-runtime-red.log reproduces valid RPC Runtime Reach returning Unexplained; reach-runtime-red2.log also shows crossed identity becoming Unexplained before the fix",
+    "P2": "generic/red3.log reproduces unit Outcome/catalog drift from inert reject/stay metadata"
+  },
+  "style_scope": "The final commit adds two explicit semicolons in test Snapshot assignments. The functional six-crate gate was green before that style-only change; strict clippy, fmt and boundary passed after it. No broad/stress rerun followed the green, per user batching instruction.",
+  "cache": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "commands_terminal": true,
+  "files": [
+    {
+      "path": "anchor.txt",
+      "sha256": "32bcb4a59fa2be3516377622a80e8b8c9f3fcf807f500fa8820ddbefd837c768",
+      "bytes": 76997
+    },
+    {
+      "path": "base_commit",
+      "sha256": "5a5718119aa677bd649b14d96ed618bf2d63ee4344c96099e638bdb39c82950d",
+      "bytes": 41
+    },
+    {
+      "path": "boundary.log",
+      "sha256": "09acac5fa9dd2ff8b27347e884d2c3398bee50d8dad9385754038f4882cec565",
+      "bytes": 1964
+    },
+    {
+      "path": "clippy.log",
+      "sha256": "7d336ee079319481885f28bc228580560bd9d7456ad64da3b0257f99a4a7499d",
+      "bytes": 3937
+    },
+    {
+      "path": "clippy2.log",
+      "sha256": "b8b2fd76703011f655577309d296edf233fa87ccb94213e1fab806075a1f5475",
+      "bytes": 517
+    },
+    {
+      "path": "fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "focused.log",
+      "sha256": "7eb4ee32fae449f6773fd6d3c5341c768ebc4323423d112852b79b3a68fac14b",
+      "bytes": 34871
+    },
+    {
+      "path": "generic/green.log",
+      "sha256": "d604e4e95a03a7e478c7d04f7befb37e67fdb488ef6330db7ea760edbbfe0d90",
+      "bytes": 2901
+    },
+    {
+      "path": "generic/green2.log",
+      "sha256": "1e639e44ae788999902bbb0ccb478dcbb2342db0aa2aadc9dc77fd2eeafad1ee",
+      "bytes": 11921
+    },
+    {
+      "path": "generic/green3.log",
+      "sha256": "b0f41f4365f303258638696e8d723f63ee04844f8e8aa4839e0adc7fd0e56216",
+      "bytes": 653
+    },
+    {
+      "path": "generic/manifest.json",
+      "sha256": "de952bae789e69296a5e3079a539815ae7a0968d214293b2b4deffb39ed2c167",
+      "bytes": 2086
+    },
+    {
+      "path": "generic/red.log",
+      "sha256": "aeff638f2b7979c06fbb6c3fa96793ef982edf7a28863e15bf4791d85f24590e",
+      "bytes": 3320
+    },
+    {
+      "path": "generic/red2.log",
+      "sha256": "477e16d67704876265ad550f6bf23f499d3a2f6cb940100074a46602c7402636",
+      "bytes": 2578
+    },
+    {
+      "path": "generic/red3.log",
+      "sha256": "38350efe2ca06c7a3aeaebce7da74628756bf4bd2fb4aa6d91d5d5662aa9ac4a",
+      "bytes": 1827
+    },
+    {
+      "path": "reach-green.log",
+      "sha256": "64447cd612476f197134aa3ac863ca61e590cdee40cb0d03c3e4d1dff02ae5bb",
+      "bytes": 1028
+    },
+    {
+      "path": "reach-red.log",
+      "sha256": "d859fa0e917b7b550c0d8f88b295660a0e87384cf31f61d0bc8b2a48510b7a49",
+      "bytes": 34553
+    },
+    {
+      "path": "reach-red2.log",
+      "sha256": "9e4696cc136e1752c6cbdce81bbc4e941bf4eed617569cd4c0a2bf6ba374399c",
+      "bytes": 1483
+    },
+    {
+      "path": "reach-runtime-red.log",
+      "sha256": "63e358a3086a9660861d68b149867c3867385435c479fc1c41049aa59cb43f00",
+      "bytes": 1516
+    },
+    {
+      "path": "reach-runtime-red2.log",
+      "sha256": "72c126e3f58b92b2b1e56f878b10926b2cd9d13406528ddcfe6c76fac1e193b0",
+      "bytes": 1547
+    },
+    {
+      "path": "registry-diagnostics.log",
+      "sha256": "55c6fa9da655abddcf87b4aa94d463ae5e14ca8c90d4140b396fa4e45dc01cb7",
+      "bytes": 12610
+    },
+    {
+      "path": "registry-snapshot.log",
+      "sha256": "d4667349305ccf92758dcf957144ddb6f20d696e1730eb9e47c12d8aabee1e7f",
+      "bytes": 1391
+    },
+    {
+      "path": "review-receipt.json",
+      "sha256": "a1360eb29fa91e6766e41bb773d4b30d1c1d3f2a29e4a170c89a024fdf8d83f9",
+      "bytes": 6572
+    },
+    {
+      "path": "style-only.patch",
+      "sha256": "9764eaf2c2beae37e77d1de84b26240e803e7a16c6b8727304ffc8a9392c7c99",
+      "bytes": 935
+    },
+    {
+      "path": "task-status.json",
+      "sha256": "d6c9f2ac4eedf56d3a141c5a05bf142c4d66a54ad134c7f8aa2847868d7f946b",
+      "bytes": 719
+    }
+  ]
+}

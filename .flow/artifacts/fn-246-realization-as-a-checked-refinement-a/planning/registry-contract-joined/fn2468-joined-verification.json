@@ -1,0 +1,62 @@
+{
+  "source_commit": "1c396342f6a978e3fab17e5cce651484822b5729",
+  "model_tree": "376fc72d2b149cc0958abbdd4ac7df9f013350da",
+  "worker_model_tree": "376fc72d2b149cc0958abbdd4ac7df9f013350da",
+  "scope": "Reuse verified worker full suites for identical model tree; execute fresh joined changed native/Host/hash/proto boundaries and production guest build. Broad parent gate remains at required checkpoint/final.",
+  "results": [
+    {
+      "name": "runtime",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-runtime",
+        "--test",
+        "core_protocol",
+        "--test",
+        "proposal_wire",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 3.358,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2468-joined-runtime.log",
+      "log_sha256": "57a686cfe79033421461d49f2bb1be5e30940c54c33a520b3d851b9a8a3c3f1b"
+    },
+    {
+      "name": "host-admission-parity",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./host",
+        "./runner",
+        "-run",
+        "TestCurrentContractNativeWasmPublishedResponsesAgree|TestResetContractAdmissionPrecedesDriver|TestRunnerOwnsLoadedGuestBytes|TestResetProofContractRefusesMissingAndUnknown|TestCoreProtocolWireCompatibility|TestProposalWireContract",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 1.851,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2468-joined-host-admission-parity.log",
+      "log_sha256": "0b142c21fd0ee58faaf6b6aaeceac112cb22d2ee2852a6355c4d2f8bcb6fd3d1"
+    },
+    {
+      "name": "protobuf",
+      "command": [
+        "bash",
+        "model/scripts/proto-go.sh",
+        "core",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.103,
+      "log": ".flow/tmp/milestones-resume-20261024/fn2468-joined-protobuf.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "status": "terminal-passed"
+}

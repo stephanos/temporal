@@ -1,0 +1,58 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+warning: unreachable `pub` item
+  --> umpire/author/dsl/macros/tests/metadata_semantics.rs:15:5
+   |
+15 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+   = note: requested on the command line with `-W unreachable-pub`
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/macros/tests/metadata_semantics.rs:21:5
+   |
+21 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/macros/tests/metadata_semantics.rs:48:5
+   |
+48 |     pub struct Model {
+   |     ---^^^^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: unreachable `pub` item
+  --> umpire/author/dsl/macros/tests/metadata_semantics.rs:54:5
+   |
+54 |     pub enum User {
+   |     ---^^^^^^^^^^
+   |     |
+   |     help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+
+warning: `umpire-dsl-macros` (test "metadata_semantics") generated 4 warnings (run `cargo fix --test "metadata_semantics" -p umpire-dsl-macros` to apply 4 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 3.60s
+     Running tests/metadata_semantics.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/metadata_semantics-2d642cf94cc817f0)
+
+running 2 tests
+test opaque_macro_tokens_preserve_unit_outcome_catalog_and_native_lifted_rows ... ok
+test executable_reject_and_stay_keep_their_native_and_lifted_semantics ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
