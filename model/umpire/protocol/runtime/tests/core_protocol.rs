@@ -3,10 +3,12 @@
 #[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
 mod support;
 
+#[path = "../guests/stock/src/model.rs"]
+mod stock;
+
 use prost::Message;
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    Model,
     prost_types::Any,
     protocol::{self, response::Outcome},
 };
@@ -111,7 +113,7 @@ fn new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals() {
             .unwrap_or_else(|e| panic!("{e}")),
         reply
     );
-    let mut model = Model::default();
+    let mut model = stock::model();
     for (method, request) in [(3, vec![]), (4, judge.encode_to_vec()), (5, answer.encode_to_vec())]
     {
         let Some(Outcome::Refusal(refusal)) = model.dispatch(method, &request).outcome else {

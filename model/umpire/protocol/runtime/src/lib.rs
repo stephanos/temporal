@@ -9,7 +9,6 @@ mod any;
 mod envelopes;
 mod refusal;
 mod runtime;
-mod stock;
 
 /// Generated core contract.
 #[allow(missing_docs, unreachable_pub, clippy::all, clippy::pedantic)]
@@ -28,7 +27,6 @@ pub use prost_types;
 pub use runtime::{
     AnswerPlan, Candidate, Projection, Proposal, Realize, Runtime, Transaction, Transition,
 };
-pub use stock::Model;
 
 impl protocol::Refusal {
     /// Construct a refusal with a stable protocol code.
