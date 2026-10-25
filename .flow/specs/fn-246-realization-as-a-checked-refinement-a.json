@@ -20,7 +20,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-25T05:59:29.349951Z",
+  "plan_reviewed_at": "2026-10-25T15:59:29.669950Z",
   "ready": true,
   "review_attempts": [
     {
@@ -533,13 +533,58 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.12",
       "timestamp": "2026-10-25T14:28:41.631863Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2b3e8d9bf3e156cb075c5cf43ccadf9ef5275274c473c863bd206b0cd70df3ae",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-051fd97ec2d059dd6643afc9ecbb2c8b",
+            "classification": "introduced",
+            "findingId": "finding-051fd97ec2d059dd6643afc9ecbb2c8b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "cb760f1c002924b71bf1efea21ea2893de46d186",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 559211,
+      "output_sha256": "fe7e3295d93c8b7d120d90178fff938b16eb04215bf45b8c7be270286f55837c",
+      "reservation_id": "14f0debdd8db4927b3af709a4446aa30",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T15:59:29.656449Z",
+      "tool_calls": 25,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.7": 1,
-    "plan": 1,
+    "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -564,5 +609,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T14:28:41.638347Z"
+  "updated_at": "2026-10-25T15:59:29.673618Z"
 }

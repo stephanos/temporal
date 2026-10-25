@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "type": "plan_review",
+  "id": "fn-246-realization-as-a-checked-refinement-a",
+  "verdict": "SHIP",
+  "session_id": "01a173c5-876e-7311-9f76-e526bdd97856",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "review": "I\u2019ll read the epic, all task specs, and the relevant model code, then review the plan against the supplied rubric.\nThe plan separates the approved timeout-retry correction from the later refactor and proof work. I\u2019m checking the current transition laws, task dependencies, and SDK executor behavior for gaps that could block implementation.\nThe timeout-retry correction covers the affected laws and fixtures, including exact expiry facts, timer rearming, priority, and the retained single-attempt checkpoint. I\u2019m finishing the consistency check for shared file ownership and prerequisite evidence.\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/specs/fn-246-realization-as-a-checked-refinement-a.md:78\nR-IDs: []\nLocation: Dependency-independent task Touches sets\nProblem: Additional overlapping pairs require serial dispatch: .1/.14, .7/.13, .8/.14, .9/.14, .10/.14 and .11/.13. For example, .7/.13 and .11/.13 share realization/src/lib.rs; .9/.14 and .10/.14 share Runner files. This is advisory because the epic\u2019s general overlap guard already requires serialization.\nSuggestion: Include these pairs when applying the existing dispatch exclusions; no task split is required.\n\nNo blocking findings identified. The plan states discriminating tests, dependency-ordered proof gates, batch counts and diagnostics, resource bounds, and privacy constraints. Task .15 explicitly covers the affected countdown/priority laws, exact expiry facts, retry rearming, and the unchanged single-attempt checkpoint.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "plan_review_status": "ship",
+  "review_rounds": 0,
+  "review_rounds_cap": 8
+}

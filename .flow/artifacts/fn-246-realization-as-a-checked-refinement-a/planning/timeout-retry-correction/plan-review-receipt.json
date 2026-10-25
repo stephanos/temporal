@@ -1,0 +1,45 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "cb760f1c002924b71bf1efea21ea2893de46d186",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+          "headSha": "cb760f1c002924b71bf1efea21ea2893de46d186",
+          "path": ".flow/specs/fn-246-realization-as-a-checked-refinement-a.md",
+          "side": "head",
+          "startLine": 78
+        },
+        "body": "Additional overlapping pairs require serial dispatch: .1/.14, .7/.13, .8/.14, .9/.14, .10/.14 and .11/.13. For example, .7/.13 and .11/.13 share realization/src/lib.rs; .9/.14 and .10/.14 share Runner files. This is advisory because the epic\u2019s general overlap guard already requires serialization.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-56adf40eb56eef982a5b39d0e28c771a9f7c7ef9d23dbc19de07c0d8b6c77527",
+        "id": "finding-051fd97ec2d059dd6643afc9ecbb2c8b",
+        "lastSeenReceiptId": "review-56adf40eb56eef982a5b39d0e28c771a9f7c7ef9d23dbc19de07c0d8b6c77527",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Include these pairs when applying the existing dispatch exclusions; no task split is required.",
+        "title": "Additional overlapping pairs require serial dispatch:"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-56adf40eb56eef982a5b39d0e28c771a9f7c7ef9d23dbc19de07c0d8b6c77527"
+  },
+  "id": "fn-246-realization-as-a-checked-refinement-a",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I\u2019ll read the epic, all task specs, and the relevant model code, then review the plan against the supplied rubric.\nThe plan separates the approved timeout-retry correction from the later refactor and proof work. I\u2019m checking the current transition laws, task dependencies, and SDK executor behavior for gaps that could block implementation.\nThe timeout-retry correction covers the affected laws and fixtures, including exact expiry facts, timer rearming, priority, and the retained single-attempt checkpoint. I\u2019m finishing the consistency check for shared file ownership and prerequisite evidence.\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/specs/fn-246-realization-as-a-checked-refinement-a.md:78\nR-IDs: []\nLocation: Dependency-independent task Touches sets\nProblem: Additional overlapping pairs require serial dispatch: .1/.14, .7/.13, .8/.14, .9/.14, .10/.14 and .11/.13. For example, .7/.13 and .11/.13 share realization/src/lib.rs; .9/.14 and .10/.14 share Runner files. This is advisory because the epic\u2019s general overlap guard already requires serialization.\nSuggestion: Include these pairs when applying the existing dispatch exclusions; no task split is required.\n\nNo blocking findings identified. The plan states discriminating tests, dependency-ordered proof gates, batch counts and diagnostics, resource bounds, and privacy constraints. Task .15 explicitly covers the affected countdown/priority laws, exact expiry facts, retry rearming, and the unchanged single-attempt checkpoint.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "14f0debdd8db4927b3af709a4446aa30",
+  "session_id": "01a173c5-876e-7311-9f76-e526bdd97856",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T15:59:29.647719Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

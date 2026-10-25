@@ -1,0 +1,338 @@
+{
+  "success": true,
+  "spec": "fn-246-realization-as-a-checked-refinement-a",
+  "actor": "stephanos@users.noreply.github.com",
+  "ready": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.15",
+      "title": "Correct nonpending attempt-timeout retry and renew native/TLC proofs",
+      "depends_on": [],
+      "touches": [
+        "model/temporal/feature/activity/model.rs",
+        "model/temporal/feature/activity/tests.rs",
+        "model/temporal/feature/activity/policy_checks.rs",
+        "model/temporal/feature/activity/proof_checks.rs",
+        "model/temporal/feature/activity/README.md",
+        "model/temporal/feature/activity/expected/Activity.cfg.snap",
+        "model/temporal/feature/activity/expected/Activity.tla.snap",
+        "model/temporal/feature/activity/expected/rows.txt.snap",
+        "model/temporal/feature/activity/expected/lift.txt.snap",
+        "model/temporal/feature/activity/expected/report.txt.snap",
+        "model/temporal/feature/activity/expected/tlc.txt.snap",
+        "model/temporal/feature/activity/expected/coverage.txt.snap",
+        "model/temporal/feature/activity/expected/expansion/closings.txt.snap",
+        "model/temporal/feature/activity/expected/states.txt.snap"
+      ],
+      "transitive_depends_on": []
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.8",
+      "title": "Default whole-prefix guest protocol and current Host admission",
+      "depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ],
+      "touches": [
+        "model/umpire/protocol/**",
+        "model/umpire/hosts/go/host/**",
+        "model/umpire/hosts/go/gen/**",
+        "model/umpire/hosts/go/runner/**",
+        "model/umpire/reference/kettle/**",
+        "model/temporal/realization/src/live.rs",
+        "model/temporal/hosts/go/**",
+        "model/temporal/guest/**",
+        "model/dev/xtask/**",
+        "model/GUEST_BUILDS.md"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    }
+  ],
+  "in_progress": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.11",
+      "title": "Generic variant metadata and Temporal action/entity/read registry",
+      "assignee": "stephanos@users.noreply.github.com",
+      "touches": [
+        "model/umpire/front/src/**",
+        "model/umpire/author/dsl/macros/src/**",
+        "model/umpire/author/dsl/src/action.rs",
+        "model/umpire/author/dsl/src/lib.rs",
+        "model/umpire/author/dsl/**/tests/**",
+        "model/umpire/author/umpire/tests/consumer/**",
+        "model/temporal/annotate/**",
+        "model/temporal/realization/macros/**",
+        "model/temporal/realization/src/registry.rs",
+        "model/temporal/realization/src/lib.rs",
+        "model/temporal/realization/tests/registry.rs",
+        "model/temporal/realization/tests/registry/**",
+        "model/temporal/realization/tests/declarative.rs",
+        "model/temporal/realization/tests/capabilities.rs",
+        "model/temporal/realization/tests/realization.rs",
+        "model/temporal/realization/tests/realization_admission.rs",
+        "model/temporal/realization/tests/admission/**",
+        "model/temporal/realization/tests/ui/**",
+        "model/temporal/realization/tests/ui-pass/**"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.14",
+      "title": "Heartbeat task key and raw/SDK continuation capability",
+      "assignee": "stephanos@users.noreply.github.com",
+      "touches": [
+        "model/temporal/proto/umpire/temporal/v1/**",
+        "model/temporal/api/**",
+        "model/temporal/hosts/go/umpire/temporal/v1/**",
+        "model/temporal/hosts/go/reference/worker/**",
+        "model/temporal/hosts/go/*test.go",
+        "model/temporal/realization/tests/program.rs",
+        "model/temporal/realization/tests/program_history.rs",
+        "model/temporal/realization/tests/catalog.rs",
+        "model/temporal/feature/activity/claims.rs",
+        "model/temporal/feature/activity/api.rs",
+        "model/temporal/feature/activity/expected/realization.txt.snap",
+        "model/temporal/realization/Cargo.toml",
+        "model/Cargo.lock",
+        "common/testing/testpilot/temporal/act/**",
+        "tools/umpire/temporaldriver/**",
+        "model/umpire/hosts/go/runner/session.go",
+        "model/umpire/hosts/go/runner/*test.go",
+        "model/temporal/hosts/go/umpire_temporal_guest.wasm",
+        "model/temporal/feature/activity/temporal.rs"
+      ],
+      "transitive_depends_on": []
+    }
+  ],
+  "blocked": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.2",
+      "title": "Shared Temporal entity lens and filler-driven probes with equivalence pins",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11"
+      ],
+      "touches": [
+        "model/temporal/realization/src/**",
+        "model/temporal/realization/tests/**",
+        "model/temporal/shared/{lens",
+        "probes",
+        "support}/**",
+        "model/temporal/realization/Cargo.toml",
+        "model/temporal/guest/**",
+        "model/temporal/testing/boundary.rs"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.3",
+      "title": "Activity registry/lens/projection migration, exact probe parity and mapping count",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ],
+      "touches": [
+        "model/temporal/feature/activity/**",
+        "model/temporal/realization/tests/{realization",
+        "proposal",
+        "program_history",
+        "probes",
+        "phase_exhaustiveness}.rs",
+        "model/temporal/testing/realization*.rs",
+        "model/dev/xtask/**"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14",
+        "fn-246-realization-as-a-checked-refinement-a.15",
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.4",
+      "title": "Generic native Refinement consumer and shared activity declaration",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.11"
+      ],
+      "touches": [
+        "model/umpire/dev/testing/src/**",
+        "model/umpire/dev/testing/tests/**",
+        "model/umpire/dev/fixtures/**",
+        "model/temporal/annotate/syntax/src/**",
+        "model/temporal/annotate/tests/**",
+        "model/temporal/feature/activity/{model.rs",
+        "realization.rs",
+        "expected/**}",
+        "model/temporal/testing/fixtures.rs"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14",
+        "fn-246-realization-as-a-checked-refinement-a.15",
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.5",
+      "title": "Complete observable-worker policies, coverage construction and filler-derived programs",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.14"
+      ],
+      "touches": [
+        "model/umpire/protocol/runtime/src/**",
+        "model/temporal/shared/**",
+        "model/temporal/feature/activity/**",
+        "model/temporal/realization/tests/{program",
+        "program_history}.rs",
+        "model/temporal/hosts/go/program_test.go",
+        "tests/testpilot_model*test.go"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14",
+        "fn-246-realization-as-a-checked-refinement-a.15",
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.6",
+      "title": "Integrated evidence, artifact/count/timing gates and checked-refinement author docs",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.5"
+      ],
+      "touches": [
+        "model/DESIGN.md",
+        "model/README.md",
+        "model/GUEST_BUILDS.md",
+        "model/temporal/{annotate",
+        "realization}/README.md",
+        "model/dev/xtask/**",
+        "model/temporal/testing/**",
+        "Makefile",
+        "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.10",
+        "fn-246-realization-as-a-checked-refinement-a.11",
+        "fn-246-realization-as-a-checked-refinement-a.12",
+        "fn-246-realization-as-a-checked-refinement-a.13",
+        "fn-246-realization-as-a-checked-refinement-a.14",
+        "fn-246-realization-as-a-checked-refinement-a.15",
+        "fn-246-realization-as-a-checked-refinement-a.2",
+        "fn-246-realization-as-a-checked-refinement-a.3",
+        "fn-246-realization-as-a-checked-refinement-a.4",
+        "fn-246-realization-as-a-checked-refinement-a.5",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.9",
+      "title": "Current-format whole-prefix Run recording, replay and presentation",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.8"
+      ],
+      "touches": [
+        "model/umpire/hosts/go/**",
+        "model/umpire/protocol/proto/**",
+        "model/umpire/protocol/runtime/tests/**"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.10",
+      "title": "Bounded Reach alternatives and coherent immutable explanation publication",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ],
+      "touches": [
+        "model/umpire/protocol/runtime/src/**",
+        "model/umpire/protocol/runtime/tests/**",
+        "model/umpire/reference/kettle/**",
+        "model/umpire/hosts/go/runner/**"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.1",
+        "fn-246-realization-as-a-checked-refinement-a.7",
+        "fn-246-realization-as-a-checked-refinement-a.8",
+        "fn-246-realization-as-a-checked-refinement-a.9"
+      ]
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.13",
+      "title": "Independent standalone-activity protocol Model and native/TLC invariants",
+      "blocked_by": [
+        "fn-246-realization-as-a-checked-refinement-a.15"
+      ],
+      "touches": [
+        "model/temporal/shared/protocol/activity/**",
+        "model/temporal/testing/fixtures.rs",
+        "model/temporal/testing/build.rs",
+        "model/temporal/realization/src/lib.rs"
+      ],
+      "transitive_depends_on": [
+        "fn-246-realization-as-a-checked-refinement-a.15"
+      ]
+    }
+  ],
+  "admitted": [],
+  "held": [
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.15",
+      "reason": "always-serial:fn-246-realization-as-a-checked-refinement-a.14"
+    },
+    {
+      "id": "fn-246-realization-as-a-checked-refinement-a.8",
+      "reason": "touches-overlap:fn-246-realization-as-a-checked-refinement-a.14"
+    }
+  ]
+}
