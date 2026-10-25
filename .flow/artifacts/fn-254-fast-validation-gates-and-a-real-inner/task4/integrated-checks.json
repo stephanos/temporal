@@ -1,0 +1,131 @@
+{
+  "source_commit": "a9d7622cb346dfc88fee9cac731ae76ef6db57c6",
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "RUST_TEST_THREADS": "2",
+    "UMPIRE_BACKENDS": "require",
+    "INSTA_UPDATE": "no"
+  },
+  "profile_debug_overrides": "unset; committed test profile used",
+  "results": [
+    {
+      "label": "fmt",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "fmt",
+        "--check",
+        "-p",
+        "umpire-checker",
+        "-p",
+        "umpire-tla",
+        "-p",
+        "umpire-tlc",
+        "-p",
+        "umpire-apalache",
+        "-p",
+        "umpire-catalog",
+        "-p",
+        "umpire-catalog-syntax",
+        "-p",
+        "umpire-catalog-build",
+        "-p",
+        "umpire-dsl",
+        "-p",
+        "umpire-dsl-macros",
+        "-p",
+        "umpire-suite",
+        "-p",
+        "umpire-runtime",
+        "-p",
+        "umpire-reference-kettle",
+        "-p",
+        "umpire-fixtures",
+        "-p",
+        "umpire-testing"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit": 0,
+      "seconds": 0.85,
+      "log": "integrated-fmt.log"
+    },
+    {
+      "label": "mirror-fmt",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "rustfmt",
+        "--check",
+        "--edition",
+        "2024",
+        "temporal/testing/snapshot_ownership.rs"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit": 0,
+      "seconds": 0.03,
+      "log": "integrated-mirror-fmt.log"
+    },
+    {
+      "label": "dsl-readme",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "umpire-dsl",
+        "--test",
+        "main",
+        "readme::"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit": 0,
+      "seconds": 15.335,
+      "log": "integrated-dsl-readme.log"
+    },
+    {
+      "label": "snapshot-owner",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "snapshot_ownership"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit": 0,
+      "seconds": 17.826,
+      "log": "integrated-snapshot-owner.log"
+    },
+    {
+      "label": "metadata",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "metadata",
+        "--locked",
+        "--no-deps",
+        "--format-version",
+        "1"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit": 0,
+      "seconds": 0.048,
+      "log": "integrated-metadata.log"
+    }
+  ]
+}

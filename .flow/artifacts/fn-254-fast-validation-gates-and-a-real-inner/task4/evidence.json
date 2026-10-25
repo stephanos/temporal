@@ -5,9 +5,10 @@
     "beb90e5a5a950b0132fb509aab13ea0d83b074c7",
     "e799e1dd12c8a96253247c0d4b2ab86b80ac9740",
     "f28942934474945b0dea297f98ecc9570d040e87",
-    "7a9edd4a7a6fa5c93e8adb526460f675ad532d6c"
+    "7a9edd4a7a6fa5c93e8adb526460f675ad532d6c",
+    "a9d7622cb346dfc88fee9cac731ae76ef6db57c6"
   ],
-  "base_commit": "0312b9217e",
+  "base_commit": "0312b9217e6b1dc03c6934f639ea0f5ea9fb5dd1",
   "tests": [
     "PASS(scope union, not full command):603distinct affected cases +2existingignored; exact605 inventory/925bijection, coverage.json and consolidation-identities.json; worker-source and collector deltas explicitly audited.",
     "INITIAL_FAILED(exit101;578passed/2failed/2ignored, repaired TLA rerun96passed): cd model && UMPIRE_BACKENDS=require INSTA_UPDATE=no mise exec -- cargo test --locked -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-apalache -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-dsl -p umpire-dsl-macros -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-fixtures -p umpire-testing",
@@ -32,7 +33,9 @@
     "cd model && mise exec -- cargo clippy --keep-going --locked -p umpire-checker -p umpire-tla -p umpire-tlc -p umpire-apalache -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-dsl -p umpire-dsl-macros -p umpire-suite -p umpire-runtime -p umpire-reference-kettle -p umpire-fixtures -p umpire-testing --all-targets --all-features -- -D warnings",
     "cd model && python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task4/check-inventory.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task4/final-compile.log",
     "cd model && INVENTORY_OUTPUT=strategy-inventory.json python3 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task4/check-inventory.py /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-task4/strategy-compile-final.log",
-    "git diff --cached --check"
+    "git diff --cached --check",
+    "PASS(integrated): scopedfmt/mirrorfmt, DSLmain readme::2tests, snapshot_ownership2tests, locked metadata36frameworktargets; integrated-checks.json/logs",
+    "SHIP: all3 codex:gpt-6.1-sol:high draws and finalize; review/receipt.json"
   ],
   "prs": []
 }

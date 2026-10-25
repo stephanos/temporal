@@ -1,0 +1,7 @@
+{
+  "reviewed_head": "a9d7622cb346dfc88fee9cac731ae76ef6db57c6",
+  "integrated_check_head": "a9d7622cb346dfc88fee9cac731ae76ef6db57c6",
+  "tracked_build_and_test_source_unchanged": true,
+  "reuse": "same HEAD and inputs; passing focused integrated results honored without repeated suites",
+  "whole_gate": "deferred to .8"
+}
