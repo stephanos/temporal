@@ -15,7 +15,9 @@ use crate::{coverage, services, wire_schema};
 /// Generated names derive from `service` and `prefix`: for `pkg.KettleService` and `kettle`,
 /// `KettleServiceMethod`, `KettleServiceMethodInfo`, `KETTLE_SERVICE_METHODS`,
 /// `dispatch_kettle_annotations!`, `bind_kettle_action!`, `kettle_request_fields` and
-/// `mutate_kettle_request`.
+/// `mutate_kettle_request`, `kettle_request_findings!` and `dispatch_kettle_request!`.
+/// Request inspection expands in the catalog owner so its `Inspect` implementations and
+/// supplemental hooks stay downstream of the generated API.
 #[derive(Clone, Debug)]
 pub struct System<'a> {
     /// Fully qualified protobuf service name.

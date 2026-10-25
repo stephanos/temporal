@@ -16,6 +16,8 @@ fn second_service_uses_configured_identity_and_roots() -> Result<(), String> {
     assert!(source.contains("pub struct DeviceMethodInfo"));
     assert!(source.contains("pub const DEVICE_METHODS"));
     assert!(source.contains("macro_rules! dispatch_device_annotations"));
+    assert!(source.contains("macro_rules! device_request_findings"));
+    assert!(source.contains("macro_rules! dispatch_device_request"));
     assert!(source.contains("macro_rules! bind_device_action"));
     assert!(source.contains("\"::device_api::generated::example::v1::Input\""));
     assert_eq!(config.local_root(), "crate::generated");

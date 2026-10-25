@@ -307,18 +307,6 @@ fn application() -> Failure {
     }
 }
 
-#[derive(Clone)]
-enum Wire {
-    Start(StartActivityExecutionRequest),
-    Describe(DescribeActivityExecutionRequest),
-    Poll(PollActivityExecutionRequest),
-    Cancel(RequestCancelActivityExecutionRequest),
-    Queue(PollActivityTaskQueueRequest),
-    Completed(RespondActivityTaskCompletedRequest),
-    Failed(RespondActivityTaskFailedRequest),
-    Canceled(RespondActivityTaskCanceledRequest),
-}
-
 fn check_slots(name: &str, slots: &ProbeRequest) -> Result<()> {
     if slots.namespace.is_empty() || slots.activity_id.is_empty() || slots.task_queue.is_empty() {
         return Err("missing namespace/activity/queue prerequisite".into());
@@ -336,11 +324,11 @@ fn check_slots(name: &str, slots: &ProbeRequest) -> Result<()> {
     Ok(())
 }
 
-fn baseline(name: &str, slots: &ProbeRequest, context: &str) -> Result<Wire> {
+fn baseline(name: &str, slots: &ProbeRequest, context: &str) -> Result<Vec<u8>> {
     check_slots(name, slots)?;
     let queue = TaskQueue { name: slots.task_queue.clone(), ..Default::default() };
     Ok(match name {
-        "StartActivityExecution" => Wire::Start(StartActivityExecutionRequest {
+        "StartActivityExecution" => (StartActivityExecutionRequest {
             namespace: slots.namespace.clone(),
             activity_id: slots.activity_id.clone(),
             request_id: UUID.into(),
@@ -359,38 +347,44 @@ fn baseline(name: &str, slots: &ProbeRequest, context: &str) -> Result<Wire> {
                 ..Default::default()
             }),
             ..Default::default()
-        }),
-        "DescribeActivityExecution" => Wire::Describe(DescribeActivityExecutionRequest {
+        })
+        .encode_to_vec(),
+        "DescribeActivityExecution" => (DescribeActivityExecutionRequest {
             namespace: slots.namespace.clone(),
             activity_id: slots.activity_id.clone(),
             run_id: slots.run_id.clone(),
             ..Default::default()
-        }),
-        "PollActivityExecution" => Wire::Poll(PollActivityExecutionRequest {
+        })
+        .encode_to_vec(),
+        "PollActivityExecution" => (PollActivityExecutionRequest {
             namespace: slots.namespace.clone(),
             activity_id: slots.activity_id.clone(),
             run_id: slots.run_id.clone(),
-        }),
-        "RequestCancelActivityExecution" => Wire::Cancel(RequestCancelActivityExecutionRequest {
+        })
+        .encode_to_vec(),
+        "RequestCancelActivityExecution" => (RequestCancelActivityExecutionRequest {
             namespace: slots.namespace.clone(),
             activity_id: slots.activity_id.clone(),
             run_id: slots.run_id.clone(),
             request_id: UUID.into(),
             identity: "umpire-probe".into(),
             ..Default::default()
-        }),
-        "PollActivityTaskQueue" => Wire::Queue(PollActivityTaskQueueRequest {
+        })
+        .encode_to_vec(),
+        "PollActivityTaskQueue" => (PollActivityTaskQueueRequest {
             namespace: slots.namespace.clone(),
             task_queue: Some(queue),
             identity: "umpire-probe".into(),
             ..Default::default()
-        }),
-        "RespondActivityTaskCompleted" => Wire::Completed(RespondActivityTaskCompletedRequest {
+        })
+        .encode_to_vec(),
+        "RespondActivityTaskCompleted" => (RespondActivityTaskCompletedRequest {
             namespace: slots.namespace.clone(),
             task_token: slots.task_token.clone(),
             identity: "umpire-probe".into(),
             ..Default::default()
-        }),
+        })
+        .encode_to_vec(),
         "RespondActivityTaskFailed" => {
             let mut failure = application();
             let info = match context {
@@ -412,142 +406,38 @@ fn baseline(name: &str, slots: &ProbeRequest, context: &str) -> Result<Wire> {
                 failure.cause =
                     Some(Box::new(Failure { failure_info: info, ..Default::default() }));
             }
-            Wire::Failed(RespondActivityTaskFailedRequest {
+            (RespondActivityTaskFailedRequest {
                 namespace: slots.namespace.clone(),
                 task_token: slots.task_token.clone(),
                 identity: "umpire-probe".into(),
                 failure: Some(failure),
                 ..Default::default()
             })
+            .encode_to_vec()
         }
-        "RespondActivityTaskCanceled" => Wire::Canceled(RespondActivityTaskCanceledRequest {
+        "RespondActivityTaskCanceled" => (RespondActivityTaskCanceledRequest {
             namespace: slots.namespace.clone(),
             task_token: slots.task_token.clone(),
             identity: "umpire-probe".into(),
             ..Default::default()
-        }),
+        })
+        .encode_to_vec(),
         _ => return Err("unknown prerequisite method".into()),
     })
 }
 
-impl Wire {
-    fn bytes(&self) -> Vec<u8> {
-        match self {
-            Self::Start(m) => m.encode_to_vec(),
-            Self::Describe(m) => m.encode_to_vec(),
-            Self::Poll(m) => m.encode_to_vec(),
-            Self::Cancel(m) => m.encode_to_vec(),
-            Self::Queue(m) => m.encode_to_vec(),
-            Self::Completed(m) => m.encode_to_vec(),
-            Self::Failed(m) => m.encode_to_vec(),
-            Self::Canceled(m) => m.encode_to_vec(),
-        }
+fn request_findings(name: &str, bytes: &[u8]) -> Result<Vec<Violation>> {
+    macro_rules! supplemental {
+        (RespondActivityTaskFailed, $message:ident, $limits:expr, $findings:ident) => {
+            if let Some(failure) = &$message.failure {
+                $findings.extend(validate(failure, &worker_failure_presence($limits)?));
+            }
+        };
+        ($method:ident, $message:ident, $limits:expr, $findings:ident) => {};
     }
-    fn decoded(&self) -> Result<Self> {
-        let bytes = self.bytes();
-        self.decoded_from(&bytes)
-    }
-    fn decoded_from(&self, bytes: &[u8]) -> Result<Self> {
-        Ok(match self {
-            Self::Start(_) => Self::Start(StartActivityExecutionRequest::decode(bytes)?),
-            Self::Describe(_) => Self::Describe(DescribeActivityExecutionRequest::decode(bytes)?),
-            Self::Poll(_) => Self::Poll(PollActivityExecutionRequest::decode(bytes)?),
-            Self::Cancel(_) => Self::Cancel(RequestCancelActivityExecutionRequest::decode(bytes)?),
-            Self::Queue(_) => Self::Queue(PollActivityTaskQueueRequest::decode(bytes)?),
-            Self::Completed(_) => {
-                Self::Completed(RespondActivityTaskCompletedRequest::decode(bytes)?)
-            }
-            Self::Failed(_) => Self::Failed(RespondActivityTaskFailedRequest::decode(bytes)?),
-            Self::Canceled(_) => Self::Canceled(RespondActivityTaskCanceledRequest::decode(bytes)?),
-        })
-    }
-    fn findings(&self) -> Result<Vec<Violation>> {
-        let mut findings = Vec::new();
-        macro_rules! check {
-            ($value:expr, $catalog:expr) => {{
-                findings.extend(validate($value, &$catalog?));
-            }};
-        }
-        match self {
-            Self::Start(m) => {
-                check!(m, catalog::start_activity_execution_request(&Limits::default()));
-                check!(m, start_request_id_intent(&Limits::default()));
-                if let Some(v) = &m.activity_type {
-                    check!(v, catalog::activity_type(&Limits::default()));
-                }
-                if let Some(v) = &m.task_queue {
-                    check!(v, catalog::task_queue(&Limits::default()));
-                }
-                if let Some(v) = &m.retry_policy {
-                    check!(v, catalog::retry_policy(&Limits::default()));
-                }
-            }
-            Self::Describe(m) => {
-                check!(m, catalog::describe_activity_execution_request(&Limits::default()));
-            }
-            Self::Poll(m) => {
-                check!(m, catalog::poll_activity_execution_request(&Limits::default()));
-            }
-            Self::Cancel(m) => {
-                check!(m, catalog::request_cancel_activity_execution_request(&Limits::default()));
-                check!(m, cancel_request_id_intent(&Limits::default()));
-            }
-            Self::Queue(m) => {
-                check!(m, catalog::poll_activity_task_queue_request(&Limits::default()));
-                if let Some(v) = &m.task_queue {
-                    check!(v, catalog::task_queue(&Limits::default()));
-                }
-            }
-            Self::Completed(m) => {
-                check!(m, catalog::respond_activity_task_completed_request(&Limits::default()));
-            }
-            Self::Failed(m) => {
-                check!(m, catalog::respond_activity_task_failed_request(&Limits::default()));
-                if let Some(v) = &m.failure {
-                    check!(v, worker_failure_presence(&Limits::default()));
-                    failure_findings(v, &mut findings)?;
-                }
-            }
-            Self::Canceled(m) => {
-                check!(m, catalog::respond_activity_task_canceled_request(&Limits::default()));
-            }
-        }
-        for finding in &mut findings {
-            finding.fields.sort();
-        }
-        Ok(findings)
-    }
-}
-
-fn failure_findings(value: &Failure, findings: &mut Vec<Violation>) -> Result<()> {
-    findings.extend(validate(value, &catalog::failure(&Limits::default())?));
-    macro_rules! check {
-        ($value:expr, $catalog:expr) => {{
-            findings.extend(validate($value, &$catalog?));
-        }};
-    }
-    match &value.failure_info {
-        Some(FailureInfo::ApplicationFailureInfo(v)) => {
-            check!(v, catalog::application_failure_info(&Limits::default()));
-        }
-        Some(FailureInfo::ActivityFailureInfo(v)) => {
-            check!(v, catalog::activity_failure_info(&Limits::default()));
-        }
-        Some(FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => {
-            check!(v, catalog::child_workflow_execution_failure_info(&Limits::default()));
-        }
-        Some(FailureInfo::TimeoutFailureInfo(v)) => {
-            check!(v, catalog::timeout_failure_info(&Limits::default()));
-        }
-        Some(FailureInfo::NexusHandlerFailureInfo(v)) => {
-            check!(v, catalog::nexus_handler_failure_info(&Limits::default()));
-        }
-        _ => (),
-    }
-    if let Some(cause) = &value.cause {
-        failure_findings(cause, findings)?;
-    }
-    Ok(())
+    let method =
+        umpire_temporal_api::WorkflowServiceMethod::parse(name).ok_or("unknown request method")?;
+    umpire_temporal_api::workflow_request_findings!(method, bytes, &Limits::default(), supplemental)
 }
 
 fn bad_duration(entry: &Entry) -> Duration {
@@ -558,130 +448,148 @@ fn bad_duration(entry: &Entry) -> Duration {
     }
 }
 
-fn mutate_admission_fields(wire: &mut Wire, entry: &Entry, field: &str) -> Result<bool> {
-    let omitted = entry.target.omitted_field.as_deref().and_then(|path| path.rsplit('.').next());
-    if field == "namespace" || omitted == Some("namespace") {
-        let namespace = match wire {
-            Wire::Start(m) => &mut m.namespace,
-            Wire::Describe(m) => &mut m.namespace,
-            Wire::Poll(m) => &mut m.namespace,
-            Wire::Cancel(m) => &mut m.namespace,
-            Wire::Queue(m) => &mut m.namespace,
-            Wire::Completed(m) => &mut m.namespace,
-            Wire::Canceled(m) => &mut m.namespace,
-            Wire::Failed(m) => &mut m.namespace,
-        };
-        if omitted.is_some() {
-            namespace.clear();
-        } else {
-            *namespace = entry.negative_text(namespace)?;
-        }
-        return Ok(true);
-    }
-    if omitted == Some("task_token") {
-        match wire {
-            Wire::Completed(m) => m.task_token.clear(),
-            Wire::Canceled(m) => m.task_token.clear(),
-            Wire::Failed(m) => m.task_token.clear(),
-            _ => return Err("unsupported task token omission".into()),
-        }
-        return Ok(true);
-    }
-    Ok(false)
-}
-
-fn mutate(wire: &mut Wire, entry: &Entry) -> Result<()> {
+fn mutate(bytes: &[u8], entry: &Entry) -> Result<Vec<u8>> {
+    use umpire_catalog::WireMutation;
+    use umpire_temporal_api::{WorkflowServiceMethod, mutate_workflow_request};
+    let method = WorkflowServiceMethod::parse(entry.method).ok_or("unknown request method")?;
     let field = entry.target.violation.path.rsplit('.').next().ok_or("missing field path")?;
-    if mutate_admission_fields(wire, entry, field)? {
-        return Ok(());
+    if let Some(path) = &entry.target.omitted_field
+        && entry.target.violation.constraint == "required"
+        && path.starts_with("temporal.api.workflowservice.v1.")
+    {
+        return Ok(mutate_workflow_request(method, bytes, path, &WireMutation::Absent)?);
+    }
+    if field == "namespace" {
+        let Some(FieldDescriptor { kind: Kind::Text(rules), .. }) = &entry.field else {
+            return Err("namespace kind missing".into());
+        };
+        let limit = rules.max_bytes.ok_or("namespace byte maximum missing")?;
+        let path = format!("temporal.api.workflowservice.v1.{}Request.namespace", method.name());
+        return Ok(mutate_workflow_request(
+            method,
+            bytes,
+            &path,
+            &WireMutation::LimitPlusOne { limit: limit.try_into()? },
+        )?);
     }
     macro_rules! text {
         ($value:expr) => {
             $value = entry.negative_text(&$value)?
         };
     }
-    match wire {
-        Wire::Start(m) => mutate_start(m, field, entry)?,
-        Wire::Describe(m) => match field {
-            "activity_id" => text!(m.activity_id),
-            "run_id" => text!(m.run_id),
-            "DescribeActivityExecutionRequest" => {
-                m.long_poll_token = vec![1];
-                m.run_id.clear();
-            }
-            _ => return Err("unsupported describe field".into()),
-        },
-        Wire::Poll(m) => match field {
-            "activity_id" => text!(m.activity_id),
-            "run_id" => text!(m.run_id),
-            _ => return Err("unsupported poll field".into()),
-        },
-        Wire::Cancel(m) => match field {
-            "activity_id" => text!(m.activity_id),
-            "run_id" => text!(m.run_id),
-            "request_id" => text!(m.request_id),
-            "identity" => text!(m.identity),
-            "reason" => text!(m.reason),
-            _ => return Err("unsupported cancel field".into()),
-        },
-        Wire::Queue(m) => {
-            if entry.context == "poll_queue.queue" {
-                mutate_queue(m.task_queue.as_mut().ok_or("missing queue")?, field, entry)?;
+    macro_rules! mutate_typed {
+        (StartActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
+            mutate_start(&mut $message, $field, $entry)?;
+            Ok($message.encode_to_vec())
+        }};
+        (DescribeActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
+            match $field {
+                "activity_id" => text!($message.activity_id),
+                "run_id" => text!($message.run_id),
+                "DescribeActivityExecutionRequest" => {
+                    $message.long_poll_token = vec![1];
+                    $message.run_id.clear();
+                }
+                _ => return Err("unsupported describe field".into()),
+            };
+            Ok($message.encode_to_vec())
+        }};
+        (PollActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
+            match $field {
+                "activity_id" => text!($message.activity_id),
+                "run_id" => text!($message.run_id),
+                _ => return Err("unsupported poll field".into()),
+            };
+            Ok($message.encode_to_vec())
+        }};
+        (RequestCancelActivityExecution, $message:ident, $entry:ident, $field:ident) => {{
+            match $field {
+                "activity_id" => text!($message.activity_id),
+                "run_id" => text!($message.run_id),
+                "request_id" => text!($message.request_id),
+                "identity" => text!($message.identity),
+                "reason" => text!($message.reason),
+                _ => return Err("unsupported cancel field".into()),
+            };
+            Ok($message.encode_to_vec())
+        }};
+        (PollActivityTaskQueue, $message:ident, $entry:ident, $field:ident) => {{
+            if $entry.context == "poll_queue.queue" {
+                mutate_queue($message.task_queue.as_mut().ok_or("missing queue")?, $field, $entry)?;
             } else {
-                match field {
-                    "identity" => text!(m.identity),
-                    "PollActivityTaskQueueRequest" => m.task_queue = None,
+                match $field {
+                    "identity" => text!($message.identity),
                     _ => return Err("unsupported queue field".into()),
                 }
             }
-        }
-        Wire::Completed(m) => text!(m.identity),
-        Wire::Canceled(m) => text!(m.identity),
-        Wire::Failed(m) => match entry.context {
-            "failed" => match field {
-                "identity" => text!(m.identity),
-                "cause" => m.cause = entry.negative(&m.cause)?,
-                _ => return Err("unsupported failed field".into()),
-            },
-            "failed.presence" => m.failure.as_mut().ok_or("missing failure")?.failure_info = None,
-            "failed.application" => {
-                let Some(FailureInfo::ApplicationFailureInfo(v)) =
-                    &mut m.failure.as_mut().ok_or("missing failure")?.failure_info
-                else {
-                    return Err("missing application info".into());
-                };
-                match field {
-                    "next_retry_delay" => v.next_retry_delay = Some(bad_duration(entry)),
-                    "category" => v.category = entry.negative(&v.category)?,
-                    _ => return Err("unsupported application field".into()),
-                }
-            }
-            _ => {
-                let info = &mut m
-                    .failure
-                    .as_mut()
-                    .ok_or("missing failure")?
-                    .cause
-                    .as_mut()
-                    .ok_or("missing cause")?
-                    .failure_info;
-                match info {
-                    Some(FailureInfo::ActivityFailureInfo(v)) => {
-                        v.retry_state = entry.negative(&v.retry_state)?;
-                    }
-                    Some(FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => {
-                        v.retry_state = entry.negative(&v.retry_state)?;
-                    }
-                    Some(FailureInfo::TimeoutFailureInfo(v)) => {
-                        v.timeout_type = entry.negative(&v.timeout_type)?;
-                    }
-                    Some(FailureInfo::NexusHandlerFailureInfo(v)) => {
-                        v.retry_behavior = entry.negative(&v.retry_behavior)?;
-                    }
-                    _ => return Err("missing nested failure variant".into()),
-                }
-            }
+            Ok($message.encode_to_vec())
+        }};
+        (RespondActivityTaskCompleted, $message:ident, $entry:ident, $field:ident) => {{
+            text!($message.identity);
+            Ok($message.encode_to_vec())
+        }};
+        (RespondActivityTaskCanceled, $message:ident, $entry:ident, $field:ident) => {{
+            text!($message.identity);
+            Ok($message.encode_to_vec())
+        }};
+        (RespondActivityTaskFailed, $message:ident, $entry:ident, $field:ident) => {{
+            mutate_failed(&mut $message, $field, $entry)?;
+            Ok($message.encode_to_vec())
+        }};
+        ($method:ident, $message:ident, $entry:ident, $field:ident) => {{ Err("unsupported contextual mutation".into()) }};
+    }
+    umpire_temporal_api::dispatch_workflow_request!(method, bytes, mutate_typed, entry, field)
+}
+
+fn mutate_failed(
+    m: &mut RespondActivityTaskFailedRequest,
+    field: &str,
+    entry: &Entry,
+) -> Result<()> {
+    match entry.context {
+        "failed" => match field {
+            "identity" => m.identity = entry.negative_text(&m.identity)?,
+            "cause" => m.cause = entry.negative(&m.cause)?,
+            _ => return Err("unsupported failed field".into()),
         },
+        "failed.presence" => m.failure.as_mut().ok_or("missing failure")?.failure_info = None,
+        "failed.application" => {
+            let Some(FailureInfo::ApplicationFailureInfo(v)) =
+                &mut m.failure.as_mut().ok_or("missing failure")?.failure_info
+            else {
+                return Err("missing application info".into());
+            };
+            match field {
+                "next_retry_delay" => v.next_retry_delay = Some(bad_duration(entry)),
+                "category" => v.category = entry.negative(&v.category)?,
+                _ => return Err("unsupported application field".into()),
+            }
+        }
+        _ => {
+            let info = &mut m
+                .failure
+                .as_mut()
+                .ok_or("missing failure")?
+                .cause
+                .as_mut()
+                .ok_or("missing cause")?
+                .failure_info;
+            match info {
+                Some(FailureInfo::ActivityFailureInfo(v)) => {
+                    v.retry_state = entry.negative(&v.retry_state)?;
+                }
+                Some(FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => {
+                    v.retry_state = entry.negative(&v.retry_state)?;
+                }
+                Some(FailureInfo::TimeoutFailureInfo(v)) => {
+                    v.timeout_type = entry.negative(&v.timeout_type)?;
+                }
+                Some(FailureInfo::NexusHandlerFailureInfo(v)) => {
+                    v.retry_behavior = entry.negative(&v.retry_behavior)?;
+                }
+                _ => return Err("missing nested failure variant".into()),
+            }
+        }
     }
     Ok(())
 }
@@ -749,13 +657,6 @@ fn mutate_start(m: &mut StartActivityExecutionRequest, field: &str, entry: &Entr
                 m.input = Some(payloads);
             }
             "StartActivityExecutionRequest" => match entry.target.violation.constraint.as_str() {
-                "required" => {
-                    match entry.target.omitted_field.as_deref().and_then(|v| v.rsplit('.').next()) {
-                        Some("activity_type") => m.activity_type = None,
-                        Some("task_queue") => m.task_queue = None,
-                        _ => return Err("unknown omission".into()),
-                    }
-                }
                 "any_of" => {
                     m.schedule_to_close_timeout = None;
                     m.start_to_close_timeout = None;
@@ -831,14 +732,14 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
             } else {
                 return Err("unknown probe case".into());
             };
-            let mut wire = baseline(name, request, context)?.decoded()?;
-            if !wire.findings()?.is_empty() {
+            let mut bytes = baseline(name, request, context)?;
+            if !request_findings(name, &bytes)?.is_empty() {
                 return Err("invalid baseline".into());
             }
             if !request.baseline {
                 let entry = entry.ok_or("missing target")?;
-                mutate(&mut wire, entry)?;
-                let mut findings = wire.decoded()?.findings()?;
+                bytes = mutate(&bytes, entry)?;
+                let mut findings = request_findings(name, &bytes)?;
                 let mut expected = entry.companions()?;
                 expected.push(entry.target.violation.clone());
                 findings.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
@@ -851,7 +752,6 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
                     .into());
                 }
             }
-            let bytes = wire.bytes();
             let mut response = ProbeResponse { method: method(name), ..Default::default() };
             if bytes.len() > 512 * 1024 {
                 response.recipe = Some(recipe(&bytes)?);
@@ -868,6 +768,77 @@ pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
 mod tests {
     use super::{Result, cached, generic, inventory};
     use std::sync::{Barrier, OnceLock};
+
+    #[test]
+    fn generated_findings_preserve_contextual_intents_and_recursive_checks() -> Result<()> {
+        use super::{
+            Failure, FailureInfo, ProbeRequest, RequestCancelActivityExecutionRequest,
+            RespondActivityTaskFailedRequest, StartActivityExecutionRequest, TimeoutFailureInfo,
+            UUID, application, baseline, duration, request_findings,
+        };
+        use prost::Message;
+        let slots = ProbeRequest {
+            namespace: "namespace".into(),
+            activity_id: "activity".into(),
+            task_queue: "queue".into(),
+            run_id: UUID.into(),
+            task_token: vec![1],
+            ..Default::default()
+        };
+        for method in ["StartActivityExecution", "RequestCancelActivityExecution"] {
+            let bytes = baseline(method, &slots, "")?;
+            let bytes = if method == "StartActivityExecution" {
+                let mut request = StartActivityExecutionRequest::decode(bytes.as_slice())?;
+                request.request_id = "invalid-uuid".into();
+                request.encode_to_vec()
+            } else {
+                let mut request = RequestCancelActivityExecutionRequest::decode(bytes.as_slice())?;
+                request.request_id = "invalid-uuid".into();
+                request.encode_to_vec()
+            };
+            let findings = request_findings(method, &bytes)?;
+            assert_eq!(findings.len(), 1, "{method}: {findings:?}");
+            assert_eq!(findings[0].constraint, "string.uuid");
+        }
+        let mut request = RespondActivityTaskFailedRequest::decode(
+            baseline("RespondActivityTaskFailed", &slots, "")?.as_slice(),
+        )?;
+        let mut failure = application();
+        failure.cause = Some(Box::new(Failure {
+            failure_info: Some(FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo {
+                timeout_type: i32::MAX,
+                ..Default::default()
+            })),
+            ..Default::default()
+        }));
+        request.failure.as_mut().ok_or("missing failure")?.cause = Some(Box::new(failure));
+        let findings = request_findings("RespondActivityTaskFailed", &request.encode_to_vec())?;
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(findings[0].path.ends_with("TimeoutFailureInfo.timeout_type"));
+        request.failure.as_mut().ok_or("missing failure")?.failure_info = None;
+        let findings = request_findings("RespondActivityTaskFailed", &request.encode_to_vec())?;
+        assert_eq!(findings.len(), 2, "{findings:?}");
+        assert!(findings.iter().any(|finding| finding.constraint == "required"));
+        let mut request = StartActivityExecutionRequest::decode(
+            baseline("StartActivityExecution", &slots, "")?.as_slice(),
+        )?;
+        let retry = request.retry_policy.as_mut().ok_or("missing retry")?;
+        retry.maximum_attempts = 1;
+        retry.initial_interval = Some(duration(-1));
+        retry.maximum_interval = Some(duration(-1));
+        retry.backoff_coefficient = 0.5;
+        assert_eq!(request_findings("StartActivityExecution", &request.encode_to_vec())?, []);
+        request.retry_policy.as_mut().ok_or("missing retry")?.maximum_attempts = 2;
+        assert_eq!(request_findings("StartActivityExecution", &request.encode_to_vec())?.len(), 3);
+        for (method, bytes) in [
+            ("unknown", &[][..]),
+            ("GetSystemInfo", &[][..]),
+            ("StartActivityExecution", &[0xff][..]),
+        ] {
+            assert!(request_findings(method, bytes).is_err());
+        }
+        Ok(())
+    }
 
     #[test]
     fn validated_inventories_are_reused() -> Result<()> {

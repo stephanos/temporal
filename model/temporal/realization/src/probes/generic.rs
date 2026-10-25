@@ -152,11 +152,10 @@ impl Entry {
         if !matches!(self.case.applicability, MutationApplicability::Applicable) {
             return Ok((metadata, Vec::new()));
         }
-        let wire = baseline(self.method.name(), request, "")?.decoded()?;
-        if !wire.findings()?.is_empty() {
+        let original = baseline(self.method.name(), request, "")?;
+        if !super::request_findings(self.method.name(), &original)?.is_empty() {
             return Err("invalid generic probe baseline".into());
         }
-        let original = wire.bytes();
         let bytes = if request.baseline {
             original.clone()
         } else if let Ok(bytes) = mutate_workflow_request(
@@ -178,7 +177,7 @@ impl Entry {
         }
         if !request.baseline {
             metadata.predictions =
-                self.predictions(wire.decoded_from(&bytes)?.findings()?, strict)?;
+                self.predictions(super::request_findings(self.method.name(), &bytes)?, strict)?;
         }
         Ok((metadata, bytes))
     }
