@@ -122,20 +122,15 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, "");
     let mut initial = Vec::new();
     if let Some(starts) = &model.complete_starts {
-        initial.push(disjoin(
-            starts
-                .iter()
-                .map(|state| {
-                    conjoin(
-                        model
-                            .fields
-                            .iter()
-                            .zip(state)
-                            .map(|(field, value)| format!("{} = {}", field.name, expr(value))),
-                    )
-                })
-                .collect(),
-        ));
+        initial.push(disjoin(starts.iter().map(|state| {
+            conjoin(
+                model
+                    .fields
+                    .iter()
+                    .zip(state)
+                    .map(|(field, value)| format!("{} = {}", field.name, expr(value))),
+            )
+        })));
     } else {
         for field in &model.fields {
             initial.push(match &field.start {
@@ -183,31 +178,26 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
         let identity = identity.as_deref();
-        let branches = action
-            .branches
-            .iter()
-            .map(|branch| {
-                let mut shared = Shared::new(&model.names.shared);
-                step(model, &action.name, branch, identity, &mut |value| {
-                    shared.count(value);
-                    String::new()
-                });
-                let terms = conjoin(step(model, &action.name, branch, identity, &mut |value| {
-                    shared.emit(value)
-                }));
-                let mut definitions = String::new();
-                for (name, value) in &branch.definitions {
-                    let _ = write!(
-                        definitions,
-                        "LET (* @type: {}; *) {name} == {} IN ",
-                        crate::snowcat::ty(&value.ty),
-                        expr(value)
-                    );
-                }
-                format!("{definitions}{}{terms}", shared.definitions.concat())
-            })
-            .collect();
-        let branches = disjoin(branches);
+        let branches = disjoin(action.branches.iter().map(|branch| {
+            let mut shared = Shared::new(&model.names.shared);
+            step(model, &action.name, branch, identity, &mut |value| {
+                shared.count(value);
+                String::new()
+            });
+            let terms = conjoin(step(model, &action.name, branch, identity, &mut |value| {
+                shared.emit(value)
+            }));
+            let mut definitions = String::new();
+            for (name, value) in &branch.definitions {
+                let _ = write!(
+                    definitions,
+                    "LET (* @type: {}; *) {name} == {} IN ",
+                    crate::snowcat::ty(&value.ty),
+                    expr(value)
+                );
+            }
+            format!("{definitions}{}{terms}", shared.definitions.concat())
+        }));
         if action.fields.is_empty() {
             predicate(&mut out, format!("{} == {branches}", operator(&action.name)));
         } else {
@@ -216,10 +206,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     }
     predicate(
         &mut out,
-        format!(
-            "ModelNext == {}",
-            disjoin(model.actions.iter().map(|a| operator(&a.name)).collect())
-        ),
+        format!("ModelNext == {}", disjoin(model.actions.iter().map(|a| operator(&a.name)))),
     );
     predicate(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
     predicate(

@@ -91,3 +91,20 @@ fn signed_remainder_asserts_overflow_and_divides_parenthesised_operands() {
         )
     );
 }
+
+#[test]
+fn unsigned_division_has_no_overflow_guard() {
+    let int = |kind| Expr { kind, ty: Type::Int { min: 0, max: 255 } };
+    let quotient = int(ExprKind::Binary(
+        Op::Div,
+        Box::new(int(ExprKind::World("a".into()))),
+        Box::new(int(ExprKind::Input("b".into()))),
+    ));
+    let raw = "__umpire_Div((a), (b))";
+    assert_eq!(
+        rendered(&quotient),
+        format!(
+            "(IF Assert(({raw}) \\in (0..255), \"checked Rust integer overflow\") THEN ({raw}) ELSE ({raw}))"
+        )
+    );
+}

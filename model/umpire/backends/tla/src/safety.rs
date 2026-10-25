@@ -128,8 +128,7 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             action
                 .branches
                 .iter()
-                .map(|branch| step(model, &action.name, branch, &ordinal, &successor_claims))
-                .collect(),
+                .map(|branch| step(model, &action.name, branch, &ordinal, &successor_claims)),
         );
         let name = operator(&action.name);
         if action.fields.is_empty() {
@@ -179,7 +178,7 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         &mut out,
         "ModelNext",
         "Bool",
-        disjoin(model.actions.iter().map(|a| operator(&a.name)).collect()),
+        disjoin(model.actions.iter().map(|a| operator(&a.name))),
     );
     let preserved = variables
         .iter()
@@ -308,8 +307,7 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
             .chain(
                 (model.outcome_type != Type::Unit)
                     .then(|| format!("{} # {}", outcome.value, text("Outcome::Accepted"))),
-            )
-            .collect(),
+            ),
     );
     let enabled = if branch.preserve_self_loop { "TRUE".into() } else { changed };
     let mut terms = vec![
@@ -406,20 +404,15 @@ fn initial_states<'a>(
                     .chain(model.fields.iter().map(|f| format!("{} = {}", f.name, default(&f.ty)))),
             )
         } else {
-            disjoin(
-                starts
-                    .iter()
-                    .map(|state| {
-                        conjoin(
-                            model
-                                .fields
-                                .iter()
-                                .zip(state)
-                                .map(|(f, e)| format!("{} = {}", f.name, values.emit(e).value)),
-                        )
-                    })
-                    .collect(),
-            )
+            disjoin(starts.iter().map(|state| {
+                conjoin(
+                    model
+                        .fields
+                        .iter()
+                        .zip(state)
+                        .map(|(f, e)| format!("{} = {}", f.name, values.emit(e).value)),
+                )
+            }))
         };
         return Ok((states, "TRUE".into()));
     }

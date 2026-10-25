@@ -112,7 +112,10 @@ impl<'a> Values<'a> {
                     checks
                         .extend(signed_overflow(&a, &b, &expression.ty).map(|o| format!("~({o})")));
                     let quotient = format!("__umpire_SafeDiv({a}, {b})");
-                    (division(*op, &a, &b, &quotient), conjoin(checks))
+                    (
+                        division(*op, &format!("({a})"), &format!("({b})"), &quotient),
+                        conjoin(checks),
+                    )
                 };
                 self.bind(expression, raw, valid, arithmetic(*op))
             }
@@ -253,9 +256,46 @@ mod optional_tests {
         assert!(
             values
                 .definitions
-                .contains("test2 == IF test3 THEN (a - (__umpire_SafeDiv(a, b)) * b) ELSE 0"),
+                .contains("test2 == IF test3 THEN ((a) - (__umpire_SafeDiv(a, b)) * (b)) ELSE 0"),
             "{}",
             values.definitions
         );
+    }
+
+    #[test]
+    fn negative_literal_divisor_is_parenthesised_in_the_remainder() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: -5, max: 5 } };
+        let remainder = int(ExprKind::Binary(
+            Op::Rem,
+            Box::new(int(ExprKind::World("a".into()))),
+            Box::new(int(ExprKind::Int(-5))),
+        ));
+        let mut values = Values::new("test");
+        values.emit(&remainder);
+        assert!(
+            values.definitions.contains("((a) - (__umpire_SafeDiv(a, -5)) * (-5))"),
+            "{}",
+            values.definitions
+        );
+        assert!(!values.definitions.contains("* -5"), "{}", values.definitions);
+    }
+
+    #[test]
+    fn unsigned_division_has_no_overflow_guard() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: 0, max: 255 } };
+        let quotient = int(ExprKind::Binary(
+            Op::Div,
+            Box::new(int(ExprKind::World("a".into()))),
+            Box::new(int(ExprKind::Input("b".into()))),
+        ));
+        let mut values = Values::new("test");
+        values.emit(&quotient);
+        assert!(
+            values.definitions.contains("test2 == IF test3 THEN (__umpire_SafeDiv(a, b)) ELSE 0"),
+            "{}",
+            values.definitions
+        );
+        assert!(values.definitions.contains("(b # 0)"), "{}", values.definitions);
+        assert!(!values.definitions.contains("= -1"), "{}", values.definitions);
     }
 }

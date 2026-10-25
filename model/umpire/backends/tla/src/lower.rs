@@ -6,7 +6,8 @@ use crate::Type;
 use umpire_front::expr::{ExprKind, Op};
 
 /// A context-free leaf: a literal, world constant or input. Variables and locals are not
-/// leaves; each lowering names state and binds locals its own way.
+/// leaves; each lowering names state and binds locals its own way. Callers list these same
+/// kinds in their own match so it stays exhaustive.
 pub(crate) fn leaf(kind: &ExprKind) -> String {
     match kind {
         ExprKind::Bool(v) => if *v { "TRUE" } else { "FALSE" }.into(),
@@ -39,9 +40,14 @@ pub(crate) fn arithmetic(op: Op) -> bool {
     matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem)
 }
 /// Rust's truncating `left / right` or `left % right` given the guarded quotient term.
-/// Operands are atomic TLA+ terms (names, literals or parenthesised).
+/// Operands must be parenthesised or names: a negative literal such as `-5` is not atomic,
+/// and SANY rejects `* -5`.
 pub(crate) fn division(op: Op, left: &str, right: &str, quotient: &str) -> String {
-    if op == Op::Div { quotient.into() } else { format!("{left} - ({quotient}) * {right}") }
+    match op {
+        Op::Div => quotient.into(),
+        Op::Rem => format!("{left} - ({quotient}) * {right}"),
+        _ => unreachable!("{op:?} is not a division"),
+    }
 }
 /// The one quotient Rust's signed division overflows on, when `ty` can hold it.
 pub(crate) fn signed_overflow(left: &str, right: &str, ty: &Type) -> Option<String> {
@@ -70,12 +76,9 @@ pub(crate) fn conjoin(terms: impl IntoIterator<Item = String>) -> String {
     let terms: Vec<_> = terms.into_iter().map(|s| format!("({s})")).collect();
     if terms.is_empty() { "TRUE".into() } else { terms.join(" /\\ ") }
 }
-pub(crate) fn disjoin(terms: Vec<String>) -> String {
-    if terms.is_empty() {
-        "FALSE".into()
-    } else {
-        terms.into_iter().map(|s| format!("({s})")).collect::<Vec<_>>().join(" \\/ ")
-    }
+pub(crate) fn disjoin(terms: impl IntoIterator<Item = String>) -> String {
+    let terms: Vec<_> = terms.into_iter().map(|s| format!("({s})")).collect();
+    if terms.is_empty() { "FALSE".into() } else { terms.join(" \\/ ") }
 }
 pub(crate) fn default(ty: &Type) -> String {
     match ty {
