@@ -620,3 +620,36 @@ fn unknown_start_policies_match_the_handler_rejections() -> Result<(), Box<dyn s
     }
     Ok(())
 }
+
+#[test]
+fn shared_dispatch_preserves_method_and_live_prerequisite_refusals()
+-> Result<(), Box<dyn std::error::Error>> {
+    for (id, baseline, expected) in [
+        ("UnknownMethod", true, "unknown probe case"),
+        (
+            "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.activity_id:mutation.empty",
+            false,
+            "missing run prerequisite",
+        ),
+        (
+            "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token:mutation.empty",
+            false,
+            "missing live task token prerequisite",
+        ),
+    ] {
+        let request = ProbeRequest {
+            operation: Operation::Prepare as i32,
+            case_id: id.into(),
+            baseline,
+            namespace: "namespace".into(),
+            activity_id: "activity".into(),
+            task_queue: "queue".into(),
+            ..Default::default()
+        };
+        assert_eq!(
+            probe(&request).err().ok_or("invalid prerequisite admitted")?.to_string(),
+            expected
+        );
+    }
+    Ok(())
+}

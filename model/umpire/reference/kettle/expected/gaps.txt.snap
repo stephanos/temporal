@@ -2,72 +2,91 @@
 source: umpire/reference/kettle/tests/live_snapshots.rs
 ---
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.absent
+Prediction: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.DescribeRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.empty
+Prediction: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.DescribeRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.limit_plus_one(2): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.DescribeRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.limit_plus_one(4): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.DescribeRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.DescribeRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Describe::umpire.reference.kettle.v1.DescribeRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.DescribeRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.absent
 umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.empty
 umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.empty: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(2)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(2)::prediction:0:umpire.reference.kettle.v1.FillRequest.idempotency_key:string.uuid
 umpire.reference.kettle.v1.FillRequest.idempotency_key: string.uuid: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(32)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.FillRequest.idempotency_key:string.uuid
 umpire.reference.kettle.v1.FillRequest.idempotency_key: string.uuid: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(4)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(4)::prediction:0:umpire.reference.kettle.v1.FillRequest.idempotency_key:string.uuid
 umpire.reference.kettle.v1.FillRequest.idempotency_key: string.uuid: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.idempotency_key:string.uuid
 umpire.reference.kettle.v1.FillRequest.idempotency_key: string.uuid: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.negative
-umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.idempotency_key:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.idempotency_key: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.FillRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.FillRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.limit_plus_one(2): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.FillRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.FillRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.limit_plus_one(4): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.FillRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.cartridge: mutation.absent: Unverifiable [mutation produced the baseline request]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(2)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(2)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(32)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(4)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(4)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.cartridge: mutation.negative: Unverifiable [negative is not applicable to Bytes]
+umpire.reference.kettle.v1.FillRequest.options.cartridge: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.cartridge:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.cartridge: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Bytes]
+umpire.reference.kettle.v1.FillRequest.options.cartridge: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.limit_plus_one(2): Confirmed
@@ -78,12 +97,14 @@ umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.limit_plus_o
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.key:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.labels.key: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.limit_plus_one(2): Confirmed
@@ -94,25 +115,29 @@ umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.limit_plus
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels.value:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.labels.value: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.labels: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.empty
 umpire.reference.kettle.v1.FillRequest.options.labels: mutation.empty: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(2)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(2)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(32)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(4)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(4)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.labels:bytes.min_len
 umpire.reference.kettle.v1.FillRequest.FillOptions.labels: bytes.min_len: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.labels: mutation.negative: Unverifiable [negative is not applicable to Map]
+umpire.reference.kettle.v1.FillRequest.options.labels: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.labels:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.labels: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Map]
+umpire.reference.kettle.v1.FillRequest.options.labels: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.legacy_note:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.absent: Unverifiable [mutation produced the baseline request]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.legacy_note:mutation.empty
@@ -126,9 +151,9 @@ umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.limit_plus_
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.legacy_note:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.legacy_note:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.legacy_note:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.legacy_note: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags.value:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags.value:mutation.empty
@@ -142,9 +167,9 @@ umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.limit_plus_o
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags.value:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags.value:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags.value:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.tags.value: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.tags: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.empty
@@ -152,18 +177,24 @@ umpire.reference.kettle.v1.FillRequest.options.tags: mutation.empty: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.tags: mutation.limit_plus_one(2): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(32)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.tags:repeated.max_items
 umpire.reference.kettle.v1.FillRequest.FillOptions.tags: repeated.max_items: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(4)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(4)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.tags:repeated.max_items
 umpire.reference.kettle.v1.FillRequest.FillOptions.tags: repeated.max_items: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.tags:repeated.max_items
 umpire.reference.kettle.v1.FillRequest.FillOptions.tags: repeated.max_items: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.tags: mutation.negative: Unverifiable [negative is not applicable to Repeated]
+umpire.reference.kettle.v1.FillRequest.options.tags: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tags:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.tags: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Repeated]
+umpire.reference.kettle.v1.FillRequest.options.tags: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions:any_of
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.absent::prediction:1:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions: any_of (umpire.reference.kettle.v1.FillRequest.FillOptions.cartridge, umpire.reference.kettle.v1.FillRequest.FillOptions.tap): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.tap: mutation.limit_plus_one(2): Confirmed
@@ -174,13 +205,13 @@ umpire.reference.kettle.v1.FillRequest.options.tap: mutation.limit_plus_one(4): 
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.tap: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.tap: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.tap: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.tap:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.tap: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.FillRequest.options.tap: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.absent: Unverifiable [mutation produced the baseline request]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.empty
-umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.empty: Unverifiable [empty is not applicable to Signed]
+umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.empty: Unverifiable [empty is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.limit_plus_one(2): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.limit_plus_one(32)
@@ -190,13 +221,15 @@ umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.limit_plu
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.limit_plus_one(60)
 umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.limit_plus_one(60): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.negative
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.negative::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.timeout:duration.valid
 umpire.reference.kettle.v1.FillRequest.FillOptions.timeout: duration.valid: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.nanos:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Signed]
+umpire.reference.kettle.v1.FillRequest.options.timeout.nanos: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.timeout:duration.gt
 umpire.reference.kettle.v1.FillRequest.FillOptions.timeout: duration.gt: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.empty
-umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.empty: Unverifiable [empty is not applicable to Signed]
+umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.empty: Unverifiable [empty is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.limit_plus_one(2): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.limit_plus_one(32)
@@ -204,152 +237,178 @@ umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.limit_p
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.limit_plus_one(4): Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.limit_plus_one(60)
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.timeout:duration.lte
 umpire.reference.kettle.v1.FillRequest.FillOptions.timeout: duration.lte: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.negative
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.negative::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.timeout:duration.gt
 umpire.reference.kettle.v1.FillRequest.FillOptions.timeout: duration.gt: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout.seconds:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Signed]
+umpire.reference.kettle.v1.FillRequest.options.timeout.seconds: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.timeout:duration.gt
 umpire.reference.kettle.v1.FillRequest.FillOptions.timeout: duration.gt: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.limit_plus_one(2)
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.limit_plus_one(32)
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.limit_plus_one(4)
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.limit_plus_one(60)
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.negative: Unverifiable [negative is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.timeout:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options.timeout: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.absent
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.absent::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.empty
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.empty: Unverifiable [empty is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.empty: Unverifiable [empty is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.limit_plus_one(2)
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.limit_plus_one(32)
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.limit_plus_one(4)
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.limit_plus_one(60)
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.negative: Unverifiable [negative is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.FillRequest.options.water_kind: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.undefined_enum
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options.water_kind:mutation.undefined_enum::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.absent
 umpire.reference.kettle.v1.FillRequest.options: mutation.absent: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.empty
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.empty::prediction:0:umpire.reference.kettle.v1.FillRequest.FillOptions:any_of
+Prediction: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.empty::prediction:1:umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind:enum.defined_only
 umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind: enum.defined_only: Confirmed
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.limit_plus_one(2)
-umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.limit_plus_one(32)
-umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.limit_plus_one(4)
-umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.limit_plus_one(60)
-umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.negative
-umpire.reference.kettle.v1.FillRequest.options: mutation.negative: Unverifiable [negative is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Fill::umpire.reference.kettle.v1.FillRequest.options:mutation.undefined_enum
-umpire.reference.kettle.v1.FillRequest.options: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Message]
+umpire.reference.kettle.v1.FillRequest.options: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.absent
 umpire.reference.kettle.v1.HeatRequest.enabled: mutation.absent: Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.empty
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.empty: Unverifiable [empty is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.empty: Unverifiable [empty is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.limit_plus_one(2)
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.limit_plus_one(32)
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.limit_plus_one(4)
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.limit_plus_one(60)
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.negative
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.negative: Unverifiable [negative is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.enabled:mutation.undefined_enum
-umpire.reference.kettle.v1.HeatRequest.enabled: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to Bool]
+umpire.reference.kettle.v1.HeatRequest.enabled: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.absent
+Prediction: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.HeatRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.HeatRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.empty
+Prediction: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.HeatRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.HeatRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.limit_plus_one(2): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.HeatRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.HeatRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.limit_plus_one(4): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.HeatRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.HeatRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Heat::umpire.reference.kettle.v1.HeatRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.HeatRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.absent
+Prediction: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.empty
+Prediction: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.limit_plus_one(2): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.limit_plus_one(4): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::PollHeating::umpire.reference.kettle.v1.PollHeatingRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.PollHeatingRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.absent
+Prediction: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.PourRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.PourRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.empty
+Prediction: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.PourRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.PourRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.limit_plus_one(2): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.PourRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.PourRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.limit_plus_one(4): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.PourRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.PourRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::Pour::umpire.reference.kettle.v1.PourRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.PourRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.absent
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.absent::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.action:enum.defined_only
 umpire.reference.kettle.v1.RespondHeatingRequest.action: enum.defined_only: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.empty
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.empty: Unverifiable [empty is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.empty: Unverifiable [empty is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.limit_plus_one(2)
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(2): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.limit_plus_one(32)
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(32): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.limit_plus_one(4)
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(4): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.limit_plus_one(60)
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.limit_plus_one(60): Unverifiable [limit_plus_one is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.negative
-umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.negative: Unverifiable [negative is not applicable to Enum { defined: [0, 1, 2] }]
+umpire.reference.kettle.v1.RespondHeatingRequest.action: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.undefined_enum
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.action:mutation.undefined_enum::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.action:enum.defined_only
 umpire.reference.kettle.v1.RespondHeatingRequest.action: enum.defined_only: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.absent
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.absent::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.empty
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.empty::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:string.min_bytes
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: string.min_bytes: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(2)
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.limit_plus_one(2): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(32)
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(32)::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(4)
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.limit_plus_one(4): Unverifiable [mutation changes a stateful prerequisite]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(60)
+Prediction: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.limit_plus_one(60)::prediction:0:umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:string.max_bytes
 umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: string.max_bytes: Confirmed
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.negative
-umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to String]
+umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.negative: Unverifiable [negative is not applicable to this wire carrier]
 Generic case: generic::RespondHeating::umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id:mutation.undefined_enum
-umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to String]
+umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id: mutation.undefined_enum: Unverifiable [undefined_enum is not applicable to this wire carrier]
+Generic summary: tested=96 local_not_tested=80

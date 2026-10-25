@@ -190,6 +190,13 @@ with each consumer; Temporal's API build and realization macros share one defini
 Kettle catalog fixture builds without an extension dependency; refusal fixtures retain
 missing-field and enum-variant checks alongside descriptor method/action controls.
 
+`umpire_catalog::generic_probe::Engine<S: ProbeSystem>` owns descriptor probe inventory,
+current-context materialization, lazy canonical metadata, prediction correlation and gap
+classification. System adapters supply typed wire operations, catalog claim resolution and
+prerequisite/status policy. Canonical caches contain metadata and findings, never request
+bytes; every preparation validates its current baseline and predictions. Strict contextual
+witnesses and source dispositions enter through the same adapter contract.
+
 ## Kettle service
 
 The framework-owned Kettle service runs a loopback Go server and a fresh wasm guest

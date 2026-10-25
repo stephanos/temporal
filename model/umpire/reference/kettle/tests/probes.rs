@@ -100,3 +100,30 @@ fn coverage_matches_catalog_golden() -> Result {
     settings.bind(|| insta::assert_snapshot!("coverage.txt", coverage));
     Ok(())
 }
+
+#[test]
+fn stateful_prerequisites_and_inapplicable_mutations_never_dispatch() -> Result {
+    use umpire_runtime::annotations::ProbeApplicability;
+    for (method, field, mutation, applicability) in [
+        ("Heat", "kettle_id", "limit_plus_one(2)", ProbeApplicability::Refused),
+        ("Heat", "enabled", "absent", ProbeApplicability::Refused),
+        ("PollHeating", "kettle_id", "limit_plus_one(4)", ProbeApplicability::Refused),
+        ("Fill", "kettle_id", "negative", ProbeApplicability::NotApplicable),
+    ] {
+        let prepared = probes::run(&ProbeRequest {
+            operation: 1,
+            case_id: format!(
+                "generic::{method}::umpire.reference.kettle.v1.{method}Request.{field}:mutation.{mutation}"
+            ),
+            ..Default::default()
+        })?;
+        assert_eq!(prepared.cases[0].applicability, applicability as i32);
+        assert_eq!(prepared.cases[0].predictions, Vec::new());
+        assert_eq!(prepared.message, Vec::<u8>::new());
+        assert!(prepared.recipe.is_none());
+    }
+    assert!(
+        probes::run(&ProbeRequest { kettle_id: "foreign".into(), ..Default::default() }).is_err()
+    );
+    Ok(())
+}

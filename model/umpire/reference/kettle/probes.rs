@@ -1,4 +1,4 @@
-//! Descriptor-driven request mutations with catalog predictions and actual-wire classification.
+//! Typed Kettle wire and prerequisite policy for the shared probe engine.
 
 use crate::{
     KettleServiceMethod as Method, api,
@@ -7,208 +7,80 @@ use crate::{
     wire::umpire::reference::kettle::v1 as k,
 };
 use prost::Message;
-use std::{collections::BTreeSet, fmt::Write};
+use std::sync::OnceLock;
 use umpire_catalog::{
-    Expectation, GapReport, MutationApplicability, ProbeResult, UNCHANGED_REFUSAL, Violation,
-    WireCase, mutation_entries, probe_applicability, wire_cases,
+    Violation, WireCase, WireField,
+    generic_probe::{Engine, ProbeSystem, Request, Result},
 };
-use umpire_runtime::annotations::{
-    ProbeApplicability, ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse,
-};
+use umpire_runtime::annotations::ProbeResponse;
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-struct Entry {
-    method: Method,
-    prerequisite: &'static str,
-    case: WireCase,
-}
-
-impl Entry {
-    fn id(&self) -> String {
-        format!("generic::{}::{}", self.method.name(), self.case.id())
+struct Kettle;
+impl ProbeSystem for Kettle {
+    type Method = Method;
+    type Context = ();
+    fn methods(&self) -> Vec<(Method, &'static str)> {
+        vec![
+            (Method::Fill, "empty"),
+            (Method::Heat, "filled"),
+            (Method::Pour, "filled"),
+            (Method::Describe, "filled"),
+            (Method::PollHeating, "heating"),
+            (Method::RespondHeating, "heating"),
+        ]
     }
-
-    fn prepare(&self, baseline: bool) -> Result<(ProbeCase, Vec<u8>, Vec<Violation>)> {
-        let (state, refusal) = probe_applicability(&self.case.applicability);
-        let mut metadata = ProbeCase {
-            id: self.id(),
-            method: method(self.method),
-            prerequisite: self.prerequisite.into(),
-            generic: true,
-            applicability: state as i32,
-            refusal,
-            ..Default::default()
-        };
-        if state != ProbeApplicability::Applicable {
-            return Ok((metadata, Vec::new(), Vec::new()));
-        }
-        let original = baseline_bytes(self.method);
-        if !api::request_findings(self.method, &original, "room")?.is_empty() {
-            return Err("invalid Kettle probe baseline".into());
-        }
-        if baseline {
-            return Ok((metadata, original, Vec::new()));
-        }
-        let Ok(bytes) = mutate_kettle_request(
-            self.method,
-            &original,
-            &self.case.field.path,
-            &self.case.mutation,
-        ) else {
-            metadata.applicability = ProbeApplicability::Refused as i32;
-            metadata.refusal = "typed mutation construction refused".into();
-            return Ok((metadata, Vec::new(), Vec::new()));
-        };
-        if bytes == original {
-            metadata.applicability = ProbeApplicability::Unchanged as i32;
-            metadata.refusal = UNCHANGED_REFUSAL.into();
-            return Ok((metadata, Vec::new(), Vec::new()));
-        }
-        let mut findings = api::request_findings(self.method, &bytes, "room")?;
-        findings.sort_by_key(|v| (v.path.clone(), v.constraint.clone(), v.fields.clone()));
-        findings.dedup();
-        findings.retain(|v| {
-            v.expected.as_ref().is_some_and(|e| !matches!(e.expectation, Expectation::Unobservable))
-        });
-        if findings.is_empty()
-            && self.prerequisite != "empty"
-            && (self.case.field.path.ends_with(".kettle_id")
-                || self.case.field.path.ends_with(".enabled")
-                || self.case.field.path.ends_with(".action"))
-        {
-            metadata.applicability = ProbeApplicability::Refused as i32;
-            metadata.refusal = "mutation changes a stateful prerequisite".into();
-            return Ok((metadata, Vec::new(), Vec::new()));
-        }
-        metadata.predictions = findings
-            .iter()
-            .enumerate()
-            .map(|(index, finding)| {
-                let mut expected = ProbeExpectation {
-                    id: format!(
-                        "{}::prediction:{index}:{}:{}",
-                        self.id(),
-                        finding.path,
-                        finding.constraint
-                    ),
-                    ..Default::default()
-                };
-                let Some(declared) = &finding.expected else {
-                    unreachable!("filtered expectation")
-                };
-                match &declared.expectation {
-                    Expectation::Accepts => expected.accepts = true,
-                    Expectation::RejectsCode(code) => expected.code = *code as i32,
-                    Expectation::RejectsAnyStatus => {}
-                    Expectation::Rejects { code, message_pattern, details_type } => {
-                        expected.code = *code;
-                        expected.message_pattern.clone_from(message_pattern);
-                        expected.details_type = details_type.clone().unwrap_or_default();
-                    }
-                    Expectation::Unobservable => unreachable!(),
-                }
-                expected
-            })
-            .collect();
-        Ok((metadata, bytes, findings))
+    fn name(&self, method: Method) -> &'static str {
+        method.name()
     }
-
-    fn classify(&self, observation: &ProbeObservation) -> Result<GapReport> {
-        let (canonical, _, findings) = self.prepare(false)?;
-        if observation.applicability != canonical.applicability
-            || observation.refusal != canonical.refusal
-            || observation.prediction_count as usize != canonical.predictions.len()
-            || observation.predictions.len() != canonical.predictions.len()
-            || observation.message_matches
-            || !observation.details_type.is_empty()
-        {
-            return Err("observation diverges from prepared Kettle probe".into());
-        }
-        let mut case = self.case.clone();
-        if canonical.applicability != ProbeApplicability::Applicable as i32 {
-            if observation.accepted || observation.code != 0 {
-                return Err("local mutation has a fabricated server response".into());
-            }
-            case.applicability = match ProbeApplicability::try_from(canonical.applicability)? {
-                ProbeApplicability::NotApplicable => {
-                    MutationApplicability::NotApplicable(canonical.refusal)
-                }
-                ProbeApplicability::Refused => MutationApplicability::Refused(canonical.refusal),
-                ProbeApplicability::Unchanged => MutationApplicability::Unchanged,
-                ProbeApplicability::Applicable => {
-                    return Err("unexpected applicable local mutation".into());
-                }
-            };
-            return Ok(GapReport {
-                entries: mutation_entries(&case, &[], ProbeResult::Unverifiable)?,
-            });
-        }
-        if observation.accepted && observation.code != 0
-            || !observation.accepted && !matches!(observation.code, 3 | 5..=11 | 16)
-        {
-            return Err("invalid or inconclusive Kettle server response".into());
-        }
-        let result = |matched, details| {
-            if observation.accepted {
-                ProbeResult::Accepted
-            } else {
-                ProbeResult::Rejected {
-                    code: observation.code,
-                    message_matches: matched,
-                    details_type: details,
-                }
-            }
-        };
-        let mut indices = BTreeSet::new();
-        let mut predictions = Vec::new();
-        for observed in &observation.predictions {
-            let index = observed.index as usize;
-            if !indices.insert(index)
-                || canonical.predictions.get(index).is_none_or(|v| v.id != observed.prediction_id)
-                || observed.details_type.len() > 512
-            {
-                return Err("invalid Kettle prediction correlation".into());
-            }
-            predictions.push((
-                findings[index].clone(),
-                result(
-                    observed.message_matches,
-                    (!observed.details_type.is_empty()).then(|| observed.details_type.clone()),
-                ),
-            ));
-        }
-        Ok(GapReport { entries: mutation_entries(&case, &predictions, result(false, None))? })
+    fn rpc_path(&self, method: Method) -> String {
+        format!("/umpire.reference.kettle.v1.KettleService/{}", method.name())
+    }
+    fn fields(&self, method: Method) -> Vec<WireField> {
+        kettle_request_fields(method)
+    }
+    fn bounds(&self) -> Vec<u64> {
+        let limits = Limits::default();
+        vec![
+            Limits::for_kettle("compact").get(&config::MAX_TAGS),
+            limits.get(&config::MAX_TAGS),
+            limits.get(&config::MAX_KETTLE_ID_BYTES),
+            60,
+        ]
+    }
+    fn canonical_context(&self) {}
+    fn baseline(&self, method: Method, (): &()) -> Result<Vec<u8>> {
+        Ok(baseline_bytes(method))
+    }
+    fn mutate(&self, method: Method, case: &WireCase, bytes: &[u8]) -> Result<Vec<u8>> {
+        Ok(mutate_kettle_request(method, bytes, &case.field.path, &case.mutation)?)
+    }
+    fn findings(&self, method: Method, bytes: &[u8]) -> Result<Vec<Violation>> {
+        api::request_findings(method, bytes, "room")
+    }
+    fn mutation_refusal(
+        &self,
+        case: &WireCase,
+        prerequisite: &str,
+        findings: &[Violation],
+    ) -> Option<String> {
+        (findings.is_empty()
+            && prerequisite != "empty"
+            && [".kettle_id", ".enabled", ".action"]
+                .iter()
+                .any(|suffix| case.field.path.ends_with(suffix)))
+        .then(|| "mutation changes a stateful prerequisite".into())
+    }
+    fn conclusive_status(&self, code: i32) -> bool {
+        matches!(code, 3 | 5..=11 | 16)
     }
 }
 
-fn entries() -> Vec<Entry> {
-    let mut entries = Vec::new();
-    let limits = Limits::default();
-    let bounds = [
-        Limits::for_kettle("compact").get(&config::MAX_TAGS),
-        limits.get(&config::MAX_TAGS),
-        limits.get(&config::MAX_KETTLE_ID_BYTES),
-        60,
-    ];
-    for (method, prerequisite) in [
-        (Method::Fill, "empty"),
-        (Method::Heat, "filled"),
-        (Method::Pour, "filled"),
-        (Method::Describe, "filled"),
-        (Method::PollHeating, "heating"),
-        (Method::RespondHeating, "heating"),
-    ] {
-        for case in wire_cases(&kettle_request_fields(method), &bounds) {
-            entries.push(Entry { method, prerequisite, case });
-        }
+fn engine() -> Result<&'static Engine<Kettle>> {
+    static ENGINE: OnceLock<Engine<Kettle>> = OnceLock::new();
+    if let Some(engine) = ENGINE.get() {
+        return Ok(engine);
     }
-    entries.sort_by_key(Entry::id);
-    entries
-}
-
-fn method(method: Method) -> String {
-    format!("/umpire.reference.kettle.v1.KettleService/{}", method.name())
+    let engine = Engine::new(Kettle)?;
+    Ok(ENGINE.get_or_init(|| engine))
 }
 
 fn baseline_bytes(method: Method) -> Vec<u8> {
@@ -243,51 +115,17 @@ pub fn run(request: &k::ProbeRequest) -> Result<ProbeResponse> {
     if !request.kettle_id.is_empty() && request.kettle_id != "room" {
         return Err("Kettle probe context must use the canonical room kettle".into());
     }
-    let entries = entries();
-    match request.operation {
-        0 => Ok(ProbeResponse {
-            cases: entries.iter().map(|v| v.prepare(false).map(|v| v.0)).collect::<Result<_>>()?,
-            ..Default::default()
-        }),
-        1 => {
-            let entry =
-                entries.iter().find(|e| e.id() == request.case_id).ok_or("unknown Kettle probe")?;
-            let (case, message, _) = entry.prepare(request.baseline)?;
-            Ok(ProbeResponse {
-                method: case.method.clone(),
-                cases: vec![case],
-                message,
+    let operation = match request.operation {
+        0 => Request::Inventory,
+        1 => Request::Prepare { id: &request.case_id, baseline: request.baseline, context: &() },
+        2 => Request::Classify(&request.observations),
+        3 => {
+            return Ok(ProbeResponse {
+                report: api::catalog::coverage(&Limits::default())?,
                 ..Default::default()
-            })
+            });
         }
-        2 => {
-            let actual: BTreeSet<_> =
-                request.observations.iter().map(|v| v.case_id.as_str()).collect();
-            let expected: BTreeSet<_> = entries.iter().map(Entry::id).collect();
-            if actual.len() != request.observations.len()
-                || actual.len() != expected.len()
-                || !expected.iter().all(|id| actual.contains(id.as_str()))
-            {
-                return Err("incomplete, duplicate or unknown Kettle probe observations".into());
-            }
-            let mut response = ProbeResponse::default();
-            for entry in entries {
-                let observed = request
-                    .observations
-                    .iter()
-                    .find(|v| v.case_id == entry.id())
-                    .ok_or("missing Kettle observation")?;
-                let report = entry.classify(observed)?;
-                response.fails |= report.fails();
-                writeln!(response.report, "Generic case: {}", entry.id())?;
-                write!(response.report, "{report}")?;
-            }
-            Ok(response)
-        }
-        3 => Ok(ProbeResponse {
-            report: api::catalog::coverage(&Limits::default())?,
-            ..Default::default()
-        }),
-        _ => Err("unknown Kettle probe operation".into()),
-    }
+        _ => return Err("unknown Kettle probe operation".into()),
+    };
+    engine()?.run(&operation)
 }

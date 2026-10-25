@@ -12,8 +12,7 @@ use crate::activity_api::{
 use prost::Message;
 use std::{collections::BTreeSet, sync::OnceLock};
 use umpire_catalog::{
-    Catalog, Expectation, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation,
-    validate,
+    Catalog, FieldDescriptor, FieldValue, Kind, ProbeCase as Target, Rng, Violation, validate,
 };
 use umpire_runtime::prost_types::Duration;
 use umpire_temporal_api::{
@@ -248,19 +247,12 @@ impl Entry {
             prerequisite: self.prerequisite.into(),
             ..Default::default()
         };
-        match &expected.expectation {
-            Expectation::Accepts => case.accepts = true,
-            Expectation::RejectsCode(code) => case.code = *code as i32,
-            Expectation::RejectsAnyStatus => {}
-            Expectation::Rejects { code, message_pattern, details_type } => {
-                case.code = *code;
-                case.message_pattern.clone_from(message_pattern);
-                case.details_type = details_type.clone().unwrap_or_default();
-            }
-            Expectation::Unobservable => {
-                return Err("observable request case declared unobservable".into());
-            }
-        }
+        let prediction =
+            umpire_catalog::generic_probe::expectation(case.id.clone(), &expected.expectation)?;
+        case.accepts = prediction.accepts;
+        case.code = prediction.code;
+        case.message_pattern = prediction.message_pattern;
+        case.details_type = prediction.details_type;
         Ok(case)
     }
     fn negative<T: FieldValue>(&self, value: &T) -> Result<T> {
@@ -684,84 +676,80 @@ fn mutate_queue(queue: &mut TaskQueue, field: &str, entry: &Entry) -> Result<()>
 /// Refuses missing prerequisites, unsupported mutations, invalid baselines/witnesses and incomplete observations.
 pub fn probe(request: &ProbeRequest) -> Result<ProbeResponse> {
     if request.encoded_len() > 1024 * 1024 - 1024
-        || request.observations.len() > generic::MAX_CASES
+        || request.observations.len() > umpire_catalog::generic_probe::MAX_CASES
         || request.case_id.len() > 4096
         || request.observations.iter().any(|observation| {
             observation.case_id.len() > 4096
-                || observation.predictions.len() > generic::MAX_PREDICTIONS
+                || observation.predictions.len() > umpire_catalog::generic_probe::MAX_PREDICTIONS
                 || observation.details_type.len() > 512
                 || observation.refusal.len() > 256
         })
     {
         return Err("probe request exceeds metadata budget".into());
     }
-    let entries = inventory()?;
-    let generic_entries = generic::inventory()?;
-    match Operation::try_from(request.operation)? {
-        Operation::Inventory => Ok(ProbeResponse {
-            cases: entries
-                .iter()
-                .map(Entry::metadata)
-                .chain(generic_entries.iter().map(|entry| entry.declaration(entries)))
-                .collect::<Result<_>>()?,
-            ..Default::default()
-        }),
-        Operation::Prepare => {
-            if let Some(entry) = generic_entries.iter().find(|entry| entry.id() == request.case_id)
-            {
-                return entry.prepare(request, entries);
-            }
-            let entry = entries.iter().find(|entry| entry.id() == request.case_id);
-            let selector = if request.case_id.is_empty() {
-                "StartActivityExecution"
-            } else {
-                request.case_id.as_str()
-            };
-            let (name, context) = if let Some(entry) = entry {
-                (entry.method, entry.context)
-            } else if request.baseline
-                && matches!(
-                    selector,
-                    "StartActivityExecution"
-                        | "RespondActivityTaskCompleted"
-                        | "RespondActivityTaskCanceled"
-                        | "RequestCancelActivityExecution"
-                )
-            {
-                (selector, "")
-            } else {
-                return Err("unknown probe case".into());
-            };
-            let mut bytes = baseline(name, request, context)?;
-            if !request_findings(name, &bytes)?.is_empty() {
-                return Err("invalid baseline".into());
-            }
-            if !request.baseline {
-                let entry = entry.ok_or("missing target")?;
-                bytes = mutate(&bytes, entry)?;
-                let mut findings = request_findings(name, &bytes)?;
-                let mut expected = entry.companions()?;
-                expected.push(entry.target.violation.clone());
-                findings.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
-                expected.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
-                if findings != expected {
-                    return Err(format!(
-                        "{}: witness does not isolate declared target: {findings:?}",
-                        entry.id()
-                    )
-                    .into());
-                }
-            }
-            let mut response = ProbeResponse { method: method(name), ..Default::default() };
-            if bytes.len() > 512 * 1024 {
-                response.recipe = Some(recipe(&bytes)?);
-            } else {
-                response.message = bytes;
-            }
-            Ok(response)
+    let operation = match Operation::try_from(request.operation)? {
+        Operation::Inventory => umpire_catalog::generic_probe::Request::Inventory,
+        Operation::Prepare => umpire_catalog::generic_probe::Request::Prepare {
+            id: &request.case_id,
+            baseline: request.baseline,
+            context: request,
+        },
+        Operation::Classify => {
+            umpire_catalog::generic_probe::Request::Classify(&request.observations)
         }
-        Operation::Classify => report::classify(request, entries, generic_entries),
+    };
+    generic::engine()?.run(&operation)
+}
+
+fn prepare_strict(request: &ProbeRequest, entries: &[Entry]) -> Result<ProbeResponse> {
+    let entry = entries.iter().find(|entry| entry.id() == request.case_id);
+    let selector = if request.case_id.is_empty() {
+        "StartActivityExecution"
+    } else {
+        request.case_id.as_str()
+    };
+    let (name, context) = if let Some(entry) = entry {
+        (entry.method, entry.context)
+    } else if request.baseline
+        && matches!(
+            selector,
+            "StartActivityExecution"
+                | "RespondActivityTaskCompleted"
+                | "RespondActivityTaskCanceled"
+                | "RequestCancelActivityExecution"
+        )
+    {
+        (selector, "")
+    } else {
+        return Err("unknown probe case".into());
+    };
+    let mut bytes = baseline(name, request, context)?;
+    if !request_findings(name, &bytes)?.is_empty() {
+        return Err("invalid baseline".into());
     }
+    if !request.baseline {
+        let entry = entry.ok_or("missing target")?;
+        bytes = mutate(&bytes, entry)?;
+        let mut findings = request_findings(name, &bytes)?;
+        let mut expected = entry.companions()?;
+        expected.push(entry.target.violation.clone());
+        findings.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
+        expected.sort_by_key(|finding| (finding.path.clone(), finding.constraint.clone()));
+        if findings != expected {
+            return Err(format!(
+                "{}: witness does not isolate declared target: {findings:?}",
+                entry.id()
+            )
+            .into());
+        }
+    }
+    let mut response = ProbeResponse { method: method(name), ..Default::default() };
+    if bytes.len() > 512 * 1024 {
+        response.recipe = Some(recipe(&bytes)?);
+    } else {
+        response.message = bytes;
+    }
+    Ok(response)
 }
 
 #[cfg(test)]
@@ -844,13 +832,19 @@ mod tests {
     fn validated_inventories_are_reused() -> Result<()> {
         let contextual = inventory()?;
         let contextual_again = inventory()?;
-        let generic = generic::inventory()?;
-        let generic_again = generic::inventory()?;
+        let generic = generic::engine()?;
+        let generic_again = generic::engine()?;
         assert!(!contextual.is_empty());
-        assert!(!generic.is_empty());
+        assert!(
+            generic
+                .run(&umpire_catalog::generic_probe::Request::Inventory)?
+                .cases
+                .iter()
+                .any(|case| case.generic)
+        );
         assert_eq!(
-            (contextual.as_ptr(), generic.as_ptr()),
-            (contextual_again.as_ptr(), generic_again.as_ptr()),
+            (contextual.as_ptr(), std::ptr::from_ref(generic)),
+            (contextual_again.as_ptr(), std::ptr::from_ref(generic_again)),
             "successfully validated metadata must not be rebuilt for each probe"
         );
         Ok(())
