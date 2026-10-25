@@ -1,0 +1,15 @@
+{
+  "integrated_model_sources_verified": 9,
+  "protected_files_verified": 154,
+  "required_test_inventory": 39,
+  "whole_completed": 22,
+  "exact_complement": 17,
+  "coverage_union_exact": true,
+  "worlds": 33,
+  "whole_timeout_exit": 124,
+  "complement_exit": 0,
+  "native_joined_exit": 0,
+  "guest_build_exit": 0,
+  "joined_guest_sha256": "40cfbb9199e5b5e9e1536fe113d992d8221b5a328660d89ffc882059c6134695",
+  "full_conductor_gate": "Required before task15 closure; will also supply fn254 baseline data; no backend caching/batching introduced."
+}

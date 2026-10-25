@@ -1,0 +1,21 @@
+{
+  "source_base": "295d6d03da6dba59b12b28cf83090352b6f344cf",
+  "files": {
+    "model/temporal/feature/activity/README.md": "7c2aee625feefa370c1e82d83fc57a6da50207fc99ee3f7239de40dc78b96a14",
+    "model/temporal/feature/activity/expected/Activity.tla.snap": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab",
+    "model/temporal/feature/activity/expected/coverage.txt.snap": "667cb9894e14cc393cd42cc4a11d3e34ee1a1429f08685b949b9dbb1f6ae27af",
+    "model/temporal/feature/activity/expected/expansion/closings.txt.snap": "2966df943fa049165800563beaabab1e708629166bd9e70d3f670264c6ef7733",
+    "model/temporal/feature/activity/expected/rows.txt.snap": "3ca9a7465d411a68561eea9a4feab9463137880d04f960b82c0be0c4349d1e86",
+    "model/temporal/feature/activity/model.rs": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767",
+    "model/temporal/feature/activity/policy_checks.rs": "f820bd569cc6db3d23afaf13cc01f4277eb760b93a5ca729fa855ba4614d2e5e",
+    "model/temporal/feature/activity/proof_checks.rs": "456c295d3bbb63376f196aa65011a9697feeb812a1e609ca5017d985c7bea906",
+    "model/temporal/feature/activity/tests.rs": "bc7dc565354985db8a53eeb24e720dadbc54c23a987c3bce90f32e18f768e6e0",
+    "go.mod": "b38656014e9bf6e473520a59728a84d2dbd17b95bdb07c0a65a1b53c5d2ab13f",
+    "model/Cargo.lock": "a3d3d77d73634ca494a9ce4182d31bc3d88dc92ae6ce2f6a88398634377ada18",
+    "model/temporal/feature/activity/expected/Activity.cfg.snap": "aca190c669fcf7b24fe973bb1eeaae7f420dec1ab7c664a14cae986c1ac997d7"
+  },
+  "fixture_executable": {
+    "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry/debug/deps/fixtures-68fb8825aec47f53",
+    "sha256": "cd44e3cb6ff81beba7fda5839d2389ca6ba523cb1c2a4839ccbe641752db3af2"
+  }
+}

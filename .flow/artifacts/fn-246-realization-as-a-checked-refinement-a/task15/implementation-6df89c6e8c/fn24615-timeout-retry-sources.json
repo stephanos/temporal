@@ -1,0 +1,50 @@
+{
+  "base_commit": "295d6d03da6dba59b12b28cf83090352b6f344cf",
+  "head": "6df89c6e8c02e518481f723660983ea8a6c78bbb",
+  "files": [
+    {
+      "path": "model/temporal/feature/activity/README.md",
+      "sha256": "7c2aee625feefa370c1e82d83fc57a6da50207fc99ee3f7239de40dc78b96a14"
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/Activity.tla.snap",
+      "sha256": "e64dd847afb1fc6990846c22f233b467f15da6fdacd2fa2d1bf47b2906162cab"
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/coverage.txt.snap",
+      "sha256": "667cb9894e14cc393cd42cc4a11d3e34ee1a1429f08685b949b9dbb1f6ae27af"
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/expansion/closings.txt.snap",
+      "sha256": "2966df943fa049165800563beaabab1e708629166bd9e70d3f670264c6ef7733"
+    },
+    {
+      "path": "model/temporal/feature/activity/expected/rows.txt.snap",
+      "sha256": "3ca9a7465d411a68561eea9a4feab9463137880d04f960b82c0be0c4349d1e86"
+    },
+    {
+      "path": "model/temporal/feature/activity/model.rs",
+      "sha256": "6a05d02cbbda317d5e3f5806cd1012ea0475142cb6233d1e185325f37b988767"
+    },
+    {
+      "path": "model/temporal/feature/activity/policy_checks.rs",
+      "sha256": "f820bd569cc6db3d23afaf13cc01f4277eb760b93a5ca729fa855ba4614d2e5e"
+    },
+    {
+      "path": "model/temporal/feature/activity/proof_checks.rs",
+      "sha256": "456c295d3bbb63376f196aa65011a9697feeb812a1e609ca5017d985c7bea906"
+    },
+    {
+      "path": "model/temporal/feature/activity/tests.rs",
+      "sha256": "bc7dc565354985db8a53eeb24e720dadbc54c23a987c3bce90f32e18f768e6e0"
+    }
+  ],
+  "launched_source_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-final-launched-source.json",
+  "fixture_binary": {
+    "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry/debug/deps/fixtures-68fb8825aec47f53",
+    "sha256": "cd44e3cb6ff81beba7fda5839d2389ca6ba523cb1c2a4839ccbe641752db3af2"
+  },
+  "source_read_ir_sha256": "0f42e7e9bb0549ede00e67ae4d039e99cadffa4f035d184cde26a80f6cd3d457",
+  "compiled_embedded_ir_sha256": "0f42e7e9bb0549ede00e67ae4d039e99cadffa4f035d184cde26a80f6cd3d457",
+  "tlc_jar_sha256": "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"
+}

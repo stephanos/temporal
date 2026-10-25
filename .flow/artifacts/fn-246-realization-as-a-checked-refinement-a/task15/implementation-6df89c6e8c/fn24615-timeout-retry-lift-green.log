@@ -1,0 +1,15 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 12.31s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry/debug/deps/fixtures-68fb8825aec47f53)
+
+running 1 test
+
+thread 'activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc' (3504574) has overflowed its stack
+fatal runtime error: stack overflow, aborting
+error: test failed, to rerun pass `-p umpire-temporal-tests --test fixtures`
+
+Caused by:
+  process didn't exit successfully: `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry/debug/deps/fixtures-68fb8825aec47f53 selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc` (signal: 6, SIGABRT: process abort signal)

@@ -1,0 +1,27 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 11.68s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry/debug/deps/fixtures-68fb8825aec47f53)
+
+running 1 test
+test activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact ... FAILED
+
+failures:
+
+---- activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact stdout ----
+
+thread 'activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact' (3480034) panicked at /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/tests.rs:361:5:
+assertion `left == right` failed
+  left: [(Accepted, [StartToClose], Model { phase: TimedOut, attempt: 1, cancel_requested: false, schedule_to_start_remaining: None, start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })]
+ right: [(Accepted, [StartToClose], Model { phase: Scheduled, attempt: 2, cancel_requested: false, schedule_to_start_remaining: Some(Remaining { ticks: 1 }), start_to_close_remaining: None, schedule_to_close_remaining: None, heartbeat_remaining: None })]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal-tests --test fixtures`

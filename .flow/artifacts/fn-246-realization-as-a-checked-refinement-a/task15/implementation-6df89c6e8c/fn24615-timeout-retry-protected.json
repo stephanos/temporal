@@ -1,0 +1,775 @@
+{
+  "base_commit": "295d6d03da6dba59b12b28cf83090352b6f344cf",
+  "files": [
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay-inputs.json",
+      "sha256": "a881420dd24c96c4c45d0ae617d06afac5cfaafef14ff4514a11363e5c620cd2",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay.rs",
+      "sha256": "8ac1cf6ba1068f699ac68f8e036f156f3123b67e768a85be359a3ab003250f5b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-ack-replay.txt",
+      "sha256": "bdedff3d102b532062ed843627bfe5512068f8ed50ad91520a8d4514a0b689f6",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-correctness-audit.md",
+      "sha256": "1c646336395f8b8577bee69c1ac7db3cde68952c555339f5dbdb2a815270ab44",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-execution-evidence.tar.gz",
+      "sha256": "e3672a13f747ad0cf9aa7ca6aac2869fc038d2862e13d27192930a10d2554862",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-implementation-evidence.json",
+      "sha256": "47f297a87590b206205119a9de76c0638d92729bb37e8da677583ca521c41f12",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-preserved-manifest.json",
+      "sha256": "e622c3baa06067f173db79144cc8664446de84b5fab9fc91a2bcca7a0777f4df",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-primary-contracts.md",
+      "sha256": "b31f8c3f5c929ab011de02ae884a4a616e6a2d441871b225f34dfbd30b8c594b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-primary-correctness.md",
+      "sha256": "1378a9d88225a9fa2b8a2b737773e4464d627e199ca01b48099e290caad7d214",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-primary-integration.md",
+      "sha256": "05e41de4d4cd58fdab76c1e4d1385aafdbceac5e649b65979da32c9cf4fd198a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-primary-review-raw.tar.gz",
+      "sha256": "3f97470157723e97bf0b8e6bc882116537ad137a36ad36c6e888675f0c2424ff",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-primary-review-receipt.json",
+      "sha256": "389449d7941ba3184177e5ccbe4f24474e1efb3df10666a4188340805c1ffc51",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-standards-audit.md",
+      "sha256": "eba9f4a2045c4d74d4b16577e1ec8cd0661f8fa4efda54d44a7c2c089aaebff2",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-standards-followup.md",
+      "sha256": "6544154ee7ace56139be1fe35969f9eed633d023913a62ec8cc19894004c4bf4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md",
+      "sha256": "5c1b1c14126962b8e76579c484eada21a383ebc5714a68ddff96b01188a249b8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-contract.md",
+      "sha256": "9bb1937f71b19a186013c476229d3ab12c140c27f722732440c61d737969a780",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-evidence-shape.md",
+      "sha256": "262fbdd746b39521f9a57497b9dd39e48f20979cf9726e148ab0e73bdb7f3597",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-plan-review-receipt.json",
+      "sha256": "08954bcf64a105ec54e515c0d295d9f2e1d2df68f3df13a8a4e232cf8b3262ba",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-plan-review-round1.json",
+      "sha256": "299953d4e6ad96cecbe409fcecf45204e8aac547102a280062b8768e87a7c013",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-boundary-plan-review-round2.json",
+      "sha256": "a0ade06214ce87db51a873794b89b234010e1d4a8a990e4ccd5ffaafaaa55b14",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/cancellation-contract-research.md",
+      "sha256": "37cdd8cfa6956a6082ef2d585a9d2edf4c6c9b97f05b044b743d51a54bd94ab1",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/execution-evidence.md",
+      "sha256": "4a21a47652564e254c205335b670c867bd79354cf2bea88d7157209813cd7ca4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/gate-attempts.json",
+      "sha256": "af9f7c056d35e1342365a16f3b02f1e8f49b7a5a8a3685a0dc4697bb51592a74",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/model-time.txt",
+      "sha256": "69c53cd0d2e60a5aac58167236503f859aed5df645323f2ea0f3fc7c49d3d653",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-baseline.json",
+      "sha256": "5ef2abb1fa3b7cb0b8a3d262ba1dfd6c1076d0aaf3c989c31987d58559898971",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-baseline.log",
+      "sha256": "137dbe6944c35b6dd966de0828730f2c69ec6cc2c5679770b752672349c9a3ce",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-boundary.log.gz",
+      "sha256": "e88a7b0caf477943488f2d1f0cf60c72dea1799ca2316ff0c82c103d5d7e36f8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-canonical-imports-green.log.gz",
+      "sha256": "136d7ed04eeab7eea8882c871e99f61a9f0c21e6ad64c8515d5d4a816e9415c1",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-canonical-imports-red.log.gz",
+      "sha256": "01c4fd8cb8fcf875774b859ba89079bd35ea80228371d4a0c9846d27d4198a24",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-cfg-continuation-green.log.gz",
+      "sha256": "e821d5ad6142822507dfccb491ae3195fc5566607eaa242d9ef26346b50d6eca",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-cfg-continuation-red.log.gz",
+      "sha256": "ebba67d55ee008dbf40c1872a333f3f9e01042af8d7a5bb2cc6935309ee9673f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-cfg-swap-green.log.gz",
+      "sha256": "289a5cd3621d064b97031b78f86475bfef4a723de66c4c7801190c55a36c29fc",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-cfg-swap-red.log.gz",
+      "sha256": "291846993cd2454cf6c6f808ae8a9f58ddafd6ddb5dfa44488431a93e4fb8b4a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-continuation-clippy.log.gz",
+      "sha256": "e934c4cb1af60f75e48016123221da2124d02f592f522fade939fd4864cbbcf4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-continuation-focused.log.gz",
+      "sha256": "28c289703ba8debd463c7d8a101ead53f80561eaa673be09994547b4f31efcbc",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-coordinated-cfg-green.log.gz",
+      "sha256": "d145b3ead54eb5ec476a662f045adb7f684adeb182f743667be0d36c097b49e8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-coordinated-cfg-red.log.gz",
+      "sha256": "bbabc30a1e56551ce8b5c4a9094eb2e872539278c5a95858ebb623c418532773",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-cross-step-red.log.gz",
+      "sha256": "b1b0d40ab9bc9393ca89061d96b3ceb810b13e2c7382cba2262891f104794aa7",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-eager-required.log.gz",
+      "sha256": "84665176e7c060acf138ee9b8af478e7d6a89d52855c5f1ce86bc3c95d9f96b9",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-embedded-gaps.log.gz",
+      "sha256": "41704777974c97157119f9ad51afb5d53be7212d0b8f567879b1e0c8b9bfd7b6",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-embedded-slice.log.gz",
+      "sha256": "6f095372484e0a0b40321984f6a13169855cf272804b518a6792b3e25f9a09bf",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-model-check-required.log.gz",
+      "sha256": "d80280b34e4531f6a8048d9eb2662d4dd833a8af5b239a40e071256ba9455fa7",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-model-check.log.gz",
+      "sha256": "a8a46739922696a9f1a1e30bdd01c6071d040cfe8a421514502bffdc486776a6",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-model-time.log.gz",
+      "sha256": "d50ccbe40fef25f019b5585dd3be53dd39828b03081813973e1a769eb1b01741",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-final-verify.json",
+      "sha256": "be3f75fee3416c2bc22abbe701084d031c168437f87684ae4974676180f80314",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-fixture-required-cross-step.log.gz",
+      "sha256": "218aa17e82d44d8de161b3b7510e72eeed1958d612100d88b14f8facf12070ef",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-focused-all.log.gz",
+      "sha256": "a973160ec40e802d8a110ac004433f533c7df35c54088bb2324f9093cb6ccaf9",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-guest-freshness.log.gz",
+      "sha256": "629e01223c2932153f94a5fef57ed896e1279485d63fb3db561528f8dbd909ad",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-implementation-evidence.json",
+      "sha256": "ee5a0127de9389a56c71e6c44cf6eacc5edaf463a2d3a4d438747a8c44330836",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-interface.md",
+      "sha256": "4e6537160d74ff094e5ec96b599b78d7c8857fdf9a93f01e4b8f4514d23e1399",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-main-lazy.log.gz",
+      "sha256": "24dad8db75c9569d62b11e271a3e0a14f5d7b4fe2761c37249b30cdcd8ec1a86",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-native-lazy.log.gz",
+      "sha256": "38f43c452137f77880291d03fd2cca159ef71195061afc9967706e52b1422acb",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-bounded.log.gz",
+      "sha256": "525245daf24124e4971e4df620d634e507bca23bfa5f2b75ebb237f0da662b9c",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-optional-or.log.gz",
+      "sha256": "bf87e21de42a116b2048083aa3e466578c793cd5a44f9a3e83fbc9fabfd59ae0",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-payload.log.gz",
+      "sha256": "464747dcfec215876c825999aca406740fc1fe24b7e8c05ca3ff08821dae4e17",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-prime-some.log.gz",
+      "sha256": "0333eefcc816cb00fc80cbd4229fce3e02a1d527d4b197dc5f7cfc79eba3beeb",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutant-safety-lazy.log.gz",
+      "sha256": "a968d380af7f881f44ec64511131b0943870759904ca075dc3b7f0b2b244d755",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-mutants.json",
+      "sha256": "9664b1cfb0a89a67240e64a0de738a3aab571226296c5baf6af1af4288357d31",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-new-snapshots-final.log.gz",
+      "sha256": "30a412811fd072459122ffdfe90ad2ea4755f2abeece4fa7ceef3a43a49a940d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-post-audit-clippy.log.gz",
+      "sha256": "d39a628811957b6a7a47817410ccd989c536a079fb9eead2c8c92af231a7066f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-post-audit-tests.log.gz",
+      "sha256": "704fce1e9549c56ebe30cb6f399024b8cd802fb67dcc731035881f14971bc613",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-pre-compat-full-model-check-required.log.gz",
+      "sha256": "e683be63d15cb1c65367bfb130ad47025a559e529b47972f676553ea8052e033",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-pre-compat-full-model-check.log.gz",
+      "sha256": "3cbd0cefbd53ea4c19a0358bce445afaafa064e687f508630ecfeb6869fade27",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-pre-compat-full-model-time.log.gz",
+      "sha256": "2dc7960da1360234098fb478660c7d88df77ce8521fdd4a3ca4839f58c66b9f8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-pre-compat-ordinary-names-green.log.gz",
+      "sha256": "406dc002cafcc1f96e1f99009d0e54b144316c5562ad455621bd250087c42b41",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-pre-compat-ordinary-names-red.log.gz",
+      "sha256": "1bd4fa1ef40cfb81f9208fb45b16b1f24455f27345352b2fccb15d203b673fff",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-preserved-audit.py",
+      "sha256": "e53221dd48aa94f8abf8a50926d3f0d4ae173c394ff58ab500eacaa7ef4d756f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-preserved-manifest.json",
+      "sha256": "85fd8c23f07be94e6cae5745eaa52493012ad5fea444303e44c7de3469cc823b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-contracts.json",
+      "sha256": "09a4cbf86401ccb3ae0f4060d3836cdffddc62d2fc72b26132513022b2bbed99",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-contracts.out.txt.gz",
+      "sha256": "22dbab63e65de42ccb4a28908b0591d3524c7c1021a4df54305d1664615dbb30",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-contracts.review.md",
+      "sha256": "3d8ff37d0f8013bcd349eca42087003b9b574adb46855e89b6c30f746135e59a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-correctness.json",
+      "sha256": "d3ba2e1f0f008a52e1c69bc1291901917c183ca1fec2a8a341e0311889a29ecb",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-correctness.out.txt.gz",
+      "sha256": "f63314e00611703ceb16789856d487878e5e68e3a8aa8c33fb6e45c8b0912ada",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-correctness.review.md",
+      "sha256": "ea6f6c2401a2f7054bd4d395a4bbcd93cce0f2d9bc800b5fb966fa4ba8e24623",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-finalize.json",
+      "sha256": "8c6d81e35bf316660d9ab56b5c70050f89a95e8a787aa73f2037fe0408248d76",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-integration.json",
+      "sha256": "5bec481d7b103007a8eef19067e87efba084291c3cd9ce54adeb2e1353eec12e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-integration.out.txt.gz",
+      "sha256": "c4de1365bcc0f5119857eda1dcabc9d2dd59d8268f39d4bd85fa411bbe89e1ec",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-integration.review.md",
+      "sha256": "dbaf92bd53172fd92ab01482791c3caac26dc2accc1b5a8258e6235c07272a70",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-meta.json",
+      "sha256": "7feea15c0433526187145d2eb11b420d5ce507324b2cbc92021f7d5d05736165",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-primary-receipt.json",
+      "sha256": "5df636a1222cd21eaa982851882e8eff125e24fb83d776d26dba9f2a5bb49ce8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-correctness-compatibility.md",
+      "sha256": "b57aa8655a3fb1b747f547222b02c3f8d5d57ae0cad0d4677f711049e2465dcd",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-correctness-final.md",
+      "sha256": "d126f38997cf6ab51f75deb3c1848f5a6ec593ee98b17679b1083c52caf42359",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-correctness-followup-1.md",
+      "sha256": "dd3e8b48349ec9c0e7896ded74dcbed9b560bda5ac652d3c6d0f7a0a994cac76",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-correctness-initial.md",
+      "sha256": "121c7107d2a364b1ee8a258fab7fbe6b730ed393f35ca678bf65bdaf1df04d90",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-standards-compatibility.md",
+      "sha256": "ffce3bfa18a98b028ac4cb36b695447b2a82a82484663edfb46ab40340285869",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-standards-final.md",
+      "sha256": "441d7965b0a425a646a2c6456e73f323343e8cc244b11c2102a7097547fc8b1b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-standards-followup.md",
+      "sha256": "af57cbf53727db97264efc04761c02aa344223084b194164507083c19924f60a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-quality-standards-initial.md",
+      "sha256": "fe0a3fb93b22b62067529f55004bcdfa47c2cf6870a3754cda4477999848627b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-scoped-clippy.log.gz",
+      "sha256": "69d3a79ecc3fb2e7ca15539025dfbbc3e36b49b13eae7a5b66e5280eac5f6e3e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-source-red.log",
+      "sha256": "7a70d8c11ada57a9e6c56b4c6f929d053615ec0b57fdc8cd9c852321c25132a2",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-wide-export-green.log.gz",
+      "sha256": "da25bf16134e6291dcbddd501cf9a9f33c2e9f95b3e785bd53a29953a56e6fbd",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/optional-values-wide-export-red.log.gz",
+      "sha256": "a29e805aafd2b4446944077fcdd16326b379c96855bea4ce843652b4d78dd0dc",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/preexisting-artifact-manifest.json",
+      "sha256": "67dcdc9db49717f3054f29f99a4c9ef401eadbce4e1cb9a1704cd3b8ea681845",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/preservation-baseline.json",
+      "sha256": "37321b4385569ab83bf0408027416f4f726c5277ec71e8773061c89561ae820f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/preservation-final.json",
+      "sha256": "d468bbe09701dd94c38f4b05773d5eb77ae98521f356d78a28ddd2d000d99cdd",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/quality-audits.md",
+      "sha256": "24c42a6639abb37df1e548a2513d9e6449e6d196a34e3ddb39516fdfdb7d858f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/stage-capability-plan-review-receipt.json",
+      "sha256": "3a09d60b9a4cf0296f95bb082395b6fbcd9a65c33f8edba8a3e31a8406a1df26",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/stage-capability-plan-review-round1-receipt.json",
+      "sha256": "b88a6e393d41c068f95bdccfdd8df4ebd67616362934fcb381556cc9c7494202",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/tlc-witnesses.txt",
+      "sha256": "eadeb4ab03e14860f477b281bc9c76a71263e48a9a29ffa7a04363c79c20eba0",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-execution-logs.tar.gz",
+      "sha256": "306b68d619188c1405335c9d853fdc49dde24f67be935af79be7c8cf07386244",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-gap-findings.md",
+      "sha256": "0b3270d09bdd8b65d393890ca26cfb72f9a36badbcef04751b2a535110a3434f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-implementation-evidence.json",
+      "sha256": "1826ebaed2c1d68c7508e2d2e6570f7d1f827ab11949ad045836595ccfc546de",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-memory-findings.md",
+      "sha256": "e4527346b6bf1104128021a6f9272f254bfe1cb19305208e2e950388ee6e3d61",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-plan-validation.json",
+      "sha256": "7aca713da7a62a9c1bac3b56b9cef35a962c876fd6f1ff80e1d0225822918c6d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-planning-record.md",
+      "sha256": "521a5126debb1672cf4bbf4cc1e51bdccafdb4ab32f6f3a8a3a7763cb8802c1a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-preserved-audit.py",
+      "sha256": "56183f24f87a4fac3b2cb734482458e204dc2661b496a92459bf909fc5a24d26",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-preserved-manifest.json",
+      "sha256": "aa2bc5f45a6a51bdbd233c1c807e33ea4e2289defa022106c063ff4d51269a0d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-contracts.json",
+      "sha256": "c240a84faa43d9a7fee1a4f1750e60fb715beb72e915e69c82b60cf8c868e1f6",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-contracts.review.md",
+      "sha256": "738bfeae531be27e5554cfddcee9754313236aea6492adcd2391e6bd619ff85e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-correctness.json",
+      "sha256": "427d7e7697d0eb4322eda281dadb5a625e11d4ae54825e90c18967bcf369eb9b",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-correctness.review.md",
+      "sha256": "eb3b1e3308e1b85fa37aa58eb26086e57d18f6a974dd3a885bc9389bd658f2ad",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-integration.json",
+      "sha256": "19a23537b5feff63e6a4c93f580d1ac478b74d23e22d8189bcdfd68e1edbfa34",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-integration.review.md",
+      "sha256": "3385e1b2a64dc77ba4d4d45c46fa659f34f6d5eb37b9b15e6c527ca2da1ffd5d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-meta.json",
+      "sha256": "83271d94940fbe1f9294ecf79e8fc7a08d20b2a2dd64d09f81b75784df73df9c",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round1-raw.log.gz",
+      "sha256": "b280f2098c5acea70d5c7cf856ba2550476e275149fc507b6a9c46ce5f93ec9e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round1-receipt.json",
+      "sha256": "8ddb1ab73ee8f681c5e99512a769d806d382de1c7bfcc95b4303809805a33be5",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round1-report.md",
+      "sha256": "e23b08b93090d844410f091308fc9145d4272c960269a74f07dd039566d999d3",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round2-raw.log.gz",
+      "sha256": "5c14d1f0b29fb8ed43d3e7fd9fca5f39824951d1fb1765691e5691146662feb2",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round2-receipt.json",
+      "sha256": "3819ef58f56dc0ac7cd534d16b83ec0e775f62eee9b7454c723aac256e143f9d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-plan-review-round2-report.md",
+      "sha256": "8cb628d5a1d0675236dab9771703fb36ed2c18d5681443a5ab3af34a1e504bd1",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-raw.tar.gz",
+      "sha256": "5557b5191bfcce92d123400165f39b4b9c388751dbf4d8a8df4f0b590d3afa46",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-primary-receipt.json",
+      "sha256": "71272aea9b14ed995029b68026285fe37d964a640d3d4a97a896dd188762f665",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-proof-boundaries.md",
+      "sha256": "5c3d9544c1acc67f6f36c667f5fdfbf0e96fe20605057b9586412d49493b5d66",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-quality-audits.md",
+      "sha256": "7098319f7496742249222ee4460dc2b19c44246d25691e9872081826a10192fb",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-quality-correctness.md",
+      "sha256": "9f33e2ccf62787eea70cfe63a091af485ee1992d82405174c84930878d31d7a5",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-quality-standards-followup.md",
+      "sha256": "cf8d89d774d3d5c18ef7ce97da52e6c7ed5a65a68a4ba4d5753cc4323c55bd43",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-quality-standards.md",
+      "sha256": "d8b94bbe649671e196250a4693747c8e8881f9586da8ae160028ea6dbd99ec99",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-repo-findings.md",
+      "sha256": "9679670179d321ef706a84445019a3c5226927d27b92676620f2e4b7e891169a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-237-activity-timeouts-heartbeat-and/world-fairness-spec-findings.md",
+      "sha256": "b6de661b3b230b0ce48467ce108596b76fe6193d6bfb29acbe56b87bada1bd93",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/SHA256.json",
+      "sha256": "71d96cbdd2d3926e13bb68c7bb3c0e5e24cec420bfa0ce545ac03bc56ce887ce",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/admission-after-plan-review.json",
+      "sha256": "3754877bd60e042bb1c1c3e900613075e8e6525420e07d387521344d0ea00464",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/dispatch-note.txt",
+      "sha256": "b8cb4ce87d5c4eab49ed8295ae4a760ebe7de6020a702a4a3c74c2cda4e46614",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/owner-approval.json",
+      "sha256": "1f86a1a5ce70f4cec87b370280fa2b41764bd572dbf919c4c4ee71b813c4ae14",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/plan-review-receipt.json",
+      "sha256": "18b3c2f32a0337f858e3281f7ddfccbe60e5e13d267c96dcf166d9e867abee57",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/plan-review-result.json",
+      "sha256": "2d79b26f84855ae8aac2daa81e6aaa8669f0e20ec6f1cb6f88ba36205347d0cb",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/planning-findings.md",
+      "sha256": "a1929f1a3c8529888e56f219257538f8b777d7babeb8ea90a94072608ba9665a",
+      "unchanged_from_base": true
+    },
+    {
+      "path": ".flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/primary-contract.txt",
+      "sha256": "7a691e5d688bd8367a16e73a00912bc1d9d2aff8ef3e6ff025263f4a0ddb47bd",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/README.md",
+      "sha256": "a5117b5c4e1d72ffd6cdf4edf7a859a23ea0d4bd8afd4b3f376c2b257dd25e9d",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/checkpoint.rs",
+      "sha256": "cacbdfb3814fab83132f68721dcabe89ccd4e072148ec288f86159b5f91e781e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/coverage.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/coverage.snap.txt",
+      "sha256": "dff85c941be647cca77e11749b6c8cc921960c7dab6758217f1b9030022b789f",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/expansion/closings.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/expansion/closings.snap.txt",
+      "sha256": "c2bebbdf72b27b5bf4011689f613a30a1628b09fea9a5d6666e2c93fa2ba7ea8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/gaps.txt",
+      "sha256": "a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/lift.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/lift.snap.txt",
+      "sha256": "da995d701deb189247455a852811aa58b22fe834158b4a715f05009fa15b6479",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/realization.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/realization.snap.txt",
+      "sha256": "88a00db7d38337b3ea57a358f938eb4cbcae5120e73b6f4f2ad7470f3ff68c8e",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/report.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/report.snap.txt",
+      "sha256": "cd0343ba3eb50dc78bc0b6b14f3a327b120fe44ef46600253554f3fd7af5f5d3",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/rows.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/rows.snap.txt",
+      "sha256": "a111619002e42cfd12d0279028b2b88ef049a7682a85516cfc8e134f210556e8",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/states.snap",
+      "sha256": "9e0d20d2cbcb9d00a2b844f793380d5e3b96c690ef1371954c5631902875e2e4",
+      "unchanged_from_base": true
+    },
+    {
+      "path": "model/temporal/feature/activity/compatibility/original/states.snap.txt",
+      "sha256": "21219b834f051b851e78c9280688fce443dc7e4913bcaa3bd38add809eff5381",
+      "unchanged_from_base": true
+    }
+  ]
+}

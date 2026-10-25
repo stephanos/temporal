@@ -1,0 +1,59 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 15.40s
+     Running fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/fixtures-68fb8825aec47f53)
+
+running 41 tests
+test activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model ... ok
+test activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples ... ok
+test activity_tests::closed_cancel_emits_a_rejected_self_loop ... ok
+test activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection ... ok
+test activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results ... ok
+test activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact ... ok
+test activity_tests::compatibility::retained_original_exact_lifecycle_projection ... ok
+test activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison ... ok
+test activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability ... ok
+test activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact ... ok
+test activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws ... ok
+test activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets ... ok
+test activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick ... ok
+test activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay ... ok
+test activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants ... ok
+test activity_tests::policy_checks::required_tlc_replays_both_canceled_attempt_expiry_facts ... ok
+test activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt ... ok
+test activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget ... ok
+test activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority ... ok
+test activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds ... ok
+test activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos ... ok
+test activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires ... ok
+test activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget ... ok
+test activity_tests::retry_policy_caps_and_stale_delivery ... ok
+test activity_tests::selected_world_registers_closure_and_failure_progress ... ok
+test activity_tests::registered_closure_laws_check_every_phase_action_pair ... ok
+test activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation ... ok
+test activity_tests::six_phase_transition_matrix_includes_disabled_actions ... ok
+test activity_tests::terminal_classification_covers_every_phase ... ok
+test import_live_gap_candidate ... ignored, requires an explicitly selected live Go gap report
+test realization_control::added_catalog_field_fails_the_real_coverage_golden ... ignored, rebuilds the committed source in an isolated worktree; run after the coverage checkpoint
+test activity_tests::tlc_refutes_closure_law_mutants_of_this_source ... ok
+test activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs ... ok
+test activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement ... ok
+test activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc ... ok
+test activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc ... ok
+test activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate ... ok
+test fixtures ... ok
+test activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass ... ok
+test activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness ... ok
+test activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges ... ok
+
+test result: ok. 39 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.50s
+

@@ -1,0 +1,20 @@
+Approved nonpending StartToClose/Heartbeat expiry now reuses worker-failure retry scheduling, retains the exact timeout fact/outcome, increments once and preserves the decremented global budget. Countdown/attempt/priority obligations, native/source/TLC controls, four affected current snapshots and the activity contract README were renewed; the original max-one checkpoint and 154 protected original/approval files remain byte-identical.
+
+Tier: explicit AGENTS gpt-6.1-sol/medium; judge unavailable(no_key).
+stage: impl-review - skipped(policy: parallel-wave; conductor owns review and Flow completion)
+baseline: green (focused pre-edit retry_policy_caps_and_stale_delivery)
+
+Native fixture verification: 39 passed, two existing opt-in ignores. Strict Clippy, scoped rustfmt and named_guest_adapter_preserves_the_independent_report_and_ordered_rows passed. Source-read and compiled embedded IR are byte-identical (SHA256 0f42e7e9bb0549ede00e67ae4d039e99cadffa4f035d184cde26a80f6cd3d457). Default graph remains 18 states/63 edges/17 laws; exactly two default-world timeout destinations changed. Original max-one projection remains six states/eleven visible edges, with its changed-edge negative control retained.
+
+Required real TLC: the final whole command timed out at 600 seconds (exit 124), so it is INCONCLUSIVE, not a full-command pass. Its 22 completed tests plus the exact 17-test unfinished complement (exit 0) cover every one of the 39 nonignored tests and all 33 selected Worlds, without changing frozen source/TLA/binary hashes. All 33 World receipts have complete native/interpreted/TLC agreement; all original fairness/global-bound/closure controls and 14 local retry mutation cases remain exercised. The complement reruns the entire unfinished World cohort and its negative controls. Commands, exits, tests inventory, exact sources/artifacts, World counts and raw logs are in the sibling JSON manifests. The earlier interrupted pre-final TLC command is separately retained as inconclusive exit 143; no old or partial receipt is called a pass. Opt-in Apalache was not run.
+
+The shared retry effect rearms waiting from the selected World and clears attempt/heartbeat timers; next accepted Poll rearms both. Exact controls cover maxima 1/2/3, both local causes, pending/nonpending below/at cap, absent/positive/tied global budgets, local ties, forged armed zero, repeated retry, completion, waiting rearm, stale/current Poll and terminal availability. Old terminalization, cap/pending retry, global reset/priority, wrong waiting/attempt and missing/replaced timeout facts fail. No defaults/backoff/new domain/API/protocol/realization/gap owner changes were introduced.
+
+Changed behavioral route: activity Deadline::Tick after eligible local expiry reaches Scheduled at the next attempt. The independent protocol/full-state relation and actual live expiry evidence retain their original owners. The conductor still owns integration, review, joined guest promotion/freshness/current host checks and fresh required make model-validate before committed Flow closure unblocks task13. No lifecycle/tracker/review/MILESTONES/remote mutation was made. Worktree and isolated cache are retained for review fixes; all worker-started handles are terminal at handover.
+
+Defect route:
+- prior fixes: original policy introduced in e04f0dc1a3; conductor admitted this approved correction with exclusive source ownership; external PR/tracker scan not performed for this local policy amendment.
+- diagnosis: exact red control confirmed old Tick accepted StartToClose but terminalized attempt one rather than scheduling attempt two. The same control passes after the correction.
+- introduced by: e04f0dc1a3 feat(activity): model deadlines and cooperative cancellation; bisect skipped because this is a newly approved contract delta with no known-good prior revision.
+- base: failing committed reproduction 786faee343 (exit 101); head: identical reproduction included in passing full native suite.
+- live: not run; actual live proof remains fn-237.4 owned.

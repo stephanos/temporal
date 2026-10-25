@@ -1,0 +1,5 @@
+{
+  "status": "all worker-started tool handles terminal",
+  "active_owned_fixture_or_tlc_processes": [],
+  "cache_lease_released": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry"
+}

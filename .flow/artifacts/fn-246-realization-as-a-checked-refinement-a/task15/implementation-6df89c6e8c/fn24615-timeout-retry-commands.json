@@ -1,0 +1,272 @@
+{
+  "working_directory": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model",
+  "environment": "CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2",
+  "results": [
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-baseline.log",
+      "exit_code": 0,
+      "observation": "focused pre-edit worker retry baseline"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-red.log",
+      "exit_code": 101,
+      "observation": "meaningful exact StartToClose retry assertion failed"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-green.log",
+      "exit_code": 101,
+      "observation": "source-lifter refusal: claim local let"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-green-2.log",
+      "exit_code": 0,
+      "observation": "red reproduction now green"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-native.log",
+      "exit_code": 101,
+      "observation": "embedded AST construction stack overflow"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-native-2.log",
+      "exit_code": 101,
+      "observation": "source-lifter refusal: claim else-if"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-native-3.log",
+      "exit_code": 101,
+      "observation": "embedded AST construction stack overflow"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-lift-green.log",
+      "exit_code": 101,
+      "observation": "embedded AST construction stack overflow"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-lift-green-2.log",
+      "exit_code": 0,
+      "observation": "consolidated local expiry removed duplicate effect tree; normal stack"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-renew-snapshots.log",
+      "exit_code": 0,
+      "observation": "initial reviewed current fixture generation"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fixtures-native.log",
+      "exit_code": 0,
+      "observation": "38 passed; two existing ignores"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fixtures-tlc.log",
+      "exit_code": 143,
+      "observation": "inconclusive; stopped after actual strict Clippy finding required final law syntax change"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-clippy.log",
+      "exit_code": 101,
+      "observation": "collapsible else-if in source-admitted law"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-clippy-2.log",
+      "exit_code": 101,
+      "observation": "source-lifter refuses lint attribute; attribute removed"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-clippy-3.log",
+      "exit_code": 101,
+      "observation": "test match arms and test helper length"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-clippy-final.log",
+      "exit_code": 0,
+      "observation": "strict Clippy passed"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-renew-snapshots-final.log",
+      "exit_code": 0,
+      "observation": "final reviewed TLA snapshot regenerated"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fixtures-native-final.log",
+      "exit_code": 0,
+      "observation": "39 passed; two existing ignores"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fmt-final.log",
+      "exit_code": 0,
+      "observation": "all four owned Rust files formatted"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-realization.log",
+      "exit_code": 0,
+      "observation": "one named guest ordered-report test passed"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fixtures-tlc-final.log",
+      "exit_code": 124,
+      "observation": "inconclusive whole command: 600s timeout; 22 tests completed, 32/33 World receipts"
+    },
+    {
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-fixtures-tlc-complement.log",
+      "exit_code": 0,
+      "observation": "exact unfinished complement: 17 passed; 17 World cohort rerun; complete union of 39 nonignored tests"
+    }
+  ],
+  "complement_command": [
+    "mise",
+    "exec",
+    "--",
+    "cargo",
+    "test",
+    "-p",
+    "umpire-temporal-tests",
+    "--test",
+    "fixtures",
+    "--",
+    "--exact",
+    "--nocapture",
+    "--test-threads=2",
+    "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+    "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+    "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+    "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+    "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+    "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+    "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+    "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+    "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+    "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+    "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+    "activity_tests::retry_policy_caps_and_stale_delivery",
+    "activity_tests::selected_world_registers_closure_and_failure_progress",
+    "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+    "activity_tests::terminal_classification_covers_every_phase",
+    "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+    "fixtures"
+  ],
+  "inventory": {
+    "all_tests": [
+      "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+      "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+      "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+      "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+      "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+      "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+      "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+      "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+      "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+      "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+      "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+      "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+      "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+      "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+      "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+      "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+      "activity_tests::policy_checks::required_tlc_replays_both_canceled_attempt_expiry_facts",
+      "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+      "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+      "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+      "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget",
+      "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+      "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+      "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+      "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+      "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+      "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+      "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+      "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+      "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+      "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+      "activity_tests::retry_policy_caps_and_stale_delivery",
+      "activity_tests::selected_world_registers_closure_and_failure_progress",
+      "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+      "activity_tests::terminal_classification_covers_every_phase",
+      "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+      "fixtures",
+      "import_live_gap_candidate",
+      "realization_control::added_catalog_field_fails_the_real_coverage_golden"
+    ],
+    "completed_in_inconclusive_command": [
+      "activity_tests::actual_tlc_agrees_and_replays_retry_payload_counterexamples",
+      "activity_tests::actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model",
+      "activity_tests::closed_cancel_emits_a_rejected_self_loop",
+      "activity_tests::compatibility::changed_original_lifecycle_edge_fails_the_same_comparison",
+      "activity_tests::compatibility::retained_original_exact_lifecycle_projection",
+      "activity_tests::hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection",
+      "activity_tests::hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws",
+      "activity_tests::nonpending_attempt_expiry_retries_with_exact_timeout_fact",
+      "activity_tests::policy_checks::cancellation_and_worker_races_have_exact_reachable_results",
+      "activity_tests::policy_checks::configured_deadlines_reject_zero_and_binding_bypass",
+      "activity_tests::policy_checks::current_and_stale_worker_tokens_preserve_exact_availability",
+      "activity_tests::policy_checks::each_deadline_expires_once_with_its_exact_fact",
+      "activity_tests::policy_checks::poll_retry_and_heartbeat_reset_only_their_applicable_budgets",
+      "activity_tests::policy_checks::remaining_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::policy_checks::required_tlc_fact_only_mutants_fail_replay_on_the_same_pending_tick",
+      "activity_tests::policy_checks::required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay",
+      "activity_tests::policy_checks::required_tlc_refutes_source_only_boundary_policy_mutants",
+      "activity_tests::policy_checks::required_tlc_replays_both_canceled_attempt_expiry_facts",
+      "activity_tests::policy_checks::required_tlc_replays_both_pending_failure_payloads_at_every_attempt",
+      "activity_tests::policy_checks::required_tlc_replays_timeout_retries_with_exact_cause_and_budget",
+      "activity_tests::policy_checks::simultaneous_expiry_obeys_global_then_attempt_then_heartbeat_priority",
+      "activity_tests::policy_checks::timeout_retry_rearms_waiting_then_poll_and_preserves_spanning_budget"
+    ],
+    "ignored": [
+      "import_live_gap_candidate",
+      "realization_control::added_catalog_field_fails_the_real_coverage_golden"
+    ],
+    "unfinished": [
+      "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+      "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+      "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+      "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+      "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+      "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+      "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+      "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+      "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+      "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+      "activity_tests::retry_policy_caps_and_stale_delivery",
+      "activity_tests::selected_world_registers_closure_and_failure_progress",
+      "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+      "activity_tests::terminal_classification_covers_every_phase",
+      "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+      "fixtures"
+    ],
+    "command": [
+      "mise",
+      "exec",
+      "--",
+      "cargo",
+      "test",
+      "-p",
+      "umpire-temporal-tests",
+      "--test",
+      "fixtures",
+      "--",
+      "--exact",
+      "--nocapture",
+      "--test-threads=2",
+      "activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc",
+      "activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds",
+      "activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos",
+      "activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires",
+      "activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation",
+      "activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness",
+      "activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement",
+      "activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate",
+      "activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges",
+      "activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs",
+      "activity_tests::registered_closure_laws_check_every_phase_action_pair",
+      "activity_tests::retry_policy_caps_and_stale_delivery",
+      "activity_tests::selected_world_registers_closure_and_failure_progress",
+      "activity_tests::six_phase_transition_matrix_includes_disabled_actions",
+      "activity_tests::terminal_classification_covers_every_phase",
+      "activity_tests::tlc_refutes_closure_law_mutants_of_this_source",
+      "fixtures"
+    ]
+  }
+}

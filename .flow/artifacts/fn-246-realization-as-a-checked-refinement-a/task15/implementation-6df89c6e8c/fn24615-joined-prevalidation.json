@@ -1,0 +1,38 @@
+{
+  "source_commit": "cbf9fbf5d26529c8467e542617cd9dbe66e168f1",
+  "status": "terminal-passed",
+  "results": [
+    {
+      "name": "native",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "fixtures",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 16.548,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24615-joined-native.log",
+      "log_sha256": "4d534420912ab09e4d4fc7426491d2153eaf98d040a512d74206f1ddd6fa695d"
+    },
+    {
+      "name": "guest",
+      "command": [
+        "bash",
+        "model/scripts/guest.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 43.694,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24615-joined-guest.log",
+      "log_sha256": "28d5130a777c9dd1fb86f8af0074af22f0c2c6de8636aa24a3d6cde402076881"
+    }
+  ]
+}

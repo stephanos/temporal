@@ -1,0 +1,36 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/testing)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization)
+error: these match arms have identical bodies
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/tests.rs:121:17
+    |
+121 |                 6 if retry => Phase::Scheduled,
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+124 |                 5 if retry => Phase::Scheduled,
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is unintentional make the arms return different values
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#match_same_arms
+    = note: `-D clippy::match-same-arms` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::match_same_arms)]`
+help: otherwise merge the patterns into a single arm
+    |
+121 ~                 6 | 5 if retry => Phase::Scheduled,
+122 |                 1 | 6 => Phase::TimedOut,
+123 |                 3 => Phase::Completed,
+124 ~                 _ => Phase::Failed,
+    |
+
+error: this function has too many lines (115/100)
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:652:1
+    |
+652 | fn source_only_timeout_retry_controls_discriminate_exact_edges() -> umpire_testing::TestResult {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#too_many_lines
+    = note: `-D clippy::too-many-lines` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `umpire-temporal-tests` (test "fixtures") due to 2 previous errors

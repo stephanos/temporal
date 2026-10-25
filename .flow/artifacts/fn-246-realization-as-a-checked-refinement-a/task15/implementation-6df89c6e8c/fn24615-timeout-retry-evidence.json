@@ -1,0 +1,57 @@
+{
+  "commits": [
+    "786faee3434f803a2fe16f1a30006e012f572e73",
+    "6df89c6e8c02e518481f723660983ea8a6c78bbb"
+  ],
+  "base_commit": "295d6d03da6dba59b12b28cf83090352b6f344cf",
+  "tests": [
+    "timeout 600s env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures",
+    "timeout 600s env UMPIRE_BACKENDS=require CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --nocapture --test-threads=2",
+    "UMPIRE_BACKENDS=require CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --exact --nocapture --test-threads=2 activity_tests::policy_checks::selected_deadline_worlds_agree_compiled_interpreted_and_required_tlc activity_tests::proof_checks::actual_tlc_global_tick_law_bundle_on_selected_worlds activity_tests::proof_checks::actual_tlc_selected_fairness_and_starvation_lassos activity_tests::proof_checks::forged_countdowns_refute_bounds_and_armed_zero_expires activity_tests::proof_checks::native_fairness_omissions_expose_heartbeat_and_retry_starvation activity_tests::proof_checks::selected_worlds_have_exact_poll_and_completion_fairness activity_tests::proof_checks::shared_replay_checks_typed_activity_edges_and_retains_native_disagreement activity_tests::proof_checks::source_only_global_budget_controls_keep_laws_and_discriminate activity_tests::proof_checks::source_only_timeout_retry_controls_discriminate_exact_edges activity_tests::proof_checks::total_tick_bound_laws_hold_on_complete_interleaving_graphs activity_tests::registered_closure_laws_check_every_phase_action_pair activity_tests::retry_policy_caps_and_stale_delivery activity_tests::selected_world_registers_closure_and_failure_progress activity_tests::six_phase_transition_matrix_includes_disabled_actions activity_tests::terminal_classification_covers_every_phase activity_tests::tlc_refutes_closure_law_mutants_of_this_source fixtures",
+    "timeout 600s env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows",
+    "timeout 600s env CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo clippy -p umpire-temporal-tests --test fixtures -- -D warnings",
+    "mise exec -- rustfmt --edition 2024 --check temporal/feature/activity/model.rs temporal/feature/activity/tests.rs temporal/feature/activity/policy_checks.rs temporal/feature/activity/proof_checks.rs"
+  ],
+  "prs": [],
+  "task": "fn-246-realization-as-a-checked-refinement-a.15",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry",
+  "baseline": "green: focused pre-edit retry_policy_caps_and_stale_delivery",
+  "required_tlc": {
+    "whole_command_exit": 124,
+    "whole_command_status": "inconclusive timeout; no whole-command pass claimed",
+    "complement_exit": 0,
+    "completed_tests_union": 39,
+    "preserved_ignored_tests": [
+      "import_live_gap_candidate",
+      "realization_control::added_catalog_field_fails_the_real_coverage_golden"
+    ],
+    "selected_worlds": 33,
+    "all_world_receipts_complete": true
+  },
+  "commands_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-commands.json",
+  "source_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-sources.json",
+  "world_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-worlds.json",
+  "protected_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24615-timeout-retry-protected.json",
+  "tool_versions": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "rustfmt": "1.10.0-stable (58cf8f9c35 2026-10-13)",
+    "clippy": "0.1.99 (58cf8f9c35 2026-10-13)",
+    "java": "Temurin 27+35",
+    "tlc": "2.19 of 08 August 2024; tla2tools artifact 1.7.4"
+  },
+  "optional_apalache": "not run; opt-in, not required",
+  "conductor_remaining": [
+    "integrate scoped commits",
+    "host review",
+    "joined guest promotion and freshness/current host checks",
+    "fresh TLC-required make model-validate before Flow closure and task13 admission"
+  ],
+  "cache_lease": {
+    "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24615-timeout-retry",
+    "active": false,
+    "retained_for_review_fixes": true
+  },
+  "delegated_source_only_agents": 1
+}

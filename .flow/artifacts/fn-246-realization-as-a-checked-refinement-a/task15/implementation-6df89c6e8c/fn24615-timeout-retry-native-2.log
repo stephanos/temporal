@@ -1,0 +1,571 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization/macros)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/testing)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/realization)
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+  --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/tests.rs:72:50
+   |
+72 |     umpire_testing::interpreted(world, None, 64, None)?;
+   |     ---------------------------                  ^^^^ unsatisfied trait bound
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+  --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+   |
+28 |     pub struct World {
+   |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `interpreted`
+  --> umpire/dev/testing/src/interpreted.rs:36:8
+   |
+29 | pub fn interpreted<M>(
+   |        ----------- required by a bound in this function
+...
+36 |     M: Interprets + Values,
+   |        ^^^^^^^^^^ required by this bound in `interpreted`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:36:66
+    |
+ 36 |         let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+    |                           -------------------------------------- ^^^^^^^^^^^^^ unsatisfied trait bound
+    |                           |
+    |                           required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `Interpreted::<M>::from_tree`
+   --> umpire/backends/native/src/interpret.rs:105:8
+    |
+105 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `Interpreted::<M>::from_tree`
+...
+133 |     pub fn from_tree(world: M, model: &Lifted) -> Result<Self, String> {
+    |            --------- required by a bound in this associated function
+
+error[E0599]: the method `assumptions` exists for struct `Interpreted<activity::activity::World>`, but its trait bounds were not satisfied
+  --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:37:32
+   |
+37 |         assert_eq!(interpreted.assumptions(), native);
+   |                                ^^^^^^^^^^^ private field, not a method
+   |
+  ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+   |
+28 |     pub struct World {
+   |     ---------------- doesn't satisfy `_: Interprets`
+   |
+  ::: umpire/backends/native/src/interpret.rs:25:1
+   |
+25 | pub struct Interpreted<M: Machine> {
+   | ---------------------------------- doesn't satisfy `_: Machine`
+   |
+   = note: the following trait bounds were not satisfied:
+           `activity::activity::World: umpire_dsl::__lifted::Interprets`
+           which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+  --> umpire/author/dsl/src/lib.rs:54:5
+   |
+54 |     pub trait Interprets: Lifts + crate::Machine {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: the method `checked_step` exists for struct `Interpreted<activity::activity::World>`, but its trait bounds were not satisfied
+  --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:91:33
+   |
+91 |                     interpreted.checked_step(state, action.clone())?,
+   |                                 ^^^^^^^^^^^^ method cannot be called on `Interpreted<activity::activity::World>` due to unsatisfied trait bounds
+   |
+  ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+   |
+28 |     pub struct World {
+   |     ---------------- doesn't satisfy `_: Interprets`
+   |
+  ::: umpire/backends/native/src/interpret.rs:25:1
+   |
+25 | pub struct Interpreted<M: Machine> {
+   | ---------------------------------- doesn't satisfy `_: Machine`
+   |
+   = note: the following trait bounds were not satisfied:
+           `activity::activity::World: umpire_dsl::__lifted::Interprets`
+           which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+  --> umpire/author/dsl/src/lib.rs:54:5
+   |
+54 |     pub trait Interprets: Lifts + crate::Machine {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:421:74
+    |
+421 |                 let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+    |                                   -------------------------------------- ^^^^^^^^^^^^^ unsatisfied trait bound
+    |                                   |
+    |                                   required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `Interpreted::<M>::from_tree`
+   --> umpire/backends/native/src/interpret.rs:105:8
+    |
+105 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `Interpreted::<M>::from_tree`
+...
+133 |     pub fn from_tree(world: M, model: &Lifted) -> Result<Self, String> {
+    |            --------- required by a bound in this associated function
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:422:62
+    |
+422 |                 let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                             -------------------------------- ^^^^^^^^^^^^ unsatisfied trait bound
+    |                             |
+    |                             required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Checker::explore`
+   --> umpire/backends/native/src/explore.rs:77:23
+    |
+ 77 |     pub fn explore<M: Machine>(
+    |                       ^^^^^^^ required by this bound in `Checker::explore`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:422:29
+    |
+422 |                 let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:422:29
+    |
+422 |                 let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0599]: the method `verify_all` exists for struct `umpire_checker::Result<Interpreted<activity::activity::World>>`, but its trait bounds were not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:424:36
+    |
+424 |                 let report = graph.verify_all()?;
+    |                                    ^^^^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ---------------- doesn't satisfy `_: Interprets`
+    |
+   ::: umpire/backends/native/src/interpret.rs:25:1
+    |
+ 25 | pub struct Interpreted<M: Machine> {
+    | ---------------------------------- doesn't satisfy `_: Machine`
+    |
+note: there's an earlier shadowed binding `graph` of type `umpire_checker::Result<activity::activity::World>` that has method `verify_all` available
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:395:13
+    |
+395 |         let graph = umpire_checker::Checker::explore(&world, 4096)?;
+    |             ^^^^^ `graph` of type `umpire_checker::Result<activity::activity::World>` that has method `verify_all` defined earlier here
+...
+422 |                 let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                     ----- earlier `graph` shadowed here with type `umpire_checker::Result<Interpreted<activity::activity::World>>`
+    = note: the following trait bounds were not satisfied:
+            `activity::activity::World: umpire_dsl::__lifted::Interprets`
+            which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+   --> umpire/author/dsl/src/lib.rs:54:5
+    |
+ 54 |     pub trait Interprets: Lifts + crate::Machine {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:570:66
+    |
+570 |         let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+    |                           -------------------------------------- ^^^^^^^^^^^^^ unsatisfied trait bound
+    |                           |
+    |                           required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `Interpreted::<M>::from_tree`
+   --> umpire/backends/native/src/interpret.rs:105:8
+    |
+105 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `Interpreted::<M>::from_tree`
+...
+133 |     pub fn from_tree(world: M, model: &Lifted) -> Result<Self, String> {
+    |            --------- required by a bound in this associated function
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:571:54
+    |
+571 |         let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                     -------------------------------- ^^^^^^^^^^^^ unsatisfied trait bound
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Checker::explore`
+   --> umpire/backends/native/src/explore.rs:77:23
+    |
+ 77 |     pub fn explore<M: Machine>(
+    |                       ^^^^^^^ required by this bound in `Checker::explore`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:571:21
+    |
+571 |         let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:571:21
+    |
+571 |         let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0599]: the method `step` exists for struct `Interpreted<activity::activity::World>`, but its trait bounds were not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:576:33
+    |
+576 |             assert!(interpreted.step(&start, Deadline::Tick.into()).is_empty());
+    |                                 ^^^^ method cannot be called on `Interpreted<activity::activity::World>` due to unsatisfied trait bounds
+    |
+   ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ---------------- doesn't satisfy `_: Interprets`
+    |
+   ::: umpire/backends/native/src/interpret.rs:25:1
+    |
+ 25 | pub struct Interpreted<M: Machine> {
+    | ---------------------------------- doesn't satisfy `_: Machine`
+    |
+    = note: the following trait bounds were not satisfied:
+            `activity::activity::World: umpire_dsl::__lifted::Interprets`
+            which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+   --> umpire/author/dsl/src/lib.rs:54:5
+    |
+ 54 |     pub trait Interprets: Lifts + crate::Machine {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: the method `verify_all` exists for struct `umpire_checker::Result<Interpreted<activity::activity::World>>`, but its trait bounds were not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:578:32
+    |
+578 |             let report = graph.verify_all()?;
+    |                                ^^^^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ---------------- doesn't satisfy `_: Interprets`
+    |
+   ::: umpire/backends/native/src/interpret.rs:25:1
+    |
+ 25 | pub struct Interpreted<M: Machine> {
+    | ---------------------------------- doesn't satisfy `_: Machine`
+    |
+    = note: the following trait bounds were not satisfied:
+            `activity::activity::World: umpire_dsl::__lifted::Interprets`
+            which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+   --> umpire/author/dsl/src/lib.rs:54:5
+    |
+ 54 |     pub trait Interprets: Lifts + crate::Machine {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:726:70
+    |
+726 |             let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+    |                               -------------------------------------- ^^^^^^^^^^^^^ unsatisfied trait bound
+    |                               |
+    |                               required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `Interpreted::<M>::from_tree`
+   --> umpire/backends/native/src/interpret.rs:105:8
+    |
+105 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `Interpreted::<M>::from_tree`
+...
+133 |     pub fn from_tree(world: M, model: &Lifted) -> Result<Self, String> {
+    |            --------- required by a bound in this associated function
+
+error[E0599]: the method `checked_step` exists for struct `Interpreted<activity::activity::World>`, but its trait bounds were not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:728:38
+    |
+728 |             let mutant = interpreted.checked_step(&before, Deadline::Tick.into())?;
+    |                                      ^^^^^^^^^^^^ method cannot be called on `Interpreted<activity::activity::World>` due to unsatisfied trait bounds
+    |
+   ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ---------------- doesn't satisfy `_: Interprets`
+    |
+   ::: umpire/backends/native/src/interpret.rs:25:1
+    |
+ 25 | pub struct Interpreted<M: Machine> {
+    | ---------------------------------- doesn't satisfy `_: Machine`
+    |
+    = note: the following trait bounds were not satisfied:
+            `activity::activity::World: umpire_dsl::__lifted::Interprets`
+            which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+   --> umpire/author/dsl/src/lib.rs:54:5
+    |
+ 54 |     pub trait Interprets: Lifts + crate::Machine {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:737:58
+    |
+737 |             let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                         -------------------------------- ^^^^^^^^^^^^ unsatisfied trait bound
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Checker::explore`
+   --> umpire/backends/native/src/explore.rs:77:23
+    |
+ 77 |     pub fn explore<M: Machine>(
+    |                       ^^^^^^^ required by this bound in `Checker::explore`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:737:25
+    |
+737 |             let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:737:25
+    |
+737 |             let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+help: the trait `umpire_dsl::Machine` is conditionally implemented for `Interpreted<M>`
+   --> umpire/backends/native/src/interpret.rs:304:1
+    |
+304 | / impl<M> Machine for Interpreted<M>
+305 | | where
+306 | |     M: Interprets + Values,
+    | |        ---------- unsatisfied requirement introduced here: `activity::activity::World: umpire_dsl::__lifted::Interprets`
+307 | |     M::Action: ActionValues<M>,
+    | |_______________________________^
+    = note: required for `Interpreted<activity::activity::World>` to implement `umpire_dsl::Machine`
+note: required by a bound in `umpire_checker::Result`
+   --> umpire/backends/native/src/explore.rs:52:22
+    |
+ 52 | pub struct Result<M: Machine> {
+    |                      ^^^^^^^ required by this bound in `Result`
+
+error[E0599]: the method `verify_all` exists for struct `umpire_checker::Result<Interpreted<activity::activity::World>>`, but its trait bounds were not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/proof_checks.rs:739:32
+    |
+739 |             let report = graph.verify_all()?;
+    |                                ^^^^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+   ::: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ---------------- doesn't satisfy `_: Interprets`
+    |
+   ::: umpire/backends/native/src/interpret.rs:25:1
+    |
+ 25 | pub struct Interpreted<M: Machine> {
+    | ---------------------------------- doesn't satisfy `_: Machine`
+    |
+    = note: the following trait bounds were not satisfied:
+            `activity::activity::World: umpire_dsl::__lifted::Interprets`
+            which is required by `Interpreted<activity::activity::World>: umpire_dsl::Machine`
+note: the trait `umpire_dsl::__lifted::Interprets` must be implemented
+   --> umpire/author/dsl/src/lib.rs:54:5
+    |
+ 54 |     pub trait Interprets: Lifts + crate::Machine {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the trait bound `activity::activity::World: umpire_dsl::__lifted::Interprets` is not satisfied
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/policy_checks.rs:970:83
+    |
+970 |         let agreement = umpire_testing::interpreted(|| world.clone(), None, 4096, None)?;
+    |                         ---------------------------                               ^^^^ unsatisfied trait bound
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+help: the trait `umpire_dsl::__lifted::Interprets` is not implemented for `activity::activity::World`
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24615-timeout-retry/model/temporal/feature/activity/model.rs:28:5
+    |
+ 28 |     pub struct World {
+    |     ^^^^^^^^^^^^^^^^
+note: required by a bound in `interpreted`
+   --> umpire/dev/testing/src/interpreted.rs:36:8
+    |
+ 29 | pub fn interpreted<M>(
+    |        ----------- required by a bound in this function
+...
+ 36 |     M: Interprets + Values,
+    |        ^^^^^^^^^^ required by this bound in `interpreted`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `umpire-temporal-tests` (test "fixtures") due to 22 previous errors
