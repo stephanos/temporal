@@ -55,9 +55,9 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | --- | --- | --- |
 | fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
 | fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
-| fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
-| fn-254.7 | ⛔ blocked | After .4 and committed fn-246 closure: one test binary per `temporal` crate (R4) |
-| fn-254.8 | ⬜ todo | After .2–.7, .11, .12: final measurement against the baseline, targets, docs (R6, R1) |
+| fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
+| fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
+| fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
 | fn-254.10 | ⬜ todo | After .13: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
@@ -103,12 +103,12 @@ subprocess refusal remains recorded separately.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
+| fn-246.13 | ⬜ todo | Independent standalone-activity protocol Model and native/TLC invariants (R5) |
+| fn-246.9 | ⬜ todo | Current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
-| fn-246.2 | ⬜ todo | After .10, .11: shared entity lens and filler-driven probes with equivalence pins (R3) |
+| fn-246.2 | ⬜ todo | After .10: shared entity lens and filler-driven probes with equivalence pins (R3) |
 | fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
-| fn-246.4 | ⬜ todo | After .3, .11, .13: generic native Refinement consumer and activity declaration (R5) |
+| fn-246.4 | ⬜ todo | After .3, .13: generic native Refinement consumer and activity declaration (R5) |
 | fn-246.5 | ⬜ todo | After .3, .4: complete observable-worker policies and derived programs (R6) |
 | fn-246.6 | ⬜ todo | After .3, .4, .5: integrated evidence, count/timing gates and author docs (R1–R7) |
 
