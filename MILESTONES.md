@@ -20,7 +20,7 @@ The Scala tree under `model/archived/` is frozen reference material.
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-fn-254.13 is next: extract the standalone framework workspace and simplify its native tools. Deliver fn-254's independent framework/gate checkpoint,
+fn-254.13 is extracting the standalone framework workspace and simplifying its native tools. Deliver fn-254's independent framework/gate checkpoint,
 resume fn-246 to closure, then finish fn-254.7/.8.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
@@ -61,7 +61,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.10 | ⬜ todo | After .13: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.13 | ⬜ todo | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
+| fn-254.13 | 🔄 in progress | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
 
 ### fn-255: Thorough framework testing
 
