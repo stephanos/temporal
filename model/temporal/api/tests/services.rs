@@ -235,7 +235,7 @@ fn reviewed() -> Result<Declarations, Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight()
+fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_nine()
 -> Result<(), Box<dyn std::error::Error>> {
     let reviewed = reviewed()?;
     assert_eq!(reviewed.tables.len(), 1);
@@ -250,6 +250,7 @@ fn the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight(
         claimed,
         [
             "PollActivityTaskQueue",
+            "RecordActivityTaskHeartbeat",
             "RespondActivityTaskCompleted",
             "RespondActivityTaskFailed",
             "RespondActivityTaskCanceled",
@@ -295,31 +296,34 @@ fn a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation()
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
     let mut coverage = mirrored()?;
     services::generate(bytes, &coverage, &resolve(reviewed()?)?)?;
-    let mut dropped = reviewed()?;
-    let claim = &mut dropped.claims[0];
-    let index = claim
-        .coverage
-        .methods
-        .iter()
-        .position(|method| method.name == "DescribeActivityExecution")
-        .ok_or("missing Observed claim")?;
-    claim.coverage.methods.remove(index);
-    claim.bindings.remove(index);
-    assert_eq!(
-        services::generate(bytes, &coverage, &resolve(dropped)?).err().as_deref(),
-        Some(
-            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.DescribeActivityExecution has mirrored messages but no Action or Observed classification"
-        )
-    );
+    for dropped_method in ["DescribeActivityExecution", "RecordActivityTaskHeartbeat"] {
+        let mut dropped = reviewed()?;
+        let claim = &mut dropped.claims[0];
+        let index = claim
+            .coverage
+            .methods
+            .iter()
+            .position(|method| method.name == dropped_method)
+            .ok_or("missing reviewed claim")?;
+        claim.coverage.methods.remove(index);
+        claim.bindings.remove(index);
+        let expected = format!(
+            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.{dropped_method} has mirrored messages but no Action or Observed classification"
+        );
+        assert_eq!(
+            services::generate(bytes, &coverage, &resolve(dropped)?).err().as_deref(),
+            Some(expected.as_str())
+        );
+    }
     coverage.messages.push(descriptor::MessageCoverage {
-        name: "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatRequest".into(),
+        name: "temporal.api.workflowservice.v1.RecordActivityTaskHeartbeatByIdRequest".into(),
         fields: vec![],
         opaque_fields: vec![],
     });
     assert_eq!(
         services::generate(bytes, &coverage, &resolve(reviewed()?)?).err().as_deref(),
         Some(
-            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat has mirrored messages but no Action or Observed classification"
+            "annotated RPC is out of scope: temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeatById has mirrored messages but no Action or Observed classification"
         )
     );
     Ok(())
