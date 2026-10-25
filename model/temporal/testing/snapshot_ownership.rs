@@ -18,8 +18,8 @@ const FIXTURES: &[&str] = &[
 
 const READERS: &[(&str, &str)] = &[
     (
-        "temporal/annotate/syntax/tests/snapshots/expansion__typed-catalog.snap",
-        "expansion::executable_expansion_and_source_coverage",
+        "umpire/catalog/syntax/tests/snapshots/expansion__typed-catalog.snap",
+        "cargo test -p umpire-catalog-syntax --test expansion executable_expansion_and_source_coverage",
     ),
     (
         "umpire/catalog/tests/snapshots/controls__generated-catalog.snap",
