@@ -1,0 +1,64 @@
+{
+  "observed_at_utc": "2026-10-25T00:13:57.916325+00:00",
+  "joined_commit": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "main_sources_unchanged_after_proof": true,
+  "commands": [
+    {
+      "command": "CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/scripts/xtask.sh",
+      "exit": 0,
+      "stdout": "helper.path",
+      "stderr": "bootstrap.log"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask fetch-apalache /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-real-install-523d131",
+      "exit": 0,
+      "stdout": "install.path",
+      "stderr": "install.log"
+    },
+    {
+      "command": "PATH=/nonexistent-fn2476 /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask fetch-apalache /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-real-install-523d131",
+      "exit": 0,
+      "stdout": "cached.path",
+      "stderr": "cached.log"
+    },
+    {
+      "command": "cd model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target mise exec -- cargo metadata --format-version 1 --locked",
+      "exit": 0,
+      "result": "metadata-joined.json.gz"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask guest-lock /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-before.lock /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-native-map-before < decompressed task6/metadata-before.json.gz",
+      "exit": 0,
+      "result": "before-native-map.json"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask guest-lock /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-native-map-lane < decompressed task6/metadata-after.json.gz",
+      "exit": 0,
+      "result": "lane-native-map.json"
+    },
+    {
+      "command": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/xtask-bootstrap/debug/xtask guest-lock /Users/stephan/Workspace/skunkworks/umpire/temporal/model/Cargo.lock /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-native-map-joined < .flow/tmp/fn2476-joined-metadata.json",
+      "exit": 0,
+      "result": "joined-native-map.json"
+    }
+  ],
+  "helper_binary_sha256": "dae83c5ed07596d20aeaa5192484e20b10cc83d1884ecaf8a9e7f294c0453a28",
+  "artifact_sha256": {
+    "bootstrap.log": "a41051563a4cb5fc1b1bcdd9aa0ba28ca80f7736d629d90cc138218756e8e3a9",
+    "source-binding.json": "31d622643b5e4bfe5615ee947bfd9f49592c9ce5a38bcf16987b31f10a167c2d",
+    "cached.exit": "1c7399b4d768ef03b1b716346beea341c6fc01beae2f82efff05276bcaf1156e",
+    "real-install-proof.json": "5a004b8f1d748619b0ea340d93b0143b9a67db71a48a864762f895443e7a3199",
+    "lane-native-map.json": "34925f1007f3047178fa976ded861fd34f2a1c3fa1f608b3a58d8573fe92b9bd",
+    "cached.path": "a3a3e4ad7d597db6100fe4be405efcfa0db11e65d3274219d31a01347f7c060c",
+    "native-identity-proof.json": "c8f18ea52360b061d2ac920e265a36495f753b43f578b6e4082fad120db80254",
+    "install.exit": "48d654256ab06a0c89ddb34d2047fd796c50edf412ba2c29c972b7b9258325d9",
+    "install.path": "a3a3e4ad7d597db6100fe4be405efcfa0db11e65d3274219d31a01347f7c060c",
+    "helper.path": "62471341838171ab7f99a4c03d0a05009380eccf95c8b2a20e1b0d06686ab256",
+    "metadata-joined.json.gz": "207133495cf053809e7d2e7893e0efb6a632429f791af9fca7723540cc76658d",
+    "cached.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "install.log": "e7f0ba2e19853f364608ae1ea8a0a82c66785d27b7d49c26ac1097dcf0c3070a",
+    "before-native-map.json": "c526f58e367fcd586462cd94af6f1b57e72d09e1058386aac3d54202c41c0c0b",
+    "joined-native-map.json": "34925f1007f3047178fa976ded861fd34f2a1c3fa1f608b3a58d8573fe92b9bd"
+  },
+  "attempts_note": "The first host-shell invocation returned 127 before launching bootstrap because the startup environment reset cwd between commands. Observation was inconclusive, not a bootstrap pass/failure. Corrected absolute-path invocation under BASH_ENV=/dev/null completed with exit 0. All subprocesses joined; no source/index/Flow writes."
+}

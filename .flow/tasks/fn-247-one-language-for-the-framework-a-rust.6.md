@@ -38,7 +38,7 @@ cd model && mise exec -- cargo test -p umpire-apalache --test controls --locked
 Use controlled download/archive fixtures for installer tests; real required Apalache execution belongs to the final gate.
 
 ## Acceptance
-- [ ] Archive SHA-256 is verified before parsing; the exact named regular member is read in-process via `tar` + `flate2` and its jar SHA-256 verified before atomic publication; no system tar is invoked. Archive/jar hashes and version remain under one Rust pin authority. The real pinned release installs and the final gate's required Apalache run uses it.
+- [ ] Archive SHA-256 is verified before parsing; the exact named regular member is read in-process via `tar` + `flate2` and its jar SHA-256 verified before atomic publication; no system tar is invoked. Archive/jar hashes and version remain under one Rust pin authority. The real pinned release installs before this task completes; final .3 owns required Apalache consumption of that exact pinned content before parent closure.
 - [ ] Every useful installer safety/control responsibility has a Rust counterpart; wrong/partial/symlink/nonregular-lock/hash/missing-or-nonregular-member/cleanup controls fail and concurrent installers (std `File::lock()`) publish once.
 - [ ] Installer callers and tests use the documented native status/error/output contract; useful ordinary invocations remain, with no exact Python diagnostics/API/byte parity requirement. Dynamic curl/path output is checked structurally.
 - [ ] `tar`/`flate2` admissions are recorded with R18 basis and no guest-closure change; Makefile and Apalache pin-consistency controls use Rust; installer Python/control removed after its Rust counterparts pass.
@@ -57,3 +57,6 @@ TBD
 
 
 Conductor scope clarification (2026-10-25): the backend consumes the one shared Rust pin authority; this mechanical caller migration avoids duplicate constants.
+
+
+Conductor validation ownership clarification (2026-10-25): component completion requires its joined native/cold admission and artifact proofs plus primary review. The one complete semantic Go/TLC/Apalache pipeline belongs to final .3 before parent closure; it is not repeated per port, and component tasks do not wait for their own dependent final task. All semantic and negative controls remain mandatory in that pipeline.

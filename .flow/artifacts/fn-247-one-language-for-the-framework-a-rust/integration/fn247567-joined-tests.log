@@ -1,0 +1,157 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.41s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/umpire_apalache-d7e41a7e8646348c)
+
+running 9 tests
+test tests::native_depth_is_checked_and_truncation_never_establishes_a_bound ... ok
+test replay::optional_tests::nominal_optional_projection_refuses_wrong_names_and_malformed_payloads ... ok
+test tests::version_admission_rejects_missing_wrong_and_failed_release_output ... ok
+test tests::unchanged_monitor_can_omit_redundant_per_state_checks ... ok
+test tests::pinned_outcomes_require_consistent_property_bound_exit_and_completion ... ok
+test tests::traces_have_one_aggregate_budget_and_deterministic_order ... ok
+test tests::successful_substring_is_not_a_bounded_proof ... ok
+test tests::missing_changed_and_symlinked_installations_refuse_before_model_execution ... ok
+test tests::fake_execution_failures_never_pass_and_scratch_is_removed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/controls-afa321f410d57e5d)
+
+running 14 tests
+test real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test pinned_installer_and_runner_agree ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test real_typed_payload_rejection_and_after_claims_replay ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_later_start_fault_preserves_partial_binding ... ok
+test real_vector_witness_replays_typed_sequence ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/decode.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/decode-cbe081ffd269c177)
+
+running 5 tests
+test observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal ... ok
+test declared_wire_types_must_match_the_source_schema ... ok
+test typed_itf_preserves_composites_and_refuses_duplicate_set_members ... ok
+test optional_integer_itf_uses_the_exact_declared_code_set ... ok
+test typed_itf_checks_declarations_shapes_and_limits ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/replay.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/replay-012a0cf9ab35f084)
+
+running 6 tests
+test selected_property_category_cannot_alias_authored_names ... ok
+test colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test retained_pinned_kettle_witness_replays_deterministically ... ok
+test exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/xtask-a7bc70428f9f313e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/xtask-73c13f8af4b4215a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/apalache_install.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/apalache_install-5cde3a1436ba7a29)
+
+running 8 tests
+test installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/guest_identity.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/guest_identity-a405533e9f282ff4)
+
+running 25 tests
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/guest_pipeline.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/guest_pipeline-27e774c192ad9e0b)
+
+running 8 tests
+test cold_bootstrap_failures_never_build_or_publish ... ok
+test absent_embedded_guest_fails_go_compilation ... ok
+test rust_toolchain_metadata_and_rustup_failures_refuse ... ok
+test native_prerequisite_failures_stop_before_guest_build ... ok
+test actual_make_freshness_recipe_propagates_stale_failure ... ok
+test cold_shell_bootstrap_and_cached_native_validation ... ok
+test shell_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+test guest_build_check_and_artifact_refusals ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.12s
+
+     Running tests/retired_names.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/retired_names-0acfb03aa7880e37)
+
+running 6 tests
+retired-name filtering failed: control
+test io_and_missing_grep_errors_fail_closed ... ok
+test malformed_records_fail_closed ... ok
+test posix_ere_recheck_and_grep_failure_propagate ... ok
+test raw_records_exempt_only_author_facade_tokens ... ok
+test tool_failures_never_report_clean ... ok
+test active_spellings_and_historical_exclusions ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+   Doc-tests umpire_apalache
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

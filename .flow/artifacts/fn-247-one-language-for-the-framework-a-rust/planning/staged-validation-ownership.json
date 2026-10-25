@@ -1,0 +1,17 @@
+{
+  "decision": "One final .3 required pipeline owns semantic Go hosts and actual required backend consumption; port-native admission/reproducibility/freshness remain component gates",
+  "reason": "Avoid duplicate Go suite and circular component\u2192final gate\u2192component completion dependency; owner accepts more integration risk",
+  "coverage_preserved": [
+    "full semantic Go host suites",
+    "actual required TLC/Apalache execution",
+    "typed replay/negative/mutation controls",
+    "native controls and joined guest reproduction/freshness before5done",
+    "real immutable pinned release installation before6done"
+  ],
+  "parent_close_requires": "final3 complete with one covering pipeline+benchmark",
+  "task_ids": [
+    "fn-247-one-language-for-the-framework-a-rust.5",
+    "fn-247-one-language-for-the-framework-a-rust.6",
+    "fn-247-one-language-for-the-framework-a-rust.3"
+  ]
+}

@@ -55,3 +55,6 @@ TBD
 - Tests:
 - PRs:
 
+
+
+Conductor validation ownership clarification (2026-10-25): component completion requires its joined native/cold admission and artifact proofs plus primary review. The one complete semantic Go/TLC/Apalache pipeline belongs to final .3 before parent closure; it is not repeated per port, and component tasks do not wait for their own dependent final task. All semantic and negative controls remain mandatory in that pipeline.

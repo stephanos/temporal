@@ -1,0 +1,61 @@
+{
+  "source_commit": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "source_sha256": {
+    "MILESTONES.md": "296a00bffc01ceef359b2bfefb4870d7120a9beef13d7f6ee4f9f83e65e4b3c3",
+    "Makefile": "d4ffb1801f8b94335801f72aa02a51e0630ed20497a9b4fc53faa36d63481332",
+    "model/Cargo.lock": "0eea0a3a9f36feb826c4cbdedd614c1c0ae73b99b17632e26a6dea57a98e083a",
+    "model/Cargo.toml": "b542ece56408c2fca813396382f0c3a478bc93a725d860632afb9ecc54192f8c",
+    "model/DESIGN.md": "a6c7ac7c0decf91488586def8fa6dd70de91cdf53444b9ec41f2542ae854cbc6",
+    "model/GUEST_BUILDS.md": "b3cbafbd478d224972fe5673b20fb8c59a4c027c150841ca546127037beec047",
+    "model/README.md": "55e5519fae73f19df07acd216888b97ecf94705f8a303fcb51cd318b72f81f3c",
+    "model/dev/xtask/Cargo.toml": "ef4f3de834fecc331a6e624e563e2c7129831d2005cde6ba8df8610262ebc108",
+    "model/dev/xtask/README.md": "7340a7bb64a0e64e4a1489f24b0a1671d9cb9b04c36ce2e97ff64a7186520064",
+    "model/dev/xtask/src/apalache_pins.rs": "f190fa11bf633db6ebae54e57690cfed5021072d43711243885771e7b47824e0",
+    "model/dev/xtask/src/fetch_apalache.rs": "b39b2347aaf752dfaa04294aba89ec82ca2d206e8ade2c2eba073967b837f0e2",
+    "model/dev/xtask/src/guest.rs": "1b87b5c892f1479437bd8b4ed7b424c6f45e5322405b60548b81d86874614e95",
+    "model/dev/xtask/src/lib.rs": "4a3ff81a61aa70e407112804f29113704cd94242ffabaad7196c01132b6209ff",
+    "model/dev/xtask/src/main.rs": "0255fd049f0fd36202fefad0af63009ec7d12120d9d356f35cf576cbeef930c2",
+    "model/dev/xtask/src/retired_names.rs": "95eee7de0d8c63db5d18b08a8bd3856bf105de926858e136e88535541d1704d8",
+    "model/dev/xtask/tests/apalache/cases.rs": "fc71ce08c176e0e2f44936abc00265748d3fd55fe734a276ccc18710da47bedd",
+    "model/dev/xtask/tests/apalache_install.rs": "216aef50421436119ddc1df412fa1ae62dbd89a7d6a2eacaee6d0c4aa808f5f8",
+    "model/dev/xtask/tests/guest_pipeline.rs": "c845958ac279d374963c6f92c38394594a23f0d503121451a3447996e9cc1994",
+    "model/dev/xtask/tests/retired_names.rs": "d97162558664254a1a5cb1f87eb443607e1802b3b6b10ac323cf2970b0b55ccf",
+    "model/scripts/guest-freshness.sh": "9638c593780d0c8012e54ae365befb412101c5ccd4e2b61ce0e0882512e89b26",
+    "model/scripts/guest.sh": "53cd31837ede5631e6092267abdd362e24548fd9de55e33b327501c45fd8996c",
+    "model/scripts/retired-names.sh": "10cd24bec13f4354266916e320609901581619ded9b0d23301042bbc2713a27a",
+    "model/scripts/xtask.sh": "50308f89737d063642bb50d85b32ef3d397a767ed9a24a8690c9190ab03e815d",
+    "model/temporal/feature/activity/compatibility/README.md": "a5117b5c4e1d72ffd6cdf4edf7a859a23ea0d4bd8afd4b3f376c2b257dd25e9d",
+    "model/temporal/feature/activity/compatibility/checkpoint.rs": "cacbdfb3814fab83132f68721dcabe89ccd4e072148ec288f86159b5f91e781e",
+    "model/umpire/backends/apalache/src/lib.rs": "7f57071aabc55ca86f87d00c4c8e71843b999a4cc57e45a9a634b9ebf0db3ff7",
+    "model/umpire/backends/apalache/tests/controls.rs": "74bd5b6e70f5870ac4040775b065e0d467af5cb13bbd035e7020879b14cb9165"
+  },
+  "log_sha256": {
+    "fn247567-joined-tests.log": "a951586ec20ac6b51d02487e60e039699ff0a2359f26036c4804897359682352",
+    "fn247567-joined-clippy.log": "ec2d3970e22cc3f6a44e13e36542a33f8ebbf0069eb136984274edc4a8414018",
+    "fn247567-bootstrap-scan.log": "8e110b1c5f08d635d5c5e1c3456963a8690e1e6e337c3a3975475337343b1d83",
+    "fn247567-joined-lifecycle.log": "5b3853cdc6420f491afa9af4f1b67a1cc5e03d250b6e4e47b30760cac3abc1b8"
+  },
+  "joined_xtask_apalache_tests": 81,
+  "lifecycle_controls": 2,
+  "clippy_exit": 0,
+  "actual_cold_bootstrap_retired_scan_exit": 0,
+  "limitations": [
+    "Optional backend test controls are not claimed as real required backend executions",
+    "Canonical guest publication and actual required full Model pipeline remain pending"
+  ],
+  "commands": [
+    "cd model && mise exec -- cargo test -p xtask -p umpire-apalache --locked",
+    "cd model && mise exec -- cargo clippy -p xtask -p umpire-apalache --all-targets --locked -- -D warnings",
+    "bash model/scripts/retired-names.sh",
+    "cd model && mise exec -- cargo test -p umpire-temporal-tests compatibility --locked"
+  ],
+  "target_directories": {
+    "tests_clippy_bootstrap": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target",
+    "lifecycle": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target"
+  },
+  "environment": {
+    "MISE_AUTO_INSTALL": "false",
+    "MISE_EXEC_AUTO_INSTALL": "false",
+    "BASH_ENV": "/dev/null"
+  }
+}

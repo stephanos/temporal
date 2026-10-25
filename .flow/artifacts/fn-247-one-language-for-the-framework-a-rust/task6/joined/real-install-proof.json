@@ -1,0 +1,16 @@
+{
+  "fresh_install_root": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-real-install-523d131",
+  "fresh_jar": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-real-install-523d131/model/build/apalache/apalache-0.62.4/lib/apalache.jar",
+  "existing_main_jar": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar",
+  "sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+  "fresh_size": 197019382,
+  "main_size": 197019382,
+  "bytewise_equal": true,
+  "both_regular_no_install_component_symlinks": true,
+  "private_staging_removed": true,
+  "cached_reuse_exit": 0,
+  "cached_reuse_PATH": "/nonexistent-fn2476",
+  "cached_reuse_stderr_bytes": 0,
+  "cached_reuse_returned_same_path": true,
+  "final_gate_consumption": "Apalache::discover(repo_root) admits existing main regular jar, proven bytewise equal to native fresh install. Backend has no jar-path override; main cache was neither replaced nor removed."
+}

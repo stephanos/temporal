@@ -1,0 +1,19 @@
+{
+  "before_base_commit": "2c3c308ee27d2920063dcd29777c5ef084484381",
+  "lane_commit": "17bce75e1cbd28bb7e6939a869ee961c0df784a7",
+  "joined_commit": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "native_guest_lock_commands_exit": [
+    0,
+    0,
+    0
+  ],
+  "lane_and_joined_complete_lock_maps_equal": true,
+  "six_guest_identities_equal_before_lane_joined": {
+    "umpire-caught-panic-guest": "3254a4b95eaab4d72edb54b72f576f5fc53bf94a9130bec8e789b87e3136e308",
+    "umpire-control-guest": "c28325d9c4af0dbe972206e3eca05bd25157ea98893e19aca0d803cc300f3bc0",
+    "umpire-kettle-guest": "e2d0cbb1992cec55a5163e1eaa1308a705e24d191990d2fbb4d2b3b820ccf1a3",
+    "umpire-overflow-guest": "04b02b99a43cd5ab8f314d32355653f4e7ec41e71935d21ce7bfb3fa93c038ef",
+    "umpire-stock-guest": "9dd0d430d73e0989136d911ee46de76df382c6684c8cc5305ba2898c75f1aa10",
+    "umpire-temporal-guest": "fd2ed5f7769b22123f9087cd74df7d95ee84b4c66d4f96895033b6b0f8bd6df8"
+  }
+}
