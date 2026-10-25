@@ -44,8 +44,8 @@ fn store_owner_drop_activity_and_authored_order_refusals() {
         .is_err()
     );
     let declared = json!([step("start", "a"), step("wait", "a")]);
-    steps(&declared, declared.clone()).unwrap();
-    assert!(steps(&json!([step("wait", "a"), step("start", "a")]), declared).is_err());
+    steps(&declared, &declared).unwrap();
+    assert!(steps(&json!([step("wait", "a"), step("start", "a")]), &declared).is_err());
 }
 
 #[test]
