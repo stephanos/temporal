@@ -127,7 +127,7 @@ before fn-246, which rewrites the same probes.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-251.5 | 🔄 in progress | Generated annotation/probe transport implemented; 187 focused tests passed; joined staging/review pending (R5) |
-| fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
+| fn-251.4 | 🔄 in progress | After committed .3: one generic probe engine for Kettle and Temporal (R4) |
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
@@ -140,7 +140,7 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
+| fn-252.6 | 🔄 in progress | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
 | fn-252.7 | 🔄 in progress | One proto script/wasm environment setting; shared guest lints with compiler forbids on all previously safe target roots (R7) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
