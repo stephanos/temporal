@@ -7,7 +7,7 @@ satisfies: [R1]
 
 **Size:** M
 **Files:** model/umpire/protocol/runtime/**, model/umpire/catalog/**, model/umpire/author/dsl/**, model/umpire/reference/kettle/**, model/temporal/api/**, model/temporal/annotate/syntax/**, model/temporal/realization/**, model/temporal/guest/**, model/temporal/hosts/go/**, model/Cargo.toml, model/Cargo.lock, model/deny.toml
-**Touches:** [model/umpire/protocol/runtime/**, model/umpire/catalog/**, model/umpire/author/dsl/**, model/umpire/reference/kettle/**, model/temporal/api/**, model/temporal/annotate/syntax/**, model/temporal/realization/**, model/temporal/guest/**, model/temporal/hosts/go/**, model/Cargo.toml, model/Cargo.lock, model/deny.toml]
+**Touches:** [model/umpire/protocol/runtime/**, model/umpire/catalog/**, model/umpire/author/dsl/**, model/umpire/reference/kettle/**, model/temporal/api/**, model/temporal/annotate/syntax/**, model/temporal/realization/**, model/temporal/guest/**, model/temporal/hosts/go/**, model/Cargo.toml, model/Cargo.lock, model/deny.toml, model/temporal/annotate/src/lib.rs, model/temporal/annotate/tests/**, model/temporal/testing/realization_control.rs, model/temporal/feature/activity/temporal.rs, model/umpire/author/umpire/tests/consumer/src/lib.rs]
 
 Isolated source lane after fn247 closure; no whole-task dependency on another fn248 source lane. Coordinate shared interfaces, accept central merge conflicts and retain private source/index/build targets. The final integration task owns snapshot reacceptance, current guest publication and the one R5 full pipeline. No local lane result claims joined validation.
 Library-level crate swaps in the runtime, catalog and DSL.
@@ -52,3 +52,6 @@ TBD
 - Tests:
 - PRs:
 
+
+
+Conductor scope clarification: the listed mechanical consumer/manifest/documentation additions are required by the already specified consolidation. Isolated source lanes retain meaningful focused validation; final .7 owns the joined canonical pipeline and necessary current asset/snapshot acceptance before parent closure. Historical/live candidates are not fresh execution evidence.

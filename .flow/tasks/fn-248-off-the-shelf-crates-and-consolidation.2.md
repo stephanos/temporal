@@ -7,7 +7,7 @@ satisfies: [R2]
 
 **Size:** M
 **Files:** model/umpire/backends/native/**, model/umpire/backends/apalache/src/replay.rs, model/umpire/author/suite/**, model/umpire/catalog/**, model/umpire/front/**, model/umpire/dev/testing/**, model/umpire/protocol/runtime/tests/**, model/umpire/reference/kettle/probes.rs, model/temporal/realization/src/probes/generic.rs, model/temporal/feature/activity/**, model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs
-**Touches:** [model/umpire/backends/native/**, model/umpire/backends/apalache/src/replay.rs, model/umpire/author/suite/**, model/umpire/catalog/**, model/umpire/front/**, model/umpire/dev/testing/**, model/umpire/protocol/runtime/tests/**, model/umpire/reference/kettle/probes.rs, model/temporal/realization/src/probes/generic.rs, model/temporal/feature/activity/**, model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs]
+**Touches:** [model/umpire/backends/native/**, model/umpire/backends/apalache/src/replay.rs, model/umpire/author/suite/**, model/umpire/catalog/**, model/umpire/front/**, model/umpire/dev/testing/**, model/umpire/protocol/runtime/tests/**, model/umpire/reference/kettle/probes.rs, model/temporal/realization/src/probes/generic.rs, model/temporal/feature/activity/**, model/umpire/dev/fixtures/fixtures/world_fairness/tests.rs, model/Cargo.lock, .plans/UMPIRE_MODULES.md]
 
 Isolated source lane after fn247 closure; no whole-task dependency on another fn248 source lane. Coordinate shared interfaces, accept central merge conflicts and retain private source/index/build targets. The final integration task owns snapshot reacceptance, current guest publication and the one R5 full pipeline. No local lane result claims joined validation.
 Collapse repeated helpers to one copy each.
@@ -48,3 +48,6 @@ TBD
 - Tests:
 - PRs:
 
+
+
+Conductor scope clarification: the listed mechanical consumer/manifest/documentation additions are required by the already specified consolidation. Isolated source lanes retain meaningful focused validation; final .7 owns the joined canonical pipeline and necessary current asset/snapshot acceptance before parent closure. Historical/live candidates are not fresh execution evidence.
