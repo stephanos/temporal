@@ -9,7 +9,7 @@ Establish one current default whole-prefix proof contract across generic guest e
 
 **Size:** M
 **Files:** ordinary Model protocol/Reset response, generic guest export/runtime, Go Host admission and generated bindings, focused current-contract fixtures and protocol/build documentation.
-**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/host/**, model/umpire/hosts/go/gen/**, model/umpire/hosts/go/runner/**, model/umpire/reference/kettle/**, model/temporal/realization/src/live.rs, model/temporal/hosts/go/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md]
+**Touches:** [model/umpire/protocol/**, model/umpire/hosts/go/host/**, model/umpire/hosts/go/gen/**, model/umpire/hosts/go/runner/**, model/umpire/reference/kettle/**, model/temporal/realization/src/live.rs, model/temporal/hosts/go/**, model/temporal/guest/**, model/dev/xtask/**, model/GUEST_BUILDS.md, model/scripts/tests/build-guests.sh]
 
 ## Approach
 
@@ -29,6 +29,8 @@ Establish one current default whole-prefix proof contract across generic guest e
 - .1/.7's singleton whole-prefix runtime, .9 Run/replay integration and .10 compatible-frontier extension.
 
 ## Verification
+
+The existing `model/scripts/tests/build-guests.sh` owner wires the native current-contract transcript alongside existing native proof assets, so ordinary model validation exercises production native/wasm parity. Reuse its current builder rather than introducing another harness.
 
 Run focused native/runtime, production guest and generic Go-host tests with test_dep where Go is used. Check actual Reset contract identity, malformed/incompatible responses, current guest hash/freshness and native/wasm/Host agreement. Review regenerated current artifacts. No legacy reader/marker retention controls are required.
 
