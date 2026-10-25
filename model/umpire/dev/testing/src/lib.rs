@@ -1,6 +1,7 @@
 //! Shared fixture discovery and golden runner for Umpire's tests.
 
 pub mod backend;
+pub use backend::{Divergence, replay_trace};
 pub mod boundary;
 pub mod discovery;
 

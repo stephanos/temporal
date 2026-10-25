@@ -1,9 +1,10 @@
-use umpire_testing::{replace_once, replace_in};
 use super::{bound_for, checked_world, configured};
 use crate::activity::activity::{
     Action, Client, Deadline, ExpiredDeadline, Model, Phase, Remaining, Ticks, Worker, World,
 };
-use umpire_dsl::{Machine, Outcome, Rejection, __lifted::ConcreteOf};
+use umpire_dsl::{__lifted::ConcreteOf, Machine, Outcome, Rejection};
+use umpire_testing::{replace_in, replace_once};
+use umpire_tla::observers;
 
 type TestResult = umpire_testing::TestResult;
 
@@ -363,7 +364,6 @@ fn folder() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../feature/activity")
 }
 
-
 fn extra_method(method: &str) -> String {
     if method.contains("#[postcondition") {
         replace_once(SOURCE, "        #[assumption]", &format!("{method}\n        #[assumption]"))
@@ -405,19 +405,19 @@ fn replay(
         let before = &pair[0];
         let after = &pair[1];
         check_trace_state(&current, &before.state);
-        if before.observers["__umpire_edge_tick"] == after.observers["__umpire_edge_tick"] {
+        if before.observers[observers::EDGE_TICK] == after.observers[observers::EDGE_TICK] {
             assert_eq!(before.state, after.state);
             continue;
         }
-        let Value::Int(ordinal) = after.observers["__umpire_input"] else {
+        let Value::Int(ordinal) = after.observers[observers::INPUT] else {
             return Err("missing input ordinal".into());
         };
         let ordinal = usize::try_from(ordinal)?;
         let action = world.actions().get(ordinal).ok_or("invalid action ordinal")?.clone();
         let identity = umpire_tla::Concrete::of::<World>(&action);
-        assert_eq!(after.observers["__umpire_action"], Value::Text(identity.action.clone()));
+        assert_eq!(after.observers[observers::ACTION], Value::Text(identity.action.clone()));
         assert_eq!(module.metadata.catalog[ordinal], identity);
-        let Value::Int(choice) = after.observers["__umpire_choice"] else {
+        let Value::Int(choice) = after.observers[observers::CHOICE] else {
             return Err("missing choice".into());
         };
         let steps = world.checked_step(&current, action.clone())?;
@@ -432,10 +432,10 @@ fn replay(
             }
             other @ Outcome::Rejected(_) => panic!("unexpected outcome: {other:?}"),
         };
-        assert_eq!(after.observers["__umpire_outcome"], Value::Text(expected_outcome.into()));
+        assert_eq!(after.observers[observers::OUTCOME], Value::Text(expected_outcome.into()));
         let expected_facts =
             facts.iter().map(|fact| Value::Text(format!("ExpiredDeadline::{fact:?}"))).collect();
-        if after.observers["__umpire_facts"] != Value::Seq(expected_facts) {
+        if after.observers[observers::FACTS] != Value::Seq(expected_facts) {
             return Err("outcome/facts differ from exact native edge".into());
         }
         replayed.push((current, action, *outcome, facts.clone(), destination.clone()));
@@ -483,7 +483,10 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
                         .iter()
                         .find(|claim| claim.name == name)
                         .ok_or("missing pending failure claim")?;
-                    assert_eq!(module.metadata.catalog[ordinal], umpire_tla::Concrete::of::<World>(&action));
+                    assert_eq!(
+                        module.metadata.catalog[ordinal],
+                        umpire_tla::Concrete::of::<World>(&action)
+                    );
                     assert_eq!(claim.allowed_inputs, [ordinal]);
                     assert_eq!(claim.fair_inputs, []);
                 }
@@ -569,17 +572,17 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
                 .states
                 .windows(2)
                 .position(|pair| {
-                    pair[0].observers["__umpire_edge_tick"]
-                        != pair[1].observers["__umpire_edge_tick"]
+                    pair[0].observers[observers::EDGE_TICK]
+                        != pair[1].observers[observers::EDGE_TICK]
                         && pair[0].state["cancel_requested"] == umpire_tlc::Value::Bool(true)
-                        && pair[1].observers.get("__umpire_action")
+                        && pair[1].observers.get(observers::ACTION)
                             == Some(&umpire_tlc::Value::Text("Deadline::Tick".into()))
                 })
                 .ok_or("missing same pending Tick observer")?
                 + 1;
             forged.states[index]
                 .observers
-                .insert("__umpire_facts".into(), umpire_tlc::Value::Seq(facts));
+                .insert(observers::FACTS.into(), umpire_tlc::Value::Seq(facts));
             let error =
                 replay(&world, &module, &forged).err().ok_or("forged exact-edge facts replayed")?;
             assert!(error.to_string().contains("outcome/facts differ"), "{error}");
@@ -587,7 +590,6 @@ fn required_tlc_replays_both_canceled_attempt_expiry_facts() -> TestResult {
     }
     Ok(())
 }
-
 
 #[test]
 #[allow(clippy::print_stderr)]
