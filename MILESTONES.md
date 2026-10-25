@@ -102,7 +102,7 @@ fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta gol
 
 fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison. Apalache still refuses Models with non-unit edge facts until fn-250.3 supplies the required real-tool replay control.
 
-fn-251.6 and fn-252.8 are complete locally and integrated: three-draw SHIP reviews, joined focused Rust tests and strict clippy passed; the regenerated Temporal guest is fresh, all standard wasm guests/native controls built, and Temporal/runtime/Kettle Go host suites passed on the same model tree. The consolidation parents retain their final full-gate obligations. fn-250.3, fn-251.3 and fn-252.5 are integrated with SHIP implementation reviews and scoped checks. The replay hook preserves native-only fixtures; moved tests pass source-boundary and snapshot ownership checks; Kettle accepted the reviewed single-line report ordering change. The current guest is regenerated and fresh. Their joined TLC/Apalache-required gate passed at `d30d679fc1` (1308.170s full gate, 8.882s edit/test loop). These three tasks are complete locally; fn-250 has an actual SHIP parent review but remains open until its remaining test-only observer literals use the shared constants, followed by supplemental verification. fn-251.5 is implemented in its isolated lane with 187 focused tests and strict clippy passed; joined staging tests, three-draw SHIP review, fresh guest and all wasm/native/Go host checks passed; its full required gate is running alongside tooling. fn-252.7 is consolidating scripts/Make settings and preserving unsafe-code compiler protection at every safe Cargo target root.
+fn-251.6 and fn-252.8 are complete locally and integrated: three-draw SHIP reviews, joined focused Rust tests and strict clippy passed; the regenerated Temporal guest is fresh, all standard wasm guests/native controls built, and Temporal/runtime/Kettle Go host suites passed on the same model tree. The consolidation parents retain their final full-gate obligations. fn-250.3, fn-251.3 and fn-252.5 are integrated with SHIP implementation reviews and scoped checks. The replay hook preserves native-only fixtures; moved tests pass source-boundary and snapshot ownership checks; Kettle accepted the reviewed single-line report ordering change. The current guest is regenerated and fresh. Their joined TLC/Apalache-required gate passed at `d30d679fc1` (1308.170s full gate, 8.882s edit/test loop). These three tasks are complete locally; fn-250 has an actual SHIP parent review; its remaining test-only observer literals are now centralized by fn-252.6. Supplemental review and the final joined full gate remain pending. fn-251.5 is implemented in its isolated lane with 187 focused tests and strict clippy passed; joined staging tests, three-draw SHIP review, fresh guest and all wasm/native/Go host checks passed; its full required gate is running alongside tooling. fn-252.7 is integrated with a three-draw SHIP review, compiler-enforced unsafe protection at all 149 safe Cargo roots and focused Rust/wasm/Go checks passed; its joined required gate is running.
 
 ### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
 
@@ -112,8 +112,7 @@ Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive
 Apalache. One layer replaces them (about 600–800 lines). A parallel lane after fn-248; fn-245, fn-240 and fn-211 wait for it.
 [Spec](.flow/specs/fn-250-shared-value-type-and-trace-layer-for.md).
 
-| Name | Status | What |
-| --- | --- | --- |
+All five tasks are complete locally. The parent stays open for supplemental observer-ownership review and the final joined required gate after the Activity replay follow-up.
 
 ### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
 
@@ -126,8 +125,8 @@ before fn-246, which rewrites the same probes.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-251.5 | 🔄 in progress | Generated annotation/probe transport implemented; 187 focused tests passed; joined staging/review pending (R5) |
-| fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
+| fn-251.5 | 🔄 in progress | Generated annotation/probe transport integrated; SHIP review and focused/current guest/Go checks passed; full gate running (R5) |
+| fn-251.4 | 🔄 in progress | Shared engine implemented in isolated lane; 185 broader Rust tests passed; actual Kettle Go validation pending (R4) |
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
@@ -140,8 +139,8 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
-| fn-252.7 | 🔄 in progress | One proto script/wasm environment setting; shared guest lints with compiler forbids on all previously safe target roots (R7) |
+| fn-252.6 | 🔄 in progress | Shared typed Activity replay integrated; 33 real-TLC policy tests and three-draw SHIP review passed; final gate pending (R6) |
+| fn-252.7 | 🔄 in progress | Scripts/Make/lints integrated with SHIP review and all 149 prior safe roots protected; full gate running (R7) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
@@ -226,6 +225,8 @@ semantics and proves restored admission. This parent stays open until that follo
 | fn-243.5 | ⏸️ blocked | After .4, fn-246 and committed fn-237.4: restore justified unheld admission, raw/SDK race and replay proof, final R40 live evidence (R2, R5) |
 
 ### fn-245: Finite collections: sets, maps and bounded lists in Models (model)
+
+The refreshed four-task plan passed fresh primary review after correcting collection projection, read-only captures, ordered short-circuit validity, empty sequence guards and shared testing consumers. Its committed-prerequisite admission remains unchanged.
 
 Captured on 2026-10-24 after the owner answered four questions one at a time: shared fixtures are the
 consumer now and the workflow Model later; finite element domains now with the IR shaped so unbounded

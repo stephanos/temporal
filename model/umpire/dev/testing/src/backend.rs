@@ -4,7 +4,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Write,
 };
-use umpire_dsl::{IntoValue, Machine, Values};
+use umpire_dsl::{__lifted::ConcreteOf, ActionValues, IntoValue, Machine, Values};
 use umpire_tla::{Concrete, Module, Type};
 use umpire_tla::{
     observers::{FACTS, INPUT},
@@ -158,6 +158,71 @@ pub fn check_exploration<M: Machine<State: Values, Outcome: IntoValue, Fact: Int
     Ok(crate::Files::from([("tlc.txt".into(), report)]))
 }
 
+/// A trace refusal, with the native edge projection available for semantic disagreements.
+pub struct Divergence {
+    /// One-based trace transition, or zero for a refusal before edge replay.
+    pub transition: usize,
+    /// The specific replay refusal.
+    pub reason: String,
+    /// The native successor, outcome and facts, when the selected edge could be evaluated.
+    pub native: Option<EdgeValues>,
+}
+
+impl std::fmt::Debug for Divergence {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.debug_struct("Divergence")
+            .field("transition", &self.transition)
+            .field("reason", &self.reason)
+            .field(
+                "native",
+                &self.native.as_ref().map(|edge| (&edge.state, &edge.outcome, &edge.facts)),
+            )
+            .finish()
+    }
+}
+
+impl std::fmt::Display for Divergence {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.transition == 0 {
+            out.write_str(&self.reason)
+        } else {
+            write!(out, "TLC transition {}: {}", self.transition, self.reason)
+        }
+    }
+}
+
+impl std::error::Error for Divergence {}
+
+/// Replay a typed TLC trace against the Model and the selected starts.
+///
+/// # Errors
+/// Refuses incomplete native exploration, malformed traces and any state, outcome or fact mismatch.
+pub fn replay_trace<
+    M: Machine<State: Values, Action: ActionValues<M>, Outcome: IntoValue, Fact: IntoValue>,
+>(
+    world: &M,
+    starts: &[M::State],
+    module: &Module,
+    trace: &umpire_tlc::Trace,
+) -> Result<(), Divergence> {
+    let graph = umpire_checker::Checker::explore_within(
+        world,
+        starts.to_vec(),
+        1 << 20,
+        umpire_checker::Checker::CATALOG_LIMIT,
+    )
+    .map_err(|error| Divergence { transition: 0, reason: error.to_string(), native: None })?;
+    if graph.counts.cut {
+        return Err(Divergence {
+            transition: 0,
+            reason: "native exploration is cut; no complete replay".into(),
+            native: None,
+        });
+    }
+    let native = graph.states().map(|(id, state)| (id.0.to_string(), state)).collect();
+    replay(world, starts, module, &native, trace, Some(&Concrete::of::<M>))
+}
+
 fn replay<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
     world: &M,
     starts: &[M::State],
@@ -165,87 +230,106 @@ fn replay<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
     native: &BTreeMap<String, &M::State>,
     trace: &umpire_tlc::Trace,
     identity: Option<&dyn Fn(&M::Action) -> Concrete>,
-) -> crate::TestResult {
-    if trace.states.is_empty() {
-        return Err("empty TLC counterexample".into());
-    }
-    let typed_state = |state: &M::State| {
-        core::fields(
-            state.values(),
-            module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
-        )
-    };
-    let native = native
-        .values()
-        .map(|state| typed_state(state).map(|value| (value, *state)))
-        .collect::<Result<BTreeMap<_, _>, _>>()?;
-    if !starts.iter().any(|state| typed_state(state).is_ok_and(|s| s == trace.states[0].state)) {
-        return Err("TLC counterexample does not begin at a Model start".into());
-    }
-    let mut pairs = trace.states.windows(2).map(|pair| (&pair[0], &pair[1])).collect::<Vec<_>>();
-    if let Some(index) = trace.back_to {
-        pairs.push((
-            trace.states.last().ok_or("missing trace end")?,
-            trace.states.get(index).ok_or("invalid TLC cycle index")?,
-        ));
-    }
-    for (index, (before, after)) in pairs.into_iter().enumerate() {
-        let tick_before =
-            before.observers.get(umpire_tla::observers::EDGE_TICK).ok_or("missing edge tick")?;
-        let tick_after = after
-            .observers
-            .get(umpire_tla::observers::EDGE_TICK)
-            .ok_or("missing next edge tick")?;
-        if tick_before == tick_after {
-            validate_projection(module, before, after)?;
-            continue;
+) -> Result<(), Divergence> {
+    let mut transition = 0;
+    let mut native_edge = None;
+    let result = (|| -> crate::TestResult {
+        if trace.states.is_empty() {
+            return Err("empty TLC counterexample".into());
         }
-        let state =
-            native.get(&before.state).ok_or("TLC trace predecessor is not reachable natively")?;
-        let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?.into_actions();
-        let replayed = core::step(
-            module,
-            after,
-            &catalog,
-            |action| {
-                identity.map_or_else(
-                    || {
-                        module
-                            .metadata
-                            .catalog
-                            .is_empty()
-                            .then(|| Concrete { action: action.to_string(), fields: vec![] })
-                    },
-                    |identity| Some(identity(action)),
-                )
-            },
-            |action| native_steps(world, state, action.clone()),
-            |step| {
-                let Some(Type::Seq(fact_type)) = module.metadata.observer_types.get(FACTS) else {
-                    return Err(umpire_tla::Refusal("missing facts observer type".into()));
-                };
-                Ok(EdgeValues {
-                    state: typed_state(&step.2)?,
-                    outcome: core::admitted(step.0.value(), &module.metadata.outcome_type)?,
-                    facts: step
-                        .1
-                        .iter()
-                        .map(|fact| core::admitted(fact.value(), fact_type))
-                        .collect::<Result<_, _>>()?,
-                })
-            },
-        );
-        match replayed {
-            Ok(_) => {}
-            Err(ReplayError::Divergence(error)) => {
-                return Err(format!("TLC transition {}: {error}", index + 1).into());
+        let typed_state = |state: &M::State| {
+            core::fields(
+                state.values(),
+                module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
+            )
+        };
+        let native = native
+            .values()
+            .map(|state| typed_state(state).map(|value| (value, *state)))
+            .collect::<Result<BTreeMap<_, _>, _>>()?;
+        if !starts.iter().any(|state| typed_state(state).is_ok_and(|s| s == trace.states[0].state))
+        {
+            return Err("TLC counterexample does not begin at a Model start".into());
+        }
+        let mut pairs =
+            trace.states.windows(2).map(|pair| (&pair[0], &pair[1])).collect::<Vec<_>>();
+        if let Some(index) = trace.back_to {
+            pairs.push((
+                trace.states.last().ok_or("missing trace end")?,
+                trace.states.get(index).ok_or("invalid TLC cycle index")?,
+            ));
+        }
+        for (index, (before, after)) in pairs.into_iter().enumerate() {
+            transition = index + 1;
+            native_edge = None;
+            let tick_before = before
+                .observers
+                .get(umpire_tla::observers::EDGE_TICK)
+                .ok_or("missing edge tick")?;
+            let tick_after = after
+                .observers
+                .get(umpire_tla::observers::EDGE_TICK)
+                .ok_or("missing next edge tick")?;
+            if tick_before == tick_after {
+                validate_projection(module, before, after)?;
+                continue;
             }
-            Err(ReplayError::Native(error)) => {
-                return Err(format!("TLC transition {}: {error}", index + 1).into());
+            let state = native
+                .get(&before.state)
+                .ok_or("TLC trace predecessor is not reachable natively")?;
+            let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?.into_actions();
+            let replayed = core::step(
+                module,
+                after,
+                &catalog,
+                |action| {
+                    identity.map_or_else(
+                        || {
+                            module
+                                .metadata
+                                .catalog
+                                .is_empty()
+                                .then(|| Concrete { action: action.to_string(), fields: vec![] })
+                        },
+                        |identity| Some(identity(action)),
+                    )
+                },
+                |action| native_steps(world, state, action.clone()),
+                |step| {
+                    let Some(Type::Seq(fact_type)) = module.metadata.observer_types.get(FACTS)
+                    else {
+                        return Err(umpire_tla::Refusal("missing facts observer type".into()));
+                    };
+                    let values = EdgeValues {
+                        state: typed_state(&step.2)?,
+                        outcome: core::admitted(step.0.value(), &module.metadata.outcome_type)?,
+                        facts: step
+                            .1
+                            .iter()
+                            .map(|fact| core::admitted(fact.value(), fact_type))
+                            .collect::<Result<_, _>>()?,
+                    };
+                    native_edge = Some(EdgeValues {
+                        state: values.state.clone(),
+                        outcome: values.outcome.clone(),
+                        facts: values.facts.clone(),
+                    });
+                    Ok(values)
+                },
+            );
+            match replayed {
+                Ok(_) => {}
+                Err(ReplayError::Divergence(error)) => return Err(error.into()),
+                Err(ReplayError::Native(error)) => return Err(error.into()),
             }
         }
-    }
-    Ok(())
+        Ok(())
+    })();
+    result.map_err(|error| Divergence {
+        transition,
+        reason: error.to_string(),
+        native: native_edge,
+    })
 }
 
 fn validate_projection(
