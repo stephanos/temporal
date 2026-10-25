@@ -362,19 +362,9 @@ pub fn request_findings(
     bytes: &[u8],
     kettle_id: &str,
 ) -> Result<Vec<umpire_catalog::Violation>, Box<dyn std::error::Error>> {
-    use prost::Message;
-    use umpire_catalog::Inspect;
     let limits = config::Limits::for_kettle(kettle_id);
-    dispatch_kettle_annotations!(
-        method,
-        false,
-        Wire,
-        {
-            let message = Wire::decode(bytes)?;
-            let mut findings = Vec::new();
-            message.inspect(&limits, false, &mut findings)?;
-            Ok(findings)
-        },
-        Err("request is outside the Kettle catalog".into())
-    )
+    macro_rules! supplemental {
+        ($method:ident, $message:ident, $limits:expr, $findings:ident) => {};
+    }
+    kettle_request_findings!(method, bytes, &limits, supplemental)
 }

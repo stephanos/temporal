@@ -49,6 +49,7 @@ pub fn generate(
     let method_info = identifier(&format!("{method_enum}Info"))?;
     let methods_const = identifier(&system.methods_const())?;
     let dispatch_macro = identifier(&format!("dispatch_{}_annotations", system.prefix))?;
+    let requests = request_dispatch(graph, &annotated, system)?;
     let bindings = bindings(classifications, system)?;
     let macro_root = system.macro_root();
     let mut variants = Vec::new();
@@ -103,6 +104,7 @@ pub fn generate(
         /// Source-ordered request and response types.
         pub const #methods_const: &[#method_info] = &[#(#infos),*];
         #bindings
+        #requests
         /// Dispatch only declared annotation message types.
         #[macro_export]
         macro_rules! #dispatch_macro {
@@ -113,6 +115,61 @@ pub fn generate(
     };
     let file = syn::parse2(output).map_err(|error| error.to_string())?;
     Ok(prettyplease::unparse(&file))
+}
+
+fn request_dispatch(
+    graph: &Graph,
+    annotated: &BTreeSet<&str>,
+    system: &System<'_>,
+) -> Result<TokenStream, String> {
+    let findings_macro = identifier(&format!("{}_request_findings", system.prefix))?;
+    let request_macro = identifier(&format!("dispatch_{}_request", system.prefix))?;
+    let method_enum = identifier(&system.method_enum())?;
+    let macro_root = system.macro_root();
+    let mut requests = Vec::new();
+    let mut findings = Vec::new();
+    for method in graph.service(system.service)? {
+        let variant = identifier(&method.name)?;
+        let request = &graph.message(&method.input)?.rust_type;
+        if annotated.contains(method.input.as_str()) {
+            let path = system.rebase(request, &macro_root).unwrap_or_else(|| request.clone());
+            let path: TokenStream =
+                path.parse().map_err(|error: proc_macro2::LexError| error.to_string())?;
+            requests.push(quote! {
+                $crate::#method_enum::#variant => {
+                    let mut message = <#path as ::prost::Message>::decode($bytes)?;
+                    $callback!(#variant, message, $($args)*)
+                }
+            });
+            findings.push(quote! {
+                $crate::#method_enum::#variant => {
+                    let message = <#path as ::prost::Message>::decode($bytes)?;
+                    let context = $context;
+                    let mut findings = Vec::new();
+                    ::umpire_catalog::Inspect::inspect(&message, context, false, &mut findings)?;
+                    $supplement!(#variant, message, context, findings);
+                    for finding in &mut findings { finding.fields.sort(); }
+                    Ok(findings)
+                }
+            });
+        }
+    }
+    Ok(quote! {
+        /// Inspect one decoded request in the catalog owner's context, then apply its supplemental hook.
+        #[macro_export]
+        macro_rules! #findings_macro {
+            ($method:expr, $bytes:expr, $context:expr, $supplement:ident) => {
+                match $method { #(#findings,)* _ => Err("request is outside the service catalog".into()) }
+            };
+        }
+        /// Decode a declared request and expand a typed callback in its consumer.
+        #[macro_export]
+        macro_rules! #request_macro {
+            ($method:expr, $bytes:expr, $callback:ident, $($args:tt)*) => {
+                match $method { #(#requests,)* _ => Err("request is outside the service catalog".into()) }
+            };
+        }
+    })
 }
 
 fn identifier(name: &str) -> Result<syn::Ident, String> {
