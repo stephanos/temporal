@@ -100,9 +100,9 @@ fn-247 closed locally on 2026-10-25: nine tasks and R1–R6 reviewed complete, n
 
 fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta goldens, heck, darling, quote, thiserror, prost-types, serde ITF envelope; enum-iterator removed), repeated helpers exist once, IR child traversal is shared. The parent completion review's findings (a stale expansion snapshot, generated calls that forced an author import) were fixed. The regenerated Temporal guest reproduces from a clean clone. One TLC/Apalache-required `make model-validate` passed at `9b3e26654a` (gate 1316 s against the 60 s soft target; inner loop 9.95 s). That run also covers fn-250.4 and fn-250.5, which the owner allowed to run ahead of fn-248.
 
-fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison. Apalache still refuses Models with non-unit edge facts until fn-250.3 supplies the required real-tool replay control.
+fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison.
 
-fn-251.6 and fn-252.8 are complete locally and integrated: three-draw SHIP reviews, joined focused Rust tests and strict clippy passed; the regenerated Temporal guest is fresh, all standard wasm guests/native controls built, and Temporal/runtime/Kettle Go host suites passed on the same model tree. The consolidation parents retain their final full-gate obligations. fn-250.3, fn-251.3 and fn-252.5 are integrated with SHIP implementation reviews and scoped checks. The replay hook preserves native-only fixtures; moved tests pass source-boundary and snapshot ownership checks; Kettle accepted the reviewed single-line report ordering change. The current guest is regenerated and fresh. Their joined TLC/Apalache-required gate passed at `d30d679fc1` (1308.170s full gate, 8.882s edit/test loop). These three tasks are complete locally; fn-250 has an actual SHIP parent review; its remaining test-only observer literals are now centralized by fn-252.6. Supplemental review and the final joined full gate remain pending. fn-251.5 and fn-252.7 are complete locally: their reviewed transport/tooling composition passed the full TLC/Apalache-required gate at `8da35e97e4` (1201.646s full gate, 6.370s inner loop), including current guests and all three Go hosts. The missing isolated TLC installation was repaired before the successful retry.
+All tasks in fn-250, fn-251 and fn-252 are complete locally and integrated, including shared typed replay, one probe engine, generated transport/findings, facade removal, test/search/tooling consolidation and the stock fixture move. The final combined TLC/Apalache-required gate passed at `02751bfef5` (1188.040s full gate, 6.155s edit/test loop), with current guests and all three Go hosts green. Both independent quality audits found zero issues. The three parent completion reviews and closures remain pending.
 
 ### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
 
@@ -112,7 +112,7 @@ Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive
 Apalache. One layer replaces them (about 600–800 lines). A parallel lane after fn-248; fn-245, fn-240 and fn-211 wait for it.
 [Spec](.flow/specs/fn-250-shared-value-type-and-trace-layer-for.md).
 
-All five tasks are complete locally. The parent stays open for supplemental observer-ownership review and the final joined required gate after the Activity replay follow-up.
+All five tasks are complete locally. The final required gate passed after the Activity replay and observer-ownership follow-up; the parent completion re-review remains pending.
 
 ### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
 
@@ -123,9 +123,7 @@ to one system-neutral place in `model/umpire` (about 850–950 lines and two cra
 before fn-246, which rewrites the same probes.
 [Spec](.flow/specs/fn-251-one-probe-engine-and-one-catalog-build.md).
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-251.4 | 🔄 in progress | Shared engine integrated and reviewed SHIP; Rust/current guest/Kettle/Temporal checks passed; final gate running (R4) |
+All six tasks are complete locally; parent completion review remains pending.
 
 ### fn-252: Quick consolidation wins in model code, tests and tooling (model)
 
@@ -136,9 +134,7 @@ On 2026-10-25 the owner authorized .3 and .4 ahead of the whole fn-248 closure i
 Both tasks completed locally with focused checks and scoped SHIP reviews: .3 removed regenerable spike output and shared the authored Kettle source; .4 consolidated native fixtures and SpaceBinding. The parent R9 full validation remains open.
 [Spec](.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md).
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-252.6 | 🔄 in progress | Shared typed Activity replay integrated; 33 real-TLC policy tests and three-draw SHIP review passed; final gate pending (R6) |
+All eight tasks are complete locally; parent completion review remains pending.
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 

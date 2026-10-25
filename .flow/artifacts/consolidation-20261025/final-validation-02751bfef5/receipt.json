@@ -1,0 +1,15 @@
+{
+  "head": "02751bfef564e9fb08c84a8179e337ce51f336f0",
+  "model_tree": "abe4560501278986bc8ab74853d07b5b7128f30e",
+  "command": "UMPIRE_APALACHE=require make model-validate",
+  "backend_modes": {
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require"
+  },
+  "exit_code": 0,
+  "full_gate_seconds": 1188.04,
+  "inner_loop_seconds": 6.155,
+  "log_sha256": "94fdcf1ca7f9831b3ecafdc4132451f92cfbbed9ba8b4c0ccd89a2ad68009a3c",
+  "cache": "/home/agent/.cache/codex-build/umpire-milestones-20261024/joined",
+  "notes": "Model tree remained unchanged throughout. Root made only MILESTONES/Flow artifact commits during this run; no code/Make input changed. Full60s soft target exceeded; inner10s target met. No new source was admitted during final validation."
+}
