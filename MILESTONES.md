@@ -100,6 +100,8 @@ fn-247 closed locally on 2026-10-25: nine tasks and R1–R6 reviewed complete, n
 
 fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta goldens, heck, darling, quote, thiserror, prost-types, serde ITF envelope; enum-iterator removed), repeated helpers exist once, IR child traversal is shared. The parent completion review's findings (a stale expansion snapshot, generated calls that forced an author import) were fixed. The regenerated Temporal guest reproduces from a clean clone. One TLC/Apalache-required `make model-validate` passed at `9b3e26654a` (gate 1316 s against the 60 s soft target; inner loop 9.95 s). That run also covers fn-250.4 and fn-250.5, which the owner allowed to run ahead of fn-248.
 
+fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are implemented, reviewed and merged into `umpire` with a regenerated, reproduced guest (`7259e9b989`); a no-fail-fast workspace test pass was green (189 binaries). The owner stopped the session before the joined `UMPIRE_APALACHE=require make model-validate`, so they stay in progress: run that gate, then close them with the drafted summaries in `.flow/tmp/d25*.md`. Apalache refuses Models with non-unit edge facts until fn-250.3 adds a require-mode fact replay test.
+
 ### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
 
 Filed on 2026-10-24 from the owner's duplication review. The back ends re-derive the same things from the IR: a wire
@@ -110,8 +112,8 @@ Apalache. One layer replaces them (about 600–800 lines). A parallel lane after
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-250.1 | ⬜ todo | `Literal` in umpire-ir with one `admit`; `Binding::of`, `Concrete::of` (R1) |
-| fn-250.2 | ⬜ todo | After .1: `Schema` keyed by `ir::Type`; no wire `Type`; one Snowcat printer (R2) |
+| fn-250.1 | 🔄 in progress | `Literal` in umpire-ir with one `admit`; `Binding::of`, `Concrete::of` (R1) |
+| fn-250.2 | 🔄 in progress | After .1: `Schema` keyed by `ir::Type`; no wire `Type`; one Snowcat printer (R2) |
 | fn-250.3 | ⬜ todo | After .2: observer names in one module; one trace-replay core for TLC and Apalache (R3) |
 
 ### fn-251: One probe engine and one catalog build path for Kettle and Temporal (model, temporal)
@@ -125,9 +127,9 @@ before fn-246, which rewrites the same probes.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-251.1 | ⬜ todo | Shared descriptor graph builder; `#[realization]` names no Temporal crate (R1) |
+| fn-251.1 | 🔄 in progress | Shared descriptor graph builder; `#[realization]` names no Temporal crate (R1) |
 | fn-251.6 | ⬜ todo | Delete the `temporal/annotate` facade crates (R6) |
-| fn-251.2 | ⬜ todo | After .1: `System::generate` replaces the build-configuration layers (R2) |
+| fn-251.2 | 🔄 in progress | After .1: `System::generate` replaces the build-configuration layers (R2) |
 | fn-251.3 | ⬜ todo | After .2: generated `request_findings` replaces Temporal's `Wire` enum (R3) |
 | fn-251.5 | ⬜ todo | After .2: generated annotation dispatch and `AnnotationRuntime::with_probes` (R5) |
 | fn-251.4 | ⬜ todo | After .3: one generic probe engine for Kettle and Temporal (R4) |
@@ -143,12 +145,12 @@ Both tasks completed locally with focused checks and scoped SHIP reviews: .3 rem
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-252.1 | ⬜ todo | One shortest-path search in the suite (R1) |
+| fn-252.1 | 🔄 in progress | One shortest-path search in the suite (R1) |
 | fn-252.5 | ⬜ todo | After fn-251.6 where it touches `temporal/annotate`: trybuild cases to tables, guest test harness, `protocol::Method`, catalog-syntax tests (R5) |
 | fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
 | fn-252.7 | ⬜ todo | One proto-go script, one wasm environment variable, workspace lints for guests (R7) |
 | fn-252.8 | ⬜ todo | Move the stock test fixture out of `umpire_runtime` (R8) |
-| fn-252.2 | ⬜ todo | After .1: `Path` stores only a `Pattern` (R2) |
+| fn-252.2 | 🔄 in progress | After .1: `Path` stores only a `Pattern` (R2) |
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 
