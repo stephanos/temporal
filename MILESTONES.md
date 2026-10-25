@@ -62,7 +62,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.10 | ⬜ todo | After .13/.16: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.13 | 🔄 in progress | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
+| fn-254.13 | ✅ done | Standalone workspace and dedicated guest driver; caller/root/remap controls and guest reproduction reviewed (R7) |
 | fn-254.14 | ⬜ todo | After .13: assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
 | fn-254.15 | ⬜ todo | After .13, .10, .14: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
 | fn-254.16 | ⬜ todo | After .13/.14, before .10: mise provisions pinned TLC and opt-in Apalache; keep runtime JAR hash/path admission (R7) |
