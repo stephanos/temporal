@@ -173,11 +173,16 @@ without overrides the defaults are `crate` and `crate::CatalogContext`. Explicit
 continues to select one message type. Temporal's derive facade supplies its upstream
 API root and dynamic-config context to the same implementation.
 
-`umpire-catalog-syntax` owns declaration admission and descriptor exhaustiveness.
-`umpire-catalog-build` checks a supplied descriptor path against a catalog root and
-emits method classification/dispatch and typed wire mutations. Callers supply the
-service identity, generated module roots, public symbol names and request methods.
-Descriptor acquisition and API-specific roots stay with each consumer. The independent
+`umpire-catalog-syntax` owns declaration admission and descriptor exhaustiveness, and
+`proto::Graph::new(bytes, rust_root)`: the one descriptor graph (messages, fields, presence,
+oneofs, maps, enums and RPC edges, named as prost generates them) that catalog/build's wire
+mutations and Temporal's `#[realization]` admission both read.
+`umpire-catalog-build`'s `System { service, prefix, rust_root, request_roots, catalog_root }`
+checks a descriptor against its catalog root, and `generate(descriptor, out_dir)` writes
+`services.rs` (method classification/dispatch) and `wire_schema.rs` (typed wire mutations);
+generated symbol names derive from the service and prefix. Descriptor acquisition stays
+with each consumer; Temporal's API build and realization macros share one definition in
+`temporal/api/system.rs`. The independent
 Kettle catalog fixture builds without an extension dependency; refusal fixtures retain
 missing-field and enum-variant checks alongside descriptor method/action controls.
 

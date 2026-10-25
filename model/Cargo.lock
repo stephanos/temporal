@@ -1326,6 +1326,7 @@ dependencies = [
  "prettyplease 0.3.0",
  "quote",
  "syn 3.0.9",
+ "umpire-catalog-build",
  "umpire-temporal-annotate-syntax",
 ]
 

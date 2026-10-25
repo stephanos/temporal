@@ -1,105 +1,26 @@
 //! Descriptor-backed field admission shared by realization expansion and coverage.
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
 };
-use umpire_catalog_syntax::naming;
 
 use proc_macro2::TokenStream;
-use prost::Message as _;
 use quote::{format_ident, quote};
-use umpire_runtime::prost_types::{
-    DescriptorProto, FileDescriptorSet,
-    field_descriptor_proto::{Label, Type},
-};
+use umpire_catalog_syntax::proto::clean;
+pub use umpire_catalog_syntax::proto::{Field, Graph, Kind, Message, Method, Scalar};
 
 use crate::Catalog;
 
 /// The protobuf graph admitted by the shared catalog declarations.
 #[derive(Debug, Default)]
 pub struct Schema {
-    /// Admitted messages, keyed by protobuf identity.
-    pub messages: BTreeMap<String, Message>,
+    graph: Graph,
+    admitted: BTreeSet<String>,
+    opaque: BTreeSet<(String, String)>,
     /// Admitted generated enums, keyed by protobuf identity.
     pub enums: BTreeMap<String, Enumeration>,
-    methods: BTreeMap<(String, String), Method>,
-}
-
-/// A protobuf message and its generated Rust representation.
-#[derive(Debug)]
-pub struct Message {
-    /// Fully qualified protobuf identity.
-    pub name: String,
-    /// Fully qualified generated Rust type.
-    pub rust_type: String,
-    /// Whether this is a synthetic map-entry message.
-    pub map_entry: bool,
-    /// Fields in descriptor source order.
-    pub fields: Vec<Field>,
-}
-
-/// A generated protobuf field, retaining actual decoding presence.
-#[derive(Debug)]
-pub struct Field {
-    /// Original protobuf field name.
-    pub name: String,
-    /// Generated Rust member, including raw-identifier escaping.
-    pub member: String,
-    /// Value type before optional/repeated wrapping.
-    pub kind: Kind,
-    /// Repeated list or map.
-    pub repeated: bool,
-    /// Protobuf presence represented by a Rust Option.
-    pub optional: bool,
-    /// A real oneof alternative, excluding synthetic proto3 optional groups.
-    pub oneof: Option<Oneof>,
-    /// Catalog reason for stopping traversal at an opaque parent.
-    pub opaque_reason: Option<String>,
-}
-
-/// A protobuf field's value type.
-#[derive(Debug)]
-pub enum Kind {
-    /// Scalar value.
-    Scalar(Scalar),
-    /// Nested message identity.
-    Message {
-        /// Fully qualified protobuf message identity.
-        target: String,
-    },
-    /// Generated enum identity; decoded fields retain raw i32 values.
-    Enum {
-        /// Fully qualified protobuf enum identity.
-        target: String,
-    },
-}
-
-/// Scalar categories with identical decoded default-presence rules.
-#[derive(Debug)]
-pub enum Scalar {
-    /// UTF-8 text.
-    String,
-    /// Opaque bytes.
-    Bytes,
-    /// Boolean value.
-    Bool,
-    /// Floating point value.
-    Float,
-    /// Signed integer value.
-    Signed,
-    /// Unsigned integer value.
-    Unsigned,
-}
-
-/// A generated oneof member and one of its tuple variants.
-#[derive(Debug)]
-pub struct Oneof {
-    /// Rust Option member on the enclosing message.
-    pub member: String,
-    /// Fully qualified tuple variant path.
-    pub variant: String,
 }
 
 /// An admitted generated enum.
@@ -109,15 +30,6 @@ pub struct Enumeration {
     pub rust_type: String,
     /// Fully qualified Rust variant paths from the shared declaration inventory.
     pub variants: Vec<String>,
-}
-
-/// An RPC's protobuf request and response edges.
-#[derive(Clone, Debug)]
-pub struct Method {
-    /// Fully qualified input message identity.
-    pub input: String,
-    /// Fully qualified output message identity.
-    pub output: String,
 }
 
 /// The declared treatment of a field in one realization context.
@@ -151,79 +63,43 @@ pub fn catalog_inputs(root: &Path) -> Result<CatalogInputs, String> {
 }
 
 impl Schema {
-    /// Build from descriptors and the existing parsed annotation declarations.
-    pub fn new(bytes: &[u8], catalogs: &[Catalog]) -> Result<Self, String> {
+    /// Build from descriptors generated under `rust_root` and the parsed catalog declarations.
+    pub fn new(bytes: &[u8], rust_root: &str, catalogs: &[Catalog]) -> Result<Self, String> {
         let mut coverage = crate::descriptor::Coverage::default();
         for catalog in catalogs {
             let projected = catalog.coverage();
             coverage.messages.extend(projected.messages);
             coverage.enums.extend(projected.enums);
         }
-        crate::descriptor::check(bytes, &coverage)?;
-        let descriptors = FileDescriptorSet::decode(bytes).map_err(|error| error.to_string())?;
-        let mut all = BTreeMap::new();
-        let mut result = Self::default();
-        for file in &descriptors.file {
-            let package = file.package.as_deref().unwrap_or_default();
-            let module = if package == "google.protobuf" {
-                "::umpire_runtime::prost_types".to_owned()
-            } else {
-                format!(
-                    "::umpire_temporal_api::{}",
-                    package.split('.').map(naming::snake).collect::<Vec<_>>().join("::")
-                )
-            };
-            collect(package, &module, &file.message_type, &mut all)?;
-            for service in &file.service {
-                let service_name = qualified(package, service.name.as_deref().unwrap_or_default());
-                for method in &service.method {
-                    result.methods.insert(
-                        (service_name.clone(), method.name.clone().ok_or("unnamed method")?),
-                        Method {
-                            input: clean(
-                                method.input_type.as_deref().ok_or("missing method input")?,
-                            ),
-                            output: clean(
-                                method.output_type.as_deref().ok_or("missing method output")?,
-                            ),
-                        },
-                    );
-                }
-            }
-        }
+        let graph = Graph::new(bytes, rust_root)
+            .map_err(|error| format!("invalid protobuf descriptor set: {error}"))?;
+        crate::descriptor::admit(&graph, &coverage)?;
+        let mut result = Self { graph, ..Self::default() };
         for catalog in catalogs {
             for message in &catalog.messages {
                 let name = clean(&message.proto.value());
-                let mut node =
-                    all.remove(&name).ok_or_else(|| format!("missing message: {name}"))?;
+                let node =
+                    result.graph.message(&name).map_err(|_| format!("missing message: {name}"))?;
                 for field in &message.fields {
                     if field.opaque {
-                        let reason = field
-                            .tags
-                            .iter()
-                            .find(|tag| tag.name == "Ignored")
-                            .and_then(|tag| match &tag.argument {
-                                Some(syn::Lit::Str(reason)) => Some(reason.value()),
-                                _ => None,
-                            })
-                            .ok_or_else(|| {
-                                format!("missing opaque reason: {name}.{}", field.name)
-                            })?;
+                        if !field.tags.iter().any(|tag| {
+                            tag.name == "Ignored" && matches!(tag.argument, Some(syn::Lit::Str(_)))
+                        }) {
+                            return Err(format!("missing opaque reason: {name}.{}", field.name));
+                        }
                         let names = if field.variants.is_empty() {
                             vec![field.name.to_string().trim_start_matches("r#").to_owned()]
                         } else {
                             field.variants.iter().map(|variant| variant.proto.value()).collect()
                         };
-                        for name in names {
-                            if let Some(actual) =
-                                node.fields.iter_mut().find(|actual| actual.name == name)
-                            {
-                                actual.opaque_reason = Some(reason.clone());
+                        for field in names {
+                            if node.fields.iter().any(|actual| actual.name == field) {
+                                result.opaque.insert((name.clone(), field));
                             }
                         }
                     }
                 }
-                result.messages.insert(name, node);
+                result.admitted.insert(name);
             }
             for enumeration in &catalog.enums {
                 use quote::ToTokens;
@@ -244,7 +120,11 @@ impl Schema {
     }
 
     /// Load precisely the annotation inputs used by API generation, returning tracked paths.
-    pub fn load(root: &Path, descriptor: &Path) -> Result<(Self, Vec<PathBuf>), String> {
+    pub fn load(
+        root: &Path,
+        descriptor: &Path,
+        rust_root: &str,
+    ) -> Result<(Self, Vec<PathBuf>), String> {
         let mut inputs = catalog_inputs(root)?.files;
         let mut catalogs = Vec::new();
         for path in &inputs {
@@ -257,39 +137,49 @@ impl Schema {
         let bytes =
             fs::read(descriptor).map_err(|error| format!("{}: {error}", descriptor.display()))?;
         inputs.push(descriptor.to_owned());
-        Ok((Self::new(&bytes, &catalogs)?, inputs))
+        Ok((Self::new(&bytes, rust_root, &catalogs)?, inputs))
+    }
+
+    /// The fully qualified service whose last segment is `name`; see [`Graph::service_named`].
+    pub fn service_named(&self, name: &str) -> Result<Option<&str>, String> {
+        self.graph.service_named(name)
     }
 
     /// Resolve the actual protobuf input/output edges of a service method.
     pub fn method(&self, service: &str, method: &str) -> Result<&Method, String> {
-        self.methods
-            .get(&(clean(service), method.to_owned()))
-            .ok_or_else(|| format!("unknown RPC: {service}::{method}"))
+        self.graph.method(service, method)
     }
 
     /// Canonical RPC paths whose request has this protobuf identity.
     pub fn request_methods(&self, name: &str) -> Vec<String> {
-        self.methods
-            .iter()
-            .filter(|(_, edge)| edge.input == clean(name))
-            .map(|((service, method), _)| format!("/{service}/{method}"))
-            .collect()
+        self.graph.request_methods(name)
     }
 
     /// Canonical RPC paths whose response has this protobuf identity.
     pub fn response_methods(&self, name: &str) -> Vec<String> {
-        self.methods
-            .iter()
-            .filter(|(_, edge)| edge.output == clean(name))
-            .map(|((service, method), _)| format!("/{service}/{method}"))
-            .collect()
+        self.graph.response_methods(name)
+    }
+
+    /// Messages admitted by the shared catalog declarations.
+    pub fn messages(&self) -> impl Iterator<Item = &Message> {
+        self.admitted.iter().filter_map(|name| self.graph.messages.get(name))
     }
 
     /// Resolve a message admitted by the shared catalog declarations.
     pub fn message(&self, name: &str) -> Result<&Message, String> {
-        self.messages
+        self.admitted
             .get(&clean(name))
+            .and_then(|name| self.graph.messages.get(name))
             .ok_or_else(|| format!("unadmitted protobuf message: {name}"))
+    }
+
+    /// Generated Rust type of a descriptor enum.
+    pub fn enum_type(&self, name: &str) -> Option<&str> {
+        self.graph.enums.get(&clean(name)).map(|enumeration| enumeration.rust_type.as_str())
+    }
+
+    fn opaque(&self, message: &str, field: &str) -> bool {
+        self.opaque.contains(&(clean(message), field.to_owned()))
     }
 
     /// Validate declarations and classify every field boundary in source order.
@@ -359,7 +249,7 @@ impl Schema {
             .find(|field| field.name == head)
             .ok_or_else(|| format!("unknown field path: {name}.{path}"))?;
         if let Some(tail) = tail {
-            if field.opaque_reason.is_some() {
+            if self.opaque(name, head) {
                 return Err(format!("opaque field stops nested path: {name}.{path}"));
             }
             let Kind::Message { target } = &field.kind else {
@@ -460,15 +350,6 @@ impl Schema {
     }
 }
 
-fn clean(name: &str) -> String {
-    name.trim_start_matches('.').to_owned()
-}
-
-fn member_name(name: &str) -> String {
-    let name = naming::snake(name);
-    if name.starts_with("r#") { name } else { format!("r#{name}") }
-}
-
 fn qualified(parent: &str, name: &str) -> String {
     if parent.is_empty() { name.to_owned() } else { format!("{parent}.{name}") }
 }
@@ -479,137 +360,15 @@ fn overlaps(left: &str, right: &str) -> bool {
         || right.starts_with(&format!("{left}."))
 }
 
-fn collect(
-    package: &str,
-    module: &str,
-    descriptors: &[DescriptorProto],
-    result: &mut BTreeMap<String, Message>,
-) -> Result<(), String> {
-    for descriptor in descriptors {
-        let name = descriptor.name.as_deref().ok_or("unnamed message")?;
-        let proto = qualified(package, name);
-        let rust = umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
-            .map_or_else(|| format!("{module}::{}", naming::upper_camel(name)), str::to_owned);
-        let map_entry =
-            descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
-        let mut fields = Vec::new();
-        for field in &descriptor.field {
-            let name = field.name.clone().ok_or("unnamed field")?;
-            let kind = match Type::try_from(field.r#type.unwrap_or_default())
-                .map_err(|error| error.to_string())?
-            {
-                Type::String => Kind::Scalar(Scalar::String),
-                Type::Bytes => Kind::Scalar(Scalar::Bytes),
-                Type::Bool => Kind::Scalar(Scalar::Bool),
-                Type::Double | Type::Float => Kind::Scalar(Scalar::Float),
-                Type::Uint32 | Type::Uint64 | Type::Fixed32 | Type::Fixed64 => {
-                    Kind::Scalar(Scalar::Unsigned)
-                }
-                Type::Int32
-                | Type::Int64
-                | Type::Sint32
-                | Type::Sint64
-                | Type::Sfixed32
-                | Type::Sfixed64 => Kind::Scalar(Scalar::Signed),
-                Type::Message => Kind::Message {
-                    target: clean(field.type_name.as_deref().ok_or("missing message type")?),
-                },
-                Type::Enum => Kind::Enum {
-                    target: clean(field.type_name.as_deref().ok_or("missing enum type")?),
-                },
-                Type::Group => return Err("protobuf groups are unsupported".into()),
-            };
-            let oneof = if field.proto3_optional == Some(true) {
-                None
-            } else {
-                field
-                    .oneof_index
-                    .map(|index| {
-                        let index = usize::try_from(index).map_err(|error| error.to_string())?;
-                        let oneof = descriptor
-                            .oneof_decl
-                            .get(index)
-                            .and_then(|oneof| oneof.name.as_deref())
-                            .ok_or("missing oneof declaration")?;
-                        Ok::<_, String>(Oneof {
-                            member: member_name(oneof),
-                            variant: format!(
-                                "{module}::{}::{}::{}",
-                                naming::snake(descriptor.name.as_deref().ok_or("unnamed message")?),
-                                naming::upper_camel(oneof),
-                                naming::upper_camel(&name)
-                            ),
-                        })
-                    })
-                    .transpose()?
-            };
-            let repeated = field.label == Some(Label::Repeated as i32);
-            fields.push(Field {
-                member: if map_entry {
-                    if field.number == Some(1) { "0" } else { "1" }.into()
-                } else {
-                    member_name(&name)
-                },
-                name,
-                kind,
-                repeated,
-                optional: !map_entry
-                    && !repeated
-                    && (field.r#type == Some(Type::Message as i32)
-                        || field.oneof_index.is_some()
-                        || field.proto3_optional == Some(true)),
-                oneof,
-                opaque_reason: None,
-            });
-        }
-        result.insert(
-            proto.clone(),
-            Message { name: proto.clone(), rust_type: rust, map_entry, fields },
-        );
-        collect(
-            &proto,
-            &format!("{module}::{}", naming::snake(name)),
-            &descriptor.nested_type,
-            result,
-        )?;
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use prost::Message as _;
     use umpire_runtime::prost_types::{
         DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet,
         MethodDescriptorProto, ServiceDescriptorProto,
         field_descriptor_proto::{Label, Type},
     };
-
-    #[test]
-    fn prost_descriptor_names_escape_keywords_and_numeric_prefixes() -> Result<(), String> {
-        let mut messages = BTreeMap::new();
-        collect(
-            "self_",
-            "crate::self_",
-            &[
-                DescriptorProto {
-                    name: Some("Self_".into()),
-                    field: vec![FieldDescriptorProto {
-                        name: Some("self_".into()),
-                        r#type: Some(Type::String as i32),
-                        ..Default::default()
-                    }],
-                    ..Default::default()
-                },
-                DescriptorProto { name: Some("_42Foo".into()), ..Default::default() },
-            ],
-            &mut messages,
-        )?;
-        assert_eq!(messages["self_.Self_"].rust_type, "crate::self_::Self_");
-        assert_eq!(messages["self_._42Foo"].rust_type, "crate::self_::_42foo");
-        assert_eq!(messages["self_.Self_"].fields[0].member, "r#self_");
-        Ok(())
-    }
 
     fn fixture() -> Result<Schema, String> {
         let catalogs = crate::catalogs(
@@ -677,18 +436,20 @@ mod tests {
             }],
         }
         .encode_to_vec();
-        Schema::new(&bytes, &catalogs)
+        Schema::new(&bytes, "::api", &catalogs)
     }
 
     #[test]
     fn graph_retains_decoded_optional_presence_and_opaque_catalog_reason() -> Result<(), String> {
         let schema = fixture()?;
-        let response = schema.messages.get("test.Response").ok_or("missing response graph")?;
+        let response = schema.message("test.Response")?;
         assert!(response.fields[0].optional);
-        assert_eq!(response.fields[0].member, "r#info");
+        assert_eq!(response.rust_type, "::api::test::Response");
+        assert!(schema.opaque("test.Info", "external"));
+        assert!(!schema.opaque("test.Info", "status"));
         assert_eq!(
-            schema.messages["test.Info"].fields[1].opaque_reason.as_deref(),
-            Some("external storage is opaque")
+            schema.resolve("test.Response", "info.external.value").err().as_deref(),
+            Some("opaque field stops nested path: test.Info.external.value")
         );
         Ok(())
     }

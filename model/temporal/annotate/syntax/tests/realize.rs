@@ -8,7 +8,7 @@ use umpire_temporal_annotate_syntax::{
 #[test]
 fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
+    let schema = Schema::new(&[], "", &[])?;
     for (body, expected) in [
         (
             "#[observe(WorkflowService::Describe)] fn first(response: Response) -> Result<Projection<Action>, Refusal> { todo!() } #[observe(WorkflowService::Describe)] fn second(response: Response) -> Result<Projection<Action>, Refusal> { todo!() }",
@@ -30,9 +30,10 @@ fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
         ),
     ] {
         let item = syn::parse_str(&format!("impl Realization {{ {body} }}"))?;
-        let error = expand(&syn::parse_str("activity")?, item, &schema)
-            .err()
-            .ok_or("expected handler admission refusal")?;
+        let error =
+            expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, item, &schema)
+                .err()
+                .ok_or("expected handler admission refusal")?;
         assert!(error.to_string().contains(expected), "{error}");
     }
     Ok(())
@@ -56,15 +57,68 @@ fn generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks(
         "fn decode(value: (generated::Status, generated::Status)) { match value { (generated::Status::Ready, generated::Status::Ready) => (), (generated::Status::Ready, _) => () } }",
     ] {
         let item = syn::parse_str(&format!("impl Realization {{ {body} }}"))?;
-        let error = expand(&syn::parse_str("activity")?, item, &schema)
-            .err()
-            .ok_or("expected generated enum wildcard refusal")?;
+        let error =
+            expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, item, &schema)
+                .err()
+                .ok_or("expected generated enum wildcard refusal")?;
         assert!(error.to_string().contains("wildcard"), "{error}");
     }
     let bytes = syn::parse_str(
         "impl Realization { fn policy(value: &[u8]) { match value { b\"Complete\" => (), _ => () } } }",
     )?;
-    assert!(expand(&syn::parse_str("activity")?, bytes, &schema).is_ok());
+    assert!(
+        expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, bytes, &schema).is_ok()
+    );
+    Ok(())
+}
+
+#[test]
+fn nested_descriptor_enums_are_recognized_by_their_generated_rust_path()
+-> Result<(), Box<dyn std::error::Error>> {
+    use prost::Message as _;
+    use umpire_runtime::prost_types::{
+        DescriptorProto, EnumDescriptorProto, EnumValueDescriptorProto, FileDescriptorProto,
+        FileDescriptorSet,
+    };
+    let bytes = FileDescriptorSet {
+        file: vec![FileDescriptorProto {
+            package: Some("test.v1".into()),
+            message_type: vec![DescriptorProto {
+                name: Some("Outer".into()),
+                enum_type: vec![EnumDescriptorProto {
+                    name: Some("State".into()),
+                    value: vec![EnumValueDescriptorProto {
+                        name: Some("STATE_READY".into()),
+                        number: Some(0),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        }],
+    }
+    .encode_to_vec();
+    let mut schema = Schema::new(&bytes, "::api", &[])?;
+    schema.enums.insert(
+        "test.v1.Outer.State".into(),
+        umpire_temporal_annotate_syntax::realization::Enumeration {
+            rust_type: "declared :: Alias".into(),
+            variants: vec!["declared :: Alias :: Ready".into()],
+        },
+    );
+    for body in [
+        "fn decode(value: ::api::test::v1::outer::State) { match value { _ => () } }",
+        "fn decode(value: ::api::test::v1::outer::State) { match value { ::api::test::v1::outer::State::Ready => (), _ => () } }",
+    ] {
+        let item = syn::parse_str(&format!("impl Realization {{ {body} }}"))?;
+        let error =
+            expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, item, &schema)
+                .err()
+                .ok_or("expected generated enum wildcard refusal")?;
+        assert!(error.to_string().contains("wildcard"), "{error}");
+    }
     Ok(())
 }
 
@@ -282,8 +336,14 @@ fn check_alias_cases(cases: &[(&str, usize, bool)]) -> Result<(), Box<dyn std::e
         implementations(&file.items, &mut items);
         let item = items.into_iter().nth(index).ok_or("missing test impl")?;
         let location = item.impl_token.span.start();
-        let expanded =
-            expand_in_source(&syn::parse_str("activity")?, item, &schema, source, location);
+        let expanded = expand_in_source(
+            &syn::parse_str("activity")?,
+            &syn::parse_str("runtime")?,
+            item,
+            &schema,
+            source,
+            location,
+        );
         match expanded {
             Err(error) if refused && error.to_string().contains("wildcard") => {}
             Err(error) => failures.push(format!("unexpected refusal: {source}: {error}")),
@@ -455,7 +515,7 @@ const ALIAS_CASES: &[(&str, usize, bool)] = &[
 #[test]
 fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
+    let schema = Schema::new(&[], "", &[])?;
     for (attribute, hooks) in [
         ("#[propose]", false),
         ("#[propose(matches = correlated, continue_polling = polling)]", true),
@@ -463,7 +523,9 @@ fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
         let item = syn::parse_str(&format!(
             "impl Realization {{ {attribute} fn selected(&self, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {{ todo!() }} }}"
         ))?;
-        let expanded = expand(&syn::parse_str("activity")?, item, &schema)?.to_string();
+        let expanded =
+            expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, item, &schema)?
+                .to_string();
         assert!(expanded.contains("self . selected (state , seed)"));
         assert_eq!(expanded.contains("self . correlated"), hooks);
         assert_eq!(expanded.contains("self . polling"), hooks);
@@ -474,9 +536,13 @@ fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
 #[test]
 fn observation_only_realizations_inherit_the_refusing_answer_default()
 -> Result<(), Box<dyn std::error::Error>> {
-    let schema = Schema::new(&[], &[])?;
-    let expanded =
-        expand(&syn::parse_str("activity")?, syn::parse_str("impl Realization {}")?, &schema)?;
+    let schema = Schema::new(&[], "", &[])?;
+    let expanded = expand(
+        &syn::parse_str("activity")?,
+        &syn::parse_str("runtime")?,
+        syn::parse_str("impl Realization {}")?,
+        &schema,
+    )?;
     assert!(!expanded.to_string().contains("fn answer"));
     Ok(())
 }

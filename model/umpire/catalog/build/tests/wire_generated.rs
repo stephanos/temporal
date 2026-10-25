@@ -71,16 +71,19 @@ fn generated_wire_setters_compile_and_preserve_carrier_mutations()
             ..Default::default()
         }],
     };
+    let system = umpire_catalog_build::System {
+        service: "example.v1.Device",
+        prefix: "device",
+        rust_root: "crate",
+        request_roots: &["Set"],
+        catalog_root: std::path::PathBuf::new(),
+    };
     let generated = wire_schema::generate(
-        &descriptors.encode_to_vec(),
-        &wire_schema::Config {
-            service: "example.v1.Device",
-            rust_type_root: "crate",
-            method_enum: "DeviceMethod",
-            fields_function: "device_fields",
-            mutate_function: "mutate_device",
-            request_roots: &["Set"],
-        },
+        &umpire_catalog_syntax::proto::Graph::new(
+            &descriptors.encode_to_vec(),
+            &system.local_root(),
+        )?,
+        &system,
     )?;
     let directory =
         std::env::temp_dir().join(format!("catalog-wire-controls-{}", std::process::id()));
@@ -89,7 +92,7 @@ fn generated_wire_setters_compile_and_preserve_carrier_mutations()
     std::fs::write(
         &input,
         format!(
-            "{CARRIERS}\nmod generated {{ use crate::DeviceMethod;\n{generated}\n{ASSERTIONS}\n}}\nfn main() {{ generated::check(); }}"
+            "{CARRIERS}\nmod generated {{ use crate::{{DeviceMethod, example}};\n{generated}\n{ASSERTIONS}\n}}\nfn main() {{ generated::check(); }}"
         ),
     )?;
     let binary = directory.join("control");
@@ -173,7 +176,7 @@ pub fn check() {
     assert!(matches!(mutate(&mut message, "numbers", &WireMutation::LimitPlusOne { limit: u64::MAX }), Err(GenerationError::SizeLimit)));
     assert!(matches!(mutate(&mut message, "numbers", &WireMutation::Change), Err(GenerationError::InapplicableMutation)));
     assert!(matches!(mutate(&mut message, "missing", &WireMutation::Change), Err(GenerationError::UnsupportedType)));
-    assert!(!device_fields(DeviceMethod::Set).is_empty());
+    assert!(!device_request_fields(DeviceMethod::Set).is_empty());
 }
 "#;
 

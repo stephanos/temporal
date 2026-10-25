@@ -1,7 +1,7 @@
 //! A second service exercises the shared generation contract.
 use prost::Message;
-use umpire_catalog_build::{services, wire_schema};
-use umpire_catalog_syntax::descriptor::Coverage;
+use umpire_catalog_build::{System, services, wire_schema};
+use umpire_catalog_syntax::{descriptor::Coverage, proto::Graph, services::Classification};
 use umpire_runtime::prost_types::{
     DescriptorProto, FileDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
     ServiceDescriptorProto,
@@ -10,21 +10,28 @@ use umpire_runtime::prost_types::{
 #[test]
 fn second_service_uses_configured_identity_and_roots() -> Result<(), String> {
     let bytes = fixture().encode_to_vec();
-    let config = service_config();
-    let source = services::generate(&bytes, &Coverage::default(), &[], &config)?;
+    let config = System { rust_root: "::device_api::generated", ..service_config() };
+    let source = generate_services(&bytes, &Coverage::default(), &[], &config)?;
     assert!(source.contains("pub enum DeviceMethod"));
-    assert!(source.contains("::device_api::example::v1::Input"));
-    let config = wire_schema::Config {
-        service: config.service,
-        rust_type_root: "crate::generated",
-        method_enum: config.method_enum,
-        fields_function: "device_fields",
-        mutate_function: "mutate_device",
-        request_roots: &["Set"],
-    };
-    let source = wire_schema::generate(&bytes, &config)?;
-    assert!(source.contains("pub fn device_fields(method: DeviceMethod)"));
+    assert!(source.contains("pub struct DeviceMethodInfo"));
+    assert!(source.contains("pub const DEVICE_METHODS"));
+    assert!(source.contains("macro_rules! dispatch_device_annotations"));
+    assert!(source.contains("macro_rules! bind_device_action"));
+    assert!(source.contains("\"::device_api::generated::example::v1::Input\""));
+    assert_eq!(config.local_root(), "crate::generated");
+    assert_eq!(config.macro_root(), "$crate::generated");
+    let source = wire_schema::generate(&Graph::new(&bytes, &config.local_root())?, &config)?;
+    assert!(source.contains("pub fn device_request_fields(method: DeviceMethod)"));
+    assert!(source.contains("pub fn mutate_device_request("));
     assert!(source.contains("crate::generated::example::v1::Input"));
+    assert_eq!(
+        config.rebase("::device_api::generated::example::v1::Input", "$crate"),
+        Some("$crate::example::v1::Input".into())
+    );
+    assert_eq!(config.rebase("::device_api::generated", "$crate"), Some("$crate".into()));
+    assert_eq!(config.rebase("::device_api::generatedx::Input", "$crate"), None);
+    let local = System { rust_root: "crate", ..service_config() };
+    assert_eq!((local.local_root(), local.macro_root()), (String::new(), "$crate".into()));
     Ok(())
 }
 
@@ -51,17 +58,23 @@ fn fixture() -> FileDescriptorSet {
     }
 }
 
-fn service_config() -> services::Config<'static> {
-    services::Config {
+fn service_config() -> System<'static> {
+    System {
         service: "example.v1.Device",
-        rust_type_root: "::device_api",
-        macro_type_root: "$crate",
-        method_enum: "DeviceMethod",
-        method_info: "DeviceMethodInfo",
-        methods_const: "DEVICE_METHODS",
-        dispatch_macro: "dispatch_device",
-        bind_macro: "bind_device",
+        prefix: "device",
+        rust_root: "::device_api",
+        request_roots: &["Set"],
+        catalog_root: std::path::PathBuf::new(),
     }
+}
+
+fn generate_services(
+    bytes: &[u8],
+    coverage: &Coverage,
+    classifications: &[Classification],
+    system: &System<'_>,
+) -> Result<String, String> {
+    services::generate(&Graph::new(bytes, system.rust_root)?, coverage, classifications, system)
 }
 
 #[test]
@@ -130,7 +143,7 @@ fn added_method_and_action_break_exhaustive_generated_matches()
     use umpire_catalog_syntax::services::classifications;
     let config = service_config();
     let source = "fn classify(method: DeviceMethod) -> RpcRole { match method { DeviceMethod::Set => RpcRole::Action(ModelAction::Device(Device::Set)) }}";
-    let classifications = classifications(source, config.service, config.method_enum)?;
+    let classifications = classifications(source, config.service, &config.method_enum())?;
     let mut descriptors = fixture();
     let directory =
         std::env::temp_dir().join(format!("catalog-build-controls-{}", std::process::id()));
@@ -143,7 +156,7 @@ fn added_method_and_action_break_exhaustive_generated_matches()
             method.name = Some("AddedMethod".into());
             descriptors.file[0].service[0].method.push(method);
         }
-        let generated = services::generate(
+        let generated = generate_services(
             &descriptors.encode_to_vec(),
             &Coverage::default(),
             &classifications,
@@ -151,7 +164,7 @@ fn added_method_and_action_break_exhaustive_generated_matches()
         )?;
         let extra = if missing == Some("AddedAction") { ", AddedAction" } else { "" };
         let control = format!(
-            "{generated}\nenum Device {{ Set{extra} }} enum ModelAction {{ Device(Device), Clock }} enum Binding {{ Rpc(&'static str), Environment }} fn bind(action: ModelAction) -> Binding {{ bind_device!(action, ModelAction::Clock => Binding::Environment) }} fn classify(method: DeviceMethod) {{ match method {{ DeviceMethod::Set => () }} }} fn main() {{}}"
+            "{generated}\nenum Device {{ Set{extra} }} enum ModelAction {{ Device(Device), Clock }} enum Binding {{ Rpc(&'static str), Environment }} fn bind(action: ModelAction) -> Binding {{ bind_device_action!(action, ModelAction::Clock => Binding::Environment) }} fn classify(method: DeviceMethod) {{ match method {{ DeviceMethod::Set => () }} }} fn main() {{}}"
         );
         let input = directory.join("control.rs");
         fs::write(&input, control)?;
@@ -199,19 +212,19 @@ fn an_annotated_rpc_must_be_claimed() -> Result<(), Box<dyn std::error::Error>> 
                 "fn classify(method: DeviceMethod) -> RpcRole {{ match method {{ DeviceMethod::Set => {role} }}}}"
             ),
             config.service,
-            config.method_enum,
+            &config.method_enum(),
         )
     };
-    services::generate(&bytes, &coverage, &classify("RpcRole::Observed(\"set\")")?, &config)?;
+    generate_services(&bytes, &coverage, &classify("RpcRole::Observed(\"set\")")?, &config)?;
     let out_of_scope = classify("RpcRole::OutOfScope(\"device settings\")")?;
     assert_eq!(
-        services::generate(&bytes, &coverage, &out_of_scope, &config).err().as_deref(),
+        generate_services(&bytes, &coverage, &out_of_scope, &config).err().as_deref(),
         Some(
             "annotated RPC is out of scope: example.v1.Device.Set has mirrored messages but no \
              Action or Observed classification"
         )
     );
-    services::generate(&bytes, &Coverage::default(), &out_of_scope, &config)?;
+    generate_services(&bytes, &Coverage::default(), &out_of_scope, &config)?;
     Ok(())
 }
 
@@ -233,10 +246,24 @@ fn coverage_build_reads_the_explicit_catalog_root_and_descriptor_path()
     let inputs = coverage::inputs(&root)?;
     assert_eq!(inputs.files, [nested.join("api.rs")]);
     assert_eq!(inputs.directories, [root.clone(), nested]);
-    let (coverage, classifications) =
-        coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")?;
+    let (coverage, classifications) = coverage::check(
+        &root,
+        &Graph::new(&fs::read(&descriptor)?, "")?,
+        "example.v1.Device",
+        "DeviceMethod",
+    )?;
     assert_eq!(coverage.messages[0].name, "example.v1.Input");
     assert_eq!(classifications[0].coverage.name, "example.v1.Device");
+    let out = root.join("out");
+    fs::create_dir(&out)?;
+    System { catalog_root: root.clone(), ..service_config() }.generate(&descriptor, &out)?;
+    assert!(
+        fs::read_to_string(out.join("services.rs"))?
+            .contains("Binding::Rpc(\"example.v1.Device.Set\")")
+    );
+    assert!(
+        fs::read_to_string(out.join("wire_schema.rs"))?.contains("pub fn device_request_fields")
+    );
     fs::remove_dir_all(root)?;
     Ok(())
 }
@@ -259,13 +286,22 @@ fn coverage_build_resolves_feature_claims_against_one_service_table()
     let descriptor = root.join("selected.binpb");
     fs::write(&descriptor, fixture().encode_to_vec())?;
     let result = (|| -> Result<(), Box<dyn std::error::Error>> {
-        let (_, classifications) =
-            coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")?;
+        let (_, classifications) = coverage::check(
+            &root,
+            &Graph::new(&fs::read(&descriptor)?, "")?,
+            "example.v1.Device",
+            "DeviceMethod",
+        )?;
         assert_eq!(classifications[0].bindings[0].1, "Action");
         fs::write(second.join("api.rs"), claim)?;
-        let error = coverage::check(&root, &descriptor, "example.v1.Device", "DeviceMethod")
-            .err()
-            .ok_or("a duplicate feature claim passed the build")?;
+        let error = coverage::check(
+            &root,
+            &Graph::new(&fs::read(&descriptor)?, "")?,
+            "example.v1.Device",
+            "DeviceMethod",
+        )
+        .err()
+        .ok_or("a duplicate feature claim passed the build")?;
         assert_eq!(error.to_string(), "duplicate feature claim: example.v1.Device.Set");
         Ok(())
     })();
@@ -284,7 +320,7 @@ fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
         DeviceMethod::Poll => RpcRole::Action(ModelAction::Device(Device::Poll(1))),
         DeviceMethod::Fail => RpcRole::Action(ModelAction::Device(Device::Failed { retryable: false })),
     }}";
-    let parsed = classifications(source, config.service, config.method_enum)?;
+    let parsed = classifications(source, config.service, &config.method_enum())?;
     assert_eq!(
         quote::ToTokens::to_token_stream(&parsed[0].actions[1].action).to_string().replace(' ', ""),
         "ModelAction::Device(Device::Poll(1))"
@@ -307,7 +343,7 @@ fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
         descriptors.file[0].service[0].method.push(method);
     }
     let bytes = descriptors.encode_to_vec();
-    let generated = services::generate(&bytes, &Coverage::default(), &parsed, &config)?;
+    let generated = generate_services(&bytes, &Coverage::default(), &parsed, &config)?;
     let directory =
         std::env::temp_dir().join(format!("catalog-payload-controls-{}", std::process::id()));
     fs::create_dir_all(&directory)?;
@@ -319,7 +355,7 @@ fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
         enum Device {{ Set, Poll(u8), Failed {{ retryable: bool }} }}
         enum ModelAction {{ Device(Device), Clock }}
         #[derive(Debug, PartialEq)] enum Binding {{ Rpc(&'static str), Environment }}
-        fn bind(action: ModelAction) -> Binding {{ bind_device!(action, ModelAction::Clock => Binding::Environment) }}
+        fn bind(action: ModelAction) -> Binding {{ bind_device_action!(action, ModelAction::Clock => Binding::Environment) }}
         fn main() {{
             assert_eq!(bind(ModelAction::Device(Device::Set)), Binding::Rpc("example.v1.Device.Set"));
             for attempt in [1, 3] {{ assert_eq!(bind(ModelAction::Device(Device::Poll(attempt))), Binding::Rpc("example.v1.Device.Poll")); }}
@@ -346,8 +382,8 @@ fn payload_classification_binds_every_value_and_rejects_duplicate_variants()
             DeviceMethod::Poll => RpcRole::Action(ModelAction::Device({second})),
         }} }}"
         );
-        let parsed = classifications(&duplicate, config.service, config.method_enum)?;
-        let error = services::generate(&bytes, &Coverage::default(), &parsed, &config)
+        let parsed = classifications(&duplicate, config.service, &config.method_enum())?;
+        let error = generate_services(&bytes, &Coverage::default(), &parsed, &config)
             .err()
             .ok_or("duplicate variant passed")?;
         assert!(error.contains("duplicate Model action RPC binding"), "{error}");

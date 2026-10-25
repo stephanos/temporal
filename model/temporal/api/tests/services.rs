@@ -13,11 +13,58 @@ use prost::Message;
 use prost_types::FileDescriptorSet;
 use umpire_temporal_annotate_syntax::{
     descriptor::{self, Coverage},
-    services::{classifications, declarations, resolve},
+    services::{Classification, Declarations},
 };
 
-#[path = "../services.rs"]
-mod services;
+#[path = "../system.rs"]
+#[allow(dead_code, reason = "tests read only the system identity")]
+mod system;
+
+fn workflow() -> umpire_catalog_build::System<'static> {
+    system::system(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."))
+}
+
+mod services {
+    use umpire_temporal_annotate_syntax::{
+        descriptor::Coverage, proto::Graph, services::Classification,
+    };
+
+    pub(crate) fn generate(
+        bytes: &[u8],
+        coverage: &Coverage,
+        classifications: &[Classification],
+    ) -> Result<String, String> {
+        let system = super::workflow();
+        umpire_catalog_build::services::generate(
+            &Graph::new(bytes, system.rust_root)?,
+            coverage,
+            classifications,
+            &system,
+        )
+    }
+}
+
+fn classifications(source: &str) -> Result<Vec<Classification>, Box<dyn std::error::Error>> {
+    let system = workflow();
+    Ok(umpire_temporal_annotate_syntax::services::classifications(
+        source,
+        system.service,
+        &system.method_enum(),
+    )?)
+}
+
+fn declarations(source: &str) -> Result<Declarations, Box<dyn std::error::Error>> {
+    let system = workflow();
+    Ok(umpire_temporal_annotate_syntax::services::declarations(
+        source,
+        system.service,
+        &system.method_enum(),
+    )?)
+}
+
+fn resolve(declarations: Declarations) -> Result<Vec<Classification>, String> {
+    declarations.resolve(workflow().service)
+}
 
 #[test]
 fn generated_method_table_follows_the_actual_descriptor() -> Result<(), Box<dyn std::error::Error>>
@@ -205,8 +252,7 @@ fn service_table_and_bindings_refuse_new_rpc_and_model_action()
 }
 
 /// The reviewed service table and the activity feature's claims, as the API build reads them.
-fn reviewed()
--> Result<umpire_temporal_annotate_syntax::services::Declarations, Box<dyn std::error::Error>> {
+fn reviewed() -> Result<Declarations, Box<dyn std::error::Error>> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     let mut reviewed = declarations(&fs::read_to_string(root.join("foundation/service.rs"))?)?;
     reviewed.extend(declarations(&fs::read_to_string(root.join("feature/activity/api.rs"))?)?);

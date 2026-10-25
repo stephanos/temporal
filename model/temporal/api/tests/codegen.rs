@@ -10,9 +10,6 @@ use std::{
 use prost::Message;
 use prost_types::FileDescriptorSet;
 
-#[path = "../codegen.rs"]
-mod codegen;
-
 #[test]
 fn descriptor_file_permutations_generate_identical_rust() -> Result<(), Box<dyn std::error::Error>>
 {
@@ -32,11 +29,14 @@ fn descriptor_file_permutations_generate_identical_rust() -> Result<(), Box<dyn 
         fs::write(&input, files.encode_to_vec())?;
         let mut config = prost_build::Config::new();
         config.out_dir(&output);
-        codegen::generate(
+        config
+            .extern_path(".umpire.realization.v1", "::umpire_runtime::realization")
+            .extern_path(".umpire.annotations.v1", "::umpire_runtime::annotations");
+        umpire_catalog_build::codegen::generate(
             &mut config,
             &input,
             &manifest.join("../proto/umpire/temporal/v1/temporal.proto"),
-            &manifest.join("../proto"),
+            &[&manifest.join("../proto"), &manifest.join("../../umpire/protocol/proto")],
         )?;
         let mut generated = BTreeMap::<PathBuf, Vec<u8>>::new();
         for entry in fs::read_dir(&output)? {

@@ -3,52 +3,26 @@
 use std::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
-use prost::Message;
 use quote::quote;
 use umpire_catalog_syntax::{
     descriptor::{Coverage, Disposition},
+    proto::Graph,
     services::Classification,
 };
-use umpire_runtime::prost_types::FileDescriptorSet;
 
-/// Generated service identities and Rust surface names.
-pub struct Config<'a> {
-    /// Fully qualified protobuf service name.
-    pub service: &'a str,
-    /// Absolute Rust crate or module path for public type inventory.
-    pub rust_type_root: &'a str,
-    /// Rust root used inside exported dispatch macros.
-    pub macro_type_root: &'a str,
-    /// Generated method enum name.
-    pub method_enum: &'a str,
-    /// Generated method information struct name.
-    pub method_info: &'a str,
-    /// Generated ordered method inventory constant.
-    pub methods_const: &'a str,
-    /// Exported annotation dispatch macro name.
-    pub dispatch_macro: &'a str,
-    /// Exported action binding macro name.
-    pub bind_macro: &'a str,
-}
+use crate::System;
 
 /// Generate the method inventory and exhaustive action binding macros.
+///
+/// `graph` names generated types under `system.rust_root`.
 pub fn generate(
-    bytes: &[u8],
+    graph: &Graph,
     coverage: &Coverage,
     classifications: &[Classification],
-    config: &Config<'_>,
+    system: &System<'_>,
 ) -> Result<String, String> {
-    let descriptors = FileDescriptorSet::decode(bytes).map_err(|error| error.to_string())?;
-    let (package, name) =
-        config.service.rsplit_once('.').ok_or("service must be fully qualified")?;
-    let service = descriptors
-        .file
-        .iter()
-        .filter(|file| file.package.as_deref() == Some(package))
-        .flat_map(|file| &file.service)
-        .find(|service| service.name.as_deref() == Some(name))
-        .ok_or_else(|| format!("missing service descriptor: {}", config.service))?;
-    let service_name = config.service;
+    let service = graph.service(system.service)?;
+    let service_name = system.service;
     let annotated: BTreeSet<_> =
         coverage.messages.iter().map(|message| message.name.trim_start_matches('.')).collect();
     let out_of_scope: BTreeSet<_> = classifications
@@ -58,13 +32,12 @@ pub fn generate(
         .map(|method| method.name.as_str())
         .collect();
     // A mirrored message means some feature validates this RPC, so it must claim it.
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
+    for method in service {
+        let name = method.name.as_str();
         if out_of_scope.contains(name)
-            && [&method.input_type, &method.output_type]
+            && [&method.input, &method.output]
                 .into_iter()
-                .flatten()
-                .any(|message| annotated.contains(message.trim_start_matches('.')))
+                .any(|message| annotated.contains(message.as_str()))
         {
             return Err(format!(
                 "annotated RPC is out of scope: {service_name}.{name} has mirrored messages but \
@@ -72,38 +45,33 @@ pub fn generate(
             ));
         }
     }
-    let method_enum = identifier(config.method_enum)?;
-    let method_info = identifier(config.method_info)?;
-    let methods_const = identifier(config.methods_const)?;
-    let dispatch_macro = identifier(config.dispatch_macro)?;
-    let bindings = bindings(classifications, config)?;
+    let method_enum = identifier(&system.method_enum())?;
+    let method_info = identifier(&format!("{method_enum}Info"))?;
+    let methods_const = identifier(&system.methods_const())?;
+    let dispatch_macro = identifier(&format!("dispatch_{}_annotations", system.prefix))?;
+    let bindings = bindings(classifications, system)?;
+    let macro_root = system.macro_root();
     let mut variants = Vec::new();
     let mut names = Vec::new();
     let mut infos = Vec::new();
     let mut dispatch = Vec::new();
-    for method in &service.method {
-        let name = method.name.as_deref().ok_or("unnamed service method")?;
+    for method in service {
+        let name = method.name.as_str();
         let variant = identifier(name)?;
         let doc = format!(" `{service_name}.{name}`.");
         variants.push(quote! { #[doc = #doc] #variant });
         names.push((variant.clone(), name));
-        let request = public_type(
-            method.input_type.as_deref().ok_or("missing request type")?,
-            config.rust_type_root,
-        );
-        let response = public_type(
-            method.output_type.as_deref().ok_or("missing response type")?,
-            config.rust_type_root,
-        );
+        let request = &graph.message(&method.input)?.rust_type;
+        let response = &graph.message(&method.output)?.rust_type;
         infos.push(quote! {
             #method_info { method: #method_enum::#variant, request_type: #request, response_type: #response }
         });
-        for (response, ty) in [(false, &method.input_type), (true, &method.output_type)] {
-            let ty = ty.as_deref().ok_or("missing method message type")?;
-            if annotated.contains(ty.trim_start_matches('.')) {
-                let path: TokenStream = public_type(ty, config.macro_type_root)
-                    .parse()
-                    .map_err(|error: proc_macro2::LexError| error.to_string())?;
+        for (response, ty) in [(false, request), (true, response)] {
+            let proto = if response { &method.output } else { &method.input };
+            if annotated.contains(proto.as_str()) {
+                let path = system.rebase(ty, &macro_root).unwrap_or_else(|| ty.clone());
+                let path: TokenStream =
+                    path.parse().map_err(|error: proc_macro2::LexError| error.to_string())?;
                 dispatch.push(quote! {
                     ($crate::#method_enum::#variant, #response) => { type $ty = #path; $body }
                 });
@@ -151,27 +119,11 @@ fn identifier(name: &str) -> Result<syn::Ident, String> {
     syn::parse_str(name).map_err(|error| error.to_string())
 }
 
-fn public_type(proto: &str, root: &str) -> String {
-    let proto = proto.trim_start_matches('.');
-    let (package, name) = proto.rsplit_once('.').unwrap_or(("", proto));
-    let package = prost_build::Module::from_protobuf_package_name(package);
-    let name = type_name(name);
-    if package.is_empty() {
-        format!("{root}::{name}")
-    } else {
-        format!("{root}::{package}::{name}")
-    }
-}
-
-pub(super) fn type_name(proto: &str) -> String {
-    umpire_catalog_syntax::naming::upper_camel(proto)
-}
-
 fn bindings(
     classifications: &[Classification],
-    config: &Config<'_>,
+    system: &System<'_>,
 ) -> Result<TokenStream, String> {
-    let bind_macro = identifier(config.bind_macro)?;
+    let bind_macro = identifier(&format!("bind_{}_action", system.prefix))?;
     let mut inventory = Vec::new();
     let mut arms = Vec::new();
     let mut actions = BTreeSet::new();
@@ -184,7 +136,7 @@ fn bindings(
             if !actions.insert(binding.identity.clone()) {
                 return Err(format!("duplicate Model action RPC binding: {}", quote! { #pattern }));
             }
-            let rpc = format!("{}.{}", config.service, binding.method);
+            let rpc = format!("{}.{}", system.service, binding.method);
             arms.push(quote! { #pattern => Binding::Rpc(#rpc) });
         }
     }
