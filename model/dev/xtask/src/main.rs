@@ -9,6 +9,27 @@ use std::{
 fn run() -> xtask::Result<i32> {
     let mut arguments = env::args_os().skip(1);
     match arguments.next().as_deref() {
+        Some(command) if command == OsStr::new("fetch-apalache") => {
+            let root = if let Some(root) = arguments.next() {
+                std::path::PathBuf::from(root)
+            } else {
+                let current = env::current_dir()?;
+                current
+                    .ancestors()
+                    .find(|path| path.join("model/Cargo.toml").is_file())
+                    .unwrap_or(&current)
+                    .to_owned()
+            };
+            if arguments.next().is_some() {
+                return Err(xtask::Error::Invalid(
+                    "usage: cargo xtask fetch-apalache [workspace-root]".into(),
+                ));
+            }
+            let path = xtask::fetch_apalache::install(Path::new(&root))?;
+            io::stdout().write_all(path.as_os_str().as_encoded_bytes())?;
+            io::stdout().write_all(b"\n")?;
+            Ok(0)
+        }
         Some(command) if command == OsStr::new("guest-lock") => {
             let paths: Vec<_> = arguments.collect();
             if paths.len() != 2 {
@@ -24,7 +45,7 @@ fn run() -> xtask::Result<i32> {
         Some(command) if command == OsStr::new("guest-rustc") => {
             xtask::compiler::run(arguments.collect())
         }
-        _ => Err(xtask::Error::Invalid("commands: guest-lock, guest-rustc".into())),
+        _ => Err(xtask::Error::Invalid("commands: fetch-apalache, guest-lock, guest-rustc".into())),
     }
 }
 

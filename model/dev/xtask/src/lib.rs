@@ -1,6 +1,9 @@
 //! Host-only native development tools.
 
+pub mod apalache_pins;
 pub mod compiler;
+/// SHA-pinned installer with private staging and serialized publication.
+pub mod fetch_apalache;
 pub mod lock;
 pub mod support;
 

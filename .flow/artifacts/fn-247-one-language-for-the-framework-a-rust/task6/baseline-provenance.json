@@ -1,0 +1,9 @@
+{
+  "base_commit": "2c3c308ee27d2920063dcd29777c5ef084484381",
+  "baseline_metadata_workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "identical_manifest_and_lock_sha256": {
+    "model/Cargo.toml": "f447cf4dbbc29e5507999434d0fd30845149c947ef84d8d68ed653db85a0c946",
+    "model/Cargo.lock": "f40bfab71a035cd3bab0f4e8beb3bea1fee8fc8fff952f1dfc1ff7da188ac68a",
+    "model/dev/xtask/Cargo.toml": "9f4e2bda1a97fabe4f89c16ae0b5638026e389feb7b77f3d362830e8b18918f4"
+  }
+}

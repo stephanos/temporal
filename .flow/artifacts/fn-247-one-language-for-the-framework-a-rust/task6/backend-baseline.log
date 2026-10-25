@@ -1,0 +1,101 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling prettyplease v0.3.0
+   Compiling foldhash v0.1.5
+   Compiling bitflags v2.13.2
+   Compiling winnow v1.0.4
+   Compiling smallvec v1.16.3
+   Compiling fixedbitset v0.5.7
+   Compiling thiserror v2.0.21
+   Compiling hashbrown v0.15.5
+   Compiling fastrand v2.5.0
+   Compiling bytemuck v1.25.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling once_cell v1.21.4
+   Compiling anyhow v1.0.104
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling indexmap v2.14.2
+   Compiling either v1.19.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/author/dsl/macros)
+   Compiling wide v0.7.33
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/author/dsl)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling rand_xoshiro v0.7.0
+   Compiling itertools v0.14.0
+   Compiling archery v1.2.3
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling prettyplease v0.2.37
+   Compiling regex-syntax v0.8.11
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/backends/native)
+   Compiling bytes v1.12.1
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling imbl v7.0.2
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling rustc-hash v2.1.3
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling multimap v0.10.1
+   Compiling manyhow-macros v0.14.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling libc v0.2.191
+   Compiling getrandom v0.4.3
+   Compiling serde_core v1.0.229
+   Compiling tempfile v3.27.0
+   Compiling cfg-if v1.0.5
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.154
+   Compiling regex v1.13.1
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/author/suite)
+   Compiling manyhow v0.14.1
+   Compiling serde v1.0.229
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prost-derive v0.14.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/ir)
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/backends/process)
+   Compiling prost v0.14.4
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/front)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/backends/tla)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/protocol/runtime)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/backends/apalache)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.23s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/controls-f81778066690b10c)
+
+running 14 tests
+test real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test pinned_installer_and_runner_agree ... ok
+test real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test real_typed_payload_rejection_and_after_claims_replay ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_vector_witness_replays_typed_sequence ... ok
+test real_later_start_fault_preserves_partial_binding ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -1,0 +1,16 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s
+     Running tests/apalache_install.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/apalache_install-08b0e04dfc861567)
+
+running 8 tests
+test installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
