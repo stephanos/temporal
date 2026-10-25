@@ -1,0 +1,14 @@
+{
+  "exact_accounting_pass": true,
+  "execution_claim": false,
+  "ignored_baseline": 4,
+  "issues": [],
+  "limitation": "Final source freeze hash renewal and execution results remain conductor-owned. No full gate or930-test execution inferred.",
+  "rust_added_log_identities": 19,
+  "rust_baseline": 930,
+  "shell_leaf_baseline": 152,
+  "source_commit": "b778ee93a1e62ab02e9a5a5e0230b1be813ee9fa",
+  "stage_ownership_partitions": 27,
+  "stages_baseline": 23,
+  "unlogged_new_declarations": []
+}

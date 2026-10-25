@@ -51,5 +51,10 @@ for action in fmt update; do
   make "model-$action" > "$control/output" 2>&1
   [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 2 ]
   head -1 "$CONTROL_LOG" | rg -q "framework\|.*/model/umpire\|$action\|"
+  : > "$CONTROL_LOG"
+  status=0
+  CONTROL_FRAMEWORK_STATUS=37 make "model-$action" > "$control/output" 2>&1 || status=$?
+  [ "$status" -eq 2 ]
+  [ "$(wc -l < "$CONTROL_LOG" | tr -d ' ')" -eq 1 ]
 done
 printf 'Model recipe wiring controls passed (fake children; no execution evidence).\n'

@@ -305,6 +305,9 @@ pub fn run(command: &str, args: Vec<OsString>) -> Result<i32> {
                 "inner loop (edit+test)",
                 gate.cargo(&["test", "-p", &package, "--quiet"]),
             )?;
+            if code != 0 {
+                return Ok(code);
+            }
             writeln!(
                 io::stdout(),
                 "gate total {:.3}s; inner loop {:.3}s",

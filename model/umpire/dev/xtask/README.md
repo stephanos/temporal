@@ -2,6 +2,13 @@
 
 From the framework root, `cargo xtask` is the general native command front door. `scripts/xtask.sh` bootstraps both native tools into `<target>/xtask-bootstrap/debug`, clearing guest wrappers and flags before building the locked development profile.
 
+`cargo xtask gate` runs the complete framework gate. `gate --list` prints its stages;
+`gate --stage <name>` runs one real stage for focused feedback. `fmt` formats the
+workspace, `update` refreshes snapshots, `time` times the gate and checker benchmark,
+and `validate` forces required TLC before the timed gate. Stage failure preserves
+the child status and identifies its stage. Full gate children receive
+`UMPIRE_QUICK_CACHE=0` and `UMPIRE_CACHE_DISABLE=1`, including backend provisioning.
+
 Guest operations execute the dedicated [guest driver](../guest-driver/README.md). The CLI first builds the current driver sources with the local locked manifest, then replaces itself with that executable, retaining raw argv, environment, loader variables and jobserver descriptors. Its own executable is never the compiler wrapper or a guest cache input.
 
 `retired-names <POSIX ERE>` reads the raw `git grep -n -z` stream: NUL-terminated

@@ -17,6 +17,18 @@ mise exec -- cargo check-all
 mise exec -- cargo doc-all
 ```
 
+Run the complete framework gate from this directory:
+
+```sh
+mise exec -- cargo xtask gate
+```
+
+It checks this workspace's formatting, clippy, documentation, tests, source boundaries,
+protobufs, guests and both Go host modules. `cargo xtask fmt`, `update`, `time` and
+`validate` provide formatting, snapshot updates, timed checks and required TLC checks.
+The full gate sets `UMPIRE_QUICK_CACHE=0` and `UMPIRE_CACHE_DISABLE=1` for all children.
+Apalache remains opt-in through `UMPIRE_APALACHE=require`.
+
 The native [xtask](dev/xtask/README.md) provides pinned tool installation and development
 commands. Guest builds execute the independent [guest driver](dev/guest-driver/README.md).
 `bash scripts/tests/build-guests.sh` builds the five generic guests and native parity reports;

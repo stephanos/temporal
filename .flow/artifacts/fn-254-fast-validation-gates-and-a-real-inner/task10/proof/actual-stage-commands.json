@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "label": "actual-boundary",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "source-boundary"
+      ],
+      "exit": 0,
+      "seconds": 0.7020037090005644
+    },
+    {
+      "label": "actual-retired",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--stage",
+        "retired-names"
+      ],
+      "exit": 0,
+      "seconds": 0.6451300000007905
+    },
+    {
+      "label": "actual-stage-list",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire",
+      "argv": [
+        "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/xtask",
+        "gate",
+        "--list"
+      ],
+      "exit": 0,
+      "seconds": 0.0008033330004764139
+    }
+  ],
+  "inherited_cache_flags": {
+    "UMPIRE_QUICK_CACHE": "1",
+    "UMPIRE_CACHE_DISABLE": "0"
+  }
+}

@@ -1,0 +1,39 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25410-gate/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/temporal_xtask-ec453d7574f7d635)
+
+running 4 tests
+Temporal stage control failed (exit 37)
+test gate::tests::full_gate_overrides_cache_and_preserves_failure ... ok
+test gate::tests::run_control_child ... ok
+test gate::tests::spawn_failure_names_the_stage ... ok
+test gate::tests::actual_temporal_gate_wiring_and_named_failures ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25410-gate/parent/debug/deps/main-25f9f380eb62b893)
+
+running 5 tests
+test actual_make_freshness_recipe_propagates_stale_failure ... FAILED
+test absent_embedded_guest_fails_go_compilation ... ok
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test retired_names::tool_failures_never_report_clean ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+
+failures:
+
+---- actual_make_freshness_recipe_propagates_stale_failure stdout ----
+
+thread 'actual_make_freshness_recipe_propagates_stale_failure' (153493) panicked at dev/xtask/tests/main.rs:47:10:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    actual_make_freshness_recipe_propagates_stale_failure
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.25s
+
+error: test failed, to rerun pass `-p temporal-xtask --test main`

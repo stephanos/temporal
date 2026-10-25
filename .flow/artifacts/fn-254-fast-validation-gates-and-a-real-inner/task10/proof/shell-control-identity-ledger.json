@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "baseline_commit": "208610049cb93d2fb6cc107898497461f5ab4a6e",
+  "scope": "mixed shell logical controls, source checkpoint after task13; preexisting relocated copies are one logical identity",
+  "preserved": [
+    {
+      "old": "model/scripts/test-time-gate.sh::step-success",
+      "new": "model/umpire/scripts/test-time-gate.sh::step-success"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::step-false-status-1",
+      "new": "model/umpire/scripts/test-time-gate.sh::step-false-status-1"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::step-status-37",
+      "new": "model/umpire/scripts/test-time-gate.sh::step-status-37"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::diagnostics-success-suppressed",
+      "new": "model/umpire/scripts/test-time-gate.sh::diagnostics-success-suppressed"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::diagnostics-failure-both-streams",
+      "new": "model/umpire/scripts/test-time-gate.sh::diagnostics-failure-both-streams"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::temporary-cleanup-success",
+      "new": "model/umpire/scripts/test-time-gate.sh::temporary-cleanup-success"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::temporary-cleanup-failure",
+      "new": "model/umpire/scripts/test-time-gate.sh::temporary-cleanup-failure"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::warnings-default-at-budget",
+      "new": "model/scripts/test-time-gate.sh::warnings-default-at-budget"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::warnings-inner-over",
+      "new": "model/scripts/test-time-gate.sh::warnings-inner-over"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::warnings-gate-over",
+      "new": "model/scripts/test-time-gate.sh::warnings-gate-over"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::warnings-custom-at-budget",
+      "new": "model/scripts/test-time-gate.sh::warnings-custom-at-budget"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::warnings-custom-both-over",
+      "new": "model/scripts/test-time-gate.sh::warnings-custom-both-over"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::combined-validate-controls",
+      "new": "model/scripts/test-time-gate.sh::combined-validate-controls"
+    },
+    {
+      "old": "model/scripts/test-time-gate.sh::combined-wiring-controls",
+      "new": "model/scripts/test-time-gate.sh::combined-wiring-controls"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-generate-selected-input",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-generate-selected-input"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-grpc-selection",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-grpc-selection"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-fresh-check",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-fresh-check"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-stale-refusal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-stale-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-symlink-refusal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-symlink-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-clean-after-removal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-clean-after-removal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-generate-selected-input",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-generate-selected-input"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-grpc-selection",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-grpc-selection"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-fresh-check",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-fresh-check"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-stale-refusal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-stale-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-symlink-refusal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-symlink-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::kettle-clean-after-removal",
+      "new": "model/umpire/scripts/tests/proto-go.sh::kettle-clean-after-removal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-generate-selected-input",
+      "new": "model/scripts/tests/proto-go.sh::temporal-generate-selected-input"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-grpc-selection",
+      "new": "model/scripts/tests/proto-go.sh::temporal-grpc-selection"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-fresh-check",
+      "new": "model/scripts/tests/proto-go.sh::temporal-fresh-check"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-stale-refusal",
+      "new": "model/scripts/tests/proto-go.sh::temporal-stale-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-symlink-refusal",
+      "new": "model/scripts/tests/proto-go.sh::temporal-symlink-refusal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::temporal-clean-after-removal",
+      "new": "model/scripts/tests/proto-go.sh::temporal-clean-after-removal"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::usage-no-args",
+      "new": "model/umpire/scripts/tests/proto-go.sh::usage-no-args"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::usage-unknown",
+      "new": "model/umpire/scripts/tests/proto-go.sh::usage-unknown"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::usage-invalid-option",
+      "new": "model/umpire/scripts/tests/proto-go.sh::usage-invalid-option"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::usage-surplus-arg",
+      "new": "model/umpire/scripts/tests/proto-go.sh::usage-surplus-arg"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::invalid-selectors-before-protoc",
+      "new": "model/umpire/scripts/tests/proto-go.sh::invalid-selectors-before-protoc"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::wrong-go-pin",
+      "new": "model/umpire/scripts/tests/proto-go.sh::wrong-go-pin"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::wrong-grpc-pin",
+      "new": "model/umpire/scripts/tests/proto-go.sh::wrong-grpc-pin"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::wrong-protoc-pin",
+      "new": "model/umpire/scripts/tests/proto-go.sh::wrong-protoc-pin"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::core-without-grpc",
+      "new": "model/umpire/scripts/tests/proto-go.sh::core-without-grpc"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::missing-grpc",
+      "new": "model/umpire/scripts/tests/proto-go.sh::missing-grpc"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::missing-go",
+      "new": "model/umpire/scripts/tests/proto-go.sh::missing-go"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::protoc-failure-status-42",
+      "new": "model/umpire/scripts/tests/proto-go.sh::protoc-failure-status-42"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::protoc-failure-temporary-cleanup",
+      "new": "model/umpire/scripts/tests/proto-go.sh::protoc-failure-temporary-cleanup"
+    },
+    {
+      "old": "model/scripts/tests/proto-go.sh::handwritten-host-outside-generated-tree",
+      "new": "model/scripts/tests/proto-go.sh::handwritten-host-outside-generated-tree"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::stock-guest",
+      "new": "model/umpire/scripts/tests/build-guests.sh::stock-guest"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::kettle-guest",
+      "new": "model/umpire/scripts/tests/build-guests.sh::kettle-guest"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::control-guest",
+      "new": "model/umpire/scripts/tests/build-guests.sh::control-guest"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::caught-panic-guest",
+      "new": "model/umpire/scripts/tests/build-guests.sh::caught-panic-guest"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::overflow-guest",
+      "new": "model/umpire/scripts/tests/build-guests.sh::overflow-guest"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::panic-control-reports",
+      "new": "model/umpire/scripts/tests/build-guests.sh::panic-control-reports"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::current-contract-reports",
+      "new": "model/umpire/scripts/tests/build-guests.sh::current-contract-reports"
+    },
+    {
+      "old": "model/scripts/tests/build-guests.sh::system-guest",
+      "new": "model/scripts/tests/build-guests.sh::system-guest"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::framework-retired-crate-and-path-pattern-1",
+      "new": "model/umpire/dev/gate/policy/framework-boundary.txt::framework-retired-crate-and-path-pattern-1"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::framework-retired-crate-and-path-pattern-2",
+      "new": "model/umpire/dev/gate/policy/framework-boundary.txt::framework-retired-crate-and-path-pattern-2"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::repository-retired-crate-and-path-pattern-1",
+      "new": "model/scripts/retired-names.sh::repository-retired-crate-and-path-pattern-1"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::repository-retired-crate-and-path-pattern-2",
+      "new": "model/scripts/retired-names.sh::repository-retired-crate-and-path-pattern-2"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::historical-exclusions",
+      "new": "model/scripts/retired-names.sh::historical-exclusions"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::second-pattern-historical-exclusions",
+      "new": "model/scripts/retired-names.sh::second-pattern-historical-exclusions"
+    },
+    {
+      "old": "model/scripts/retired-names.sh::raw-git-and-filter-status",
+      "new": "model/scripts/retired-names.sh::raw-git-and-filter-status"
+    }
+  ],
+  "new_controls": [
+    "framework-step-mode-caller-cwd",
+    "framework-step-mode-child-status",
+    "framework-build-five-guests-and-two-native-reports",
+    "framework-build-caller-relative-target",
+    "framework-build-canonical-cargo-home",
+    "framework-build-guest-failure-short-circuit",
+    "framework-build-native-failure-short-circuit",
+    "outer-proto-rejects-framework-selectors",
+    "outer-proto-preserves-handwritten-host"
+  ],
+  "notes": [
+    "Pin/version/protoc status/cleanup identities move to framework once; the generic wrong-protoc control now selects core instead of the system schema.",
+    "Task13 framework scripts/tests/proto-tools.sh and bootstrap.sh remain unchanged, with no duplicate outer invocation.",
+    "Root shipping test-model-validate.sh and test-model-wiring.sh are outer-lane owned; their control identities are preserved there.",
+    "Framework retired filesystem stage is native-lane owned and consumes this exact policy; root excludes framework source.",
+    "No full gate or guest regeneration claimed."
+  ]
+}
