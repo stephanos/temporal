@@ -1,4 +1,5 @@
 use super::*;
+use umpire_front::expr::Op;
 
 fn optional(child: Expr) -> Expr {
     Expr { ty: child.ty.clone(), kind: ExprKind::Some(Box::new(child)) }
@@ -72,4 +73,21 @@ fn priming_recurses_through_nested_vectors_and_three_children_without_changing_o
     assert_eq!(prime(&original), tree(true));
     assert_eq!(original, tree(false));
     assert_eq!(prime(&prime(&original)), tree(true));
+}
+
+#[test]
+fn signed_remainder_asserts_overflow_and_divides_parenthesised_operands() {
+    let int = |kind| Expr { kind, ty: Type::Int { min: -5, max: 5 } };
+    let remainder = int(ExprKind::Binary(
+        Op::Rem,
+        Box::new(int(ExprKind::World("a".into()))),
+        Box::new(int(ExprKind::Input("b".into()))),
+    ));
+    let raw = "(a) - ((IF Assert(~((a) = -5 /\\ (b) = -1), \"Rust signed division/remainder overflow\") THEN __umpire_Div((a), (b)) ELSE 0)) * (b)";
+    assert_eq!(
+        rendered(&remainder),
+        format!(
+            "(IF Assert(({raw}) \\in (-5..5), \"checked Rust integer overflow\") THEN ({raw}) ELSE ({raw}))"
+        )
+    );
 }

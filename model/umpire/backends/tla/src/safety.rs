@@ -1,7 +1,8 @@
 mod value;
 use crate::{
     Diagnostic, Lifted, Module, Property, Type,
-    emit::{conjoin, default, disjoin, line, text},
+    emit::line,
+    lower::{conjoin, default, disjoin, text},
     names::operator,
     snowcat::ty,
 };
