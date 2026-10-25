@@ -1,3 +1,4 @@
+use umpire_testing::replace_once;
 use crate::world_fairness::retry::{Model, World};
 use umpire::dsl::{__lifted::Lifts, CATALOG_LIMIT, Claim, Machine};
 
@@ -33,10 +34,6 @@ fn readmitted_source() -> String {
     format!("{SOURCE}\n{}", include_str!("tests.rs"))
 }
 
-fn replace_once(source: &str, from: &str, to: &str) -> String {
-    assert_eq!(source.matches(from).count(), 1, "mutation target: {from}");
-    source.replacen(from, to, 1)
-}
 
 #[test]
 fn world_fairness_exact_selected_values_ordinals_and_wf_obligations() -> umpire_testing::TestResult

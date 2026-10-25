@@ -10,9 +10,11 @@ use prost::Message;
 use std::{collections::BTreeSet, fmt::Write};
 use umpire_catalog::{
     Expectation, GapReport, MutationApplicability, ProbeResult, Violation, WireCase,
-    mutation_entries, wire_cases,
+    mutation_entries, probe_applicability, wire_cases,
 };
-use umpire_runtime::annotations::{ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse};
+use umpire_runtime::annotations::{
+    ProbeApplicability, ProbeCase, ProbeExpectation, ProbeObservation, ProbeResponse,
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -28,24 +30,17 @@ impl Entry {
     }
 
     fn prepare(&self, baseline: bool) -> Result<(ProbeCase, Vec<u8>, Vec<Violation>)> {
-        let (state, refusal) = match &self.case.applicability {
-            MutationApplicability::Applicable => (0, String::new()),
-            MutationApplicability::NotApplicable(reason) => (1, reason.clone()),
-            MutationApplicability::Refused(reason) => (2, reason.clone()),
-            MutationApplicability::Unchanged => {
-                (3, "mutation leaves the baseline unchanged".into())
-            }
-        };
+        let (state, refusal) = probe_applicability(&self.case.applicability);
         let mut metadata = ProbeCase {
             id: self.id(),
             method: method(self.method),
             prerequisite: self.prerequisite.into(),
             generic: true,
-            applicability: state,
+            applicability: state as i32,
             refusal,
             ..Default::default()
         };
-        if state != 0 {
+        if state != ProbeApplicability::Applicable {
             return Ok((metadata, Vec::new(), Vec::new()));
         }
         let original = baseline_bytes(self.method);
@@ -61,12 +56,12 @@ impl Entry {
             &self.case.field.path,
             &self.case.mutation,
         ) else {
-            metadata.applicability = 2;
+            metadata.applicability = ProbeApplicability::Refused as i32;
             metadata.refusal = "typed mutation construction refused".into();
             return Ok((metadata, Vec::new(), Vec::new()));
         };
         if bytes == original {
-            metadata.applicability = 3;
+            metadata.applicability = ProbeApplicability::Unchanged as i32;
             metadata.refusal = "mutation leaves the baseline unchanged".into();
             return Ok((metadata, Vec::new(), Vec::new()));
         }
@@ -82,7 +77,7 @@ impl Entry {
                 || self.case.field.path.ends_with(".enabled")
                 || self.case.field.path.ends_with(".action"))
         {
-            metadata.applicability = 2;
+            metadata.applicability = ProbeApplicability::Refused as i32;
             metadata.refusal = "mutation changes a stateful prerequisite".into();
             return Ok((metadata, Vec::new(), Vec::new()));
         }
@@ -131,15 +126,19 @@ impl Entry {
             return Err("observation diverges from prepared Kettle probe".into());
         }
         let mut case = self.case.clone();
-        if canonical.applicability != 0 {
+        if canonical.applicability != ProbeApplicability::Applicable as i32 {
             if observation.accepted || observation.code != 0 {
                 return Err("local mutation has a fabricated server response".into());
             }
-            case.applicability = match canonical.applicability {
-                1 => MutationApplicability::NotApplicable(canonical.refusal),
-                2 => MutationApplicability::Refused(canonical.refusal),
-                3 => MutationApplicability::Unchanged,
-                _ => return Err("unknown applicability".into()),
+            case.applicability = match ProbeApplicability::try_from(canonical.applicability)? {
+                ProbeApplicability::NotApplicable => {
+                    MutationApplicability::NotApplicable(canonical.refusal)
+                }
+                ProbeApplicability::Refused => MutationApplicability::Refused(canonical.refusal),
+                ProbeApplicability::Unchanged => MutationApplicability::Unchanged,
+                ProbeApplicability::Applicable => {
+                    return Err("unexpected applicable local mutation".into());
+                }
             };
             return Ok(GapReport {
                 entries: mutation_entries(&case, &[], ProbeResult::Unverifiable)?,

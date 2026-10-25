@@ -12,6 +12,7 @@ workspace = true
 
 [dependencies]
 thiserror.workspace = true
+umpire-checker.workspace = true
 prost.workspace = true
 umpire-runtime.workspace = true
 umpire-catalog-macros.workspace = true

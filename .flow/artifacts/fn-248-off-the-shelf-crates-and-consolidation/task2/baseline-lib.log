@@ -1,0 +1,154 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.191
+   Compiling rand_core v0.10.1
+   Compiling equivalent v1.0.3
+   Compiling getrandom v0.4.3
+   Compiling cfg-if v1.0.5
+   Compiling hashbrown v0.17.1
+   Compiling prettyplease v0.3.0
+   Compiling rustix v1.1.5
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling foldhash v0.1.5
+   Compiling winnow v1.0.4
+   Compiling smallvec v1.16.3
+   Compiling hashbrown v0.15.5
+   Compiling fixedbitset v0.5.7
+   Compiling thiserror v2.0.21
+   Compiling bytemuck v1.25.2
+   Compiling anyhow v1.0.104
+   Compiling rand_core v0.9.5
+   Compiling indexmap v2.14.2
+   Compiling safe_arch v0.7.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl/macros)
+   Compiling wide v0.7.33
+   Compiling rand_xoshiro v0.7.0
+   Compiling archery v1.2.3
+   Compiling regex-syntax v0.8.11
+   Compiling either v1.19.0
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/dsl)
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling manyhow-macros v0.14.1
+   Compiling itertools v0.14.0
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/native)
+   Compiling bytes v1.12.1
+   Compiling prettyplease v0.2.37
+   Compiling imbl v7.0.2
+   Compiling tempfile v3.27.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling rustc-hash v2.1.3
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling zmij v1.0.23
+   Compiling console v0.16.6
+   Compiling target-tuple v1.0.2
+   Compiling similar v2.7.0
+   Compiling serde v1.0.229
+   Compiling proc-macro-crate v3.5.0
+   Compiling autocfg v1.5.1
+   Compiling serde_json v1.0.154
+   Compiling regex v1.13.1
+   Compiling num-traits v0.2.19
+   Compiling insta v1.49.0
+   Compiling manyhow v0.14.1
+   Compiling serde_spanned v1.1.2
+   Compiling itoa v1.0.18
+   Compiling memchr v2.8.3
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/suite)
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling wait-timeout v0.2.1
+   Compiling bit-vec v0.10.1
+   Compiling termcolor v1.4.1
+   Compiling quick-error v1.2.3
+   Compiling glob v0.3.4
+   Compiling fnv v1.0.7
+   Compiling bit-set v0.11.1
+   Compiling rusty-fork v0.3.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling prost-derive v0.14.4
+   Compiling rand v0.10.3
+   Compiling chacha20 v0.10.2
+   Compiling rand_xorshift v0.5.0
+   Compiling unarray v0.1.4
+   Compiling core_detect v1.0.0
+   Compiling proptest v1.12.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/ir)
+   Compiling prost v0.14.4
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/front)
+   Compiling prost-types v0.14.4
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/process)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/protocol/runtime)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/tla)
+   Compiling trybuild v1.0.122
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2482-helpers/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 12s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/umpire_catalog-eab2d79e44c10f10)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/umpire_checker-2d5de14ccc996a24)
+
+running 5 tests
+test interpret::optional_tests::imports_exact_nominal_optional_values ... ok
+test interpret::exported_values::world_validation_tests::primitive_world_import_refuses_missing_duplicate_extra_kinds_and_ranges ... ok
+test interpret::optional_tests::optional_default_is_eager_and_decodes_zero_payload ... ok
+test interpret::optional_tests::resolver_preserves_scalar_conversions_and_backing_arithmetic ... ok
+test interpret::optional_tests::some_encoding_checks_ordinal_bounds_without_finite_validation ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/umpire_front-bb82f033648c474b)
+
+running 6 tests
+test body::effects::optional_fact_tests::optional_tail_preserves_prefix_state ... ok
+test library::tests::library_sources_parse_and_declare_the_laws_and_traits ... ok
+test shape::tests::facade_roots_preserve_admission_and_library_paths ... ok
+test body::optional::tests::defaults_and_eager_ssa_preserve_nominal_types ... ok
+test body::effects::optional_fact_tests::optional_fact_declarations_and_tails_are_bounded ... ok
+test body::optional::tests::canonical_constructor_types_and_located_refusals ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2482-target/debug/deps/umpire_suite-31fbe184417d5763)
+
+running 11 tests
+test coverage::tests::refuses_invalid_metadata_and_panicking_callbacks ... ok
+test coverage::tests::progress_uses_the_combined_evaluator_on_witness_states ... ok
+test pattern_search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node ... ok
+test coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity ... ok
+test coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct ... ok
+test coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans ... ok
+test pattern_search::tests::cut_graph_answers_only_settled_searches ... ok
+test pattern_search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated ... ok
+test pattern_search::tests::only_explicit_gaps_consume_intervening_edges ... ok
+test pattern_search::tests::exact_outcome_retains_the_selected_row ... ok
+test pattern_search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+

@@ -1,0 +1,52 @@
+
+running 1 test
+test source_edits_refuse_missing_duplicate_and_empty_anchors ... FAILED
+
+failures:
+
+---- source_edits_refuse_missing_duplicate_and_empty_anchors stdout ----
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:2:5:
+assertion `left == right` failed: mutation target: target
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:18:5:
+assertion `left == right` failed: mutation anchor: target
+  left: 0
+ right: 1
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:2:5:
+assertion `left == right` failed: mutation target: target
+  left: 2
+ right: 1
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:18:5:
+assertion `left == right` failed: mutation anchor: target
+  left: 2
+ right: 1
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:7:5:
+assertion `left == right` failed: region start: [
+  left: 0
+ right: 1
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:7:5:
+assertion `left == right` failed: region start: [
+  left: 2
+ right: 1
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:9:70:
+missing ]
+
+thread 'source_edits_refuse_missing_duplicate_and_empty_anchors' (1006139) panicked at .flow/tmp/fn2482-original-source-edits.rs:50:9:
+assertion failed: std::panic::catch_unwind(||
+            replace_in(source, start, end, from, "new")).is_err()
+
+
+failures:
+    source_edits_refuse_missing_duplicate_and_empty_anchors
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.01s
+

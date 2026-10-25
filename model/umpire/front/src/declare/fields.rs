@@ -25,24 +25,20 @@ pub(crate) fn struct_fields<'a>(
 
 /// Each field's `#[starts]` range; every malformed range is reported.
 pub fn start_ranges(fields: &[&Field]) -> syn::Result<Vec<Option<ExprRange>>> {
-    let mut errors: Option<syn::Error> = None;
-    let mut emit = |error: syn::Error| match &mut errors {
-        Some(previous) => previous.combine(error),
-        None => errors = Some(error),
-    };
+    let mut errors = crate::Errors::default();
     let mut ranges = Vec::new();
     for field in fields {
         let mut range = None;
         for attr in field.attrs.iter().filter(|attr| attr.path().is_ident("starts")) {
             match start_range(attr) {
                 Ok(value) if range.is_none() => range = Some(value),
-                Ok(_) => emit(syn::Error::new_spanned(attr, "duplicate #[starts] domain")),
-                Err(error) => emit(error),
+                Ok(_) => errors.push(syn::Error::new_spanned(attr, "duplicate #[starts] domain")),
+                Err(error) => errors.push(error),
             }
         }
         ranges.push(range);
     }
-    errors.map_or(Ok(ranges), Err)
+    errors.finish(ranges)
 }
 
 fn start_range(attr: &Attribute) -> syn::Result<ExprRange> {

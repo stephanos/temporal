@@ -1,5 +1,8 @@
 //! Literal pre-rename wire controls, independent of generated descriptors.
 
+#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+mod support;
+
 use prost::Message;
 use umpire_runtime::protocol::{self, response::Outcome};
 
@@ -22,15 +25,7 @@ fn original_wire_bytes_and_values_are_stable() {
     }
     for line in include_str!("../../proto/tests/protocol-wire.txt").lines() {
         let (name, hex) = line.split_once(' ').unwrap_or_else(|| panic!("invalid vector"));
-        let (pairs, remainder) = hex.as_bytes().as_chunks::<2>();
-        assert_eq!(remainder, []);
-        let bytes: Vec<u8> = pairs
-            .iter()
-            .map(|pair| {
-                let pair = std::str::from_utf8(pair).unwrap_or_else(|e| panic!("{e}"));
-                u8::from_str_radix(pair, 16).unwrap_or_else(|e| panic!("{e}"))
-            })
-            .collect();
+        let bytes = support::decode_hex(hex);
         match name {
             "explore_request" => {
                 let value = protocol::ExploreRequest::decode(bytes.as_slice())
@@ -82,5 +77,14 @@ fn original_wire_bytes_and_values_are_stable() {
                 }
             }
         }
+    }
+}
+
+#[test]
+fn shared_hex_decoder_preserves_literal_bytes_and_refuses_malformed_vectors() {
+    assert_eq!(support::decode_hex(""), []);
+    assert_eq!(support::decode_hex("00aAfF"), [0, 170, 255]);
+    for malformed in ["0", "gg", "é", "000"] {
+        assert!(std::panic::catch_unwind(|| support::decode_hex(malformed)).is_err());
     }
 }

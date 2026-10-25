@@ -1,4 +1,7 @@
 //! Additive proposal wire contract, preserving the existing vectors.
+#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
+mod support;
+
 use prost::Message;
 use umpire_runtime::{
     prost_types::Any,
@@ -56,19 +59,14 @@ fn proposal_method_kind_and_poll_wire_contract() {
                 protocol::Response { outcome: Some(outcome) }.encode_to_vec()
             }
         };
-        let mut actual = String::new();
-        for byte in value {
-            use std::fmt::Write;
-            write!(actual, "{byte:02x}").unwrap_or_else(|error| panic!("{error}"));
-        }
         if name == "judge_poll_go" {
-            let bytes = [0x2a, 4, 0x18, 1, 0x0a, 0];
+            let bytes = support::decode_hex(wire);
             let response = protocol::Response::decode(bytes.as_slice())
                 .unwrap_or_else(|error| panic!("{error}"));
             assert_eq!(response.encode_to_vec(), [0x2a, 4, 0x0a, 0, 0x18, 1]);
             assert_eq!(wire, "2a0418010a00");
         } else {
-            assert_eq!(actual, wire, "{name}");
+            assert_eq!(value, support::decode_hex(wire), "{name}");
         }
     }
 }

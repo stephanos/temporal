@@ -3,7 +3,7 @@ use crate::foundation::dc::{BLOB_SIZE_ERROR, Limits, MAX_ID_LENGTH};
 use std::{collections::BTreeSet, sync::OnceLock};
 use umpire_catalog::{
     Expectation, GapEntry, MutationApplicability, ProbeResult, Violation, WireCase,
-    mutation_entries, wire_cases,
+    mutation_entries, probe_applicability, wire_cases,
 };
 use umpire_runtime::annotations::ProbeApplicability;
 use umpire_runtime::annotations::ProbeCase;
@@ -67,7 +67,7 @@ impl Entry {
     }
 
     pub(super) fn metadata(&self) -> Result<ProbeCase> {
-        let (applicability, mut refusal) = applicability(&self.case.applicability);
+        let (applicability, mut refusal) = probe_applicability(&self.case.applicability);
         if matches!(self.case.applicability, MutationApplicability::NotApplicable(_)) {
             refusal =
                 format!("{} is not applicable to this wire carrier", self.case.mutation.name());
@@ -338,22 +338,13 @@ fn compatible_state(actual: i32, refusal: &str, expected: &ProbeCase) -> bool {
         return true;
     }
     expected.predictions.is_empty()
-        && matches!(expected.applicability, 0 | 3)
-        && ((actual == 0 && refusal.is_empty())
-            || (actual == 3 && refusal == "mutation leaves the baseline unchanged"))
-}
-
-fn applicability(value: &MutationApplicability) -> (ProbeApplicability, String) {
-    match value {
-        MutationApplicability::Applicable => (ProbeApplicability::Applicable, String::new()),
-        MutationApplicability::NotApplicable(reason) => {
-            (ProbeApplicability::NotApplicable, reason.clone())
-        }
-        MutationApplicability::Refused(reason) => (ProbeApplicability::Refused, reason.clone()),
-        MutationApplicability::Unchanged => {
-            (ProbeApplicability::Unchanged, "mutation leaves the baseline unchanged".into())
-        }
-    }
+        && matches!(
+            ProbeApplicability::try_from(expected.applicability),
+            Ok(ProbeApplicability::Applicable | ProbeApplicability::Unchanged)
+        )
+        && ((actual == ProbeApplicability::Applicable as i32 && refusal.is_empty())
+            || (actual == ProbeApplicability::Unchanged as i32
+                && refusal == "mutation leaves the baseline unchanged"))
 }
 
 #[cfg(test)]

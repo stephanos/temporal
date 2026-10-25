@@ -122,12 +122,7 @@ impl<M: Machine> Through<'_, M> {
                     .map_err(|error| Refusal::Predicate {
                         waypoint: along.next,
                         state: state.to_string(),
-                        failure: error
-                            .downcast_ref::<&str>()
-                            .copied()
-                            .or_else(|| error.downcast_ref::<String>().map(String::as_str))
-                            .unwrap_or("non-string panic payload")
-                            .into(),
+                        failure: umpire_checker::panic_message(error.as_ref()).into(),
                     })?;
             let advanced = Along {
                 state: along.state,
