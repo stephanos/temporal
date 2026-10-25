@@ -78,6 +78,8 @@ pub struct PollActivityTaskQueueResponse {
     workflow_namespace: Text,
     #[mirror(decided)]
     activity_type: Message<c::ActivityType>,
+    #[mirror(decided)]
+    header: Message<c::Header>,
     activity_id: Text,
     #[mirror(decided)]
     input: Message<c::Payloads>,
@@ -212,6 +214,8 @@ pub struct StartActivityExecutionRequest {
 pub struct StartActivityExecutionResponse {
     run_id: Uuid,
     started: Flag,
+    #[mirror(decided)]
+    link: Message<c::Link>,
 }
 /// Long-poll tokens require an explicit run identifier.
 #[derive(Catalog)]
@@ -225,6 +229,8 @@ pub struct DescribeActivityExecutionRequest {
     activity_id: Identifier,
     #[rule(rejects = "invalid run id")]
     run_id: Uuid,
+    include_outcome: Flag,
+    include_last_failure: Flag,
     long_poll_token: Secret,
 }
 /// Lifecycle metadata is required; optional external payloads remain Decided.

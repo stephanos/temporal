@@ -80,6 +80,8 @@ pub struct ApplicationFailureInfo {
 pub struct Failure {
     #[mirror(decided)]
     message: Text,
+    #[mirror(ignored = "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled")]
+    source: ::umpire_catalog::kinds::Ignored,
     stack_trace: Secret,
     #[mirror(decided)]
     encoded_attributes: Message<common::Payload>,
@@ -222,3 +224,37 @@ pub struct Header {
     #[mirror(decided)]
     fields: Map<Text, Message<common::Payload>>,
 }
+
+/// Start receipt identity reads the Activity link and rejects other link variants.
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link")]
+pub struct Link {
+    #[mirror(decided)]
+    #[mirror(oneof(WorkflowEvent = "workflow_event", BatchJob = "batch_job", Activity = "activity", NexusOperation = "nexus_operation", Workflow = "workflow", Callback = "callback"))]
+    variant: OneOf<common::link::Variant>,
+}
+
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.Activity")]
+/// Activity link identity fields consumed by Start receipt validation.
+pub struct LinkActivity { namespace: Text, activity_id: Text, run_id: Text }
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.WorkflowEvent")]
+/// Payload fields are unclaimed after the feature rejects this link variant.
+pub struct LinkWorkflowEvent {}
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.BatchJob")]
+/// Payload fields are unclaimed after the feature rejects this link variant.
+pub struct LinkBatchJob {}
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.NexusOperation")]
+/// Payload fields are unclaimed after the feature rejects this link variant.
+pub struct LinkNexusOperation {}
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.Workflow")]
+/// Payload fields are unclaimed after the feature rejects this link variant.
+pub struct LinkWorkflow {}
+#[derive(Catalog)]
+#[mirror(response = "temporal.api.common.v1.Link.Callback")]
+/// Payload fields are unclaimed after the feature rejects this link variant.
+pub struct LinkCallback {}

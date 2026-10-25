@@ -236,7 +236,7 @@ fn every_generic_attempt_checks_actual_context_against_canonical_predictions()
 -> Result<(), Box<dyn std::error::Error>> {
     let inventory = probe(&ProbeRequest::default())?;
     let cases: Vec<_> = inventory.cases.iter().filter(|case| case.generic).collect();
-    assert_eq!(cases.len(), 1048);
+    assert_eq!(cases.len(), 1060);
     for context in [false, true] {
         let slots = ProbeRequest {
             operation: Operation::Prepare as i32,

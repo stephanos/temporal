@@ -104,16 +104,19 @@ pub mod poll_normal_name {
 
 /// The documented public retry contract applies to explicit enabled policy intervals.
 pub mod start_retry_order {
-    use umpire_catalog::{FieldValue, GenerationError, Kind};
+    use umpire_catalog::{FieldValue, GenerationError, Kind, View, kinds};
     use umpire_runtime::prost_types::Duration;
     use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
 
-    fn total(value: &Duration) -> Option<i128> {
-        let duration = umpire_catalog::Duration { seconds: value.seconds, nanos: value.nanos };
+    fn projected(value: Option<Duration>) -> Option<(umpire_catalog::Duration, i128)> {
+        let duration = <_ as View<kinds::Duration>>::view(&value)?;
         duration
             .violations(&Kind::Duration(umpire_catalog::NumberRules::default()))
             .is_empty()
-            .then_some(i128::from(value.seconds) * 1_000_000_000 + i128::from(value.nanos))
+            .then_some((
+                duration,
+                i128::from(duration.seconds) * 1_000_000_000 + i128::from(duration.nanos),
+            ))
     }
 
     /// Compares explicit positive intervals, preserving default and disabled policies.
@@ -122,13 +125,12 @@ pub mod start_retry_order {
         if policy.maximum_attempts == 1 {
             return 1;
         }
-        let (Some(initial), Some(maximum)) = (
-            policy.initial_interval.as_ref().and_then(total),
-            policy.maximum_interval.as_ref().and_then(total),
-        ) else {
+        let (Some(initial), Some(maximum)) =
+            (projected(policy.initial_interval), projected(policy.maximum_interval))
+        else {
             return 1;
         };
-        i32::from(initial <= 0 || maximum <= 0 || initial <= maximum)
+        i32::from(initial.1 <= 0 || maximum.1 <= 0 || initial.1 <= maximum.1)
     }
 
     /// Writes an ordered or inverted initial interval under the actual explicit maximum.
@@ -140,17 +142,27 @@ pub mod start_retry_order {
             return Ok(());
         }
         let policy = value.retry_policy.as_mut().ok_or(GenerationError::UnsupportedType)?;
-        let maximum = policy.maximum_interval.as_ref().ok_or(GenerationError::UnsupportedType)?;
+        let (maximum, total) =
+            projected(policy.maximum_interval).ok_or(GenerationError::InapplicableMutation)?;
         if valid < 1 {
-            if policy.maximum_attempts == 1 || total(maximum).is_none_or(|maximum| maximum <= 0) {
+            if policy.maximum_attempts == 1 || total <= 0 {
                 return Err(GenerationError::InapplicableMutation);
             }
-            policy.initial_interval = Some(Duration {
+            let mut candidate = value.clone();
+            candidate
+                .retry_policy
+                .as_mut()
+                .ok_or(GenerationError::UnsupportedType)?
+                .initial_interval = Some(Duration {
                 seconds: maximum.seconds.checked_add(1).ok_or(GenerationError::SizeLimit)?,
                 nanos: 0,
             });
+            if view(&candidate) != 0 {
+                return Err(GenerationError::InapplicableMutation);
+            }
+            *value = candidate;
         } else {
-            policy.initial_interval = Some(*maximum);
+            <_ as View<kinds::Duration>>::set(&mut policy.initial_interval, Some(maximum))?;
         }
         Ok(())
     }

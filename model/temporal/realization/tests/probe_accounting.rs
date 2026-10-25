@@ -56,7 +56,7 @@ fn every_previous_case_is_reconciled_without_prediction_or_control_loss()
         assert!(justified, "unexplained removal: {}", old.id);
         removed += 1;
     }
-    assert_eq!(removed, 1190);
+    assert_eq!(removed, 1178);
     assert_eq!(strengthened, 4);
     assert_eq!(retained.len(), 2);
     for (id, pattern) in [

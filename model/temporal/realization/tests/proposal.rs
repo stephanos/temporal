@@ -236,6 +236,15 @@ fn read_proposals_correlate_observations_and_never_name_worker_actions() {
         .unwrap_or_else(|| panic!("Describe"))
         .unpack()
         .unwrap_or_else(|e| panic!("{e:?}"));
+    assert!(request.include_outcome && request.include_last_failure);
+    for field in ["include_outcome", "include_last_failure"] {
+        let identity =
+            format!("temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.{field}");
+        let claim = umpire_temporal_api::workflow_field_claim(&identity)
+            .unwrap_or_else(|| panic!("missing {identity}"));
+        assert_eq!(claim.kind, "Flag");
+        assert_eq!(claim.ignored, None);
+    }
     assert_eq!(request.run_id, common::RUN);
     assert_eq!(
         (instruction.poll_interval_ms, instruction.read_timeout_ms, instruction.backoff_ms),
