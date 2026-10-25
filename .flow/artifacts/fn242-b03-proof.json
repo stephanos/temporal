@@ -60,5 +60,17 @@
   },
   "integration_control_disposition": "B06combinede624 source compiled0; B03bindings5pass; composition11pass/1integrationfailure correctly refused unregisterednewB06ignoredtest. After exact additive registrydae7c52c97 the affected compiledinventorycase1pass; all12composition cases now have actualpassingevidence. No B03validator/source change for registry correction.",
   "limits": "No final fullcycle qualification. Role/native evidence authenticworker c862 candidate, not laterintegratedcandidate. Scopeevidence reuses exactownedsource/dependencies; B06World-only implementation differs outsideB03scope.",
-  "review": "Pending single independent HIGHcorrectness wholebatch review."
+  "review": {
+    "verdict": "NEEDS_WORK",
+    "rid": "0df920b683f541f6a2ac18fb0926f217",
+    "reviewed_head": "aeced47e0c",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "findings": 1,
+    "R2": "Composed HostTests/HelperTests/HostFixture leafpaths are not tied to authenticated CandidateRoles descriptors; genuine freeze-v4 accepted unsealed placeholder paths. Fix requires actualrole mapping/seals and catching currentexecutable/path mutations.",
+    "receipt": "/home/agent/wt/evidence/fn242-b03-bindings-composition/review-receipt-round1.json",
+    "receipt_sha256": "3b87995d2cd50d8e376f0c61bae3023499b2f9f2d3c71b0581d148561ca59d14",
+    "rereview": "Single same-receipt impl-review after actualproductionfix and greencontrols; no fanoutrestart"
+  },
+  "acceptance": "INCOMPLETE: original69-ID observation map retained as historicalevidence; review proves missing consumed-role closure, so no R2completion or Flowdone."
 }
