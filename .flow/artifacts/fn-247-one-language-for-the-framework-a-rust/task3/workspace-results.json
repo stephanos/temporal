@@ -1,0 +1,21 @@
+{
+  "command": "cd model && mise exec -- cargo test --workspace --locked --quiet",
+  "gate_stage_exit": 0,
+  "observer_exit": 0,
+  "sha256": "ac7be13c3abf08fd4983a1d0b16b409191a7feff5aba04ef216151b3c5ae86d6",
+  "result_summary_count": 185,
+  "sum_of_reported_cargo_result_summaries": {
+    "passed": 790,
+    "failed": 0,
+    "ignored": 4,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "count_scope": "Actual Cargo test result summaries from this one workspace invocation, including doctests. Counts are not a count of independent semantic promises. Empty library/binary/doc groups are retained; nonempty groups executed.",
+  "inherited_ignored": [
+    "model/temporal/testing/realization_control.rs: added_catalog_field_fails_the_real_coverage_golden (isolated source rebuild coverage checkpoint)",
+    "model/umpire/dev/fixtures/interpreted.rs: timing (run alone in release)",
+    "model/umpire/dev/testing/tests/consumers.rs: optional cargo-insta CLI test",
+    "model/umpire/author/suite/src/lib.rs: ignored authoring documentation example"
+  ]
+}

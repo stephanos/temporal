@@ -1,5 +1,5 @@
 {
-  "head": "d37af8922a70928a89f866d3d8d93efad5d4a314",
+  "head": "0925064e4fe346191addf0c79b534e78fc7d6ab6",
   "historical_python_inventory_anchor": "94e47d7878",
   "historical_python_files": [
     "model/scripts/fetch-apalache.py",
@@ -168,7 +168,7 @@
   "lockfile_package_count": 152,
   "draft_make_removed_python_reference": true,
   "native_test_stage_exactly_once": true,
-  "source_state": "task3 precommit working tree; source hashes bind final inputs",
+  "source_state": "task3 committed source; full source-binding.json binds the final input set",
   "python_token_scan": [
     {
       "path": "model/dev/xtask/src/support.rs",
@@ -186,7 +186,7 @@
     "Makefile": "261f445547de8e8c8aa3f41a8de65b7e4316a45ebcf3d8e70c8cb9c3b30c63a4",
     "model/README.md": "3cdec2ea92a2968fc995a37bcee5ea5f560d033280906d541cf47389d16f439c",
     "model/GUEST_BUILDS.md": "3504a1ab98246d63c15c49af0cf294075624cbcf8a0f4bb7ec7920b235271ced",
-    "model/DESIGN.md": "838ef36e53def1c09e64fbaded08df6cf9933ff880ab2361dcb3aa9c0b95ac0e",
+    "model/DESIGN.md": "33051f7094c375979b1d367d13af51104836b820b87cdd8d97d886cf4f98bc10",
     ".plans/UMPIRE_MODULES.md": "e51386bd78f062a043c36e6912a1656ba4c4025a6fcc99e46dd4961034b76cb0"
   }
 }

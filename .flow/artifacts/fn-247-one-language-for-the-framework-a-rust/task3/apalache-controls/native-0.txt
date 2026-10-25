@@ -1,0 +1,14 @@
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 1
+refused: 0
+depth: 0
+cut: false
+outcome: Refuted
+claim claims: Verified
+claim post: Verified
+claim step_0_0: Refuted
+failure step_0_0: action User::Calculate panicked: attempt to add with overflow
+vacuity: action User::Calculate never fired
+vacuity: after claim post never triggered

@@ -1,0 +1,2 @@
+Initial capture wrapper changed cwd while collecting tools; log redirection failed before make was launched. No validation pipeline executed in that attempt.
+The first read-only tail observer made no progress with filesystem notifications; terminated own observer143 and replaced it with polling of the SAME Cargo stdout, starting at byte0. Gate unaffected; no test rerun.

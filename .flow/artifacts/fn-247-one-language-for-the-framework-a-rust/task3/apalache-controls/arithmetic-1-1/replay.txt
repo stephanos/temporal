@@ -1,0 +1,5 @@
+property=ArithmeticSafe bound=1 World={"__umpire_world_divisor": Int(1), "__umpire_world_mode": Int(1), "__umpire_world_start": Int(127)}
+Arithmetic { index: 1, reason: "attempt to add with overflow" }
+0: {"divisor": Int(1), "done": Bool(false), "value": Int(127)}
+1: User::Calculate input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"divisor": Int(1), "done": Bool(false), "value": Int(127)}

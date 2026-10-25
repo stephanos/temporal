@@ -1,0 +1,77 @@
+# Usage statistics is OFF. We care about your privacy.
+# If you want to help our project, consider enabling statistics with config --enable-stats=true.
+
+Output directory: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/run-a3wjG7/out/EmptyFirst.tla/2026-10-24T17-56-57_9490582842430108059
+# APALACHE version: 0.62.4 | build: 7954daf                       I@17:56:57.582
+  > model.cfg: Loading TLC configuration                          I@17:56:57.593
+  > Using init predicate(s) Init from the TLC config              I@17:56:57.778
+  > Using next predicate(s) Next from the TLC config              I@17:56:57.791
+checker.inv overrides the value from the TLC configuration.       W@17:56:57.830
+Tuning:                                                           I@17:56:57.830
+PASS #0: SanyParser                                               I@17:56:58.287
+PASS #1: TypeCheckerSnowcat                                       I@17:56:59.556
+ > Running Snowcat .::.                                           I@17:56:59.556
+ > Your types are purrfect!                                       I@17:57:01.695
+ > All expressions are typed                                      I@17:57:01.697
+PASS #2: ConfigurationPass                                        I@17:57:01.698
+  > model.cfg: found INVARIANTS: ArithmeticSafe                   I@17:57:02.025
+  > Set the initialization predicate to Init                      I@17:57:02.026
+  > Set the transition predicate to Next                          I@17:57:02.026
+  > Set an invariant to ArithmeticSafe                            I@17:57:02.026
+PASS #3: DesugarerPass                                            I@17:57:02.035
+  > Desugaring...                                                 I@17:57:02.035
+PASS #4: InlinePass                                               I@17:57:02.066
+Leaving only relevant operators: ArithmeticSafe, CInitPrimed, Init, InitPrimed, Next I@17:57:02.078
+PASS #5: TemporalPass                                             I@17:57:02.245
+  > Rewriting temporal operators...                               I@17:57:02.245
+  > No temporal property specified, nothing to encode             I@17:57:02.245
+PASS #6: InlinePass                                               I@17:57:02.245
+Leaving only relevant operators: ArithmeticSafe, CInitPrimed, Init, InitPrimed, Next I@17:57:02.245
+PASS #7: PrimingPass                                              I@17:57:02.257
+  > Introducing InitPrimed for Init'                              I@17:57:02.261
+PASS #8: VCGen                                                    I@17:57:02.267
+  > Producing verification conditions from the invariant ArithmeticSafe I@17:57:02.267
+  > VCGen produced 1 verification condition(s)                    I@17:57:02.269
+PASS #9: PreprocessingPass                                        I@17:57:02.270
+  > Before preprocessing: unique renaming                         I@17:57:02.270
+ > Applying standard transformations:                             I@17:57:02.274
+  > PrimePropagation                                              I@17:57:02.274
+  > Desugarer                                                     I@17:57:02.275
+  > UniqueRenamer                                                 I@17:57:02.276
+  > Normalizer                                                    I@17:57:02.278
+  > SetMembershipSimplifier                                       I@17:57:02.280
+  > Keramelizer                                                   I@17:57:02.282
+  > After preprocessing: UniqueRenamer                            I@17:57:02.286
+PASS #10: TransitionFinderPass                                    I@17:57:02.298
+  > Found 4 initializing transitions                              I@17:57:02.368
+  > Found 2 transitions                                           I@17:57:02.381
+  > No constant initializer                                       I@17:57:02.384
+  > Applying unique renaming                                      I@17:57:02.385
+PASS #11: OptimizationPass                                        I@17:57:02.402
+ > Applying optimizations:                                        I@17:57:02.405
+  > ConstSimplifier                                               I@17:57:02.406
+  > ExprOptimizer                                                 I@17:57:02.435
+  > SetMembershipSimplifier                                       I@17:57:02.444
+  > ConstSimplifier                                               I@17:57:02.444
+PASS #12: AnalysisPass                                            I@17:57:02.452
+ > Marking skolemizable existentials and sets to be expanded...   I@17:57:02.453
+  > Skolemization                                                 I@17:57:02.453
+  > Expansion                                                     I@17:57:02.461
+  > Remove unused let-in defs                                     I@17:57:02.466
+ > Running analyzers...                                           I@17:57:02.475
+  > Introduced expression grades                                  I@17:57:02.476
+PASS #13: BoundedChecker                                          I@17:57:02.476
+Step 0: Transition #0 is disabled                                 I@17:57:03.961
+Step 0: Transition #1 is disabled                                 I@17:57:03.988
+Step 0: Transition #2 is disabled                                 I@17:57:03.994
+Step 0: Transition #3 is disabled                                 I@17:57:04.017
+All executions are shorter than the provided bound.               W@17:57:04.018
+The outcome is: ExecutionsTooShort                                I@17:57:04.023
+Checker reports no error up to computation length 0               I@17:57:04.025
+It took me 0 days  0 hours  0 min  6 sec                          I@17:57:04.026
+Total time: 6.435 sec                                             I@17:57:04.028
+EXITCODE: OK
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release

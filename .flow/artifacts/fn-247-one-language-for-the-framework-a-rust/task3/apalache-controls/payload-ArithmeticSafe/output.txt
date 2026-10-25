@@ -1,0 +1,89 @@
+# Usage statistics is OFF. We care about your privacy.
+# If you want to help our project, consider enabling statistics with config --enable-stats=true.
+
+Output directory: /Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/run-laU8hw/out/Inputs.tla/2026-10-24T17-57-02_684820493369754630
+# APALACHE version: 0.62.4 | build: 7954daf                       I@17:57:02.332
+  > model.cfg: Loading TLC configuration                          I@17:57:02.340
+  > Using init predicate(s) Init from the TLC config              I@17:57:02.549
+  > Using next predicate(s) Next from the TLC config              I@17:57:02.549
+checker.inv overrides the value from the TLC configuration.       W@17:57:02.563
+Tuning:                                                           I@17:57:02.564
+PASS #0: SanyParser                                               I@17:57:03.477
+PASS #1: TypeCheckerSnowcat                                       I@17:57:04.480
+ > Running Snowcat .::.                                           I@17:57:04.481
+ > Your types are purrfect!                                       I@17:57:07.209
+ > All expressions are typed                                      I@17:57:07.210
+PASS #2: ConfigurationPass                                        I@17:57:07.219
+  > model.cfg: found INVARIANTS: ArithmeticSafe                   I@17:57:07.534
+  > Set the initialization predicate to Init                      I@17:57:07.539
+  > Set the transition predicate to Next                          I@17:57:07.543
+  > Set the constant initialization predicate to CInit            I@17:57:07.544
+  > Set an invariant to ArithmeticSafe                            I@17:57:07.544
+PASS #3: DesugarerPass                                            I@17:57:07.551
+  > Desugaring...                                                 I@17:57:07.552
+PASS #4: InlinePass                                               I@17:57:07.614
+Leaving only relevant operators: ArithmeticSafe, CInit, CInitPrimed, Init, InitPrimed, Next I@17:57:07.614
+PASS #5: TemporalPass                                             I@17:57:07.788
+  > Rewriting temporal operators...                               I@17:57:07.788
+  > No temporal property specified, nothing to encode             I@17:57:07.788
+PASS #6: InlinePass                                               I@17:57:07.789
+Leaving only relevant operators: ArithmeticSafe, CInit, CInitPrimed, Init, InitPrimed, Next I@17:57:07.789
+PASS #7: PrimingPass                                              I@17:57:07.806
+  > Introducing CInitPrimed for CInit'                            I@17:57:07.812
+  > Introducing InitPrimed for Init'                              I@17:57:07.813
+PASS #8: VCGen                                                    I@17:57:07.813
+  > Producing verification conditions from the invariant ArithmeticSafe I@17:57:07.813
+  > VCGen produced 1 verification condition(s)                    I@17:57:07.815
+PASS #9: PreprocessingPass                                        I@17:57:07.816
+  > Before preprocessing: unique renaming                         I@17:57:07.817
+ > Applying standard transformations:                             I@17:57:07.820
+  > PrimePropagation                                              I@17:57:07.821
+  > Desugarer                                                     I@17:57:07.827
+  > UniqueRenamer                                                 I@17:57:07.844
+  > Normalizer                                                    I@17:57:07.884
+  > SetMembershipSimplifier                                       I@17:57:07.910
+  > Keramelizer                                                   I@17:57:07.924
+  > After preprocessing: UniqueRenamer                            I@17:57:07.941
+PASS #10: TransitionFinderPass                                    I@17:57:07.962
+  > Found 1 initializing transitions                              I@17:57:07.996
+  > Found 4 transitions                                           I@17:57:08.020
+  > Found constant initializer CInit                              I@17:57:08.022
+  > Applying unique renaming                                      I@17:57:08.027
+PASS #11: OptimizationPass                                        I@17:57:08.038
+ > Applying optimizations:                                        I@17:57:08.050
+  > ConstSimplifier                                               I@17:57:08.051
+  > ExprOptimizer                                                 I@17:57:08.075
+  > SetMembershipSimplifier                                       I@17:57:08.096
+  > ConstSimplifier                                               I@17:57:08.123
+PASS #12: AnalysisPass                                            I@17:57:08.145
+ > Marking skolemizable existentials and sets to be expanded...   I@17:57:08.152
+  > Skolemization                                                 I@17:57:08.152
+  > Expansion                                                     I@17:57:08.156
+  > Remove unused let-in defs                                     I@17:57:08.181
+ > Running analyzers...                                           I@17:57:08.197
+  > Introduced expression grades                                  I@17:57:08.204
+PASS #13: BoundedChecker                                          I@17:57:08.204
+State 0: Checking 1 state invariants                              I@17:57:09.048
+State 0: state invariant 0 holds.                                 I@17:57:09.073
+Step 0: picking a transition out of 1 transition(s)               I@17:57:09.081
+State 1: Checking 1 state invariants                              I@17:57:09.256
+State 1: state invariant 0 holds.                                 I@17:57:09.257
+State 1: Checking 1 state invariants                              I@17:57:09.397
+State 1: state invariant 0 holds.                                 I@17:57:09.397
+Step 1: Transition #3 is disabled                                 I@17:57:09.485
+Step 1: picking a transition out of 3 transition(s)               I@17:57:09.486
+State 2: Checking 1 state invariants                              I@17:57:09.594
+State 2: state invariant 0 holds.                                 I@17:57:09.595
+State 2: Checking 1 state invariants                              I@17:57:09.681
+State 2: state invariant 0 holds.                                 I@17:57:09.681
+Step 2: Transition #3 is disabled                                 I@17:57:09.719
+Step 2: picking a transition out of 3 transition(s)               I@17:57:09.719
+The outcome is: NoError                                           I@17:57:09.760
+Checker reports no error up to computation length 2               I@17:57:09.760
+It took me 0 days  0 hours  0 min  7 sec                          I@17:57:09.762
+Total time: 7.421 sec                                             I@17:57:09.762
+EXITCODE: OK
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release

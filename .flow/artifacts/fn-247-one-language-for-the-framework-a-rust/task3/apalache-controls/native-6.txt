@@ -1,0 +1,11 @@
+starts: 1
+reached: 2
+emitted: 1
+evaluated: 2
+refused: 1
+depth: 1
+cut: false
+outcome: Verified
+claim claims: Verified
+claim post: Verified
+vacuity: none

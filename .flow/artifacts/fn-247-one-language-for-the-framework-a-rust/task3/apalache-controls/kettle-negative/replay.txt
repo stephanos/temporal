@@ -1,0 +1,127 @@
+property=Negative_never_beeps bound=63 World={}
+Violation
+0: {"beeping": Bool(false), "heating_on": Bool(false), "temperature": Int(40)}
+1: User::PressButton input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(40)}
+2: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(41)}
+3: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(42)}
+4: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(43)}
+5: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(44)}
+6: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(45)}
+7: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(46)}
+8: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(47)}
+9: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(48)}
+10: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(49)}
+11: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(50)}
+12: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(51)}
+13: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(52)}
+14: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(53)}
+15: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(54)}
+16: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(55)}
+17: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(56)}
+18: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(57)}
+19: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(58)}
+20: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(59)}
+21: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(60)}
+22: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(61)}
+23: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(62)}
+24: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(63)}
+25: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(64)}
+26: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(65)}
+27: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(66)}
+28: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(67)}
+29: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(68)}
+30: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(69)}
+31: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(70)}
+32: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(71)}
+33: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(72)}
+34: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(73)}
+35: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(74)}
+36: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(75)}
+37: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(76)}
+38: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(77)}
+39: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(78)}
+40: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(79)}
+41: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(80)}
+42: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(81)}
+43: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(82)}
+44: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(83)}
+45: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(84)}
+46: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(85)}
+47: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(86)}
+48: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(87)}
+49: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(88)}
+50: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(89)}
+51: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(90)}
+52: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(91)}
+53: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(92)}
+54: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(93)}
+55: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(94)}
+56: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(95)}
+57: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(96)}
+58: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(97)}
+59: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(98)}
+60: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(99)}
+61: Heater::Heat input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(false), "heating_on": Bool(true), "temperature": Int(100)}
+62: Heater::Failover input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"beeping": Bool(true), "heating_on": Bool(false), "temperature": Int(100)}

@@ -1,0 +1,37 @@
+{
+  "references": {
+    "task2/dependency-inventory.json": "e1c22918a9a306f5af0b5bff4a2c94a484ca4702e9190927242c696610c6f821",
+    "task6/dependency-inventory.json": "0ba96d8cf1a6cc455d5054ff819f7c46f5af580fa8c43c5e16b4c5275c995c31",
+    "task9/dependency-inventory.json": "b5bd615fa83d1053bfc79d1bbf03ff6eeb90432fb88c0f43fd614d80e8804711",
+    "task6/joined/native-identity-proof.json": "c8f18ea52360b061d2ac920e265a36495f753b43f578b6e4082fad120db80254",
+    "task9/unsafe-before.json": "cf2bc57c3062ab7d8e0c2c2b5bf1ff1d9360a2234d391c7dfda74b36065e0dcc",
+    "task9/unsafe-after.json": "18cb143f0bf8c89a6e709f35eab09200d4bb1f24cd3bda5b47e48bbcbf943354"
+  },
+  "inventory_chain": [
+    {
+      "task": "task2",
+      "before": 137,
+      "after": 145,
+      "scope": "host-only xtask member, sha2 and its admitted transitives; existing native TOML promotion and serde_json feature policy recorded in authoritative inventory"
+    },
+    {
+      "task": "task9",
+      "before": 145,
+      "after": 145,
+      "scope": "already-resolved rustix/tempfile; parent features changed, raw child unchanged"
+    },
+    {
+      "task": "task6",
+      "before": 145,
+      "after": 152,
+      "scope": "seven archive packages; each R18 basis recorded in authoritative inventory"
+    }
+  ],
+  "current_package_count": 152,
+  "unsafe_sites": {
+    "before": 77,
+    "after": 67,
+    "scope": "lexical process crate unsafe sites; no raw child boundary changes; not runtime safety certificate"
+  },
+  "guest_proof": "All six identity closures unchanged across joined admissions; actual two-clean-path guest builds and publication under task5/joined; native Darwin unclaimed."
+}

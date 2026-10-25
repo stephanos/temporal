@@ -1,0 +1,153 @@
+{
+  "command": "BASH_ENV=/dev/null UMPIRE_APALACHE=require make model-validate",
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+  "source_commit": "0925064e4fe346191addf0c79b534e78fc7d6ab6",
+  "started_utc": "2026-10-25T00:50:38Z",
+  "ended_utc": "2026-10-25T01:25:31Z",
+  "exit_code": 0,
+  "modes": {
+    "UMPIRE_BACKENDS": "require (canonical Make override)",
+    "UMPIRE_APALACHE": "require"
+  },
+  "gate_seconds": 2081.715,
+  "benchmark_seconds": 10.813,
+  "outer_shell_seconds": 2092.924,
+  "timestamp_wall_seconds": 2092.929903539,
+  "soft_targets": {
+    "gate_seconds": 60,
+    "benchmark_seconds": 10,
+    "both_exceeded": true
+  },
+  "stages": [
+    {
+      "name": "temporal-guest-freshness",
+      "seconds": 61.934,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "retired-names",
+      "seconds": 4.582,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "timing-controls",
+      "seconds": 2.091,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "capability-controls",
+      "seconds": 1.039,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "source-boundary",
+      "seconds": 43.054,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "protobuf-freshness",
+      "seconds": 0.544,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "kettle-protobuf-freshness",
+      "seconds": 0.454,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "temporal-protobuf-freshness",
+      "seconds": 0.21,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "fmt",
+      "seconds": 1.596,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "clippy",
+      "seconds": 39.662,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "docs",
+      "seconds": 70.494,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "tests",
+      "seconds": 1707.092,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "wasm32-wasip1",
+      "seconds": 1.227,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "core-wasm-clippy",
+      "seconds": 4.105,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "wasm-guest",
+      "seconds": 78.845,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "go-host",
+      "seconds": 2.55,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "kettle-go-host",
+      "seconds": 42.423,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    },
+    {
+      "name": "temporal-go-host",
+      "seconds": 13.024,
+      "exit_code": 0,
+      "exit_evidence": "canonical fail-fast timer completed this stage and advanced"
+    }
+  ],
+  "full_pipeline_invocations": 1,
+  "benchmark_invocations": 1,
+  "baseline": "intentionally not run per owner single-pipeline policy; not represented as green or GATE_SKIPPED",
+  "source_hash_verification": {
+    "matched": 3337,
+    "mismatches": []
+  },
+  "limitations": [
+    "Linux/aarch64 actual execution; no native Darwin certification",
+    "Four inherited Cargo ignored entries are itemized in workspace-results.json",
+    "Canonical timer suppresses successful stage child output; its emitted stdout/stage timings are retained, plus passive workspace and Kettle stdout observations",
+    "Initial capture wrapper failed before make launch; observer correction did not rerun tests; capture-correction.txt records both",
+    "No separate default/full/model-time or standalone Go suite; existing default/skip controls passed in pipeline and scoped fake-child orchestration controls"
+  ],
+  "reused_component_proofs": [
+    "task5/joined/proof-report.md",
+    "task5/joined/canonical-publication.json",
+    "task6/joined/execution-receipt.json",
+    "integration/joined-validation.json",
+    "task5/review/guest-proof-continuity.json"
+  ],
+  "review": "pending authentic fresh backend review"
+}

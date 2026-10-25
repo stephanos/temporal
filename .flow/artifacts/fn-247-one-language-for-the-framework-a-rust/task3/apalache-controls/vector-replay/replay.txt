@@ -1,0 +1,7 @@
+property=Invariant_never_two bound=2 World={}
+Violation
+0: {"values": Seq([])}
+1: User::Push input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"values": Seq([Int(7)])}
+2: User::Push input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"values": Seq([Int(7), Int(7)])}

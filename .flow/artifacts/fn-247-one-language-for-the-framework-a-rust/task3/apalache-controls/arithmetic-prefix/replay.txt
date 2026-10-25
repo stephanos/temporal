@@ -1,0 +1,7 @@
+property=ArithmeticSafe bound=2 World={}
+Arithmetic { index: 2, reason: "attempt to add with overflow" }
+0: {"value": Int(254)}
+1: User::Advance input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"value": Int(255)}
+2: User::Advance input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"value": Int(255)}

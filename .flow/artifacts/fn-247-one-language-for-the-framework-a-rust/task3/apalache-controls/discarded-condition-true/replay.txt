@@ -1,0 +1,5 @@
+property=ArithmeticSafe bound=1 World={"__umpire_world_divisor": Int(0), "__umpire_world_enabled": Bool(true)}
+Arithmetic { index: 1, reason: "attempt to divide by zero" }
+0: {}
+1: User::Check input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {}

@@ -1,0 +1,12 @@
+starts: 1
+reached: 2
+emitted: 1
+evaluated: 2
+refused: 1
+depth: 1
+cut: false
+outcome: Refuted
+claim claims: Refuted
+failure claims: claim claims panicked: attempt to divide by zero
+claim post: Verified
+vacuity: none

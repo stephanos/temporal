@@ -1,0 +1,5 @@
+property=Negative_never_two bound=1 World={"__umpire_world_limit": Int(2)}
+Violation
+0: {"value": Int(1)}
+1: User::Set input=2 choice=0 outcome=Text("Outcome::Accepted") facts=Seq([])
+   {"value": Int(2)}

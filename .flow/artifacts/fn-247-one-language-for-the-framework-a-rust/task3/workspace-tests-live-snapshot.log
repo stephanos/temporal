@@ -1,0 +1,16 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+.........
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+
+running 14 tests
+...........test real_arithmetic_faults_are_reachable_and_guards_remain_total has been running for over 60 seconds
+test real_kettle_checks_source_safety_and_history has been running for over 60 seconds
+test real_kettle_negative_is_replayed_and_tampering_fails has been running for over 60 seconds
+..

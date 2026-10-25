@@ -1,0 +1,82 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, workspace and native-tool tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend required: real bounded checks and replay controls
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling serde_core v1.0.229
+   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling crc32fast v1.5.3
+   Compiling zmij v1.0.23
+   Compiling getrandom v0.4.3
+   Compiling rustix v1.1.5
+   Compiling const-oid v0.10.2
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling miniz_oxide v0.9.1
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling fastrand v2.5.0
+   Compiling memchr v2.8.3
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling flate2 v1.1.10
+   Compiling syn v3.0.9
+   Compiling hybrid-array v0.4.15
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.2.2
+   Compiling cpufeatures v0.3.1
+   Compiling filetime v0.2.29
+   Compiling tar v0.4.46
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling tempfile v3.27.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.81s
+/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar
+temporal-guest-freshness         61.934s
+retired-names                     4.582s
+timing-controls                   2.091s
+capability-controls               1.039s
+source-boundary                  43.054s
+protobuf-freshness                0.544s
+kettle-protobuf-freshness         0.454s
+temporal-protobuf-freshness       0.210s
+fmt                               1.596s
+clippy                           39.662s
+docs                             70.494s
+tests                            1707.092s
+wasm32-wasip1                     1.227s
+core-wasm-clippy                  4.105s
+wasm-guest                       78.845s
+go-host                           2.550s
+kettle-go-host                   42.423s
+temporal-go-host                 13.024s
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+inner source: umpire/backends/native/src/lib.rs
+inner command: mise exec -- cargo test -p umpire-checker --quiet
+inner loop (edit+test)           10.813s
+gate total                       2081.715s  (soft target 60s)
+inner loop                       10.813s  (soft target 10s)
+note: gate over soft target (fn-210 R30)
+note: inner loop over soft target (fn-210 R30)
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+model-validate outer wall 2092.924 s

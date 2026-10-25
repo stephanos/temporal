@@ -1,0 +1,5 @@
+property=ArithmeticSafe bound=1 World={"__umpire_world_divisor": Int(0), "__umpire_world_mode": Int(3), "__umpire_world_start": Int(1)}
+Arithmetic { index: 1, reason: "attempt to calculate the remainder with a divisor of zero" }
+0: {"divisor": Int(0), "done": Bool(false), "value": Int(1)}
+1: User::Calculate input=0 choice=0 outcome=Seq([]) facts=Seq([])
+   {"divisor": Int(0), "done": Bool(false), "value": Int(1)}

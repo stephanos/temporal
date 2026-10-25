@@ -1,0 +1,1807 @@
+{
+  "#meta": {
+    "format": "ITF",
+    "format-description": "https://apalache-mc.org/docs/adr/015adr-trace.html",
+    "description": "Created by Apalache on Sat Oct 24 17:58:20 GMT-07:00 2026",
+    "varTypes": {
+      "__umpire_input": "Int",
+      "__umpire_has_step": "Bool",
+      "__umpire_outcome": "Seq(Int)",
+      "__umpire_facts": "Seq(Seq(Int))",
+      "heating_on": "Bool",
+      "__umpire_before_beeping": "Bool",
+      "beeping": "Bool",
+      "__umpire_invalid_step": "Bool",
+      "__umpire_arithmetic_error": "Bool",
+      "__umpire_choice": "Int",
+      "temperature": "Int",
+      "__umpire_stutter": "Bool",
+      "__umpire_before_heating_on": "Bool",
+      "__umpire_action": "Str",
+      "__umpire_before_temperature": "Int"
+    }
+  },
+  "vars": [
+    "__umpire_input",
+    "__umpire_has_step",
+    "__umpire_outcome",
+    "__umpire_facts",
+    "heating_on",
+    "__umpire_before_beeping",
+    "beeping",
+    "__umpire_invalid_step",
+    "__umpire_arithmetic_error",
+    "__umpire_choice",
+    "temperature",
+    "__umpire_stutter",
+    "__umpire_before_heating_on",
+    "__umpire_action",
+    "__umpire_before_temperature"
+  ],
+  "states": [
+    {
+      "#meta": {
+        "index": 0
+      },
+      "__umpire_action": "",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": false,
+      "__umpire_before_temperature": {
+        "#bigint": "0"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": false,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": true,
+      "beeping": false,
+      "heating_on": false,
+      "temperature": {
+        "#bigint": "40"
+      }
+    },
+    {
+      "#meta": {
+        "index": 1
+      },
+      "__umpire_action": "User::PressButton",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": false,
+      "__umpire_before_temperature": {
+        "#bigint": "40"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "40"
+      }
+    },
+    {
+      "#meta": {
+        "index": 2
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "40"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "41"
+      }
+    },
+    {
+      "#meta": {
+        "index": 3
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "41"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "42"
+      }
+    },
+    {
+      "#meta": {
+        "index": 4
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "42"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "43"
+      }
+    },
+    {
+      "#meta": {
+        "index": 5
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "43"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "44"
+      }
+    },
+    {
+      "#meta": {
+        "index": 6
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "44"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "45"
+      }
+    },
+    {
+      "#meta": {
+        "index": 7
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "45"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "46"
+      }
+    },
+    {
+      "#meta": {
+        "index": 8
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "46"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "47"
+      }
+    },
+    {
+      "#meta": {
+        "index": 9
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "47"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "48"
+      }
+    },
+    {
+      "#meta": {
+        "index": 10
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "48"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "49"
+      }
+    },
+    {
+      "#meta": {
+        "index": 11
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "49"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "50"
+      }
+    },
+    {
+      "#meta": {
+        "index": 12
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "50"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "51"
+      }
+    },
+    {
+      "#meta": {
+        "index": 13
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "51"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "52"
+      }
+    },
+    {
+      "#meta": {
+        "index": 14
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "52"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "53"
+      }
+    },
+    {
+      "#meta": {
+        "index": 15
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "53"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "54"
+      }
+    },
+    {
+      "#meta": {
+        "index": 16
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "54"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "55"
+      }
+    },
+    {
+      "#meta": {
+        "index": 17
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "55"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "56"
+      }
+    },
+    {
+      "#meta": {
+        "index": 18
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "56"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "57"
+      }
+    },
+    {
+      "#meta": {
+        "index": 19
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "57"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "58"
+      }
+    },
+    {
+      "#meta": {
+        "index": 20
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "58"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "59"
+      }
+    },
+    {
+      "#meta": {
+        "index": 21
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "59"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "60"
+      }
+    },
+    {
+      "#meta": {
+        "index": 22
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "60"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "61"
+      }
+    },
+    {
+      "#meta": {
+        "index": 23
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "61"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "62"
+      }
+    },
+    {
+      "#meta": {
+        "index": 24
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "62"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "63"
+      }
+    },
+    {
+      "#meta": {
+        "index": 25
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "63"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "64"
+      }
+    },
+    {
+      "#meta": {
+        "index": 26
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "64"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "65"
+      }
+    },
+    {
+      "#meta": {
+        "index": 27
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "65"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "66"
+      }
+    },
+    {
+      "#meta": {
+        "index": 28
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "66"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "67"
+      }
+    },
+    {
+      "#meta": {
+        "index": 29
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "67"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "68"
+      }
+    },
+    {
+      "#meta": {
+        "index": 30
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "68"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "69"
+      }
+    },
+    {
+      "#meta": {
+        "index": 31
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "69"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "70"
+      }
+    },
+    {
+      "#meta": {
+        "index": 32
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "70"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "71"
+      }
+    },
+    {
+      "#meta": {
+        "index": 33
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "71"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "72"
+      }
+    },
+    {
+      "#meta": {
+        "index": 34
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "72"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "73"
+      }
+    },
+    {
+      "#meta": {
+        "index": 35
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "73"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "74"
+      }
+    },
+    {
+      "#meta": {
+        "index": 36
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "74"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "75"
+      }
+    },
+    {
+      "#meta": {
+        "index": 37
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "75"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "76"
+      }
+    },
+    {
+      "#meta": {
+        "index": 38
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "76"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "77"
+      }
+    },
+    {
+      "#meta": {
+        "index": 39
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "77"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "78"
+      }
+    },
+    {
+      "#meta": {
+        "index": 40
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "78"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "79"
+      }
+    },
+    {
+      "#meta": {
+        "index": 41
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "79"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "80"
+      }
+    },
+    {
+      "#meta": {
+        "index": 42
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "80"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "81"
+      }
+    },
+    {
+      "#meta": {
+        "index": 43
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "81"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "82"
+      }
+    },
+    {
+      "#meta": {
+        "index": 44
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "82"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "83"
+      }
+    },
+    {
+      "#meta": {
+        "index": 45
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "83"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "84"
+      }
+    },
+    {
+      "#meta": {
+        "index": 46
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "84"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "85"
+      }
+    },
+    {
+      "#meta": {
+        "index": 47
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "85"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "86"
+      }
+    },
+    {
+      "#meta": {
+        "index": 48
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "86"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "87"
+      }
+    },
+    {
+      "#meta": {
+        "index": 49
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "87"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "88"
+      }
+    },
+    {
+      "#meta": {
+        "index": 50
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "88"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "89"
+      }
+    },
+    {
+      "#meta": {
+        "index": 51
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "89"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "90"
+      }
+    },
+    {
+      "#meta": {
+        "index": 52
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "90"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "91"
+      }
+    },
+    {
+      "#meta": {
+        "index": 53
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "91"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "92"
+      }
+    },
+    {
+      "#meta": {
+        "index": 54
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "92"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "93"
+      }
+    },
+    {
+      "#meta": {
+        "index": 55
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "93"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "94"
+      }
+    },
+    {
+      "#meta": {
+        "index": 56
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "94"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "95"
+      }
+    },
+    {
+      "#meta": {
+        "index": 57
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "95"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "96"
+      }
+    },
+    {
+      "#meta": {
+        "index": 58
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "96"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "97"
+      }
+    },
+    {
+      "#meta": {
+        "index": 59
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "97"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "98"
+      }
+    },
+    {
+      "#meta": {
+        "index": 60
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "98"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "99"
+      }
+    },
+    {
+      "#meta": {
+        "index": 61
+      },
+      "__umpire_action": "Heater::Heat",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "99"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": false,
+      "heating_on": true,
+      "temperature": {
+        "#bigint": "100"
+      }
+    },
+    {
+      "#meta": {
+        "index": 62
+      },
+      "__umpire_action": "Heater::Failover",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_beeping": false,
+      "__umpire_before_heating_on": true,
+      "__umpire_before_temperature": {
+        "#bigint": "100"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": [],
+      "__umpire_stutter": false,
+      "beeping": true,
+      "heating_on": false,
+      "temperature": {
+        "#bigint": "100"
+      }
+    }
+  ]
+}
