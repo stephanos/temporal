@@ -55,6 +55,8 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 
 ### Fast validation gates first (owner amendment, 2026-10-25)
 
+**Owner pause, 2026-10-25:** fn-242 is parked; no further port implementation, preparation cohorts or proof runs until the owner explicitly resumes it. Preserve its source and evidence under [the pause record](.flow/artifacts/fn242-owner-pause-2026-10-25.md). Continue independent fn-253 inner-loop, nextest, standalone-entrypoint and gate-visibility work. Cutover-dependent tasks remain deferred; the pause grants no completion or qualification credit.
+
 Validation gate speed takes priority over the remaining cleanup ladder below. Cycle 8 (2026-10-24) used the whole hour on 25 of 96 stages; the inner Rust loop needs 3 min to compile tests after a one-file change.
 [fn-253](.flow/specs/fn-253-gomad-fast-validation-gates.md) owns the work. Gates get faster, never weaker: no stage, assertion, bound or fn-246 obligation is dropped.
 
