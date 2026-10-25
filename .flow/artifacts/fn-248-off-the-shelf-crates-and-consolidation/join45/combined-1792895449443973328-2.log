@@ -1,0 +1,43 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl/macros)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/backends/native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.93s
+     Running tests/core_protocol.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/core_protocol-fb4622098aec01ad)
+
+running 5 tests
+test any_admits_only_canonical_urls_and_distinguishes_refusals ... ok
+test explained_zero_steps_is_present_and_distinct_from_unexplained ... ok
+test new_requests_round_trip_opaque_payloads_and_dispatch_honest_refusals ... ok
+test explanation_outcomes_are_additive_at_tag_two ... ok
+test new_core_messages_match_shared_literal_bytes ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/dispatch.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/dispatch-0470f2a8a5359fcf)
+
+running 7 tests
+test empty_assumption_refusal_survives_generated_protocol ... ok
+test progress_bound_refusal_survives_generated_protocol ... ok
+test progress_query_refusals_survive_generated_protocol ... ok
+test scope_action_refusal_survives_generated_protocol ... ok
+test invalid_requests_have_typed_refusals ... ok
+test successful_explore_replaces_graph_and_refusal_preserves_it ... ok
+test generated_dispatch_matches_trait_kettle_goldens ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/proposal_wire.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/proposal_wire-4b810dcd3408931a)
+
+running 1 test
+test proposal_method_kind_and_poll_wire_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/wire-feb132d0a6bfd391)
+
+running 1 test
+test original_wire_bytes_and_values_are_stable ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,5 @@
+{
+  "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test services generation_uses_annotations_for_dispatch_and_source_match_for_bindings --locked -- --nocapture",
+  "exit": 101,
+  "reason": "capture the actual quote/prettyplease output before updating its formatting assertions"
+}

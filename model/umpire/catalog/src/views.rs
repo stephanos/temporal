@@ -3,7 +3,7 @@
 pub use crate::kinds;
 use crate::{EnumValidator, FieldValue, GenerationError, Kind};
 use prost::Message;
-use umpire_runtime::google::protobuf::{Duration, Timestamp};
+use umpire_runtime::prost_types::{Duration, Timestamp};
 
 /// The protobuf entry carrier used by generated metadata map catalogs.
 #[derive(Clone, PartialEq, Message)]

@@ -1,0 +1,8 @@
+{
+  "manifest": "model/temporal/api/Cargo.toml",
+  "added_edge": "umpire-temporal-api --dev--> proc-macro2 (already workspace-declared/admitted/resolved)",
+  "new_registry_packages": [],
+  "new_registry_versions": [],
+  "guest_runtime_edge_added": false,
+  "purpose": "lex generated Rust and expected constructs without discarding significant spaces in string literals"
+}

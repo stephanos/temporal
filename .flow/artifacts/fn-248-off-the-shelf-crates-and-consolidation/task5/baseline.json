@@ -1,0 +1,26 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --test dispatch --locked",
+    "exit": 0,
+    "seconds": 42.428327798843384,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/baseline-0.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog -p umpire-dsl --lib --locked",
+    "exit": 0,
+    "seconds": 114.00956654548645,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/baseline-1.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --locked",
+    "exit": 0,
+    "seconds": 75.88364219665527,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/baseline-2.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo build --target wasm32-wasip1 -p umpire-runtime --locked",
+    "exit": 0,
+    "seconds": 39.428314208984375,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/baseline-3.log"
+  }
+]

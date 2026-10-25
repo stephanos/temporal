@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prost::Message;
-use umpire_runtime::google::protobuf::{DescriptorProto, FileDescriptorSet};
+use umpire_runtime::prost_types::{DescriptorProto, FileDescriptorSet};
 
 /// Descriptor obligations projected from the executable annotation declarations.
 #[derive(Clone, Debug, Default)]
@@ -179,7 +179,7 @@ fn collect_messages<'a>(
     parent: &str,
     descriptors: &'a [DescriptorProto],
     messages: &mut BTreeMap<String, &'a DescriptorProto>,
-    enums: &mut BTreeMap<String, &'a umpire_runtime::google::protobuf::EnumDescriptorProto>,
+    enums: &mut BTreeMap<String, &'a umpire_runtime::prost_types::EnumDescriptorProto>,
 ) {
     for message in descriptors {
         let name = qualified(parent, message.name.as_deref());
@@ -230,4 +230,21 @@ fn exact<'a>(
         }
     }
     Ok(())
+}
+
+/// Native primitive carriers used by prost-build's default well-known-type mappings.
+pub fn well_known_primitive(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "google.protobuf.Empty" => "()",
+        "google.protobuf.BoolValue" => "bool",
+        "google.protobuf.BytesValue" => "::prost::alloc::vec::Vec<u8>",
+        "google.protobuf.DoubleValue" => "f64",
+        "google.protobuf.FloatValue" => "f32",
+        "google.protobuf.Int32Value" => "i32",
+        "google.protobuf.Int64Value" => "i64",
+        "google.protobuf.StringValue" => "::prost::alloc::string::String",
+        "google.protobuf.UInt32Value" => "u32",
+        "google.protobuf.UInt64Value" => "u64",
+        _ => return None,
+    })
 }

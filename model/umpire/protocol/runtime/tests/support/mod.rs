@@ -1,7 +1,6 @@
 use umpire_dsl::{Machine, Steps};
 use umpire_runtime::{
-    AnswerPlan, Candidate, Projection, Realize, Runtime, Transition, google::protobuf::Any,
-    protocol,
+    AnswerPlan, Candidate, Projection, Realize, Runtime, Transition, prost_types::Any, protocol,
 };
 
 pub(crate) const TYPE: &str = "type.googleapis.com/umpire.control.Value";

@@ -1,6 +1,6 @@
 //! Runtime authoring constructors retain the declared path and response.
 
-use umpire_runtime::{AnswerPlan, Candidate, Projection, Transition, google::protobuf::Any};
+use umpire_runtime::{AnswerPlan, Candidate, Projection, Transition, prost_types::Any};
 
 #[test]
 fn constructors_preserve_actions_choices_paths_and_reply() {

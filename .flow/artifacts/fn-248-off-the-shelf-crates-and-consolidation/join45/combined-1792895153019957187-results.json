@@ -1,0 +1,16 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax --locked",
+    "exit": 0,
+    "seconds": 6.531,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895153019957187-0.log",
+    "source_hashes": "combined-1792895153019957187-source-hashes.json"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-api --test codegen --test wire_schema --test descriptor --test services --locked",
+    "exit": 101,
+    "seconds": 20.97,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/combined-1792895153019957187-1.log",
+    "source_hashes": "combined-1792895153019957187-source-hashes.json"
+  }
+]

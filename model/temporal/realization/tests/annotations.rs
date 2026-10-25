@@ -1,5 +1,6 @@
 //! Typed transport annotation controls preserve the independent Model run.
 
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::annotations::AnnotationRequest;
 use umpire_runtime::annotations::AnnotationResponse;
 use umpire_runtime::annotations::ProbeResponse;
@@ -7,7 +8,7 @@ use umpire_runtime::annotations::ProbeResponse;
 mod common;
 
 use prost::Message;
-use umpire_runtime::{Dispatch, Guest, google::protobuf::Any, protocol};
+use umpire_runtime::{Dispatch, Guest, prost_types::Any, protocol};
 use umpire_temporal::annotation_runtime;
 use umpire_temporal_api::{
     temporal::api::{

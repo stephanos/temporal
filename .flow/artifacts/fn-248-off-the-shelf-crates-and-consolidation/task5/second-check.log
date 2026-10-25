@@ -1,0 +1,57 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/macros)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/reference/kettle)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/api)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog)
+    Checking umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/author/umpire)
+error[E0432]: unresolved import `umpire_runtime::google`
+  --> umpire/reference/kettle/lib.rs:10:13
+   |
+10 |     pub use umpire_runtime::google;
+   |             ^^^^^^^^^^^^^^^^------
+   |                             |
+   |                             no `google` in the root
+
+warning: unnecessary qualification
+   --> umpire/reference/kettle/probes.rs:226:31
+    |
+226 |                 timeout: Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: 0 }),
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `-W unused-qualifications`
+help: remove the unnecessary path segments
+    |
+226 -                 timeout: Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: 0 }),
+226 +                 timeout: Some(prost_types::Duration { seconds: 1, nanos: 0 }),
+    |
+
+warning: unnecessary qualification
+  --> umpire/reference/kettle/lib.rs:56:10
+   |
+56 |         &umpire_runtime::prost_types::Any,
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the unnecessary path segments
+   |
+56 -         &umpire_runtime::prost_types::Any,
+56 +         &prost_types::Any,
+   |
+
+warning: unnecessary qualification
+  --> umpire/reference/kettle/lib.rs:57:17
+   |
+57 |     ) -> Result<umpire_runtime::prost_types::Any, umpire_runtime::protocol::Refusal>,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the unnecessary path segments
+   |
+57 -     ) -> Result<umpire_runtime::prost_types::Any, umpire_runtime::protocol::Refusal>,
+57 +     ) -> Result<prost_types::Any, umpire_runtime::protocol::Refusal>,
+   |
+
+For more information about this error, try `rustc --explain E0432`.
+warning: `umpire-reference-kettle` (lib) generated 3 warnings
+error: could not compile `umpire-reference-kettle` (lib) due to 1 previous error; 3 warnings emitted
+warning: build failed, waiting for other jobs to finish...

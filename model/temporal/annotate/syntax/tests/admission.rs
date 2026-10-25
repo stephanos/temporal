@@ -231,3 +231,15 @@ fn catalog_expansion_accepts_a_caller_owned_context_and_api_root()
     assert!(!output.contains("foundation"));
     Ok(())
 }
+
+#[test]
+fn native_primitive_wkt_mirrors_refuse_named_field_access() {
+    for message in ["google.protobuf.Empty", "google.protobuf.DoubleValue"] {
+        let source = format!("#[mirror(response = {message:?})] struct Native {{}}");
+        let input = syn::parse_str(&source).unwrap_or_else(|error| panic!("{error}"));
+        let error = umpire_catalog_syntax::DeriveCatalog::parse(&input)
+            .err()
+            .unwrap_or_else(|| panic!("native primitive must not generate a named-field mirror"));
+        assert!(error.to_string().contains("no named Rust fields"), "{error}");
+    }
+}

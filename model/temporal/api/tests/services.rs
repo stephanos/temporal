@@ -10,7 +10,7 @@ use std::{
 };
 
 use prost::Message;
-use umpire_runtime::google::protobuf::FileDescriptorSet;
+use prost_types::FileDescriptorSet;
 use umpire_temporal_annotate_syntax::{
     descriptor::{self, Coverage},
     services::{classifications, declarations, resolve},
@@ -120,10 +120,25 @@ fn generation_uses_annotations_for_dispatch_and_source_match_for_bindings()
         &coverage,
         &classifications(source)?,
     )?;
-    assert!(generated.contains("ModelAction :: Worker (Worker :: Poll) => Binding::Rpc(\"temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue\")"));
-    assert!(generated.contains("($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { type $ty = $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest; $body }"));
-    assert!(!generated.contains("($crate::WorkflowServiceMethod::PollActivityTaskQueue, true) =>"));
-    assert!(generated.contains("(\"temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo\", \"OutOfScope\", \"Cluster and service information\")"));
+    let generated = generated.parse::<proc_macro2::TokenStream>()?.to_string();
+    for (expected, present) in [
+        (
+            "ModelAction::Worker(Worker::Poll) => Binding::Rpc(\"temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue\")",
+            true,
+        ),
+        (
+            "($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { type $ty = $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest; $body }",
+            true,
+        ),
+        ("($crate::WorkflowServiceMethod::PollActivityTaskQueue, true) =>", false),
+        (
+            "(\"temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo\", \"OutOfScope\", \"Cluster and service information\",)",
+            true,
+        ),
+    ] {
+        let expected = expected.parse::<proc_macro2::TokenStream>()?.to_string();
+        assert_eq!(generated.contains(&expected), present, "{expected}");
+    }
     let source_bindings: BTreeSet<_> =
         classifications(source)?[0].bindings.iter().map(|binding| binding.0.clone()).collect();
     assert_eq!(source_bindings.len(), 2);

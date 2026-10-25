@@ -1,4 +1,4 @@
-use crate::{Realize, Runtime, google::protobuf::Any, protocol};
+use crate::{Realize, Runtime, prost_types::Any, protocol};
 
 #[path = "../../../backends/native/tests/fixtures/sample_kettle_trait/kettle.rs"]
 #[allow(missing_docs, unreachable_pub)]

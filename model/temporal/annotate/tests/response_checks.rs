@@ -12,7 +12,7 @@ mod foundation {
 
 #[derive(Clone, Default)]
 struct Wire {
-    duration: Option<umpire_runtime::google::protobuf::Duration>,
+    duration: Option<umpire_runtime::prost_types::Duration>,
 }
 
 #[derive(Catalog)]
@@ -33,7 +33,7 @@ struct Raw {
 fn raw_checks_run_for_responses_after_request_normalization()
 -> Result<(), Box<dyn std::error::Error>> {
     let wire = Wire {
-        duration: Some(umpire_runtime::google::protobuf::Duration { seconds: i64::MAX, nanos: 0 }),
+        duration: Some(umpire_runtime::prost_types::Duration { seconds: i64::MAX, nanos: 0 }),
     };
     let mut findings = Vec::new();
     wire.inspect(&foundation::dc::Limits, false, &mut findings)?;
@@ -42,9 +42,8 @@ fn raw_checks_run_for_responses_after_request_normalization()
     assert_eq!(findings.len(), 1);
     assert_eq!(findings[0].constraint, "duration.valid");
     assert!(findings[0].expected.is_none());
-    let valid = Wire {
-        duration: Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: 0 }),
-    };
+    let valid =
+        Wire { duration: Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: 0 }) };
     findings.clear();
     valid.inspect(&foundation::dc::Limits, true, &mut findings)?;
     assert_eq!(findings, []);

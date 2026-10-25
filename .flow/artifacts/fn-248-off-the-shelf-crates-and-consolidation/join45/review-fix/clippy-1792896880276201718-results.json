@@ -1,0 +1,9 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo clippy -p umpire-runtime -p umpire-catalog -p umpire-dsl -p umpire-catalog-build -p umpire-catalog-syntax -p umpire-reference-kettle -p umpire-temporal-api -p umpire-temporal-annotate-syntax -p umpire-temporal --all-targets --locked -- -D warnings",
+    "exit": 0,
+    "seconds": 17.83,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/review-fix/clippy-1792896880276201718-0.log",
+    "source_hashes": "clippy-1792896880276201718-source-hashes.json"
+  }
+]

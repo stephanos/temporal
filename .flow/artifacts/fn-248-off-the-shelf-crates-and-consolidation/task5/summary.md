@@ -1,0 +1,12 @@
+Replaced the eight named library error implementations with thiserror derives, adopted prost-build's default native WKT mappings throughout runtime/Kettle/Temporal generation and readers, and removed unused enum-iterator. Native Any retains exact canonical URL admission and the MalformedRequest/Unsupported split through one local extension trait.
+
+baseline: green (all four task Quick commands before edits). The catalog/DSL library targets collected zero tests; the relevant integration suites subsequently passed.
+
+Verification is recorded with exact commands, logs, exits and source hashes in verification.json, successful-commands.json and the stage-specific results files. This includes runtime wire/transaction controls, catalog/DSL integration controls, API generation/descriptors/mutations, Kettle and all Temporal realization tests, annotation/facade consumers, both affected-package all-targets Clippy commands with -D warnings, formatting, the targeted Go WKT presence test, and wasm32-wasip1 builds of runtime and all six guests. The wasm-to-final differences are test-only import/return cleanup, listed in source-differences.json; no compiled guest input changed afterward.
+
+The new API codegen controls cover actual PendingActivityInfo Empty/unit and TaskQueueMetadata DoubleValue/f64 presence and wire round trips; wire_schema additionally mutates the wrapper's descriptor `.value` into the native scalar. Runtime controls cover missing payload/URL, wrong type/prefix, malformed bytes and valid payload. Removing the canonical URL guard fails its negative control. Primitive named-field mirrors fail explicitly instead of generating nonexistent native fields; their refusal control was observed assertion-red before restoration. Original failing and inconclusive observations remain in observations.json and their logs.
+
+Both direct dependencies were already admitted and resolved; dependency-admission.json records current primary version/release evidence. guest-closure-inventory.json records the actual wasm target closures, including host proc/build separation. No snapshots changed, no canonical guest was published, and no whole-Model or all-Go pipeline ran. Task7 owns joined snapshot acceptance/publication and R5. The task4/task5 source join points and additional authorized mechanical caller paths are in join-notes.md.
+
+stage: impl-review - skipped(policy: parallel-wave - conductor owns review and completion)
+Tier: session (jev-unavailable(no_key))

@@ -1,5 +1,6 @@
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
-    google::protobuf::{Any, Duration},
+    prost_types::{Any, Duration},
     realization::{Observation, observation::Result as ResultValue},
 };
 use umpire_temporal::support::ApplicationFailure;

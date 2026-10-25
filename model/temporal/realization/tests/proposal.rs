@@ -1,8 +1,9 @@
 //! Configured bootstrap, read correlation, and completion polling controls.
 use prost::Message;
+use umpire_runtime::AnyMessage as _;
 use umpire_runtime::{
     Dispatch, Guest,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{self, response::Outcome},
     realization::Observation,
 };

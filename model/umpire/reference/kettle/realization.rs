@@ -8,7 +8,7 @@ use crate::{
 use umpire_dsl::Machine;
 use umpire_runtime::{
     AnswerPlan, Observed, Projection, Realize, callback,
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::{Refusal, RefusalCode},
     reply,
 };

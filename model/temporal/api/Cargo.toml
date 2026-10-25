@@ -8,6 +8,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+prost-types.workspace = true
 umpire-catalog.workspace = true
 umpire-runtime.workspace = true
 prost.workspace = true
@@ -18,6 +19,7 @@ prost-build.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 
 [dev-dependencies]
+proc-macro2.workspace = true
 umpire-catalog-build.workspace = true
 prost-build.workspace = true
 umpire-temporal-annotate-syntax.workspace = true

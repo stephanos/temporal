@@ -1,5 +1,6 @@
+use crate::AnyMessage as _;
 use crate::{
-    google::protobuf::Any,
+    prost_types::Any,
     protocol::Refusal,
     realization::{Callback, Observation, Reply, observation::Result as ObservationResult},
 };

@@ -1,0 +1,14 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo build --target wasm32-wasip1 -p umpire-runtime --locked",
+    "exit": 0,
+    "seconds": 8.383,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/wasm-1792893972611289256-0.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo build --target wasm32-wasip1 -p umpire-stock-guest -p umpire-control-guest -p umpire-caught-panic-guest -p umpire-overflow-guest -p umpire-kettle-guest -p umpire-temporal-guest --locked",
+    "exit": 0,
+    "seconds": 27.287,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/wasm-1792893972611289256-1.log"
+  }
+]

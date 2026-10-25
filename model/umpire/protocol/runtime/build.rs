@@ -1,4 +1,4 @@
-//! Generate shared protocols and well-known types.
+//! Generate shared protocols using prost's native well-known types.
 
 fn main() -> std::io::Result<()> {
     let schema = "../proto/umpire/model/v1/model.proto";
@@ -9,7 +9,6 @@ fn main() -> std::io::Result<()> {
     config
         .enable_type_names()
         .type_name_domain(["."], "type.googleapis.com")
-        .compile_well_known_types()
         .include_file("protocol.rs")
         .disable_comments([".google.protobuf"]);
     config.compile_protos(

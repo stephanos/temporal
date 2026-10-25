@@ -1,0 +1,95 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/api)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/reference/kettle)
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/catalog/syntax)
+    Checking umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+error: unnecessary qualification
+  --> umpire/protocol/runtime/tests/stateful.rs:93:27
+   |
+93 |             observation: &umpire_runtime::prost_types::Any,
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-qualifications` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_qualifications)]`
+help: remove the unnecessary path segments
+   |
+93 -             observation: &umpire_runtime::prost_types::Any,
+93 +             observation: &prost_types::Any,
+   |
+
+error: unnecessary qualification
+   --> umpire/protocol/runtime/tests/stateful.rs:105:24
+    |
+105 |             callback: &umpire_runtime::prost_types::Any,
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+105 -             callback: &umpire_runtime::prost_types::Any,
+105 +             callback: &prost_types::Any,
+    |
+
+error: unnecessary qualification
+   --> umpire/protocol/runtime/tests/stateful.rs:146:17
+    |
+146 |                 umpire_runtime::prost_types::Any { type_url: "unknown".into(), value: vec![1] },
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+146 -                 umpire_runtime::prost_types::Any { type_url: "unknown".into(), value: vec![1] },
+146 +                 prost_types::Any { type_url: "unknown".into(), value: vec![1] },
+    |
+
+error: unnecessary qualification
+   --> umpire/protocol/runtime/tests/stateful.rs:150:17
+    |
+150 |                 umpire_runtime::prost_types::Any {
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+150 -                 umpire_runtime::prost_types::Any {
+150 +                 prost_types::Any {
+    |
+
+error: unnecessary qualification
+   --> umpire/protocol/runtime/tests/stateful.rs:188:31
+    |
+188 |             observation: Some(umpire_runtime::prost_types::Any {
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+188 -             observation: Some(umpire_runtime::prost_types::Any {
+188 +             observation: Some(prost_types::Any {
+    |
+
+error: unnecessary qualification
+  --> umpire/protocol/runtime/tests/selected_start.rs:56:23
+   |
+56 |         observation: &umpire_runtime::prost_types::Any,
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-qualifications` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_qualifications)]`
+help: remove the unnecessary path segments
+   |
+56 -         observation: &umpire_runtime::prost_types::Any,
+56 +         observation: &prost_types::Any,
+   |
+
+error: unnecessary qualification
+  --> umpire/protocol/runtime/tests/selected_start.rs:64:13
+   |
+64 |         _: &umpire_runtime::prost_types::Any,
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the unnecessary path segments
+   |
+64 -         _: &umpire_runtime::prost_types::Any,
+64 +         _: &prost_types::Any,
+   |
+
+error: could not compile `umpire-runtime` (test "stateful") due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-runtime` (test "selected_start") due to 2 previous errors

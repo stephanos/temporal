@@ -136,7 +136,7 @@ impl umpire_runtime::Realize<support::World> for Disabled {
     }
     fn observe(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
     {
@@ -144,7 +144,7 @@ impl umpire_runtime::Realize<support::World> for Disabled {
     }
     fn answer(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
         umpire_runtime::Realize::answer(&support::Realization, value, state)
@@ -267,7 +267,7 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
     }
     fn observe(
         &self,
-        _: &umpire_runtime::google::protobuf::Any,
+        _: &prost_types::Any,
         _: &support::State,
     ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
     {
@@ -275,7 +275,7 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
     }
     fn answer(
         &self,
-        _: &umpire_runtime::google::protobuf::Any,
+        _: &prost_types::Any,
         _: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
         Err(protocol::Refusal::unsupported("no callbacks"))
@@ -296,7 +296,7 @@ struct DefaultProposal;
 impl umpire_runtime::Realize<support::World> for DefaultProposal {
     fn observe(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
     {
@@ -304,7 +304,7 @@ impl umpire_runtime::Realize<support::World> for DefaultProposal {
     }
     fn answer(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
         umpire_runtime::Realize::answer(&support::Realization, value, state)
@@ -337,7 +337,7 @@ where
             Outcome = support::Outcome,
         >,
 {
-    fn program(&self) -> Result<umpire_runtime::google::protobuf::Any, protocol::Refusal> {
+    fn program(&self) -> Result<prost_types::Any, protocol::Refusal> {
         if self.refuse_program {
             Err(protocol::Refusal::new(protocol::RefusalCode::State, "program refused"))
         } else {
@@ -353,7 +353,7 @@ where
     }
     fn observe(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
     {
@@ -364,8 +364,8 @@ where
     }
     fn matches(
         &self,
-        request: &umpire_runtime::google::protobuf::Any,
-        value: &umpire_runtime::google::protobuf::Any,
+        request: &prost_types::Any,
+        value: &prost_types::Any,
     ) -> Result<(), protocol::Refusal> {
         assert_eq!(request, &support::any(99));
         if matches!(support::payload(value)?, 1 | 20)
@@ -378,7 +378,7 @@ where
     }
     fn continue_polling(
         &self,
-        value: &umpire_runtime::google::protobuf::Any,
+        value: &prost_types::Any,
         _: &support::State,
         action: Option<&support::Action>,
     ) -> Result<bool, protocol::Refusal> {

@@ -1,5 +1,3 @@
-use std::fmt;
-
 use crate::ActionDomain;
 
 /// The normal maximum number of concrete actions a Model catalog may declare.
@@ -89,9 +87,10 @@ impl<A> ActionCatalog<A> {
 }
 
 /// A catalog refused before any Model step, distinct from an exploration verdict.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum CatalogError {
     /// The exact representable count exceeds the admitted limit.
+    #[error("action catalog has {count} actions, over limit {limit}")]
     TooLarge {
         /// Exact concrete action count.
         count: usize,
@@ -99,23 +98,9 @@ pub enum CatalogError {
         limit: usize,
     },
     /// The concrete action count is not representable in `usize`.
+    #[error("action catalog count overflows usize (limit {limit})")]
     Overflow {
         /// Admitted maximum.
         limit: usize,
     },
 }
-
-impl fmt::Display for CatalogError {
-    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::TooLarge { count, limit } => {
-                write!(out, "action catalog has {count} actions, over limit {limit}")
-            }
-            Self::Overflow { limit } => {
-                write!(out, "action catalog count overflows usize (limit {limit})")
-            }
-        }
-    }
-}
-
-impl std::error::Error for CatalogError {}

@@ -1,0 +1,160 @@
+diff --git a/model/temporal/annotate/syntax/src/realization.rs b/model/temporal/annotate/syntax/src/realization.rs
+index c2b264ba14..b5457cd9f0 100644
+--- a/model/temporal/annotate/syntax/src/realization.rs
++++ b/model/temporal/annotate/syntax/src/realization.rs
+@@ -10,7 +10,7 @@ use umpire_catalog_syntax::naming;
+ use proc_macro2::TokenStream;
+ use prost::Message as _;
+ use quote::{format_ident, quote};
+-use umpire_runtime::google::protobuf::{
++use umpire_runtime::prost_types::{
+     DescriptorProto, FileDescriptorSet,
+     field_descriptor_proto::{Label, Type},
+ };
+@@ -166,7 +166,7 @@ impl Schema {
+         for file in &descriptors.file {
+             let package = file.package.as_deref().unwrap_or_default();
+             let module = if package == "google.protobuf" {
+-                "::umpire_runtime::google::protobuf".to_owned()
++                "::umpire_runtime::prost_types".to_owned()
+             } else {
+                 format!(
+                     "::umpire_temporal_api::{}",
+@@ -422,7 +422,13 @@ impl Schema {
+         let member: syn::Member =
+             syn::parse_str(&field.member).map_err(|error| error.to_string())?;
+         let access =
+-            if message.map_entry { quote!(*(#value).#member) } else { quote!((#value).#member) };
++            if umpire_catalog_syntax::descriptor::well_known_primitive(&message.name).is_some() {
++                quote!(*(#value))
++            } else if message.map_entry {
++                quote!(*(#value).#member)
++            } else {
++                quote!((#value).#member)
++            };
+         if let Some(tail) = tail {
+             let Kind::Message { target } = &field.kind else {
+                 return Err("nested scalar path".into());
+@@ -482,7 +488,8 @@ fn collect(
+     for descriptor in descriptors {
+         let name = descriptor.name.as_deref().ok_or("unnamed message")?;
+         let proto = qualified(package, name);
+-        let rust = format!("{module}::{}", naming::upper_camel(name));
++        let rust = umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
++            .map_or_else(|| format!("{module}::{}", naming::upper_camel(name)), str::to_owned);
+         let map_entry =
+             descriptor.options.as_ref().is_some_and(|options| options.map_entry == Some(true));
+         let mut fields = Vec::new();
+@@ -572,7 +579,7 @@ fn collect(
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+-    use umpire_runtime::google::protobuf::{
++    use umpire_runtime::prost_types::{
+         DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet,
+         MethodDescriptorProto, ServiceDescriptorProto,
+         field_descriptor_proto::{Label, Type},
+diff --git a/model/umpire/catalog/build/src/services.rs b/model/umpire/catalog/build/src/services.rs
+index b78cd4bb36..634bce3486 100644
+--- a/model/umpire/catalog/build/src/services.rs
++++ b/model/umpire/catalog/build/src/services.rs
+@@ -9,7 +9,7 @@ use umpire_catalog_syntax::{
+     descriptor::{Coverage, Disposition},
+     services::Classification,
+ };
+-use umpire_runtime::google::protobuf::FileDescriptorSet;
++use umpire_runtime::prost_types::FileDescriptorSet;
+ 
+ /// Generated service identities and Rust surface names.
+ pub struct Config<'a> {
+diff --git a/model/umpire/catalog/build/src/wire_schema.rs b/model/umpire/catalog/build/src/wire_schema.rs
+index 83dd538c4a..4f3919385b 100644
+--- a/model/umpire/catalog/build/src/wire_schema.rs
++++ b/model/umpire/catalog/build/src/wire_schema.rs
+@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
+ use quote::{format_ident, quote};
+ 
+ use prost::Message;
+-use umpire_runtime::google::protobuf::{
++use umpire_runtime::prost_types::{
+     DescriptorProto, FieldDescriptorProto, FileDescriptorSet,
+     field_descriptor_proto::{Label, Type},
+ };
+@@ -164,7 +164,7 @@ impl<'a> Schema<'a> {
+         for file in &descriptors.file {
+             let package = file.package.as_deref().unwrap_or_default();
+             let rust = if package == "google.protobuf" {
+-                "::umpire_runtime::google::protobuf".into()
++                "::umpire_runtime::prost_types".into()
+             } else if rust_type_root.is_empty() {
+                 prost_build::Module::from_protobuf_package_name(package).to_string()
+             } else {
+@@ -190,7 +190,14 @@ impl<'a> Schema<'a> {
+             let proto = format!("{proto}.{name}");
+             self.nodes.insert(
+                 proto.clone(),
+-                Node { descriptor, rust: format!("{rust}::{}", super::services::type_name(name)) },
++                Node {
++                    descriptor,
++                    rust: umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
++                        .map_or_else(
++                            || format!("{rust}::{}", super::services::type_name(name)),
++                            str::to_owned,
++                        ),
++                },
+             );
+             for enumeration in &descriptor.enum_type {
+                 self.enums.insert(
+@@ -456,7 +463,12 @@ impl<'a> Schema<'a> {
+             });
+         }
+         let member = self.member(step)?;
+-        let target = quote! { #parent.#member };
++        let target =
++            if umpire_catalog_syntax::descriptor::well_known_primitive(&step.parent).is_some() {
++                quote! { *#parent }
++            } else {
++                quote! { #parent.#member }
++            };
+         if self.map(&step.field)? {
+             return self.map_leaf(&step.field, &target);
+         }
+diff --git a/model/umpire/catalog/build/tests/wire_generated.rs b/model/umpire/catalog/build/tests/wire_generated.rs
+index 87a080e85c..026b878d2e 100644
+--- a/model/umpire/catalog/build/tests/wire_generated.rs
++++ b/model/umpire/catalog/build/tests/wire_generated.rs
+@@ -1,7 +1,7 @@
+ //! Generated wire setters compile against prost-shaped message and collection carriers.
+ use prost::Message;
+ use umpire_catalog_build::wire_schema;
+-use umpire_runtime::google::protobuf::{
++use umpire_runtime::prost_types::{
+     DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet, MessageOptions,
+     MethodDescriptorProto, OneofDescriptorProto, ServiceDescriptorProto,
+     field_descriptor_proto::{Label, Type},
+diff --git a/model/umpire/catalog/syntax/src/derive.rs b/model/umpire/catalog/syntax/src/derive.rs
+index de81c98fc6..155ab27f62 100644
+--- a/model/umpire/catalog/syntax/src/derive.rs
++++ b/model/umpire/catalog/syntax/src/derive.rs
+@@ -671,6 +671,12 @@ fn admission_expected(expected: Option<&ApiExpectation>) -> syn::Result<Option<E
+ }
+ 
+ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
++    if crate::descriptor::well_known_primitive(&proto.value()).is_some() {
++        return Err(syn::Error::new(
++            proto.span(),
++            "primitive well-known types have no named Rust fields to mirror",
++        ));
++    }
+     let name = proto.value();
+     let mut parts: Vec<_> = name.split('.').collect();
+     let message = parts
+@@ -680,7 +686,7 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
+     let package =
+         parts.iter().map(|part| crate::naming::snake(part)).collect::<Vec<_>>().join("::");
+     let path = if package == "google::protobuf" {
+-        format!("::umpire_runtime::google::protobuf::{message}")
++        format!("::umpire_runtime::prost_types::{message}")
+     } else {
+         {
+             let root = quote::quote!(#api).to_string();

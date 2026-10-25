@@ -1,0 +1,5 @@
+error: no test target named `descriptor` in `umpire-temporal-annotate-syntax` package
+help: available test in `umpire-reference-kettle` package:
+    descriptor
+help: available test in `umpire-temporal-api` package:
+    descriptor

@@ -1,0 +1,24 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/umpire/protocol/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.13s
+     Running tests/core_protocol.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/core_protocol-fb4622098aec01ad)
+
+running 1 test
+test any_admits_only_canonical_urls_and_distinguishes_refusals ... FAILED
+
+failures:
+
+---- any_admits_only_canonical_urls_and_distinguishes_refusals stdout ----
+
+thread 'any_admits_only_canonical_urls_and_distinguishes_refusals' (1080593) panicked at umpire/protocol/runtime/tests/core_protocol.rs:156:9:
+assertion `left == right` failed
+  left: 2
+ right: 8
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    any_admits_only_canonical_urls_and_distinguishes_refusals
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-runtime --test core_protocol`

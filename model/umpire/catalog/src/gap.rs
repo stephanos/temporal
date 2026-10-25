@@ -100,15 +100,9 @@ pub struct GapEntry {
 }
 
 /// Probe evidence is missing, crossed or inconsistent with its declared applicability.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]
+#[error("probe observations are missing, crossed or inconsistent")]
 pub struct GapError;
-
-impl fmt::Display for GapError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("probe observations are missing, crossed or inconsistent")
-    }
-}
-impl std::error::Error for GapError {}
 
 impl GapEntry {
     /// Copies author metadata from the originating probe declaration.

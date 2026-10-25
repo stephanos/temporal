@@ -1,0 +1,6 @@
+{
+  "command": "cd model && mise exec -- cargo test -p umpire-runtime --test core_protocol any_admits_only_canonical_urls_and_distinguishes_refusals --locked",
+  "exit": 101,
+  "mutation": "omit exact canonical type URL guard",
+  "expected": "assertion failure: wrong-type URL classified MalformedRequest instead of Unsupported"
+}

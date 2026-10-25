@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use prost::Message;
-use umpire_runtime::google::protobuf::{
+use umpire_runtime::prost_types::{
     DescriptorProto, FieldDescriptorProto, FileDescriptorSet,
     field_descriptor_proto::{Label, Type},
 };
@@ -164,7 +164,7 @@ impl<'a> Schema<'a> {
         for file in &descriptors.file {
             let package = file.package.as_deref().unwrap_or_default();
             let rust = if package == "google.protobuf" {
-                "::umpire_runtime::google::protobuf".into()
+                "::umpire_runtime::prost_types".into()
             } else if rust_type_root.is_empty() {
                 prost_build::Module::from_protobuf_package_name(package).to_string()
             } else {
@@ -190,7 +190,14 @@ impl<'a> Schema<'a> {
             let proto = format!("{proto}.{name}");
             self.nodes.insert(
                 proto.clone(),
-                Node { descriptor, rust: format!("{rust}::{}", super::services::type_name(name)) },
+                Node {
+                    descriptor,
+                    rust: umpire_catalog_syntax::descriptor::well_known_primitive(&proto)
+                        .map_or_else(
+                            || format!("{rust}::{}", super::services::type_name(name)),
+                            str::to_owned,
+                        ),
+                },
             );
             for enumeration in &descriptor.enum_type {
                 self.enums.insert(
@@ -456,7 +463,12 @@ impl<'a> Schema<'a> {
             });
         }
         let member = self.member(step)?;
-        let target = quote! { #parent.#member };
+        let target =
+            if umpire_catalog_syntax::descriptor::well_known_primitive(&step.parent).is_some() {
+                quote! { *#parent }
+            } else {
+                quote! { #parent.#member }
+            };
         if self.map(&step.field)? {
             return self.map_leaf(&step.field, &target);
         }

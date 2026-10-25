@@ -198,7 +198,7 @@ enum State {
 #[derive(Clone, Default)]
 struct TypedWire {
     state: i32,
-    raw: Option<umpire_runtime::google::protobuf::Duration>,
+    raw: Option<umpire_runtime::prost_types::Duration>,
     labels: Vec<String>,
 }
 
@@ -216,7 +216,7 @@ fn enum_raw_duration_and_scalar_repeated_views_keep_their_semantics()
 -> Result<(), Box<dyn std::error::Error>> {
     let wire = TypedWire {
         state: 1,
-        raw: Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: -1 }),
+        raw: Some(umpire_runtime::prost_types::Duration { seconds: 1, nanos: -1 }),
         labels: vec!["one".into(), "two".into()],
     };
     let mut findings = Vec::new();

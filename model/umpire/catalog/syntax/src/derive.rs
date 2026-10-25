@@ -671,6 +671,12 @@ fn admission_expected(expected: Option<&ApiExpectation>) -> syn::Result<Option<E
 }
 
 fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
+    if crate::descriptor::well_known_primitive(&proto.value()).is_some() {
+        return Err(syn::Error::new(
+            proto.span(),
+            "primitive well-known types have no named Rust fields to mirror",
+        ));
+    }
     let name = proto.value();
     let mut parts: Vec<_> = name.split('.').collect();
     let message = parts
@@ -680,7 +686,7 @@ fn inferred_type(proto: &LitStr, api: &Path) -> syn::Result<Path> {
     let package =
         parts.iter().map(|part| crate::naming::snake(part)).collect::<Vec<_>>().join("::");
     let path = if package == "google::protobuf" {
-        format!("::umpire_runtime::google::protobuf::{message}")
+        format!("::umpire_runtime::prost_types::{message}")
     } else {
         {
             let root = quote::quote!(#api).to_string();

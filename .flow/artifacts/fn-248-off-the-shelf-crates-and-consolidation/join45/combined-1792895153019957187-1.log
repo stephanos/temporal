@@ -1,0 +1,58 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl/macros)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/protocol/runtime)
+   Compiling darling v0.24.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/api)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.78s
+     Running tests/codegen.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/codegen-e5d1bb5bf37be732)
+
+running 3 tests
+test empty_oneof_uses_unit_and_preserves_presence ... ok
+test double_wrapper_uses_scalar_and_preserves_presence ... ok
+test descriptor_file_permutations_generate_identical_rust ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.82s
+
+     Running ../annotate/syntax/tests/descriptor.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/descriptor-8b8995af94e1a80c)
+
+running 5 tests
+test executable_generated_api_declaration_matches_real_descriptors ... ok
+test declaration_order_names_the_first_out_of_place_symbol ... ok
+test nested_message_requires_coverage_and_refuses_added_fields ... ok
+test real_descriptor_additions_are_independently_refused ... ok
+test stale_duplicates_and_empty_dispositions_are_refused ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/services.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/services-bc40e09092b0324b)
+
+running 7 tests
+test dispatch_selects_the_actual_annotated_type_and_direction ... ok
+test generated_method_table_follows_the_actual_descriptor ... ok
+test the_service_table_classifies_every_rpc_and_the_activity_feature_claims_eight ... ok
+test generation_uses_annotations_for_dispatch_and_source_match_for_bindings ... FAILED
+test duplicate_claims_and_unclassified_rpcs_are_named ... ok
+test a_dropped_claim_or_an_unclaimed_annotated_rpc_fails_generation ... ok
+test service_table_and_bindings_refuse_new_rpc_and_model_action ... ok
+
+failures:
+
+---- generation_uses_annotations_for_dispatch_and_source_match_for_bindings stdout ----
+
+thread 'generation_uses_annotations_for_dispatch_and_source_match_for_bindings' (1146898) panicked at temporal/api/tests/services.rs:123:5:
+assertion failed: generated.contains("ModelAction :: Worker (Worker :: Poll) => Binding::Rpc(\"temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue\")")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    generation_uses_annotations_for_dispatch_and_source_match_for_bindings
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+error: test failed, to rerun pass `-p umpire-temporal-api --test services`

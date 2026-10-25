@@ -1,0 +1,44 @@
+{
+  "consumers-source-hashes.json": [
+    "model/temporal/api/tests/codegen.rs",
+    "model/temporal/api/tests/services.rs",
+    "model/temporal/api/tests/wire_schema.rs",
+    "model/temporal/realization/tests/admission/publication.rs",
+    "model/umpire/protocol/runtime/build.rs",
+    "model/umpire/protocol/runtime/src/lib.rs",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs",
+    "model/umpire/protocol/runtime/tests/proposal.rs",
+    "model/umpire/protocol/runtime/tests/selected_start.rs",
+    "model/umpire/protocol/runtime/tests/stateful.rs",
+    "model/umpire/reference/kettle/tests/descriptor.rs"
+  ],
+  "controls-source-hashes.json": [],
+  "wasm-source-hashes.json": [
+    "model/temporal/api/tests/codegen.rs",
+    "model/temporal/api/tests/services.rs",
+    "model/temporal/api/tests/wire_schema.rs",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs",
+    "model/umpire/protocol/runtime/tests/proposal.rs",
+    "model/umpire/protocol/runtime/tests/selected_start.rs",
+    "model/umpire/protocol/runtime/tests/stateful.rs",
+    "model/umpire/reference/kettle/tests/descriptor.rs"
+  ],
+  "callers-source-hashes.json": [],
+  "clippy-source-hashes.json": [],
+  "final-source-hashes.json": [],
+  "focused-source-hashes.json": [
+    "model/temporal/annotate/syntax/tests/admission.rs",
+    "model/temporal/api/tests/codegen.rs",
+    "model/temporal/api/tests/services.rs",
+    "model/temporal/api/tests/wire_schema.rs",
+    "model/temporal/hosts/go/well_known_test.go",
+    "model/temporal/realization/tests/admission/publication.rs",
+    "model/umpire/protocol/runtime/build.rs",
+    "model/umpire/protocol/runtime/src/lib.rs",
+    "model/umpire/protocol/runtime/tests/core_protocol.rs",
+    "model/umpire/protocol/runtime/tests/proposal.rs",
+    "model/umpire/protocol/runtime/tests/selected_start.rs",
+    "model/umpire/protocol/runtime/tests/stateful.rs",
+    "model/umpire/reference/kettle/tests/descriptor.rs"
+  ]
+}

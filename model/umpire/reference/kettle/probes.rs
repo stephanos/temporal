@@ -223,7 +223,7 @@ fn baseline_bytes(method: Method) -> Vec<u8> {
                 source: Some(k::fill_request::fill_options::Source::Tap("tap".into())),
                 labels: [("origin".into(), "local".into())].into_iter().collect(),
                 tags: vec!["clean".into()],
-                timeout: Some(umpire_runtime::google::protobuf::Duration { seconds: 1, nanos: 0 }),
+                timeout: Some(prost_types::Duration { seconds: 1, nanos: 0 }),
                 ..Default::default()
             }),
         }

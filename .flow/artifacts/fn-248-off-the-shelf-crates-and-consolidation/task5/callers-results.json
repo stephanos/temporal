@@ -1,0 +1,20 @@
+[
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-author-consumer --lib --locked",
+    "exit": 0,
+    "seconds": 6.591,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/callers-1792894196360036237-0.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo test -p umpire-temporal-annotate --lib --test derive_catalog --test response_checks --locked",
+    "exit": 0,
+    "seconds": 19.959,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/callers-1792894196360036237-1.log"
+  },
+  {
+    "command": "cd model && mise exec -- cargo clippy -p umpire-author-consumer -p umpire-temporal-annotate -p umpire-temporal-tests --all-targets --locked -- -D warnings",
+    "exit": 0,
+    "seconds": 17.224,
+    "log": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/callers-1792894196360036237-2.log"
+  }
+]

@@ -1,5 +1,6 @@
 //! Temporal protobuf realization for the independently authored mini activity Model.
 
+use umpire_runtime::AnyMessage as _;
 // The fixture runner compiles the Model independently of this realization.
 #[path = "model.rs"]
 mod included;
@@ -9,7 +10,7 @@ pub use included::activity;
 
 use activity::{Client, Phase, Worker};
 use umpire_dsl::{Machine, Outcome};
-use umpire_runtime::{Candidate, Projection, Proposal, google::protobuf::Any, protocol::Refusal};
+use umpire_runtime::{Candidate, Projection, Proposal, prost_types::Any, protocol::Refusal};
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionOutcome, activity_execution_outcome::Value},
     common::v1::{Payload, Payloads},

@@ -1,12 +1,12 @@
 //! Additions to the real Kettle descriptor must refuse naming their missing declaration.
 use prost::Message;
+use prost_types::{
+    EnumValueDescriptorProto, FieldDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
+};
 use umpire_catalog_syntax::{
     catalogs,
     descriptor::{self, Coverage},
     services::classifications,
-};
-use umpire_runtime::google::protobuf::{
-    EnumValueDescriptorProto, FieldDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
 };
 
 #[test]

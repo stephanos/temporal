@@ -1,0 +1,1247 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24845-join/model/temporal/api)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.30s
+     Running tests/services.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/deps/services-bc40e09092b0324b)
+
+running 1 test
+/// Every RPC in descriptor source order.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum WorkflowServiceMethod {
+    ///`temporal.api.workflowservice.v1.WorkflowService.RegisterNamespace`.
+    RegisterNamespace,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeNamespace`.
+    DescribeNamespace,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListNamespaces`.
+    ListNamespaces,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateNamespace`.
+    UpdateNamespace,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeprecateNamespace`.
+    DeprecateNamespace,
+    ///`temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution`.
+    StartWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ExecuteMultiOperation`.
+    ExecuteMultiOperation,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory`.
+    GetWorkflowExecutionHistory,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistoryReverse`.
+    GetWorkflowExecutionHistoryReverse,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollWorkflowTaskQueue`.
+    PollWorkflowTaskQueue,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondWorkflowTaskCompleted`.
+    RespondWorkflowTaskCompleted,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondWorkflowTaskFailed`.
+    RespondWorkflowTaskFailed,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue`.
+    PollActivityTaskQueue,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat`.
+    RecordActivityTaskHeartbeat,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeatById`.
+    RecordActivityTaskHeartbeatById,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCompleted`.
+    RespondActivityTaskCompleted,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCompletedById`.
+    RespondActivityTaskCompletedById,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskFailed`.
+    RespondActivityTaskFailed,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskFailedById`.
+    RespondActivityTaskFailedById,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled`.
+    RespondActivityTaskCanceled,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceledById`.
+    RespondActivityTaskCanceledById,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RequestCancelWorkflowExecution`.
+    RequestCancelWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SignalWorkflowExecution`.
+    SignalWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SignalWithStartWorkflowExecution`.
+    SignalWithStartWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ResetWorkflowExecution`.
+    ResetWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.TerminateWorkflowExecution`.
+    TerminateWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteWorkflowExecution`.
+    DeleteWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListOpenWorkflowExecutions`.
+    ListOpenWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListClosedWorkflowExecutions`.
+    ListClosedWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListWorkflowExecutions`.
+    ListWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListArchivedWorkflowExecutions`.
+    ListArchivedWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ScanWorkflowExecutions`.
+    ScanWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CountWorkflowExecutions`.
+    CountWorkflowExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetSearchAttributes`.
+    GetSearchAttributes,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondQueryTaskCompleted`.
+    RespondQueryTaskCompleted,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ResetStickyTaskQueue`.
+    ResetStickyTaskQueue,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ShutdownWorker`.
+    ShutdownWorker,
+    ///`temporal.api.workflowservice.v1.WorkflowService.QueryWorkflow`.
+    QueryWorkflow,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeWorkflowExecution`.
+    DescribeWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeTaskQueue`.
+    DescribeTaskQueue,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetClusterInfo`.
+    GetClusterInfo,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo`.
+    GetSystemInfo,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListTaskQueuePartitions`.
+    ListTaskQueuePartitions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CreateSchedule`.
+    CreateSchedule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeSchedule`.
+    DescribeSchedule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateSchedule`.
+    UpdateSchedule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PatchSchedule`.
+    PatchSchedule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListScheduleMatchingTimes`.
+    ListScheduleMatchingTimes,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteSchedule`.
+    DeleteSchedule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListSchedules`.
+    ListSchedules,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CountSchedules`.
+    CountSchedules,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerBuildIdCompatibility`.
+    UpdateWorkerBuildIdCompatibility,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetWorkerBuildIdCompatibility`.
+    GetWorkerBuildIdCompatibility,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerVersioningRules`.
+    UpdateWorkerVersioningRules,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetWorkerVersioningRules`.
+    GetWorkerVersioningRules,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetWorkerTaskReachability`.
+    GetWorkerTaskReachability,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeDeployment`.
+    DescribeDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeWorkerDeploymentVersion`.
+    DescribeWorkerDeploymentVersion,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListDeployments`.
+    ListDeployments,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetDeploymentReachability`.
+    GetDeploymentReachability,
+    ///`temporal.api.workflowservice.v1.WorkflowService.GetCurrentDeployment`.
+    GetCurrentDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SetCurrentDeployment`.
+    SetCurrentDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentCurrentVersion`.
+    SetWorkerDeploymentCurrentVersion,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeWorkerDeployment`.
+    DescribeWorkerDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteWorkerDeployment`.
+    DeleteWorkerDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteWorkerDeploymentVersion`.
+    DeleteWorkerDeploymentVersion,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentRampingVersion`.
+    SetWorkerDeploymentRampingVersion,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListWorkerDeployments`.
+    ListWorkerDeployments,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CreateWorkerDeployment`.
+    CreateWorkerDeployment,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CreateWorkerDeploymentVersion`.
+    CreateWorkerDeploymentVersion,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerDeploymentVersionComputeConfig`.
+    UpdateWorkerDeploymentVersionComputeConfig,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ValidateWorkerDeploymentVersionComputeConfig`.
+    ValidateWorkerDeploymentVersionComputeConfig,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerDeploymentVersionMetadata`.
+    UpdateWorkerDeploymentVersionMetadata,
+    ///`temporal.api.workflowservice.v1.WorkflowService.SetWorkerDeploymentManager`.
+    SetWorkerDeploymentManager,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkflowExecution`.
+    UpdateWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionUpdate`.
+    PollWorkflowExecutionUpdate,
+    ///`temporal.api.workflowservice.v1.WorkflowService.StartBatchOperation`.
+    StartBatchOperation,
+    ///`temporal.api.workflowservice.v1.WorkflowService.StopBatchOperation`.
+    StopBatchOperation,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeBatchOperation`.
+    DescribeBatchOperation,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListBatchOperations`.
+    ListBatchOperations,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollNexusTaskQueue`.
+    PollNexusTaskQueue,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondNexusTaskCompleted`.
+    RespondNexusTaskCompleted,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RespondNexusTaskFailed`.
+    RespondNexusTaskFailed,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateActivityOptions`.
+    UpdateActivityOptions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkflowExecutionOptions`.
+    UpdateWorkflowExecutionOptions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PauseActivity`.
+    PauseActivity,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UnpauseActivity`.
+    UnpauseActivity,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ResetActivity`.
+    ResetActivity,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CreateWorkflowRule`.
+    CreateWorkflowRule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeWorkflowRule`.
+    DescribeWorkflowRule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteWorkflowRule`.
+    DeleteWorkflowRule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListWorkflowRules`.
+    ListWorkflowRules,
+    ///`temporal.api.workflowservice.v1.WorkflowService.TriggerWorkflowRule`.
+    TriggerWorkflowRule,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RecordWorkerHeartbeat`.
+    RecordWorkerHeartbeat,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListWorkers`.
+    ListWorkers,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CountWorkers`.
+    CountWorkers,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateTaskQueueConfig`.
+    UpdateTaskQueueConfig,
+    ///`temporal.api.workflowservice.v1.WorkflowService.FetchWorkerConfig`.
+    FetchWorkerConfig,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateWorkerConfig`.
+    UpdateWorkerConfig,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeWorker`.
+    DescribeWorker,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PauseWorkflowExecution`.
+    PauseWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UnpauseWorkflowExecution`.
+    UnpauseWorkflowExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.StartActivityExecution`.
+    StartActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.StartNexusOperationExecution`.
+    StartNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeActivityExecution`.
+    DescribeActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DescribeNexusOperationExecution`.
+    DescribeNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollActivityExecution`.
+    PollActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollNexusOperationExecution`.
+    PollNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListActivityExecutions`.
+    ListActivityExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ListNexusOperationExecutions`.
+    ListNexusOperationExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CountActivityExecutions`.
+    CountActivityExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.CountNexusOperationExecutions`.
+    CountNexusOperationExecutions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RequestCancelActivityExecution`.
+    RequestCancelActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.RequestCancelNexusOperationExecution`.
+    RequestCancelNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.TerminateActivityExecution`.
+    TerminateActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteActivityExecution`.
+    DeleteActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PauseActivityExecution`.
+    PauseActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.ResetActivityExecution`.
+    ResetActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UnpauseActivityExecution`.
+    UnpauseActivityExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.UpdateActivityExecutionOptions`.
+    UpdateActivityExecutionOptions,
+    ///`temporal.api.workflowservice.v1.WorkflowService.TerminateNexusOperationExecution`.
+    TerminateNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.DeleteNexusOperationExecution`.
+    DeleteNexusOperationExecution,
+    ///`temporal.api.workflowservice.v1.WorkflowService.PollWorkflowExecutionTimeSkipping`.
+    PollWorkflowExecutionTimeSkipping,
+}
+impl WorkflowServiceMethod {
+    /// Original protobuf method name.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::RegisterNamespace => "RegisterNamespace",
+            Self::DescribeNamespace => "DescribeNamespace",
+            Self::ListNamespaces => "ListNamespaces",
+            Self::UpdateNamespace => "UpdateNamespace",
+            Self::DeprecateNamespace => "DeprecateNamespace",
+            Self::StartWorkflowExecution => "StartWorkflowExecution",
+            Self::ExecuteMultiOperation => "ExecuteMultiOperation",
+            Self::GetWorkflowExecutionHistory => "GetWorkflowExecutionHistory",
+            Self::GetWorkflowExecutionHistoryReverse => {
+                "GetWorkflowExecutionHistoryReverse"
+            }
+            Self::PollWorkflowTaskQueue => "PollWorkflowTaskQueue",
+            Self::RespondWorkflowTaskCompleted => "RespondWorkflowTaskCompleted",
+            Self::RespondWorkflowTaskFailed => "RespondWorkflowTaskFailed",
+            Self::PollActivityTaskQueue => "PollActivityTaskQueue",
+            Self::RecordActivityTaskHeartbeat => "RecordActivityTaskHeartbeat",
+            Self::RecordActivityTaskHeartbeatById => "RecordActivityTaskHeartbeatById",
+            Self::RespondActivityTaskCompleted => "RespondActivityTaskCompleted",
+            Self::RespondActivityTaskCompletedById => "RespondActivityTaskCompletedById",
+            Self::RespondActivityTaskFailed => "RespondActivityTaskFailed",
+            Self::RespondActivityTaskFailedById => "RespondActivityTaskFailedById",
+            Self::RespondActivityTaskCanceled => "RespondActivityTaskCanceled",
+            Self::RespondActivityTaskCanceledById => "RespondActivityTaskCanceledById",
+            Self::RequestCancelWorkflowExecution => "RequestCancelWorkflowExecution",
+            Self::SignalWorkflowExecution => "SignalWorkflowExecution",
+            Self::SignalWithStartWorkflowExecution => "SignalWithStartWorkflowExecution",
+            Self::ResetWorkflowExecution => "ResetWorkflowExecution",
+            Self::TerminateWorkflowExecution => "TerminateWorkflowExecution",
+            Self::DeleteWorkflowExecution => "DeleteWorkflowExecution",
+            Self::ListOpenWorkflowExecutions => "ListOpenWorkflowExecutions",
+            Self::ListClosedWorkflowExecutions => "ListClosedWorkflowExecutions",
+            Self::ListWorkflowExecutions => "ListWorkflowExecutions",
+            Self::ListArchivedWorkflowExecutions => "ListArchivedWorkflowExecutions",
+            Self::ScanWorkflowExecutions => "ScanWorkflowExecutions",
+            Self::CountWorkflowExecutions => "CountWorkflowExecutions",
+            Self::GetSearchAttributes => "GetSearchAttributes",
+            Self::RespondQueryTaskCompleted => "RespondQueryTaskCompleted",
+            Self::ResetStickyTaskQueue => "ResetStickyTaskQueue",
+            Self::ShutdownWorker => "ShutdownWorker",
+            Self::QueryWorkflow => "QueryWorkflow",
+            Self::DescribeWorkflowExecution => "DescribeWorkflowExecution",
+            Self::DescribeTaskQueue => "DescribeTaskQueue",
+            Self::GetClusterInfo => "GetClusterInfo",
+            Self::GetSystemInfo => "GetSystemInfo",
+            Self::ListTaskQueuePartitions => "ListTaskQueuePartitions",
+            Self::CreateSchedule => "CreateSchedule",
+            Self::DescribeSchedule => "DescribeSchedule",
+            Self::UpdateSchedule => "UpdateSchedule",
+            Self::PatchSchedule => "PatchSchedule",
+            Self::ListScheduleMatchingTimes => "ListScheduleMatchingTimes",
+            Self::DeleteSchedule => "DeleteSchedule",
+            Self::ListSchedules => "ListSchedules",
+            Self::CountSchedules => "CountSchedules",
+            Self::UpdateWorkerBuildIdCompatibility => "UpdateWorkerBuildIdCompatibility",
+            Self::GetWorkerBuildIdCompatibility => "GetWorkerBuildIdCompatibility",
+            Self::UpdateWorkerVersioningRules => "UpdateWorkerVersioningRules",
+            Self::GetWorkerVersioningRules => "GetWorkerVersioningRules",
+            Self::GetWorkerTaskReachability => "GetWorkerTaskReachability",
+            Self::DescribeDeployment => "DescribeDeployment",
+            Self::DescribeWorkerDeploymentVersion => "DescribeWorkerDeploymentVersion",
+            Self::ListDeployments => "ListDeployments",
+            Self::GetDeploymentReachability => "GetDeploymentReachability",
+            Self::GetCurrentDeployment => "GetCurrentDeployment",
+            Self::SetCurrentDeployment => "SetCurrentDeployment",
+            Self::SetWorkerDeploymentCurrentVersion => {
+                "SetWorkerDeploymentCurrentVersion"
+            }
+            Self::DescribeWorkerDeployment => "DescribeWorkerDeployment",
+            Self::DeleteWorkerDeployment => "DeleteWorkerDeployment",
+            Self::DeleteWorkerDeploymentVersion => "DeleteWorkerDeploymentVersion",
+            Self::SetWorkerDeploymentRampingVersion => {
+                "SetWorkerDeploymentRampingVersion"
+            }
+            Self::ListWorkerDeployments => "ListWorkerDeployments",
+            Self::CreateWorkerDeployment => "CreateWorkerDeployment",
+            Self::CreateWorkerDeploymentVersion => "CreateWorkerDeploymentVersion",
+            Self::UpdateWorkerDeploymentVersionComputeConfig => {
+                "UpdateWorkerDeploymentVersionComputeConfig"
+            }
+            Self::ValidateWorkerDeploymentVersionComputeConfig => {
+                "ValidateWorkerDeploymentVersionComputeConfig"
+            }
+            Self::UpdateWorkerDeploymentVersionMetadata => {
+                "UpdateWorkerDeploymentVersionMetadata"
+            }
+            Self::SetWorkerDeploymentManager => "SetWorkerDeploymentManager",
+            Self::UpdateWorkflowExecution => "UpdateWorkflowExecution",
+            Self::PollWorkflowExecutionUpdate => "PollWorkflowExecutionUpdate",
+            Self::StartBatchOperation => "StartBatchOperation",
+            Self::StopBatchOperation => "StopBatchOperation",
+            Self::DescribeBatchOperation => "DescribeBatchOperation",
+            Self::ListBatchOperations => "ListBatchOperations",
+            Self::PollNexusTaskQueue => "PollNexusTaskQueue",
+            Self::RespondNexusTaskCompleted => "RespondNexusTaskCompleted",
+            Self::RespondNexusTaskFailed => "RespondNexusTaskFailed",
+            Self::UpdateActivityOptions => "UpdateActivityOptions",
+            Self::UpdateWorkflowExecutionOptions => "UpdateWorkflowExecutionOptions",
+            Self::PauseActivity => "PauseActivity",
+            Self::UnpauseActivity => "UnpauseActivity",
+            Self::ResetActivity => "ResetActivity",
+            Self::CreateWorkflowRule => "CreateWorkflowRule",
+            Self::DescribeWorkflowRule => "DescribeWorkflowRule",
+            Self::DeleteWorkflowRule => "DeleteWorkflowRule",
+            Self::ListWorkflowRules => "ListWorkflowRules",
+            Self::TriggerWorkflowRule => "TriggerWorkflowRule",
+            Self::RecordWorkerHeartbeat => "RecordWorkerHeartbeat",
+            Self::ListWorkers => "ListWorkers",
+            Self::CountWorkers => "CountWorkers",
+            Self::UpdateTaskQueueConfig => "UpdateTaskQueueConfig",
+            Self::FetchWorkerConfig => "FetchWorkerConfig",
+            Self::UpdateWorkerConfig => "UpdateWorkerConfig",
+            Self::DescribeWorker => "DescribeWorker",
+            Self::PauseWorkflowExecution => "PauseWorkflowExecution",
+            Self::UnpauseWorkflowExecution => "UnpauseWorkflowExecution",
+            Self::StartActivityExecution => "StartActivityExecution",
+            Self::StartNexusOperationExecution => "StartNexusOperationExecution",
+            Self::DescribeActivityExecution => "DescribeActivityExecution",
+            Self::DescribeNexusOperationExecution => "DescribeNexusOperationExecution",
+            Self::PollActivityExecution => "PollActivityExecution",
+            Self::PollNexusOperationExecution => "PollNexusOperationExecution",
+            Self::ListActivityExecutions => "ListActivityExecutions",
+            Self::ListNexusOperationExecutions => "ListNexusOperationExecutions",
+            Self::CountActivityExecutions => "CountActivityExecutions",
+            Self::CountNexusOperationExecutions => "CountNexusOperationExecutions",
+            Self::RequestCancelActivityExecution => "RequestCancelActivityExecution",
+            Self::RequestCancelNexusOperationExecution => {
+                "RequestCancelNexusOperationExecution"
+            }
+            Self::TerminateActivityExecution => "TerminateActivityExecution",
+            Self::DeleteActivityExecution => "DeleteActivityExecution",
+            Self::PauseActivityExecution => "PauseActivityExecution",
+            Self::ResetActivityExecution => "ResetActivityExecution",
+            Self::UnpauseActivityExecution => "UnpauseActivityExecution",
+            Self::UpdateActivityExecutionOptions => "UpdateActivityExecutionOptions",
+            Self::TerminateNexusOperationExecution => "TerminateNexusOperationExecution",
+            Self::DeleteNexusOperationExecution => "DeleteNexusOperationExecution",
+            Self::PollWorkflowExecutionTimeSkipping => {
+                "PollWorkflowExecutionTimeSkipping"
+            }
+        }
+    }
+    /// Parse an original protobuf method name.
+    pub fn parse(name: &str) -> Option<Self> {
+        match name {
+            "RegisterNamespace" => Some(Self::RegisterNamespace),
+            "DescribeNamespace" => Some(Self::DescribeNamespace),
+            "ListNamespaces" => Some(Self::ListNamespaces),
+            "UpdateNamespace" => Some(Self::UpdateNamespace),
+            "DeprecateNamespace" => Some(Self::DeprecateNamespace),
+            "StartWorkflowExecution" => Some(Self::StartWorkflowExecution),
+            "ExecuteMultiOperation" => Some(Self::ExecuteMultiOperation),
+            "GetWorkflowExecutionHistory" => Some(Self::GetWorkflowExecutionHistory),
+            "GetWorkflowExecutionHistoryReverse" => {
+                Some(Self::GetWorkflowExecutionHistoryReverse)
+            }
+            "PollWorkflowTaskQueue" => Some(Self::PollWorkflowTaskQueue),
+            "RespondWorkflowTaskCompleted" => Some(Self::RespondWorkflowTaskCompleted),
+            "RespondWorkflowTaskFailed" => Some(Self::RespondWorkflowTaskFailed),
+            "PollActivityTaskQueue" => Some(Self::PollActivityTaskQueue),
+            "RecordActivityTaskHeartbeat" => Some(Self::RecordActivityTaskHeartbeat),
+            "RecordActivityTaskHeartbeatById" => {
+                Some(Self::RecordActivityTaskHeartbeatById)
+            }
+            "RespondActivityTaskCompleted" => Some(Self::RespondActivityTaskCompleted),
+            "RespondActivityTaskCompletedById" => {
+                Some(Self::RespondActivityTaskCompletedById)
+            }
+            "RespondActivityTaskFailed" => Some(Self::RespondActivityTaskFailed),
+            "RespondActivityTaskFailedById" => Some(Self::RespondActivityTaskFailedById),
+            "RespondActivityTaskCanceled" => Some(Self::RespondActivityTaskCanceled),
+            "RespondActivityTaskCanceledById" => {
+                Some(Self::RespondActivityTaskCanceledById)
+            }
+            "RequestCancelWorkflowExecution" => {
+                Some(Self::RequestCancelWorkflowExecution)
+            }
+            "SignalWorkflowExecution" => Some(Self::SignalWorkflowExecution),
+            "SignalWithStartWorkflowExecution" => {
+                Some(Self::SignalWithStartWorkflowExecution)
+            }
+            "ResetWorkflowExecution" => Some(Self::ResetWorkflowExecution),
+            "TerminateWorkflowExecution" => Some(Self::TerminateWorkflowExecution),
+            "DeleteWorkflowExecution" => Some(Self::DeleteWorkflowExecution),
+            "ListOpenWorkflowExecutions" => Some(Self::ListOpenWorkflowExecutions),
+            "ListClosedWorkflowExecutions" => Some(Self::ListClosedWorkflowExecutions),
+            "ListWorkflowExecutions" => Some(Self::ListWorkflowExecutions),
+            "ListArchivedWorkflowExecutions" => {
+                Some(Self::ListArchivedWorkflowExecutions)
+            }
+            "ScanWorkflowExecutions" => Some(Self::ScanWorkflowExecutions),
+            "CountWorkflowExecutions" => Some(Self::CountWorkflowExecutions),
+            "GetSearchAttributes" => Some(Self::GetSearchAttributes),
+            "RespondQueryTaskCompleted" => Some(Self::RespondQueryTaskCompleted),
+            "ResetStickyTaskQueue" => Some(Self::ResetStickyTaskQueue),
+            "ShutdownWorker" => Some(Self::ShutdownWorker),
+            "QueryWorkflow" => Some(Self::QueryWorkflow),
+            "DescribeWorkflowExecution" => Some(Self::DescribeWorkflowExecution),
+            "DescribeTaskQueue" => Some(Self::DescribeTaskQueue),
+            "GetClusterInfo" => Some(Self::GetClusterInfo),
+            "GetSystemInfo" => Some(Self::GetSystemInfo),
+            "ListTaskQueuePartitions" => Some(Self::ListTaskQueuePartitions),
+            "CreateSchedule" => Some(Self::CreateSchedule),
+            "DescribeSchedule" => Some(Self::DescribeSchedule),
+            "UpdateSchedule" => Some(Self::UpdateSchedule),
+            "PatchSchedule" => Some(Self::PatchSchedule),
+            "ListScheduleMatchingTimes" => Some(Self::ListScheduleMatchingTimes),
+            "DeleteSchedule" => Some(Self::DeleteSchedule),
+            "ListSchedules" => Some(Self::ListSchedules),
+            "CountSchedules" => Some(Self::CountSchedules),
+            "UpdateWorkerBuildIdCompatibility" => {
+                Some(Self::UpdateWorkerBuildIdCompatibility)
+            }
+            "GetWorkerBuildIdCompatibility" => Some(Self::GetWorkerBuildIdCompatibility),
+            "UpdateWorkerVersioningRules" => Some(Self::UpdateWorkerVersioningRules),
+            "GetWorkerVersioningRules" => Some(Self::GetWorkerVersioningRules),
+            "GetWorkerTaskReachability" => Some(Self::GetWorkerTaskReachability),
+            "DescribeDeployment" => Some(Self::DescribeDeployment),
+            "DescribeWorkerDeploymentVersion" => {
+                Some(Self::DescribeWorkerDeploymentVersion)
+            }
+            "ListDeployments" => Some(Self::ListDeployments),
+            "GetDeploymentReachability" => Some(Self::GetDeploymentReachability),
+            "GetCurrentDeployment" => Some(Self::GetCurrentDeployment),
+            "SetCurrentDeployment" => Some(Self::SetCurrentDeployment),
+            "SetWorkerDeploymentCurrentVersion" => {
+                Some(Self::SetWorkerDeploymentCurrentVersion)
+            }
+            "DescribeWorkerDeployment" => Some(Self::DescribeWorkerDeployment),
+            "DeleteWorkerDeployment" => Some(Self::DeleteWorkerDeployment),
+            "DeleteWorkerDeploymentVersion" => Some(Self::DeleteWorkerDeploymentVersion),
+            "SetWorkerDeploymentRampingVersion" => {
+                Some(Self::SetWorkerDeploymentRampingVersion)
+            }
+            "ListWorkerDeployments" => Some(Self::ListWorkerDeployments),
+            "CreateWorkerDeployment" => Some(Self::CreateWorkerDeployment),
+            "CreateWorkerDeploymentVersion" => Some(Self::CreateWorkerDeploymentVersion),
+            "UpdateWorkerDeploymentVersionComputeConfig" => {
+                Some(Self::UpdateWorkerDeploymentVersionComputeConfig)
+            }
+            "ValidateWorkerDeploymentVersionComputeConfig" => {
+                Some(Self::ValidateWorkerDeploymentVersionComputeConfig)
+            }
+            "UpdateWorkerDeploymentVersionMetadata" => {
+                Some(Self::UpdateWorkerDeploymentVersionMetadata)
+            }
+            "SetWorkerDeploymentManager" => Some(Self::SetWorkerDeploymentManager),
+            "UpdateWorkflowExecution" => Some(Self::UpdateWorkflowExecution),
+            "PollWorkflowExecutionUpdate" => Some(Self::PollWorkflowExecutionUpdate),
+            "StartBatchOperation" => Some(Self::StartBatchOperation),
+            "StopBatchOperation" => Some(Self::StopBatchOperation),
+            "DescribeBatchOperation" => Some(Self::DescribeBatchOperation),
+            "ListBatchOperations" => Some(Self::ListBatchOperations),
+            "PollNexusTaskQueue" => Some(Self::PollNexusTaskQueue),
+            "RespondNexusTaskCompleted" => Some(Self::RespondNexusTaskCompleted),
+            "RespondNexusTaskFailed" => Some(Self::RespondNexusTaskFailed),
+            "UpdateActivityOptions" => Some(Self::UpdateActivityOptions),
+            "UpdateWorkflowExecutionOptions" => {
+                Some(Self::UpdateWorkflowExecutionOptions)
+            }
+            "PauseActivity" => Some(Self::PauseActivity),
+            "UnpauseActivity" => Some(Self::UnpauseActivity),
+            "ResetActivity" => Some(Self::ResetActivity),
+            "CreateWorkflowRule" => Some(Self::CreateWorkflowRule),
+            "DescribeWorkflowRule" => Some(Self::DescribeWorkflowRule),
+            "DeleteWorkflowRule" => Some(Self::DeleteWorkflowRule),
+            "ListWorkflowRules" => Some(Self::ListWorkflowRules),
+            "TriggerWorkflowRule" => Some(Self::TriggerWorkflowRule),
+            "RecordWorkerHeartbeat" => Some(Self::RecordWorkerHeartbeat),
+            "ListWorkers" => Some(Self::ListWorkers),
+            "CountWorkers" => Some(Self::CountWorkers),
+            "UpdateTaskQueueConfig" => Some(Self::UpdateTaskQueueConfig),
+            "FetchWorkerConfig" => Some(Self::FetchWorkerConfig),
+            "UpdateWorkerConfig" => Some(Self::UpdateWorkerConfig),
+            "DescribeWorker" => Some(Self::DescribeWorker),
+            "PauseWorkflowExecution" => Some(Self::PauseWorkflowExecution),
+            "UnpauseWorkflowExecution" => Some(Self::UnpauseWorkflowExecution),
+            "StartActivityExecution" => Some(Self::StartActivityExecution),
+            "StartNexusOperationExecution" => Some(Self::StartNexusOperationExecution),
+            "DescribeActivityExecution" => Some(Self::DescribeActivityExecution),
+            "DescribeNexusOperationExecution" => {
+                Some(Self::DescribeNexusOperationExecution)
+            }
+            "PollActivityExecution" => Some(Self::PollActivityExecution),
+            "PollNexusOperationExecution" => Some(Self::PollNexusOperationExecution),
+            "ListActivityExecutions" => Some(Self::ListActivityExecutions),
+            "ListNexusOperationExecutions" => Some(Self::ListNexusOperationExecutions),
+            "CountActivityExecutions" => Some(Self::CountActivityExecutions),
+            "CountNexusOperationExecutions" => Some(Self::CountNexusOperationExecutions),
+            "RequestCancelActivityExecution" => {
+                Some(Self::RequestCancelActivityExecution)
+            }
+            "RequestCancelNexusOperationExecution" => {
+                Some(Self::RequestCancelNexusOperationExecution)
+            }
+            "TerminateActivityExecution" => Some(Self::TerminateActivityExecution),
+            "DeleteActivityExecution" => Some(Self::DeleteActivityExecution),
+            "PauseActivityExecution" => Some(Self::PauseActivityExecution),
+            "ResetActivityExecution" => Some(Self::ResetActivityExecution),
+            "UnpauseActivityExecution" => Some(Self::UnpauseActivityExecution),
+            "UpdateActivityExecutionOptions" => {
+                Some(Self::UpdateActivityExecutionOptions)
+            }
+            "TerminateNexusOperationExecution" => {
+                Some(Self::TerminateNexusOperationExecution)
+            }
+            "DeleteNexusOperationExecution" => Some(Self::DeleteNexusOperationExecution),
+            "PollWorkflowExecutionTimeSkipping" => {
+                Some(Self::PollWorkflowExecutionTimeSkipping)
+            }
+            _ => None,
+        }
+    }
+}
+/// One upstream method and its generated Rust message types.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct WorkflowServiceMethodInfo {
+    /// The method identity.
+    pub method: WorkflowServiceMethod,
+    /// Fully qualified Rust request type path.
+    pub request_type: &'static str,
+    /// Fully qualified Rust response type path.
+    pub response_type: &'static str,
+}
+/// Source-ordered request and response types.
+pub const WORKFLOW_SERVICE_METHODS: &[WorkflowServiceMethodInfo] = &[
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RegisterNamespace,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RegisterNamespaceRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RegisterNamespaceResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeNamespace,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeNamespaceRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeNamespaceResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListNamespaces,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListNamespacesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListNamespacesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateNamespace,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateNamespaceRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateNamespaceResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeprecateNamespace,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeprecateNamespaceRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeprecateNamespaceResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::StartWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ExecuteMultiOperation,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ExecuteMultiOperationRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ExecuteMultiOperationResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetWorkflowExecutionHistory,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkflowExecutionHistoryRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkflowExecutionHistoryResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetWorkflowExecutionHistoryReverse,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkflowExecutionHistoryReverseRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkflowExecutionHistoryReverseResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollWorkflowTaskQueue,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowTaskQueueRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowTaskQueueResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondWorkflowTaskCompleted,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondWorkflowTaskCompletedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondWorkflowTaskCompletedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondWorkflowTaskFailed,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondWorkflowTaskFailedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondWorkflowTaskFailedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollActivityTaskQueue,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RecordActivityTaskHeartbeat,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordActivityTaskHeartbeatRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordActivityTaskHeartbeatResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RecordActivityTaskHeartbeatById,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordActivityTaskHeartbeatByIdRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordActivityTaskHeartbeatByIdResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskCompleted,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskCompletedById,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedByIdRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedByIdResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskFailed,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskFailedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskFailedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskFailedById,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskFailedByIdRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskFailedByIdResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskCanceled,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCanceledRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCanceledResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondActivityTaskCanceledById,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCanceledByIdRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCanceledByIdResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RequestCancelWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SignalWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SignalWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SignalWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SignalWithStartWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SignalWithStartWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SignalWithStartWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ResetWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::TerminateWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListOpenWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListOpenWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListOpenWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListClosedWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListClosedWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListClosedWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListArchivedWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListArchivedWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListArchivedWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ScanWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ScanWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ScanWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CountWorkflowExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountWorkflowExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountWorkflowExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetSearchAttributes,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetSearchAttributesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetSearchAttributesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondQueryTaskCompleted,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondQueryTaskCompletedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondQueryTaskCompletedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ResetStickyTaskQueue,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetStickyTaskQueueRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetStickyTaskQueueResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ShutdownWorker,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ShutdownWorkerRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ShutdownWorkerResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::QueryWorkflow,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::QueryWorkflowRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::QueryWorkflowResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeTaskQueue,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeTaskQueueRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeTaskQueueResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetClusterInfo,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetClusterInfoRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetClusterInfoResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetSystemInfo,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetSystemInfoRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetSystemInfoResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListTaskQueuePartitions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListTaskQueuePartitionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListTaskQueuePartitionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CreateSchedule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateScheduleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateScheduleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeSchedule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeScheduleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeScheduleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateSchedule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateScheduleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateScheduleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PatchSchedule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PatchScheduleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PatchScheduleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListScheduleMatchingTimes,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListScheduleMatchingTimesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListScheduleMatchingTimesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteSchedule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteScheduleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteScheduleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListSchedules,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListSchedulesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListSchedulesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CountSchedules,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountSchedulesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountSchedulesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkerBuildIdCompatibility,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerBuildIdCompatibilityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerBuildIdCompatibilityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetWorkerBuildIdCompatibility,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerBuildIdCompatibilityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerBuildIdCompatibilityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkerVersioningRules,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerVersioningRulesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerVersioningRulesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetWorkerVersioningRules,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerVersioningRulesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerVersioningRulesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetWorkerTaskReachability,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerTaskReachabilityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetWorkerTaskReachabilityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeWorkerDeploymentVersion,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerDeploymentVersionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerDeploymentVersionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListDeployments,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListDeploymentsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListDeploymentsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetDeploymentReachability,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetDeploymentReachabilityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetDeploymentReachabilityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::GetCurrentDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetCurrentDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::GetCurrentDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SetCurrentDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetCurrentDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetCurrentDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SetWorkerDeploymentCurrentVersion,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentCurrentVersionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentCurrentVersionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeWorkerDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteWorkerDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkerDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkerDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteWorkerDeploymentVersion,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkerDeploymentVersionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkerDeploymentVersionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SetWorkerDeploymentRampingVersion,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentRampingVersionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentRampingVersionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListWorkerDeployments,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkerDeploymentsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkerDeploymentsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CreateWorkerDeployment,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkerDeploymentRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkerDeploymentResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CreateWorkerDeploymentVersion,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkerDeploymentVersionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkerDeploymentVersionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkerDeploymentVersionComputeConfig,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerDeploymentVersionComputeConfigRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerDeploymentVersionComputeConfigResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ValidateWorkerDeploymentVersionComputeConfig,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ValidateWorkerDeploymentVersionComputeConfigRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ValidateWorkerDeploymentVersionComputeConfigResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkerDeploymentVersionMetadata,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerDeploymentVersionMetadataRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerDeploymentVersionMetadataResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::SetWorkerDeploymentManager,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentManagerRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::SetWorkerDeploymentManagerResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollWorkflowExecutionUpdate,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowExecutionUpdateRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowExecutionUpdateResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::StartBatchOperation,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartBatchOperationRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartBatchOperationResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::StopBatchOperation,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StopBatchOperationRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StopBatchOperationResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeBatchOperation,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeBatchOperationRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeBatchOperationResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListBatchOperations,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListBatchOperationsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListBatchOperationsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollNexusTaskQueue,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollNexusTaskQueueRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollNexusTaskQueueResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondNexusTaskCompleted,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondNexusTaskCompletedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondNexusTaskCompletedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RespondNexusTaskFailed,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondNexusTaskFailedRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RespondNexusTaskFailedResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateActivityOptions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateActivityOptionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateActivityOptionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkflowExecutionOptions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkflowExecutionOptionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkflowExecutionOptionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PauseActivity,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseActivityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseActivityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UnpauseActivity,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseActivityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseActivityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ResetActivity,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetActivityRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetActivityResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CreateWorkflowRule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkflowRuleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CreateWorkflowRuleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeWorkflowRule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkflowRuleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkflowRuleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteWorkflowRule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkflowRuleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteWorkflowRuleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListWorkflowRules,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkflowRulesRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkflowRulesResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::TriggerWorkflowRule,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TriggerWorkflowRuleRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TriggerWorkflowRuleResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RecordWorkerHeartbeat,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordWorkerHeartbeatRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RecordWorkerHeartbeatResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListWorkers,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkersRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListWorkersResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CountWorkers,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountWorkersRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountWorkersResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateTaskQueueConfig,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateTaskQueueConfigRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateTaskQueueConfigResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::FetchWorkerConfig,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::FetchWorkerConfigRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::FetchWorkerConfigResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateWorkerConfig,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerConfigRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateWorkerConfigResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeWorker,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeWorkerResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PauseWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UnpauseWorkflowExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseWorkflowExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseWorkflowExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::StartActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::StartNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::StartNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DescribeNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListActivityExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListActivityExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListActivityExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ListNexusOperationExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListNexusOperationExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ListNexusOperationExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CountActivityExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountActivityExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountActivityExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::CountNexusOperationExecutions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountNexusOperationExecutionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::CountNexusOperationExecutionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RequestCancelActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::RequestCancelNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::TerminateActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PauseActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PauseActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::ResetActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::ResetActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UnpauseActivityExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseActivityExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UnpauseActivityExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::UpdateActivityExecutionOptions,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateActivityExecutionOptionsRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::UpdateActivityExecutionOptionsResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::TerminateNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::TerminateNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::DeleteNexusOperationExecution,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteNexusOperationExecutionRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::DeleteNexusOperationExecutionResponse",
+    },
+    WorkflowServiceMethodInfo {
+        method: WorkflowServiceMethod::PollWorkflowExecutionTimeSkipping,
+        request_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowExecutionTimeSkippingRequest",
+        response_type: "::umpire_temporal_api::temporal::api::workflowservice::v1::PollWorkflowExecutionTimeSkippingResponse",
+    },
+];
+/// Source-reviewed RPC classifications.
+pub const RPC_BINDINGS: &[(&str, &str, &str)] = &[
+    (
+        "temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue",
+        "Action",
+        "Worker::Poll",
+    ),
+    (
+        "temporal.api.workflowservice.v1.WorkflowService.GetSystemInfo",
+        "OutOfScope",
+        "Cluster and service information",
+    ),
+];
+/// Bind every Model action to its classified RPC or declared environment.
+#[macro_export]
+macro_rules! bind_workflow_action {
+    ($action:expr, $environmental_pattern:pat => $environmental_expression:expr) => {
+        match $action { ModelAction::Worker(Worker::Poll) =>
+        Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue"),
+        $environmental_pattern => $environmental_expression }
+    };
+}
+/// Dispatch only declared annotation message types.
+#[macro_export]
+macro_rules! dispatch_workflow_annotations {
+    ($method:expr, $response:expr, $ty:ident, $body:block, $fallback:expr) => {
+        match ($method, $response) {
+        ($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { type $ty =
+        $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest; $body
+        }, _ => $fallback }
+    };
+}
+
+
+thread 'generation_uses_annotations_for_dispatch_and_source_match_for_bindings' (1148006) panicked at temporal/api/tests/services.rs:124:5:
+assertion failed: generated.contains("ModelAction :: Worker (Worker :: Poll) => Binding::Rpc(\"temporal.api.workflowservice.v1.WorkflowService.PollActivityTaskQueue\")")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test generation_uses_annotations_for_dispatch_and_source_match_for_bindings ... FAILED
+
+failures:
+
+failures:
+    generation_uses_annotations_for_dispatch_and_source_match_for_bindings
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p umpire-temporal-api --test services`

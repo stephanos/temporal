@@ -1,0 +1,67 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2485-types/model/temporal/api)
+error[E0308]: mismatched types
+   --> temporal/api/tests/codegen.rs:67:69
+    |
+ 67 |         assigned_build_id: Some(AssignedBuildId::UseWorkflowBuildId(())),
+    |                                 ----------------------------------- ^^ expected `Empty`, found `()`
+    |                                 |
+    |                                 arguments to this enum variant are incorrect
+    |
+note: tuple variant defined here
+   --> /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target/debug/build/umpire-temporal-api-10f2e179f954a520/out/temporal.api.workflow.v1.rs:387:9
+    |
+387 |         UseWorkflowBuildId(::umpire_runtime::google::protobuf::Empty),
+    |         ^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> temporal/api/tests/codegen.rs:80:63
+    |
+ 80 |     let zero = TaskQueueMetadata { max_tasks_per_second: Some(0.0) };
+    |                                                          ---- ^^^ expected `DoubleValue`, found floating-point number
+    |                                                          |
+    |                                                          arguments to this enum variant are incorrect
+    |
+help: the type constructed contains `{float}` due to the type of the argument passed
+   --> temporal/api/tests/codegen.rs:80:58
+    |
+ 80 |     let zero = TaskQueueMetadata { max_tasks_per_second: Some(0.0) };
+    |                                                          ^^^^^---^
+    |                                                               |
+    |                                                               this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: try wrapping the expression in `umpire_runtime::google::protobuf::DoubleValue`
+    |
+ 80 |     let zero = TaskQueueMetadata { max_tasks_per_second: Some(umpire_runtime::google::protobuf::DoubleValue { value: 0.0 }) };
+    |                                                               ++++++++++++++++++++++++++++++++++++++++++++++++++++++     +
+
+error[E0308]: mismatched types
+   --> temporal/api/tests/codegen.rs:83:72
+    |
+ 83 |     for value in [zero, TaskQueueMetadata { max_tasks_per_second: Some(12.5) }] {
+    |                                                                   ---- ^^^^ expected `DoubleValue`, found floating-point number
+    |                                                                   |
+    |                                                                   arguments to this enum variant are incorrect
+    |
+help: the type constructed contains `{float}` due to the type of the argument passed
+   --> temporal/api/tests/codegen.rs:83:67
+    |
+ 83 |     for value in [zero, TaskQueueMetadata { max_tasks_per_second: Some(12.5) }] {
+    |                                                                   ^^^^^----^
+    |                                                                        |
+    |                                                                        this argument influences the type of `Some`
+note: tuple variant defined here
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs:606:5
+    |
+606 |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+    |     ^^^^
+help: try wrapping the expression in `umpire_runtime::google::protobuf::DoubleValue`
+    |
+ 83 |     for value in [zero, TaskQueueMetadata { max_tasks_per_second: Some(umpire_runtime::google::protobuf::DoubleValue { value: 12.5 }) }] {
+    |                                                                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++      +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `umpire-temporal-api` (test "codegen") due to 3 previous errors
