@@ -10,5 +10,8 @@
   "root_additional_finding": "Start scenario header is actually read; claim its message/map/data honestly. ActivityInfo application headers remain ignored.",
   "fix_owner": "/root/fn24612_catalog",
   "task_status": "in_progress",
-  "all_joined_checks": "passed; these do not override review findings"
+  "all_joined_checks": "passed; these do not override review findings",
+  "fix_checkpoint": "da3ece49611e245a49e3f50106170b15578313db",
+  "integrated_fix": "4515d0f96935ad47db056b7226a20f5007edda24",
+  "state": "Fixes integrated; joint verification and primary re-review pending"
 }
