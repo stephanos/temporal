@@ -18,8 +18,12 @@ rejects configured zero. Terminal transitions clear every budget and the pending
 The single internal `Deadline::Tick` decrements every live budget once, without
 underflow, then selects ScheduleToClose > StartToClose > Heartbeat > ScheduleToStart.
 Exactly the selected `ExpiredDeadline` fact records the trigger. A global expiry closes
-TimedOut. StartToClose or Heartbeat expiry while cancellation is pending closes Canceled;
-other expiries close TimedOut. Ordinary and nonexpiring edges have empty facts. Tick is
+TimedOut. StartToClose or Heartbeat expiry while cancellation is pending closes Canceled.
+Nonpending local expiry below the attempt cap schedules exactly the next attempt when
+ScheduleToClose has not expired. It uses the worker-failure retry transition: waiting is
+rearmed from the selected World, running/heartbeat are cleared, and the decremented
+global budget is preserved. The next accepted Poll arms the new attempt timers. At the
+cap, local expiry closes TimedOut; ScheduleToStart expiry always closes TimedOut. Ordinary and nonexpiring edges have empty facts. Tick is
 disabled with no live budget, including after closure.
 
 Atomic Cancel closes immediately. Cooperative Scheduled Cancel also closes immediately;
@@ -53,7 +57,7 @@ The default fixture remains atomic with three attempts, one-tick ScheduleToStart
 StartToClose, and absent global/heartbeat deadlines. Its complete graph has 18 states,
 63 emitted choices from 216 evaluations, 153 disabled evaluations and depth six.
 Its 17 registered claims pass natively. `Cases(3 * 7)` retains the 21 scheduled/started
-closing or retry witnesses in their atomic scope. Cooperative and larger deadline Worlds
+closing or retry witnesses in their atomic scope, including timeout retries below the cap. Cooperative and larger deadline Worlds
 are checked separately; verification records their exact counts and backend evidence.
 
 `temporal/feature/activity/compatibility/` retains all 15 original artifacts and their
@@ -71,4 +75,45 @@ three. Request timeout/protocol admission, heartbeat and acknowledgement program
 and cancellation observation evidence remain downstream work. The existing unheld
 atomic cancellation refusal remains exact. A checker World grants no live capability.
 
-See the [verification record](../../../../.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md) for selected World counts, actual TLC/replay controls, exact fairness lists and timing. The [retained lifecycle projection](compatibility/README.md) specifies every erased field and edge.
+The [original pre-correction verification record](../../../../.flow/artifacts/fn-237-activity-timeouts-heartbeat-and/activity-policy-verification.md) retains the original selected World counts, TLC/replay controls, fairness lists and timing; it is historical evidence, not proof of the corrected transitions. The [retained lifecycle projection](compatibility/README.md) specifies every erased field and edge.
+
+## Approved local timeout retry correction (fn-246.15)
+
+The [owner approval](../../../../.flow/artifacts/fn-246-realization-as-a-checked-refinement-a/planning/timeout-retry-correction/owner-approval.json)
+authorizes only the two nonpending local-expiry cells below the attempt cap. Primary
+contract provenance is `go.temporal.io/api@v1.63.6-0.20260909222256-20151aa90480`,
+`workflowservice/v1/request_response.pb.go:16585-16611` and `service_grpc.pb.go:266-271`,
+and the [public activity timeout contract](https://docs.temporal.io/encyclopedia/detecting-activity-failures#start-to-close-timeout).
+Server implementation is corroboration only. No timeout defaults, backoff, clock inference,
+World domain or cancellation policy is introduced; absent ScheduleToStart admission stays
+with the independent protocol task. The original disagreement and fn-237 records remain intact.
+
+The renewed controls select maximum attempts 1/2/3, optional positive `Ticks(1..=3)`
+parameters and all seven full-state fields. Native exact-edge checks cover each local
+cause at every attempt, pending/nonpending, absent/positive/tied global budgets,
+StartToClose/Heartbeat ties, rearmed waiting/attempt timers, repeated timeouts,
+completion after retry, stale/current Poll and terminal rejection. The existing
+compiled/interpreted/TLC fixture harness explores complete selected Worlds with a
+4,096-state ceiling and no depth cut; it retains all 17 laws, fairness controls and
+the global Tick bound. Exact retry traces retain Accepted and a singleton timeout
+fact, independently of unchanged aggregate counts. Source mutants retain the old
+terminalization and exercise erroneous cap/pending retry, global reset/priority,
+waiting reset, attempt increment and replaced/missing timeout facts. A timeout fact
+cannot be erased to present a worker-failure retry.
+
+Only current semantic snapshots are renewed. The original max-one compatibility
+checkpoint still compares one start, six states and eleven visible edges, including
+the changed-old-edge negative control. The current default remains 18 states/63 edges;
+its rows and two timeout-retry witnesses change. Required verification from `model/`:
+
+```sh
+mise exec -- cargo test -p umpire-temporal-tests --test fixtures
+UMPIRE_BACKENDS=require mise exec -- cargo test -p umpire-temporal-tests --test fixtures -- --nocapture --test-threads=2
+mise exec -- cargo test -p umpire-temporal --test realization named_guest_adapter_preserves_the_independent_report_and_ordered_rows
+```
+
+TLC uses the pinned `tla2tools` 1.7.4 artifact (TLC 2.19), SHA-256
+`936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`.
+Apalache is opt-in and provides no required correction evidence. Joined guest
+publication/freshness, current host checks and fresh TLC-required `make model-validate`
+remain conductor-owned before task closure and independent protocol admission.

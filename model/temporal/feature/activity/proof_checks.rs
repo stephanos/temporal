@@ -483,7 +483,23 @@ fn forged_countdowns_refute_bounds_and_armed_zero_expires() -> umpire_testing::T
                 let steps = world.checked_step(&forged, Deadline::Tick.into())?;
                 assert_eq!(steps.len(), 1);
                 assert_eq!(steps[0].0, Outcome::Accepted);
-                assert_eq!(steps[0].2.phase, Phase::TimedOut);
+                let mut expected = forged.clone();
+                if matches!(field, 1 | 3) {
+                    expected.phase = Phase::Scheduled;
+                    expected.attempt = 2;
+                    expected.schedule_to_start_remaining = Some(Remaining { ticks: 3 });
+                    expected.start_to_close_remaining = None;
+                    expected.heartbeat_remaining = None;
+                    expected.schedule_to_close_remaining = Some(Remaining { ticks: 2 });
+                } else {
+                    expected.phase = Phase::TimedOut;
+                    expected.cancel_requested = false;
+                    expected.schedule_to_start_remaining = None;
+                    expected.start_to_close_remaining = None;
+                    expected.schedule_to_close_remaining = None;
+                    expected.heartbeat_remaining = None;
+                }
+                assert_eq!(steps[0].2, expected);
                 assert_eq!(
                     steps[0].1,
                     [match field {
@@ -626,6 +642,132 @@ fn actual_tlc_global_tick_law_bundle_on_selected_worlds() -> umpire_testing::Tes
                     .verdict,
                 umpire_tlc::Verdict::Verified
             );
+        }
+    }
+    Ok(())
+}
+
+fn timeout_retry_mutant(healthy: &str, name: &str) -> String {
+    use umpire_testing::replace_in;
+
+    let local = "fn expire_attempt(";
+    let retry = "fn retry(";
+    let end = "fn clear_terminal(";
+    match name {
+        "old_terminalization" => replace_in(
+            healthy,
+            local,
+            end,
+            "else if self.attempt < world.maximum_attempts",
+            "else if false",
+        ),
+        "retry_at_cap" => replace_in(
+            healthy,
+            local,
+            end,
+            "self.attempt < world.maximum_attempts",
+            "self.attempt <= world.maximum_attempts",
+        ),
+        "retry_pending" => replace_in(healthy, local, end, "if self.cancel_requested", "if false"),
+        "global_reset" => replace_in(
+            healthy,
+            retry,
+            end,
+            "self.attempt += 1;",
+            "self.attempt += 1; self.schedule_to_close_remaining = Some(Remaining { ticks: world.schedule_to_close.unwrap_or(Ticks(1)).0 });",
+        ),
+        "wrong_waiting_rearm" => replace_in(
+            healthy,
+            retry,
+            end,
+            "ticks: world.schedule_to_start.unwrap_or(Ticks(1)).0",
+            "ticks: 1",
+        ),
+        "wrong_attempt" => {
+            replace_in(healthy, retry, end, "self.attempt += 1;", "self.attempt += 2;")
+        }
+        _ => replace_code(
+            healthy,
+            "if self.schedule_to_close_remaining.is_some() && self.schedule_to_close_remaining.unwrap_or(Remaining { ticks: 0 }).ticks == 0 {",
+            "if false {",
+        ),
+    }
+}
+
+#[test]
+#[expect(clippy::print_stderr, reason = "Retain exact local-timeout mutation counterexamples")]
+fn source_only_timeout_retry_controls_discriminate_exact_edges() -> umpire_testing::TestResult {
+    use crate::activity::activity::ExpiredDeadline;
+    use umpire_testing::replace_once;
+
+    let healthy = source()?;
+    for (index, fact) in [(1, ExpiredDeadline::StartToClose), (3, ExpiredDeadline::Heartbeat)] {
+        for name in [
+            "old_terminalization",
+            "retry_at_cap",
+            "retry_pending",
+            "global_reset",
+            "wrong_waiting_rearm",
+            "wrong_attempt",
+            "global_loses_priority",
+        ] {
+            let maximum = if name == "retry_at_cap" { 1 } else { 3 };
+            let pending = name == "retry_pending";
+            let global = if name == "global_loses_priority" { 1 } else { 3 };
+            let mut deadlines = [Some(3), None, Some(global), None];
+            deadlines[index] = Some(1);
+            let world = configured(maximum, true, deadlines);
+            let start = world.starts()[0].clone();
+            let mut before = world.checked_step(&start, Worker::Poll(1).into())?[0].2.clone();
+            if pending {
+                before = world
+                    .checked_step(&before, crate::activity::activity::Client::Cancel.into())?[0]
+                    .2
+                    .clone();
+            }
+            let changed = timeout_retry_mutant(&healthy, name);
+            let parsed = source_tree(&changed)?;
+            let interpreted = umpire_checker::Interpreted::from_tree(world.clone(), &parsed)?;
+            let native = world.checked_step(&before, Deadline::Tick.into())?;
+            let mutant = interpreted.checked_step(&before, Deadline::Tick.into())?;
+            assert_eq!(native.len(), 1);
+            assert_eq!(mutant.len(), 1);
+            assert_eq!(native[0].0, Outcome::Accepted);
+            assert_eq!(
+                native[0].1,
+                [if global == 1 { ExpiredDeadline::ScheduleToClose } else { fact }]
+            );
+            assert_ne!(mutant, native, "{name}: {fact:?}");
+            let graph = umpire_checker::Checker::explore(&interpreted, 4096)?;
+            assert!(!graph.counts.cut);
+            let report = graph.verify_all()?;
+            assert_eq!(report.outcome(), CheckOutcome::Refuted, "{name}: {fact:?}: {report}");
+            eprintln!(
+                "activity retry control={name} fact={fact:?} before={before:?} healthy={native:?} mutant={mutant:?} laws={report}"
+            );
+
+            if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
+                let witness = format!(
+                    "#[postcondition(after = Deadline::Tick)] fn false_local_expiry(&self, before: &Self) {{ check!(before.phase != Phase::Started || before.attempt != 1 || before.cancel_requested != {pending} || self.phase == before.phase); }}\n        #[assumption]"
+                );
+                let source = replace_once(&changed, "#[assumption]", &witness);
+                let module = safety_only(
+                    bound_for(world.clone()).lift_source("model.rs", &source)?,
+                    &["Post_false_local_expiry"],
+                );
+                let result = tlc()?.check_module(&module)?;
+                let claim = &result.properties["Post_false_local_expiry"];
+                assert_eq!(claim.verdict, umpire_tlc::Verdict::Refuted, "{name}: {fact:?}");
+                let trace = claim.trace.as_ref().ok_or("missing local-timeout mutant trace")?;
+                let disagreement =
+                    umpire_testing::replay_trace(&world, &world.starts(), &module, trace)
+                        .err()
+                        .ok_or("local-timeout mutant replayed against healthy Model")?;
+                assert!(disagreement.native.is_some(), "{name}: {disagreement}");
+                eprintln!(
+                    "activity retry TLC control={name} fact={fact:?} trace={trace:#?} disagreement={disagreement}"
+                );
+            }
         }
     }
     Ok(())

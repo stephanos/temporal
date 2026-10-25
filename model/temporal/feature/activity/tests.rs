@@ -112,15 +112,15 @@ fn closings() -> Result<umpire_suite::Covered<Model>, umpire_suite::Refusal> {
     assert_eq!(covered.len(), 21);
     for (index, run) in covered.runs().iter().enumerate() {
         let attempt = u8::try_from(index / 7 + 1).map_err(|_| Refusal::Empty)?;
-        let retry = index % 7 == 5 && attempt < 3;
+        let retry = matches!(index % 7, 5 | 6) && attempt < 3;
         assert_eq!(run.state().attempt, if retry { attempt + 1 } else { attempt });
         assert_eq!(
             run.state().phase,
             match index % 7 {
                 0 | 2 => Phase::Canceled,
+                5 | 6 if retry => Phase::Scheduled,
                 1 | 6 => Phase::TimedOut,
                 3 => Phase::Completed,
-                5 if retry => Phase::Scheduled,
                 _ => Phase::Failed,
             }
         );
