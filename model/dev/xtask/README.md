@@ -27,3 +27,21 @@ mise exec -- cargo clippy -p xtask --all-targets -- -D warnings
 ```
 
 The canonical workspace gate will own these tests once, without a second package invocation. Whole-guest regeneration, freshness and the integrated TLC/Apalache pipeline belong to later tasks. Linux process controls cannot establish native macOS loader behavior; inherited loader bytes are checked on the available host, with native macOS execution unclaimed.
+
+`retired-names <POSIX ERE>` reads the raw `git grep -n -z` stream: NUL-terminated
+path, NUL-terminated nonempty ASCII decimal line number, then a newline-terminated
+line (the last line may end at EOF). Paths and line contents preserve arbitrary bytes.
+Each forbidden record prints `path:number:line` with a final newline. An empty stream
+returns 0, forbidden matches return 1, and malformed records or I/O/launch failures
+return 2. External grep failures propagate their exit code; a signal returns 2.
+
+The author facade's test-directory token is exempt only at path/token boundaries.
+The native boundary grammar uses ASCII whitespace and the existing punctuation
+boundaries; Python's Unicode whitespace classification is not part of this native
+byte-stream contract (owner's 2026-10-24 native grammar amendment). After replacing
+exempt tokens, external `grep -E -q -- <pattern>` rechecks the remaining line using
+POSIX ERE syntax. This detects a forbidden token beside an exempt token and keeps
+POSIX character classes. The shell resolves the compiled tool once through
+`scripts/xtask.sh`; `UMPIRE_XTASK` can select an absolute prebuilt executable for
+isolated caller controls. `cargo test -p xtask --test retired_names --locked` covers
+the stream contract, active spellings, historical exclusions and tool failures.

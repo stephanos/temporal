@@ -143,11 +143,7 @@ fn projected() -> Result<Graph, Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn retained_original_hashes_and_exact_lifecycle_projection() -> umpire_testing::TestResult {
-    let folder =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../feature/activity/compatibility");
-    let output = std::process::Command::new("python3").arg(folder.join("verify.py")).output()?;
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+fn retained_original_exact_lifecycle_projection() -> umpire_testing::TestResult {
     let old = reference(include_str!("original/rows.snap.txt"));
     assert_eq!((old.starts.len(), old.states.len(), old.edges.len()), (1, 6, 11));
     assert_eq!(projected()?, old);

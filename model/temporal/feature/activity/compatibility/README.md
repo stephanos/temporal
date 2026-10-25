@@ -1,9 +1,9 @@
 # Retained lifecycle checkpoint
 
 `original/` contains all 15 activity expectation files reconstructed from Git commit
-`af0ebafc571d33651fdf2c008d4415ad72467a0d`, verified against
-`.flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256`.
-`manifest.json` retains their original paths and hashes; `verify.py` checks those hashes.
+`af0ebafc571d33651fdf2c008d4415ad72467a0d`.
+`.flow/artifacts/fn-227-parameterized-models-declared-worlds/original-artifacts.sha256`
+retains their historical hashes; the active gate compares lifecycle semantics.
 The source remains in Git at that pin; this tree contains no executable second Model.
 The old lift refusal is intentionally retained, even though current source lifting admits activity.
 

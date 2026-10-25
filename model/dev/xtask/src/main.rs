@@ -24,7 +24,18 @@ fn run() -> xtask::Result<i32> {
         Some(command) if command == OsStr::new("guest-rustc") => {
             xtask::compiler::run(arguments.collect())
         }
-        _ => Err(xtask::Error::Invalid("commands: guest-lock, guest-rustc".into())),
+        Some(command) if command == OsStr::new("retired-names") => {
+            let pattern = arguments.next();
+            if pattern.is_none() || arguments.next().is_some() {
+                return Ok(2);
+            }
+            Ok(xtask::retired_names::run(
+                pattern.as_deref().unwrap_or_default(),
+                io::stdin().lock(),
+                io::stdout().lock(),
+            ))
+        }
+        _ => Err(xtask::Error::Invalid("commands: guest-lock, guest-rustc, retired-names".into())),
     }
 }
 
