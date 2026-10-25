@@ -424,10 +424,9 @@ pub(crate) fn observations(
             )?;
             STORAGE.join("|")
         } else {
-            row["original_root"]
-                .as_str()
-                .ok_or("lifecycle root")?
-                .to_owned()
+            let root = row["original_root"].as_str().ok_or("lifecycle root")?;
+            require(!root.contains('|'), "foreign lifecycle roots")?;
+            root.to_owned()
         };
         let variant = row["variant"]
             .as_str()
