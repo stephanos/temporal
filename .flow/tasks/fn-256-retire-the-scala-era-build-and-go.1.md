@@ -29,8 +29,12 @@ The removal exposes `lint-code-fast` returning a failure when its final changed 
 
 
 ## Done summary
-TBD
+Blocked:
+Source/proof checkpoint d9a58c62ddbe931083bebb368a24065480ec0e85 is preserved on work/fn2561-retirement in .worktrees/fn2561-retirement. It is not yet reviewed, integrated or complete.
 
+The required live gate failed twice at raw/SDK judgment-path equality (seeds21/3). Slice failure prevents gaps/umbrella execution. A whole-prefix consumer diagnostic and exact regression follow-up are recorded in existing fn-246.9; no Model refutation was reported, and no assertion is waived. Resume task1 after that consumer obligation is resolved and the actual full live gate passes. The final current guest/policy producer renewal from fn-254.13 is also required before full canary tests can pass. Neither a source/import identity argument nor a dry run counts as a green gate.
+
+Build, broad vet in both modes, retained tests, DLQ controls, canary harness/build and positive/negative lint controls passed at the checkpoint. Keep private Go cache idle/protected for fn-254.13's coordinated policy/preflight checks; retain unfinished branch/checkout and all committed proof. Continue fn-254 now, then the existing fn-246 order; this is a task prerequisite, not a block of the milestone goal.
 ## Evidence
 - Commits:
 - Tests:

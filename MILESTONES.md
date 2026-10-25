@@ -78,7 +78,7 @@ section, so it may run as a lane, landing serially.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-256.1 | 🔄 in progress | Delete the Go IR reader packages, Quint export, backends targets and their CI step (R1, R3) |
+| fn-256.1 | 🚧 blocked | Source checkpoint retained; required live gate awaits fn-246.9 whole-prefix consumer repair and current guest/policy renewal (R1, R3) |
 | fn-256.2 | ⬜ todo | Delete the archived Scala Make targets and `scala-cli` pin; mark `model/archived` read-only (R2–R4) |
 
 ### fn-255: Thorough framework testing
