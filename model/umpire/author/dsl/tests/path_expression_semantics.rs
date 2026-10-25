@@ -1,5 +1,19 @@
 //! Authored Rust expressions retain their values, ownership and inference in paths.
-use umpire_dsl::{PathNode, Waypoint, path};
+use umpire_dsl::{Path, PathNode, Waypoint, path};
+
+/// The state waypoints of a path's one alternative, in order.
+fn waypoints<S, A: 'static, O>(path: &Path<S, A, O>) -> Vec<std::rc::Rc<Waypoint<S>>> {
+    let mut alternatives = path.alternatives(1).unwrap_or_else(|error| panic!("{error}"));
+    alternatives
+        .remove(0)
+        .nodes
+        .into_iter()
+        .filter_map(|node| match node {
+            PathNode::State(state) => Some(state),
+            _ => None,
+        })
+        .collect()
+}
 
 #[umpire_dsl::machine]
 #[doc(hidden)]
@@ -32,10 +46,10 @@ fn waypoint_expressions_are_evaluated_in_authored_order() {
         count += 1;
         count
     };
-    let pattern = path![0u8, ..=0, next(), ..=0, next()];
-    let states = std::iter::once(pattern.first()).chain(pattern.legs().map(|(_, state)| state));
-    let values = states
-        .map(|state| match state {
+    let pattern: Path<u8> = path![0u8, ..=0, next(), ..=0, next()];
+    let values = waypoints(&pattern)
+        .iter()
+        .map(|state| match state.as_ref() {
             Waypoint::Is(value) => *value,
             _ => panic!("expected exact state"),
         })
@@ -73,10 +87,12 @@ fn outcome_alternatives_share_one_owned_action_expression() {
 fn qualified_state_struct_expressions_and_nested_closures_keep_rust_inference() {
     let count = 0;
     let start = world::Model { count: 0 };
-    let shorthand = path![world::Model { count }, .., world::Model { count: 1 }];
-    assert_eq!(shorthand.len(), 2);
-    let update = path![world::Model { ..start }, .., world::Model { count: (1) }];
-    assert_eq!(update.len(), 2);
+    let shorthand: Path<world::Model> =
+        path![world::Model { count }, .., world::Model { count: 1 }];
+    assert_eq!(waypoints(&shorthand).len(), 2);
+    let update: Path<world::Model> =
+        path![world::Model { ..start }, .., world::Model { count: (1) }];
+    assert_eq!(waypoints(&update).len(), 2);
     let nested = path![world::Model { count: 0 }, [|state| state.count == 1; 1]];
     assert_eq!(nested.alternative_count(), Ok(1));
     let branches = path![

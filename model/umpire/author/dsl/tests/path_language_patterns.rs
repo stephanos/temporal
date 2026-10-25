@@ -137,9 +137,9 @@ fn empty_and_reversed_domains_keep_zero_cases_and_zero_repetition_keeps_one() {
 }
 
 #[test]
-fn legacy_budget_and_structured_append_preserve_constraints() {
-    let legacy: Path<u8> = path![true, .., false];
-    assert!(matches!(legacy.alternatives(0), Err(PatternError::Budget { count: 1, budget: 0 })));
+fn state_budget_and_structured_append_preserve_constraints() {
+    let states: Path<u8> = path![true, .., false];
+    assert!(matches!(states.alternatives(0), Err(PatternError::Budget { count: 1, budget: 0 })));
     let structured = path![Model { count: 0 }, [User::Poll; 1]]
         .then(Gap::AtMost(0), Waypoint::judged(|state: &Model| state.count == 1));
     let alternatives = structured.alternatives(1).unwrap_or_else(|error| panic!("{error}"));
@@ -177,26 +177,36 @@ fn refuses_counts_before_constructing_alternatives() {
 
 #[test]
 #[allow(unused_qualifications, reason = "pins qualified state constructor grammar")]
-fn legacy_inference_and_world_adaptation_remain_typed() {
+fn state_paths_infer_closures_and_take_their_types_from_use() {
     fn accept(_path: Path<Model, world::Action>) {}
+    /// The number of state waypoints and whether the first one holds at `first`.
+    fn shape<S: PartialEq, A: 'static, O>(path: &Path<S, A, O>, first: &S) -> (usize, bool) {
+        let nodes = path.alternatives(1).unwrap_or_else(|error| panic!("{error}")).remove(0).nodes;
+        let states: Vec<_> = nodes
+            .iter()
+            .filter_map(|node| match node {
+                PathNode::State(state) => Some(state),
+                _ => None,
+            })
+            .collect();
+        (states.len(), states[0].judge(first))
+    }
     #[derive(Clone, PartialEq)]
     enum Coin {
         Unseen,
         Tails,
     }
-    let closure_first = path![|state: &Model| state.count == 0, .., |state| state.count == 1];
-    assert_eq!(closure_first.len(), 2);
-    assert!(closure_first.first().judge(&Model { count: 0 }));
-    let legacy = path![Model { count: 0 }, .., |state| state.count == 1];
-    assert_eq!(legacy.len(), 2);
-    assert!(legacy.first().judge(&Model { count: 0 }));
-    let adapted = legacy.into_world::<world::World>();
-    assert_eq!(adapted.alternatives(1).unwrap_or_else(|error| panic!("{error}")).len(), 1);
+    let closure_first: Path<Model> =
+        path![|state: &Model| state.count == 0, .., |state| state.count == 1];
+    assert_eq!(shape(&closure_first, &Model { count: 0 }), (2, true));
+    let typed: Path<Model, world::Action> = path![Model { count: 0 }, .., |state| state.count == 1];
+    assert_eq!(shape(&typed, &Model { count: 0 }), (2, true));
+    accept(path![Model { count: 0 }, .., |state| state.count == 1]);
     accept(path![User::Poll, |state| state.count == 1]);
-    let qualified = path![world::Model { count: 0 }, .., |state| state.count == 1];
-    assert_eq!(qualified.len(), 2);
-    let enum_states = path![Coin::Unseen, .., Coin::Tails];
-    assert!(enum_states.first().judge(&Coin::Unseen));
+    let qualified: Path<Model> = path![world::Model { count: 0 }, .., |state| state.count == 1];
+    assert_eq!(shape(&qualified, &Model { count: 0 }).0, 2);
+    let enum_states: Path<Coin> = path![Coin::Unseen, .., Coin::Tails];
+    assert!(shape(&enum_states, &Coin::Unseen).1);
 }
 
 #[test]
@@ -319,8 +329,8 @@ fn borrowed_outcome_alternatives_need_neither_clone_nor_equality() {
         assert_eq!(predicate(&BorrowedOutcome::Refused), index == 1);
     }
     assert_ne!(alternatives[0].choices, alternatives[1].choices);
-    let legacy = path![ManualState, .., |_: &ManualState| true];
-    let adapted: Path<ManualState, User, BorrowedOutcome> = legacy.into_world::<ManualWorld>();
+    let adapted: Path<ManualState, User, BorrowedOutcome> =
+        path![ManualState, .., |_: &ManualState| true];
     assert_eq!(adapted.alternatives(1).unwrap_or_else(|error| panic!("{error}")).len(), 1);
 }
 

@@ -33,14 +33,15 @@ fn repeated_domain_choices_do_not_describe_every_occurrence_as_its_first_value()
 }
 
 #[test]
-fn legacy_case_budget_is_checked_before_cloning_waypoints() {
+fn state_path_case_budget_is_checked_before_cloning_waypoints() {
     struct CannotClone;
     impl Clone for CannotClone {
         fn clone(&self) -> Self {
             panic!("case admission must happen before cloning")
         }
     }
-    let pattern = Waypoint::Is(CannotClone).then(Gap::Any, Waypoint::Holds(true));
+    let pattern: Path<CannotClone> =
+        Waypoint::Is(CannotClone).then(Gap::Any, Waypoint::Holds(true));
     assert!(matches!(pattern.alternatives(0), Err(PatternError::Budget { count: 1, budget: 0 })));
 }
 

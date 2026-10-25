@@ -1,6 +1,6 @@
 //! Trait-directed construction preserving state and actor inference in path macros.
 
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     ActionDomain, Actor, ActorValue, Associated as Registered, Gap, IntoWaypoint, Machine, Path,
@@ -17,46 +17,43 @@ impl<T> Probe<T> {
     }
 }
 
+/// A path of state waypoints so far; its action and outcome types are fixed by its use, or by
+/// the first structured node that needs the world's.
 #[must_use]
-pub struct StateBuilder<S> {
-    first: Option<Waypoint<S>>,
-    path: Option<Path<S>>,
+pub struct StateBuilder<S, A = (), O = ()> {
+    parts: Vec<Pattern<S, A, O>>,
     gap: Gap,
 }
-impl<S> StateBuilder<S> {
+impl<S, A, O> StateBuilder<S, A, O> {
     fn new(first: Waypoint<S>) -> Self {
-        Self { first: Some(first), path: None, gap: Gap::AtMost(0) }
+        Self { parts: vec![Pattern::State(Rc::new(first))], gap: Gap::AtMost(0) }
     }
     pub fn gap(mut self, gap: Gap) -> Self {
         self.gap = gap;
         self
     }
     fn append(mut self, waypoint: Waypoint<S>) -> Self {
-        self.path = Some(if let Some(path) = self.path {
-            path.then(self.gap, waypoint)
-        } else {
-            self.first
-                .take()
-                .unwrap_or_else(|| panic!("missing path start"))
-                .then(self.gap, waypoint)
-        });
+        self.parts.push(Pattern::Gap(self.gap, None));
+        self.parts.push(Pattern::State(Rc::new(waypoint)));
         self.gap = Gap::AtMost(0);
         self
     }
     pub fn then_judged(self, predicate: impl Fn(&S) -> bool + 'static) -> Self {
         self.append(Waypoint::judged(predicate))
     }
-    pub fn finish(self) -> Path<S> {
-        self.path.unwrap_or_else(|| panic!("a path has two or more waypoints"))
+    pub fn finish(self) -> Path<S, A, O> {
+        assert!(self.parts.len() > 1, "a path has two or more waypoints");
+        Path::pattern(Pattern::Sequence(self.parts))
     }
+}
+impl<S: Registered> StateBuilder<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>
+where
+    <S::World as Machine>::Action: 'static,
+{
     pub fn structure(
         self,
         pattern: Pattern<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
-    ) -> WorldBuilder<S>
-    where
-        S: Registered,
-        <S::World as Machine>::Action: 'static,
-    {
+    ) -> WorldBuilder<S> {
         let gap = self.gap;
         let mut builder = self.world();
         builder.parts.push(Pattern::Gap(gap, None));
@@ -66,24 +63,11 @@ impl<S> StateBuilder<S> {
     pub fn structure_with(
         self,
         make: impl FnOnce(PatternContext<S>) -> WorldPattern<S>,
-    ) -> WorldBuilder<S>
-    where
-        S: Registered,
-        <S::World as Machine>::Action: 'static,
-    {
+    ) -> WorldBuilder<S> {
         self.structure(make(PatternContext(std::marker::PhantomData)))
     }
-    fn world(self) -> WorldBuilder<S>
-    where
-        S: Registered,
-        <S::World as Machine>::Action: 'static,
-    {
-        let parts = if let Some(path) = self.path {
-            vec![path.into_world::<S::World>().into_pattern()]
-        } else {
-            vec![Pattern::state(self.first.unwrap_or_else(|| panic!("missing path start")))]
-        };
-        WorldBuilder { parts, gap: self.gap, pending: false }
+    fn world(self) -> WorldBuilder<S> {
+        WorldBuilder { parts: self.parts, gap: self.gap, pending: false }
     }
 }
 
@@ -146,7 +130,10 @@ impl<S> StateFactory<S> {
     }
 }
 impl<S, K> StateFactory<S, K> {
-    pub fn build<B: Finish>(self, rest: impl FnOnce(StateBuilder<S>) -> B) -> B::Output {
+    pub fn build<A, O, B: Finish>(
+        self,
+        rest: impl FnOnce(StateBuilder<S, A, O>) -> B,
+    ) -> B::Output {
         rest(StateBuilder::new(self.0)).complete()
     }
     pub fn piece(self) -> PatternPiece<S, K::Hint>
@@ -384,8 +371,8 @@ pub trait Finish {
     type Output;
     fn complete(self) -> Self::Output;
 }
-impl<S> Finish for StateBuilder<S> {
-    type Output = Path<S>;
+impl<S, A, O> Finish for StateBuilder<S, A, O> {
+    type Output = Path<S, A, O>;
     fn complete(self) -> Self::Output {
         self.finish()
     }
@@ -425,21 +412,28 @@ pub trait AppendPath<B, Kind> {
     type Builder;
     fn append(self, builder: B) -> Self::Builder;
 }
-impl<S, T, K> AppendPath<StateBuilder<S>, K> for &&Probe<T>
+impl<S, A, O, T, K> AppendPath<StateBuilder<S, A, O>, K> for &&Probe<T>
 where
     T: IntoWaypoint<S, K>,
 {
-    type Builder = StateBuilder<S>;
-    fn append(self, builder: StateBuilder<S>) -> Self::Builder {
+    type Builder = StateBuilder<S, A, O>;
+    fn append(self, builder: StateBuilder<S, A, O>) -> Self::Builder {
         builder.append(self.take().into_waypoint())
     }
 }
-impl<S: Registered, T: ActorValue + 'static> AppendPath<StateBuilder<S>, ActionKind> for &Probe<T>
+impl<S: Registered, T: ActorValue + 'static>
+    AppendPath<
+        StateBuilder<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
+        ActionKind,
+    > for &Probe<T>
 where
     <S::World as Machine>::Action: From<T> + 'static,
 {
     type Builder = WorldBuilder<S>;
-    fn append(self, builder: StateBuilder<S>) -> Self::Builder {
+    fn append(
+        self,
+        builder: StateBuilder<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
+    ) -> Self::Builder {
         let value = self.take();
         let gap = builder.gap;
         builder.world().gap(gap).structure(Pattern::action(

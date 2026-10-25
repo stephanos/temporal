@@ -170,15 +170,15 @@ fn stock_catalog_declares_every_outcome_even_when_never_emitted() {
 }
 
 #[test]
-fn one_typed_consumer_accepts_legacy_and_world_paths_for_each_outcome_type() {
-    fn count<S: umpire_dsl::Registered, A, O, Kind>(_: &S, path: umpire_dsl::Path<S, A, O>) -> usize
+fn one_typed_consumer_accepts_state_and_world_paths_for_each_outcome_type() {
+    fn count<S: umpire_dsl::Registered>(
+        _: &S,
+        path: umpire_dsl::Path<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
+    ) -> usize
     where
-        umpire_dsl::Path<S, A, O>: umpire_dsl::IntoWorldPath<S, Kind>,
         <S::World as Machine>::Action: 'static,
     {
-        umpire_dsl::IntoWorldPath::into_world_path(path)
-            .alternative_count()
-            .unwrap_or_else(|error| panic!("{error}"))
+        path.alternative_count().unwrap_or_else(|error| panic!("{error}"))
     }
     let state = catalog::world().starts().remove(0);
     assert_eq!(count(&state, umpire_dsl::path![state.clone(), .., true]), 1);

@@ -21,6 +21,14 @@ pub use space::SpaceBinding;
 pub use space::{Space, find, refuted, verify_all};
 pub use umpire_dsl::path;
 
+/// A path over a state's registered world: what `find`, `cover`, `sample` and `Run::along`
+/// search for. `path!` infers its action and outcome types from the call.
+pub type WorldPath<S> = umpire_dsl::Path<
+    S,
+    <<S as umpire_dsl::Associated>::World as umpire_dsl::Machine>::Action,
+    <<S as umpire_dsl::Associated>::World as umpire_dsl::Machine>::Outcome,
+>;
+
 /// Evaluates each line in order and fails the test at the first false one, with that line's
 /// source text and the state it was judged at.
 ///

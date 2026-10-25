@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use umpire_dsl::{Gap, Path, Waypoint, path};
+use umpire_dsl::{Gap, Path, PathNode, Waypoint, path};
 
 #[derive(Clone, Debug, PartialEq)]
 struct Kettle {
@@ -8,17 +8,20 @@ struct Kettle {
     beeping: bool,
 }
 
-fn render(output: &mut String, name: &str, path: &Path<Kettle>, states: &[Kettle]) -> std::fmt::Result {
+fn render(output: &mut String, name: &str, path: &Path<Kettle>, states: &[Kettle]) -> Result<(), Box<dyn std::error::Error>> {
     let judge = |waypoint: &Waypoint<Kettle>| {
         states.iter().map(|state| if waypoint.judge(state) { 'y' } else { 'n' }).collect::<String>()
     };
-    write!(output, "{name}: {} waypoints; {}", path.len(), judge(path.first()))?;
-    for (gap, waypoint) in path.legs() {
-        let gap = match gap {
-            Gap::Any => "..".to_owned(),
-            Gap::AtMost(bound) => format!("..={bound}"),
-        };
-        write!(output, " {gap} {}", judge(waypoint))?;
+    let nodes = path.alternatives(1)?.remove(0).nodes;
+    let waypoints = nodes.iter().filter(|node| matches!(node, PathNode::State(_))).count();
+    write!(output, "{name}: {waypoints} waypoints;")?;
+    for node in &nodes {
+        match node {
+            PathNode::State(waypoint) => write!(output, " {}", judge(waypoint))?,
+            PathNode::Gap { gap: Gap::Any, .. } => output.push_str(" .."),
+            PathNode::Gap { gap: Gap::AtMost(bound), .. } => write!(output, " ..={bound}")?,
+            PathNode::Action { .. } => return Err("a state path has no actions".into()),
+        }
     }
     output.push('\n');
     Ok(())

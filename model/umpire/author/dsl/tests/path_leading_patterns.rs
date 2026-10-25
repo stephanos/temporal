@@ -1,5 +1,5 @@
 //! Leading structural nodes retain the owning state's closure inference.
-use umpire_dsl::{IntoWorldPath, Machine, Path, Registered, path};
+use umpire_dsl::{Machine, Path, Registered, path};
 
 #[umpire_dsl::machine]
 #[doc(hidden)]
@@ -27,12 +27,14 @@ pub mod world {
 }
 use world::{Model, User};
 
-fn consume<S: Registered, A, O, K>(_: &S, pattern: Path<S, A, O>) -> usize
+fn consume<S: Registered>(
+    _: &S,
+    pattern: Path<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
+) -> usize
 where
-    Path<S, A, O>: IntoWorldPath<S, K>,
     <S::World as Machine>::Action: 'static,
 {
-    pattern.into_world_path().alternative_count().unwrap_or_else(|error| panic!("{error}"))
+    pattern.alternative_count().unwrap_or_else(|error| panic!("{error}"))
 }
 
 #[test]
