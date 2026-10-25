@@ -76,6 +76,21 @@ impl<'de> Deserialize<'de> for Json {
     }
 }
 
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Envelope {
+    #[serde(rename = "#meta")]
+    meta: Json,
+    vars: Json,
+    states: Json,
+    #[serde(default, deserialize_with = "present_json")]
+    params: Option<Json>,
+}
+
+fn present_json<'de, D: Deserializer<'de>>(decoder: D) -> Result<Option<Json>, D::Error> {
+    Json::deserialize(decoder).map(Some)
+}
+
 fn refuse(message: impl Into<String>) -> Refusal {
     Refusal(format!("ITF: {}", message.into()))
 }
@@ -126,9 +141,11 @@ pub fn decode_itf(
     {
         return Err(refuse("parameter collides with variable"));
     }
-    let Json(root) = serde_json::from_str::<Json>(raw).map_err(|e| refuse(e.to_string()))?;
-    keys(&root, &["#meta", "vars", "states"], &["params"])?;
-    let meta = get(&root, "#meta")?;
+    if !raw.trim_start().starts_with('{') {
+        return Err(refuse("expected object"));
+    }
+    let root: Envelope = serde_json::from_str(raw).map_err(|e| refuse(e.to_string()))?;
+    let meta = &root.meta.0;
     keys(meta, &["format"], &["format-description", "description", "varTypes", "version"])?;
     if get(meta, "format")?.as_str() != Some("ITF") {
         return Err(refuse("unknown format"));
@@ -145,7 +162,7 @@ pub fn decode_itf(
     }
     let expected: BTreeSet<_> =
         schema.fields.keys().chain(schema.observers.keys()).map(String::as_str).collect();
-    if names(get(&root, "vars")?)? != expected {
+    if names(&root.vars.0)? != expected {
         return Err(refuse("variable declarations differ"));
     }
     if let Some(types) = meta.get("varTypes")
@@ -157,11 +174,11 @@ pub fn decode_itf(
     {
         return Err(refuse("variable type declarations differ"));
     }
-    let declared = root.get("params").map(names).transpose()?.unwrap_or_default();
+    let declared = root.params.as_ref().map(|v| names(&v.0)).transpose()?.unwrap_or_default();
     if declared != parameters.keys().map(String::as_str).collect() {
         return Err(refuse("parameter declarations differ"));
     }
-    let rows = array(get(&root, "states")?)?;
+    let rows = array(&root.states.0)?;
     if rows.is_empty() || rows.len() > 10_000 || rows.len().saturating_sub(1) > length {
         return Err(refuse("state count outside bound"));
     }

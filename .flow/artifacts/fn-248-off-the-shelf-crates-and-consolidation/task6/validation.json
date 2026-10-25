@@ -1,0 +1,220 @@
+{
+  "task": "fn-248-off-the-shelf-crates-and-consolidation.6",
+  "base_commit": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+  "source_sha256": {
+    "model/umpire/backends/apalache/src/decode.rs": "a405669f8bc67e01065eb86b1cb3d289229f5823b945ca46c65ad90c00c34a1b",
+    "model/umpire/backends/apalache/tests/controls.rs": "f2fbb4053c7602df0cc6c38c7b2e3df042727e1ab212efd6f735b60494a3ff49",
+    "model/umpire/backends/apalache/Cargo.toml": "3c6316aded5cea4d3281c5f0ffacd7c133bb62ae7df8cc3a6186da54d009a66d",
+    "model/Cargo.lock": "0eea0a3a9f36feb826c4cbdedd614c1c0ae73b99b17632e26a6dea57a98e083a"
+  },
+  "runs": [
+    {
+      "label": "baseline",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "baseline.log",
+      "source": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+      "tests": 14,
+      "live_backend": false
+    },
+    {
+      "label": "preservation before refactor",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls strict_envelope_ --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "preservation-before.log",
+      "source": "base production parser; first two added preservation controls before formatting",
+      "tests": 2
+    },
+    {
+      "label": "first affected-scope verification",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls --test decode --test replay --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "verify.log",
+      "source": "final production parser; first two added controls",
+      "tests": 27,
+      "live_backend": false
+    },
+    {
+      "label": "null-collapse negative control",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls strict_envelope_presence_and_object_controls --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 101,
+      "log": "null-mutant.log",
+      "source": "final parser with present_json body replaced by Option::<Json>::deserialize(decoder)",
+      "expected_failure": "null params assertion; mutant restored immediately"
+    },
+    {
+      "label": "positional-array negative control",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls strict_envelope_presence_and_object_controls --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 101,
+      "log": "array-mutant.log",
+      "source": "final parser with object-root guard removed",
+      "expected_failure": "positional array refusal assertion; mutant restored immediately"
+    },
+    {
+      "label": "live pinned vector replay",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "UMPIRE_APALACHE=require mise exec -- cargo test -p umpire-apalache --test controls real_vector_witness_replays_typed_sequence --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "live-vector.log",
+      "source": "final production parser; existing live selector unchanged from base",
+      "tests": 1,
+      "live_backend": true
+    },
+    {
+      "label": "live pinned payload and World replay",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "UMPIRE_APALACHE=require mise exec -- cargo test -p umpire-apalache --test controls real_typed_payload_rejection_and_after_claims_replay --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "live-payload.log",
+      "source": "final source hashes below",
+      "tests": 1,
+      "live_backend": true
+    },
+    {
+      "label": "final affected-scope verification",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo test -p umpire-apalache --test controls --test decode --test replay --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "final-tests.log",
+      "source": "final source hashes below",
+      "tests": 28,
+      "live_backend": false
+    },
+    {
+      "label": "clippy",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo clippy -p umpire-apalache --all-targets --locked -- -D warnings",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "clippy.log",
+      "source": "final source hashes below"
+    },
+    {
+      "label": "format",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo fmt -p umpire-apalache -- --check",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "fmt.log",
+      "source": "final source hashes below"
+    },
+    {
+      "label": "guest target feature edges before",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo tree -p umpire-stock-guest -p umpire-control-guest -p umpire-caught-panic-guest -p umpire-overflow-guest -p umpire-kettle-guest -p umpire-temporal-guest --target wasm32-wasip1 --edges normal,build,features --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "guest-features-before.txt",
+      "source": "original committed Apalache manifest temporarily restored for metadata only; no guest source changes",
+      "metadata_only": true
+    },
+    {
+      "label": "guest target feature edges after",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo tree -p umpire-stock-guest -p umpire-control-guest -p umpire-caught-panic-guest -p umpire-overflow-guest -p umpire-kettle-guest -p umpire-temporal-guest --target wasm32-wasip1 --edges normal,build,features --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "guest-features-after.txt",
+      "source": "final manifest",
+      "metadata_only": true
+    },
+    {
+      "label": "host features before",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo tree -p umpire-apalache -e features --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "host-features-before.txt",
+      "source": "0a1a733c72b91054ca0a4ee3d21378c56c26abef",
+      "metadata_only": true
+    },
+    {
+      "label": "host features after",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model",
+      "command": "mise exec -- cargo tree -p umpire-apalache -e features --locked",
+      "environment": {
+        "CARGO_TARGET_DIR": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target"
+      },
+      "exit_code": 0,
+      "log": "host-features-after.txt",
+      "source": "final manifest",
+      "metadata_only": true
+    }
+  ],
+  "limits": {
+    "bytes": 4194304,
+    "aggregate_items": 100000,
+    "depth": 64,
+    "states": 10000
+  },
+  "guest_inventory": {
+    "target": "wasm32-wasip1",
+    "edges": "normal,build,features",
+    "before_after_equal": true,
+    "sha256": "7b6b6575367a3b198dffd0c5ef47d3767270ae6688851fca75039fb758a84fc0",
+    "serde_and_apalache_absent": true,
+    "proof": "Cargo resolution only; no guest compilation/publication performed"
+  },
+  "admission": {
+    "serde": "existing 1.0.229",
+    "serde_derive": "already locked 1.0.229, syn 3.0.9",
+    "new_features": {
+      "umpire-apalache": [
+        "serde/derive"
+      ]
+    },
+    "new_packages": [],
+    "cargo_lock_changed": false
+  },
+  "deferred": [
+    "conductor review/lifecycle",
+    "joined snapshot acceptance if needed",
+    "joined guest compilation/publication/freshness",
+    "R5 required canonical full pipeline"
+  ],
+  "observations": [
+    "baseline normal controls opt out of live Apalache; separate exact live selectors required it",
+    "no golden or replay expected output changed",
+    "mutation failures are expected test-strength evidence, not a baseline or final failure",
+    "initial failed launcher is inconclusive and was corrected before source edits"
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "#meta": {
+    "format": "ITF",
+    "format-description": "https://apalache-mc.org/docs/adr/015adr-trace.html",
+    "description": "Created by Apalache on Sat Oct 24 18:58:28 GMT-07:00 2026",
+    "varTypes": {
+      "__umpire_before_value": "Int",
+      "__umpire_input": "Int",
+      "__umpire_has_step": "Bool",
+      "__umpire_outcome": "Str",
+      "__umpire_facts": "Seq(Seq(Int))",
+      "__umpire_invalid_step": "Bool",
+      "__umpire_arithmetic_error": "Bool",
+      "value": "Int",
+      "__umpire_choice": "Int",
+      "__umpire_stutter": "Bool",
+      "__umpire_action": "Str"
+    }
+  },
+  "params": [
+    "__umpire_world_limit"
+  ],
+  "vars": [
+    "__umpire_before_value",
+    "__umpire_input",
+    "__umpire_has_step",
+    "__umpire_outcome",
+    "__umpire_facts",
+    "__umpire_invalid_step",
+    "__umpire_arithmetic_error",
+    "value",
+    "__umpire_choice",
+    "__umpire_stutter",
+    "__umpire_action"
+  ],
+  "states": [
+    {
+      "#meta": {
+        "index": 0
+      },
+      "__umpire_action": "",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_value": {
+        "#bigint": "0"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": false,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": "Outcome::Accepted",
+      "__umpire_stutter": true,
+      "__umpire_world_limit": {
+        "#bigint": "2"
+      },
+      "value": {
+        "#bigint": "1"
+      }
+    },
+    {
+      "#meta": {
+        "index": 1
+      },
+      "__umpire_action": "User::Set",
+      "__umpire_arithmetic_error": false,
+      "__umpire_before_value": {
+        "#bigint": "1"
+      },
+      "__umpire_choice": {
+        "#bigint": "0"
+      },
+      "__umpire_facts": [],
+      "__umpire_has_step": true,
+      "__umpire_input": {
+        "#bigint": "0"
+      },
+      "__umpire_invalid_step": false,
+      "__umpire_outcome": "Outcome::Rejected(NotFound)",
+      "__umpire_stutter": false,
+      "__umpire_world_limit": {
+        "#bigint": "2"
+      },
+      "value": {
+        "#bigint": "1"
+      }
+    }
+  ]
+}

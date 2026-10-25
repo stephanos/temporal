@@ -614,3 +614,141 @@ fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error
     }
     Ok(())
 }
+
+#[test]
+fn strict_envelope_presence_and_object_controls() -> Result<(), Box<dyn std::error::Error>> {
+    use std::collections::BTreeMap;
+    use umpire_apalache::decode_itf;
+    use umpire_tla::values::{Schema, Type, Value};
+
+    let schema = Schema {
+        fields: BTreeMap::from([("flag".into(), Type::Bool)]),
+        observers: BTreeMap::new(),
+    };
+    let raw = r##"{"#meta":{"format":"ITF"},"vars":["flag"],"states":[{"#meta":{"index":0},"flag":true}]}"##;
+    for declared in [raw.to_owned(), raw.replacen("\"states\":", "\"params\":[],\"states\":", 1)] {
+        let trace = decode_itf(&declared, &schema, &BTreeMap::new(), 0)?;
+        assert!(trace.parameters.is_empty());
+        assert_eq!(trace.states[0].state["flag"], Value::Bool(true));
+    }
+    let base: serde_json::Value = serde_json::from_str(raw)?;
+    for field in ["#meta", "vars", "states", "params"] {
+        let mut null = base.clone();
+        null[field] = serde_json::Value::Null;
+        assert!(
+            decode_itf(&null.to_string(), &schema, &BTreeMap::new(), 0).is_err(),
+            "null {field}"
+        );
+        if field != "params" {
+            let mut missing = base.clone();
+            missing.as_object_mut().ok_or("expected object")?.remove(field);
+            assert!(
+                decode_itf(&missing.to_string(), &schema, &BTreeMap::new(), 0).is_err(),
+                "missing {field}"
+            );
+        }
+    }
+    for extra in ["header", "extensions", "loop", "unknown"] {
+        let mut unknown = base.clone();
+        unknown[extra] = serde_json::json!({});
+        assert!(
+            decode_itf(&unknown.to_string(), &schema, &BTreeMap::new(), 0).is_err(),
+            "extra {extra}"
+        );
+    }
+    let positional = serde_json::json!([base["#meta"], base["vars"], base["states"]]);
+    assert!(decode_itf(&positional.to_string(), &schema, &BTreeMap::new(), 0).is_err());
+    for field in ["#meta", "vars", "states", "params"] {
+        let value = if field == "params" { serde_json::json!([]) } else { base[field].clone() };
+        let duplicate = format!("{{\"{field}\":{value},\"{field}\":{value},{}", &raw[1..]);
+        assert!(decode_itf(&duplicate, &schema, &BTreeMap::new(), 0).is_err(), "duplicate {field}");
+    }
+    for (from, to) in [
+        ("\"format\":\"ITF\"", "\"format\":\"ITF\",\"format\":\"ITF\""),
+        ("\"format\":\"ITF\"", "\"format\":\"ITF\",\"unknown\":true"),
+        ("\"format\":\"ITF\"", "\"format\":\"ITF\",\"description\":null"),
+        ("\"format\":\"ITF\"", "\"format\":\"ITF\",\"format-description\":null"),
+        ("\"format\":\"ITF\"", "\"format\":\"ITF\",\"varTypes\":null"),
+        ("\"index\":0", "\"index\":0,\"index\":0"),
+        ("\"index\":0", "\"index\":0,\"unknown\":true"),
+        ("\"index\":0", "\"index\":null"),
+        ("\"flag\":true", "\"flag\":null"),
+        ("\"flag\":true", "\"flag\":1.5"),
+    ] {
+        let bad = raw.replace(from, to);
+        assert_ne!(bad, raw);
+        assert!(decode_itf(&bad, &schema, &BTreeMap::new(), 0).is_err(), "accepted {bad}");
+    }
+    Ok(())
+}
+
+#[test]
+fn strict_envelope_world_and_state_bounds() -> Result<(), Box<dyn std::error::Error>> {
+    use std::collections::BTreeMap;
+    use umpire_apalache::decode_itf;
+    use umpire_tla::values::{Schema, Type, Value};
+
+    let schema = Schema {
+        fields: BTreeMap::from([("flag".into(), Type::Bool)]),
+        observers: BTreeMap::new(),
+    };
+    let parameters = BTreeMap::from([("world".into(), Type::Bool)]);
+    let raw = r##"{"#meta":{"format":"ITF","description":"current tool witness","format-description":"ITF","varTypes":{"flag":"Bool"}},"vars":["flag"],"params":["world"],"states":[{"#meta":{"index":0},"flag":false,"world":true},{"#meta":{"index":1},"flag":true,"world":true}]}"##;
+    let trace = decode_itf(raw, &schema, &parameters, 1)?;
+    assert_eq!(trace.parameters["world"], Value::Bool(true));
+    assert_eq!(trace.states.len(), 2);
+    assert!(decode_itf(raw, &schema, &parameters, 0).is_err());
+    let mut empty: serde_json::Value = serde_json::from_str(raw)?;
+    empty["states"] = serde_json::json!([]);
+    assert!(decode_itf(&empty.to_string(), &schema, &parameters, 1).is_err());
+    for (from, to) in [
+        (",\"params\":[\"world\"]", ""),
+        ("\"flag\":true,\"world\":true", "\"flag\":true"),
+        ("\"flag\":true,\"world\":true", "\"flag\":true,\"world\":false"),
+        ("\"index\":1", "\"index\":2"),
+    ] {
+        let bad = raw.replace(from, to);
+        assert_ne!(bad, raw);
+        assert!(decode_itf(&bad, &schema, &parameters, 1).is_err(), "accepted {bad}");
+    }
+    Ok(())
+}
+
+#[test]
+fn strict_envelope_resource_controls() -> Result<(), Box<dyn std::error::Error>> {
+    use std::collections::BTreeMap;
+    use umpire_apalache::decode_itf;
+    use umpire_tla::values::{Schema, Type};
+
+    let mut kind = Type::Bool;
+    for _ in 0..61 {
+        kind = Type::Seq(Box::new(kind));
+    }
+    let schema =
+        Schema { fields: BTreeMap::from([("x".into(), kind)]), observers: BTreeMap::new() };
+    let nested = format!("{}true{}", "[".repeat(61), "]".repeat(61));
+    let raw = format!(
+        r##"{{"#meta":{{"format":"ITF"}},"vars":["x"],"states":[{{"#meta":{{"index":0}},"x":{nested}}}]}}"##
+    );
+    decode_itf(&raw, &schema, &BTreeMap::new(), 0)?;
+    let deeper = raw.replace(&nested, &format!("[{nested}]"));
+    assert!(
+        decode_itf(&deeper, &schema, &BTreeMap::new(), 0)
+            .is_err_and(|e| e.0.contains("nesting limit"))
+    );
+    let padded = format!("{raw}{}", " ".repeat(4 * 1024 * 1024 - raw.len()));
+    decode_itf(&padded, &schema, &BTreeMap::new(), 0)?;
+    assert!(
+        decode_itf(&(padded + " "), &schema, &BTreeMap::new(), 0)
+            .is_err_and(|e| e.0.contains("byte limit"))
+    );
+    let many = format!(
+        r##"{{"#meta":{{"format":"ITF"}},"vars":["x"],"states":[{}]}}"##,
+        vec!["true"; 100_001].join(",")
+    );
+    assert!(
+        decode_itf(&many, &schema, &BTreeMap::new(), 0)
+            .is_err_and(|e| e.0.contains("aggregate item limit"))
+    );
+    Ok(())
+}

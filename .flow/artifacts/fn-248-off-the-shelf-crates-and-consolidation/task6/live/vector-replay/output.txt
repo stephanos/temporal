@@ -1,0 +1,88 @@
+# Usage statistics is OFF. We care about your privacy.
+# If you want to help our project, consider enabling statistics with config --enable-stats=true.
+
+Output directory: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/run-DyDA29/out/Collection.tla/2026-10-24T18-57-33_11991939041077047450
+# APALACHE version: 0.62.4 | build: 7954daf                       I@18:57:34.106
+  > model.cfg: Loading TLC configuration                          I@18:57:34.117
+  > Using init predicate(s) Init from the TLC config              I@18:57:34.246
+  > Using next predicate(s) Next from the TLC config              I@18:57:34.246
+checker.inv overrides the value from the TLC configuration.       W@18:57:34.261
+Tuning:                                                           I@18:57:34.262
+PASS #0: SanyParser                                               I@18:57:34.778
+PASS #1: TypeCheckerSnowcat                                       I@18:57:35.338
+ > Running Snowcat .::.                                           I@18:57:35.338
+ > Your types are purrfect!                                       I@18:57:37.281
+ > All expressions are typed                                      I@18:57:37.282
+PASS #2: ConfigurationPass                                        I@18:57:37.283
+  > model.cfg: found INVARIANTS: Invariant_never_two              I@18:57:37.484
+  > Set the initialization predicate to Init                      I@18:57:37.485
+  > Set the transition predicate to Next                          I@18:57:37.486
+  > Set an invariant to Invariant_never_two                       I@18:57:37.486
+PASS #3: DesugarerPass                                            I@18:57:37.495
+  > Desugaring...                                                 I@18:57:37.495
+PASS #4: InlinePass                                               I@18:57:37.517
+Leaving only relevant operators: CInitPrimed, Init, InitPrimed, Invariant_never_two, Next I@18:57:37.518
+PASS #5: TemporalPass                                             I@18:57:37.669
+  > Rewriting temporal operators...                               I@18:57:37.669
+  > No temporal property specified, nothing to encode             I@18:57:37.669
+PASS #6: InlinePass                                               I@18:57:37.670
+Leaving only relevant operators: CInitPrimed, Init, InitPrimed, Invariant_never_two, Next I@18:57:37.670
+PASS #7: PrimingPass                                              I@18:57:37.709
+  > Introducing InitPrimed for Init'                              I@18:57:37.711
+PASS #8: VCGen                                                    I@18:57:37.712
+  > Producing verification conditions from the invariant Invariant_never_two I@18:57:37.712
+  > VCGen produced 1 verification condition(s)                    I@18:57:37.720
+PASS #9: PreprocessingPass                                        I@18:57:37.722
+  > Before preprocessing: unique renaming                         I@18:57:37.723
+ > Applying standard transformations:                             I@18:57:37.732
+  > PrimePropagation                                              I@18:57:37.734
+  > Desugarer                                                     I@18:57:37.742
+  > UniqueRenamer                                                 I@18:57:37.745
+  > Normalizer                                                    I@18:57:37.760
+  > SetMembershipSimplifier                                       I@18:57:37.795
+  > Keramelizer                                                   I@18:57:37.805
+  > After preprocessing: UniqueRenamer                            I@18:57:37.822
+PASS #10: TransitionFinderPass                                    I@18:57:37.850
+  > Found 2 initializing transitions                              I@18:57:37.916
+  > Found 7 transitions                                           I@18:57:37.935
+  > No constant initializer                                       I@18:57:37.936
+  > Applying unique renaming                                      I@18:57:37.937
+PASS #11: OptimizationPass                                        I@18:57:37.985
+ > Applying optimizations:                                        I@18:57:37.989
+  > ConstSimplifier                                               I@18:57:37.990
+  > ExprOptimizer                                                 I@18:57:38.010
+  > SetMembershipSimplifier                                       I@18:57:38.025
+  > ConstSimplifier                                               I@18:57:38.032
+PASS #12: AnalysisPass                                            I@18:57:38.051
+ > Marking skolemizable existentials and sets to be expanded...   I@18:57:38.053
+  > Skolemization                                                 I@18:57:38.053
+  > Expansion                                                     I@18:57:38.056
+  > Remove unused let-in defs                                     I@18:57:38.073
+ > Running analyzers...                                           I@18:57:38.088
+  > Introduced expression grades                                  I@18:57:38.090
+PASS #13: BoundedChecker                                          I@18:57:38.091
+State 0: Checking 1 state invariants                              I@18:57:38.758
+State 0: state invariant 0 holds.                                 I@18:57:38.770
+Step 0: Transition #1 is disabled                                 I@18:57:38.788
+Step 0: picking a transition out of 1 transition(s)               I@18:57:38.789
+State 1: Checking 1 state invariants                              I@18:57:38.828
+State 1: state invariant 0 holds.                                 I@18:57:38.829
+Step 1: Transition #1 is disabled                                 I@18:57:38.854
+Step 1: Transition #2 is disabled                                 I@18:57:38.969
+Step 1: Transition #3 is disabled                                 I@18:57:38.989
+Step 1: Transition #4 is disabled                                 I@18:57:38.999
+Step 1: Transition #5 is disabled                                 I@18:57:39.011
+Step 1: picking a transition out of 2 transition(s)               I@18:57:39.016
+State 2: Checking 1 state invariants                              I@18:57:39.035
+Check the trace in: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/run-DyDA29/out/Collection.tla/2026-10-24T18-57-33_11991939041077047450/violation1.tla, /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/run-DyDA29/out/Collection.tla/2026-10-24T18-57-33_11991939041077047450/MCviolation1.out, /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/run-DyDA29/out/Collection.tla/2026-10-24T18-57-33_11991939041077047450/violation1.json, /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/run-DyDA29/out/Collection.tla/2026-10-24T18-57-33_11991939041077047450/violation1.itf.json I@18:57:39.204
+State 2: state invariant 0 violated.                              I@18:57:39.205
+Found 1 error(s)                                                  I@18:57:39.209
+The outcome is: Error                                             I@18:57:39.216
+Checker has found an error                                        I@18:57:39.241
+It took me 0 days  0 hours  0 min  5 sec                          I@18:57:39.242
+Total time: 5.125 sec                                             I@18:57:39.242
+EXITCODE: ERROR (12)
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/build/apalache/apalache-0.62.4/lib/apalache.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release

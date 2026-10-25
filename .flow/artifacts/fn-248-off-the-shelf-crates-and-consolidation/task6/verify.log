@@ -1,0 +1,49 @@
+   Compiling serde v1.0.229
+   Compiling serde_derive v1.0.229
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.09s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target/debug/deps/controls-463741acbe9bc4c9)
+
+running 16 tests
+test real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_typed_payload_rejection_and_after_claims_replay ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test pinned_installer_and_runner_agree ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_later_start_fault_preserves_partial_binding ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_vector_witness_replays_typed_sequence ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+test strict_envelope_presence_and_object_controls ... ok
+test strict_envelope_resource_controls ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/decode.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target/debug/deps/decode-321066ff7d9d14ba)
+
+running 5 tests
+test observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal ... ok
+test declared_wire_types_must_match_the_source_schema ... ok
+test typed_itf_preserves_composites_and_refuses_duplicate_set_members ... ok
+test optional_integer_itf_uses_the_exact_declared_code_set ... ok
+test typed_itf_checks_declarations_shapes_and_limits ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/replay.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target/debug/deps/replay-88fadb682efd1c85)
+
+running 6 tests
+test replay_refuses_an_undeclared_property_before_reading_a_witness ... ok
+test selected_property_category_cannot_alias_authored_names ... ok
+test colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs ... ok
+test retained_pinned_kettle_witness_replays_deterministically ... ok
+test arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary ... ok
+test exact_payload_outcome_history_and_specific_claim_are_replayed ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
