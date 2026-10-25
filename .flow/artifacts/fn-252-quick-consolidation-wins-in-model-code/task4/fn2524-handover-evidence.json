@@ -1,0 +1,19 @@
+{
+  "commits": [
+    "fe1fe5384df454402cdb55ab7aadfc60083cffaa"
+  ],
+  "tests": [
+    "cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2524-fixtures/model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2524-target mise exec -- cargo test -p umpire-checker -p umpire-suite --locked",
+    "cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2524-fixtures/model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2524-target mise exec -- cargo clippy -p umpire-checker -p umpire-suite --all-targets --locked -- -D warnings",
+    "cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2524-fixtures/model && CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2524-target mise exec -- cargo fmt -p umpire-checker -p umpire-suite -- --check",
+    "cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2524-fixtures && git diff --check"
+  ],
+  "prs": [],
+  "deferred": [
+    "Joined fn-252 R9 make model-check remains open for eventual task .8."
+  ],
+  "logs": [
+    ".flow/tmp/fn2524-tests.log",
+    ".flow/tmp/fn2524-clippy.log"
+  ]
+}
