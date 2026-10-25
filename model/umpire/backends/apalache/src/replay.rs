@@ -6,10 +6,9 @@ use std::{
     panic::{AssertUnwindSafe, catch_unwind},
 };
 use umpire_dsl::{__lifted::ConcreteOf, ActionValues, Claim, IntoValue, Machine, Values, Verdict};
-use umpire_tla::{Concrete, Literal, Module, Type as SourceType};
 use umpire_tla::{
-    Refusal,
-    values::{Schema, State, TraceState, Type, Value},
+    Concrete, Literal, Module, Refusal, Type as SourceType,
+    values::{Schema, State, TraceState, Value, accepts},
 };
 
 const ERROR: &str = "__umpire_arithmetic_error";
@@ -109,9 +108,9 @@ where
     ) -> Result<Replayed, Refusal> {
         let meta = &module.metadata;
         let (category, selected) = selected_property(module, property)?;
-        let schema = schema(module)?;
+        let schema = module.safety_schema().map_err(|Refusal(error)| reject(error))?;
         let parameters: BTreeMap<_, _> =
-            meta.parameters.iter().map(|p| (p.symbol.clone(), kind(&p.ty))).collect();
+            meta.parameters.iter().map(|p| (p.symbol.clone(), p.ty.clone())).collect();
         if parameters.len() != meta.parameters.len()
             || meta.parameters.iter().map(|p| &p.field).collect::<BTreeSet<_>>().len()
                 != meta.parameters.len()
@@ -275,8 +274,7 @@ where
                     return Err(reject("native arithmetic refusal differs from witness"));
                 }
                 if after.state != before.state
-                    || after.observers[OUTCOME]
-                        != default_value(&kind(&module.metadata.outcome_type))
+                    || after.observers[OUTCOME] != default_value(&module.metadata.outcome_type)
                     || after.observers[FACTS] != Value::Seq(vec![])
                 {
                     return Err(reject("action arithmetic fallback differs"));
@@ -367,7 +365,7 @@ where
         }
         for p in &meta.parameters {
             if native_world.get(&p.field) != parameters.get(&p.symbol)
-                || !kind(&p.ty).accepts(&parameters[&p.symbol])
+                || !accepts(&p.ty, &parameters[&p.symbol])
             {
                 return Err(reject("crossed selected World binding"));
             }
@@ -501,7 +499,7 @@ where
         )?;
         validate_fields(
             &payload,
-            &declaration.fields.iter().map(|f| (f.name.clone(), kind(&f.ty))).collect(),
+            &declaration.fields.iter().map(|f| (f.name.clone(), f.ty.clone())).collect(),
         )?;
         Ok((ordinal, action))
     }
@@ -580,83 +578,6 @@ fn arithmetic_reason(reason: String) -> Result<String, Refusal> {
         Ok(reason)
     }
 }
-fn kind(ty: &SourceType) -> Type {
-    match ty {
-        SourceType::Bool => Type::Bool,
-        SourceType::Int { min, max } => Type::Int { min: *min, max: *max },
-        SourceType::Bounded(b) => Type::Int { min: b.low, max: b.high },
-        SourceType::Optional(b) => Type::OptionalInt { low: b.low, high: b.high },
-        SourceType::Text => Type::Text,
-        SourceType::Enum { variants, .. } => Type::Enum(variants.clone()),
-        SourceType::Unit => Type::Tuple(vec![]),
-        SourceType::Tuple(types) => Type::Tuple(types.iter().map(kind).collect()),
-        SourceType::Seq(inner) => Type::Seq(Box::new(kind(inner))),
-    }
-}
-fn schema(module: &Module) -> Result<Schema, Refusal> {
-    let meta = &module.metadata;
-    for ty in meta
-        .fields
-        .iter()
-        .map(|f| &f.ty)
-        .chain(meta.parameters.iter().map(|p| &p.ty))
-        .chain(meta.observer_types.values())
-        .chain(meta.actions.iter().flat_map(|a| a.fields.iter().map(|f| &f.ty)))
-        .chain(std::iter::once(&meta.outcome_type))
-    {
-        validate_source_type(ty)?;
-    }
-    let schema = Schema {
-        fields: meta.fields.iter().map(|f| (f.name.clone(), kind(&f.ty))).collect(),
-        observers: meta.observer_types.iter().map(|(n, t)| (n.clone(), kind(t))).collect(),
-    };
-    if schema.fields.len() != meta.fields.len()
-        || meta.observer_fields.iter().collect::<BTreeSet<_>>()
-            != meta.observer_types.keys().collect()
-        || meta.observer_fields.len() != meta.observer_types.len()
-    {
-        return Err(reject("inconsistent schema declarations"));
-    }
-    let mut expected = BTreeMap::from([
-        (ERROR.into(), Type::Bool),
-        (INVALID.into(), Type::Bool),
-        (STUTTER.into(), Type::Bool),
-        (HAS_STEP.into(), Type::Bool),
-        (ACTION.into(), Type::Text),
-        (
-            INPUT.into(),
-            schema.observers.get(INPUT).cloned().ok_or_else(|| reject("missing input observer"))?,
-        ),
-        (CHOICE.into(), Type::Int { min: 0, max: 0 }),
-        (OUTCOME.into(), kind(&meta.outcome_type)),
-        (FACTS.into(), Type::Seq(Box::new(Type::Tuple(vec![])))),
-    ]);
-    for f in &meta.fields {
-        expected.insert(format!("__umpire_before_{}", f.name), kind(&f.ty));
-    }
-    if expected != schema.observers {
-        return Err(reject("observer schema differs from safety emitter"));
-    }
-    schema.validate_assignment()?;
-    Ok(schema)
-}
-fn validate_source_type(ty: &SourceType) -> Result<(), Refusal> {
-    match ty {
-        SourceType::Bounded(b) if !b.valid() => return Err(reject("invalid bounded descriptor")),
-        SourceType::Optional(b) if !b.optional_valid() => {
-            return Err(reject("invalid optional descriptor"));
-        }
-        SourceType::Tuple(types) => {
-            for ty in types {
-                validate_source_type(ty)?;
-            }
-        }
-        SourceType::Seq(inner) => validate_source_type(inner)?,
-        _ => {}
-    }
-    Ok(())
-}
-/// An exported native value as the wire value of its admitted type.
 fn admitted(value: umpire_dsl::Value, ty: &SourceType) -> Result<Value, Refusal> {
     let admitted = Literal::from(value).admit(ty).map_err(|error| reject(error.to_string()))?;
     Ok(Value::admitted(&admitted, ty))
@@ -719,9 +640,9 @@ fn typed_fields(
     }
     Ok(result)
 }
-fn validate_fields(values: &State, types: &BTreeMap<String, Type>) -> Result<(), Refusal> {
+fn validate_fields(values: &State, types: &BTreeMap<String, SourceType>) -> Result<(), Refusal> {
     if values.len() != types.len()
-        || types.iter().any(|(n, t)| values.get(n).is_none_or(|v| !t.accepts(v)))
+        || types.iter().any(|(n, t)| values.get(n).is_none_or(|v| !accepts(t, v)))
     {
         return Err(reject("typed native fields differ"));
     }
@@ -745,19 +666,21 @@ fn text<'a>(state: &'a TraceState, name: &str) -> Result<&'a str, Refusal> {
         _ => Err(reject(format!("missing text observer {name}"))),
     }
 }
-fn default_value(ty: &Type) -> Value {
+fn default_value(ty: &SourceType) -> Value {
     match ty {
-        Type::Bool => Value::Bool(false),
-        Type::Int { min, max } => Value::Int(0.clamp(*min, *max)),
-        Type::OptionalInt { .. } => Value::Int(0),
-        Type::Text => Value::Text(String::new()),
-        Type::Enum(v) => Value::Text(v.first().cloned().unwrap_or_default()),
-        Type::Seq(_) | Type::Set(_) => Value::Seq(vec![]),
-        Type::Tuple(v) => Value::Seq(v.iter().map(default_value).collect()),
-        Type::Record(v) => Value::Record(defaults(v)),
+        SourceType::Bool => Value::Bool(false),
+        SourceType::Int { min, max } => Value::Int(0.clamp(*min, *max)),
+        SourceType::Bounded(b) => Value::Int(0.clamp(b.low, b.high)),
+        SourceType::Optional(_) => Value::Int(0),
+        SourceType::Text => Value::Text(String::new()),
+        SourceType::Enum { variants, .. } => {
+            Value::Text(variants.first().cloned().unwrap_or_default())
+        }
+        SourceType::Seq(_) | SourceType::Unit => Value::Seq(vec![]),
+        SourceType::Tuple(v) => Value::Seq(v.iter().map(default_value).collect()),
     }
 }
-fn defaults(types: &BTreeMap<String, Type>) -> State {
+fn defaults(types: &BTreeMap<String, SourceType>) -> State {
     types.iter().map(|(n, t)| (n.clone(), default_value(t))).collect()
 }
 fn initial_observers(state: &TraceState, schema: &Schema) -> Result<(), Refusal> {
@@ -784,29 +707,4 @@ fn stutter(before: &TraceState, after: &TraceState) -> Result<(), Refusal> {
         return Err(reject("tagged stutter changes state or event/history"));
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod optional_tests {
-    use super::*;
-
-    fn ticks() -> SourceType {
-        SourceType::Optional(umpire_dsl::__lifted::Bounded {
-            name: "Ticks".into(),
-            field: None,
-            backing: "u8".into(),
-            min: 0,
-            max: 255,
-            low: 1,
-            high: 3,
-        })
-    }
-
-    #[test]
-    fn invalid_optional_descriptors_refuse() {
-        let ty = ticks();
-        let SourceType::Optional(mut descriptor) = ty else { unreachable!() };
-        descriptor.max = 256;
-        assert!(validate_source_type(&SourceType::Optional(descriptor)).is_err());
-    }
 }

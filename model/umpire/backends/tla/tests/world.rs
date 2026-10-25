@@ -1,7 +1,7 @@
 //! Declared World source admission and complete-state binding controls.
 use std::{collections::BTreeMap, path::Path};
-use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Module, Tla, Type};
-use umpire_tlc::{Schema, Tlc, Value, Verdict};
+use umpire_tla::{Binding, Concrete, Diagnostic, Lift, Literal, Tla, Type};
+use umpire_tlc::{Tlc, Value, Verdict};
 
 const WORLD: &str = r#"
     use umpire_dsl::machine;
@@ -345,37 +345,6 @@ fn generated_world_constants_avoid_synthesized_action_names()
     Ok(())
 }
 
-fn schema(module: &Module) -> Schema {
-    Schema {
-        fields: module
-            .metadata
-            .fields
-            .iter()
-            .map(|field| (field.name.clone(), kind(&field.ty)))
-            .collect(),
-        observers: module
-            .metadata
-            .observer_types
-            .iter()
-            .map(|(name, ty)| (name.clone(), kind(ty)))
-            .collect(),
-    }
-}
-
-fn kind(ty: &Type) -> umpire_tlc::Type {
-    match ty {
-        Type::Bool => umpire_tlc::Type::Bool,
-        Type::Int { min, max } => umpire_tlc::Type::Int { min: *min, max: *max },
-        Type::Bounded(bound) => umpire_tlc::Type::Int { min: bound.low, max: bound.high },
-        Type::Optional(bound) => umpire_tlc::Type::OptionalInt { low: bound.low, high: bound.high },
-        Type::Text => umpire_tlc::Type::Text,
-        Type::Enum { variants, .. } => umpire_tlc::Type::Enum(variants.clone()),
-        Type::Unit => umpire_tlc::Type::Tuple(Vec::new()),
-        Type::Tuple(values) => umpire_tlc::Type::Tuple(values.iter().map(kind).collect()),
-        Type::Seq(inner) => umpire_tlc::Type::Seq(Box::new(kind(inner))),
-    }
-}
-
 #[test]
 #[allow(clippy::print_stderr)]
 fn real_tlc_executes_each_cfg_family_with_both_world_bindings()
@@ -417,7 +386,7 @@ fn real_tlc_executes_each_cfg_family_with_both_world_bindings()
                 Verdict::Verified,
             ),
         ] {
-            let result = tlc.check(&module.name, &module.tla, cfg, &schema(&module))?;
+            let result = tlc.check(&module.name, &module.tla, cfg, &module.schema()?)?;
             eprintln!("World({start},{limit})/{family} TLC raw output:\n{}", result.output);
             assert_eq!(result.states.len(), count, "World({start},{limit})/{family}");
             assert!(result.states.contains(&BTreeMap::from([

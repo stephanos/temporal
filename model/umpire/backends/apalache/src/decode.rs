@@ -5,8 +5,8 @@ use std::{
     fmt,
 };
 use umpire_tla::{
-    Refusal,
-    values::{Schema, State, TraceState, Type, Value},
+    Refusal, Type, snowcat,
+    values::{Schema, State, TraceState, Value, accepts},
 };
 
 const BYTES: usize = 4 * 1024 * 1024;
@@ -169,7 +169,7 @@ pub fn decode_itf(
         && (object(types)?.keys().map(String::as_str).collect::<BTreeSet<_>>() != expected
             || schema.fields.iter().chain(&schema.observers).any(|(name, kind)| {
                 types.get(name).and_then(serde_json::Value::as_str)
-                    != Some(wire_type(kind).as_str())
+                    != Some(snowcat::ty(kind).as_str())
             }))
     {
         return Err(refuse("variable type declarations differ"));
@@ -220,28 +220,6 @@ pub fn decode_itf(
     Ok(Itf { parameters: fixed.unwrap_or_default(), states })
 }
 
-fn wire_type(kind: &Type) -> String {
-    match kind {
-        Type::Bool => "Bool".into(),
-        Type::Int { .. } | Type::OptionalInt { .. } => "Int".into(),
-        Type::Text | Type::Enum(_) => "Str".into(),
-        Type::Tuple(types) if types.is_empty() => "Seq(Int)".into(),
-        Type::Tuple(types) => {
-            format!("<<{}>>", types.iter().map(wire_type).collect::<Vec<_>>().join(", "))
-        }
-        Type::Seq(inner) => format!("Seq({})", wire_type(inner)),
-        Type::Set(inner) => format!("Set({})", wire_type(inner)),
-        Type::Record(fields) => format!(
-            "{{ {} }}",
-            fields
-                .iter()
-                .map(|(name, kind)| format!("{name}: {}", wire_type(kind)))
-                .collect::<Vec<_>>()
-                .join(", ")
-        ),
-    }
-}
-
 fn budget(raw: &str) -> Result<(), Refusal> {
     if raw.len() > BYTES {
         return Err(refuse("byte limit"));
@@ -283,10 +261,10 @@ fn budget(raw: &str) -> Result<(), Refusal> {
 fn value(raw: &serde_json::Value, kind: &Type) -> Result<Value, Refusal> {
     let converted = match kind {
         Type::Bool => Value::Bool(raw.as_bool().ok_or_else(|| refuse("expected bool"))?),
-        Type::Text | Type::Enum(_) => {
+        Type::Text | Type::Enum { .. } => {
             Value::Text(raw.as_str().ok_or_else(|| refuse("expected text/enum"))?.into())
         }
-        Type::Int { .. } | Type::OptionalInt { .. } => {
+        Type::Int { .. } | Type::Bounded(_) | Type::Optional(_) => {
             keys(raw, &["#bigint"], &[])?;
             let s = get(raw, "#bigint")?.as_str().ok_or_else(|| refuse("bigint must be text"))?;
             if s.is_empty()
@@ -297,11 +275,17 @@ fn value(raw: &serde_json::Value, kind: &Type) -> Result<Value, Refusal> {
             let n = s.parse::<i128>().map_err(|_| refuse("integer range"))?;
             Value::Int(n)
         }
+        // Apalache encodes unit as [] and nonempty tuples with #tup.
+        Type::Unit => {
+            if !array(raw)?.is_empty() {
+                return Err(refuse("unit is not empty"));
+            }
+            Value::Seq(Vec::new())
+        }
         Type::Seq(inner) => {
             Value::Seq(array(raw)?.iter().map(|v| value(v, inner)).collect::<Result<_, _>>()?)
         }
         Type::Tuple(types) => {
-            // Apalache encodes the empty/unit tuple as [] and nonempty tuples with #tup.
             let values = if types.is_empty() {
                 array(raw)?
             } else {
@@ -315,29 +299,8 @@ fn value(raw: &serde_json::Value, kind: &Type) -> Result<Value, Refusal> {
                 values.iter().zip(types).map(|(v, t)| value(v, t)).collect::<Result<_, _>>()?,
             )
         }
-        Type::Set(inner) => {
-            keys(raw, &["#set"], &[])?;
-            let values = array(get(raw, "#set")?)?;
-            let set: BTreeSet<_> =
-                values.iter().map(|v| value(v, inner)).collect::<Result<_, _>>()?;
-            if set.len() != values.len() {
-                return Err(refuse("duplicate set member"));
-            }
-            Value::Set(set)
-        }
-        Type::Record(types) => {
-            if object(raw)?.len() != types.len() {
-                return Err(refuse("record fields differ"));
-            }
-            Value::Record(
-                types
-                    .iter()
-                    .map(|(n, t)| Ok((n.clone(), value(get(raw, n)?, t)?)))
-                    .collect::<Result<_, Refusal>>()?,
-            )
-        }
     };
-    if !kind.accepts(&converted) {
+    if !accepts(kind, &converted) {
         return Err(refuse("value differs from source type or integer range"));
     }
     Ok(converted)

@@ -14,9 +14,11 @@ mod emit;
 mod lower;
 mod names;
 mod safety;
-mod snowcat;
+pub mod snowcat;
 use umpire_front::Source;
-pub use umpire_front::{Binding, CATALOG_LIMIT, Concrete, Embedded, Literal, Mismatch, Type};
+pub use umpire_front::{
+    Binding, Bounded, CATALOG_LIMIT, Concrete, Embedded, Literal, Mismatch, Type,
+};
 
 /// Admit one plain TLA+ identifier, the only name form either checker is handed.
 pub fn identifier(name: &str) -> Result<(), Refusal> {
@@ -204,6 +206,73 @@ pub struct Module {
     pub cfg: String,
     /// Projection metadata.
     pub metadata: Metadata,
+}
+impl Module {
+    /// The exact decoding contract of this module's assignments: its declared fields and
+    /// observers, each by its admitted type.
+    ///
+    /// # Errors
+    /// Refuses names that are not plain identifiers, duplicate or inconsistent declarations,
+    /// and declared types no backend can carry.
+    pub fn schema(&self) -> Result<values::Schema, Refusal> {
+        let meta = &self.metadata;
+        identifier(&self.name)?;
+        let mut fields = BTreeMap::new();
+        for field in &meta.fields {
+            identifier(&field.name)?;
+            if fields.insert(field.name.clone(), field.ty.clone()).is_some() {
+                return Err(Refusal(format!("duplicate authored field {}", field.name)));
+            }
+        }
+        let mut observers = std::collections::BTreeSet::new();
+        for name in &meta.observer_fields {
+            identifier(name)?;
+            if !observers.insert(name) {
+                return Err(Refusal(format!("duplicate observer {name}")));
+            }
+        }
+        if observers != meta.observer_types.keys().collect() {
+            return Err(Refusal("observer declarations differ".into()));
+        }
+        for ty in meta
+            .parameters
+            .iter()
+            .map(|parameter| &parameter.ty)
+            .chain(meta.actions.iter().flat_map(|action| action.fields.iter().map(|f| &f.ty)))
+            .chain(std::iter::once(&meta.outcome_type))
+        {
+            values::validate_type(ty)?;
+        }
+        let schema = values::Schema { fields, observers: meta.observer_types.clone() };
+        schema.validate_assignment()?;
+        Ok(schema)
+    }
+
+    /// The decoding contract of a [`Tla::safety`] module, whose observers are exactly the
+    /// safety emitter's.
+    ///
+    /// # Errors
+    /// As [`Module::schema`], and refuses observers other than the safety emitter's.
+    pub fn safety_schema(&self) -> Result<values::Schema, Refusal> {
+        let schema = self.schema()?;
+        let fact = match schema.observers.get("__umpire_facts") {
+            Some(Type::Seq(fact)) => fact.as_ref(),
+            _ => return Err(Refusal("missing facts observer".into())),
+        };
+        let Some(Type::Int { min: 0, max: input }) = schema.observers.get("__umpire_input") else {
+            return Err(Refusal("missing input observer".into()));
+        };
+        let expected = safety::observers(
+            self.metadata.fields.iter().map(|field| (field.name.as_str(), &field.ty)),
+            &self.metadata.outcome_type,
+            fact,
+            *input,
+        );
+        if expected != schema.observers {
+            return Err(Refusal("observer schema differs from safety emitter".into()));
+        }
+        Ok(schema)
+    }
 }
 /// Reading the admitted Model for emission.
 pub struct Lift;

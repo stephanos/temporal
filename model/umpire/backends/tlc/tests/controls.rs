@@ -2,7 +2,8 @@
 
 use std::{collections::BTreeMap, fs, path::Path};
 
-use umpire_tlc::{Error, Refusal, Schema, Tlc, Type, Value, Verdict};
+use umpire_tla::Type;
+use umpire_tlc::{Error, Refusal, Schema, Tlc, Value, Verdict};
 
 fn schema() -> Schema {
     Schema {

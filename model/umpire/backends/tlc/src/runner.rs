@@ -526,8 +526,9 @@ fn decode_trace(messages: &[(u32, String)], schema: &Schema) -> Result<Trace, Re
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Type, Value};
+    use crate::Value;
     use std::{process::Command, time::Duration};
+    use umpire_tla::Type;
 
     #[test]
     fn located_property_invariants_name_only_the_selected_operator() -> Result<(), Refusal> {
@@ -587,7 +588,7 @@ mod tests {
                 .is_some_and(|error| error.to_string().contains("duplicate observer"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.observer_types.insert("undeclared".into(), umpire_tla::Type::Bool);
+        invalid.metadata.observer_types.insert("undeclared".into(), Type::Bool);
         assert!(
             tlc.check_module(&invalid)
                 .err()
@@ -601,15 +602,14 @@ mod tests {
                 .is_some_and(|error| error.to_string().contains("collides"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.fields[0].ty = umpire_tla::Type::Int { min: 3, max: 2 };
+        invalid.metadata.fields[0].ty = Type::Int { min: 3, max: 2 };
         assert!(
             tlc.check_module(&invalid)
                 .err()
                 .is_some_and(|error| error.to_string().contains("integer bounds"))
         );
         let mut invalid = module.clone();
-        invalid.metadata.fields[0].ty =
-            umpire_tla::Type::Enum { name: "Empty".into(), variants: Vec::new() };
+        invalid.metadata.fields[0].ty = Type::Enum { name: "Empty".into(), variants: Vec::new() };
         assert!(
             tlc.check_module(&invalid)
                 .err()

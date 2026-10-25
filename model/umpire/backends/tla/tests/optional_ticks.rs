@@ -132,20 +132,30 @@ fn optional_complete_starts_keep_whole_row_correlation_and_empty_selection()
     Ok(())
 }
 
+fn ticks(name: &str, low: i128) -> umpire_tla::Bounded {
+    umpire_tla::Bounded {
+        name: name.into(),
+        field: None,
+        backing: "u8".into(),
+        min: 0,
+        max: 255,
+        low,
+        high: 3,
+    }
+}
+
 #[test]
 fn exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds()
 -> Result<(), Box<dyn std::error::Error>> {
-    use umpire_tlc::{Schema, Type as BackendType, Value, decode_state};
+    use umpire_tlc::{Schema, Value, decode_state};
+    let bounded = |name: &str, low| Type::Optional(ticks(name, low));
     let schema = Schema {
         fields: BTreeMap::from([
-            ("configured".into(), BackendType::OptionalInt { low: 1, high: 3 }),
-            ("remaining".into(), BackendType::OptionalInt { low: 0, high: 3 }),
-            ("raw".into(), BackendType::Int { min: 1, max: 3 }),
+            ("configured".into(), bounded("Ticks", 1)),
+            ("remaining".into(), bounded("Remaining", 0)),
+            ("raw".into(), Type::Bounded(ticks("Ticks", 1))),
         ]),
-        observers: BTreeMap::from([(
-            "__umpire_before_configured".into(),
-            BackendType::OptionalInt { low: 1, high: 3 },
-        )]),
+        observers: BTreeMap::from([("__umpire_before_configured".into(), bounded("Ticks", 1))]),
     };
     let dump =
         "/\\ configured = 2\n/\\ remaining = 1\n/\\ raw = 1\n/\\ __umpire_before_configured = 0";
@@ -168,11 +178,16 @@ fn exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds()
         assert!(decode_state(&forged, &schema).is_err(), "{forged}");
     }
     for (low, high) in [(-1, 3), (3, 1), (0, i128::from(i32::MAX))] {
+        let descriptor = umpire_tla::Bounded {
+            backing: "i32".into(),
+            min: i128::from(i32::MIN),
+            max: i128::from(i32::MAX),
+            low,
+            high,
+            ..ticks("Ticks", 1)
+        };
         let malformed = Schema {
-            fields: BTreeMap::from([(
-                "x".into(),
-                BackendType::Seq(Box::new(BackendType::OptionalInt { low, high })),
-            )]),
+            fields: BTreeMap::from([("x".into(), Type::Seq(Box::new(Type::Optional(descriptor))))]),
             observers: BTreeMap::new(),
         };
         assert!(decode_state("x = <<>>", &malformed).is_err());
@@ -245,37 +260,6 @@ fn shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata()
 #[path = "fixtures/optional_eager.rs"]
 mod eager;
 
-fn safety_schema(module: &umpire_tla::Module) -> umpire_tlc::Schema {
-    fn ty(source: &Type) -> umpire_tlc::Type {
-        use umpire_tlc::Type as Backend;
-        match source {
-            Type::Bool => Backend::Bool,
-            Type::Int { min, max } => Backend::Int { min: *min, max: *max },
-            Type::Bounded(bound) => Backend::Int { min: bound.low, max: bound.high },
-            Type::Optional(bound) => Backend::OptionalInt { low: bound.low, high: bound.high },
-            Type::Enum { variants, .. } => Backend::Enum(variants.clone()),
-            Type::Text => Backend::Text,
-            Type::Unit => Backend::Tuple(Vec::new()),
-            Type::Tuple(types) => Backend::Tuple(types.iter().map(ty).collect()),
-            Type::Seq(inner) => Backend::Seq(Box::new(ty(inner))),
-        }
-    }
-    umpire_tlc::Schema {
-        fields: module
-            .metadata
-            .fields
-            .iter()
-            .map(|field| (field.name.clone(), ty(&field.ty)))
-            .collect(),
-        observers: module
-            .metadata
-            .observer_types
-            .iter()
-            .map(|(name, value)| (name.clone(), ty(value)))
-            .collect(),
-    }
-}
-
 #[test]
 fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
 -> Result<(), Box<dyn std::error::Error>> {
@@ -317,7 +301,8 @@ fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
             tlc.check_module(&module).err().ok_or("Some suppressed eager fallback error")?;
         assert!(failure.to_string().contains("zero"), "site {site}: {failure}");
         let safety = Tla::safety(&lifted)?;
-        let checked = tlc.check(&safety.name, &safety.tla, &safety.cfg, &safety_schema(&safety))?;
+        let checked =
+            tlc.check(&safety.name, &safety.tla, &safety.cfg, &safety.safety_schema()?)?;
         assert_eq!(
             checked.properties["ArithmeticSafe"].verdict,
             umpire_tlc::Verdict::Refuted,

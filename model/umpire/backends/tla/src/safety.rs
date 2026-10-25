@@ -13,6 +13,30 @@ const ERROR: &str = "__umpire_arithmetic_error";
 const HAS_STEP: &str = "__umpire_has_step";
 const STUTTER: &str = "__umpire_stutter";
 
+/// The safety module's observers: its event flags and edge, and each field's before-state.
+pub(crate) fn observers<'a>(
+    fields: impl Iterator<Item = (&'a str, &'a Type)>,
+    outcome: &Type,
+    fact: &Type,
+    input: i128,
+) -> BTreeMap<String, Type> {
+    let mut observers = BTreeMap::from([
+        (ERROR.into(), Type::Bool),
+        (HAS_STEP.into(), Type::Bool),
+        (STUTTER.into(), Type::Bool),
+        ("__umpire_invalid_step".into(), Type::Bool),
+        ("__umpire_action".into(), Type::Text),
+        ("__umpire_input".into(), Type::Int { min: 0, max: input }),
+        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
+        ("__umpire_outcome".into(), outcome.clone()),
+        ("__umpire_facts".into(), Type::Seq(Box::new(fact.clone()))),
+    ]);
+    for (name, ty) in fields {
+        observers.insert(format!("__umpire_before_{name}"), ty.clone());
+    }
+    observers
+}
+
 fn definition(out: &mut String, name: &str, kind: &str, body: impl AsRef<str>) {
     line(out, format!("\\* @type: {kind};\n{name} == {}", body.as_ref()));
 }
@@ -50,26 +74,12 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             values.scope(v.value),
         );
     }
-    let mut observers = BTreeMap::from([
-        (ERROR.into(), Type::Bool),
-        (HAS_STEP.into(), Type::Bool),
-        (STUTTER.into(), Type::Bool),
-        ("__umpire_invalid_step".into(), Type::Bool),
-        ("__umpire_action".into(), Type::Text),
-        (
-            "__umpire_input".into(),
-            Type::Int {
-                min: 0,
-                max: model.catalog.as_ref().map_or(0, |c| c.len().saturating_sub(1) as i128),
-            },
-        ),
-        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
-        ("__umpire_outcome".into(), model.outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(model.fact_type.clone()))),
-    ]);
-    for field in &model.fields {
-        observers.insert(format!("__umpire_before_{}", field.name), field.ty.clone());
-    }
+    let observers = observers(
+        model.fields.iter().map(|field| (field.name.as_str(), &field.ty)),
+        &model.outcome_type,
+        &model.fact_type,
+        model.catalog.as_ref().map_or(0, |c| c.len().saturating_sub(1) as i128),
+    );
     for field in &model.fields {
         line(&mut out, format!("VARIABLE \\* @type: {};\n{}", ty(&field.ty), field.name));
     }

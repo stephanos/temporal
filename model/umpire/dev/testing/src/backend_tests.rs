@@ -509,10 +509,10 @@ fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
 fn nonempty_facts_are_typed_and_preserved_on_observer_activation() -> crate::TestResult {
     let variants = ["A", "B", "C", "D"].map(|value| format!("Fact::{value}")).to_vec();
     let schema = umpire_tlc::Schema {
-        fields: BTreeMap::from([("value".into(), umpire_tlc::Type::Bool)]),
+        fields: BTreeMap::from([("value".into(), Type::Bool)]),
         observers: BTreeMap::from([(
             "__umpire_facts".into(),
-            umpire_tlc::Type::Seq(Box::new(umpire_tlc::Type::Enum(variants))),
+            Type::Seq(Box::new(Type::Enum { name: "Fact".into(), variants })),
         )]),
     };
     umpire_tlc::decode_state("value = FALSE /\\ __umpire_facts = <<\"Fact::A\">>", &schema)?;

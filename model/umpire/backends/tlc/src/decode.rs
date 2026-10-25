@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use crate::{Refusal, Schema, State, TraceState, Value};
 
 /// Decode every numbered state and require the independently reported distinct-state count.
@@ -134,31 +132,6 @@ impl Parser<'_> {
         if self.eat("<<") {
             return self.list(">>").map(Value::Seq);
         }
-        if self.eat("{") {
-            let values = self.list("}")?;
-            let set: BTreeSet<_> = values.iter().cloned().collect();
-            if set.len() != values.len() {
-                return Err(Refusal("duplicate set member in dump".into()));
-            }
-            return Ok(Value::Set(set));
-        }
-        if self.eat("[") {
-            let mut fields = State::new();
-            if !self.eat("]") {
-                loop {
-                    let name = self.identifier()?;
-                    self.require("|->")?;
-                    if fields.insert(name, self.value()?).is_some() {
-                        return Err(Refusal("duplicate record field".into()));
-                    }
-                    if self.eat("]") {
-                        break;
-                    }
-                    self.require(",")?;
-                }
-            }
-            return Ok(Value::Record(fields));
-        }
         let end = self
             .0
             .char_indices()
@@ -193,8 +166,8 @@ impl Parser<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Type;
     use std::collections::BTreeMap;
+    use umpire_tla::Type;
 
     #[test]
     fn observer_only_safety_assignment_keeps_empty_state_refusal() {
@@ -257,6 +230,9 @@ mod tests {
         assert!(decode_dump(valid, 3, &schema).is_err());
         assert!(decode_dump("/\\ x = 1 /\\ tick = TRUE", 1, &schema).is_err());
         assert!(decode_dump("State 1:\n", 0, &schema).is_err());
+        for retired in ["/\\ x = {1} /\\ tick = TRUE", "/\\ x = [a |-> 1] /\\ tick = TRUE"] {
+            assert!(decode_state(retired, &schema).is_err(), "accepted {retired}");
+        }
         let collision = Schema { fields: schema.fields.clone(), observers: schema.fields };
         assert!(collision.validate().is_err());
         Ok(())
