@@ -152,6 +152,36 @@ fn fixed_cells_rederive_durable_source_and_support_inputs() {
         &json!({"control":config,"mutant":{}}),
         &error,
     );
+    let cell_path = root.join("cell.json");
+    let current_cell = cell_spec(
+        label,
+        &root.join("cycle/cells").join(label),
+        &manifest,
+        &source_sha,
+        &config,
+    )
+    .unwrap();
+    fs::write(&cell_path, inputs::canonical(&current_cell).unwrap()).unwrap();
+    let mut mixed = config.clone();
+    mixed["source_sha256"] = json!(source_sha);
+    mixed["stages"] = json!({
+        "ordinary-workload-tools-run": {"adapter":crate::cycle::model::Adapter::CheckedCommand},
+        "workload-corpus": {"adapter":crate::cycle::model::Adapter::Corpus},
+        (label): {"adapter":crate::cycle::model::Adapter::Qualify,"spec":cell_path}
+    });
+    let mut cell_files = BTreeMap::new();
+    cell_inputs(&mixed, &mut cell_files).unwrap();
+    assert!(cell_files.contains_key(cell_path.to_str().unwrap()));
+    assert!(cell_files.contains_key(manifest.to_str().unwrap()));
+    mixed["stages"][label]
+        .as_object_mut()
+        .unwrap()
+        .remove("spec");
+    assert!(
+        cell_inputs(&mixed, &mut BTreeMap::new())
+            .unwrap_err()
+            .contains("missing binding path: spec")
+    );
     let support = root.join("support.json");
     let captured = root.join("captured.json");
     fs::write(&support, b"{}").unwrap();

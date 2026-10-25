@@ -16,7 +16,7 @@ use super::{composition::StageBindings, inputs};
 use crate::cycle::{
     config::{Configured, TrustedContext},
     custody::{self, Snapshot},
-    model::{Mode, Plan, PlanConfig},
+    model::{Adapter, Mode, Plan, PlanConfig},
     plan,
     process::Runner,
 };
@@ -201,7 +201,7 @@ fn check_source(
 fn cell_inputs(config: &Value, files: &mut BTreeMap<String, String>) -> Result<(), String> {
     let root = roles::path(config, "root")?;
     for (label, entry) in config["stages"].as_object().ok_or("missing fixed stages")? {
-        if !label.starts_with("workload-") {
+        if entry["adapter"] != json!(Adapter::Qualify) {
             continue;
         }
         let path = roles::path(entry, "spec")?;
