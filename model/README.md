@@ -183,8 +183,14 @@ oneofs, maps, enums and RPC edges, named as prost generates them) that catalog/b
 mutations and Temporal's `#[realization]` admission both read.
 `umpire-catalog-build`'s `System { service, prefix, rust_root, request_roots, catalog_root }`
 checks a descriptor against its catalog root, and `generate(descriptor, out_dir)` writes
-`services.rs` (method classification/dispatch) and `wire_schema.rs` (typed wire mutations);
-generated symbol names derive from the service and prefix. Descriptor acquisition stays
+`services.rs` (method classification/dispatch), `wire_schema.rs` (typed wire mutations),
+`claims.rs` (descriptor field claim metadata) and `mirrors.rs` (structural catalog macros).
+Temporal authors keep semantic field kinds, projections and rules in `claims.rs` inputs.
+The generator fills the remaining descriptor fields with auditable Ignored reasons, then
+checks the generated mirrors against descriptor coverage and actual Rust message types.
+Temporal's probe adapter suppresses inferred opaque mutations only when they carry no
+explicit catalog finding; `wire_cases` stays shape-only and Kettle admits its full inventory.
+Generated symbol names derive from the service and prefix. Descriptor acquisition stays
 with each consumer; Temporal's API build and realization macros share one definition in
 `temporal/api/system.rs`. The independent
 Kettle catalog fixture builds without an extension dependency; refusal fixtures retain

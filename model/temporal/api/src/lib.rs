@@ -7,6 +7,8 @@ mod generated {
     include!(concat!(env!("OUT_DIR"), "/protocol.rs"));
     include!(concat!(env!("OUT_DIR"), "/services.rs"));
     include!(concat!(env!("OUT_DIR"), "/wire_schema.rs"));
+    include!(concat!(env!("OUT_DIR"), "/claims.rs"));
+    include!(concat!(env!("OUT_DIR"), "/mirrors.rs"));
 }
 
 pub use generated::*;

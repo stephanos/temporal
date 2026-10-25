@@ -8,7 +8,7 @@ use umpire_catalog::{
 use umpire_runtime::annotations::{ProbeCase, ProbeObservation, ProbeResponse};
 use umpire_temporal_api::{
     WorkflowServiceMethod as Method, mutate_workflow_request, umpire::temporal::v1::ProbeRequest,
-    workflow_request_fields,
+    workflow_field_claim, workflow_request_fields,
 };
 
 pub(super) struct Activity {
@@ -46,6 +46,46 @@ impl ProbeSystem for Activity {
     }
     fn fields(&self, method: Method) -> Vec<WireField> {
         workflow_request_fields(method)
+    }
+    fn admits_case(&self, method: Method, case: &WireCase) -> Result<bool> {
+        let mut ignored = false;
+        let mut secret_bound = false;
+        for ancestor in workflow_request_fields(method) {
+            if case.field.path != ancestor.path
+                && !case
+                    .field
+                    .path
+                    .strip_prefix(&ancestor.path)
+                    .is_some_and(|rest| rest.starts_with('.'))
+            {
+                continue;
+            }
+            if let Some(claim) = workflow_field_claim(&ancestor.declaration) {
+                ignored |= claim.ignored.is_some();
+                secret_bound |= ancestor.path == case.field.path
+                    && claim.kind == "Secret"
+                    && matches!(case.mutation, umpire_catalog::WireMutation::LimitPlusOne { .. });
+            }
+        }
+        if ignored || secret_bound {
+            if !matches!(case.applicability, umpire_catalog::MutationApplicability::Applicable) {
+                return Ok(!ignored);
+            }
+            let bytes = self.baseline(method, &self.canonical_context())?;
+            let mutated = match self.mutate(method, case, &bytes) {
+                Ok(mutated) => mutated,
+                Err(error) => match error.downcast_ref::<umpire_catalog::GenerationError>() {
+                    Some(
+                        umpire_catalog::GenerationError::SizeLimit
+                        | umpire_catalog::GenerationError::UnsupportedType
+                        | umpire_catalog::GenerationError::InapplicableMutation,
+                    ) => return Ok(!ignored),
+                    _ => return Err(error),
+                },
+            };
+            return Ok(!self.findings(method, &mutated)?.is_empty());
+        }
+        Ok(true)
     }
     fn bounds(&self) -> Vec<u64> {
         let limits = Limits::default();

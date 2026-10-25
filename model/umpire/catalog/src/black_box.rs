@@ -45,6 +45,17 @@ pub struct WireField {
     pub refusal: Option<String>,
 }
 
+/// One explicit semantic declaration checked against an independent descriptor field.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FieldClaim {
+    /// Exact protobuf declaring field identity.
+    pub declaration: &'static str,
+    /// Admitted semantic kind, independent of the physical wire carrier.
+    pub kind: &'static str,
+    /// Explicit reason that this field and its descendants remain opaque.
+    pub ignored: Option<&'static str>,
+}
+
 /// A generic mutation that carries no request data or catalog constraints.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum WireMutation {

@@ -1,0 +1,870 @@
+{
+  "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Opaque long-poll-token decoding and binding are unsupported; no byte-length bound is inferred."
+  },
+  "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Opaque long-poll-token decoding and binding are unsupported; no byte-length bound is inferred."
+  },
+  "generic::PollActivityTaskQueue::temporal.api.workflowservice.v1.PollActivityTaskQueueRequest.task_queue.normal_name:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "NORMAL queue normal_name depends on queue kind, outside the declared value-independent field rules; the empty/one-character live pair is retained."
+  },
+  "generic::PollActivityTaskQueue::temporal.api.workflowservice.v1.PollActivityTaskQueueRequest.task_queue.normal_name:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "NORMAL queue normal_name depends on queue kind, outside the declared value-independent field rules; the empty/one-character live pair is retained."
+  },
+  "generic::PollActivityTaskQueue::temporal.api.workflowservice.v1.PollActivityTaskQueueRequest.worker_version_capabilities.build_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Worker-version capabilities remains explicitly Ignored; this activity Model makes no build-ID semantic claim."
+  },
+  "generic::PollActivityTaskQueue::temporal.api.workflowservice.v1.PollActivityTaskQueueRequest.worker_version_capabilities.build_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Worker-version capabilities remains explicitly Ignored; this activity Model makes no build-ID semantic claim."
+  },
+  "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::RespondActivityTaskCanceled::temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest.task_token:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::RespondActivityTaskCompleted::temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest.task_token:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.task_token:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Opaque worker-token decoding and binding are unsupported; no byte-length bound is inferred. Presence remains required."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.internal.data:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.internal.data:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.internal.data:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.internal:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.activity_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.activity_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.activity_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.activity:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.batch_job.job_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.batch_job.job_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.batch_job.job_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.batch_job:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.component_path.value:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.component_path.value:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.component_path.value:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.component_path:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.component_path:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.execution:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.request_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.request_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback.request_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.callback:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.operation_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.operation_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.operation_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.nexus_operation:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.reason:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.reason:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.reason:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.workflow_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.workflow_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow.workflow_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.event_ref:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.request_id_ref:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.workflow_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.workflow_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event.workflow_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links.workflow_event:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.links:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.key:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.key:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.key:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.value:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.value:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header.value:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.header:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.url:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.url:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus.url:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.operation:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.operation:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.operation:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.service:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.service:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.service:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.data:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.data:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.data:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.external_payloads:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.external_payloads:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.metadata:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context.metadata:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.source_context:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.task_queue_name:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.task_queue_name:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler.task_queue_name:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks.nexus_handler:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.completion_callbacks:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start completion_callbacks remains explicitly Ignored; this activity Model makes no callback semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.activity_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.activity_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.activity_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.activity:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.batch_job.job_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.batch_job.job_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.batch_job:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.component_path.value:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.component_path.value:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.component_path.value:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.component_path:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.component_path:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.business_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.business_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.business_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution.type:mutation.undefined_enum": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.execution:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.request_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.request_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback.request_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.callback:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.operation_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.operation_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.operation_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.nexus_operation:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.reason:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.reason:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.reason:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.workflow_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.workflow_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow.workflow_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.event_ref.event_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.event_ref.event_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.event_ref.event_id:mutation.negative": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.event_ref.event_type:mutation.undefined_enum": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.event_ref:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.namespace:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.namespace:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.namespace:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.request_id_ref.event_type:mutation.undefined_enum": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.request_id_ref.request_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.request_id_ref.request_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.request_id_ref.request_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.request_id_ref:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.run_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.run_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.run_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.workflow_id:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.workflow_id:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event.workflow_id:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links.workflow_event:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.links:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start links remains explicitly Ignored; this activity Model makes no link semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.priority.fairness_key:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start priority remains explicitly Ignored; this activity Model makes no priority semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.priority.fairness_key:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start priority remains explicitly Ignored; this activity Model makes no priority semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.priority.fairness_weight:mutation.negative": {
+    "date": "2026-10-21",
+    "reason": "Start priority remains explicitly Ignored; this activity Model makes no priority semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.priority.priority_key:mutation.negative": {
+    "date": "2026-10-21",
+    "reason": "Start priority remains explicitly Ignored; this activity Model makes no priority semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.retry_policy.initial_interval.seconds:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Retry maximum/initial ordering is outside the five-operator presence algebra; paired ordering, disabled-retry and default controls are retained."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.retry_policy.initial_interval.seconds:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Retry maximum/initial ordering is outside the five-operator presence algebra; paired ordering, disabled-retry and default controls are retained."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.key:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.key:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.key:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.data:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.data:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.data:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.external_payloads:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.external_payloads:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.metadata:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value.metadata:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields.value:mutation.empty": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.search_attributes.indexed_fields:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start search_attributes remains explicitly Ignored; this activity Model makes no search-attribute semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.details.data:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.details.metadata.key:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.details.metadata.value:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.data:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.data:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.external_payloads:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.metadata.key:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.metadata.key:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.metadata.value:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.metadata.value:mutation.limit_plus_one(2097152)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  },
+  "generic::StartActivityExecution::temporal.api.workflowservice.v1.StartActivityExecutionRequest.user_metadata.summary.metadata:mutation.limit_plus_one(1000)": {
+    "date": "2026-10-21",
+    "reason": "Start user_metadata remains explicitly Ignored; this activity Model makes no user-metadata semantic claim."
+  }
+}

@@ -419,3 +419,68 @@ fn worker_failure_requires_application_info_only_when_failure_is_supplied()
     );
     Ok(())
 }
+
+#[test]
+fn normal_name_is_conditional_on_actual_queue_kind() -> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::enums::v1::TaskQueueKind;
+    let catalogs =
+        umpire_temporal::activity_api::PollActivityTaskQueueRequest::catalogs(&Limits::default())?;
+    for kind in [TaskQueueKind::Unspecified, TaskQueueKind::Normal, TaskQueueKind::Sticky] {
+        for normal_name in ["", "normal"] {
+            let queue = TaskQueue {
+                name: "queue".into(),
+                kind: kind as i32,
+                normal_name: normal_name.into(),
+            };
+            let request = umpire_temporal_api::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest {
+                namespace: "namespace".into(), task_queue: Some(queue), ..Default::default()
+            };
+            let violations: Vec<_> = catalogs
+                .iter()
+                .flat_map(|catalog| umpire_catalog::validate(&request, catalog))
+                .collect();
+            let actual = annotate("PollActivityTaskQueue", false, &request.encode_to_vec(), 0)?;
+            assert_eq!(
+                !actual.violations.is_empty(),
+                kind != TaskQueueKind::Sticky && !normal_name.is_empty()
+            );
+            assert_eq!(
+                violations.iter().any(|finding| finding.path.ends_with(".task_queue")),
+                kind != TaskQueueKind::Sticky && !normal_name.is_empty(),
+                "{kind:?} {normal_name:?}"
+            );
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries()
+-> Result<(), Box<dyn std::error::Error>> {
+    for (initial, maximum, attempts, invalid) in [
+        (Some((1001, 0)), Some((10, 0)), 2, true),
+        (Some((1001, 0)), Some((2002, 0)), 2, false),
+        (Some((1001, 0)), Some((10, 0)), 1, false),
+        (Some((1001, 0)), Some((0, 0)), 2, false),
+        (Some((10, 0)), Some((10, 0)), 2, false),
+        (Some((10, 1)), Some((10, 0)), 2, true),
+        (Some((10, 0)), Some((10, 1)), 2, false),
+        (None, Some((10, 0)), 2, false),
+        (Some((1001, 0)), None, 2, false),
+    ] {
+        let mut request = start();
+        request.retry_policy = Some(RetryPolicy {
+            initial_interval: initial.map(|(seconds, nanos)| Duration { seconds, nanos }),
+            maximum_interval: maximum.map(|(seconds, nanos)| Duration { seconds, nanos }),
+            maximum_attempts: attempts,
+            ..Default::default()
+        });
+        let actual = annotate("StartActivityExecution", false, &request.encode_to_vec(), 0)?;
+        assert_eq!(
+            !actual.violations.is_empty(),
+            invalid,
+            "initial={initial:?} maximum={maximum:?} attempts={attempts}"
+        );
+    }
+    Ok(())
+}

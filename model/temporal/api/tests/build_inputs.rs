@@ -21,6 +21,9 @@ fn api_build_tracks_existing_inputs_and_feature_catalogs() -> Result<(), Box<dyn
     let features = manifest.join("../feature").canonicalize()?;
     assert!(inputs.contains(&features));
     assert!(inputs.contains(&features.join("activity/api.rs")));
+    assert!(inputs.contains(&features.join("activity/claims.rs")));
+    let shared_claims = manifest.join("../foundation/claims.rs").canonicalize()?;
+    assert!(inputs.contains(&shared_claims));
     let table = manifest.join("../foundation/service.rs").canonicalize()?;
     assert!(inputs.contains(&table), "untracked service table: {}", table.display());
     for schema in ["temporal.proto", "probe.proto"] {
