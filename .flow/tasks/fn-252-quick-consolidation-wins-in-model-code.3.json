@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-252-quick-consolidation-wins-in-model-code",
   "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete committed spike output; no copied Kettle in the spike",
   "updated_at": "2026-10-24T22:11:09.766901Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-252-quick-consolidation-wins-in-model-code",
   "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Activity TLC replay through umpire_testing::replay_trace",
   "updated_at": "2026-10-24T22:11:11.396587Z"
 }

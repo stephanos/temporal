@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-252-quick-consolidation-wins-in-model-code",
   "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Path stores only a Pattern",
   "updated_at": "2026-10-24T22:11:09.233196Z"
 }

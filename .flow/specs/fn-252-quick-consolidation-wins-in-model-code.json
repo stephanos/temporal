@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-252-quick-consolidation-wins-in-model-code",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-10-25T09:44:47.878906Z",
+  "completion_reviewed_at": "2026-10-25T10:19:18.621049Z",
   "created_at": "2026-10-24T22:10:15.961750Z",
   "default_impl": null,
   "default_review": null,
@@ -337,6 +337,41 @@
       "timestamp": "2026-10-25T09:44:47.867003Z",
       "tool_calls": 26,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a27d3f4da53bf858a0eac7f5ebd237ebfb4711a1b509fdeba0ff23f030b44774",
+      "backend": "codex",
+      "base_sha": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "a345ab4cde9e986c5b194c2999d3050f864d3b5d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 7244,
+      "output_sha256": "1fee4edad09d02c7cf043d8466339bbb032ad215c58fe4a5782eb99e15b10d2e",
+      "reservation_id": "688cec63cc3a450ea3f06844e38f836f",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T10:19:18.613323Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -346,7 +381,7 @@
     "impl:fn-252-quick-consolidation-wins-in-model-code.6": 1,
     "impl:fn-252-quick-consolidation-wins-in-model-code.7": 1,
     "impl:fn-252-quick-consolidation-wins-in-model-code.8": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -360,7 +395,7 @@
     "impl:fn-252-quick-consolidation-wins-in-model-code.8": 0
   },
   "spec_path": ".flow/specs/fn-252-quick-consolidation-wins-in-model-code.md",
-  "status": "open",
+  "status": "done",
   "title": "Quick consolidation wins in model code, tests and tooling (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -373,5 +408,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T09:44:47.882971Z"
+  "updated_at": "2026-10-25T10:27:19.712143Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-252-quick-consolidation-wins-in-model-code/validation-cost-review-e4413b3d8104bdbb6b57209495b7f0048950b7f474db76f90ce3f86435c2a89f.json",
+    "schema_version": 1,
+    "sha256": "e4413b3d8104bdbb6b57209495b7f0048950b7f474db76f90ce3f86435c2a89f"
+  }
 }

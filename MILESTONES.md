@@ -102,18 +102,7 @@ fn-248 closed locally on 2026-10-25: crates replace hand-written code (insta gol
 
 fn-250.1/.2, fn-251.1/.2 and fn-252.1/.2 are complete locally: their scoped reviews and the joined `UMPIRE_APALACHE=require make model-validate` passed at `1c1e7fbf07`, including TLC, Apalache, workspace tests, guest freshness and all three Go hosts. The gate took 1549.246s against the 60s soft target; the inner loop took 7.623s against 10s. This used a cold task-owned cache with other independent work active, so it is not a controlled speed comparison.
 
-All tasks in fn-250, fn-251 and fn-252 are complete locally and integrated, including shared typed replay, one probe engine, generated transport/findings, facade removal, test/search/tooling consolidation and the stock fixture move. The final combined TLC/Apalache-required gate passed at `02751bfef5` (1188.040s full gate, 6.155s edit/test loop), with current guests and all three Go hosts green. Both independent quality audits found zero issues. fn-250 and fn-251 passed parent completion review and are closed locally. fn-252 also received SHIP, but closure is held for validation of the integrated one-line symbolic-probe lock synchronization. Its locked build and six native tests pass; package versions/checksums are unchanged.
-
-### fn-252: Quick consolidation wins in model code, tests and tooling (model)
-
-Filed on 2026-10-24 from the owner's duplication review: independent small consolidations (about 1,100–1,300 lines,
-plus ~12.9k lines of committed spike output). A parallel lane after fn-248, before fn-246, which reuses the search
-and migrates the activity tests.
-On 2026-10-25 the owner authorized .3 and .4 ahead of the whole fn-248 closure in separate isolated lanes; other fn-252 work still waits for fn-248.
-Both tasks completed locally with focused checks and scoped SHIP reviews: .3 removed regenerable spike output and shared the authored Kettle source; .4 consolidated native fixtures and SpaceBinding. The parent R9 full validation remains open.
-[Spec](.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md).
-
-All eight tasks are complete locally and parent review reached SHIP. The retained standalone symbolic probe's one-line lock dependency synchronization is integrated; its locked check/test and six controls pass. Revalidate the updated tree and re-review that follow-up before parent closure.
+fn-250, fn-251 and fn-252 are closed locally with every task, parent completion review and independent quality audit complete. The final current-tree TLC/Apalache-required gate passed at `a345ab4cde` (1163.386s full gate, 6.002s edit/test loop), including current guests and all three Go hosts. A targeted standalone-probe lock drift was repaired without package/version/checksum changes; locked build and six native controls pass. Execution proceeds to fn-246.
 
 ### fn-246: Realization as a checked refinement: shared Temporal layer, action registry, Reach, derived strategies (model, temporal)
 

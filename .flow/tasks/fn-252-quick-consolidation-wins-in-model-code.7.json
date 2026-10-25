@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-252-quick-consolidation-wins-in-model-code",
   "spec_path": ".flow/tasks/fn-252-quick-consolidation-wins-in-model-code.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Tooling: one proto-go script, wasm env variable, workspace lints for guests",
   "updated_at": "2026-10-24T22:11:11.939524Z"
 }

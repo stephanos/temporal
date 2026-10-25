@@ -1,0 +1,2 @@
+validation-cost-review-*.json -text -filter -working-tree-encoding -ident
+.gitattributes -text -filter -working-tree-encoding -ident
