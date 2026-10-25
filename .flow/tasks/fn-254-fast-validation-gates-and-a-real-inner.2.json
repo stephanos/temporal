@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.2.md",
   "status": "todo",
   "title": "TLC runner: one batched run per check, split on failure, parallel properties",
-  "updated_at": "2026-10-25T19:13:39.177105Z"
+  "updated_at": "2026-10-25T19:26:26.982103Z"
 }

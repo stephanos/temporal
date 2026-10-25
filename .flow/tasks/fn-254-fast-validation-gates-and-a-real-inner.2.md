@@ -9,9 +9,11 @@ Cut TLC launches from about one per property to one or two per check for healthy
 
 **Size:** M
 **Files:** `umpire/backends/tlc/src/runner.rs`, `module.rs`; `umpire/backends/process/src/` if the limit lives there; TLC tests.
-**Touches:** [model/umpire/backends/tlc/src/**, model/umpire/backends/tlc/tests/**, model/umpire/backends/process/src/**]
+**Touches:** [model/umpire/backends/tlc/Cargo.toml, model/umpire/backends/tlc/src/**, model/umpire/backends/tlc/tests/**, model/umpire/backends/process/src/**]
 
 ### Approach
+
+Admission refinement: the TLC crate manifest may declare the task's test-only independent-strategy equivalence switch; no new dependency is assumed. Scope overlaps with consolidation/workspace moves remain serialized.
 - Keep the claim-free exploration run (it produces the state dump). Then run one cfg with every INVARIANT/PROPERTY from `split_cfg`.
 - No violation: every property Verified from that run. Violation: record the reported property's verdict and trace exactly as `execute` does now, then rerun the remaining properties as a batch, until each has a verdict. Properties TLC cannot report exactly in a batch (check liveness under fairness first) keep individual runs; document which.
 - Optional parallelism: independent reruns (and the exploration with the first batch) may run concurrently up to a `Limits` setting (default from available cores, capped). Each run keeps its own scratch directory.
