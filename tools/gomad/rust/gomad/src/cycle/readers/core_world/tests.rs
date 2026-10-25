@@ -335,6 +335,21 @@ fn current_corpus_inventory_refuses_tamper_omission_and_foreign_header() {
         corpus::Corpus::admit("network", &std::collections::BTreeMap::new(), &frozen, None)
             .is_err()
     );
+    let mut null = raw.clone();
+    let mut doc: Value = serde_json::from_slice(&null["fixture"]).unwrap();
+    doc["creation_error"] = Value::Null;
+    null.insert("fixture".into(), serde_json::to_vec(&doc).unwrap());
+    let resealed = null
+        .iter()
+        .map(|(name, raw)| (name.clone(), sha(raw)))
+        .collect();
+    assert_eq!(
+        corpus::Corpus::admit("network", &null, &resealed, None)
+            .unwrap()
+            .receive(text.as_bytes())
+            .unwrap_err(),
+        "network corpus creation error"
+    );
     let mut foreign = raw.clone();
     let mut doc: Value = serde_json::from_slice(&foreign["fixture"]).unwrap();
     doc["schema"] = json!("foreign");

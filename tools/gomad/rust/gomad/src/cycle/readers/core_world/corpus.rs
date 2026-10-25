@@ -181,7 +181,11 @@ impl Corpus {
                 "network" => {
                     required.insert(
                         (
-                            if doc["creation_error"].is_null() {
+                            if doc["creation_error"]
+                                .as_str()
+                                .ok_or("network corpus creation error")?
+                                .is_empty()
+                            {
                                 "network.corpus.initial"
                             } else {
                                 "network.corpus.creation"
