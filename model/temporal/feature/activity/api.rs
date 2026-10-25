@@ -26,6 +26,9 @@ fn classify(method: WorkflowServiceMethod) -> RpcRole<ModelAction> {
         WorkflowServiceMethod::PollActivityTaskQueue => {
             RpcRole::Action(ModelAction::Worker(Worker::Poll(1)))
         }
+        WorkflowServiceMethod::RecordActivityTaskHeartbeat => {
+            RpcRole::Action(ModelAction::Worker(Worker::Heartbeat))
+        }
         WorkflowServiceMethod::RespondActivityTaskCompleted => {
             RpcRole::Action(ModelAction::Worker(Worker::RespondCompleted))
         }
@@ -88,6 +91,8 @@ pub mod catalog {
         nexus_handler_failure_info,]; foundation => q : [TaskQueue => task_queue,]; super
         => w : [PollActivityTaskQueueRequest => poll_activity_task_queue_request,
         PollActivityTaskQueueResponse => poll_activity_task_queue_response,
+        RecordActivityTaskHeartbeatRequest => record_activity_task_heartbeat_request,
+        RecordActivityTaskHeartbeatResponse => record_activity_task_heartbeat_response,
         RespondActivityTaskCompletedRequest => respond_activity_task_completed_request,
         RespondActivityTaskCompletedResponse => respond_activity_task_completed_response,
         RespondActivityTaskFailedRequest => respond_activity_task_failed_request,
@@ -107,15 +112,14 @@ pub mod catalog {
     /// Binds every Model action, including explicitly environmental deadlines.
     pub fn bind(action: &ModelAction) -> Binding {
         umpire_temporal_api::bind_workflow_action!(
-            action, ModelAction::Deadline(Deadline::Tick) |
-            ModelAction::Worker(Worker::Heartbeat | Worker::RespondCanceled(_)) => { if
-            matches!(action, ModelAction::Deadline(Deadline::Tick)) {
-            Binding::Environmental("abstract deadline tick") } else if matches!(action,
-            ModelAction::Worker(Worker::Heartbeat)) {
-            Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RecordActivityTaskHeartbeat")
-            } else {
-            Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled")
-            } }
+            action,
+            ModelAction::Deadline(Deadline::Tick) | ModelAction::Worker(Worker::RespondCanceled(_)) => {
+                if matches!(action, ModelAction::Deadline(Deadline::Tick)) {
+                    Binding::Environmental("abstract deadline tick")
+                } else {
+                    Binding::Rpc("temporal.api.workflowservice.v1.WorkflowService.RespondActivityTaskCanceled")
+                }
+            }
         )
     }
 }

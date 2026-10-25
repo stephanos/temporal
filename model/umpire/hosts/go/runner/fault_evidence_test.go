@@ -3,7 +3,9 @@ package runner
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -96,5 +98,75 @@ func TestDriverFaultEvidenceIsRetainedRedactedAndReplayed(t *testing.T) {
 				requireReplays(t, wasm, run)
 			})
 		}
+	}
+}
+
+type lateCloseEvidenceDriver struct {
+	*fakeDriver
+	evidence        *anypb.Any
+	closedExchanges bool
+}
+
+func (d *lateCloseEvidenceDriver) Close() error {
+	exchanges := d.all()
+	d.closedExchanges = len(exchanges) != 0
+	for _, exchange := range exchanges {
+		exchange.mu.Lock()
+		closed := exchange.closed
+		exchange.mu.Unlock()
+		d.closedExchanges = d.closedExchanges && closed && exchange.joined()
+	}
+	if !d.closedExchanges {
+		return errors.New("driver closed before its exchanges joined")
+	}
+	if d.evidence == nil {
+		return errors.New("late driver close")
+	}
+	d.evidence.Value = []byte("captured-after-exchange-close")
+	return fmt.Errorf("late driver close: %w", &evidenceError{evidence: d.evidence})
+}
+
+func TestDriverClosePreservesEvidenceCapturedAfterExchangeClose(t *testing.T) {
+	wasm := statefulGuest(t)
+	for _, withEvidence := range []bool{false, true} {
+		t.Run(fmt.Sprintf("evidence=%t", withEvidence), func(t *testing.T) {
+			driver := &lateCloseEvidenceDriver{fakeDriver: &fakeDriver{script: good}}
+			if withEvidence {
+				driver.evidence = &anypb.Any{TypeUrl: "example.net/LateEvidence"}
+			}
+			runtime := New(wasm, func(context.Context) (Driver, error) { return driver, nil })
+			run, err := runtime.Run(t.Context(), ModeExplore, configured(1))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !driver.closedExchanges {
+				t.Fatal("Driver.Close ran before Exchange.Close joined")
+			}
+			var fault *runv1.Event
+			for _, event := range run.GetEvents() {
+				if event.GetDriverFault() != nil {
+					fault = event
+				}
+			}
+			if fault == nil {
+				t.Fatal("Driver.Close error was not recorded")
+			}
+			if !strings.Contains(fault.GetDriverFault().GetReason(), "driver close: late driver close") {
+				t.Fatalf("wrong Driver.Close fault: %v", fault)
+			}
+			requireExplained(t, run, runv1.Termination_TERMINATION_QUIESCENT)
+			evidence := fault.GetDriverFault().GetEvidence()
+			if withEvidence {
+				if !proto.Equal(evidence, driver.evidence) || string(evidence.GetValue()) != "captured-after-exchange-close" {
+					t.Fatalf("late Driver.Close evidence lost: %v", evidence)
+				}
+				driver.evidence.Value = []byte("mutated")
+				if string(evidence.GetValue()) != "captured-after-exchange-close" {
+					t.Fatal("Driver.Close evidence was not copied")
+				}
+			} else if evidence != nil {
+				t.Fatalf("plain Driver.Close invented evidence: %v", evidence)
+			}
+		})
 	}
 }

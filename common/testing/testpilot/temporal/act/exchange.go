@@ -83,11 +83,19 @@ func (x *exchange) Close() error {
 	x.driver.forget(x)
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	if x.buffered != nil {
-		evidence := x.buffered
-		x.buffered = nil
-		return &acknowledgedError{evidence: evidence}
+	if x.buffered != nil || x.driver.executionError() != nil {
+		evidence, err := x.driver.workerFaultEvidence(x.buffered)
+		if err != nil {
+			return err
+		}
+		cause := x.driver.executionError()
+		if x.buffered != nil {
+			cause = errors.Join(&acknowledgedError{evidence: x.buffered}, cause)
+			x.buffered = nil
+		}
+		return &workerEvidenceError{cause: cause, evidence: evidence}
 	}
+
 	return nil
 }
 
@@ -122,7 +130,14 @@ func (x *exchange) fault(format string, values ...any) {
 	x.mu.Lock()
 	evidence := x.buffered
 	x.mu.Unlock()
-	if _, ok := x.emit(runner.EventFault, evidence, fmt.Sprintf(format, values...)); ok {
+	reason := fmt.Sprintf(format, values...)
+	captured, err := x.driver.workerFaultEvidence(evidence)
+	if err != nil {
+		reason += ": pack worker fault evidence: " + err.Error()
+	} else {
+		evidence = captured
+	}
+	if _, ok := x.emit(runner.EventFault, evidence, reason); ok {
 		x.mu.Lock()
 		x.buffered = nil
 		x.mu.Unlock()

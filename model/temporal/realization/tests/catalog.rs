@@ -566,7 +566,15 @@ fn explicitly_consumed_transport_fields_are_claimed() -> Result<(), Box<dyn std:
         ),
         (
             "workflowservice.v1.PollActivityTaskQueueResponse",
-            &["task_token", "header", "attempt", "activity_type"][..],
+            &[
+                "task_token",
+                "header",
+                "attempt",
+                "activity_type",
+                "activity_id",
+                "activity_run_id",
+                "workflow_execution",
+            ][..],
         ),
         (
             "workflowservice.v1.RequestCancelActivityExecutionRequest",
@@ -581,6 +589,18 @@ fn explicitly_consumed_transport_fields_are_claimed() -> Result<(), Box<dyn std:
             &["namespace", "task_token", "identity", "failure"][..],
         ),
         ("workflowservice.v1.RespondActivityTaskFailedResponse", &["failures"][..]),
+        (
+            "workflowservice.v1.RecordActivityTaskHeartbeatRequest",
+            &["namespace", "task_token", "identity", "details", "resource_id"][..],
+        ),
+        (
+            "workflowservice.v1.RecordActivityTaskHeartbeatResponse",
+            &["cancel_requested", "activity_paused", "activity_reset"][..],
+        ),
+        (
+            "workflowservice.v1.RespondActivityTaskCanceledRequest",
+            &["namespace", "task_token", "identity", "details"][..],
+        ),
         ("common.v1.Header", &["fields"][..]),
         ("common.v1.Payload", &["metadata", "data"][..]),
         ("common.v1.Link", &["activity"][..]),
@@ -601,6 +621,39 @@ fn explicitly_consumed_transport_fields_are_claimed() -> Result<(), Box<dyn std:
                 .ok_or_else(|| format!("missing consumed claim {path}"))?;
             assert_eq!(claim.ignored, None, "{path}");
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn heartbeat_claims_keep_progress_and_response_flags_without_added_constraints()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::workflowservice::v1::{
+        RecordActivityTaskHeartbeatRequest, RecordActivityTaskHeartbeatResponse,
+    };
+    let request = RecordActivityTaskHeartbeatRequest {
+        task_token: b"private-token".to_vec(),
+        details: Some(Payloads {
+            payloads: vec![Payload { data: b"private-progress".to_vec(), ..Default::default() }],
+        }),
+        identity: "worker".into(),
+        namespace: "namespace".into(),
+        ..Default::default()
+    }
+    .encode_to_vec();
+    let annotated = annotate("RecordActivityTaskHeartbeat", false, &request, 1)?;
+    assert_eq!(annotated.violations, [] as [String; 0]);
+    assert_eq!(annotated.bytes, request);
+    for cancel_requested in [false, true] {
+        let response = RecordActivityTaskHeartbeatResponse {
+            cancel_requested,
+            activity_paused: false,
+            activity_reset: false,
+        }
+        .encode_to_vec();
+        let annotated = annotate("RecordActivityTaskHeartbeat", true, &response, 1)?;
+        assert_eq!(annotated.violations, [] as [String; 0]);
+        assert_eq!(annotated.bytes, response);
     }
     Ok(())
 }

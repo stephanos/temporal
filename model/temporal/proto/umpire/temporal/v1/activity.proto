@@ -10,6 +10,13 @@ message ActivityTaskKey {
   string scenario = 1;
   int32 attempt = 2;
   string activity_type = 3;
+  repeated bool heartbeat_history = 4;
+}
+
+// Successful observable extensions of one heartbeat decision.
+message ActivityTaskSuccessors {
+  ActivityTaskKey key = 1;
+  repeated bool cancel_requested = 2;
 }
 
 // Read an in-flight activity while independently provisioned workers execute.

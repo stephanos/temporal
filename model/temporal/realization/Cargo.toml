@@ -9,6 +9,7 @@ rust-version.workspace = true
 
 [dependencies]
 umpire-catalog.workspace = true
+umpire-checker.workspace = true
 umpire-dsl.workspace = true
 umpire-runtime.workspace = true
 umpire-temporal-api.workspace = true

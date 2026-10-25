@@ -38,7 +38,7 @@ func TestUnknownKeyRefusedBeforeSDKStartup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Follow(context.Background(), nil, data)
+	err = Follow(context.Background(), nil, data, nil)
 	if err == nil || !strings.Contains(err.Error(), "key") {
 		t.Fatalf("startup error = %v", err)
 	}

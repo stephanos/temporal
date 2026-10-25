@@ -53,6 +53,7 @@ fn program_covers_every_scenario_and_admitted_attempt_with_the_reply_policy() {
             .unwrap_or_else(|e| panic!("{e:?}"));
         assert_eq!(program.namespace, "model-slice");
         assert_eq!(program.task_queue, "queue");
+        assert_eq!(program.continuation_domains, [] as [Any; 0]);
         assert_eq!(
             program.rules.len(),
             usize::try_from(3 * maximum).unwrap_or_else(|_| panic!("maximum"))
@@ -71,6 +72,7 @@ fn program_covers_every_scenario_and_admitted_attempt_with_the_reply_policy() {
             assert_eq!(key.scenario, scenario);
             assert_eq!(key.attempt, attempt);
             assert_eq!(key.activity_type, "ModelSlice");
+            assert_eq!(key.heartbeat_history, [] as [bool; 0]);
             let [reply] = row.respond.as_slice() else { panic!("one response") };
             if scenario == "Fail" || scenario == "RetryThenComplete" && attempt == 1 {
                 let failed: RespondActivityTaskFailedRequest =
@@ -206,4 +208,104 @@ fn bootstrap_scenario_is_in_header_and_reads_and_seeded_cancel_hold_are_action_d
         let Some(Outcome::Judge(scheduled)) = scheduled.outcome else { panic!("scheduled read") };
         assert!(scheduled.continue_polling);
     }
+}
+
+#[test]
+fn finite_history_codec_keeps_unknown_false_true_and_order() {
+    use umpire_temporal_api::umpire::temporal::v1::{
+        ActivityTaskKey, ActivityTaskSuccessors, WorkerProgram,
+    };
+    let mut encodings = std::collections::HashSet::new();
+    for history in
+        [vec![], vec![false], vec![true], vec![false, false], vec![false, true], vec![true, true]]
+    {
+        let key = ActivityTaskKey {
+            scenario: "history".into(),
+            attempt: 2,
+            activity_type: "activity".into(),
+            heartbeat_history: history,
+        };
+        let bytes = key.encode_to_vec();
+        assert!(encodings.insert(bytes.clone()));
+        assert_eq!(
+            ActivityTaskKey::decode(bytes.as_slice()).unwrap_or_else(|e| panic!("{e}")),
+            key
+        );
+        let program = WorkerProgram {
+            namespace: "namespace".into(),
+            task_queue: "queue".into(),
+            continuation_domains: vec![Any::pack(&ActivityTaskSuccessors {
+                key: Some(key),
+                cancel_requested: vec![true],
+            })],
+            ..Default::default()
+        };
+        assert_eq!(
+            Any::pack(&program).unpack::<WorkerProgram>().unwrap_or_else(|e| panic!("{e:?}")),
+            program
+        );
+    }
+}
+
+#[test]
+fn typed_worker_filler_packs_heartbeat_and_canceled_for_the_selected_attempt()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_dsl::Machine;
+    use umpire_runtime::capability::{Fill, Identity, Request};
+    use umpire_temporal::{Realization, activity};
+    use umpire_temporal_api::temporal::api::{
+        common::v1::{Payload, Payloads},
+        workflowservice::v1::{
+            RecordActivityTaskHeartbeatRequest, RespondActivityTaskCanceledRequest,
+        },
+    };
+    type Action = <activity::World as Machine>::Action;
+    type Inputs = <Realization as Fill<Action>>::Inputs;
+    let binding = Realization::default();
+    let world = activity::World::new(3, None, None, None, None, true);
+    let identity = binding
+        .identify(&common::start(3).request.ok_or("start request")?)
+        .map_err(|e| e.message)?;
+    let details = Some(Payloads {
+        payloads: vec![Payload { data: b"progress".to_vec(), ..Default::default() }],
+    });
+    let inputs = Inputs::Worker { attempt: 2, details: details.clone() };
+    let heartbeat = binding
+        .fill(&Action::from(activity::Worker::Heartbeat), &world, &inputs, &identity)
+        .map_err(|e| e.message)?
+        .pack_request();
+    let heartbeat: RecordActivityTaskHeartbeatRequest =
+        heartbeat.unpack().map_err(|e| e.message)?;
+    assert_eq!(heartbeat.details, details);
+    assert_eq!(heartbeat.namespace, "");
+    assert_eq!(heartbeat.task_token, [] as [u8; 0]);
+    let canceled = binding
+        .fill(&Action::from(activity::Worker::RespondCanceled(2)), &world, &inputs, &identity)
+        .map_err(|e| e.message)?
+        .pack_request();
+    let canceled: RespondActivityTaskCanceledRequest = canceled.unpack().map_err(|e| e.message)?;
+    assert_eq!(canceled.details, details);
+    assert_eq!(canceled.namespace, "");
+    assert_eq!(canceled.task_token, [] as [u8; 0]);
+    assert!(
+        binding
+            .fill(&Action::from(activity::Worker::RespondCanceled(3)), &world, &inputs, &identity)
+            .is_err()
+    );
+    assert!(
+        binding
+            .fill(
+                &Action::from(activity::Worker::Heartbeat),
+                &world,
+                &Inputs::Worker { attempt: 4, details: None },
+                &identity
+            )
+            .is_err()
+    );
+    assert!(
+        binding
+            .fill(&Action::from(activity::Worker::RespondCompleted), &world, &inputs, &identity)
+            .is_err()
+    );
+    Ok(())
 }

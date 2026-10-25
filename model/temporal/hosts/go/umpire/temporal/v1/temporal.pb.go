@@ -22,15 +22,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// A worker matches rules in order using feature-specific keys. Activity scenarios are
+// A worker matches one exact feature-specific observable key. Activity scenarios are
 // carried in the task header named "umpire-scenario", outside application input.
 type WorkerProgram struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	TaskQueue     string                 `protobuf:"bytes,2,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
-	Rules         []*Rule                `protobuf:"bytes,3,rep,name=rules,proto3" json:"rules,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Namespace           string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	TaskQueue           string                 `protobuf:"bytes,2,opt,name=task_queue,json=taskQueue,proto3" json:"task_queue,omitempty"`
+	Rules               []*Rule                `protobuf:"bytes,3,rep,name=rules,proto3" json:"rules,omitempty"`
+	ContinuationDomains []*anypb.Any           `protobuf:"bytes,4,rep,name=continuation_domains,json=continuationDomains,proto3" json:"continuation_domains,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *WorkerProgram) Reset() {
@@ -80,6 +81,13 @@ func (x *WorkerProgram) GetTaskQueue() string {
 func (x *WorkerProgram) GetRules() []*Rule {
 	if x != nil {
 		return x.Rules
+	}
+	return nil
+}
+
+func (x *WorkerProgram) GetContinuationDomains() []*anypb.Any {
+	if x != nil {
+		return x.ContinuationDomains
 	}
 	return nil
 }
@@ -251,16 +259,203 @@ func (x *ReconciledObservation) GetCurrent() *anypb.Any {
 	return nil
 }
 
+// Partial actual worker transport captured only for DriverFault diagnostics.
+type WorkerTransportFault struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Controller    *anypb.Any             `protobuf:"bytes,1,opt,name=controller,proto3" json:"controller,omitempty"`
+	Calls         []*WorkerRPCTrace      `protobuf:"bytes,2,rep,name=calls,proto3" json:"calls,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkerTransportFault) Reset() {
+	*x = WorkerTransportFault{}
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkerTransportFault) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkerTransportFault) ProtoMessage() {}
+
+func (x *WorkerTransportFault) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkerTransportFault.ProtoReflect.Descriptor instead.
+func (*WorkerTransportFault) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *WorkerTransportFault) GetController() *anypb.Any {
+	if x != nil {
+		return x.Controller
+	}
+	return nil
+}
+
+func (x *WorkerTransportFault) GetCalls() []*WorkerRPCTrace {
+	if x != nil {
+		return x.Calls
+	}
+	return nil
+}
+
+// Mechanical invocation progress without worker program or Model semantics.
+type WorkerRPCTrace struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Invocation     uint64                 `protobuf:"varint,1,opt,name=invocation,proto3" json:"invocation,omitempty"`
+	Sequence       uint64                 `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Stage          uint32                 `protobuf:"varint,3,opt,name=stage,proto3" json:"stage,omitempty"`
+	Method         string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	Request        *anypb.Any             `protobuf:"bytes,5,opt,name=request,proto3" json:"request,omitempty"`
+	Response       *anypb.Any             `protobuf:"bytes,6,opt,name=response,proto3" json:"response,omitempty"`
+	StatusCode     int32                  `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	StatusMessage  string                 `protobuf:"bytes,8,opt,name=status_message,json=statusMessage,proto3" json:"status_message,omitempty"`
+	TransportError string                 `protobuf:"bytes,9,opt,name=transport_error,json=transportError,proto3" json:"transport_error,omitempty"`
+	Sent           bool                   `protobuf:"varint,10,opt,name=sent,proto3" json:"sent,omitempty"`
+	Answered       bool                   `protobuf:"varint,11,opt,name=answered,proto3" json:"answered,omitempty"`
+	CallError      *anypb.Any             `protobuf:"bytes,12,opt,name=call_error,json=callError,proto3" json:"call_error,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WorkerRPCTrace) Reset() {
+	*x = WorkerRPCTrace{}
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkerRPCTrace) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkerRPCTrace) ProtoMessage() {}
+
+func (x *WorkerRPCTrace) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkerRPCTrace.ProtoReflect.Descriptor instead.
+func (*WorkerRPCTrace) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WorkerRPCTrace) GetInvocation() uint64 {
+	if x != nil {
+		return x.Invocation
+	}
+	return 0
+}
+
+func (x *WorkerRPCTrace) GetSequence() uint64 {
+	if x != nil {
+		return x.Sequence
+	}
+	return 0
+}
+
+func (x *WorkerRPCTrace) GetStage() uint32 {
+	if x != nil {
+		return x.Stage
+	}
+	return 0
+}
+
+func (x *WorkerRPCTrace) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *WorkerRPCTrace) GetRequest() *anypb.Any {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *WorkerRPCTrace) GetResponse() *anypb.Any {
+	if x != nil {
+		return x.Response
+	}
+	return nil
+}
+
+func (x *WorkerRPCTrace) GetStatusCode() int32 {
+	if x != nil {
+		return x.StatusCode
+	}
+	return 0
+}
+
+func (x *WorkerRPCTrace) GetStatusMessage() string {
+	if x != nil {
+		return x.StatusMessage
+	}
+	return ""
+}
+
+func (x *WorkerRPCTrace) GetTransportError() string {
+	if x != nil {
+		return x.TransportError
+	}
+	return ""
+}
+
+func (x *WorkerRPCTrace) GetSent() bool {
+	if x != nil {
+		return x.Sent
+	}
+	return false
+}
+
+func (x *WorkerRPCTrace) GetAnswered() bool {
+	if x != nil {
+		return x.Answered
+	}
+	return false
+}
+
+func (x *WorkerRPCTrace) GetCallError() *anypb.Any {
+	if x != nil {
+		return x.CallError
+	}
+	return nil
+}
+
 var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.proto\x1a!umpire/temporal/v1/activity.proto\x1a\x19google/protobuf/any.proto\"|\n" +
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x1eumpire/temporal/v1/probe.proto\x1a!umpire/temporal/v1/activity.proto\x1a\x19google/protobuf/any.proto\"\xc5\x01\n" +
 	"\rWorkerProgram\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x1d\n" +
 	"\n" +
 	"task_queue\x18\x02 \x01(\tR\ttaskQueue\x12.\n" +
-	"\x05rules\x18\x03 \x03(\v2\x18.umpire.temporal.v1.RuleR\x05rules\"^\n" +
+	"\x05rules\x18\x03 \x03(\v2\x18.umpire.temporal.v1.RuleR\x05rules\x12G\n" +
+	"\x14continuation_domains\x18\x04 \x03(\v2\x14.google.protobuf.AnyR\x13continuationDomains\"^\n" +
 	"\x04Rule\x12&\n" +
 	"\x03key\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x03key\x12.\n" +
 	"\arespond\x18\x02 \x03(\v2\x14.google.protobuf.AnyR\arespond\"\xad\x01\n" +
@@ -270,7 +465,30 @@ const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\x0enot_found_read\x18\x03 \x01(\v2\x14.google.protobuf.AnyR\fnotFoundRead\"\x81\x01\n" +
 	"\x15ReconciledObservation\x128\n" +
 	"\facknowledged\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\facknowledged\x12.\n" +
-	"\acurrent\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\acurrentB*Z(umpire.local/temporal/umpire/temporal/v1P\x00P\x01b\x06proto3"
+	"\acurrent\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\acurrent\"\x86\x01\n" +
+	"\x14WorkerTransportFault\x124\n" +
+	"\n" +
+	"controller\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\n" +
+	"controller\x128\n" +
+	"\x05calls\x18\x02 \x03(\v2\".umpire.temporal.v1.WorkerRPCTraceR\x05calls\"\xb2\x03\n" +
+	"\x0eWorkerRPCTrace\x12\x1e\n" +
+	"\n" +
+	"invocation\x18\x01 \x01(\x04R\n" +
+	"invocation\x12\x1a\n" +
+	"\bsequence\x18\x02 \x01(\x04R\bsequence\x12\x14\n" +
+	"\x05stage\x18\x03 \x01(\rR\x05stage\x12\x16\n" +
+	"\x06method\x18\x04 \x01(\tR\x06method\x12.\n" +
+	"\arequest\x18\x05 \x01(\v2\x14.google.protobuf.AnyR\arequest\x120\n" +
+	"\bresponse\x18\x06 \x01(\v2\x14.google.protobuf.AnyR\bresponse\x12\x1f\n" +
+	"\vstatus_code\x18\a \x01(\x05R\n" +
+	"statusCode\x12%\n" +
+	"\x0estatus_message\x18\b \x01(\tR\rstatusMessage\x12'\n" +
+	"\x0ftransport_error\x18\t \x01(\tR\x0etransportError\x12\x12\n" +
+	"\x04sent\x18\n" +
+	" \x01(\bR\x04sent\x12\x1a\n" +
+	"\banswered\x18\v \x01(\bR\banswered\x123\n" +
+	"\n" +
+	"call_error\x18\f \x01(\v2\x14.google.protobuf.AnyR\tcallErrorB*Z(umpire.local/temporal/umpire/temporal/v1P\x00P\x01b\x06proto3"
 
 var (
 	file_umpire_temporal_v1_temporal_proto_rawDescOnce sync.Once
@@ -284,27 +502,35 @@ func file_umpire_temporal_v1_temporal_proto_rawDescGZIP() []byte {
 	return file_umpire_temporal_v1_temporal_proto_rawDescData
 }
 
-var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_umpire_temporal_v1_temporal_proto_goTypes = []any{
 	(*WorkerProgram)(nil),         // 0: umpire.temporal.v1.WorkerProgram
 	(*Rule)(nil),                  // 1: umpire.temporal.v1.Rule
 	(*TemporalInstruction)(nil),   // 2: umpire.temporal.v1.TemporalInstruction
 	(*ReconciledObservation)(nil), // 3: umpire.temporal.v1.ReconciledObservation
-	(*anypb.Any)(nil),             // 4: google.protobuf.Any
+	(*WorkerTransportFault)(nil),  // 4: umpire.temporal.v1.WorkerTransportFault
+	(*WorkerRPCTrace)(nil),        // 5: umpire.temporal.v1.WorkerRPCTrace
+	(*anypb.Any)(nil),             // 6: google.protobuf.Any
 }
 var file_umpire_temporal_v1_temporal_proto_depIdxs = []int32{
-	1, // 0: umpire.temporal.v1.WorkerProgram.rules:type_name -> umpire.temporal.v1.Rule
-	4, // 1: umpire.temporal.v1.Rule.key:type_name -> google.protobuf.Any
-	4, // 2: umpire.temporal.v1.Rule.respond:type_name -> google.protobuf.Any
-	4, // 3: umpire.temporal.v1.TemporalInstruction.request:type_name -> google.protobuf.Any
-	4, // 4: umpire.temporal.v1.TemporalInstruction.not_found_read:type_name -> google.protobuf.Any
-	4, // 5: umpire.temporal.v1.ReconciledObservation.acknowledged:type_name -> google.protobuf.Any
-	4, // 6: umpire.temporal.v1.ReconciledObservation.current:type_name -> google.protobuf.Any
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	1,  // 0: umpire.temporal.v1.WorkerProgram.rules:type_name -> umpire.temporal.v1.Rule
+	6,  // 1: umpire.temporal.v1.WorkerProgram.continuation_domains:type_name -> google.protobuf.Any
+	6,  // 2: umpire.temporal.v1.Rule.key:type_name -> google.protobuf.Any
+	6,  // 3: umpire.temporal.v1.Rule.respond:type_name -> google.protobuf.Any
+	6,  // 4: umpire.temporal.v1.TemporalInstruction.request:type_name -> google.protobuf.Any
+	6,  // 5: umpire.temporal.v1.TemporalInstruction.not_found_read:type_name -> google.protobuf.Any
+	6,  // 6: umpire.temporal.v1.ReconciledObservation.acknowledged:type_name -> google.protobuf.Any
+	6,  // 7: umpire.temporal.v1.ReconciledObservation.current:type_name -> google.protobuf.Any
+	6,  // 8: umpire.temporal.v1.WorkerTransportFault.controller:type_name -> google.protobuf.Any
+	5,  // 9: umpire.temporal.v1.WorkerTransportFault.calls:type_name -> umpire.temporal.v1.WorkerRPCTrace
+	6,  // 10: umpire.temporal.v1.WorkerRPCTrace.request:type_name -> google.protobuf.Any
+	6,  // 11: umpire.temporal.v1.WorkerRPCTrace.response:type_name -> google.protobuf.Any
+	6,  // 12: umpire.temporal.v1.WorkerRPCTrace.call_error:type_name -> google.protobuf.Any
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_temporal_proto_init() }
@@ -320,7 +546,7 @@ func file_umpire_temporal_v1_temporal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_temporal_proto_rawDesc), len(file_umpire_temporal_v1_temporal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

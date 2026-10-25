@@ -9,12 +9,13 @@ import public "umpire/temporal/v1/activity.proto";
 
 import "google/protobuf/any.proto";
 
-// A worker matches rules in order using feature-specific keys. Activity scenarios are
+// A worker matches one exact feature-specific observable key. Activity scenarios are
 // carried in the task header named "umpire-scenario", outside application input.
 message WorkerProgram {
   string namespace = 1;
   string task_queue = 2;
   repeated Rule rules = 3;
+  repeated google.protobuf.Any continuation_domains = 4;
 }
 
 message Rule {
@@ -34,4 +35,26 @@ message TemporalInstruction {
 message ReconciledObservation {
   google.protobuf.Any acknowledged = 1;
   google.protobuf.Any current = 2;
+}
+
+// Partial actual worker transport captured only for DriverFault diagnostics.
+message WorkerTransportFault {
+  google.protobuf.Any controller = 1;
+  repeated WorkerRPCTrace calls = 2;
+}
+
+// Mechanical invocation progress without worker program or Model semantics.
+message WorkerRPCTrace {
+  uint64 invocation = 1;
+  uint64 sequence = 2;
+  uint32 stage = 3;
+  string method = 4;
+  google.protobuf.Any request = 5;
+  google.protobuf.Any response = 6;
+  int32 status_code = 7;
+  string status_message = 8;
+  string transport_error = 9;
+  bool sent = 10;
+  bool answered = 11;
+  google.protobuf.Any call_error = 12;
 }

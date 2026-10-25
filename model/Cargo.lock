@@ -1254,6 +1254,7 @@ dependencies = [
  "prost",
  "trybuild",
  "umpire-catalog",
+ "umpire-checker",
  "umpire-dsl",
  "umpire-runtime",
  "umpire-temporal-api",
