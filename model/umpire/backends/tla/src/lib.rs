@@ -11,6 +11,7 @@ pub use process::{Limits, Refusal};
 
 mod bind;
 mod emit;
+mod lower;
 mod names;
 mod safety;
 mod snowcat;

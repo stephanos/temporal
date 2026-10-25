@@ -1,6 +1,7 @@
 use crate::{
     Type,
-    emit::{conjoin, default, integer, text},
+    emit::OUTCOME,
+    lower::{arithmetic, conjoin, default, division, integer, leaf, signed_overflow, symbol},
     snowcat::ty,
 };
 use std::{collections::HashMap, fmt::Write};
@@ -47,22 +48,24 @@ impl<'a> Values<'a> {
         if let Some(value) = self.nodes.get(expression) {
             return value.clone();
         }
-        let leaf = |value: String| Value { value, valid: "TRUE".into() };
+        let total = |value: String| Value { value, valid: "TRUE".into() };
         let value = match &expression.kind {
-            ExprKind::Bool(v) => leaf(if *v { "TRUE" } else { "FALSE" }.into()),
-            ExprKind::Int(v) => leaf(integer(*v)),
-            ExprKind::Text(v) | ExprKind::Enum(v) => leaf(text(v)),
-            ExprKind::Unit => leaf("<<>>".into()),
-            ExprKind::World(n) | ExprKind::Input(n) => leaf(n.clone()),
+            kind @ (ExprKind::Bool(_)
+            | ExprKind::Int(_)
+            | ExprKind::Text(_)
+            | ExprKind::Enum(_)
+            | ExprKind::Unit
+            | ExprKind::World(_)
+            | ExprKind::Input(_)) => total(leaf(kind)),
             ExprKind::Local(n) => self.locals[n].clone(),
             ExprKind::Check(_, inner) => return self.emit(inner),
-            ExprKind::Var(n, primed) => leaf(if self.post && !primed {
+            ExprKind::Var(n, primed) => total(if self.post && !primed {
                 format!("__umpire_before_{n}{}", if self.successor { "'" } else { "" })
             } else {
                 format!("{n}{}", if self.successor { "'" } else { "" })
             }),
             ExprKind::Outcome => {
-                leaf(format!("__umpire_outcome{}", if self.successor { "'" } else { "" }))
+                total(format!("{OUTCOME}{}", if self.successor { "'" } else { "" }))
             }
             ExprKind::Bounded(inner) | ExprKind::Payload(inner) => self.emit(inner),
             ExprKind::Some(inner) => {
@@ -101,40 +104,20 @@ impl<'a> Values<'a> {
                     }
                     _ => conjoin([a.valid, b.valid]),
                 };
-                let symbol = match op {
-                    Op::Add => "+",
-                    Op::Sub => "-",
-                    Op::Mul => "*",
-                    Op::And => "/\\",
-                    Op::Or => "\\/",
-                    Op::Eq => "=",
-                    Op::Ne => "#",
-                    Op::Lt => "<",
-                    Op::Le => "<=",
-                    Op::Gt => ">",
-                    Op::Ge => ">=",
-                    Op::Div | Op::Rem => "",
-                };
-                let (raw, valid) = if matches!(op, Op::Div | Op::Rem) {
-                    let a = a.value;
-                    let b = b.value;
-                    let mut checks = vec![valid, format!("{b} # 0")];
-                    if let Type::Int { min, .. } = &expression.ty
-                        && *min < 0
-                    {
-                        checks.push(format!("~({a} = {} /\\ {b} = -1)", integer(*min)));
-                    }
-                    let q = format!("__umpire_SafeDiv({a}, {b})");
-                    (if *op == Op::Div { q } else { format!("{a} - ({q}) * {b}") }, conjoin(checks))
-                } else {
+                let (raw, valid) = if let Some(symbol) = symbol(*op) {
                     (format!("({}) {symbol} ({})", a.value, b.value), valid)
+                } else {
+                    let (a, b) = (a.value, b.value);
+                    let mut checks = vec![valid, format!("{b} # 0")];
+                    checks
+                        .extend(signed_overflow(&a, &b, &expression.ty).map(|o| format!("~({o})")));
+                    let quotient = format!("__umpire_SafeDiv({a}, {b})");
+                    (
+                        division(*op, &format!("({a})"), &format!("({b})"), &quotient),
+                        conjoin(checks),
+                    )
                 };
-                self.bind(
-                    expression,
-                    raw,
-                    valid,
-                    matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem),
-                )
+                self.bind(expression, raw, valid, arithmetic(*op))
             }
             ExprKind::If(cond, yes, no) => {
                 let c = self.emit(cond);
@@ -253,5 +236,66 @@ mod optional_tests {
         assert!(values.definitions.contains("0 # 0"), "{}", values.definitions);
         assert!(values.definitions.contains(&i32::MAX.to_string()));
         assert!(values.definitions.contains(">= 1"), "{}", values.definitions);
+    }
+
+    #[test]
+    fn signed_remainder_requires_nonzero_divisor_and_no_overflow() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: -5, max: 5 } };
+        let remainder = int(ExprKind::Binary(
+            Op::Rem,
+            Box::new(int(ExprKind::World("a".into()))),
+            Box::new(int(ExprKind::Input("b".into()))),
+        ));
+        let mut values = Values::new("test");
+        values.emit(&remainder);
+        assert!(
+            values.definitions.contains("(b # 0) /\\ (~(a = -5 /\\ b = -1))"),
+            "{}",
+            values.definitions
+        );
+        assert!(
+            values
+                .definitions
+                .contains("test2 == IF test3 THEN ((a) - (__umpire_SafeDiv(a, b)) * (b)) ELSE 0"),
+            "{}",
+            values.definitions
+        );
+    }
+
+    #[test]
+    fn negative_literal_divisor_is_parenthesised_in_the_remainder() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: -5, max: 5 } };
+        let remainder = int(ExprKind::Binary(
+            Op::Rem,
+            Box::new(int(ExprKind::World("a".into()))),
+            Box::new(int(ExprKind::Int(-5))),
+        ));
+        let mut values = Values::new("test");
+        values.emit(&remainder);
+        assert!(
+            values.definitions.contains("((a) - (__umpire_SafeDiv(a, -5)) * (-5))"),
+            "{}",
+            values.definitions
+        );
+        assert!(!values.definitions.contains("* -5"), "{}", values.definitions);
+    }
+
+    #[test]
+    fn unsigned_division_has_no_overflow_guard() {
+        let int = |kind| Expr { kind, ty: Type::Int { min: 0, max: 255 } };
+        let quotient = int(ExprKind::Binary(
+            Op::Div,
+            Box::new(int(ExprKind::World("a".into()))),
+            Box::new(int(ExprKind::Input("b".into()))),
+        ));
+        let mut values = Values::new("test");
+        values.emit(&quotient);
+        assert!(
+            values.definitions.contains("test2 == IF test3 THEN (__umpire_SafeDiv(a, b)) ELSE 0"),
+            "{}",
+            values.definitions
+        );
+        assert!(values.definitions.contains("(b # 0)"), "{}", values.definitions);
+        assert!(!values.definitions.contains("= -1"), "{}", values.definitions);
     }
 }

@@ -1,11 +1,16 @@
 use crate::{
-    Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type, bind::Entry,
+    Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type,
+    bind::Entry,
+    lower::{
+        arithmetic, conjoin, default, disjoin, division, integer, leaf, signed_overflow, symbol,
+        text,
+    },
     names::operator,
 };
 use std::collections::BTreeMap;
 use std::fmt::Write;
 use umpire_front::{
-    expr::{Expr, ExprKind, Op, Unary},
+    expr::{Expr, ExprKind, Unary},
     tree::{ActionDef, ActionRef, AssumptionDef, Branch, FieldDef, Start},
 };
 
@@ -117,20 +122,15 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, "");
     let mut initial = Vec::new();
     if let Some(starts) = &model.complete_starts {
-        initial.push(disjoin(
-            starts
-                .iter()
-                .map(|state| {
-                    conjoin(
-                        model
-                            .fields
-                            .iter()
-                            .zip(state)
-                            .map(|(field, value)| format!("{} = {}", field.name, expr(value))),
-                    )
-                })
-                .collect(),
-        ));
+        initial.push(disjoin(starts.iter().map(|state| {
+            conjoin(
+                model
+                    .fields
+                    .iter()
+                    .zip(state)
+                    .map(|(field, value)| format!("{} = {}", field.name, expr(value))),
+            )
+        })));
     } else {
         for field in &model.fields {
             initial.push(match &field.start {
@@ -178,31 +178,26 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             Some(format!("{}_Inputs[{}][1]", operator(&action.name), model.names.index))
         };
         let identity = identity.as_deref();
-        let branches = action
-            .branches
-            .iter()
-            .map(|branch| {
-                let mut shared = Shared::new(&model.names.shared);
-                step(model, &action.name, branch, identity, &mut |value| {
-                    shared.count(value);
-                    String::new()
-                });
-                let terms = conjoin(step(model, &action.name, branch, identity, &mut |value| {
-                    shared.emit(value)
-                }));
-                let mut definitions = String::new();
-                for (name, value) in &branch.definitions {
-                    let _ = write!(
-                        definitions,
-                        "LET (* @type: {}; *) {name} == {} IN ",
-                        crate::snowcat::ty(&value.ty),
-                        expr(value)
-                    );
-                }
-                format!("{definitions}{}{terms}", shared.definitions.concat())
-            })
-            .collect();
-        let branches = disjoin(branches);
+        let branches = disjoin(action.branches.iter().map(|branch| {
+            let mut shared = Shared::new(&model.names.shared);
+            step(model, &action.name, branch, identity, &mut |value| {
+                shared.count(value);
+                String::new()
+            });
+            let terms = conjoin(step(model, &action.name, branch, identity, &mut |value| {
+                shared.emit(value)
+            }));
+            let mut definitions = String::new();
+            for (name, value) in &branch.definitions {
+                let _ = write!(
+                    definitions,
+                    "LET (* @type: {}; *) {name} == {} IN ",
+                    crate::snowcat::ty(&value.ty),
+                    expr(value)
+                );
+            }
+            format!("{definitions}{}{terms}", shared.definitions.concat())
+        }));
         if action.fields.is_empty() {
             predicate(&mut out, format!("{} == {branches}", operator(&action.name)));
         } else {
@@ -211,10 +206,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     }
     predicate(
         &mut out,
-        format!(
-            "ModelNext == {}",
-            disjoin(model.actions.iter().map(|a| operator(&a.name)).collect())
-        ),
+        format!("ModelNext == {}", disjoin(model.actions.iter().map(|a| operator(&a.name)))),
     );
     predicate(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
     predicate(
@@ -680,41 +672,6 @@ pub(super) fn line(out: &mut String, value: impl AsRef<str>) {
     out.push_str(value.as_ref());
     out.push('\n');
 }
-pub(super) fn conjoin(terms: impl IntoIterator<Item = String>) -> String {
-    let terms: Vec<_> = terms.into_iter().map(|s| format!("({s})")).collect();
-    if terms.is_empty() { "TRUE".into() } else { terms.join(" /\\ ") }
-}
-pub(super) fn disjoin(terms: Vec<String>) -> String {
-    if terms.is_empty() {
-        "FALSE".into()
-    } else {
-        terms.into_iter().map(|s| format!("({s})")).collect::<Vec<_>>().join(" \\/ ")
-    }
-}
-pub(super) fn text(value: &str) -> String {
-    format!(
-        "\"{}\"",
-        value
-            .replace('\\', "\\\\")
-            .replace('"', "\\\"")
-            .replace('\n', "\\n")
-            .replace('\r', "\\r")
-            .replace('\t', "\\t")
-    )
-}
-pub(super) fn default(ty: &Type) -> String {
-    match ty {
-        Type::Bool => "FALSE".into(),
-        Type::Int { .. } | Type::Optional(_) => "0".into(),
-        Type::Bounded(bound) => integer(bound.low),
-        Type::Enum { variants, .. } => text(&variants[0]),
-        Type::Text => "\"\"".into(),
-        Type::Unit | Type::Seq(_) => "<<>>".into(),
-        Type::Tuple(types) => {
-            format!("<<{}>>", types.iter().map(default).collect::<Vec<_>>().join(", "))
-        }
-    }
-}
 fn prime(value: &Expr) -> Expr {
     let mut value = value.clone();
     prime_in_place(&mut value);
@@ -739,17 +696,14 @@ fn checked(raw: String, ty: &Type) -> String {
         raw
     }
 }
+/// `__umpire_Div` over atomic operands, asserting Rust's signed overflow case.
 fn quotient(left: &str, right: &str, ty: &Type) -> String {
-    let quotient = format!("__umpire_Div(({left}), ({right}))");
-    if let Type::Int { min, .. } = ty
-        && *min < 0
-    {
-        format!(
-            "(IF Assert(~(({left}) = {} /\\ ({right}) = -1), \"Rust signed division/remainder overflow\") THEN {quotient} ELSE 0)",
-            integer(*min)
-        )
-    } else {
-        quotient
+    let quotient = format!("__umpire_Div({left}, {right})");
+    match signed_overflow(left, right, ty) {
+        Some(overflow) => format!(
+            "(IF Assert(~({overflow}), \"Rust signed division/remainder overflow\") THEN {quotient} ELSE 0)"
+        ),
+        None => quotient,
     }
 }
 fn expr(value: &Expr) -> String {
@@ -760,18 +714,15 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
     let mut list =
         |values: &'e [Expr]| values.iter().map(&mut *child).collect::<Vec<_>>().join(", ");
     match &value.kind {
-        ExprKind::Bool(v) => {
-            if *v {
-                "TRUE".into()
-            } else {
-                "FALSE".into()
-            }
-        }
-        ExprKind::Int(v) => integer(*v),
-        ExprKind::Text(v) | ExprKind::Enum(v) => text(v),
-        ExprKind::Unit => "<<>>".into(),
+        kind @ (ExprKind::Bool(_)
+        | ExprKind::Int(_)
+        | ExprKind::Text(_)
+        | ExprKind::Enum(_)
+        | ExprKind::Unit
+        | ExprKind::World(_)
+        | ExprKind::Input(_)) => leaf(kind),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
-        ExprKind::World(name) | ExprKind::Input(name) | ExprKind::Local(name) => name.clone(),
+        ExprKind::Local(name) => name.clone(),
         ExprKind::Outcome => format!("{OUTCOME}'"),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => format!("<<{}>>", list(values)),
         ExprKind::Length(sequence) => format!("Len({})", child(sequence)),
@@ -813,34 +764,13 @@ fn render<'e>(value: &'e Expr, child: &mut dyn FnMut(&'e Expr) -> String) -> Str
             format!("(IF {} THEN {} ELSE {})", child(condition), child(yes), child(no))
         }
         ExprKind::Binary(op, left, right) => {
-            let left = child(left);
-            let right = child(right);
-            let symbol = match op {
-                Op::Add => "+",
-                Op::Sub => "-",
-                Op::Mul => "*",
-                Op::And => "/\\",
-                Op::Or => "\\/",
-                Op::Eq => "=",
-                Op::Ne => "#",
-                Op::Lt => "<",
-                Op::Le => "<=",
-                Op::Gt => ">",
-                Op::Ge => ">=",
-                Op::Div | Op::Rem => "",
+            let left = format!("({})", child(left));
+            let right = format!("({})", child(right));
+            let raw = match symbol(*op) {
+                Some(symbol) => format!("{left} {symbol} {right}"),
+                None => division(*op, &left, &right, &quotient(&left, &right, &value.ty)),
             };
-            let raw = match op {
-                Op::Div => quotient(&left, &right, &value.ty),
-                Op::Rem => {
-                    format!("({left}) - ({}) * ({right})", quotient(&left, &right, &value.ty))
-                }
-                _ => format!("({left}) {symbol} ({right})"),
-            };
-            if matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem) {
-                checked(raw, &value.ty)
-            } else {
-                format!("({raw})")
-            }
+            if arithmetic(*op) { checked(raw, &value.ty) } else { format!("({raw})") }
         }
     }
 }
@@ -905,10 +835,6 @@ impl<'a> Shared<'a> {
         }
         name
     }
-}
-
-pub(super) fn integer(value: i128) -> String {
-    if value == i128::from(i32::MIN) { "(-2147483647 - 1)".into() } else { value.to_string() }
 }
 
 fn observer_types(model: &Lifted) -> BTreeMap<String, Type> {
