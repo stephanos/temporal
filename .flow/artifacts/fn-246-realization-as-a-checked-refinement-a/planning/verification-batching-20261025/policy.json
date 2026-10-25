@@ -1,0 +1,22 @@
+{
+  "user_steering": [
+    "speed up; batch work; move broad validation toward end",
+    "use subagents to parallelize",
+    "clean completed/already merged worktrees"
+  ],
+  "task_lanes": [
+    "11 registry fixes",
+    "15 approved timeout-retry Model correction/proofs",
+    "8 current Reset/Host proof contract"
+  ],
+  "per_lane": "Discriminating red/green controls, then one cohesive required focused native/Go/TLC/lint/fmt checkpoint; broaden/repeat only for new source, failures or unresolved concerns.",
+  "integration": "Integrate ready handovers promptly; batch those available rather than waiting for all lanes. Verify source hashes and changed integration boundaries, then scoped reviews on a fixed HEAD. No HEAD commits while any review CLI lives.",
+  "required_checkpoints": [
+    "Task15 native/source/realTLC Model matrix and original checkpoint before protocol13 admission, plus its existing required joined make model-validate checkpoint after integration.",
+    "Final complete make model-validate and required current live slice/gaps/replay/size/timing gates at task6/spec closure."
+  ],
+  "scope_preserved": "No semantic proof, required test matrix, review or live witness is waived. Apalache stays independently opt-in per parent Verification adoption; optional failed stress/Apalache runs stay recorded and are never relabeled passing.",
+  "caches": "One Cargo target per checkout, debug0/inc0/jobs2. Parent coordinates helper build leases; source-only helpers may work concurrently. Root cache fn24612 never reused in worker checkouts.",
+  "retirement": "Task14 SDK checkout/branch removed normally after committed closure440b13262e and SHA-verified eight-file ignored archive. Three remaining checkouts are active; no retired worktrees remain.",
+  "proof": "Mechanically admitted11+15+8 cap3; explicit AGENTS implementer6.1solmedium; disjoint proof, native/wasm parity and GoHost helpers active."
+}
