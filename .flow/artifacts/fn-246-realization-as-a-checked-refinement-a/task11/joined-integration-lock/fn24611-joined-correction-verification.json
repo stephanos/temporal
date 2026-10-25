@@ -1,0 +1,26 @@
+{
+  "source_commit": "5143f3b64431041500bf982faf8af8af84e72474",
+  "model_tree": "8cc73e9063304e6261d4c28d55fb04aedf52b250",
+  "prior_suite": "fn24611-joined-verification.json",
+  "scope": "Snapshot-only correction; all prior ordinary suite tests except affected macro test passed; rerun complete macro crate and six-crate doctests, then pending remaining gates.",
+  "status": "terminal-failed",
+  "results": [
+    {
+      "name": "macros",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-realization-macros",
+        "--locked"
+      ],
+      "exit_code": 101,
+      "seconds": 5.548,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24611-joined-correction-macros.log",
+      "log_sha256": "e1fec4430e6542f79cce0e5d252f42baef0964a8deef87873fd278252d330224"
+    }
+  ]
+}
