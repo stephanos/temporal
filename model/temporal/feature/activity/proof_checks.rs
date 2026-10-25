@@ -1,7 +1,7 @@
 use umpire_testing::replace_code;
 use super::{bound_for, configured};
 use crate::activity::activity::{Action, Deadline, Model, Phase, Worker, World};
-use umpire_dsl::{Assumption, CheckOutcome, Machine, Outcome, Phase as _, Rejection};
+use umpire_dsl::{Assumption, CheckOutcome, Machine, Outcome, Phase as _, Rejection, __lifted::ConcreteOf};
 
 fn source() -> Result<String, std::io::Error> {
     std::fs::read_to_string(
@@ -280,21 +280,9 @@ fn replay_tlc(
         };
         let ordinal = usize::try_from(ordinal)?;
         let action = world.actions().get(ordinal).ok_or("bad catalog ordinal")?.clone();
-        let (name, fields) = action.action_value();
-        assert_eq!(module.metadata.catalog[ordinal].action, name);
-        let typed: Vec<_> = fields
-            .into_iter()
-            .map(|(name, value)| {
-                let literal = match value {
-                    umpire_dsl::Value::Int(value) => umpire_tla::Literal::Int(value),
-                    umpire_dsl::Value::Bool(value) => umpire_tla::Literal::Bool(value),
-                    other => panic!("unexpected action payload {other:?}"),
-                };
-                (name.into(), literal)
-            })
-            .collect();
-        assert_eq!(module.metadata.catalog[ordinal].fields, typed);
-        assert_eq!(after.observers["__umpire_action"], Value::Text(name.into()));
+        let identity = umpire_tla::Concrete::of::<World>(&action);
+        assert_eq!(module.metadata.catalog[ordinal], identity);
+        assert_eq!(after.observers["__umpire_action"], Value::Text(identity.action.clone()));
         let Value::Int(choice) = after.observers["__umpire_choice"] else {
             return Err("missing choice".into());
         };

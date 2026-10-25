@@ -1,37 +1,7 @@
 //! Execute emitted arithmetic and sequential mutations with the pinned TLC engine.
 use std::{collections::BTreeMap, path::Path};
-use umpire_tla::{Lift, Module, Tla, Type};
-use umpire_tlc::{Schema, Tlc, Value};
-
-fn schema(module: &Module) -> Schema {
-    Schema {
-        fields: module
-            .metadata
-            .fields
-            .iter()
-            .map(|field| (field.name.clone(), kind(&field.ty)))
-            .collect(),
-        observers: module
-            .metadata
-            .observer_types
-            .iter()
-            .map(|(name, ty)| (name.clone(), kind(ty)))
-            .collect(),
-    }
-}
-fn kind(ty: &Type) -> umpire_tlc::Type {
-    match ty {
-        Type::Bool => umpire_tlc::Type::Bool,
-        Type::Int { min, max } => umpire_tlc::Type::Int { min: *min, max: *max },
-        Type::Bounded(bound) => umpire_tlc::Type::Int { min: bound.low, max: bound.high },
-        Type::Optional(bound) => umpire_tlc::Type::OptionalInt { low: bound.low, high: bound.high },
-        Type::Text => umpire_tlc::Type::Text,
-        Type::Enum { variants, .. } => umpire_tlc::Type::Enum(variants.clone()),
-        Type::Unit => umpire_tlc::Type::Tuple(Vec::new()),
-        Type::Tuple(values) => umpire_tlc::Type::Tuple(values.iter().map(kind).collect()),
-        Type::Seq(value) => umpire_tlc::Type::Seq(Box::new(kind(value))),
-    }
-}
+use umpire_tla::{Lift, Tla};
+use umpire_tlc::{Tlc, Value};
 
 #[test]
 #[allow(clippy::print_stderr)]
@@ -59,7 +29,7 @@ fn real_tlc_preserves_ordered_mutations_and_reports_checked_overflow()
         }
     ";
     let module = Tla::emit(&Lift::parse("ordered.rs", source)?)?;
-    let result = tlc.check(&module.name, &module.tla, &module.cfg, &schema(&module))?;
+    let result = tlc.check(&module.name, &module.tla, &module.cfg, &module.schema()?)?;
     assert_eq!(result.states.len(), 2);
     assert!(result.states.contains(&BTreeMap::from([
         ("value".into(), Value::Int(1)),
@@ -71,7 +41,7 @@ fn real_tlc_preserves_ordered_mutations_and_reports_checked_overflow()
         .replace("self.value==0", "self.value==255");
     let module = Tla::emit(&Lift::parse("overflow.rs", &overflow)?)?;
     let error = tlc
-        .check(&module.name, &module.tla, &module.cfg, &schema(&module))
+        .check(&module.name, &module.tla, &module.cfg, &module.schema()?)
         .err()
         .ok_or("overflow was pruned into a passing graph")?;
     assert!(error.to_string().contains("overflow"), "{error}");
@@ -81,7 +51,7 @@ fn real_tlc_preserves_ordered_mutations_and_reports_checked_overflow()
         .replace("copy:u8", "copy:i32")
         .replace("self.value==0", "self.value==1");
     let module = Tla::emit(&Lift::parse("minimum.rs", &minimum)?)?;
-    let result = tlc.check(&module.name, &module.tla, &module.cfg, &schema(&module))?;
+    let result = tlc.check(&module.name, &module.tla, &module.cfg, &module.schema()?)?;
     assert_eq!(result.states.len(), 1);
     Ok(())
 }
@@ -122,7 +92,7 @@ fn real_tlc_signed_division_and_remainder_use_rust_rounding()
     ] {
         let source = source.replace("START", start).replace("EXPRESSION", expression);
         let module = Tla::emit(&Lift::parse("division.rs", &source)?)?;
-        let result = tlc.check(&module.name, &module.tla, &module.cfg, &schema(&module));
+        let result = tlc.check(&module.name, &module.tla, &module.cfg, &module.schema()?);
         if let Some(expected) = expected {
             let result = result?;
             assert!(
@@ -160,7 +130,7 @@ fn real_tlc_empty_half_open_starts_have_no_checked_underflow()
         }
     ";
     let module = Tla::emit(&Lift::parse("empty.rs", source)?)?;
-    let result = tlc.check(&module.name, &module.tla, &module.cfg, &schema(&module))?;
+    let result = tlc.check(&module.name, &module.tla, &module.cfg, &module.schema()?)?;
     assert_eq!(result.states.len(), 0);
     Ok(())
 }

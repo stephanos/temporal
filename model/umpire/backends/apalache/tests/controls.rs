@@ -619,7 +619,10 @@ fn real_vector_witness_replays_typed_sequence() -> Result<(), Box<dyn std::error
 fn strict_envelope_presence_and_object_controls() -> Result<(), Box<dyn std::error::Error>> {
     use std::collections::BTreeMap;
     use umpire_apalache::decode_itf;
-    use umpire_tla::values::{Schema, Type, Value};
+    use umpire_tla::{
+        Type,
+        values::{Schema, Value},
+    };
 
     let schema = Schema {
         fields: BTreeMap::from([("flag".into(), Type::Bool)]),
@@ -686,7 +689,10 @@ fn strict_envelope_presence_and_object_controls() -> Result<(), Box<dyn std::err
 fn strict_envelope_world_and_state_bounds() -> Result<(), Box<dyn std::error::Error>> {
     use std::collections::BTreeMap;
     use umpire_apalache::decode_itf;
-    use umpire_tla::values::{Schema, Type, Value};
+    use umpire_tla::{
+        Type,
+        values::{Schema, Value},
+    };
 
     let schema = Schema {
         fields: BTreeMap::from([("flag".into(), Type::Bool)]),
@@ -718,7 +724,7 @@ fn strict_envelope_world_and_state_bounds() -> Result<(), Box<dyn std::error::Er
 fn strict_envelope_resource_controls() -> Result<(), Box<dyn std::error::Error>> {
     use std::collections::BTreeMap;
     use umpire_apalache::decode_itf;
-    use umpire_tla::values::{Schema, Type};
+    use umpire_tla::{Type, values::Schema};
 
     let mut kind = Type::Bool;
     for _ in 0..61 {

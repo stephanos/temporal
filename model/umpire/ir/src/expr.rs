@@ -1,4 +1,4 @@
-use crate::Type;
+use crate::{Type, value::Value};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, umpire_ir_derive::Print)]
 #[must_use]
@@ -146,6 +146,31 @@ impl Expr {
     }
     pub fn unit() -> Self {
         Self { kind: ExprKind::Unit, ty: Type::Unit }
+    }
+    /// A value of `ty` as a constant; nominal and optional values keep their integer encoding.
+    ///
+    /// # Panics
+    /// If `value` is not a value of `ty`, as [`Literal::admit`](crate::Literal::admit) ensures.
+    pub fn constant(ty: &Type, value: &Value) -> Self {
+        let kind = match (value, ty) {
+            (Value::Bool(value), _) => ExprKind::Bool(*value),
+            (Value::Int(value), _) => ExprKind::Int(*value),
+            (Value::Text(value), _) => ExprKind::Text(value.clone()),
+            (Value::Unit, _) => ExprKind::Unit,
+            (Value::Enum(index), Type::Enum { variants, .. }) if *index < variants.len() => {
+                ExprKind::Enum(variants[*index].clone())
+            }
+            (Value::Tuple(values), Type::Tuple(types)) if values.len() == types.len() => {
+                ExprKind::Tuple(
+                    types.iter().zip(values).map(|(ty, value)| Self::constant(ty, value)).collect(),
+                )
+            }
+            (Value::Seq(values), Type::Seq(inner)) => ExprKind::Sequence(
+                values.iter().map(|value| Self::constant(inner, value)).collect(),
+            ),
+            _ => panic!("{value:?} is not a value of {ty:?}"),
+        };
+        Self { kind, ty: ty.clone() }
     }
     pub fn text(value: impl Into<String>) -> Self {
         Self { kind: ExprKind::Text(value.into()), ty: Type::Text }

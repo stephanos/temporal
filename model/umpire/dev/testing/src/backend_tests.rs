@@ -1,5 +1,6 @@
 use super::*;
 use crate::Files;
+use umpire_tla::Literal;
 
 fn bounded(name: &str, field: Option<&str>, low: i128) -> umpire_dsl::__lifted::Bounded {
     umpire_dsl::__lifted::Bounded {
@@ -44,26 +45,6 @@ fn nominal_debug_preserves_authored_shapes_and_exact_optional_codes() -> crate::
     let field = module.metadata.fields[0].name.clone();
     assert!(state_text(&module, &State::from([(field, Value::Int(1))])).is_err());
     Ok(())
-}
-
-#[test]
-fn nominal_action_literals_require_exact_typed_identity() {
-    let ticks = bounded("Ticks", None, 1);
-    let ty = Type::Optional(ticks.clone());
-    assert!(admits(&ty, &Literal::Optional(None)));
-    assert!(admits(
-        &ty,
-        &Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 1 })))
-    ));
-    for value in [
-        Literal::Int(2),
-        Literal::Optional(Some(Box::new(Literal::Int(1)))),
-        Literal::Optional(Some(Box::new(Literal::Bounded { name: "Remaining".into(), raw: 1 }))),
-        Literal::Optional(Some(Box::new(Literal::Bounded { name: "Ticks".into(), raw: 0 }))),
-        Literal::Optional(Some(Box::new(Literal::Optional(None)))),
-    ] {
-        assert!(!admits(&ty, &value), "{value:?}");
-    }
 }
 
 struct Invalid;
@@ -528,10 +509,10 @@ fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
 fn nonempty_facts_are_typed_and_preserved_on_observer_activation() -> crate::TestResult {
     let variants = ["A", "B", "C", "D"].map(|value| format!("Fact::{value}")).to_vec();
     let schema = umpire_tlc::Schema {
-        fields: BTreeMap::from([("value".into(), umpire_tlc::Type::Bool)]),
+        fields: BTreeMap::from([("value".into(), Type::Bool)]),
         observers: BTreeMap::from([(
             "__umpire_facts".into(),
-            umpire_tlc::Type::Seq(Box::new(umpire_tlc::Type::Enum(variants))),
+            Type::Seq(Box::new(Type::Enum { name: "Fact".into(), variants })),
         )]),
     };
     umpire_tlc::decode_state("value = FALSE /\\ __umpire_facts = <<\"Fact::A\">>", &schema)?;

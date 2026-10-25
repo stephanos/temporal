@@ -1,6 +1,6 @@
 [package]
 name = "umpire-tla"
-description = "TLA+ emission and shared typed value admission"
+description = "World binding and TLA+ emission from the admitted Model"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true

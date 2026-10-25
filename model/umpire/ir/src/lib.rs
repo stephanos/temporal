@@ -3,12 +3,14 @@
 //! promise; it is plain data, so compiled Models can carry it.
 #[doc(hidden)]
 pub mod expr;
+mod literal;
 #[doc(hidden)]
 pub mod print;
 #[doc(hidden)]
 pub mod tree;
 #[doc(hidden)]
 pub mod value;
+pub use literal::{Binding, Concrete, Literal, Mismatch};
 use std::collections::BTreeMap;
 pub use tree::Lifted;
 

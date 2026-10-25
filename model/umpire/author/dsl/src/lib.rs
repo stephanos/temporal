@@ -75,6 +75,39 @@ pub mod __lifted {
         /// `W`, since a claim callback is a plain function of the World.
         fn __umpire_callbacks<W: Evaluates<Self>>() -> Callbacks<W, Self>;
     }
+    /// A catalog action's exported values as its concrete identity.
+    pub trait ConcreteOf {
+        /// The qualified variant of `action` and its payload values in declaration order.
+        fn of<M: crate::Machine<Action: crate::ActionValues<M>>>(action: &M::Action) -> Concrete;
+    }
+    impl ConcreteOf for Concrete {
+        fn of<M: crate::Machine<Action: crate::ActionValues<M>>>(action: &M::Action) -> Self {
+            let (action, fields) = crate::ActionValues::<M>::action_value(action);
+            Self { action: action.into(), fields: literals(fields) }
+        }
+    }
+    /// A selected World's exported values, its starts' and its catalog's, as one binding.
+    pub trait BindingOf {
+        /// The values of `world`, each of `starts` and each catalog action, in their orders.
+        fn of<M>(world: &M, starts: &[M::State], actions: &[M::Action]) -> Binding
+        where
+            M: crate::Machine<State: crate::Values, Action: crate::ActionValues<M>> + crate::Values;
+    }
+    impl BindingOf for Binding {
+        fn of<M>(world: &M, starts: &[M::State], actions: &[M::Action]) -> Self
+        where
+            M: crate::Machine<State: crate::Values, Action: crate::ActionValues<M>> + crate::Values,
+        {
+            Self {
+                world: literals(crate::Values::values(world)),
+                starts: starts.iter().map(|state| literals(crate::Values::values(state))).collect(),
+                actions: actions.iter().map(Concrete::of::<M>).collect(),
+            }
+        }
+    }
+    fn literals(values: Vec<(&'static str, crate::Value)>) -> Vec<(String, Literal)> {
+        values.into_iter().map(|(name, value)| (name.into(), value.into())).collect()
+    }
     /// A World that judges the claims of `M`'s embedded Model by their position.
     pub trait Evaluates<M: crate::Machine> {
         /// Records the checks of the invariant at `index` for `state`.

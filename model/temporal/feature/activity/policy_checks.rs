@@ -3,7 +3,7 @@ use super::{bound_for, checked_world, configured};
 use crate::activity::activity::{
     Action, Client, Deadline, ExpiredDeadline, Model, Phase, Remaining, Ticks, Worker, World,
 };
-use umpire_dsl::{Machine, Outcome, Rejection};
+use umpire_dsl::{Machine, Outcome, Rejection, __lifted::ConcreteOf};
 
 type TestResult = umpire_testing::TestResult;
 
@@ -414,7 +414,7 @@ fn replay(
         };
         let ordinal = usize::try_from(ordinal)?;
         let action = world.actions().get(ordinal).ok_or("invalid action ordinal")?.clone();
-        let identity = concrete(&action);
+        let identity = umpire_tla::Concrete::of::<World>(&action);
         assert_eq!(after.observers["__umpire_action"], Value::Text(identity.action.clone()));
         assert_eq!(module.metadata.catalog[ordinal], identity);
         let Value::Int(choice) = after.observers["__umpire_choice"] else {
@@ -483,7 +483,7 @@ fn required_tlc_replays_both_pending_failure_payloads_at_every_attempt() -> Test
                         .iter()
                         .find(|claim| claim.name == name)
                         .ok_or("missing pending failure claim")?;
-                    assert_eq!(module.metadata.catalog[ordinal], concrete(&action));
+                    assert_eq!(module.metadata.catalog[ordinal], umpire_tla::Concrete::of::<World>(&action));
                     assert_eq!(claim.allowed_inputs, [ordinal]);
                     assert_eq!(claim.fair_inputs, []);
                 }
@@ -724,24 +724,6 @@ fn required_tlc_nonexpiring_tick_fact_leak_fails_exact_replay() -> TestResult {
     rejects_fact_mutant(&world, &source, "Post_false_nonexpiring_tick")
 }
 
-fn concrete(action: &Action) -> umpire_tla::Concrete {
-    let (name, fields) = umpire_dsl::ActionValues::<World>::action_value(action);
-    umpire_tla::Concrete {
-        action: name.into(),
-        fields: fields
-            .into_iter()
-            .map(|(name, value)| {
-                let literal = match value {
-                    umpire_dsl::Value::Int(value) => umpire_tla::Literal::Int(value),
-                    umpire_dsl::Value::Bool(value) => umpire_tla::Literal::Bool(value),
-                    other => panic!("unexpected action payload: {other:?}"),
-                };
-                (name.into(), literal)
-            })
-            .collect(),
-    }
-}
-
 fn rejects_fact_mutant(world: &World, source: &str, property: &str) -> TestResult {
     let module = only_property(bound_for(world.clone()).lift_source("model.rs", source)?, property);
     let graph = umpire_testing::Checker::explore(world, 4096)?;
@@ -753,7 +735,7 @@ fn rejects_fact_mutant(world: &World, source: &str, property: &str) -> TestResul
         &module,
         &folder(),
         &native,
-        Some(&concrete),
+        Some(&umpire_tla::Concrete::of::<World>),
     )
     .err()
     .ok_or("fact-only mutant agreed")?;

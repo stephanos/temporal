@@ -1,7 +1,22 @@
 //! Strict ITF admission at the source typed-value boundary.
 use std::collections::BTreeMap;
 use umpire_apalache::decode_itf;
-use umpire_tla::values::{Schema, Type, Value};
+use umpire_tla::{
+    Bounded, Type,
+    values::{Schema, Value},
+};
+
+fn ticks(low: i128) -> Type {
+    Type::Optional(Bounded {
+        name: "Ticks".into(),
+        field: None,
+        backing: "u8".into(),
+        min: 0,
+        max: 255,
+        low,
+        high: 3,
+    })
+}
 
 #[test]
 fn typed_itf_checks_declarations_shapes_and_limits() -> Result<(), Box<dyn std::error::Error>> {
@@ -47,28 +62,29 @@ fn typed_itf_checks_declarations_shapes_and_limits() -> Result<(), Box<dyn std::
 }
 
 #[test]
-fn typed_itf_preserves_composites_and_refuses_duplicate_set_members()
+fn typed_itf_preserves_composites_and_refuses_retired_set_shapes()
 -> Result<(), Box<dyn std::error::Error>> {
     let schema = Schema {
         fields: BTreeMap::from([(
             "x".into(),
             Type::Tuple(vec![
-                Type::Enum(vec!["Mode::A".into()]),
-                Type::Record(BTreeMap::from([("items".into(), Type::Set(Box::new(Type::Text)))])),
+                Type::Enum { name: "Mode".into(), variants: vec!["Mode::A".into()] },
+                Type::Unit,
                 Type::Seq(Box::new(Type::Bool)),
             ]),
         )]),
         observers: BTreeMap::new(),
     };
-    let raw = r##"{"#meta":{"format":"ITF"},"vars":["x"],"states":[{"#meta":{"index":0},"x":{"#tup":["Mode::A",{"items":{"#set":[" a ","b"]}},[true,false]]}}]}"##;
+    let raw = r##"{"#meta":{"format":"ITF"},"vars":["x"],"states":[{"#meta":{"index":0},"x":{"#tup":["Mode::A",[],[true,false]]}}]}"##;
     let decoded = decode_itf(raw, &schema, &BTreeMap::new(), 0)?;
     assert!(matches!(&decoded.states[0].state["x"], Value::Seq(values) if values.len()==3));
     for bad in [
-        raw.replace("\"b\"", "\" a \""),
+        raw.replace(",[],", ",[true],"),
+        raw.replace(",[],", ",{\"#set\":[]},"),
+        raw.replace("[true,false]", "{\"#set\":[true,false]}"),
         raw.replace("\"Mode::A\"", "\"Mode::B\""),
         raw.replace("\"#tup\"", "\"#set\""),
         raw.replace("[true,false]", "[true,0]"),
-        raw.replace("\"items\":", "\"other\":"),
     ] {
         assert!(decode_itf(&bad, &schema, &BTreeMap::new(), 0).is_err(), "accepted {bad}");
     }
@@ -104,8 +120,8 @@ fn observer_only_safety_assignment_keeps_strict_schema_empty_state_refusal()
 fn optional_integer_itf_uses_the_exact_declared_code_set() -> Result<(), Box<dyn std::error::Error>>
 {
     let mut schema = Schema {
-        fields: BTreeMap::from([("x".into(), Type::OptionalInt { low: 1, high: 3 })]),
-        observers: BTreeMap::from([("before".into(), Type::OptionalInt { low: 1, high: 3 })]),
+        fields: BTreeMap::from([("x".into(), ticks(1))]),
+        observers: BTreeMap::from([("before".into(), ticks(1))]),
     };
     for code in [-1, 0, 1, 2, 3, 4, 5] {
         let raw = format!(
@@ -114,7 +130,7 @@ fn optional_integer_itf_uses_the_exact_declared_code_set() -> Result<(), Box<dyn
         let decoded = decode_itf(&raw, &schema, &BTreeMap::new(), 0);
         assert_eq!(decoded.is_ok(), [0, 2, 3, 4].contains(&code), "code {code}");
     }
-    schema.fields.insert("x".into(), Type::OptionalInt { low: 0, high: 3 });
+    schema.fields.insert("x".into(), ticks(0));
     let raw = r##"{"#meta":{"format":"ITF"},"vars":["x","before"],"states":[{"#meta":{"index":0},"x":{"#bigint":"1"},"before":{"#bigint":"2"}}]}"##;
     assert_eq!(decode_itf(raw, &schema, &BTreeMap::new(), 0)?.states[0].state["x"], Value::Int(1));
     for value in ["true", "\"1\"", "[]", "{\"#bigint\":\"1\",\"extra\":0}"] {

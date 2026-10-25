@@ -4,9 +4,10 @@ use std::path::Path;
 
 use umpire_checker::Checker;
 use umpire_dsl::{
-    __lifted::Lifts, ActionValues, Assumption, CATALOG_LIMIT, Claim, Machine, Value, Values,
+    __lifted::{BindingOf, ConcreteOf, Lifts},
+    ActionValues, Assumption, CATALOG_LIMIT, Claim, Machine, Values,
 };
-use umpire_tla::{Binding, Concrete, Literal, Module};
+use umpire_tla::{Binding, Concrete, Module};
 
 /// A declared World whose derives export its own, its states' and its actions' values, and
 /// whose `#[machine]` embeds the admitted Model.
@@ -29,11 +30,7 @@ pub fn bound<M: Declared>(world: M, budget: usize, negative: Option<Claim<M>>) -
     let starts = world.starts();
     let binding = world
         .checked_catalog(CATALOG_LIMIT)
-        .map(|catalog| Binding {
-            world: fields(world.values()),
-            starts: starts.iter().map(|state| fields(state.values())).collect(),
-            actions: catalog.actions().iter().map(concrete::<M>).collect(),
-        })
+        .map(|catalog| Binding::of(&world, &starts, catalog.actions()))
         .map_err(|error| error.to_string());
     Bound { world, starts, binding, budget, negative }
 }
@@ -117,7 +114,7 @@ impl<M: Declared> Bound<M> {
             module,
             folder,
             &files,
-            Some(&concrete::<M>),
+            Some(&Concrete::of::<M>),
         )
     }
 
@@ -185,11 +182,6 @@ impl<M: Declared> Bound<M> {
     }
 }
 
-fn concrete<M: Declared>(action: &M::Action) -> Concrete {
-    let (action, values) = ActionValues::<M>::action_value(action);
-    Concrete { action: action.into(), fields: fields(values) }
-}
-
 fn scope_metadata<M: Declared>(
     scope: &Assumption<M::Action>,
     bound: Option<u32>,
@@ -234,44 +226,4 @@ fn scope_metadata<M: Declared>(
         ));
     }
     Ok(())
-}
-
-fn fields(values: Vec<(&'static str, Value)>) -> Vec<(String, Literal)> {
-    values.into_iter().map(|(name, value)| (name.into(), literal(value))).collect()
-}
-
-fn literal(value: Value) -> Literal {
-    match value {
-        Value::Bool(value) => Literal::Bool(value),
-        Value::Int(value) => Literal::Int(value),
-        Value::Enum(value) => Literal::Enum(value.into()),
-        Value::Bounded { name, raw } => Literal::Bounded { name: name.into(), raw },
-        Value::Optional(value) => Literal::Optional(value.map(|value| Box::new(literal(*value)))),
-        Value::Sequence(values) => Literal::Sequence(values.into_iter().map(literal).collect()),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn nominal_exports_preserve_identity_and_optional_structure() {
-        for (value, expected) in [
-            (
-                Value::Bounded { name: "Ticks", raw: 1 },
-                Literal::Bounded { name: "Ticks".into(), raw: 1 },
-            ),
-            (Value::Optional(None), Literal::Optional(None)),
-            (
-                Value::Optional(Some(Box::new(Value::Bounded { name: "Remaining", raw: 0 }))),
-                Literal::Optional(Some(Box::new(Literal::Bounded {
-                    name: "Remaining".into(),
-                    raw: 0,
-                }))),
-            ),
-        ] {
-            assert_eq!(literal(value), expected);
-        }
-    }
 }

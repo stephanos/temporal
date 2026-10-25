@@ -2,7 +2,11 @@
 //!
 //! The admitted subset, including the `imbl::Vector<T>` method table, is `umpire-front`'s.
 use proc_macro2::Span;
-use std::{collections::BTreeMap, fmt, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+    path::Path,
+};
 use syn::spanned::Spanned;
 #[doc(hidden)]
 pub use umpire_backend_process as process;
@@ -14,9 +18,11 @@ mod emit;
 mod lower;
 mod names;
 mod safety;
-mod snowcat;
+pub mod snowcat;
 use umpire_front::Source;
-pub use umpire_front::{CATALOG_LIMIT, Embedded, Type};
+pub use umpire_front::{
+    Binding, Bounded, CATALOG_LIMIT, Concrete, Embedded, Literal, Mismatch, Type,
+};
 
 /// Admit one plain TLA+ identifier, the only name form either checker is handed.
 pub fn identifier(name: &str) -> Result<(), Refusal> {
@@ -41,6 +47,8 @@ pub struct Lifted {
     complete_starts: Option<Vec<Vec<umpire_front::expr::Expr>>>,
     /// The bound concrete catalog, in native catalog order.
     catalog: Option<Vec<bind::Entry>>,
+    /// The admitted binding: World fields and starts in schema order, duplicate starts removed.
+    binding: Option<Binding>,
     /// The file the negative claims are written in, and where each claim's name is.
     claims: (String, Vec<umpire_front::Diagnostic>),
 }
@@ -103,45 +111,6 @@ pub struct Field {
     pub name: String,
     /// Declared type.
     pub ty: Type,
-}
-/// A literal projected from compiler-checked authored fields.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Literal {
-    /// Boolean value.
-    Bool(bool),
-    /// Integer checked against the independently admitted field type.
-    Int(i128),
-    /// Nominal integer with its authored wrapper identity.
-    Bounded {
-        /// Authored wrapper name.
-        name: String,
-        /// Raw backing integer.
-        raw: i128,
-    },
-    /// Absent or present nominal payload.
-    Optional(Option<Box<Literal>>),
-    /// Qualified variant of an independently admitted fieldless enum.
-    Enum(String),
-    /// Ordered elements of an admitted state sequence.
-    Sequence(Vec<Literal>),
-}
-/// One concrete catalog action: its qualified variant and ordered named payload values.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Concrete {
-    /// Qualified authored variant name.
-    pub action: String,
-    /// Payload fields in declaration order; tuple fields are named by position.
-    pub fields: Vec<(String, Literal)>,
-}
-/// One selected World and its complete authored start states.
-#[derive(Clone, Debug)]
-pub struct Binding {
-    /// Named World fields.
-    pub world: Vec<(String, Literal)>,
-    /// Complete named state fields for each authored start, in enumeration order.
-    pub starts: Vec<Vec<(String, Literal)>>,
-    /// The checked native catalog of the same World, in catalog order.
-    pub actions: Vec<Concrete>,
 }
 /// An authored action.
 #[derive(Clone, Debug)]
@@ -242,6 +211,73 @@ pub struct Module {
     /// Projection metadata.
     pub metadata: Metadata,
 }
+impl Module {
+    /// The exact decoding contract of this module's assignments: its declared fields and
+    /// observers, each by its admitted type.
+    ///
+    /// # Errors
+    /// Refuses names that are not plain identifiers, duplicate or inconsistent declarations,
+    /// and declared types no backend can carry.
+    pub fn schema(&self) -> Result<values::Schema, Refusal> {
+        let meta = &self.metadata;
+        identifier(&self.name)?;
+        let mut fields = BTreeMap::new();
+        for field in &meta.fields {
+            identifier(&field.name)?;
+            if fields.insert(field.name.clone(), field.ty.clone()).is_some() {
+                return Err(Refusal(format!("duplicate authored field {}", field.name)));
+            }
+        }
+        let mut observers = BTreeSet::new();
+        for name in &meta.observer_fields {
+            identifier(name)?;
+            if !observers.insert(name) {
+                return Err(Refusal(format!("duplicate observer {name}")));
+            }
+        }
+        if observers != meta.observer_types.keys().collect() {
+            return Err(Refusal("observer declarations differ".into()));
+        }
+        for ty in meta
+            .parameters
+            .iter()
+            .map(|parameter| &parameter.ty)
+            .chain(meta.actions.iter().flat_map(|action| action.fields.iter().map(|f| &f.ty)))
+            .chain(std::iter::once(&meta.outcome_type))
+        {
+            values::validate_type(ty)?;
+        }
+        let schema = values::Schema { fields, observers: meta.observer_types.clone() };
+        schema.validate_assignment()?;
+        Ok(schema)
+    }
+
+    /// The decoding contract of a [`Tla::safety`] module, whose observers are exactly the
+    /// safety emitter's.
+    ///
+    /// # Errors
+    /// As [`Module::schema`], and refuses observers other than the safety emitter's.
+    pub fn safety_schema(&self) -> Result<values::Schema, Refusal> {
+        let schema = self.schema()?;
+        let fact = match schema.observers.get("__umpire_facts") {
+            Some(Type::Seq(fact)) => fact.as_ref(),
+            _ => return Err(Refusal("missing facts observer".into())),
+        };
+        let Some(Type::Int { min: 0, max: input }) = schema.observers.get("__umpire_input") else {
+            return Err(Refusal("missing input observer".into()));
+        };
+        let expected = safety::observers(
+            self.metadata.fields.iter().map(|field| (field.name.as_str(), &field.ty)),
+            &self.metadata.outcome_type,
+            fact,
+            *input,
+        );
+        if expected != schema.observers {
+            return Err(Refusal("observer schema differs from safety emitter".into()));
+        }
+        Ok(schema)
+    }
+}
 /// Reading the admitted Model for emission.
 pub struct Lift;
 impl Lift {
@@ -303,6 +339,7 @@ impl Lift {
             world_values: None,
             complete_starts: None,
             catalog: None,
+            binding: None,
             claims,
         };
         names::validate(file, source, &lifted)?;

@@ -405,30 +405,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                     ty: field.ty.clone(),
                 })
                 .collect(),
-            binding: model.world_values.as_ref().zip(model.complete_starts.as_ref()).map(
-                |(world, starts)| crate::Binding {
-                    world: model
-                        .world_fields
-                        .iter()
-                        .zip(world)
-                        .map(|(field, value)| (field.name.clone(), crate::bind::to_literal(value)))
-                        .collect(),
-                    starts: starts
-                        .iter()
-                        .map(|row| {
-                            model
-                                .fields
-                                .iter()
-                                .zip(row)
-                                .map(|(field, value)| {
-                                    (field.name.clone(), crate::bind::to_literal(value))
-                                })
-                                .collect()
-                        })
-                        .collect(),
-                    actions: model.concrete(),
-                },
-            ),
+            binding: model.binding.clone(),
             fields: model
                 .fields
                 .iter()

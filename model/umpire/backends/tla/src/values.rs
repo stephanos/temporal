@@ -1,59 +1,52 @@
 //! Shared typed assignments admitted independently of the backend wire format.
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::Refusal;
+use crate::{Refusal, Type, identifier};
 
 /// A complete assignment to explicitly declared fields.
 pub type State = BTreeMap<String, Value>;
-
-/// Value kinds admitted by the source emitter.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Type {
-    /// Boolean.
-    Bool,
-    /// An integer within its authored Rust type's inclusive bounds.
-    Int {
-        /// Inclusive lower bound.
-        min: i128,
-        /// Inclusive upper bound.
-        max: i128,
-    },
-    /// An optional bounded integer, encoded as zero or payload plus one.
-    OptionalInt {
-        /// Inclusive raw payload lower bound.
-        low: i128,
-        /// Inclusive raw payload upper bound.
-        high: i128,
-    },
-    /// A string.
-    Text,
-    /// One declared enum variant, encoded as a string.
-    Enum(Vec<String>),
-    /// Homogeneous sequence.
-    Seq(Box<Self>),
-    /// Heterogeneous tuple, including unit.
-    Tuple(Vec<Self>),
-    /// Unordered set.
-    Set(Box<Self>),
-    /// Named fields.
-    Record(BTreeMap<String, Self>),
-}
 
 /// A decoded backend value with deterministic equality and ordering.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Value {
     /// Boolean.
     Bool(bool),
-    /// Integer.
+    /// Integer, including nominal payloads and optional codes.
     Int(i128),
     /// String or admitted enum variant.
     Text(String),
-    /// Sequence or tuple.
+    /// Sequence, tuple or unit.
     Seq(Vec<Self>),
-    /// Set.
-    Set(BTreeSet<Self>),
-    /// Record.
-    Record(State),
+}
+
+impl Value {
+    /// An admitted value of `ty` on the wire: enum variants by their qualified name, unit and
+    /// tuples as sequences.
+    ///
+    /// # Panics
+    /// If `value` is not a value of `ty`, as [`Literal::admit`](crate::Literal::admit) ensures.
+    #[must_use]
+    pub fn admitted(value: &umpire_front::value::Value, ty: &Type) -> Self {
+        use umpire_front::value::Value as Admitted;
+        match (value, ty) {
+            (Admitted::Bool(value), _) => Self::Bool(*value),
+            (Admitted::Int(value), _) => Self::Int(*value),
+            (Admitted::Text(value), _) => Self::Text(value.clone()),
+            (Admitted::Enum(index), Type::Enum { variants, .. }) if *index < variants.len() => {
+                Self::Text(variants[*index].clone())
+            }
+            (Admitted::Unit, _) => Self::Seq(Vec::new()),
+            (Admitted::Tuple(values), Type::Tuple(types)) if values.len() == types.len() => {
+                Self::Seq(
+                    types.iter().zip(values).map(|(ty, value)| Self::admitted(value, ty)).collect(),
+                )
+            }
+            (Admitted::Seq(values), Type::Seq(inner)) => {
+                Self::Seq(values.iter().map(|value| Self::admitted(value, inner)).collect())
+            }
+            _ => panic!("{value:?} is not a value of {ty:?}"),
+        }
+    }
 }
 
 /// The exact model and private observer fields. Prefix-based projection is forbidden.
@@ -88,9 +81,9 @@ impl Schema {
 
     fn validate_types(&self) -> Result<(), Refusal> {
         for (name, kind) in self.fields.iter().chain(&self.observers) {
-            if !kind.valid() {
-                return Err(Refusal(format!("invalid declared type for {name}")));
-            }
+            validate_type(kind).map_err(|Refusal(error)| {
+                Refusal(format!("invalid declared type for {name}: {error}"))
+            })?;
         }
         Ok(())
     }
@@ -116,7 +109,7 @@ impl Schema {
                 let value = assignment
                     .remove(name)
                     .ok_or_else(|| Refusal(format!("missing dump field {name}")))?;
-                if !kind.accepts(&value) {
+                if !accepts(kind, &value) {
                     return Err(Refusal(format!(
                         "dump field {name} has wrong type or integer range: {value:?}"
                     )));
@@ -131,44 +124,196 @@ impl Schema {
     }
 }
 
-impl Type {
-    fn valid(&self) -> bool {
-        match self {
-            Self::Int { min, max } => min <= max,
-            Self::OptionalInt { low, high } => {
-                *low >= 0 && low <= high && *high < i128::from(i32::MAX)
+/// Whether a structurally decoded value inhabits this exact declared type: integers within
+/// their range, nominal payloads within their domain, optional values as an exact code, enum
+/// variants by qualified name, and unit and tuples as sequences.
+pub fn accepts(ty: &Type, value: &Value) -> bool {
+    match (ty, value) {
+        (Type::Bool, Value::Bool(_)) | (Type::Text, Value::Text(_)) => true,
+        (Type::Int { min, max }, Value::Int(number)) => (*min..=*max).contains(number),
+        (Type::Bounded(bounded), Value::Int(raw)) => bounded.contains(*raw),
+        (Type::Optional(bounded), Value::Int(code)) => bounded.decode(*code).is_some(),
+        (Type::Enum { variants, .. }, Value::Text(value)) => variants.contains(value),
+        (Type::Unit, Value::Seq(values)) => values.is_empty(),
+        (Type::Seq(inner), Value::Seq(values)) => values.iter().all(|value| accepts(inner, value)),
+        (Type::Tuple(types), Value::Seq(values)) => {
+            types.len() == values.len()
+                && types.iter().zip(values).all(|(ty, value)| accepts(ty, value))
+        }
+        _ => false,
+    }
+}
+
+/// Refuses a declared type that no backend can carry: inverted integer bounds, an invalid
+/// nominal descriptor, enum variants that are empty, repeated or not qualified identifiers,
+/// or nesting past the backend limit.
+pub fn validate_type(ty: &Type) -> Result<(), Refusal> {
+    nested(ty, 0)
+}
+
+fn nested(ty: &Type, depth: usize) -> Result<(), Refusal> {
+    if depth >= 64 {
+        return Err(Refusal("type declaration nesting exceeds backend limit".into()));
+    }
+    match ty {
+        Type::Bool | Type::Text | Type::Unit => {}
+        Type::Int { min, max } => {
+            if min > max {
+                return Err(Refusal("invalid declared integer bounds".into()));
             }
-            Self::Seq(inner) | Self::Set(inner) => inner.valid(),
-            Self::Tuple(types) => types.iter().all(Self::valid),
-            Self::Record(fields) => fields.values().all(Self::valid),
-            Self::Bool | Self::Text | Self::Enum(_) => true,
+        }
+        Type::Bounded(bound) => {
+            descriptor_names(bound)?;
+            if !bound.valid() {
+                return Err(Refusal("invalid declared bounded integer".into()));
+            }
+        }
+        Type::Optional(bound) => {
+            descriptor_names(bound)?;
+            if !bound.optional_valid() {
+                return Err(Refusal("invalid declared optional integer".into()));
+            }
+        }
+        Type::Enum { name, variants } => {
+            identifier(name)?;
+            let prefix = format!("{name}::");
+            if variants.is_empty()
+                || variants.iter().collect::<BTreeSet<_>>().len() != variants.len()
+                || variants.iter().any(|variant| {
+                    variant
+                        .strip_prefix(&prefix)
+                        .is_none_or(|variant| self::variant(variant).is_err())
+                })
+            {
+                return Err(Refusal(format!("invalid declared enum variants for {name}")));
+            }
+        }
+        Type::Tuple(types) if types.is_empty() => {
+            return Err(Refusal("an empty tuple is declared as unit".into()));
+        }
+        Type::Tuple(types) => {
+            for ty in types {
+                nested(ty, depth + 1)?;
+            }
+        }
+        Type::Seq(inner) => nested(inner, depth + 1)?,
+    }
+    Ok(())
+}
+
+fn descriptor_names(bound: &crate::Bounded) -> Result<(), Refusal> {
+    identifier(&bound.name)?;
+    bound.field.as_deref().map_or(Ok(()), identifier)
+}
+
+/// A variant name, or a variant carrying one fieldless variant, such as `Rejected(NotFound)`.
+fn variant(name: &str) -> Result<(), Refusal> {
+    match name.strip_suffix(')').and_then(|name| name.split_once('(')) {
+        Some((variant, payload)) => identifier(variant).and_then(|()| identifier(payload)),
+        None => identifier(name),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Value, accepts, validate_type};
+    use crate::Type;
+    use umpire_front::Bounded;
+
+    fn ticks() -> Bounded {
+        Bounded {
+            name: "Ticks".into(),
+            field: None,
+            backing: "u8".into(),
+            min: 0,
+            max: 255,
+            low: 1,
+            high: 3,
         }
     }
-    /// Whether a structurally decoded value inhabits this exact declared type.
-    pub fn accepts(&self, value: &Value) -> bool {
-        match (self, value) {
-            (Self::Bool, Value::Bool(_)) | (Self::Text, Value::Text(_)) => true,
-            (Self::Int { min, max }, Value::Int(number)) => (*min..=*max).contains(number),
-            (Self::OptionalInt { low, high }, Value::Int(number)) => {
-                *low >= 0
-                    && low <= high
-                    && *high < i128::from(i32::MAX)
-                    && (*number == 0 || (*low + 1..=*high + 1).contains(number))
-            }
-            (Self::Enum(variants), Value::Text(value)) => variants.contains(value),
-            (Self::Seq(kind), Value::Seq(values)) => values.iter().all(|value| kind.accepts(value)),
-            (Self::Tuple(kinds), Value::Seq(values)) => {
-                kinds.len() == values.len()
-                    && kinds.iter().zip(values).all(|(kind, value)| kind.accepts(value))
-            }
-            (Self::Set(kind), Value::Set(values)) => values.iter().all(|value| kind.accepts(value)),
-            (Self::Record(kinds), Value::Record(values)) => {
-                kinds.len() == values.len()
-                    && kinds.iter().all(|(name, kind)| {
-                        values.get(name).is_some_and(|value| kind.accepts(value))
-                    })
-            }
-            _ => false,
+
+    #[test]
+    fn nominal_types_validate_descriptor_and_accept_exact_codes() {
+        let bound = ticks();
+        assert!(validate_type(&Type::Bounded(bound.clone())).is_ok());
+        assert!(validate_type(&Type::Optional(bound.clone())).is_ok());
+        for raw in -1..=5 {
+            assert_eq!(
+                accepts(&Type::Bounded(bound.clone()), &Value::Int(raw)),
+                (1..=3).contains(&raw)
+            );
+            assert_eq!(
+                accepts(&Type::Optional(bound.clone()), &Value::Int(raw)),
+                [0, 2, 3, 4].contains(&raw),
+                "{raw}"
+            );
         }
+        for field in ["backing", "range", "name", "member", "width"] {
+            let mut bad = bound.clone();
+            match field {
+                "backing" => bad.backing = "u32".into(),
+                "range" => bad.low = 4,
+                "name" => bad.name = "not a name".into(),
+                "member" => bad.field = Some("not a member".into()),
+                _ => bad.max = 256,
+            }
+            assert!(validate_type(&Type::Bounded(bad.clone())).is_err(), "{field}");
+            assert!(validate_type(&Type::Optional(bad)).is_err(), "{field}");
+        }
+        let mut signed = bound;
+        signed.backing = "i32".into();
+        signed.min = i128::from(i32::MIN);
+        signed.max = i128::from(i32::MAX);
+        for (low, high) in [(-1, 3), (0, i128::from(i32::MAX))] {
+            signed.low = low;
+            signed.high = high;
+            assert!(validate_type(&Type::Bounded(signed.clone())).is_ok());
+            assert!(validate_type(&Type::Optional(signed.clone())).is_err());
+        }
+    }
+
+    #[test]
+    fn enum_variants_admit_one_fieldless_payload_only() {
+        assert!(validate_type(&Type::outcome()).is_ok());
+        for variant in ["Rejected()", "Rejected(Not Found)", "Rejected(A)(B)", "(A)", "Rejected(A"]
+        {
+            let ty = Type::Enum {
+                name: "Outcome".into(),
+                variants: vec![format!("Outcome::{variant}")],
+            };
+            assert!(validate_type(&ty).is_err(), "{variant}");
+        }
+        let empty = Type::Enum { name: "Empty".into(), variants: Vec::new() };
+        assert!(validate_type(&empty).is_err());
+        assert!(validate_type(&Type::Int { min: 3, max: 2 }).is_err());
+        assert!(validate_type(&Type::Tuple(Vec::new())).is_err());
+        assert!(validate_type(&Type::Unit).is_ok());
+    }
+
+    #[test]
+    fn composite_values_accept_exact_shapes_only() {
+        let pair = Type::Tuple(vec![Type::Bool, Type::Int { min: 0, max: 2 }]);
+        assert!(accepts(&pair, &Value::Seq(vec![Value::Bool(true), Value::Int(2)])));
+        for value in [
+            Value::Seq(vec![Value::Bool(true)]),
+            Value::Seq(vec![Value::Bool(true), Value::Int(3)]),
+            Value::Seq(vec![Value::Int(2), Value::Bool(true)]),
+            Value::Text("pair".into()),
+        ] {
+            assert!(!accepts(&pair, &value), "{value:?}");
+        }
+        assert!(accepts(&Type::Unit, &Value::Seq(Vec::new())));
+        assert!(!accepts(&Type::Unit, &Value::Seq(vec![Value::Bool(true)])));
+        let outcome = Type::outcome();
+        assert!(accepts(&outcome, &Value::Text("Outcome::Accepted".into())));
+        assert!(!accepts(&outcome, &Value::Text("Outcome::Lost".into())));
+        let nested = Type::Seq(Box::new(Type::Optional(ticks())));
+        assert!(accepts(&nested, &Value::Seq(vec![Value::Int(0), Value::Int(4)])));
+        assert!(!accepts(&nested, &Value::Seq(vec![Value::Int(1)])));
+        let mut deep = Type::Bool;
+        for _ in 0..64 {
+            deep = Type::Seq(Box::new(deep));
+        }
+        assert!(validate_type(&deep).is_err());
     }
 }
