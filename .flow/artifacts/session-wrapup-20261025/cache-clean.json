@@ -1,0 +1,6 @@
+{
+  "exit": 0,
+  "stdout": "",
+  "stderr": "     Removed 64129 files, 24.9GiB total\n",
+  "proof_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/wrapup-cache-retention/fn2485-retained-binaries.json"
+}

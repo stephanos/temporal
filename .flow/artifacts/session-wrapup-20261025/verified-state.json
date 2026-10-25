@@ -1,0 +1,72 @@
+{
+  "tasks": [
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.1",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "8fc503884f41a87601aebfadd96c59eb6fa74baf",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task1/review/receipt.json"
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.2",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "bc78db241d14836141a8df039c0d0630b4e16107",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task2/review/receipt.json"
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.3",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "8a1e1ebac7af400f12cc63932f4c40cff9d2c4d4",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task3/review/receipt.json"
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.4",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "f40149592b293c958b1b636ff4089299a36a6314",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task4/review/receipt.json"
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.5",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "3a0b9cc7f38a462edd701f5f9af751af3caad3eb",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task5/review/receipt.json"
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.6",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "956c017c32e0f009a475c9d0fa664b06f74d9e0a",
+      "receipt": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task6/review/receipt.json"
+    },
+    {
+      "task": "fn-252-quick-consolidation-wins-in-model-code.3",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "6a8d3ee660a394898f85fd7f2d8813b6cbe9eddf",
+      "receipt": ".flow/artifacts/fn-252-quick-consolidation-wins-in-model-code/task3/review/receipt.json"
+    },
+    {
+      "task": "fn-252-quick-consolidation-wins-in-model-code.4",
+      "status": "done",
+      "review": "SHIP",
+      "reviewed_head": "aca114eab95a27a88073669f419b27f8017d4b28",
+      "receipt": ".flow/artifacts/fn-252-quick-consolidation-wins-in-model-code/task4/review/receipt.json"
+    }
+  ],
+  "parents": [
+    {
+      "spec": "fn-248-off-the-shelf-crates-and-consolidation",
+      "status": "open"
+    },
+    {
+      "spec": "fn-252-quick-consolidation-wins-in-model-code",
+      "status": "open"
+    }
+  ],
+  "fn248_final_validation": "todo",
+  "source_head": "e6c9d04d3f2475c52ebbe06bb0e473c236b2edf8"
+}
