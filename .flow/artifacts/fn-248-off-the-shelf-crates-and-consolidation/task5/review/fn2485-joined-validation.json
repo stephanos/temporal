@@ -1,0 +1,14 @@
+{
+  "base_commit": "ee1c1abbb05bf4a694e5879b2d6940df886e1bd6",
+  "source_commit": "3a0b9cc7f38a462edd701f5f9af751af3caad3eb",
+  "source_inventory": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/review-fix/final-source-hashes.json",
+  "source_inventory_count": 1715,
+  "mismatches": [],
+  "conflict": "collect(): retain well_known_primitive first and shared naming fallback; same source as tested correctedB e0eec761",
+  "command": "cd model && BASH_ENV=/dev/null CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2485-target MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo test -p umpire-temporal-annotate-syntax -p umpire-temporal-api --lib --test codegen --test wire_schema --test descriptor --test services --locked",
+  "exit": 0,
+  "passed_tests": 26,
+  "log": ".flow/tmp/fn2485-joined-tests.log",
+  "reused_evidence": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/join45/review-fix/verification.json",
+  "limitation": "No current joined guest publication/full covering pipeline; remains final task7."
+}

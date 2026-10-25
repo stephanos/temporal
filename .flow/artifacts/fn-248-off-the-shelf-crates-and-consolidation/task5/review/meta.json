@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.5",
+  "standalone": false,
+  "base_branch": "ee1c1abbb05bf4a694e5879b2d6940df886e1bd6",
+  "reviewed_base_sha": "ee1c1abbb05bf4a694e5879b2d6940df886e1bd6",
+  "reviewed_head_sha": "3a0b9cc7f38a462edd701f5f9af751af3caad3eb",
+  "artifact_sha256": "e932742ab4c54b6542234315ed52ec783889aaeea8d22b6b183461560fcf87c5",
+  "reservation_id": "c75f927d28be409a894a0c9363ff78bb",
+  "rid": "c75f927d28be409a894a0c9363ff78bb",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a170ff-117d-7fc0-b1cf-b88285f3e3c0",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T02:58:44.850631Z",
+      "finished_at": "2026-10-25T03:00:45.935634Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a170ff-1189-7702-9297-b97f9149aa5b",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T02:58:44.850835Z",
+      "finished_at": "2026-10-25T03:01:16.773869Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a170ff-118c-7f02-95a0-a77d5b22c455",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T02:58:44.850993Z",
+      "finished_at": "2026-10-25T03:00:41.673671Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/c75f927d28be409a894a0c9363ff78bb/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-248-off-the-shelf-crates-and-consolidation.5.json",
+  "created_at": "2026-10-25T03:01:16.804937Z"
+}
