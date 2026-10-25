@@ -8,7 +8,7 @@
   "priority": 3,
   "spec": "fn-248-off-the-shelf-crates-and-consolidation",
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "heck, darling and quote in the macro and build crates",
   "updated_at": "2026-10-25T00:14:21.764338Z"
 }

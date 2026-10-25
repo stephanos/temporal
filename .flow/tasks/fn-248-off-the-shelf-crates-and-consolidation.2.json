@@ -8,7 +8,7 @@
   "priority": 2,
   "spec": "fn-248-off-the-shelf-crates-and-consolidation",
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "One copy of each repeated helper",
   "updated_at": "2026-10-25T01:59:23.327748Z"
 }

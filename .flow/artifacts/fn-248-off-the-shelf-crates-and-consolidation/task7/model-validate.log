@@ -1,0 +1,40 @@
+make: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+Time the model feedback loop (fn-210 R30)...
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+Check model (fmt, clippy, docs, workspace and native-tool tests)...
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend required: real bounded checks and replay controls
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar
+temporal-guest-freshness         43.059s
+retired-names                     0.723s
+timing-controls                   0.242s
+capability-controls               0.113s
+source-boundary                  16.693s
+protobuf-freshness                0.112s
+kettle-protobuf-freshness         0.081s
+temporal-protobuf-freshness       0.053s
+fmt                               0.694s
+clippy                           13.594s
+docs                             38.444s
+tests                            1086.256s
+wasm32-wasip1                     3.072s
+core-wasm-clippy                  3.465s
+wasm-guest                       56.299s
+go-host                           2.382s
+kettle-go-host                   37.378s
+temporal-go-host                 11.137s
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+inner source: umpire/backends/native/src/lib.rs
+inner command: mise exec -- cargo test -p umpire-checker --quiet
+inner loop (edit+test)            9.953s
+gate total                       1316.090s  (soft target 60s)
+inner loop                        9.953s  (soft target 10s)
+note: gate over soft target (fn-210 R30)
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+make: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+exit=0

@@ -32,9 +32,10 @@ UMPIRE_APALACHE=require make model-validate
 - [ ] One canonical required pipeline and existing benchmark pass with actual command, stage/mode/timing/results evidence; all existing gate stages remain and soft timing warnings cannot hide failures.
 
 ## Done summary
-TBD
+Joined the six fn-248 lanes (merged earlier by the Codex conductor) and validated once. The Temporal guest was regenerated on joined inputs and republished after the completion-review fixes: 3516063 B `11c953c3…`, reproduced byte for byte from a clean clone at a different path. Snapshot review: 0 content changes across the insta migration. The parent completion review found a stale expansion snapshot and generated `AnyMessage` calls that forced an author import; both are fixed (713edcb334), along with a generated-doc spacing regression (eaa0d29ce7), stale WKT docs, `pascal` on heck and one shared refusal constant. One `UMPIRE_APALACHE=require make model-validate` passed at 9b3e26654a: 18 stages, gate 1316.090 s (soft target 60 s exceeded), inner loop 9.953 s (target 10 s). Evidence: .flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task7/.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 11862a858f, eaa0d29ce7, 763c6a5504, 713edcb334, 43b10a5dc5, eb44d3113c, e4f0d148c5, 9b3e26654a
+- Tests: UMPIRE_APALACHE=require make model-validate (9b3e26654a, exit 0, gate 1316.090s, inner 9.953s)
 - PRs:

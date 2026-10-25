@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "spec_id": "fn-248-off-the-shelf-crates-and-consolidation",
+  "source_basis": "umpire at 9b3e26654a: six fn-248 lanes (merged by the Codex conductor), fn-248.7 join and completion-review fixes, reviewed fn-250.4/.5. One required pipeline passed there; parent completion review findings fixed and covered by that run.",
+  "gates": [
+    {
+      "command": "Per-lane focused cargo test/clippy/fmt plus three-draw task reviews (fn-248.1-.6)",
+      "mode": "focused per-lane, isolated targets",
+      "cost": {"kind": "unknown", "reason": "Lane logs retained per task; aggregate wall-clock not instrumented"},
+      "coverage": "Each lane's R1-R4 positive and negative controls",
+      "evidence": [".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task1", ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task6"]
+    },
+    {
+      "command": "Clean-clone Temporal guest rebuild and freshness check (twice: joined inputs, then after review fixes)",
+      "mode": "current-input reproduction, independent empty target",
+      "cost": {"kind": "estimated", "seconds": 300},
+      "coverage": "Committed guest bytes reproduce from source at a different path",
+      "evidence": [".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task7/validation.md"]
+    },
+    {
+      "command": "BASH_ENV=/dev/null UMPIRE_APALACHE=require make model-validate",
+      "mode": "canonical required pipeline (TLC+Apalache required) plus inner-loop benchmark",
+      "cost": {"kind": "measured", "seconds": 1326},
+      "coverage": "All 18 stages: guest freshness, boundaries, protobuf freshness, fmt, clippy, docs, workspace tests (1086 s), wasm, guest, three Go host suites; inner loop 9.953 s",
+      "evidence": [".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task7/model-validate.log"]
+    },
+    {
+      "command": "Snapshot diff review and parent completion review (fresh read-only agents)",
+      "mode": "independent review",
+      "cost": {"kind": "estimated", "seconds": 520},
+      "coverage": "0 unexplained snapshot content changes; R1-R5 met after fixes",
+      "evidence": [".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task7/snapshot-review.md", ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/task7/completion-review.md"]
+    }
+  ],
+  "speedup_decisions": [
+    {
+      "opportunity": "One full pipeline per task (fn-248.7, fn-250.4, fn-250.5)",
+      "decision": "Applied: one joined model-validate run served all three",
+      "rationale": "The lanes were reviewed and focused-tested separately; their files are disjoint",
+      "coverage_preserved": "Every stage ran once on the integrated tip"
+    },
+    {
+      "opportunity": "Failing fast on the first broken test binary hid later failures (three runs before the pass)",
+      "decision": "Applied for this join: one cargo test --workspace --no-fail-fast pass before the full gate",
+      "rationale": "It surfaces every stale snapshot at once instead of one per 20-minute gate run",
+      "coverage_preserved": "Diagnostic only; the canonical gate still ran in full"
+    },
+    {
+      "opportunity": "Workspace tests dominate (1086 of 1316 s)",
+      "decision": "No change in this spec",
+      "rationale": "Cutting them needs a per-crate selection design; out of scope for a consolidation spec",
+      "coverage_preserved": "All tests retained"
+    }
+  ],
+  "follow_ups": [
+    "Private per-lane targets (about 24 GB each) filled the shared overlay twice; future joins should validate in the main checkout against the shared target",
+    "The diff-based snapshot review cannot catch a snapshot that is stale against current generator output; only running the tests does",
+    "Linux/aarch64 only; no macOS guest certification claimed"
+  ]
+}

@@ -15,7 +15,7 @@
   "priority": null,
   "spec": "fn-248-off-the-shelf-crates-and-consolidation",
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Join crate-consolidation lanes and validate current snapshots and guests once",
   "updated_at": "2026-10-25T00:14:21.201402Z"
 }

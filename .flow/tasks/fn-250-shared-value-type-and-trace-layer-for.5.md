@@ -10,9 +10,10 @@ Implement **Pinned jar admission (A9)**: `PinnedJar::admit(root, cache, jar, sha
 - [ ] Wrong digest, wrong Java or cache escape refuses before use.
 - [ ] Re-accept goldens after reviewing their diffs; `make model-check` passes.
 ## Done summary
-TBD
+`PinnedJar::admit` (process crate, `jar.rs`) admits the TLC and Apalache jars: no symlink or `..` from root to jar, regular file, in-process `sha2` digest, pinned Java, then the tool's own version probe, which returns the tool. Every refusal happens before the tool runs; the scratch directory is cleaned up on every path. One `umpire_tla::identifier()` replaces both copies. No `shasum` call remains in either runner (`model/scripts/fetch-tlc.sh` keeps its fetch-time fallback, left for fn-252.7). TLC containment is now as strict as Apalache's (a symlinked `model/build` is refused). Fresh review SHIP; cleanups bb246d544d. Focused default and require-mode tests passed with the real tools; covered by the joined fn-248.7 `UMPIRE_APALACHE=require make model-validate` at 9b3e26654a (exit 0).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1e304716dc, bb246d544d
+- Tests: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require cargo test -p umpire-backend-process -p umpire-tlc -p umpire-apalache -p umpire-tla, UMPIRE_APALACHE=require make model-validate (9b3e26654a, exit 0)
 - PRs:

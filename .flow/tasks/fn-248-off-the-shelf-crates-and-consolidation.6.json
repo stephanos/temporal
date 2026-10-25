@@ -8,7 +8,7 @@
   "priority": 3,
   "spec": "fn-248-off-the-shelf-crates-and-consolidation",
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Serde-derived ITF envelope in the Apalache back end",
   "updated_at": "2026-10-25T00:14:22.766236Z"
 }

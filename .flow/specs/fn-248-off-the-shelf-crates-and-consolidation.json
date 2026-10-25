@@ -446,7 +446,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md",
-  "status": "open",
+  "status": "done",
   "title": "Off-the-shelf crates and consolidation in existing model code (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -459,5 +459,10 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T03:09:14.557837Z"
+  "updated_at": "2026-10-25T04:22:13.691722Z",
+  "validation_review": {
+    "path": ".flow/artifacts/fn-248-off-the-shelf-crates-and-consolidation/validation-cost-review-4f361746b5536810fd24124f044b0c57b5393f7667e8fe7370d3182ff041ec80.json",
+    "schema_version": 1,
+    "sha256": "4f361746b5536810fd24124f044b0c57b5393f7667e8fe7370d3182ff041ec80"
+  }
 }
