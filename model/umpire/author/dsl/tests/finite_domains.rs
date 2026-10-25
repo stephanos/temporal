@@ -1,5 +1,7 @@
 //! Finite input domains, World-bound action domains and checked catalog admission.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Action, ActorValue, CatalogError, CatalogVariant, Finite, Machine};
 
 #[derive(Finite, Clone, Copy, Debug, PartialEq, Eq, Hash)]

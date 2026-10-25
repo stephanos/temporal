@@ -1,4 +1,6 @@
 //! Optional handler results are independently emitted from authored source.
+#![forbid(unsafe_code)]
+
 use umpire_front::expr::{ExprKind, Op, Unary};
 use umpire_tla::observers::{ERROR, FACTS};
 use umpire_tla::{Lift, Tla, Type};

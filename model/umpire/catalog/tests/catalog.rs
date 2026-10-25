@@ -1,5 +1,7 @@
 //! Behavioral controls over actual typed message fields.
 
+#![forbid(unsafe_code)]
+
 use std::fmt::Write;
 use umpire_catalog::*;
 

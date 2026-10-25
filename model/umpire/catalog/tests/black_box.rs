@@ -1,5 +1,7 @@
 //! Descriptor-driven mutation and classification controls.
 
+#![forbid(unsafe_code)]
+
 use umpire_catalog::*;
 
 fn field(kind: WireKind) -> WireField {

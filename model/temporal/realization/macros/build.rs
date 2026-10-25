@@ -1,5 +1,7 @@
 //! Link the shared upstream descriptors without depending on generated API code.
 
+#![forbid(unsafe_code)]
+
 use std::{env, io, path::PathBuf};
 
 #[path = "../../api/system.rs"]

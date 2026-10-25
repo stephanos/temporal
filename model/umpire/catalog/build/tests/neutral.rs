@@ -1,4 +1,6 @@
 //! A second service exercises the shared generation contract.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_catalog_build::{System, services, wire_schema};
 use umpire_catalog_syntax::{descriptor::Coverage, proto::Graph, services::Classification};
@@ -16,9 +18,10 @@ fn second_service_uses_configured_identity_and_roots() -> Result<(), String> {
     let config = System { rust_root: "::device_api::generated", ..service_config() };
     let source = generate_services(&bytes, &Coverage::default(), &[], &config)?;
     assert!(source.contains("pub enum DeviceMethod"));
+    assert!(source.contains("pub fn parse_rpc("));
     assert!(source.contains("pub struct DeviceMethodInfo"));
     assert!(source.contains("pub const DEVICE_METHODS"));
-    assert!(source.contains("macro_rules! dispatch_device_annotations"));
+    assert!(source.contains("macro_rules! annotate_device"));
     assert!(source.contains("macro_rules! device_request_findings"));
     assert!(source.contains("macro_rules! dispatch_device_request"));
     assert!(source.contains("macro_rules! bind_device_action"));

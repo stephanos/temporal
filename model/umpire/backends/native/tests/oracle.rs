@@ -1,5 +1,7 @@
 //! Independent finite-universe closure oracle for small generated worlds.
 
+#![forbid(unsafe_code)]
+
 use std::collections::{BTreeSet, VecDeque};
 
 use proptest::prelude::*;

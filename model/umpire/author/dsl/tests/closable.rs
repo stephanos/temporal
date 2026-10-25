@@ -1,5 +1,7 @@
 //! Closure laws distinguish phase preservation from state and outcome preservation.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Outcome, Phase, Phased, Rejection, Verdict, claim, closable};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

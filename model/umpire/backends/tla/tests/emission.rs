@@ -1,4 +1,6 @@
 //! Execute emitted arithmetic and sequential mutations with the pinned TLC engine.
+#![forbid(unsafe_code)]
+
 use std::{collections::BTreeMap, path::Path};
 use umpire_tla::{Lift, Tla};
 use umpire_tlc::{Tlc, Value};

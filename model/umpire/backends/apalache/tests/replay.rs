@@ -1,4 +1,6 @@
 //! Counterexamples are executed from retained starts, without a reached graph.
+#![forbid(unsafe_code)]
+
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
 #[allow(unreachable_pub, reason = "shared public fixture")]

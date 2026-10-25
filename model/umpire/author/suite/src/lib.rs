@@ -5,6 +5,8 @@
 //! them. Nothing here explores on its own: an example replays through the same
 //! `Machine::checked_step` the checker uses, and every exploration and search asks the checker.
 
+#![forbid(unsafe_code)]
+
 mod coverage;
 mod covered;
 mod refusal;

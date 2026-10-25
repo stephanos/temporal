@@ -1,5 +1,7 @@
 //! Source-lifted TLC remains usable when a native reference exploration is cut.
 
+#![forbid(unsafe_code)]
+
 use std::{collections::BTreeSet, fs, path::Path};
 
 use umpire_tla::{Lift, Tla};

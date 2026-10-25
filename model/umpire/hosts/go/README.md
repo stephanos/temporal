@@ -69,7 +69,7 @@ guest supplies its own Model and realization through `export_guest!`; this Go ho
 transports their opaque Any payloads without importing their schemas. Native and Go
 controls pin old message bytes, refusal codes, independent instances and publication
 rollback. Run the complete reproduction from the server root with `make model-check`;
-`bash model/scripts/proto-go.sh --check` independently checks pinned Go generation.
+`bash model/scripts/proto-go.sh core --check` independently checks pinned Go generation.
 
 The Rows benchmark includes protobuf marshal, guest allocation, memory write,
 call, copy, free and protobuf unmarshal. It cycles state IDs modulo 283 and

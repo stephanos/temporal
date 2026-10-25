@@ -1,4 +1,6 @@
 //! Actual-request admission and publication controls for the Temporal facade.
+#![forbid(unsafe_code)]
+
 use umpire_runtime::protocol::{Method, RefusalCode};
 use umpire_runtime::testing::{GuestExt, ResponseExt};
 

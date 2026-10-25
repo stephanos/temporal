@@ -1,4 +1,6 @@
 //! Strict ITF admission at the source typed-value boundary.
+#![forbid(unsafe_code)]
+
 use std::collections::BTreeMap;
 use umpire_apalache::decode_itf;
 use umpire_tla::{

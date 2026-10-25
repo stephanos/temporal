@@ -1,5 +1,7 @@
 //! Real API generation must not depend on descriptor-set file order.
 
+#![forbid(unsafe_code)]
+
 use std::{
     collections::BTreeMap,
     fs,

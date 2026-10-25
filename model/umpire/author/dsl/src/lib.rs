@@ -1,5 +1,6 @@
 //! State machines and named claims consumed by the Umpire checker.
 
+#![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
 mod action;

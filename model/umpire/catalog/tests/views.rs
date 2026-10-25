@@ -1,5 +1,7 @@
 //! Semantic views preserve wire values and refuse malformed encodings.
 
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_catalog::{View, kinds};
 

@@ -1,5 +1,7 @@
 //! Declared constants preserve field order, authored visibility and conditional value bounds.
 
+#![forbid(unsafe_code)]
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Owned(String);
 

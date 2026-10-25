@@ -1,5 +1,7 @@
 //! Descriptor coverage controls using the real upstream protobuf closure.
 
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path};
 
 use prost::Message;

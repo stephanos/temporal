@@ -1,4 +1,6 @@
 //! Authored Rust expressions retain their values, ownership and inference in paths.
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Path, PathNode, Waypoint, path};
 
 /// The state waypoints of a path's one alternative, in order.

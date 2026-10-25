@@ -1,5 +1,7 @@
 //! Discover the shared end-to-end fixtures and their lift hooks.
 
+#![forbid(unsafe_code)]
+
 #[path = "../testing/src/discovery.rs"]
 #[allow(unreachable_pub)]
 mod discovery;

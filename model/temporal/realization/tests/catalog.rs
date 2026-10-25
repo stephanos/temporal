@@ -1,5 +1,7 @@
 //! Full SDK wire annotation controls.
 
+#![forbid(unsafe_code)]
+
 use umpire_temporal::foundation::dc::Limits;
 
 use prost::Message;

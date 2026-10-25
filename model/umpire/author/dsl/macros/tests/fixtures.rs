@@ -1,5 +1,7 @@
 //! Derive expansions and compilation diagnostics.
 
+#![forbid(unsafe_code)]
+
 #[path = "../src/action.rs"]
 mod action;
 #[path = "../src/finite.rs"]

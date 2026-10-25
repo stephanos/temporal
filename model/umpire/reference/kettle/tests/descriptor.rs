@@ -1,4 +1,6 @@
 //! Additions to the real Kettle descriptor must refuse naming their missing declaration.
+#![forbid(unsafe_code)]
+
 use umpire_catalog_syntax::{catalogs, descriptor::Coverage, services::classifications};
 
 #[path = "../../../catalog/syntax/tests/support/mod.rs"]

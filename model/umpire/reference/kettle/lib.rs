@@ -1,5 +1,7 @@
 //! Framework-owned Kettle reference system using the canonical independent Model.
 
+#![forbid(unsafe_code)]
+
 #[path = "../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod model;
 pub use model::kettle;
@@ -51,11 +53,22 @@ pub fn runtime() -> KettleRuntime {
 /// Kettle Model dispatcher with independent annotation and probe operations.
 pub type AnnotationRuntime = umpire_runtime::AnnotationRuntime<
     KettleRuntime,
-    fn(&prost_types::Any) -> Result<prost_types::Any, umpire_runtime::protocol::Refusal>,
+    wire::umpire::reference::kettle::v1::ProbeRequest,
+    umpire_runtime::annotations::ProbeResponse,
 >;
 
 /// Creates the selected live run and its stateless annotation extension.
 pub fn annotation_runtime() -> AnnotationRuntime {
-    umpire_runtime::AnnotationRuntime::new(runtime(), transport::dispatch)
+    umpire_runtime::AnnotationRuntime::with_probes(
+        runtime(),
+        |request| {
+            probes::run(request)
+                .map_err(|error| umpire_runtime::protocol::Refusal::malformed(error.to_string()))
+        },
+        |request| {
+            transport::annotate(&request.method, request.response, &request.message, request.seed)
+                .map(Into::into)
+        },
+    )
 }
 mod transport;

@@ -1,5 +1,7 @@
 //! Wide finite input ranges retain their exact values without eager enumeration.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{ActionDomain, Gap, InputDomain, Path, Pattern, PatternError, Waypoint};
 
 #[test]

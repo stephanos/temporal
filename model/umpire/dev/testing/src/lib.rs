@@ -1,5 +1,7 @@
 //! Shared fixture discovery and golden runner for Umpire's tests.
 
+#![forbid(unsafe_code)]
+
 pub mod backend;
 pub mod boundary;
 pub mod discovery;

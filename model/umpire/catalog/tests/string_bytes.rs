@@ -1,5 +1,7 @@
 //! Byte limits retain named request expectations through macro expansion.
 
+#![forbid(unsafe_code)]
+
 #[derive(Clone, Default)]
 struct Request {
     text: String,

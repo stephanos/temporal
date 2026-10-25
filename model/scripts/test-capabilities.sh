@@ -39,3 +39,25 @@ for pair in dsl:author/dsl checker:backends/native; do
   done
 done
 printf 'capability controls: both core policies reject filesystem, clock and thread APIs/types\n'
+
+for root in umpire/author/dsl/src/lib.rs dev/xtask/src/main.rs \
+  umpire/backends/native/build.rs umpire/author/dsl/tests/ui.rs; do
+  policy=$(grep -Fx '#![forbid(unsafe_code)]' "$root")
+  printf '%s\n#[allow(unsafe_code)]\npub unsafe fn forbidden() {}\n' "$policy" > "$scratch/unsafe.rs"
+  if mise exec -- rustc --edition=2024 --crate-type=lib --emit=metadata \
+    --out-dir "$scratch" "$scratch/unsafe.rs" > "$scratch/unsafe.log" 2>&1; then
+    printf 'unsafe override unexpectedly compiled: %s\n' "$root" >&2
+    exit 1
+  fi
+  grep -F 'E0453' "$scratch/unsafe.log" >/dev/null || { cat "$scratch/unsafe.log" >&2; exit 1; }
+done
+printf '#![deny(unsafe_code)]\n#[allow(unsafe_code)]\npub unsafe fn audited() {}\n' > "$scratch/unsafe.rs"
+mise exec -- rustc --edition=2024 --crate-type=lib --emit=metadata --out-dir "$scratch" "$scratch/unsafe.rs"
+printf '#![deny(unsafe_code)]\npub unsafe fn forbidden() {}\n' > "$scratch/unsafe.rs"
+if mise exec -- rustc --edition=2024 --crate-type=lib --emit=metadata \
+  --out-dir "$scratch" "$scratch/unsafe.rs" > "$scratch/unsafe.log" 2>&1; then
+  printf 'unaudited unsafe unexpectedly compiled\n' >&2
+  exit 1
+fi
+grep -F 'declaration of an `unsafe` function' "$scratch/unsafe.log" >/dev/null || { cat "$scratch/unsafe.log" >&2; exit 1; }
+printf 'unsafe controls: safe target roots reject overrides; deny requires a local allowance\n'

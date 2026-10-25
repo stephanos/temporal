@@ -1,5 +1,7 @@
 //! Regression controls for generation over scalar presence and interacting constraints.
 
+#![forbid(unsafe_code)]
+
 use umpire_catalog::*;
 
 #[derive(Clone, Default)]

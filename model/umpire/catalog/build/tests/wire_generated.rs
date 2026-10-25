@@ -1,4 +1,6 @@
 //! Generated wire setters compile against prost-shaped message and collection carriers.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_catalog_build::wire_schema;
 use umpire_runtime::prost_types::{

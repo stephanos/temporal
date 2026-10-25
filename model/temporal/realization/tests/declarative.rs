@@ -1,5 +1,7 @@
 //! Generated handler conversion and contextual reply controls.
 
+#![forbid(unsafe_code)]
+
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Observation;
 use umpire_runtime::realization::observation::Result as ObservationResult;

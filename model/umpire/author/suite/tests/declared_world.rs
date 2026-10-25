@@ -1,5 +1,7 @@
 //! Computed complete-state starts and typed actor inference use the selected owned World.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Machine, path};
 use umpire_suite::{Cases, Refusal, Run, Space, cover, find, sample, verify_all};
 

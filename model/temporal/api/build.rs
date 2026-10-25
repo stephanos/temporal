@@ -1,5 +1,7 @@
 //! Generate the upstream descriptor closure with shared well-known types.
 
+#![forbid(unsafe_code)]
+
 use std::{
     env, io,
     path::{Path, PathBuf},

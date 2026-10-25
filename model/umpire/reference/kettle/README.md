@@ -19,7 +19,7 @@ The Go server, native/wasm parity and live host tests live here in module
 `umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
 replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
 from `umpire.local/model/host`. Regenerate with
-`bash model/scripts/proto-kettle-go.sh` at repository root; `--check` verifies
+`bash model/scripts/proto-go.sh kettle` at repository root; `--check` verifies
 the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
 The host test requires the built guest and fails if it is missing.
 

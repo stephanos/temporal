@@ -1063,7 +1063,7 @@ Rust API generation still reads the upstream image. The build tracks that image 
 service table.
 
 After an API update, `make model-check` requires classification of added fields, enums and RPCs. Review kinds, roles, expectations and reasons with aligned action mappings.
-Regenerate affected Go envelopes with `bash model/scripts/proto-temporal-go.sh`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
+Regenerate affected Go envelopes with `bash model/scripts/proto-go.sh temporal`. Activity changes also run `make umpire-check-model-slice` and `make umpire-check-model-gaps`; review findings before goldens.
 
 ### Validation and the first gap report
 

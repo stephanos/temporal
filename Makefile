@@ -1269,6 +1269,7 @@ endif
 ##### model: Umpire in Rust (fn-210) #####
 RUST_MODEL_CARGO := cd model && mise exec -- cargo
 RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model/scripts/time-gate.sh --step $(1),)
+RUST_MODEL_WASM_ENV = UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_KETTLE_WASM="$$target/wasm32-wasip1/guest/umpire_kettle_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native"
 
 .PHONY: model-check model-fmt model-update model-time model-validate
 model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
@@ -1280,9 +1281,10 @@ model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
 	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
 	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
-	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh --check
-	@$(call RUST_MODEL_STEP,kettle-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-kettle-go.sh --check
-	@$(call RUST_MODEL_STEP,temporal-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-temporal-go.sh --check
+	@$(call RUST_MODEL_STEP,protobuf-controls) /bin/bash $(CURDIR)/model/scripts/tests/proto-go.sh
+	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh core --check
+	@$(call RUST_MODEL_STEP,kettle-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh kettle --check
+	@$(call RUST_MODEL_STEP,temporal-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh temporal --check
 	@cd model && $(call RUST_MODEL_STEP,fmt) mise exec -- cargo fmt --all --check
 	@cd model && $(call RUST_MODEL_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
 	@cd model && $(call RUST_MODEL_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
@@ -1290,8 +1292,8 @@ model-check: $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) $(API_BINPB)
 	@cd model && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
 	@cd model && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
 	@$(call RUST_MODEL_STEP,wasm-guest) /bin/bash $(CURDIR)/model/scripts/tests/build-guests.sh
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_KETTLE_WASM="$$target/wasm32-wasip1/guest/umpire_kettle_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/guest/umpire_stock_guest.wasm" UMPIRE_KETTLE_WASM="$$target/wasm32-wasip1/guest/umpire_kettle_guest.wasm" UMPIRE_STATEFUL_WASM="$$target/wasm32-wasip1/guest/stateful_control.wasm" UMPIRE_CAUGHT_PANIC_WASM="$$target/wasm32-wasip1/guest/caught_panic_control.wasm" UMPIRE_OVERFLOW_WASM="$$target/wasm32-wasip1/guest/overflow_control.wasm" UMPIRE_PANIC_NATIVE="$$target/panic-native" CGO_ENABLED=0 $(call RUST_MODEL_STEP,kettle-go-host) mise exec -- go -C "$$PWD/umpire/reference/kettle" test -tags test_dep -count=1 ./...
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && $(RUST_MODEL_WASM_ENV) CGO_ENABLED=0 $(call RUST_MODEL_STEP,kettle-go-host) mise exec -- go -C "$$PWD/umpire/reference/kettle" test -tags test_dep -count=1 ./...
 	@cd model && CGO_ENABLED=0 $(call RUST_MODEL_STEP,temporal-go-host) mise exec -- go -C "$$PWD/temporal/hosts/go" test -tags test_dep -count=1 ./...
 
 model-fmt:

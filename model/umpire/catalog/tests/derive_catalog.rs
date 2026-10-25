@@ -1,5 +1,6 @@
 //! Executable controls for the attribute mirror surface.
 
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 
 use umpire_catalog::{Catalog, Inspect, kinds::*};

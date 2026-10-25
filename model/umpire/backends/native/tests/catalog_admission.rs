@@ -1,5 +1,7 @@
 //! Checked catalog admission happens before any Model step, under the selected limit.
 
+#![forbid(unsafe_code)]
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use umpire_checker::{Checker, Refusal};

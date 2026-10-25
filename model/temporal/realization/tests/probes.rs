@@ -1,5 +1,7 @@
 //! Typed request witnesses must survive the actual protobuf projection.
 
+#![forbid(unsafe_code)]
+
 use umpire_runtime::annotations::ProbeMatch;
 use umpire_runtime::annotations::ProbeObservation;
 

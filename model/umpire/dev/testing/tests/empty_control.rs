@@ -1,5 +1,7 @@
 //! A fixture must select at least one consumer through its expected files.
 
+#![forbid(unsafe_code)]
+
 use std::{error::Error, fs};
 
 #[test]

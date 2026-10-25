@@ -3,6 +3,8 @@
 //! claim cap, seeded mutant trees that must disagree, and a first timing of interpreted against
 //! compiled exploration.
 
+#![forbid(unsafe_code)]
+
 extern crate umpire as umpire_dsl;
 
 #[path = "fixtures/sample_kettle/model.rs"]

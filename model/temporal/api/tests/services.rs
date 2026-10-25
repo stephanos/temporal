@@ -1,5 +1,7 @@
 //! Workflow method admission and dispatch use the real linked upstream descriptor.
 
+#![forbid(unsafe_code)]
+
 use std::{
     collections::BTreeSet,
     fmt::Write,
@@ -117,33 +119,6 @@ fn generated_method_table_follows_the_actual_descriptor() -> Result<(), Box<dyn 
 }
 
 #[test]
-fn dispatch_selects_the_actual_annotated_type_and_direction() {
-    use umpire_temporal_api::WorkflowServiceMethod;
-    for (response, expected) in
-        [(false, "PollActivityTaskQueueRequest"), (true, "PollActivityTaskQueueResponse")]
-    {
-        let name = umpire_temporal_api::dispatch_workflow_annotations!(
-            WorkflowServiceMethod::PollActivityTaskQueue,
-            response,
-            Proto,
-            { std::any::type_name::<Proto>() },
-            "unannotated"
-        );
-        assert!(name.ends_with(expected), "dispatched {name}");
-    }
-    assert_eq!(
-        umpire_temporal_api::dispatch_workflow_annotations!(
-            WorkflowServiceMethod::GetSystemInfo,
-            false,
-            Proto,
-            { std::any::type_name::<Proto>() },
-            "unannotated"
-        ),
-        "unannotated"
-    );
-}
-
-#[test]
 fn generation_uses_annotations_for_dispatch_and_source_match_for_bindings()
 -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"fn family(method: WorkflowServiceMethod) -> &'static str { match method {
@@ -174,7 +149,7 @@ fn generation_uses_annotations_for_dispatch_and_source_match_for_bindings()
             true,
         ),
         (
-            "($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { type $ty = $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest; $body }",
+            "($crate::WorkflowServiceMethod::PollActivityTaskQueue, false) => { ::umpire_catalog::annotate_message:: < $crate::temporal::api::workflowservice::v1::PollActivityTaskQueueRequest, _>(bytes, response, seed, &limits) }",
             true,
         ),
         ("($crate::WorkflowServiceMethod::PollActivityTaskQueue, true) =>", false),

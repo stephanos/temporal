@@ -1,5 +1,7 @@
 //! Descriptor probe inventory, observation correlation and catalog coverage controls.
 
+#![forbid(unsafe_code)]
+
 type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
 use umpire_reference_kettle::{probes, wire::umpire::reference::kettle::v1::ProbeRequest};
 

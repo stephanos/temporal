@@ -1,5 +1,7 @@
 //! The reviewed Rust expansion and its descriptor projection share authored declarations.
 
+#![forbid(unsafe_code)]
+
 #[test]
 fn executable_expansion_and_source_coverage() -> Result<(), Box<dyn std::error::Error>> {
     let declarations = umpire_catalog_syntax::catalogs(include_str!("../../tests/controls.rs"))?;

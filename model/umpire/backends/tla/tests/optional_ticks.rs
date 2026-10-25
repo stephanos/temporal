@@ -1,4 +1,6 @@
 //! Bounded nominal optional values retain their source identity.
+#![forbid(unsafe_code)]
+
 use umpire_tla::Lift;
 
 const SOURCE: &str = r"

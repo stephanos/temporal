@@ -1,4 +1,6 @@
 //! Native realization controls against the independently fixed activity Model.
+#![forbid(unsafe_code)]
+
 use umpire_runtime::protocol::{Method, RefusalCode};
 use umpire_runtime::testing::{GuestExt, ResponseExt};
 

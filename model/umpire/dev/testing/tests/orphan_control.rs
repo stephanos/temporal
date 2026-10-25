@@ -1,5 +1,7 @@
 //! An unregistered expected filename must name the fixture folder.
 
+#![forbid(unsafe_code)]
+
 use std::{error::Error, fs};
 
 #[test]

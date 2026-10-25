@@ -1,5 +1,7 @@
 //! Non-Clone outcomes and observable effects must retain the exact selected checker rows.
 
+#![forbid(unsafe_code)]
+
 use std::{cell::Cell, fmt, rc::Rc};
 
 use umpire_dsl::{ActionDomain, Machine, Path, Pattern, PatternError, Registered, Steps, Waypoint};

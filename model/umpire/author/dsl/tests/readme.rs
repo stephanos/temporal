@@ -1,5 +1,7 @@
 //! The public parameterized example is compiled and kept identical to its README block.
 
+#![forbid(unsafe_code)]
+
 #[path = "readme/parameterized.rs"]
 mod parameterized;
 

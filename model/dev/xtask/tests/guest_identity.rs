@@ -1,4 +1,5 @@
 //! Behavioral controls for the native lock and compiler drivers.
+#![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 #[path = "identity/compiler.rs"]
 mod compiler;

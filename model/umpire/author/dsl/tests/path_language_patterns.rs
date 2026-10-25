@@ -1,4 +1,6 @@
 //! Finite typed path grammar and pre-allocation admission controls.
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{
     ActionDomain, Gap, InputDomain, Path, PathNode, Pattern, PatternError, Waypoint, path,
 };
