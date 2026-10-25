@@ -362,8 +362,15 @@ pub(crate) fn compose(inputs: CompositionInputs) -> Result<StageBindings, String
         stages.insert(label.clone(), leaf);
         entries.insert(label.clone(), entry);
     }
-    seal(&mut files, Path::new(path(b, Binding::RuntimeHarness)?))?;
-    seal(&mut files, Path::new(path(b, Binding::Binary)?))?;
+    for binding in [
+        Binding::RuntimeHarness,
+        Binding::Binary,
+        Binding::HostTests,
+        Binding::HelperTests,
+        Binding::HostFixture,
+    ] {
+        seal(&mut files, Path::new(path(b, binding)?))?;
+    }
     let final_sections = final_sections(b)?;
     let mut config = inputs.base.clone();
     config["repo"] = json!(path(b, Binding::Repo)?);

@@ -198,6 +198,35 @@ fn check_source(
         "frozen source manifest differs",
     )
 }
+const CONSUMED_LIVE_ROLES: [(plan::leaf::Binding, &str); 3] = [
+    (plan::leaf::Binding::HostTests, "ordinary-host-test"),
+    (plan::leaf::Binding::HelperTests, "ordinary-helper-test"),
+    (plan::leaf::Binding::HostFixture, "host-fixture"),
+];
+fn check_consumed_roles(stages: &StageBindings, roles: &CandidateRoles) -> Result<(), String> {
+    for (binding, role) in CONSUMED_LIVE_ROLES {
+        let consumed = stages
+            .inputs
+            .leaves
+            .paths
+            .get(&binding)
+            .ok_or("consumed role executable binding missing")?;
+        let authenticated = roles::path(&roles.config()["live_corpus"]["roles"][role], "binary")?;
+        require(
+            authenticated.to_str() == Some(consumed.as_str()),
+            &format!("consumed role executable differs from authenticated {role}"),
+        )?;
+        let authenticated_digest = roles
+            .files()
+            .get(consumed)
+            .ok_or("authenticated consumed role executable is not sealed")?;
+        require(
+            stages.files.get(consumed) == Some(authenticated_digest),
+            "consumed role executable composition seal differs from authenticated role",
+        )?;
+    }
+    Ok(())
+}
 fn cell_inputs(config: &Value, files: &mut BTreeMap<String, String>) -> Result<(), String> {
     let root = roles::path(config, "root")?;
     for (label, entry) in config["stages"].as_object().ok_or("missing fixed stages")? {
@@ -295,6 +324,7 @@ fn authenticate_bundle(
         "stress matrix belongs to post-freeze window",
     )?;
     bundle.stages.validate()?;
+    check_consumed_roles(&bundle.stages, &bundle.roles)?;
     for name in ["stages", "final_sections", "final_reader"] {
         require(
             config[name] == bundle.stages.config()[name],
@@ -370,6 +400,7 @@ pub(crate) fn freeze(
     context: &mut FreezeContext<'_>,
 ) -> Result<FrozenConfiguration, String> {
     stages.validate()?;
+    check_consumed_roles(&stages, &roles)?;
     let mut config = stages.config().clone();
     merge_roles(&mut config, &roles)?;
     config["schema"] = json!("gomad.rust-qualification-driver/v1");

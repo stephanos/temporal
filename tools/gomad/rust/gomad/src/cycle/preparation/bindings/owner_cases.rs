@@ -68,6 +68,71 @@ fn reject<T>(
     );
     Ok(())
 }
+fn mismatched_consumed_roles(
+    prepared: &PreparedInputs,
+    roles: &CandidateRoles,
+    stages: &StageBindings,
+    root: &Path,
+    context: &mut FreezeContext<'_>,
+) -> Result<(), String> {
+    for (binding, role) in CONSUMED_LIVE_ROLES {
+        let mut inputs = stages.inputs.clone();
+        let replacement = roles::path(roles.config(), "binary")?.display().to_string();
+        inputs.leaves.paths.insert(binding, replacement.clone());
+        let mismatched = super::super::composition::compose(inputs)?;
+        reject(
+            root,
+            &format!("mismatched-consumed-{role}"),
+            &json!({"binding":binding,"replacement":replacement,"authenticated":roles.config()["live_corpus"]["roles"][role]}),
+            &["review:R2:consumed-role-path"],
+            freeze(prepared.clone(), roles.clone(), mismatched, context),
+            "consumed role executable differs from authenticated",
+        )?;
+    }
+    Ok(())
+}
+fn changed_consumed_roles(
+    frozen: &FrozenConfiguration,
+    root: &Path,
+    context: &mut FreezeContext<'_>,
+) -> Result<(), String> {
+    for (binding, role) in CONSUMED_LIVE_ROLES {
+        let binary = roles::path(
+            &frozen.configured.value()["live_corpus"]["roles"][role],
+            "binary",
+        )?;
+        let original = custody::read_file(binary, 128 << 20)?;
+        let mut changed = original.clone();
+        changed.push(0);
+        fs::write(binary, &changed).map_err(|e| e.to_string())?;
+        let observed =
+            FrozenConfiguration::open(context.output, frozen.configured.sha256(), context);
+        fs::write(binary, &original).map_err(|e| e.to_string())?;
+        reject(
+            root,
+            &format!("changed-consumed-{role}"),
+            &json!({"binding":binding,"binary":binary,"control_sha256":custody::digest(&original),"mutant_sha256":custody::digest(&changed)}),
+            &["review:R2:consumed-role-bytes"],
+            observed,
+            "frozen input changed",
+        )?;
+        let parked = root.join(format!("parked-{role}"));
+        fs::rename(binary, &parked).map_err(|e| e.to_string())?;
+        let observed =
+            FrozenConfiguration::open(context.output, frozen.configured.sha256(), context);
+        fs::rename(&parked, binary).map_err(|e| e.to_string())?;
+        reject(
+            root,
+            &format!("deleted-consumed-{role}"),
+            &json!({"binding":binding,"binary":binary,"expected_sha256":custody::digest(&original)}),
+            &["review:R2:consumed-role-exists"],
+            observed,
+            "custody file:",
+        )?;
+    }
+    FrozenConfiguration::open(context.output, frozen.configured.sha256(), context)?;
+    Ok(())
+}
 fn source_cases(root: &Path, runner: &mut Runner, cancelled: &AtomicBool) -> Result<(), String> {
     let private = private_context(runner)?;
     let repo = root.join("source-fixture");
@@ -554,6 +619,15 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
         Binding::TerminalSpec,
         root.join("terminal-preparation.json").display().to_string(),
     );
+    for (binding, role) in CONSUMED_LIVE_ROLES {
+        let receipt = roles_root.join(role).join("dry-build.json");
+        fixture.inputs.leaves.paths.insert(
+            binding,
+            roles::path(&record(&receipt)?, "binary")?
+                .display()
+                .to_string(),
+        );
+    }
     fixture.inputs.runtime_build_receipt = runtime;
     fixture.inputs.leaves.environment = BTreeMap::from([
         ("GOCACHE".into(), "/home/agent/.cache/go-build".into()),
@@ -698,6 +772,7 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
         runner: &mut runner,
         cancelled: &cancelled,
     };
+    mismatched_consumed_roles(&prepared, &roles, &stages, &root, &mut context)?;
     println!("B03_EVENT genuine-freeze-start");
     let frozen = freeze(prepared, roles, stages, &mut context)?;
     let sha = frozen.configured.sha256().to_owned();
@@ -749,6 +824,7 @@ pub(super) fn run_cases(owner: &CycleOwner) -> Result<(), String> {
         "control.json",
         &json!({"config":output,"sha256":sha,"source_sha256":frozen.configured.value()["source_sha256"],"plan":frozen.plan,"scope":"genuine bounded dry-run preparation/freeze; final inputs explicitly unexecuted; no qualification"}),
     )?;
+    changed_consumed_roles(&frozen, &root, &mut context)?;
     let original = frozen.configured.bytes().to_vec();
     let control = frozen.configured.value().clone();
     let mut unsealed_endpoint = control["files"].clone();

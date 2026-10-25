@@ -321,6 +321,34 @@ fn current_composition_reopens_all_stages_and_static_recipes() {
     );
 }
 #[test]
+fn consumed_role_executables_are_sealed_and_reopened() {
+    let f = Fixture::new();
+    let bound = compose(f.inputs.clone()).unwrap();
+    for binding in [
+        Binding::HostTests,
+        Binding::HelperTests,
+        Binding::HostFixture,
+    ] {
+        let path = Path::new(&f.inputs.leaves.paths[&binding]);
+        let original = fs::read(path).unwrap();
+        assert_eq!(
+            bound.files[path.to_str().unwrap()],
+            custody::digest(&original)
+        );
+        let mut changed = original.clone();
+        changed.push(0);
+        fs::write(path, changed).unwrap();
+        assert!(bound.validate().unwrap_err().contains("changed composed"));
+        fs::write(path, &original).unwrap();
+        let parked = path.with_extension("parked");
+        fs::rename(path, &parked).unwrap();
+        let missing = bound.validate().unwrap_err();
+        fs::rename(&parked, path).unwrap();
+        assert!(missing.contains("custody file:"), "{missing}");
+    }
+    bound.validate().unwrap();
+}
+#[test]
 fn composition_refuses_missing_identity_labels_bounds_and_bindings() {
     let f = Fixture::new();
     type Mutate = fn(&mut CompositionInputs);

@@ -19,6 +19,38 @@ pub(super) fn report(ids: &[&str], case: &str, input: &Value, result: &str) {
     );
 }
 #[test]
+fn consumed_role_paths_match_the_authenticated_descriptor_boundary() {
+    let f = super::super::composition::tests::Fixture::new();
+    let bound = super::super::composition::compose(f.inputs.clone()).unwrap();
+    let mut descriptors = serde_json::Map::new();
+    for (binding, role) in CONSUMED_LIVE_ROLES {
+        descriptors.insert(
+            role.into(),
+            json!({"binary":bound.inputs.leaves.paths[&binding]}),
+        );
+    }
+    let roles: CandidateRoles = serde_json::from_value(json!({
+        "config":{"live_corpus":{"roles":descriptors}},
+        "files":bound.files
+    }))
+    .unwrap();
+    check_consumed_roles(&bound, &roles).unwrap();
+    for (binding, _) in CONSUMED_LIVE_ROLES {
+        let mut inputs = bound.inputs.clone();
+        inputs.leaves.paths.insert(
+            binding,
+            inputs.leaves.paths[&plan::leaf::Binding::Binary].clone(),
+        );
+        let mismatched = super::super::composition::compose(inputs).unwrap();
+        assert!(
+            check_consumed_roles(&mismatched, &roles)
+                .unwrap_err()
+                .contains("consumed role executable differs from authenticated")
+        );
+    }
+    check_consumed_roles(&bound, &roles).unwrap();
+}
+#[test]
 fn fresh_publication_reopens_exact_bytes_and_refuses_aliases() {
     let root = root();
     let p = root.join("config");
