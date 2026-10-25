@@ -38,6 +38,8 @@ Frozen integration candidate `aeb813d6ec9c0ebeca98e12e846a955658b5a09c`:
 - Raw Cargo output, direct binary listings, comparison and execution records:
   `/home/agent/wt/evidence/fn253-nextest/verification-aeb813d6ec/default/`.
 
-The reference-helper census is still pending. Broad workspace test execution and
-doctests remain deferred to the integrated spec gate under the owner's validation
-cadence. These focused checks do not resume fn-242 or establish qualification.
+The reference-helper census also matches exactly: 2,520 tests in 32 suites, 55
+ignored, zero differences. Its raw records are in the sibling `reference-helper/`
+directory. Broad workspace test execution and doctests remain deferred to the
+integrated spec gate under the owner's validation cadence. These focused checks
+do not resume fn-242 or establish qualification.
