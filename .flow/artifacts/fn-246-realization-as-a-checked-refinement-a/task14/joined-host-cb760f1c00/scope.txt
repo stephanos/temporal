@@ -1,0 +1,1 @@
+All five joined host/protobuf/guest-freshness stages exited0 on sourcecb760f1c002924b71bf1efea21ea2893de46d186. Later root commits through2aae85b72d changed documentation/evidence only. These checks do not repair the separate Rust services inventory failures, prove actual live Temporal behavior or close task14.

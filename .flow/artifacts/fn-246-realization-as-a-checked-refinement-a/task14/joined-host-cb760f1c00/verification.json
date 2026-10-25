@@ -1,0 +1,78 @@
+{
+  "source_commit": "cb760f1c002924b71bf1efea21ea2893de46d186",
+  "status": "terminal-passed",
+  "results": [
+    {
+      "name": "temporal-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "exit_code": 0,
+      "seconds": 63.622,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-temporal-host.log",
+      "log_sha256": "366f6b3a0e1ec9bf15353162d3343a2d5d3ff623228f7e9fa2c79cf6f2a8857c"
+    },
+    {
+      "name": "capture-composition",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./common/testing/testpilot/temporal/act",
+        "./tools/umpire/temporaldriver"
+      ],
+      "exit_code": 0,
+      "seconds": 13.425,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-capture-composition.log",
+      "log_sha256": "1b08f1ba24f8684e4cdc1a81950ddf2a79a2edff1b339d63a7b92aaebc9fbe57"
+    },
+    {
+      "name": "generic-runner",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner/..."
+      ],
+      "exit_code": 0,
+      "seconds": 3.295,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-generic-runner.log",
+      "log_sha256": "abcfa1a84acf662451efb62ecf07111e54e113b8efc5cad70a56dac7c1c94351"
+    },
+    {
+      "name": "protobuf",
+      "command": [
+        "bash",
+        "model/scripts/proto-go.sh",
+        "temporal",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.126,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-protobuf.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "guest-freshness",
+      "command": [
+        "bash",
+        "model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 81.731,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24614-joined-guest-freshness.log",
+      "log_sha256": "baf4e4e09c0267a2b01cdb4f4dcb7fd3e924fafbf43bedc413117eace7abb28d"
+    }
+  ]
+}
