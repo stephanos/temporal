@@ -54,7 +54,7 @@ func TestFollowBindsProgramNamespaceAndKeepsTransportHold(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	capture := &sdkCapture{bridge: bridge, completed: make(chan worker.RPC, 128)}
+	capture := &sdkCapture{bridge: bridge, completed: make(chan worker.RPC, 128), run: ctx}
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)

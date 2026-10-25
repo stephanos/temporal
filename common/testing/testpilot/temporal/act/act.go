@@ -333,11 +333,36 @@ func (d *Driver) startWorker(parent context.Context) error {
 				err = errors.New("executor stopped before the Run ended")
 			}
 			d.workerFault(err)
-		} else if err != nil && d.executionError() != nil {
+		} else if err != nil && !workerCancellationOnly(err) {
 			d.workerFault(err)
 		}
 	}()
 	return nil
+}
+
+func workerCancellationOnly(err error) bool {
+	if err == nil {
+		return true
+	}
+	switch wrapped := err.(type) {
+	case interface{ Unwrap() []error }:
+		causes := wrapped.Unwrap()
+		if len(causes) == 0 {
+			return false
+		}
+		for _, cause := range causes {
+			if !workerCancellationOnly(cause) {
+				return false
+			}
+		}
+		return true
+	case interface{ Unwrap() error }:
+		if cause := wrapped.Unwrap(); cause != nil {
+			return workerCancellationOnly(cause)
+		}
+	default:
+	}
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
 }
 
 func (d *Driver) executionError() error {
@@ -416,11 +441,13 @@ func (d *Driver) Close() error {
 func (d *Driver) close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), d.opts.CloseTimeout)
 	defer cancel()
+	if d.workerCancel != nil {
+		d.workerCancel()
+	}
 	if d.polls != nil {
 		d.polls.close()
 	}
 	if d.workerCancel != nil {
-		d.workerCancel()
 		<-d.workerDone
 	}
 	if d.workerCapture != nil {

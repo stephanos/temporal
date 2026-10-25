@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -50,6 +51,7 @@ func TestCanceledConversionPreservesPayload(t *testing.T) {
 }
 
 type sdkProgressKey struct{}
+type sdkInvocationValue struct{}
 type sdkProgress struct{ sent, answered atomic.Bool }
 type sdkProgressStats struct{}
 
@@ -73,18 +75,20 @@ func (sdkProgressStats) TagConn(ctx context.Context, _ *stats.ConnTagInfo) conte
 func (sdkProgressStats) HandleConn(context.Context, stats.ConnStats) {}
 
 type sdkCapture struct {
-	bridge               *worker.Bridge
-	mu                   sync.Mutex
-	invocation, sequence uint64
-	completed            chan worker.RPC
-	mutate               func(string, proto.Message)
-	run                  context.Context
-	hold                 string
-	blocked              chan worker.RPC
-	release              chan struct{}
-	publishers           sync.WaitGroup
-	inFlight             sync.WaitGroup
-	rewriteTerminal      bool
+	bridge                                       *worker.Bridge
+	mu                                           sync.Mutex
+	invocation, sequence                         uint64
+	completed                                    chan worker.RPC
+	mutate                                       func(string, proto.Message)
+	run                                          context.Context
+	hold                                         string
+	blocked                                      chan worker.RPC
+	release                                      chan struct{}
+	publishers                                   sync.WaitGroup
+	inFlight                                     sync.WaitGroup
+	rewriteTerminal                              bool
+	terminalOriginalContext, terminalCallContext context.Context
+	terminalCanceledAtCapture                    bool
 }
 
 func (c *sdkCapture) intercept(ctx context.Context, method string, request, response any, cc *grpc.ClientConn, invoke grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -99,6 +103,16 @@ func (c *sdkCapture) intercept(ctx context.Context, method string, request, resp
 	}
 	c.inFlight.Add(1)
 	defer c.inFlight.Done()
+	originalContext := context.WithValue(ctx, sdkInvocationValue{}, c)
+	ctx, cancelCall := context.WithCancel(originalContext)
+	cancelJoined := make(chan struct{})
+	stopRun := context.AfterFunc(c.run, func() { cancelCall(); close(cancelJoined) })
+	defer func() {
+		cancelCall()
+		if !stopRun() {
+			<-cancelJoined
+		}
+	}()
 	if c.rewriteTerminal && method == workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName {
 		completed := request.(*workflowservice.RespondActivityTaskCompletedRequest)
 		method = workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
@@ -125,7 +139,7 @@ func (c *sdkCapture) intercept(ctx context.Context, method string, request, resp
 		select {
 		case <-c.release:
 		case <-c.run.Done():
-			err = c.run.Err()
+			<-cancelJoined
 		}
 	}
 	if err == nil {
@@ -150,6 +164,10 @@ func (c *sdkCapture) intercept(ctx context.Context, method string, request, resp
 		completed.TransportError = err.Error()
 	}
 	c.mu.Lock()
+	if c.hold == "terminal" && method == workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName {
+		c.terminalOriginalContext, c.terminalCallContext = originalContext, ctx
+		c.terminalCanceledAtCapture = ctx.Err() != nil && c.run.Err() != nil
+	}
 	c.sequence++
 	completed.Sequence = c.sequence
 	if c.hold == "publication" && method == workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName && err == nil {
@@ -624,6 +642,17 @@ func TestProductionSDKRunCancellationJoinsBlockedStages(t *testing.T) {
 			require.NoError(t, fixture.err)
 			require.NoError(t, fixture.closeErr)
 			requireNoCompletedTerminal(t, fixture)
+			if stage == "terminal" {
+				original, invoked := fixture.capture.terminalOriginalContext, fixture.capture.terminalCallContext
+				require.NotNil(t, invoked)
+				require.True(t, fixture.capture.terminalCanceledAtCapture, "actual invocation context was Run-canceled before capture")
+				require.ErrorIs(t, invoked.Err(), context.Canceled)
+				require.Same(t, fixture.capture, invoked.Value(sdkInvocationValue{}))
+				originalDeadline, originalHasDeadline := original.Deadline()
+				invokedDeadline, invokedHasDeadline := invoked.Deadline()
+				require.Equal(t, originalHasDeadline, invokedHasDeadline)
+				require.Equal(t, originalDeadline, invokedDeadline)
+			}
 		})
 	}
 }
@@ -962,4 +991,142 @@ func TestTerminalEnqueueBackpressureJoinsWithoutPublishing(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTerminalCoordinatorValidatesCapturedResultsDuringShutdown(t *testing.T) {
+	for _, ending := range []string{"run", "owner-first", "active-deadline"} {
+		t.Run(ending, func(t *testing.T) {
+			for _, outcome := range []string{"valid", "mutated-request", "nonempty-failed-ack", "malformed-response", "transport-error", "ambiguous-status", "malformed-status", "server-canceled", "server-deadline", "local-canceled", "retry-success", "failure-then-local-canceled", "unfinished"} {
+				if ending == "active-deadline" && outcome != "unfinished" {
+					continue
+				}
+				t.Run(outcome, func(t *testing.T) {
+					run, cancel := context.WithCancel(t.Context())
+					defer cancel()
+					owner, end := run, cancel
+					if ending == "owner-first" {
+						var cancelOwner context.CancelFunc
+						owner, cancelOwner = context.WithCancel(t.Context())
+						defer cancelOwner()
+						end = cancelOwner
+					}
+					callCtx, cancelCall := context.WithCancel(run)
+					defer cancelCall()
+					bridge := worker.NewBridge(owner)
+					pack := func(message proto.Message) *anypb.Any {
+						value, err := anypb.New(message)
+						require.NoError(t, err)
+						return value
+					}
+					poll := &workflowservice.PollActivityTaskQueueRequest{Namespace: heartbeatNamespace, TaskQueue: &taskqueuepb.TaskQueue{Name: "production-queue"}}
+					task := productionTask(heartbeatToken, 7, "close-run")
+					task.WorkflowNamespace = heartbeatNamespace
+					require.NoError(t, bridge.Observe(run, worker.RPC{Invocation: 1, Sequence: 1, Stage: worker.RPCStarted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: pack(poll)}))
+					require.NoError(t, bridge.Observe(run, worker.RPC{Invocation: 1, Sequence: 2, Stage: worker.RPCCompleted, Method: workflowservice.WorkflowService_PollActivityTaskQueue_FullMethodName, Request: pack(poll), Response: pack(task), Sent: true, Answered: true}))
+					assignment, err := bridge.Bind(worker.IdentityFromPoll(heartbeatNamespace, "production-queue", task))
+					require.NoError(t, err)
+					method := workflowservice.WorkflowService_RespondActivityTaskCompleted_FullMethodName
+					expected := pack(&workflowservice.RespondActivityTaskCompletedRequest{Namespace: heartbeatNamespace, TaskToken: heartbeatToken})
+					actual := proto.CloneOf(expected)
+					response := pack(&workflowservice.RespondActivityTaskCompletedResponse{})
+					if outcome == "mutated-request" {
+						actual = pack(&workflowservice.RespondActivityTaskCompletedRequest{Namespace: heartbeatNamespace, TaskToken: heartbeatToken, Result: &commonpb.Payloads{Payloads: []*commonpb.Payload{{Data: []byte("mutated")}}}})
+					}
+					if outcome == "nonempty-failed-ack" {
+						method = workflowservice.WorkflowService_RespondActivityTaskFailed_FullMethodName
+						expected = pack(&workflowservice.RespondActivityTaskFailedRequest{Namespace: heartbeatNamespace, TaskToken: heartbeatToken})
+						actual = proto.CloneOf(expected)
+						response = pack(&workflowservice.RespondActivityTaskFailedResponse{Failures: []*failurepb.Failure{{Message: "rejected"}}})
+					}
+					wait, err := assignment.BeginTerminal(method)
+					require.NoError(t, err)
+					require.NoError(t, bridge.Observe(callCtx, worker.RPC{Invocation: 2, Sequence: 3, Stage: worker.RPCStarted, Method: method, Request: actual}))
+					completed := worker.RPC{Invocation: 2, Sequence: 4, Stage: worker.RPCCompleted, Method: method, Request: actual, Response: response, Sent: true, Answered: true}
+					switch outcome {
+					case "transport-error", "retry-success", "failure-then-local-canceled":
+						completed.CallError = pack(status.New(codes.Unavailable, "retryable terminal failure").Proto())
+					case "ambiguous-status":
+						completed.CallError = pack(status.New(codes.Internal, "unattributed failure").Proto())
+					case "malformed-status":
+						completed.CallError = pack(status.New(codes.Canceled, "malformed").Proto())
+						completed.CallError.Value = []byte{0xff}
+					case "server-deadline":
+						completed.CallError = pack(status.New(codes.DeadlineExceeded, "server deadline with live call context").Proto())
+					case "server-canceled", "local-canceled":
+						completed.CallError = pack(status.New(codes.Canceled, "canceled terminal").Proto())
+						if outcome == "local-canceled" {
+							cancelCall()
+						}
+					case "malformed-response":
+						completed.Response.Value = []byte{0xff}
+					case "valid", "mutated-request", "nonempty-failed-ack", "unfinished":
+					default:
+						t.Fatal("unknown terminal shutdown outcome")
+					}
+					if outcome != "unfinished" {
+						require.NoError(t, bridge.Observe(callCtx, completed))
+					}
+					if outcome == "retry-success" || outcome == "failure-then-local-canceled" {
+						require.NoError(t, bridge.Observe(callCtx, worker.RPC{Invocation: 3, Sequence: 5, Stage: worker.RPCStarted, Method: method, Request: actual}))
+						completed.Invocation, completed.Sequence, completed.CallError = 3, 6, nil
+						if outcome == "failure-then-local-canceled" {
+							cancelCall()
+							completed.CallError = pack(status.New(codes.Canceled, "local shutdown").Proto())
+						}
+						require.NoError(t, bridge.Observe(callCtx, completed))
+					}
+					queue := make(chan terminalExpectation, 1)
+					deadline := time.Now().Add(time.Second)
+					if ending == "active-deadline" {
+						deadline = time.Now().Add(-time.Second)
+					}
+					queue <- terminalExpectation{wait: wait, expected: expected, deadline: deadline}
+					resume, joined := make(chan struct{}), make(chan struct{})
+					var failures []error
+					go func() {
+						defer close(joined)
+						<-resume
+						coordinateTerminals(run, owner, bridge, queue, func(err error) { failures = append(failures, err) })
+					}()
+					if ending != "active-deadline" {
+						end()
+					}
+					if ending == "owner-first" {
+						require.NoError(t, run.Err(), "derived Run has not yet observed owner cancellation")
+					}
+					close(queue)
+					close(resume)
+					heartbeatReceive(t.Context(), t, joined)
+					if ending == "active-deadline" {
+						require.Len(t, failures, 1)
+						require.ErrorIs(t, failures[0], context.DeadlineExceeded)
+					} else {
+						switch outcome {
+						case "valid", "unfinished", "local-canceled", "retry-success":
+							require.Empty(t, failures)
+						default:
+							require.Len(t, failures, 1)
+							require.ErrorContains(t, failures[0], "SDK terminal completion")
+							if outcome == "mutated-request" {
+								require.ErrorContains(t, failures[0], "actual terminal payload or assignment")
+							}
+							if outcome == "nonempty-failed-ack" {
+								require.ErrorContains(t, failures[0], "failures")
+							}
+						}
+					}
+					end()
+					require.NoError(t, bridge.Close())
+				})
+			}
+		})
+	}
+}
+
+func TestShutdownCancellationRetainsJoinedValidationFailure(t *testing.T) {
+	run, cancel := context.WithCancel(t.Context())
+	cancel()
+	validation := errors.New("terminal acknowledgment validation failed")
+	require.False(t, shutdownCancellation(run, run, errors.Join(context.Canceled, validation)))
+	require.True(t, shutdownCancellation(run, run, errors.Join(context.Canceled, context.DeadlineExceeded)))
 }

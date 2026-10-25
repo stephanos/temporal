@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"go.temporal.io/api/workflowservice/v1"
+	statuspb "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	realizationv1 "umpire.local/model/gen/umpire/realization/v1"
@@ -88,6 +90,7 @@ type operation struct {
 	method   string
 	done     chan struct{}
 	result   *RPC
+	failure  *RPC
 	inFlight uint64
 	waiting  bool
 }
@@ -169,7 +172,7 @@ func (b *Bridge) Observe(ctx context.Context, rpc RPC) error {
 	case RPCStarted:
 		return b.observeStart(ctx, rpc)
 	case RPCCompleted:
-		return b.observeCompletion(rpc)
+		return b.observeCompletion(ctx, rpc)
 	default:
 		return b.fail(errors.New("unknown worker RPC stage"))
 	}
@@ -214,7 +217,7 @@ func (b *Bridge) observeStart(ctx context.Context, rpc RPC) error {
 	return nil
 }
 
-func (b *Bridge) observeCompletion(rpc RPC) error {
+func (b *Bridge) observeCompletion(ctx context.Context, rpc RPC) error {
 	call := b.invocations[rpc.Invocation]
 	if call == nil || call.completed || call.start.Method != rpc.Method || !proto.Equal(call.start.Request, rpc.Request) {
 		return b.fail(errors.New("worker RPC completion is missing, duplicate or crossed"))
@@ -239,6 +242,9 @@ func (b *Bridge) observeCompletion(rpc RPC) error {
 	call.assignment.lastInvocationSequence = rpc.Sequence
 	op.inFlight = 0
 	if rpc.TransportError != "" || rpc.ServerError != nil || rpc.CallError != nil {
+		if rpc.Method != workflowservice.WorkflowService_RecordActivityTaskHeartbeat_FullMethodName && !canceledInvocation(ctx, rpc) {
+			op.failure = &rpc
+		}
 		return nil
 	}
 	if rpc.Response == nil || !rpc.Sent || !rpc.Answered {
@@ -253,6 +259,17 @@ func (b *Bridge) observeCompletion(rpc RPC) error {
 	}
 	close(op.done)
 	return nil
+}
+
+func canceledInvocation(ctx context.Context, rpc RPC) bool {
+	if ctx.Err() == nil || rpc.CallError == nil {
+		return false
+	}
+	status := new(statuspb.Status)
+	if err := rpc.CallError.UnmarshalTo(status); err != nil {
+		return false
+	}
+	return status.Code == int32(codes.Canceled) || status.Code == int32(codes.DeadlineExceeded)
 }
 
 func (b *Bridge) poll(rpc RPC) error {
@@ -386,13 +403,13 @@ func (a *Assignment) BeginTerminal(method string) (*TerminalWait, error) {
 }
 
 func (w *HeartbeatWait) Wait(ctx context.Context) (ActualCompletion, error) {
-	return w.assignment.wait(ctx, w.operation)
+	return w.assignment.wait(ctx, w.operation, false)
 }
 func (w *TerminalWait) Wait(ctx context.Context) (ActualCompletion, error) {
-	return w.assignment.wait(ctx, w.operation)
+	return w.assignment.wait(ctx, w.operation, true)
 }
 
-func (a *Assignment) wait(ctx context.Context, op *operation) (ActualCompletion, error) {
+func (a *Assignment) wait(ctx context.Context, op *operation, retainTerminal bool) (ActualCompletion, error) {
 	b := a.bridge
 	b.mu.Lock()
 	if op.waiting {
@@ -411,20 +428,28 @@ func (a *Assignment) wait(ctx context.Context, op *operation) (ActualCompletion,
 	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if err := b.available(); err != nil {
-		return ActualCompletion{}, err
+	result := op.result
+	if retainTerminal && result == nil && (ctx.Err() != nil || b.ctx.Err() != nil) {
+		result = op.failure
 	}
-	if err := ctx.Err(); err != nil {
-		return ActualCompletion{}, err
+	// Captured terminal results still require validation during shutdown.
+	// Heartbeat waits never gain history credit from a canceled lifetime.
+	if !retainTerminal || result == nil || b.err != nil {
+		if err := b.available(); err != nil {
+			return ActualCompletion{}, err
+		}
+		if err := ctx.Err(); err != nil {
+			return ActualCompletion{}, err
+		}
 	}
-	if op.result == nil {
+	if result == nil {
 		return ActualCompletion{}, errors.New("worker operation has no successful completion")
 	}
 	if a.current != op {
 		return ActualCompletion{}, b.fail(errors.New("operation is no longer current for assignment"))
 	}
 	a.current = nil
-	return ActualCompletion{rpc: op.result.clone()}, nil
+	return ActualCompletion{rpc: result.clone()}, nil
 }
 
 // Close wakes waits; normal Run cancellation does not manufacture a worker fault.
