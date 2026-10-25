@@ -364,7 +364,7 @@ fn selected_world() -> umpire_testing::TestResult {
 ```
 
 This exact block compiles as [the DSL README fixture](umpire/author/dsl/tests/readme/parameterized.rs),
-checked against the README by `mise exec -- cargo test -p umpire-dsl --test readme` from
+checked against the README by `mise exec -- cargo test -p umpire-dsl --test main readme::` from
 `model/`. The fixture binds one selected World explicitly; `bound_for` selects another without
 fabricating defaults. `World::new` assigns fields and does not validate their ranges or starts.
 

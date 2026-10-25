@@ -2,6 +2,11 @@
 
 #![forbid(unsafe_code)]
 
+extern crate umpire as umpire_dsl;
+
+#[path = "interpreted.rs"]
+pub mod interpreted;
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 include!(concat!(env!("OUT_DIR"), "/lifted.rs"));
 include!(concat!(env!("OUT_DIR"), "/interpreted.rs"));
