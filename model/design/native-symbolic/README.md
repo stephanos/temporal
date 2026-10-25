@@ -13,10 +13,13 @@ Verdict and measurements: `../native-symbolic-backend.md`.
 - `src/witness.rs` BTOR2 witness decoding (state/input declaration indices) and native replay.
 - `src/smt.rs` the BTOR2 node graph unrolled as QF_BV SMT-LIB, piped to a solver.
 - `src/main.rs` driver: baseline Kettle, two controls that mutate the admitted tree only (the
-  cross-check must flag them), and a scaled Kettle (`src/kettle_big.rs`, boiling at 1 000 000).
-- `src/sample_kettle.rs` is a snapshot of `model/umpire/.../sample_kettle/model.rs` taken at
-  f76f622a79 (the fixture folder was being moved by another session while the spike ran).
-- `out/` and `out-big/`: reports, emitted `.btor` files, solver logs and replayed paths.
+  cross-check must flag them), and a scaled Kettle (boiling at 1 000 000).
+- The baseline includes `umpire/dev/fixtures/fixtures/sample_kettle/model.rs` directly.
+  `build.rs` compiles the same authored source with its boiling threshold scaled from 100 to
+  1 000 000 for the big Model; it refuses a missing or ambiguous threshold declaration.
+- `out/` and `out-big/` are ignored, regenerable reports, emitted `.btor` files, solver logs and
+  replayed paths. `run.sh` regenerates the baseline and mutation controls; `RUNS=big OUT=out-big`
+  selects the scaled Model. Set `OUT` to retain evidence elsewhere.
 
 Built against `model/umpire/{dsl,ir,checker}` at f76f622a79 with the ric3 binary built from
 rIC3 v1.5.2 (see `run.sh`). The crate is standalone (`[workspace]`), not a member of the model workspace; it lives beside its verdict in `model/design/`.
