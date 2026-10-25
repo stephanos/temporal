@@ -1,0 +1,240 @@
+{
+  "schema": "gomad.fn242-b04-conductor-proof/v1",
+  "batch": "B04",
+  "members": [
+    "fn-242-gomad-shrink-the-qualification.18",
+    "fn-242-gomad-shrink-the-qualification.21"
+  ],
+  "worker_source": "587d126e6d7c3d9e031bdb36f9893270e1241b01",
+  "integration_source_parent": "9ba08cd23651e3b78effd4576e38d56f3cc4a4b0",
+  "rust_tree_equality_exit": 0,
+  "source_files_verified": 16,
+  "handoff": "/home/agent/wt/evidence/fn242-b04-reader-foundation/handoff.json",
+  "handoff_sha256": "e43fa3a55c18002ae33275fe9dcd67ec9219ca889ae30472a9e32f2b33cca130",
+  "proof_map": "/home/agent/wt/evidence/fn242-b04-reader-foundation/proof-map.json",
+  "proof_map_sha256": "f20544d998e84231ea78bd2abde8293fd5f2b0974a5d78dc9bb9d5329c336214",
+  "source_freeze": "/home/agent/wt/evidence/fn242-b04-reader-foundation/source-freeze.json",
+  "source_freeze_sha256": "258703b8d521c0cd80ebadbfe9ecda37a9508ea4ca9947cf5c018621d7add928",
+  "checks": 315,
+  "functions": 19,
+  "pending": 0,
+  "exact_legacy_retirements": 32,
+  "gates": [
+    {
+      "label": "owner-diagnostic-21",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--message-format=json-render-diagnostics",
+        "-p",
+        "gomad",
+        "--test",
+        "cycle_custody_owner",
+        "--config",
+        "profile.release.package.gomad.opt-level=0"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/owner-diagnostic-21.log",
+      "log_sha256": "a6f22d6068df24c282258d545de30bfb9664c00ccbbc3a7425897896a0f61a38"
+    },
+    {
+      "label": "final-compile",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--message-format=json-render-diagnostics",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-run",
+        "--config",
+        "profile.release.package.gomad.opt-level=0"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-compile.log",
+      "log_sha256": "1b111ee1908730f6cf0079b256d0cc873fa0ee39d8b411d8fba15ca01c57be53"
+    },
+    {
+      "label": "final-focused",
+      "command": [
+        "/Users/stephan/Workspace/skunkworks/gomad/.build-cache/fn232-cycle8-repair27-target/release/deps/gomad-1107fb1b91bbcdb4",
+        "cycle::readers::",
+        "evidence::store::",
+        "qualify::result::",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-focused.log",
+      "log_sha256": "ef026256e14a8a99476c3888c3338af5e5f08f5b00a596436c13fb5d4b393ca7"
+    },
+    {
+      "label": "final-gomad-clippy",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-gomad-clippy.log",
+      "log_sha256": "b119e1e3b9b44a470046e07fc0c9f62066bd84089e3186d702fe801000babf0a"
+    },
+    {
+      "label": "final-wasm-focused-clippy",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "clippy",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "-p",
+        "gomad-wasmhost",
+        "--lib",
+        "--no-deps",
+        "--",
+        "-D",
+        "warnings",
+        "-A",
+        "clippy::chunks_exact_to_as_chunks"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-wasm-focused-clippy.log",
+      "log_sha256": "18e45a1700e33efdfa654aa35c6811f25205e75203616faacc7bf1d711852b7a"
+    },
+    {
+      "label": "final-fmt",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--all",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "final-diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-diff.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "final-recomputation",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "test",
+        "--release",
+        "--locked",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--message-format=json-render-diagnostics",
+        "-p",
+        "gomad",
+        "--lib",
+        "--config",
+        "profile.release.package.gomad.opt-level=0",
+        "cycle::readers::command::tests::command_custody_rejects_alias_mode_link_bound_and_root_substitution",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-recomputation.log",
+      "log_sha256": "19b76d2cd127201e73736a99c23cb50fc9ad4daca058cc1ceae88a9877c043b1"
+    },
+    {
+      "label": "final-fmt-recomputation",
+      "command": [
+        "cargo",
+        "+1.99.1",
+        "fmt",
+        "--all",
+        "--manifest-path",
+        "tools/gomad/rust/Cargo.toml",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-fmt-recomputation.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "mutation_proof": {
+    "before": {
+      "tools/gomad/rust/gomad/src/cycle/readers/command/mod.rs": "b759a0ff0b1db4e6646b01910c7d56e4edcff74825c28000c4525d282c639e7f",
+      "tools/gomad/rust/gomad/src/cycle/readers/core_codec/effects.rs": "33010af34185743f08d9e536594b8b0963a86d62c0e51902ce36df675726f3a6"
+    },
+    "command": [
+      "cargo",
+      "+1.99.1",
+      "test",
+      "--release",
+      "--locked",
+      "--manifest-path",
+      "tools/gomad/rust/Cargo.toml",
+      "-p",
+      "gomad",
+      "--lib",
+      "--config",
+      "profile.release.package.gomad.opt-level=0",
+      "cycle::readers::",
+      "--",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "disabled_guards": [
+      "command raw stream/argv binding",
+      "independent enumeration persistence effects/order/coverage"
+    ],
+    "exit": 101,
+    "label": "source-mutants-final",
+    "log": "/home/agent/wt/evidence/fn242-b04-reader-foundation/source-mutants-final.log",
+    "log_sha256": "c57c9904234904c76db22120415ca39d5541d57f83266a28351d9deafa0150b5",
+    "mutant": {
+      "tools/gomad/rust/gomad/src/cycle/readers/command/mod.rs": "4aa54a864f4f7f9df5cb38de9c6c6b2593fdde2caa65d1f7088c2d471b44ad2e",
+      "tools/gomad/rust/gomad/src/cycle/readers/core_codec/effects.rs": "c1018a174c0f34440a252d3edfea75a9456a09d2a83b287f85e7393edefe2237"
+    },
+    "pid": 838469
+  },
+  "cleanup": {
+    "receipt_file": "/home/agent/wt/evidence/fn242-b04-reader-foundation/final-process-handles.json",
+    "processes": 14,
+    "all_inactive_cleanup_complete_and_currently_absent": true
+  },
+  "current_owner_amendments": "Retained binary formats delegate wasmhost decoders; no second parser; current main owner draft .21/spec text inspected and requirement included in this batch audit. Compatibility retirement and aggressive evidence reuse policies remain controlling.",
+  "qualification_claim": false,
+  "review": "Pending independent high correctness whole-batch review; no SHIP or Flowdone claimed."
+}
