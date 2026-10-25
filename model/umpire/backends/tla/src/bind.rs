@@ -202,11 +202,13 @@ fn typed<'a>(
                 .iter()
                 .find(|(field, _)| field == name)
                 .ok_or_else(|| message(file, location, format!("missing {kind} field `{name}`")))?;
-            let admitted = value.1.admit(ty).map_err(|_| {
+            let admitted = value.1.admit(ty).map_err(|error| {
                 message(
                     file,
                     location,
-                    format!("{kind} field `{name}` value does not match admitted type {ty:?}"),
+                    format!(
+                        "{kind} field `{name}` value does not match admitted type {ty:?}: {error}"
+                    ),
                 )
             })?;
             Ok((Expr::constant(ty, &admitted), value.clone()))
@@ -218,7 +220,9 @@ fn typed<'a>(
 fn cfg_representable(value: &Expr) -> bool {
     match &value.kind {
         ExprKind::Int(value) => (0..=i128::from(i32::MAX)).contains(value),
-        ExprKind::Sequence(values) => values.iter().all(cfg_representable),
+        ExprKind::Sequence(values) | ExprKind::Tuple(values) => {
+            values.iter().all(cfg_representable)
+        }
         _ => true,
     }
 }
@@ -231,4 +235,25 @@ pub(crate) struct Entry {
     /// The first catalog ordinal with the same identity, so positional duplicates share one
     /// observable edge as they share one native catalog equality class.
     pub(crate) ordinal: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cfg_representable;
+    use umpire_front::{Type, expr::Expr, value::Value};
+
+    #[test]
+    fn cfg_representation_looks_inside_tuples_and_sequences() {
+        let int = Type::Int { min: i128::MIN, max: i128::MAX };
+        let pair = Type::Tuple(vec![Type::Bool, int.clone()]);
+        let constant =
+            |raw| Expr::constant(&pair, &Value::Tuple(vec![Value::Bool(true), Value::Int(raw)]));
+        assert!(cfg_representable(&constant(i128::from(i32::MAX))));
+        for raw in [-1, i128::from(i32::MAX) + 1] {
+            assert!(!cfg_representable(&constant(raw)), "{raw}");
+            let nested = Type::Seq(Box::new(pair.clone()));
+            let value = Value::Seq(vec![Value::Tuple(vec![Value::Bool(false), Value::Int(raw)])]);
+            assert!(!cfg_representable(&Expr::constant(&nested, &value)), "{raw}");
+        }
+    }
 }

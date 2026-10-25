@@ -148,6 +148,9 @@ impl Expr {
         Self { kind: ExprKind::Unit, ty: Type::Unit }
     }
     /// A value of `ty` as a constant; nominal and optional values keep their integer encoding.
+    ///
+    /// # Panics
+    /// If `value` is not a value of `ty`, as [`Literal::admit`](crate::Literal::admit) ensures.
     pub fn constant(ty: &Type, value: &Value) -> Self {
         let kind = match (value, ty) {
             (Value::Bool(value), _) => ExprKind::Bool(*value),

@@ -59,6 +59,9 @@ pub enum Value {
 impl Value {
     /// An admitted value of `ty` on the wire: enum variants by their qualified name, unit and
     /// tuples as sequences.
+    ///
+    /// # Panics
+    /// If `value` is not a value of `ty`, as [`Literal::admit`](crate::Literal::admit) ensures.
     #[must_use]
     pub fn admitted(value: &umpire_front::value::Value, ty: &crate::Type) -> Self {
         use crate::Type as Source;

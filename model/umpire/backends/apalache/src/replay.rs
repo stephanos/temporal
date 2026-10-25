@@ -676,14 +676,17 @@ fn literals<'a>(
     let types: BTreeMap<_, _> = types.collect();
     let mut fields = State::new();
     for (name, value) in values {
-        let ty = types.get(name.as_str()).ok_or_else(|| reject("typed literal fields differ"))?;
-        let admitted = value.admit(ty).map_err(|_| reject("typed literal fields differ"))?;
+        let ty = types
+            .get(name.as_str())
+            .ok_or_else(|| reject(format!("undeclared binding field: {name}")))?;
+        let admitted =
+            value.admit(ty).map_err(|error| reject(format!("binding field {name}: {error}")))?;
         if fields.insert(name.clone(), Value::admitted(&admitted, ty)).is_some() {
-            return Err(reject("typed literal fields differ"));
+            return Err(reject(format!("duplicate binding field: {name}")));
         }
     }
-    if fields.len() != types.len() {
-        return Err(reject("typed literal fields differ"));
+    if let Some(name) = types.keys().find(|name| !fields.contains_key(**name)) {
+        return Err(reject(format!("missing binding field: {name}")));
     }
     Ok(fields)
 }
