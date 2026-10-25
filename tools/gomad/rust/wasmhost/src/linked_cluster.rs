@@ -1755,12 +1755,15 @@ pub struct NetworkObservation {
 }
 
 impl NetworkObservation {
+    #[must_use]
     pub fn log(&self) -> &[u8] {
         &self.log
     }
+    #[must_use]
     pub fn record(&self) -> &serde_json::Value {
         &self.record
     }
+    #[must_use]
     pub fn world(&self) -> &[u8] {
         &self.world
     }
