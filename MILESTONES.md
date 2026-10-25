@@ -59,13 +59,13 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | ⬜ todo | After .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After remaining implementation tasks: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ⬜ todo | After .13/.16: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
+| fn-254.10 | ⬜ todo | Next: independent framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
 | fn-254.13 | ✅ done | Standalone workspace and dedicated guest driver; caller/root/remap controls and guest reproduction reviewed (R7) |
 | fn-254.14 | ⬜ todo | After .13: assume mise and pinned tools are installed; drop presence/pin probes and their controls, fail hard (R7) |
 | fn-254.15 | ⬜ todo | After .13, .10, .14: port remaining model shell scripts to xtask/guest-driver/Makefile; only the xtask bootstrap stays shell (R7) |
-| fn-254.16 | ⬜ todo | After .13/.14, before .10: mise provisions pinned TLC and opt-in Apalache; keep runtime JAR hash/path admission (R7) |
+| fn-254.16 | ⬜ todo | After .14: mise provisions pinned TLC and opt-in Apalache behind existing entry points; keep runtime JAR hash/path admission (R7) |
 
 ### fn-256: Retire the Scala-era build and Go tooling
 

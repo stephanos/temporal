@@ -1,0 +1,26 @@
+--- a/.flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.6.md
++++ b/.flow/tasks/fn-254-fast-validation-gates-and-a-real-inner.6.md
+@@ -8,15 +8,20 @@
+ The author's inner loop (spec R2): edit a Model, get native, interpreter and (where needed) TLC answers in under a minute.
+ 
+ **Size:** M
+-**Files:** `Makefile` (`model-quick`), `model/scripts/quick.sh` (new) or an xtask subcommand if fn-247's xtask is the convention, the TLC result cache in `umpire/dev/testing` or the runner.
+-**Touches:** [Makefile, model/scripts/quick.sh, model/scripts/xtask.sh, model/dev/xtask/**, model/umpire/dev/xtask/**, model/umpire/dev/testing/src/**, model/umpire/backends/tlc/src/**]
++**Files:** native framework quick command and Temporal selection extension; their actual CLI/Make registration; TLC cache and backend call sites; focused unit/cache controls. Use the established xtask home, without introducing a quick shell wrapper.
++**Touches:** [Makefile, model/dev/xtask/src/main.rs, model/dev/xtask/src/quick/**, model/dev/xtask/Cargo.toml, model/umpire/dev/xtask/src/main.rs, model/umpire/dev/xtask/src/lib.rs, model/umpire/dev/xtask/src/quick/**, model/umpire/dev/xtask/Cargo.toml, model/umpire/dev/testing/src/**, model/umpire/dev/testing/Cargo.toml, model/umpire/backends/tlc/src/**, model/umpire/backends/tlc/tests/**, model/umpire/backends/tlc/Cargo.toml, model/umpire/Cargo.toml, model/umpire/Cargo.lock, model/Cargo.toml, model/Cargo.lock]
++
++### Parallel ownership
++- Own the listed quick command, CLI/Make wiring, cache/backend source and required dependency/lock edits. Keep quick command controls as unit tests within its owned quick source; TLC cache controls use the owned TLC test tree. Framework xtask integration-test aggregation belongs to .11. Task .8 owns consolidated README/tier/cache documentation; .12 owns budgets.
++- .10 already forces the authoritative full-gate cache-disable policy before invoking stages. Consume that exact policy in the cache and prove populated-cache bypass here; do not edit the full-gate implementation or .3's working `test_run.rs` leaves. If actual implementation requires an additional owner's file, amend Touches and serialize instead of inventing narrower ownership.
++- Preserve coarse full-lock/driver/compiler guest identity. Required changed-input guest reproduction is not waived by parallelism. If actual generated committed bytes change, declare those exact paths and recheck admission before publication; unchanged-byte reproduction remains evidence, not a fabricated source touch.
+ 
+ ### Approach
+ - Change set: `git diff --name-only` against `BASE` (default `HEAD`) plus untracked files. Map files to crates and add reverse dependencies from `cargo metadata`. Run `cargo fmt --check`, clippy on those crates, and their tests.
+ - Handle renames/deletions and cross-workspace reverse dependencies. Invalid BASE fails explicitly. Manifest/lock/tool/build-input changes or unmappable paths conservatively select the affected whole workspace(s). State the unchanged-invocation selection so native/interpreter execution remains explicit.
+ - TLC cache: content key covers emitted module, all effective cfg/progress/negative inputs, decoding schema, TLC jar SHA, Java version and runner/serialization version. Cache only complete successful results; refutations and execution/decoding failures run fresh and retain failing verdicts. Publish atomically under the target and validate the embedded key/schema/completeness on read. Corrupt/truncated/wrong-key/interrupted/concurrent writers yield a complete validated hit or a fresh run, never partial success. Report hit/miss per configuration.
+ - Full gates explicitly disable cache use, overriding inherited quick-cache environment. Prove fresh execution with a populated cache and inherited enablement, not merely by omitting a flag.
+-- Prefer xtask over a new shell script if fn-247 established xtask as the home for gate tooling; follow whichever is current.
++- Use the established xtask command home; put quick source in the listed `src/quick/**` trees and register the real command in the owned dispatcher/Make files.
+ - Benchmark a reversible content edit on an isolated exact candidate snapshot, assert activity selection and native/interpreter execution, and restore it without overwriting user work. Measure both an emission-preserving cache hit and changed-emission fresh TLC; an mtime touch does not test Git selection. Place framework logic under .10's entry point and keep Temporal selection in its extension. Register both paths for .12.
+ 
+ ### Investigation targets

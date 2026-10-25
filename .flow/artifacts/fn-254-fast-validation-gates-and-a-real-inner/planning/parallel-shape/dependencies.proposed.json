@@ -1,0 +1,70 @@
+{
+  "instructions": "Apply only these dependency deltas through flowctl; preserve other task records/status. No new task.",
+  "10": {
+    "remove": [
+      "fn-254-fast-validation-gates-and-a-real-inner.16"
+    ],
+    "result": [
+      "fn-254-fast-validation-gates-and-a-real-inner.9",
+      "fn-254-fast-validation-gates-and-a-real-inner.13"
+    ]
+  },
+  "3": {
+    "add": [
+      "fn-254-fast-validation-gates-and-a-real-inner.4"
+    ],
+    "result": [
+      "fn-254-fast-validation-gates-and-a-real-inner.1",
+      "fn-254-fast-validation-gates-and-a-real-inner.9",
+      "fn-254-fast-validation-gates-and-a-real-inner.10",
+      "fn-254-fast-validation-gates-and-a-real-inner.4"
+    ]
+  },
+  "unchanged": {
+    "14": [
+      "13"
+    ],
+    "16": [
+      "13",
+      "14"
+    ],
+    "15": [
+      "13",
+      "10",
+      "14",
+      "16"
+    ],
+    "6": [
+      "2",
+      "10"
+    ],
+    "11": [
+      "10"
+    ],
+    "5": [
+      "1",
+      "10"
+    ],
+    "12": [
+      "1",
+      "10",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "11"
+    ],
+    "8": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "11",
+      "12",
+      "15"
+    ]
+  }
+}

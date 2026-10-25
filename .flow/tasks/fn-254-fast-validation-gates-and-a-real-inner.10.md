@@ -13,6 +13,12 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 **Files:** framework entry point and moved tooling controls, core/Kettle protobuf and guest orchestration, root Makefile's Temporal stages, host parity controls and current generated assets.
 **Touches:** [.github/workflows/umpire.yml, model/umpire/scripts/**, model/umpire/dev/**, model/umpire/protocol/**, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/dev/xtask/**, model/scripts/**, model/temporal/hosts/go/**, model/temporal/guest/**, Makefile, model/README.md, model/umpire/README.md, model/GUEST_BUILDS.md]
 
+### Immediate framework-only checkpoint and working seams
+- Start after committed .13/.9, using .13's existing `fetch-tlc.sh` and `fetch-apalache [framework-root]` public provisioning commands. .14's probe removal and .16's provider implementation replacement preserve those public command/status contracts; neither is a producer prerequisite for gate composition. Renew affected caller checks when they later change inputs. Prioritize this independent framework entry point so framework iteration can omit Temporal checks now.
+- Keep real framework gate orchestration in `model/umpire/dev/xtask/src/gate.rs` and its gate-local submodules, exported and called by the real dispatcher. Keep both workspaces' existing real test execution in their respective `src/test_run.rs` leaves, already called by their actual gates. Initially preserve the existing Cargo tests/doctests exactly once. Task .3 changes only those working leaves/config/pins; no dormant quick/standalone module is introduced here.
+- Full-gate entry already must override inherited quick-cache enablement. Establish its authoritative disable policy before any stage child is launched, exercise real propagation controls and record the exact policy for .6. .6 adds the cache then proves the populated-cache bypass without rewriting gate orchestration.
+- These working boundaries permit honest disjoint Touches: .3 runner leaves/configs/pins; .6 quick command/CLI/Make/cache; .11 gate-local standalone stage and integration controls. .5/.12/.15 remain serialized whenever their actual ownership overlaps. Record realized paths before lane admission; do not claim nonexistent files or an unregistered command are delivered.
+
 ### Approach
 - Consume .13's dedicated guest driver and admitted context for root resolution, tool/pin/cache ownership and guest identity; do not repeat that migration. Keep gate orchestration in the general xtask package, with no reverse dependency from the guest driver. Guest commands cross the dedicated executable interface rather than invoking guest orchestration inside the general CLI process.
 - Add a discriminating native-build control: change only retained general-CLI/gate executable code, verify that CLI bytes change while driver bytes and guest cache namespace remain unchanged for identical driver/lock/compiler/guest inputs, and show a representative existing guest build still reuses admitted artifacts. A budget data edit that leaves executable bytes unchanged is insufficient. Preserve driver/lock/compiler invalidation controls and current-input freshness; never remove identity inputs merely to make a cache hit. Reuse .13 evidence only for unchanged inputs.
@@ -38,7 +44,7 @@ Keep changed framework/root entry-point wiring, both-workspace coverage accounti
 
 ### Mise provider prerequisite
 
-Task .16 supplies the TLC and optional Apalache provisioning entry points before gate composition. Consume those entry points and preserve routine Apalache exclusion; do not reimplement downloads in the gate.
+Task .13 already supplies the stable TLC and optional Apalache public provisioning entry points. Compose against those existing contracts and preserve routine Apalache exclusion; do not reimplement downloads in the gate. Task .16 replaces their provider internals after .14 and preserves public behavior. It need not block this framework-only entry point; changed provider paths/admission inputs require renewed focused caller checks later.
 
 ## Acceptance
 - [ ] A real compiled CLI/gate-only change preserves guest-driver bytes and guest cache/artifact reuse; actual driver/lock/compiler changes still invalidate. Gate/installer/guest callers consume .13's shared context without duplicated root or remap policy.

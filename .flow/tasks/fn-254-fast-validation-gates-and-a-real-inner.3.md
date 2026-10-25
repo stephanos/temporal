@@ -8,8 +8,12 @@ satisfies: [R4]
 Run tests across all binaries at once instead of one binary after another (spec R4). Owner approved cargo-nextest, pinned via mise (2026-10-25).
 
 **Size:** M
-**Files:** framework-local nextest configuration and mise pins selected by .9 and installed by .13; Temporal nextest configuration, framework entry point and root delegation established by .10.
-**Touches:** [model/umpire/.config/nextest.toml, model/umpire/mise.toml, model/umpire/dev/**, model/.config/nextest.toml, mise.toml, Makefile, model/scripts/time-gate.sh]
+**Files:** real framework/Temporal test-runner leaves extracted by .10; framework/Temporal nextest configurations and mise pins. Tests of runner policy live in the owned leaves; existing command and stage registration already calls those working leaves.
+**Touches:** [model/umpire/.config/nextest.toml, model/umpire/mise.toml, model/umpire/mise.lock, model/.config/nextest.toml, mise.toml, mise.lock, model/umpire/dev/xtask/src/test_run.rs, model/dev/xtask/src/test_run.rs]
+
+### Parallel ownership
+- Consume committed .4 identity mapping and .10's working test-runner leaves. Own only the listed test-runner source/config/pin files, including focused unit controls inside the runner leaves. Their existing gate callers remain unchanged; no dispatcher, Make, manifest, aggregate-test or budget edit is needed to change runner policy. Task .8 owns consolidated tier/tool documentation.
+- This is genuinely disjoint from .6's quick CLI/cache source. If the realized .10 interface makes another source edit necessary, amend actual Touches and recheck admission before editing; do not bypass overlap checks. Record exact inventories against the lane's candidate. Later added controls or converted cases are explicit producer inventories and are reconciled at .8, never silently omitted.
 
 ### Approach
 - Pin cargo-nextest through mise. Replace the `tests` stage with `cargo nextest run --workspace --locked`, plus `cargo test --doc --workspace` (nextest does not run doctests).
