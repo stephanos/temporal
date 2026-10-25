@@ -75,6 +75,13 @@ impl System<'_> {
         self.rebased("$crate")
     }
 
+    /// `path` with its `rust_root` prefix replaced by `root`, when `path` lies under
+    /// `rust_root` on a path-segment boundary.
+    pub fn rebase(&self, path: &str, root: &str) -> Option<String> {
+        let rest = path.strip_prefix(self.rust_root)?;
+        (rest.is_empty() || rest.starts_with("::")).then(|| format!("{root}{rest}"))
+    }
+
     fn short_name(&self) -> &str {
         self.service.rsplit('.').next().unwrap_or(self.service)
     }

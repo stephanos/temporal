@@ -69,9 +69,7 @@ pub fn generate(
         for (response, ty) in [(false, request), (true, response)] {
             let proto = if response { &method.output } else { &method.input };
             if annotated.contains(proto.as_str()) {
-                let path = ty
-                    .strip_prefix(system.rust_root)
-                    .map_or_else(|| ty.clone(), |rest| format!("{macro_root}{rest}"));
+                let path = system.rebase(ty, &macro_root).unwrap_or_else(|| ty.clone());
                 let path: TokenStream =
                     path.parse().map_err(|error: proc_macro2::LexError| error.to_string())?;
                 dispatch.push(quote! {

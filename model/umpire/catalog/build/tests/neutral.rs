@@ -24,6 +24,12 @@ fn second_service_uses_configured_identity_and_roots() -> Result<(), String> {
     assert!(source.contains("pub fn device_request_fields(method: DeviceMethod)"));
     assert!(source.contains("pub fn mutate_device_request("));
     assert!(source.contains("crate::generated::example::v1::Input"));
+    assert_eq!(
+        config.rebase("::device_api::generated::example::v1::Input", "$crate"),
+        Some("$crate::example::v1::Input".into())
+    );
+    assert_eq!(config.rebase("::device_api::generated", "$crate"), Some("$crate".into()));
+    assert_eq!(config.rebase("::device_api::generatedx::Input", "$crate"), None);
     let local = System { rust_root: "crate", ..service_config() };
     assert_eq!((local.local_root(), local.macro_root()), (String::new(), "$crate".into()));
     Ok(())

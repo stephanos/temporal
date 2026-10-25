@@ -342,10 +342,11 @@ impl Graph {
                         .value
                         .iter()
                         .map(|value| {
-                            Ok(EnumValue {
-                                name: value.name.clone().ok_or("unnamed enum value")?,
-                                number: value.number.unwrap_or_default(),
-                            })
+                            let value_name = value.name.clone().ok_or("unnamed enum value")?;
+                            let number = value.number.ok_or_else(|| {
+                                format!("enum value without number: {parent}.{name}.{value_name}")
+                            })?;
+                            Ok(EnumValue { name: value_name, number })
                         })
                         .collect::<Result<_, String>>()?,
                 },
@@ -550,8 +551,26 @@ mod tests {
     }
 
     #[test]
+    fn service_methods_keep_descriptor_order() -> Result<(), String> {
+        let mut descriptors = set();
+        let methods = &mut descriptors.file[0].service[0].method;
+        let mut first = methods[0].clone();
+        first.name = Some("Zeta".into());
+        methods.insert(0, first);
+        let graph = Graph::new(&descriptors.encode_to_vec(), "")?;
+        let names: Vec<_> =
+            graph.service("self.v1.Service")?.iter().map(|method| method.name.as_str()).collect();
+        assert_eq!(names, ["Zeta", "Call"]);
+        assert_eq!(
+            graph.request_methods("self.v1.Self_"),
+            ["/self.v1.Service/Zeta", "/self.v1.Service/Call"]
+        );
+        Ok(())
+    }
+
+    #[test]
     fn malformed_descriptors_are_refused_anywhere_in_the_set() {
-        let cases: [(&str, fn(&mut FileDescriptorSet)); 7] = [
+        let cases: [(&str, fn(&mut FileDescriptorSet)); 12] = [
             ("unnamed service", |set| set.file[0].service[0].name = None),
             ("unnamed method", |set| set.file[0].service[0].method[0].name = None),
             ("unnamed message", |set| set.file[0].message_type[1].name = None),
@@ -561,6 +580,21 @@ mod tests {
                 set.file[0].message_type[0].field[0].r#type = Some(Type::Group as i32);
             }),
             ("missing oneof declaration", |set| set.file[0].message_type[0].oneof_decl.clear()),
+            ("missing method input: self.v1.Service.Call", |set| {
+                set.file[0].service[0].method[0].input_type = None;
+            }),
+            ("missing method output: self.v1.Service.Call", |set| {
+                set.file[0].service[0].method[0].output_type = None;
+            }),
+            ("invalid field type: self.v1.Self_.self_: unknown enumeration value 0", |set| {
+                set.file[0].message_type[0].field[0].r#type = None;
+            }),
+            ("unnamed enum value", |set| {
+                set.file[0].message_type[0].enum_type[0].value[0].name = None;
+            }),
+            ("enum value without number: self.v1.Self_.state.STATE_READY", |set| {
+                set.file[0].message_type[0].enum_type[0].value[0].number = None;
+            }),
         ];
         for (expected, corrupt) in cases {
             let mut descriptors = set();
