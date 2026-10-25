@@ -1,0 +1,79 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling typenum v1.20.1
+   Compiling libc v0.2.191
+   Compiling zmij v1.0.23
+   Compiling const-oid v0.10.2
+   Compiling thiserror v2.0.21
+   Compiling winnow v1.0.4
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling cfg-if v1.0.5
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling syn v3.0.9
+   Compiling cpufeatures v0.3.1
+   Compiling digest v0.11.3
+   Compiling sha2 v0.11.1
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_spanned v1.1.2
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2475-port/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.54s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/xtask-27721ab0a370a30a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/xtask-a494e809185d402b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/guest_identity.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/guest_identity-a70d770d9f07c26c)
+
+running 25 tests
+test compiler::native_macro_identity_ignores_host_configuration_but_retains_argv_and_collisions ... ok
+test compiler::os_bytes_and_lexical_root_boundaries_are_preserved ... ok
+test compiler::missing_required_inputs_and_option_values_refuse ... ok
+test compiler::probes_pass_through_without_guest_environment ... ok
+test compiler::portable_identity_replaces_guest_metadata_and_remaps_generated_paths ... ok
+test compiler::build_std_requires_wasm_marker_and_trusted_source_or_rust_src_coordinate ... ok
+test compiler::dependency_identity_and_transitive_variants_propagate ... ok
+test compiler::missing_ambiguous_and_malformed_lock_maps_refuse ... ok
+test compiler::invalid_or_missing_dependency_sidecars_and_macro_collisions_refuse ... ok
+test compiler::package_features_profile_compiler_and_closure_remain_distinct ... ok
+test compiler::inherited_jobserver_descriptor_reaches_direct_compiler_child ... ok
+test support::canonical_hash_uses_sorted_json_and_known_sha256 ... ok
+test lock::sourced_entries_are_required_but_git_checksums_are_optional ... ok
+test lock::malformed_native_documents_and_graphs_are_rejected ... ok
+test lock::ambiguous_name_version_coordinates_are_marked_unavailable ... ok
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+test lock::unified_edges_and_edge_topology_change_ancestor_identity ... ok
+test support::sidecar_lease_serializes_failure_cleanup_and_refuses_symlink ... ok
+test lock::unrelated_and_dev_only_dependencies_do_not_change_guest_closures ... ok
+test lock::checksum_changes_propagate_through_normal_and_all_platform_build_edges ... ok
+test lock::content_addressed_publication_is_repeatable_and_portable ... ok
+test current_inputs::native_toml_accepts_current_documents_and_rejects_malformed_input ... ok
+test compiler::sidecar_precedes_child_and_cleanup_preserves_exit_launch_and_signal_outcomes ... ok
+test support::publication_is_complete_under_concurrent_writers_and_cleans_rename_failure ... ok
+test compiler::actual_rustc_compiles_portable_native_macro_sidecars ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -103,7 +103,7 @@ the gate. The reviewed switch is preserved on local branch `work/fn2386-interpre
 
 **Guest identity** (fn-238.8). .2 changed the Temporal guest without a code change because each
 crate's `-C metadata` hashed the whole `Cargo.lock`; it now hashes the crate's own lockfile
-closure (`scripts/guest-lock.py`), and a control shows an unrelated crate leaves both guests
+closure (`xtask guest-lock`), and a control shows an unrelated crate leaves both guests
 identical. .3 and .4 refreshed it because the macros and `umpire-dsl` gained front/ir dependencies.
 fn-239 renewed Linux/macOS certification at `a96a4c6550`; all twelve byte comparisons and both host suites passed.
 

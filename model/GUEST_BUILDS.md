@@ -3,11 +3,17 @@
 `bash model/scripts/guest.sh <crate> <output> [--check]` builds any cdylib with
 the mise-pinned Rust 1.99.1 compiler, `--locked`, `wasm32-wasip1` and `profile.guest`.
 It discovers the output through Cargo's artifact messages, including custom library
-names. It requires Bash, Python 3.11+, the pinned toolchain and its `rust-src` component.
-The Python executable path must contain no whitespace; the generated launcher uses
-its absolute shebang to preserve Cargo's macOS loader environment.
-Exit 0 means built or fresh, 1 means build/tool/output failure, and 2 means missing
-or stale output. Staleness reports existing/built sizes and the first differing
+names. It requires Bash, mise, installed pinned Rust/Cargo, and the `rust-src` component.
+`xtask.sh` builds the current native host tool in `<target>/xtask-bootstrap` before
+installing guest wrappers, flags or cache settings. It prints the absolute binary
+path for shell callers. This incremental build also prevents stale cached tools
+from bypassing source changes. Whitespace in checkout and tool paths is supported.
+The atomic `guest-rustc` launcher is an executable copy of that exact native binary,
+selected by its executable name; it preserves macOS loader variables and inherited
+jobserver handles without a shebang, `/usr/bin/env` or recursive Cargo invocation.
+Exit 0 means built or fresh, 1 means native tool/input/output failure, and 2 means
+missing or stale output. Guest compiler exit codes pass through (signals use 128 +
+signal); their diagnostics remain on stderr. Staleness reports existing/built sizes and the first differing
 zero-based byte offset, including EOF; check mode never updates the output.
 Relative output paths are relative to the caller. `CARGO_TARGET_DIR` selects the
 build cache, defaulting to `model/target`. Guest compilation uses a versioned
@@ -21,9 +27,9 @@ No wasm bytes are rewritten after linking. The Temporal API generator sorts merg
 descriptor files before prost generation; otherwise Go map iteration could change
 merged Rust declaration order and the resulting guest bytes.
 
-`guest-rustc.py` derives target symbol identities from the pinned compiler, the
+`xtask guest-rustc` derives target symbol identities from the pinned compiler, the
 crate's own lockfile closure, normalized package/source paths, crate configuration
-and dependency identities. Before building, `guest-lock.py` digests, for every
+and dependency identities. Before building, `xtask guest-lock` digests, for every
 workspace-resolved package, the lockfile coordinates and checksums of its non-dev
 dependency closure across all platforms; path packages carry no location. The map
 is written as `umpire-lock-<content hash>.json` in the guest cache. Adding an
@@ -44,12 +50,27 @@ after metadata emission, and compiler failures remove them. Host proc macros com
 unchanged; their portable package/feature/profile identities include collision
 witnesses that refuse conflicting native variants in one target dependency graph.
 Each target's `OUT_DIR` remaps to `/generated/<portable identity>`, removing Cargo's
-host-specific directory hash from generated-source locations. Wrapper, closure script,
+host-specific directory hash from generated-source locations. Native tool binary,
 lockfile or compiler changes select a new cache so older artifacts cannot bypass this
 evidence; a lockfile change outside every guest closure rebuilds identical bytes.
 Existing `RUSTC_WRAPPER` executables are chained. These inputs support the pinned
 workspace and toolchain; a compiler or dependency upgrade requires renewed native
 cross-OS comparisons and the existing host controls.
+
+
+Native guest commands execute with `model/` as their working directory:
+`xtask guest <crate> <output> [--check]` and
+`xtask guest-freshness <crate> <output>`. Shell entrypoints preserve caller-relative
+output paths; relative target/cache paths retain their model-relative meaning.
+Cargo artifact input is UTF-8 newline-delimited JSON with a string `reason`;
+`compiler-artifact` records require a typed `target.crate_types` array and
+`filenames` array. Exactly one cdylib `.wasm` path is accepted, including custom
+library names. Missing, multiple, malformed or unreadable artifacts fail before
+publication. Successful builds publish by sibling rename; checks never publish.
+The native v2 closure/sidecar schemas intentionally invalidate Python records.
+JSON whitespace, Python TOML quirks, exact old diagnostics and historical guest
+bytes are not compatibility contracts. `RUSTFLAGS` accepts whitespace-separated
+UTF-8 tokens; `CARGO_ENCODED_RUSTFLAGS` preserves raw OS tokens separated by 0x1f.
 
 ## Unwinding on the pinned compiler
 
@@ -91,7 +112,7 @@ artifacts, rather than inferring unwind from the profile declaration.
 From the repository root:
 
 ```sh
-python3 -m unittest discover -s model/scripts/tests -p 'test_*.py'
+cd model && mise exec -- cargo test -p xtask --locked
 bash -n model/scripts/guest.sh model/scripts/tests/build-guests.sh
 CARGO_TARGET_DIR=/absolute/task-owned-target bash model/scripts/tests/build-guests.sh
 CARGO_TARGET_DIR=/absolute/task-owned-target make model-validate
@@ -108,11 +129,14 @@ through `temporal.Guest()`. Its Go consumers use no Rust or guest-path environme
 
 `make umpire-guest` refreshes only that asset through `guest.sh`. `make model-check`
 runs the same builder with `--check` before the other gate steps. Its internal
-`guest-freshness.py` preflight requires Python 3.11+, installed mise-pinned Rust, Go
-and protoc, Rust sources and the wasm target, with automatic installation disabled.
-Missing prerequisites warn and skip only freshness outside CI. Any set `CI`, even
-empty, fails on missing prerequisites. Metadata/probe errors, actual build failures
-and stale bytes always fail; the builder's exit 1/2 contract is preserved.
+`guest-freshness.sh` bootstraps the native tool with `MISE_AUTO_INSTALL=false` and
+`MISE_EXEC_AUTO_INSTALL=false` before the first tool probe. Rust then validates
+TOML Rust-pin consistency, typed installed-tool JSON, installed mise-pinned
+Rust/Cargo, Go and protoc executables, rustup toolchain readiness when applicable,
+Rust sources and the wasm target. Missing bootstrap tools/compiler failures and
+runtime prerequisites fail for every `CI` value; there is no local skip policy.
+The cached tool follows the same validation path. Bash only orchestrates bootstrap;
+metadata and pin semantics live in Rust.
 The full Rust authoring gate still requires its toolchain. Slice and gaps use the
 embedded asset directly; the umbrella's separate legacy IR bridge remains source-built.
 Only the Temporal guest is committed, as a binary Git file without LFS; generic
