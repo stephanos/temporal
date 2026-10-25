@@ -7,8 +7,8 @@ the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Go
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
-The WASM backend lives in `tools/gomad/internal/backends/wasm` and shares its
-campaign, artifact, replay, and choice owners. Read [the WASM README](tools/gomad/docs/wasm/README.md) before working on that
+The Rust host lives in `tools/gomad/rust`; the Go reference models it checks against stay under
+`tools/gomad/internal`. Read [the WASM README](tools/gomad/docs/wasm/README.md) before working on that
 backend; [the qualification contract](tools/gomad/docs/wasm/QUALIFICATION.md)
 lists the gates a shared-owner change must pass.
 

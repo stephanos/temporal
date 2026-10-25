@@ -101,25 +101,21 @@ timeout and replay mismatch are inconclusive evaluations, never true/false.
 
 ## Build and pin an installation
 
-Use an existing stock Go 1.27.1 distribution and the repository's locked Rust
-helper build. For the cooperative profile, the Go distribution must be outside
-the Go module cache. Keep the helper and compiler as regular executable files;
-installation validation rejects symbolic links.
+Use an existing stock Go 1.27.1 distribution outside the Go module cache for the
+cooperative profile. Keep the host and compiler as regular executable files;
+installation validation rejects symbolic links. The engine is linked into `gomad`.
 
-Rust is required to build or update the helper, not to discover an installation,
-execute an already-built guest, or replay a retained artifact with that helper.
-Preparing a new guest requires the pinned Go compiler; retained replay does not.
-The installed helper remains required in both cases. From the repository root:
+Rust is required to build or update the host, not to discover an installation,
+execute an already-built guest, or replay a retained artifact. Preparing a new
+guest requires the pinned Go compiler; retained replay does not. From
+`tools/gomad`:
 
 ```sh
-make -C tools/gomad/internal/backends/wasm helper
+mise exec -- make build
 mkdir -p /absolute/operator/bin
-cd tools/gomad
-/absolute/stock-go/bin/go build -trimpath \
-  -o /absolute/operator/bin/gomad ./cmd/gomad
+cp rust/target/release/gomad /absolute/operator/bin/gomad
 /absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/rust/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
   --profile gomad.wasi-cooperative/v1 \
   --cache /absolute/operator/cache/preparation \

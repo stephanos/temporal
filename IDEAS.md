@@ -1,7 +1,6 @@
 - use build tags to cut down on dependencies we don't need in the WASM module (e.g. elasticsearch)
 - a data race detector
 - can we record external data and replay it; eg for Java SDK
-- split the Rust helper (gomad-wasmhost) into a few crates (model/world, network, cluster, ABI) with per-crate implementation identities, so a cluster-only change stops staling every replay/minimize/inspect golden via GOMAD_LINKED_IMPLEMENTATION_SHA256; changes the identity contract, needs its own spec and owner sign-off
 
 ## Signed qualification receipts (from fn-232.10 review, 2026-10-22)
 Qualification receipts are content-addressed, not signed. Someone who rewrites the execution records, the Result and the receipt together can still forge provenance and identity fields that don't feed the verdict, such as runtime, compiler, model and engine digests. Codex reviews 2, 5, 7, 8 and 9 on branch fn232-qualify flagged this. Signing receipts, or binding every identity to retained build preimages, would close the gap. fn-232.10 explicitly placed it out of scope.

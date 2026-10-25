@@ -2,6 +2,5 @@
 /.toolchain/stock/
 /.bin/
 
-/rust/target/
 **/__pycache__/
-/rust/*/target/
+**/target/
