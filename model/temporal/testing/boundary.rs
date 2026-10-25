@@ -1,5 +1,7 @@
 //! System-owned policy and negative controls for the generic source boundary.
 
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path};
 use umpire_testing::boundary::{Violation, scan};
 

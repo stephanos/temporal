@@ -1,5 +1,7 @@
 //! Procedural entry point for checked annotation declarations.
 
+#![forbid(unsafe_code)]
+
 mod roots;
 
 /// Derives an exhaustive typed catalog from an attribute mirror struct.

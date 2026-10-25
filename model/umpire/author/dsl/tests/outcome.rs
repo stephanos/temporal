@@ -1,5 +1,7 @@
 //! Scoped outcomes preserve rejection, return boundaries and evaluation isolation.
 
+#![forbid(unsafe_code)]
+
 use std::{cell::Cell, panic::catch_unwind};
 
 use umpire_dsl::{Outcome, Rejection, claim, outcome, reject};

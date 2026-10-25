@@ -1,4 +1,6 @@
 //! The reference catalog uses the same typed transport for filling and scoped validation.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_reference_kettle::{annotation_runtime, wire::umpire::reference::kettle::v1 as k};
 use umpire_runtime::AnyMessage as _;

@@ -1,5 +1,7 @@
 //! Breadth-first exploration, safety claims and fair progress over finite machines.
 
+#![forbid(unsafe_code)]
+
 mod explore;
 #[cfg(not(target_arch = "wasm32"))]
 mod interpret;

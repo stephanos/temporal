@@ -1,4 +1,6 @@
 //! Native development command dispatcher.
+#![forbid(unsafe_code)]
+
 use std::{
     env,
     ffi::OsStr,

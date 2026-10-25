@@ -1,5 +1,7 @@
 //! Generic catalog refusal controls without extension dependencies.
 
+#![forbid(unsafe_code)]
+
 #[test]
 fn catalog_requires_every_field_and_enum_variant() {
     let tests = trybuild::TestCases::new();

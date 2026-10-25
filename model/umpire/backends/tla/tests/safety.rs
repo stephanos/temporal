@@ -1,4 +1,6 @@
 //! Source-derived symbolic safety projection.
+#![forbid(unsafe_code)]
+
 use umpire_tla::observers::{HAS_STEP, STUTTER};
 use umpire_tla::{Lift, Tla};
 const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");

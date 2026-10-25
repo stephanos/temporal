@@ -1,5 +1,7 @@
 //! Controls for shared Temporal helpers and realization-only phase decoding.
 
+#![forbid(unsafe_code)]
+
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Callback;
 use umpire_runtime::realization::Error;

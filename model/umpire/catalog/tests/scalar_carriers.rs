@@ -1,4 +1,5 @@
 //! Scalar oneof and text map projections retain their protobuf semantics.
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 use umpire_catalog::{Catalog, Inspect, kinds::*};
 

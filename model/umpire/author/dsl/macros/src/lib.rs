@@ -1,5 +1,7 @@
 //! Procedural macro support for the Umpire DSL.
 
+#![forbid(unsafe_code)]
+
 mod action;
 mod finite;
 mod lifted;

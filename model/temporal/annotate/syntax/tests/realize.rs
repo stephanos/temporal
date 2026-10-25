@@ -1,5 +1,7 @@
 //! Located refusal controls for declarative realization handlers.
 
+#![forbid(unsafe_code)]
+
 use umpire_temporal_annotate_syntax::{
     realization::Schema,
     realize::{expand, expand_in_source},

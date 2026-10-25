@@ -1,5 +1,7 @@
 //! Grammar admission controls independent of generated API compilation.
 
+#![forbid(unsafe_code)]
+
 #[test]
 fn derive_catalog_uses_shared_admission_and_discovery() -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"

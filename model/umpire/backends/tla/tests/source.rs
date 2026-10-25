@@ -1,4 +1,6 @@
 //! Authored-source admission and emitter controls.
+#![forbid(unsafe_code)]
+
 use umpire_tla::observers::EDGE_TICK;
 use umpire_tla::{Lift, Tla, Type};
 

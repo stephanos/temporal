@@ -1,5 +1,7 @@
 //! Compile-time refusals of the DSL's declarative macros and traits.
 
+#![forbid(unsafe_code)]
+
 #[test]
 fn missing_display() {
     let tests = trybuild::TestCases::new();

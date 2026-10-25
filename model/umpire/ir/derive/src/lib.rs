@@ -1,4 +1,6 @@
 //! Derives constructor tokens for the internal admitted Model tree.
+#![forbid(unsafe_code)]
+
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Data, DeriveInput, Fields, Path, parse_macro_input};

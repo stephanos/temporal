@@ -1,4 +1,6 @@
 //! Typed persistent-vector source admission controls.
+#![forbid(unsafe_code)]
+
 use umpire_tla::{Lift, Tla, Type};
 
 #[path = "fixtures/vector.rs"]

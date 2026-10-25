@@ -1,4 +1,6 @@
 //! Pinned Apalache admission and bounded source-projection controls.
+#![forbid(unsafe_code)]
+
 mod decode;
 mod replay;
 pub use decode::{Itf, decode_itf};

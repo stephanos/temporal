@@ -1,4 +1,6 @@
 //! A second service exercises the shared generation contract.
+#![forbid(unsafe_code)]
+
 use prost::Message;
 use umpire_catalog_build::{System, services, wire_schema};
 use umpire_catalog_syntax::{descriptor::Coverage, proto::Graph, services::Classification};

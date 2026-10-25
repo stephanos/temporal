@@ -1,5 +1,6 @@
 //! Response-only raw checks supplement request normalization without duplicating inspection.
 
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 
 use umpire_catalog::{Catalog, Inspect, kinds::*};

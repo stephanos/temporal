@@ -1,4 +1,6 @@
 //! A small result must not conceal narrow signed remainder overflow.
+#![forbid(unsafe_code)]
+
 use std::{fs, path::Path};
 use umpire_dsl::Machine;
 use umpire_tla::{Lift, Tla};

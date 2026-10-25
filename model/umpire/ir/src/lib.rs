@@ -1,6 +1,8 @@
 //! The admitted Model tree: what `umpire-front` reads from a `#[machine]` module, and what the
 //! macro embeds in the compiled Model for the lifted back ends. Internal, with no stability
 //! promise; it is plain data, so compiled Models can carry it.
+#![forbid(unsafe_code)]
+
 #[doc(hidden)]
 pub mod expr;
 mod literal;

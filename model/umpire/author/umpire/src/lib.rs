@@ -1,5 +1,7 @@
 //! Model authoring through one dependency: declarations, authored suites and catalog derives.
 
+#![forbid(unsafe_code)]
+
 pub use umpire_catalog as catalog;
 pub use umpire_catalog::{Catalog, annotate};
 pub use umpire_dsl as dsl;

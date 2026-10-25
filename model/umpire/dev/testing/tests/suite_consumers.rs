@@ -1,5 +1,7 @@
 //! Suite goldens use the shared runner's snapshot and determinism checks.
 
+#![forbid(unsafe_code)]
+
 use std::{
     error::Error,
     fs,

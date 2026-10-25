@@ -1,5 +1,7 @@
 //! Projected oneofs expose source alternatives and their actual presence.
 
+#![forbid(unsafe_code)]
+
 #[derive(Clone)]
 enum Choice {
     Result(Vec<u8>),

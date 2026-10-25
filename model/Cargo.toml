@@ -109,7 +109,7 @@ proptest = "1.12"
 # One lint policy for every crate; each crate opts in with `[lints] workspace = true`.
 [workspace.lints.rust]
 missing_docs = "warn"
-unsafe_code = "forbid"
+unsafe_code = "deny"
 unused_qualifications = "warn"
 unreachable_pub = "warn"
 rust_2018_idioms = { level = "warn", priority = -1 }

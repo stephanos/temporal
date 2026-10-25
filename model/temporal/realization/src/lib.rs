@@ -1,5 +1,7 @@
 //! Temporal realization facade for the mini activity guest.
 
+#![forbid(unsafe_code)]
+
 extern crate self as umpire_temporal;
 
 /// Generated upstream API namespace used by catalog mirrors.

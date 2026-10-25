@@ -1,5 +1,7 @@
 //! Pinned TLC execution, complete reachable sets and typed counterexamples.
 
+#![forbid(unsafe_code)]
+
 mod decode;
 mod module;
 mod runner;

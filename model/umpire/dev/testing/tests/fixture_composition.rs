@@ -1,5 +1,7 @@
 //! Fixture producers retain checker outputs when adding suite goldens.
 
+#![forbid(unsafe_code)]
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 use umpire_dsl::machine;
 use umpire_testing::Files;

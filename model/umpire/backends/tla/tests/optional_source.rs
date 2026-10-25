@@ -1,4 +1,6 @@
 //! Source grammar for stored bounded optional values, independent of native enumeration.
+#![forbid(unsafe_code)]
+
 use umpire_tla::Lift;
 
 const SOURCE: &str = r"

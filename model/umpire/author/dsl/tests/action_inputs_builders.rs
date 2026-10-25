@@ -1,5 +1,7 @@
 //! Typed action builders preserve declaration generics and payload field names.
 
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{Action, InputDomain};
 
 #[derive(Action)]

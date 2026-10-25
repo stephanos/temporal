@@ -1,5 +1,7 @@
 //! Consumer selection and insta artifacts are exercised through the real runner.
 
+#![forbid(unsafe_code)]
+
 use std::{error::Error, fs, path::Path, process::Command};
 use umpire_testing::{Consumer, Files, RunResult};
 

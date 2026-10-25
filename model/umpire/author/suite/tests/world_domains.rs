@@ -1,5 +1,7 @@
 //! World-bound action domains feed suite queries, and every suite route admits the catalog.
 
+#![forbid(unsafe_code)]
+
 use umpire_checker::Refusal as CheckerRefusal;
 use umpire_dsl::{Machine, Path, Pattern, Waypoint};
 use umpire_suite::{Cases, Refusal, Space, cover, find, refuted, sample, verify_all};

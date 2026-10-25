@@ -1,4 +1,6 @@
 //! Typed transport annotation controls preserve the independent Model run.
+#![forbid(unsafe_code)]
+
 use umpire_runtime::protocol::{Method, RefusalCode};
 use umpire_runtime::testing::GuestExt;
 

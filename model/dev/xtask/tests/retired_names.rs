@@ -1,4 +1,5 @@
 //! Retired-name stream and shell policy controls.
+#![forbid(unsafe_code)]
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 use std::{
     io::Write,

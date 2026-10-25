@@ -1,5 +1,7 @@
 //! The suite's failure messages, pinned by fixtures.
 
+#![forbid(unsafe_code)]
+
 #[path = "support/coin.rs"]
 mod coin;
 #[path = "support/kettle.rs"]

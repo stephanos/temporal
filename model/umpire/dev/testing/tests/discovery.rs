@@ -1,5 +1,7 @@
 //! Missing fixture inputs and outputs must never disappear from discovery.
 
+#![forbid(unsafe_code)]
+
 use std::{error::Error, fs};
 
 #[test]

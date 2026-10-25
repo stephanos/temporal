@@ -1,4 +1,6 @@
 //! World selection precedes exact-action membership and emitted name reservation.
+#![forbid(unsafe_code)]
+
 use std::path::Path;
 use umpire_dsl::{__lifted::BindingOf, ActionValues, Machine, machine};
 use umpire_tla::{Binding, Embedded, Lift, Literal, Tla};

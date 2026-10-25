@@ -1,5 +1,7 @@
 //! API-independent declaration grammar shared by expansion and build-time coverage.
 
+#![forbid(unsafe_code)]
+
 mod derive;
 mod derive_expand;
 pub mod descriptor;

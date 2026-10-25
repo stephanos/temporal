@@ -1,4 +1,6 @@
 //! Generate the reference service and enforce the shared catalog descriptor closure.
+#![forbid(unsafe_code)]
+
 use std::{env, io, path::PathBuf};
 
 fn main() -> io::Result<()> {

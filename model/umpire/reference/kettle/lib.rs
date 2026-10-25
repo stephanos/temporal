@@ -1,5 +1,7 @@
 //! Framework-owned Kettle reference system using the canonical independent Model.
 
+#![forbid(unsafe_code)]
+
 #[path = "../../dev/fixtures/fixtures/sample_kettle/model.rs"]
 mod model;
 pub use model::kettle;

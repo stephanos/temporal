@@ -1,4 +1,5 @@
 //! A Model author with exactly one direct dependency, under a consumer-selected name.
+#![forbid(unsafe_code)]
 #![allow(dead_code)]
 
 #[author_kit::machine]

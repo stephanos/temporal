@@ -1,4 +1,6 @@
 //! Exact Kettle observation and callback controls.
+#![forbid(unsafe_code)]
+
 use prost::Name;
 use umpire_reference_kettle::{
     runtime as kettle_runtime,

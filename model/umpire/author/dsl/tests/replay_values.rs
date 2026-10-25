@@ -1,4 +1,6 @@
 //! Native projections preserve structural identities independently of their rendering.
+#![forbid(unsafe_code)]
+
 use umpire_dsl::{ActionValues, IntoValue, Machine, Value, Values};
 #[umpire_dsl::machine]
 mod legacy {
