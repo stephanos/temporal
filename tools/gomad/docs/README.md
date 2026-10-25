@@ -57,10 +57,8 @@ export GOMAD_WASM_INSTALLATION="$GOMAD_OPERATOR/bin/gomad-wasm.json"
 "$GOMAD_OPERATOR/bin/gomad" discover
 ```
 
-Without mise, install the crate's pinned Rust toolchain through rustup and run
-`make -C tools/gomad build` from the repository root. The target invokes
-`cargo +1.99.1 build --release --locked` from the single workspace in `tools/gomad/rust`.
-It publishes an independent mode-0755 executable at `tools/gomad/rust/target/release/gomad`,
+`make build` invokes `cargo +1.99.1 build --release --locked` from the single
+workspace in `tools/gomad/rust`. It publishes an independent mode-0755 executable at `tools/gomad/rust/target/release/gomad`,
 including when `CARGO_TARGET_DIR` selects another build cache. The standalone
 reference transport is built and published only by the explicit
 `make -C tools/gomad wasm-test-helper` target with `reference-helper` enabled.

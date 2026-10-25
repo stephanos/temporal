@@ -14,6 +14,11 @@
 - Keep crate APIs small and dependencies one-way.
 - Reuse existing crates before adding new ones.
 
+## Tooling
+
+- Assume mise is installed. Call it directly; if it is missing, fail.
+- Don't probe for mise or the tools it pins, and don't add fallbacks for running without it.
+
 ## Data and evidence
 
 - Verify provenance and contents before trusting artifacts.
