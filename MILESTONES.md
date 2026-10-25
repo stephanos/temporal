@@ -134,12 +134,13 @@ the xtask and the guest regeneration.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-248.1 | ⬜ todo | Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots; first, so later tasks re-accept through insta (R4) |
+| fn-248.1 | ⬜ todo | Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots; independent source lane, joined snapshots accepted once (R4) |
 | fn-248.2 | ⬜ todo | One copy each: panic message, SplitMix64, probe applicability, front error collector, test edit and hex helpers (R2) |
 | fn-248.3 | ⬜ todo | IR `children`/`children_mut` and the recursion-only walks; before fn-245.1 (R3) |
-| fn-248.4 | ⬜ todo | After .1: `heck`, `darling` and `quote` in the macro and build crates (R1) |
-| fn-248.5 | ⬜ todo | After .1: `thiserror` and `prost-types`; remove `enum-iterator` (R1) |
-| fn-248.6 | ⬜ todo | After .1: serde-derived ITF envelope (R1) |
+| fn-248.4 | ⬜ todo | Parallel source lane: `heck`, `darling` and `quote` in the macro and build crates (R1) |
+| fn-248.5 | ⬜ todo | Parallel source lane: `thiserror` and `prost-types`; remove `enum-iterator` (R1) |
+| fn-248.6 | ⬜ todo | Parallel source lane: serde-derived ITF envelope (R1) |
+| fn-248.7 | ⬜ todo | After .1–.6: central merge, reviewed snapshot acceptance, current guest proof and one complete validation pipeline (R5) |
 
 ### fn-250: Shared value, type and trace layer for the TLA+ back ends (model)
 

@@ -3,14 +3,12 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-24T22:03:33.908997Z",
-  "depends_on": [
-    "fn-248-off-the-shelf-crates-and-consolidation.1"
-  ],
+  "depends_on": [],
   "id": "fn-248-off-the-shelf-crates-and-consolidation.5",
   "priority": 3,
   "spec": "fn-248-off-the-shelf-crates-and-consolidation",
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.5.md",
   "status": "todo",
   "title": "thiserror and prost-types in runtime, catalog and DSL; remove enum-iterator",
-  "updated_at": "2026-10-24T22:12:09.642656Z"
+  "updated_at": "2026-10-25T00:14:22.263767Z"
 }

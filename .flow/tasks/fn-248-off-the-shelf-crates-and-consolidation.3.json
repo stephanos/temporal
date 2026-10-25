@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.3.md",
   "status": "todo",
   "title": "IR child traversal: ExprKind children and children_mut",
-  "updated_at": "2026-10-24T22:03:32.736717Z"
+  "updated_at": "2026-10-25T00:14:18.355027Z"
 }

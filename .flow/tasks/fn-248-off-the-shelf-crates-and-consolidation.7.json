@@ -1,0 +1,21 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T00:14:15.556398Z",
+  "depends_on": [
+    "fn-248-off-the-shelf-crates-and-consolidation.1",
+    "fn-248-off-the-shelf-crates-and-consolidation.2",
+    "fn-248-off-the-shelf-crates-and-consolidation.3",
+    "fn-248-off-the-shelf-crates-and-consolidation.4",
+    "fn-248-off-the-shelf-crates-and-consolidation.5",
+    "fn-248-off-the-shelf-crates-and-consolidation.6"
+  ],
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.7",
+  "priority": null,
+  "spec": "fn-248-off-the-shelf-crates-and-consolidation",
+  "spec_path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.7.md",
+  "status": "todo",
+  "title": "Join crate-consolidation lanes and validate current snapshots and guests once",
+  "updated_at": "2026-10-25T00:14:21.201402Z"
+}

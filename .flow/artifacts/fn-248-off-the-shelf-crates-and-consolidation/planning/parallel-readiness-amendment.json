@@ -1,0 +1,160 @@
+{
+  "success": true,
+  "new_task_id": "fn-248-off-the-shelf-crates-and-consolidation.7",
+  "allocation": "Flow CLI bulk create; scan-based allocator safely ignored stale next_task",
+  "body_payloads": {
+    "fn-248-off-the-shelf-crates-and-consolidation": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.1": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.1.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.2": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.2.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.3": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.3.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.4": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.4.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.5": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.5.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.6": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.6.md",
+    "fn-248-off-the-shelf-crates-and-consolidation.7": ".flow/tmp/fn248-readiness/applied/fn-248-off-the-shelf-crates-and-consolidation.7.md"
+  },
+  "fresh_guard_basis": {
+    "revision": "2c3c308ee2",
+    "bodies": {
+      "fn-248-off-the-shelf-crates-and-consolidation": {
+        "path": ".flow/specs/fn-248-off-the-shelf-crates-and-consolidation.md",
+        "sha256": "83fc6c132f04cc76f9a82af3701fe1ee315603b45ad0b336dc6f754e961fc7e3",
+        "normalized_sha256": "83fc6c132f04cc76f9a82af3701fe1ee315603b45ad0b336dc6f754e961fc7e3",
+        "metadata_sha256": "01cee79d653f9f886ccd5d86b4c556839e36054fa95a54ce2b665c6e1310e159"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.1": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.1.md",
+        "sha256": "8a6457f03b1d37702c57500916920266657c39a33c0258ee0c7efda12c533d63",
+        "normalized_sha256": "8a6457f03b1d37702c57500916920266657c39a33c0258ee0c7efda12c533d63",
+        "metadata_sha256": "694117a4a795716620efe738fca18803db44e66f69c35a5b711f0fa4a2f0e01c"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.2": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.2.md",
+        "sha256": "0537972954b6471c5228aff11c6b23b05e74807e4c658469c94e0fa61607f7cd",
+        "normalized_sha256": "5b4986ba5e0cbf1c85f1babe3efae7c9b2e4b303d68273254453f5de38815b8b",
+        "metadata_sha256": "b4b65bce15700047f3711540dc3a64a2d40460b6ccdf72f99eda413b4a0bd01e"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.3": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.3.md",
+        "sha256": "111e744bb36d3e79c622c8570a5b559a9d71f94b3dbbfe0b3b64060825e9237c",
+        "normalized_sha256": "111e744bb36d3e79c622c8570a5b559a9d71f94b3dbbfe0b3b64060825e9237c",
+        "metadata_sha256": "44b80baf1b86c129c6d91e6e5f3ddebe47d21460cdadcd0cf26832a9f9a95f08"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.4": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.4.md",
+        "sha256": "51454b85b6f26370af4a0078c907a6c328fd7a551fdf7053321eaa051f9dfbfa",
+        "normalized_sha256": "51454b85b6f26370af4a0078c907a6c328fd7a551fdf7053321eaa051f9dfbfa",
+        "metadata_sha256": "3a1f78a70e8d09dff4b6e6af35757353cac33948cb453fa767b4da69ad7f9125"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.5": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.5.md",
+        "sha256": "7ba2a040571801191d2f6ad502d04803404bba2e413a2c2baf33198a7239389b",
+        "normalized_sha256": "bb475fc64df9555f4c69eda831bbc030a071d910ae33e3fabb5f1aa204134949",
+        "metadata_sha256": "b4ad207b24c9aa167fc33ef85e9ac419026ef31e0d76edc6680d9360b0ac8d08"
+      },
+      "fn-248-off-the-shelf-crates-and-consolidation.6": {
+        "path": ".flow/tasks/fn-248-off-the-shelf-crates-and-consolidation.6.md",
+        "sha256": "8603c568f76fe32203252ccc7223bbd239a992d1f78aa244f5aee1f3afa8626e",
+        "normalized_sha256": "8603c568f76fe32203252ccc7223bbd239a992d1f78aa244f5aee1f3afa8626e",
+        "metadata_sha256": "eaad7e20e5b82ee4bf686d9e69f4a85e8ca9fc5c3d089fd29fcef4634d3192bd"
+      }
+    },
+    "guard": "Fresh canonical body+metadata checks required before apply; committed basis only, no Flow reads."
+  },
+  "source_integration_anchor": "523d131 (root supplied; no source edits/builds performed)",
+  "fallback": [
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.4",
+      "before": [
+        "fn-248-off-the-shelf-crates-and-consolidation.1"
+      ],
+      "after": [],
+      "expected_definition_sha256": "29bd611957fbbd14a3e86df5dae4ecd1bce5fd55a819a0ef2f9aa5726c5d2eae",
+      "writer": "installed canonicalize_task_for_write + atomic_write_json",
+      "changed_fields": [
+        "depends_on",
+        "updated_at"
+      ]
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.5",
+      "before": [
+        "fn-248-off-the-shelf-crates-and-consolidation.1"
+      ],
+      "after": [],
+      "expected_definition_sha256": "8462fa2f54e90df45eacea1f7a49e634e7360157583232311b536956fcbdf19d",
+      "writer": "installed canonicalize_task_for_write + atomic_write_json",
+      "changed_fields": [
+        "depends_on",
+        "updated_at"
+      ]
+    },
+    {
+      "task": "fn-248-off-the-shelf-crates-and-consolidation.6",
+      "before": [
+        "fn-248-off-the-shelf-crates-and-consolidation.1"
+      ],
+      "after": [],
+      "expected_definition_sha256": "5934d28841ce1b524ee23746ee42b263cbeb87cca9d09eed6751f2f2cab5847b",
+      "writer": "installed canonicalize_task_for_write + atomic_write_json",
+      "changed_fields": [
+        "depends_on",
+        "updated_at"
+      ]
+    }
+  ],
+  "validation": {
+    "success": true,
+    "spec": "fn-248-off-the-shelf-crates-and-consolidation",
+    "root_errors": [],
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "task_count": 7
+  },
+  "coverage": {
+    "success": true,
+    "requirement_coverage": "## Requirement coverage\n\n| Req | Description | Task(s) | Gap justification |\n| --- | --- | --- | --- |\n| R1 | `heck`, `darling`, `thiserror`, `prost-types`, serde derive and `quote`/`prettyplease` replace the hand-rolled code named above; `enum-iterator` is gone from every manifest and `deny.toml`; fn-210's R18 list records each admission. Errors: malformed attributes and malformed ITF envelopes retain their strict refusal controls (wording may change). | fn-248-off-the-shelf-crates-and-consolidation.4, fn-248-off-the-shelf-crates-and-consolidation.5, fn-248-off-the-shelf-crates-and-consolidation.6 | \u2014 |\n| R2 | Each helper named under \"One copy\" exists once and every former copy uses it. Errors: none beyond existing semantic behavior; fixed seeds reproduce the new outputs and generated values/witnesses remain valid, without matching a legacy sequence. | fn-248-off-the-shelf-crates-and-consolidation.2 | \u2014 |\n| R3 | `ExprKind::children`/`children_mut` exist and recursion-only walks use them; per-variant walks are unchanged. Errors: none; the differential interpreter-versus-compiled checks and TLC agreement still pass. | fn-248-off-the-shelf-crates-and-consolidation.3 | \u2014 |\n| R4 | Active mutable golden producers use named text insta snapshots instead of hand-rolled comparisons/update switches; the fixture runner contains no binary-snapshot filename decoding. Rust/Go readers may compare current native outputs with registered snapshot payloads through the shared reader; historical originals and deliberate decoder/fixture inputs remain evidence, not mutable goldens to re-accept. Errors: orphaned, pending or unowned current goldens fail inside the existing test pass; a skipped backend with an incomplete golden still refuses and ownership never claims execution. | fn-248-off-the-shelf-crates-and-consolidation.1 | \u2014 |\n| R5 | After all six source lanes join, one complete Model gate passes through the existing canonical `UMPIRE_APALACHE=require make model-validate` entrypoint: one TLC/Apalache-required model-check and its existing benchmark, with clippy, all tests, wasm guests, native/Go consumers and existing gate stages retained. Review current snapshot diffs and perform necessary current guest publication/reproducibility/freshness on joined inputs. No repeated per-lane full gate or extra cargo-insta workspace pass is required; failures remain failures. | fn-248-off-the-shelf-crates-and-consolidation.7 | \u2014 |\n",
+    "spec": "fn-248-off-the-shelf-crates-and-consolidation",
+    "root_errors": [],
+    "valid": true,
+    "errors": [],
+    "warnings": [],
+    "task_count": 7
+  },
+  "independent_DAG_check": "passed over fresh CLI state",
+  "R5_sole_owner": "fn-248-off-the-shelf-crates-and-consolidation.7",
+  "whole_spec_dependency_unchanged": [
+    "fn-247-one-language-for-the-framework-a-rust"
+  ],
+  "existing_IDs_statuses_preserved": [
+    "fn-248-off-the-shelf-crates-and-consolidation.1",
+    "fn-248-off-the-shelf-crates-and-consolidation.2",
+    "fn-248-off-the-shelf-crates-and-consolidation.3",
+    "fn-248-off-the-shelf-crates-and-consolidation.4",
+    "fn-248-off-the-shelf-crates-and-consolidation.5",
+    "fn-248-off-the-shelf-crates-and-consolidation.6"
+  ],
+  "runtime_source_tests": "not run; planning-only application; validate commands check actual canonical DAG/coverage",
+  "no_commit_index_source_MILESTONES_lifecycle_mutation": true,
+  "preparation_static_checks": {
+    "draft_static_checks": "passed",
+    "existing_titles_preserved": 7,
+    "original_source_task_ids": 6,
+    "join_id_allocated": false,
+    "parent_requirement_rows_synchronized": 5,
+    "R5_source_lane_claims": 0,
+    "desired_DAG": "six dep-free source lanes then join depending all six; whole247 prerequisite retained",
+    "canonical_validation_or_runtime_tests": "not run; prohibited by read-only assignment"
+  },
+  "source_HEAD": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "model_tree": "8469b19c58647dc8785b5318ad7cfd20cfa0f8d2",
+  "fresh_body_guards": {
+    "fn-248-off-the-shelf-crates-and-consolidation": "1a9abc37c96e430688653ed9a36db4e3215f5af66626c65ad410601842a6d146",
+    "fn-248-off-the-shelf-crates-and-consolidation.1": "8eebf687a18ef3249ff9a09817bc7910832f59c6c9410c7eae6a68cf40558ebe",
+    "fn-248-off-the-shelf-crates-and-consolidation.2": "dcb79d41582766632237f830b39329e33e79569147d7a54a2b68ac8692e57781",
+    "fn-248-off-the-shelf-crates-and-consolidation.3": "33358383cdc5645e31cc507b77bfbf360bb1b10bacaead443f2b20a5c8912b8e",
+    "fn-248-off-the-shelf-crates-and-consolidation.4": "0bda2c7491b88c7e594e2d2052d5a8ac252a0f0d398359d629d505f0c184d03b",
+    "fn-248-off-the-shelf-crates-and-consolidation.5": "e3c72485bd3d2276bc1c11e23717218b95d1519b655d14e8bfcd4f2307004197",
+    "fn-248-off-the-shelf-crates-and-consolidation.6": "47e1407973b3817f25c3bb178b033e390b165a49400e93194bccf6f9c3302e4c"
+  }
+}
