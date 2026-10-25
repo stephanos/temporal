@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-25T22:12:19.510034Z",
+  "depends_on": [
+    "fn-253-gomad-fast-validation-gates.4"
+  ],
+  "id": "fn-253-gomad-fast-validation-gates.7",
+  "priority": null,
+  "spec": "fn-253-gomad-fast-validation-gates",
+  "spec_path": ".flow/tasks/fn-253-gomad-fast-validation-gates.7.md",
+  "status": "todo",
+  "title": "Replace publish-executable.sh with a Rust publish step",
+  "updated_at": "2026-10-25T22:12:19.510034Z"
+}
