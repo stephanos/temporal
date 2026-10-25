@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "entry_id": "bug/runtime-errors/worker-shutdown-must-retain-completed-2026-10-25",
+  "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/worker-shutdown-must-retain-completed-2026-10-25.md",
+  "overlap_level": "moderate",
+  "matches": [
+    {
+      "id": "bug/runtime-errors/evidence-admission-refusals-must-remain-2026-10-25",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/evidence-admission-refusals-must-remain-2026-10-25.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/field-alterations-must-range-over-2026-09-28",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/field-alterations-must-range-over-2026-09-28.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/finite-ir-admission-must-count-work-2026-09-30",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/finite-ir-admission-must-count-work-2026-09-30.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/finite-search-requires-injective-2026-09-30",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/finite-search-requires-injective-2026-09-30.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/freeze-contract-transitions-when-2026-09-05",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/freeze-contract-transitions-when-2026-09-05.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/monitor-closure-must-honor-cancellation-2026-09-04",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/monitor-closure-must-honor-cancellation-2026-09-04.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/replay-rejection-lost-to-2026-09-27",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/replay-rejection-lost-to-2026-09-27.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/retain-opaque-completion-authority-2026-09-05",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/retain-opaque-completion-authority-2026-09-05.md",
+      "score": 2
+    },
+    {
+      "id": "bug/runtime-errors/workflow-replay-must-complete-2026-09-05",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/runtime-errors/workflow-replay-must-complete-2026-09-05.md",
+      "score": 2
+    }
+  ],
+  "related_to": [
+    "bug/runtime-errors/evidence-admission-refusals-must-remain-2026-10-25",
+    "bug/runtime-errors/field-alterations-must-range-over-2026-09-28",
+    "bug/runtime-errors/finite-ir-admission-must-count-work-2026-09-30",
+    "bug/runtime-errors/finite-search-requires-injective-2026-09-30",
+    "bug/runtime-errors/freeze-contract-transitions-when-2026-09-05",
+    "bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04",
+    "bug/runtime-errors/monitor-closure-must-honor-cancellation-2026-09-04",
+    "bug/runtime-errors/replay-rejection-lost-to-2026-09-27",
+    "bug/runtime-errors/retain-opaque-completion-authority-2026-09-05",
+    "bug/runtime-errors/workflow-replay-must-complete-2026-09-05"
+  ],
+  "action": "created",
+  "warnings": []
+}

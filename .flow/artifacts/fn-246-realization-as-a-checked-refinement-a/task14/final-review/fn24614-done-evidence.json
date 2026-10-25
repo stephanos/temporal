@@ -1,0 +1,20 @@
+{
+  "commits": [
+    "44e69fe11f0b81e08ce27a492f2ce89111525cd3",
+    "5c7644bd566c723a9175cb545bd1bff3a5da711e",
+    "4795ee401544d2fde7b7e64ddf64b1db612e24d8",
+    "0adc386881"
+  ],
+  "tests": [
+    "cargo test -p umpire-temporal -p umpire-temporal-api --locked (joined Rust plus corrected complete API; artifacts/task14)",
+    "go test -tags test_dep -count=1 ./... (Temporal host module, joined exit0)",
+    "go test -tags test_dep -count=1 ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver (joined exit0)",
+    "go test -tags test_dep -count=1 ./runner/... (generic Runner, joined exit0)",
+    "go test -race -tags test_dep ./reference/worker/... -count=10 (worker/raw/nativeSDK exit0)",
+    "go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run TestCloseCancelsWorkerBeforePollHold|TestCloseRetainsLateFollowValidation|TestFactoryComposesActualHeartbeatContinuationAndFaultCapture -count=10 (focused exit0)",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=5c7644bd56 GOLANGCI_LINT_FIX=false (corrected Flow boundary exit0)",
+    "scoped unfiltered Go lint, format and vet exit0; protobuf check and Temporal guest freshness exit0",
+    "Actual primary implementation re-review SHIP at0adc386881, session01a173d4-8077-7cf2-bfb2-ca35592b45aa"
+  ],
+  "prs": []
+}

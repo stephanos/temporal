@@ -50,9 +50,16 @@ Run existing Temporal protobuf generation/check scripts, Rust program codec test
 
 
 ## Done summary
-TBD
+Bounded raw/native-SDK heartbeat continuation is integrated. Exact observable-history task keys, feature-neutral continuation domains, Rust Model-derived successor validation, frozen chosen request comparisons, actual assignment/RPC correlation, bounded capture and Driver.Close fault evidence implement task14's executor capability. Existing heartbeat tri-state/terminal behavior and the original native SDK transport proof remain checked. Full strategy enumeration stays task5; actual live service admission, journal/cuts/gates and every mandatory cooperative witness stay fn-237.4.
 
+Review first returned NEEDS_WORK for shutdown poll ordering and lost terminal validation. Correction4795ee4015 cancels owners before poll release, drains/validates captured terminal acknowledgments, preserves substantive late errors and unrecovered terminal failures, and gives no history credit to canceled heartbeat waits. Deterministic red controls, owner-first cancellation, retry recovery and actual captured fault-byte checks pass. Required full ordinary modules, native worker/raw/SDK race10, focused composed shutdown race10, fmt/lint/vet and joined Go groups pass. Root fast lint additionally required the narrow reviewed Makefile correction0adc386881 to exclude Flow evidence, matching SOURCE_FIND, without editing archived proof or excluding product packages.
+
+Actual same-primary re-review at0adc386881 returned SHIP, session01a173d4-8077-7cf2-bfb2-ca35592b45aa. Required focused Rust/descriptor/protobuf/guest freshness evidence is retained; no current parent-full-gate or live Temporal-service claim is made. A broader optional whole guest-driver race run failed with guest-call deadlines and a retained SIGQUIT stack; it is not claimed green. The accepted required model gate is make model-validate with TLC required; Apalache remains separately opt-in per parent Verification adoption.
+
+Tier: AGENTS implementer gpt-6.1-sol/medium; reviewer gpt-6.1-sol/high, same family. Plan-sync skipped(policy: rolling conductor).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 44e69fe11f0b81e08ce27a492f2ce89111525cd3, 5c7644bd566c723a9175cb545bd1bff3a5da711e, 4795ee401544d2fde7b7e64ddf64b1db612e24d8, 0adc386881
+- Tests: cargo test -p umpire-temporal -p umpire-temporal-api --locked (joined Rust plus corrected complete API; artifacts/task14), go test -tags test_dep -count=1 ./... (Temporal host module, joined exit0), go test -tags test_dep -count=1 ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver (joined exit0), go test -tags test_dep -count=1 ./runner/... (generic Runner, joined exit0), go test -race -tags test_dep ./reference/worker/... -count=10 (worker/raw/nativeSDK exit0), go test -race -tags test_dep ./common/testing/testpilot/temporal/act ./tools/umpire/temporaldriver -run TestCloseCancelsWorkerBeforePollHold|TestCloseRetainsLateFollowValidation|TestFactoryComposesActualHeartbeatContinuationAndFaultCapture -count=10 (focused exit0), make lint-code-fast GOLANGCI_LINT_BASE_REV=5c7644bd56 GOLANGCI_LINT_FIX=false (corrected Flow boundary exit0), scoped unfiltered Go lint, format and vet exit0; protobuf check and Temporal guest freshness exit0, Actual primary implementation re-review SHIP at0adc386881, session01a173d4-8077-7cf2-bfb2-ca35592b45aa
 - PRs:

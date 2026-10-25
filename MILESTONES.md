@@ -34,23 +34,23 @@ Shared registry/entity/filler infrastructure, whole-prefix witnesses, compatible
 protocol refinement and Model-derived worker policies. Feature mapping must fit within twice
 the Model's lines, re-measured on the workflow Model. Guest/Host admission and actual SDK
 heartbeat delivery are early gates. fn-237.4 retains the worker journal, evidence/gates and
-mandatory live proofs. The final required gate remains open after an Apalache subprocess refusal.
+mandatory live proofs. Final required-TLC validation and live gates remain outstanding. An optional Apalache
+subprocess refusal remains recorded separately.
 
 [Spec](.flow/specs/fn-246-realization-as-a-checked-refinement-a.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-246.15 | ⬜ todo | Approved plan; after .14 releases shared manifest ownership: nonpending timeout-retry correction and native/TLC proof renewal (R5) |
+| fn-246.15 | ⬜ todo | Approved nonpending timeout-retry correction and native/TLC proof renewal (R5) |
 | fn-246.13 | ⬜ todo | After committed .15: independent standalone-activity protocol Model and native/TLC invariants (R5) |
-| fn-246.14 | 🔄 in progress | Bounded history/codec and raw/SDK continuation integrated; joined validation and review remain (R6) |
-| fn-246.8 | ⬜ todo | Current default whole-prefix guest/Host contract; serialized with .14 (R1, R2) |
+| fn-246.8 | ⬜ todo | Current default whole-prefix guest/Host contract (R1, R2) |
 | fn-246.11 | 🔄 in progress | Variant metadata and synthetic typed registry integrated; joined validation and review remain (R2, R3) |
 | fn-246.9 | ⬜ todo | After .8: current-format whole-prefix Run recording, replay and presentation (R1, R5) |
 | fn-246.10 | ⬜ todo | After .9: bounded alternatives and coherent explanation publication (R1, R5) |
 | fn-246.2 | ⬜ todo | After .10, .11: shared entity lens and filler-driven probes with equivalence pins (R3) |
-| fn-246.3 | ⬜ todo | After .2, .13, .14: activity migration, exact probe parity and mapping count (R4, R7) |
+| fn-246.3 | ⬜ todo | After .2, .13: activity migration, exact probe parity and mapping count (R4, R7) |
 | fn-246.4 | ⬜ todo | After .3, .11, .13: generic native Refinement consumer and activity declaration (R5) |
-| fn-246.5 | ⬜ todo | After .3, .4, .14: complete observable-worker policies and derived programs (R6) |
+| fn-246.5 | ⬜ todo | After .3, .4: complete observable-worker policies and derived programs (R6) |
 | fn-246.6 | ⬜ todo | After .3, .4, .5: integrated evidence, count/timing gates and author docs (R1–R7) |
 
 ### fn-237: Activity timeouts, heartbeat and cooperative cancellation
