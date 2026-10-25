@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-248-off-the-shelf-crates-and-consolidation.4",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a170e8-a0fb-7ac3-be79-dab8435556a1",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: `value: syn::parse_quote!(#value)` reparses a type path as an expression\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `value: syn::parse_quote!(#value)` reparses a type path as an expression. Previously accepted attributes such as `context = Ctx<u32>` now panic with \u201ccomparison operators cannot be chained.\u201d Confirmed using the cached macro; the previous implementation parses this input successfully.\n- **Suggestion**: Construct `Expr::Path` directly from the parsed `Path`, preserving generic arguments. Add a generic-context regression control.\n- **File:Line**: model/umpire/catalog/syntax/src/derive.rs:193\n- **R-IDs**: R1\n\n## Issue 2\n- **Severity**: P2\n- **Title**: Case conversion omits prost\u2019s identifier sanitization\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: Case conversion omits prost\u2019s identifier sanitization. A valid protobuf message named `Self_` becomes `Self`, producing E0433; `_42Foo` becomes `42Foo` and fails with \u201cinvalid protobuf name.\u201d Both previously retained their correct Rust names. The same omission exists in `realization.rs:477`, while the build generator correctly handles these cases through `type_name`. Package conversion similarly changes `self_` into the invalid path component `self`.\n- **Suggestion**: Apply consistent prost-compatible type and module sanitization across these consumers. Add compile controls for `Self_`, `_42Foo`, and package `self_`.\n- **File:Line**: model/umpire/catalog/syntax/src/derive.rs:675\n- **R-IDs**: R1\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R1\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a170e8-a0fb-7ac3-be79-dab8435556a1",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a170e8-a0fd-7a70-9a3d-dacc1c026ef4",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a170e8-a0fc-7e73-948b-9a11a241f000",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 2,
+  "introduced_count": 2,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R1"
+  ],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

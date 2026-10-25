@@ -1,0 +1,26 @@
+   Compiling prost-types v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.62s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_catalog_syntax-3d61d5c83f64f20f)
+
+running 1 test
+test derive::attribute_controls::scalar_options_preserve_generic_type_paths ... FAILED
+
+failures:
+
+---- derive::attribute_controls::scalar_options_preserve_generic_type_paths stdout ----
+
+thread 'derive::attribute_controls::scalar_options_preserve_generic_type_paths' (1198851) panicked at umpire/catalog/syntax/src/derive.rs:193:36:
+comparison operators cannot be chained
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    derive::attribute_controls::scalar_options_preserve_generic_type_paths
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-catalog-syntax --lib`

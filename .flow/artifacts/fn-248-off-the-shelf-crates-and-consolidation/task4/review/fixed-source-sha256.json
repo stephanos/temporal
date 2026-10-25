@@ -1,0 +1,11 @@
+{
+  "model/temporal/annotate/syntax/src/realization.rs": "590b1233353125400de71037ef8704dbe32bfae4cf3411c07f852de233e9d221",
+  "model/umpire/catalog/build/src/services.rs": "150d4838f7c4f159e1d02de9d9c285192de18e3e926b3c11d673ae7300569c02",
+  "model/umpire/catalog/build/src/wire_schema.rs": "c210496dff50843aa545545fea392020688dc7dd4e84354c75d53fddcd95c486",
+  "model/umpire/catalog/build/tests/wire_generated.rs": "a273f87dcd90bcbe0add77e4caab9fee1a873ddf411aeb44233207532c084f07",
+  "model/umpire/catalog/syntax/src/derive.rs": "ff508be2f68cf83abd4179ce9d39d204f7135ed37a4fd34c5b8643df13d77c4a",
+  "model/umpire/catalog/syntax/src/lib.rs": "3f36025d6c16d48e0a013f15aa602d16814717fba56331409b90db19e7c7af4c",
+  "model/umpire/catalog/syntax/src/naming.rs": "68a91eeadf525dda4edf6f17c4dc0d74ec4504913b97867f7f16c431a70a7e63",
+  "model/umpire/catalog/tests/pass/prost_names.rs": "cc6221a97f43e620b7e964f8bd3af227d373b81919dee6f40c8c01a6f600eca6",
+  "model/umpire/catalog/tests/ui.rs": "987a60b1f5c1c8e97d088325aacc60f35996de626bab18c1e974e5fc1ad33e83"
+}

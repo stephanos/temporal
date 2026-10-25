@@ -1,0 +1,61 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.45s
+     Running tests/ui.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/ui-5637ecb799efd98c)
+
+running 1 test
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/cargo-target/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.85s
+
+
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/malformed_attributes.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/pass/prost_names.rs [should pass] ... error
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error[E0425]: cannot find type `_42foo` in module `crate::self_`
+  --> tests/pass/prost_names.rs:12:10
+   |
+ 6 |     #[derive(Clone, Default)] pub struct _42Foo {}
+   |                               ----------------- similarly named struct `_42Foo` defined here
+...
+12 | #[derive(Catalog)]
+   |          ^^^^^^^
+   |
+   = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0422]: cannot find struct, variant or union type `_42foo` in module `crate::self_`
+  --> tests/pass/prost_names.rs:12:10
+   |
+ 6 |     #[derive(Clone, Default)] pub struct _42Foo {}
+   |                               ----------------- similarly named struct `_42Foo` defined here
+...
+12 | #[derive(Catalog)]
+   |          ^^^^^^^
+   |
+   = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+
+
+test catalog_requires_every_field_and_enum_variant ... FAILED
+
+failures:
+
+---- catalog_requires_every_field_and_enum_variant stdout ----
+
+thread 'catalog_requires_every_field_and_enum_variant' (1209617) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:103:13:
+1 of 4 tests failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    catalog_requires_every_field_and_enum_variant
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.61s
+
+error: test failed, to rerun pass `-p umpire-catalog --test ui`

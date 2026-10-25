@@ -1,0 +1,25 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+error[E0308]: mismatched types
+   --> temporal/annotate/syntax/src/realization.rs:533:53
+    |
+533 | ...                   naming::upper_camel(name)
+    |                       ------------------- ^^^^ expected `&str`, found `String`
+    |                       |
+    |                       arguments to this function are incorrect
+    |
+note: function defined here
+   --> umpire/catalog/syntax/src/naming.rs:22:8
+    |
+ 22 | pub fn upper_camel(name: &str) -> String {
+    |        ^^^^^^^^^^^
+help: consider borrowing here
+    |
+533 |                                 naming::upper_camel(&name)
+    |                                                     +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `umpire-temporal-annotate-syntax` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `umpire-temporal-annotate-syntax` (lib test) due to 1 previous error

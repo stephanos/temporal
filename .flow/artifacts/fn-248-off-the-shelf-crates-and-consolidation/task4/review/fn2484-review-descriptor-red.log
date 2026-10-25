@@ -1,0 +1,26 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.48s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_temporal_annotate_syntax-904a8d854b657d4f)
+
+running 1 test
+test realization::tests::prost_descriptor_names_escape_keywords_and_numeric_prefixes ... FAILED
+
+failures:
+
+---- realization::tests::prost_descriptor_names_escape_keywords_and_numeric_prefixes stdout ----
+
+thread 'realization::tests::prost_descriptor_names_escape_keywords_and_numeric_prefixes' (1201495) panicked at temporal/annotate/syntax/src/realization.rs:585:9:
+assertion `left == right` failed
+  left: "crate::self_::Self"
+ right: "crate::self_::Self_"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    realization::tests::prost_descriptor_names_escape_keywords_and_numeric_prefixes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal-annotate-syntax --lib`

@@ -1,0 +1,55 @@
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.88s
+     Running tests/ui.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/ui-5637ecb799efd98c)
+
+running 1 test
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/cargo-target/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.08s
+
+
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/malformed_attributes.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/pass/prost_names.rs [should pass] ... error
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: invalid protobuf name
+  --> tests/pass/prost_names.rs:13:21
+   |
+13 | #[mirror(response = "self_._42Foo", api = crate)]
+   |                     ^^^^^^^^^^^^^^
+
+error: invalid protobuf name
+  --> tests/pass/prost_names.rs:16:21
+   |
+16 | #[mirror(response = "self_._42", api = crate)]
+   |                     ^^^^^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+
+
+test catalog_requires_every_field_and_enum_variant ... FAILED
+
+failures:
+
+---- catalog_requires_every_field_and_enum_variant stdout ----
+
+thread 'catalog_requires_every_field_and_enum_variant' (1200329) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:103:13:
+1 of 4 tests failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    catalog_requires_every_field_and_enum_variant
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.92s
+
+error: test failed, to rerun pass `-p umpire-catalog --test ui`

@@ -1,0 +1,15 @@
+{
+  "base_commit": "ea98df9ff47c6e98508e7b71b3512d4291df5c1f",
+  "source_commit": "f40149592b293c958b1b636ff4089299a36a6314",
+  "review_spec": "codex:gpt-6.1-sol:high",
+  "review_session": "01a170e8-a0fb-7ac3-be79-dab8435556a1",
+  "verdict": "SHIP",
+  "same_family": true,
+  "round": 2,
+  "gate_classify": {
+    "exit": 1,
+    "output": "FULL: unmatched: model/Cargo.lock"
+  },
+  "verification": "Affected focused tests and Clippy passed after source fix; no full Model or guest pipeline run. Reviewer independently ran cached targeted test binaries; Cargo reruns were blocked by readonly build lock.",
+  "source_hash_inventory": "fixed-source-sha256.json"
+}

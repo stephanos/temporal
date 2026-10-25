@@ -1,0 +1,45 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/annotate/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/build)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.11s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/umpire_catalog_build-24022a047edefb2c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/neutral.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/neutral-4e2b0d43aba7da0d)
+
+running 7 tests
+test omitted_field_enum_and_method_are_rejected ... ok
+test coverage_build_reads_the_explicit_catalog_root_and_descriptor_path ... ok
+test second_service_uses_configured_identity_and_roots ... ok
+test an_annotated_rpc_must_be_claimed ... ok
+test coverage_build_resolves_feature_claims_against_one_service_table ... ok
+test added_method_and_action_break_exhaustive_generated_matches ... ok
+test payload_classification_binds_every_value_and_rejects_duplicate_variants ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/wire_generated.rs (/home/agent/.cache/codex-build/cargo-target/debug/deps/wire_generated-337a4378b5a07f5b)
+
+running 2 tests
+test shared_names_match_prost_identifier_sanitization ... FAILED
+test generated_wire_setters_compile_and_preserve_carrier_mutations ... ok
+
+failures:
+
+---- shared_names_match_prost_identifier_sanitization stdout ----
+
+thread 'shared_names_match_prost_identifier_sanitization' (1208833) panicked at umpire/catalog/build/tests/wire_generated.rs:205:9:
+assertion `left == right` failed
+  left: "_42foo"
+ right: "_42Foo"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shared_names_match_prost_identifier_sanitization
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+error: test failed, to rerun pass `-p umpire-catalog-build --test wire_generated`

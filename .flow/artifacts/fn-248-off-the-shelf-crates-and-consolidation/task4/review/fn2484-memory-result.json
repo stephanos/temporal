@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "entry_id": "bug/build-errors/preserve-generic-paths-and-prost-2026-10-25",
+  "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/preserve-generic-paths-and-prost-2026-10-25.md",
+  "overlap_level": "moderate",
+  "matches": [
+    {
+      "id": "bug/build-errors/isolate-scala-cli-author-builds-after-2026-10-16",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/isolate-scala-cli-author-builds-after-2026-10-16.md",
+      "score": 2
+    },
+    {
+      "id": "bug/build-errors/track-schema-inputs-before-reusing-2026-09-07",
+      "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/memory/bug/build-errors/track-schema-inputs-before-reusing-2026-09-07.md",
+      "score": 2
+    }
+  ],
+  "related_to": [
+    "bug/build-errors/isolate-scala-cli-author-builds-after-2026-10-16",
+    "bug/build-errors/track-schema-inputs-before-reusing-2026-09-07"
+  ],
+  "action": "created",
+  "warnings": []
+}

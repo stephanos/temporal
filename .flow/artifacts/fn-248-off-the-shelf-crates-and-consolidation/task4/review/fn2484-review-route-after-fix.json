@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "type": "review_route",
+  "task_id": "fn-248-off-the-shelf-crates-and-consolidation.4",
+  "standalone": false,
+  "scope_id": "fn-248-off-the-shelf-crates-and-consolidation.4",
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-248-off-the-shelf-crates-and-consolidation.4.json",
+  "receipt_state": "open",
+  "receipt_verdict": "NEEDS_WORK",
+  "rotated_to": null,
+  "force": false,
+  "pending": 0,
+  "rounds": 1,
+  "last_verdict": "NEEDS_WORK",
+  "unjournaled_reservation": null,
+  "live_reservation": null,
+  "expired_reservation": null,
+  "phase_lease": null,
+  "action": "fix-then-rereview",
+  "reason": "open_receipt",
+  "message": "receipt carries an active fix loop: parse its findings, fix, test, commit (verify instead when already committed), then the single-dispatch re-review with --receipt \u2014 never a fan-out."
+}
