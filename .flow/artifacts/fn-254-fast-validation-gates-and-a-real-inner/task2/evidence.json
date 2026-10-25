@@ -28,7 +28,8 @@
     "PASS(exit0): mise exec -- cargo fmt --all -- --check; proof/fmt-bounded.log",
     "PASS(exit0): mise exec -- cargo clippy -p umpire-tlc --all-targets --all-features -- -D warnings; proof/clippy-bounded.log",
     "DEFERRED(owner81f509b088226986e5ea2cbd8ee10a2942d430e4):752 unrelated original workspace identities to fn254.8; exact names/ignored status in proof/validation-scope-ledger.json",
-    "CORPUS_REUSE: be919 frozen all-fixture proof retained under collector-only delta to2d596d0f5c; exact unchanged production-byte/path/budget argument and new multiwave controls: proof/collector-delta-reuse.json"
+    "CORPUS_REUSE: be919 frozen all-fixture proof retained under collector-only delta to2d596d0f5c; exact unchanged production-byte/path/budget argument and new multiwave controls: proof/collector-delta-reuse.json",
+    "PASS(exit0, integrated umpire): cd model && UMPIRE_BACKENDS=require RUST_TEST_THREADS=2 CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612 CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec -- cargo test -p umpire-tlc --locked --features strategy-equivalence -- --nocapture;23passed; integrated-core.json/log"
   ],
   "prs": [],
   "integrated_head": "e14a3c2276546e33edd28a08a5e0a46f8efd270d"
