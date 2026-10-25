@@ -1,19 +1,19 @@
 {
   "base_commit": "a8e4067edba5ba8b68380ea19840752f43920635",
   "before_count": 2317,
-  "after_count": 1129,
-  "removed_count": 1190,
+  "after_count": 1141,
+  "removed_count": 1178,
   "added_count": 2,
   "retained_strict_count": 79,
   "after_strict_count": 81,
   "retained_metadata_changes": 4,
   "removed_rules": {
-    "unclaimed Ignored subtree": 1134,
+    "unclaimed Ignored subtree": 1122,
     "unsupported inferred Secret bound": 56
   },
   "source_proofs": {
     "old": "ecaf549eb7f7ef5277a320cf2d135b49af58520dfbe69a58555aa317a84c65d2",
-    "new": "97cde218283b55a2c977df046f1808c063b06ee41318bdb3fd70bb13e046c5fd"
+    "new": "1bd160baa1f14853bb8e69b972a18237c449173693449b368ba73c12cfd41c06"
   },
   "cases": [
     {
@@ -1088,11 +1088,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure:mutation.empty",
@@ -1110,11 +1108,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure:mutation.limit_plus_one(1000)",
@@ -1132,11 +1128,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure:mutation.limit_plus_one(2097152)",
@@ -1154,11 +1148,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure:mutation.negative",
@@ -1176,11 +1168,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure:mutation.undefined_enum",
@@ -1198,11 +1188,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_last_failure; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.absent",
@@ -1220,11 +1208,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.empty",
@@ -1242,11 +1228,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.limit_plus_one(1000)",
@@ -1264,11 +1248,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.limit_plus_one(2097152)",
@@ -1286,11 +1268,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.negative",
@@ -1308,11 +1288,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome:mutation.undefined_enum",
@@ -1330,11 +1308,9 @@
         "predictions": []
       },
       "old_accepted_gap": null,
-      "disposition": "removed",
-      "rule": "unclaimed Ignored subtree",
-      "claim_path": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "claim_declaration": "temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome",
-      "reason": "Unclaimed descriptor field temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.include_outcome; no semantic read or fill is declared"
+      "disposition": "retained",
+      "after": "identical",
+      "reason": "Exact method, prerequisite, applicability and every prediction retained"
     },
     {
       "id": "generic::DescribeActivityExecution::temporal.api.workflowservice.v1.DescribeActivityExecutionRequest.long_poll_token:mutation.absent",
@@ -17377,7 +17353,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source:mutation.empty",
@@ -17399,7 +17375,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source:mutation.limit_plus_one(1000)",
@@ -17421,7 +17397,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source:mutation.limit_plus_one(2097152)",
@@ -17443,7 +17419,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source:mutation.negative",
@@ -17465,7 +17441,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source:mutation.undefined_enum",
@@ -17487,7 +17463,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.cause.stack_trace:mutation.absent",
@@ -22789,7 +22765,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source:mutation.empty",
@@ -22811,7 +22787,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source:mutation.limit_plus_one(1000)",
@@ -22833,7 +22809,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source:mutation.limit_plus_one(2097152)",
@@ -22855,7 +22831,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source:mutation.negative",
@@ -22877,7 +22853,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source:mutation.undefined_enum",
@@ -22899,7 +22875,7 @@
       "rule": "unclaimed Ignored subtree",
       "claim_path": "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.source",
       "claim_declaration": "temporal.api.failure.v1.Failure.source",
-      "reason": "Unclaimed descriptor field temporal.api.failure.v1.Failure.source; no semantic read or fill is declared"
+      "reason": "Failure.source is discarded on comparison copies; its transport value is neither projected nor filled [descriptor field temporal.api.failure.v1.Failure.source]"
     },
     {
       "id": "generic::RespondActivityTaskFailed::temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest.failure.stack_trace:mutation.absent",

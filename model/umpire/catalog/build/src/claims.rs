@@ -40,10 +40,14 @@ pub fn generate(graph: &Graph, system: &System<'_>) -> io::Result<String> {
                             return Err(io::Error::other(format!("unknown claim: {owner}.{name}")));
                         }
                         let declaration = format!("{owner}.{name}");
-                        if claims
-                            .insert(declaration.clone(), (kind.clone(), ignored.clone()))
-                            .is_some()
-                        {
+                        let reason = ignored.as_ref().map(|reason| {
+                            if reason.contains(&declaration) {
+                                reason.clone()
+                            } else {
+                                format!("{reason} [descriptor field {declaration}]")
+                            }
+                        });
+                        if claims.insert(declaration.clone(), (kind.clone(), reason)).is_some() {
                             return Err(io::Error::other(format!(
                                 "duplicate claim: {declaration}"
                             )));

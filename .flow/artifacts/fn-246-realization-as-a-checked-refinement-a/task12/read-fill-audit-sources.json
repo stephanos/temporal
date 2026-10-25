@@ -1,0 +1,14 @@
+{
+  "authority": "conductor checkout after task7; model tree fd5da182 as reported by conductor",
+  "sources": {
+    "model/temporal/feature/activity/temporal.rs": "db86246a7233fa5aa8ee3499174fdf35722431bb6cf02841dc0dcb0c964e0dd2",
+    "model/temporal/feature/activity/phase.rs": "8a5a0eebc8f17e292c8c8c65ad6415236c1ad84d2b013dceb5a27ece528522c1",
+    "model/temporal/realization/src/live.rs": "4cad03cc86dfdc4d35e1628bd04650761ed7a098e355d84dab02ff2a541f9c30",
+    "model/temporal/realization/src/support.rs": "8795f1a9f761cca723622a1d5c5207c2935e14170852b99e9767d8e1a65895da",
+    "model/temporal/hosts/go/reference/worker/program.go": "a5cf162e02230e63c6be9a8ae79038117f4d75aaf9351de4d03e4f3b5c76914d",
+    "model/temporal/hosts/go/reference/worker/raw/raw.go": "dc37b2d77b3a23ef7dc30d7fc0943dbf4f2f58f2f3239ab7a9969d51a37a6e22",
+    "model/temporal/hosts/go/reference/worker/sdk/sdk.go": "9c7539d9b73eee5aaf1f7b57fbc39b8043a6ad56b886c2715bbde65a1d89f2b9",
+    "common/testing/testpilot/temporal/act/exchange.go": "d1f6100a025e6de7383e27a4e378ef588bc4603a5ab62bc73461ca568c7f52be",
+    "common/testing/testpilot/temporal/act/rpc.go": "5c9bf6b56896b23d213910184983736e466d8eb4ac7635ac05407c1679436e4d"
+  }
+}

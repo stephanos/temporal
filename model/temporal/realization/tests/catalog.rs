@@ -465,6 +465,9 @@ fn explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries()
         (Some((10, 0)), Some((10, 0)), 2, false),
         (Some((10, 1)), Some((10, 0)), 2, true),
         (Some((10, 0)), Some((10, 1)), 2, false),
+        (Some((3_153_600_001, 0)), Some((3_153_600_000, 0)), 2, false),
+        (Some((1, 2_000_000_000)), Some((2, 0)), 2, true),
+        (Some((1, 2_000_000_000)), Some((2, 0)), 1, false),
         (None, Some((10, 0)), 2, false),
         (Some((1001, 0)), None, 2, false),
     ] {
@@ -505,5 +508,99 @@ fn start_header_claim_preserves_actual_correlation_payload()
     )
     .ok_or("missing Header claim")?;
     assert_eq!(claim.ignored, None);
+    Ok(())
+}
+
+#[test]
+fn retry_inversion_witness_uses_the_shared_projection_and_refuses_the_cap()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal::foundation::views::start_retry_order;
+    for (maximum, supported) in [
+        (Duration { seconds: 10, nanos: 0 }, true),
+        (Duration { seconds: 1, nanos: 2_000_000_000 }, true),
+        (Duration { seconds: 3_153_600_000, nanos: 0 }, false),
+    ] {
+        let mut request = start();
+        request.retry_policy = Some(RetryPolicy {
+            maximum_attempts: 2,
+            initial_interval: Some(Duration { seconds: 1, nanos: 0 }),
+            maximum_interval: Some(maximum),
+            ..Default::default()
+        });
+        let before = request.clone();
+        let result = start_retry_order::set(&mut request, 0);
+        if supported {
+            result?;
+            assert_eq!(start_retry_order::view(&request), 0);
+        } else {
+            assert_eq!(result, Err(umpire_catalog::GenerationError::InapplicableMutation));
+            assert_eq!(request, before);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn explicitly_consumed_transport_fields_are_claimed() -> Result<(), Box<dyn std::error::Error>> {
+    for (owner, fields) in [
+        (
+            "workflowservice.v1.DescribeActivityExecutionRequest",
+            &["namespace", "activity_id", "run_id", "include_outcome", "include_last_failure"][..],
+        ),
+        (
+            "workflowservice.v1.StartActivityExecutionRequest",
+            &[
+                "namespace",
+                "activity_id",
+                "request_id",
+                "activity_type",
+                "task_queue",
+                "retry_policy",
+                "header",
+            ][..],
+        ),
+        ("workflowservice.v1.StartActivityExecutionResponse", &["run_id", "started", "link"][..]),
+        (
+            "workflowservice.v1.PollActivityTaskQueueRequest",
+            &["namespace", "task_queue", "identity"][..],
+        ),
+        (
+            "workflowservice.v1.PollActivityTaskQueueResponse",
+            &["task_token", "header", "attempt", "activity_type"][..],
+        ),
+        (
+            "workflowservice.v1.RequestCancelActivityExecutionRequest",
+            &["namespace", "activity_id", "run_id"][..],
+        ),
+        (
+            "workflowservice.v1.RespondActivityTaskCompletedRequest",
+            &["namespace", "task_token", "identity", "result"][..],
+        ),
+        (
+            "workflowservice.v1.RespondActivityTaskFailedRequest",
+            &["namespace", "task_token", "identity", "failure"][..],
+        ),
+        ("workflowservice.v1.RespondActivityTaskFailedResponse", &["failures"][..]),
+        ("common.v1.Header", &["fields"][..]),
+        ("common.v1.Payload", &["metadata", "data"][..]),
+        ("common.v1.Link", &["activity"][..]),
+        ("common.v1.Link.Activity", &["namespace", "activity_id", "run_id"][..]),
+        (
+            "failure.v1.Failure",
+            &["message", "stack_trace", "encoded_attributes", "cause", "application_failure_info"]
+                [..],
+        ),
+        (
+            "failure.v1.ApplicationFailureInfo",
+            &["type", "non_retryable", "details", "next_retry_delay", "category"][..],
+        ),
+    ] {
+        for field in fields {
+            let path = format!("temporal.api.{owner}.{field}");
+            let claim = umpire_temporal_api::workflow_field_claim(&path)
+                .ok_or_else(|| format!("missing consumed claim {path}"))?;
+            assert_eq!(claim.ignored, None, "{path}");
+        }
+    }
     Ok(())
 }
