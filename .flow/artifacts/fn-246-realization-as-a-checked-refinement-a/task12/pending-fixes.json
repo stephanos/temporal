@@ -1,0 +1,14 @@
+{
+  "source_checkpoint": "3dd5486d3098a4348ab4cd1ba7681289c3d70c09",
+  "joined_checked_commit": "1b2ae6aed6b5884509534fdceb90b14412770bfb",
+  "review": "NEEDS_WORK",
+  "primary_session": "01a172e1-97ec-78f2-9898-159a9d7d50df",
+  "findings": [
+    "Reject mapped reads/fills of generated Ignored leaves; preserve explicit ignore declarations.",
+    "Preserve authored map key/value kinds and suppress unsupported Secret bounds while retaining ancestor constraints."
+  ],
+  "root_additional_finding": "Start scenario header is actually read; claim its message/map/data honestly. ActivityInfo application headers remain ignored.",
+  "fix_owner": "/root/fn24612_catalog",
+  "task_status": "in_progress",
+  "all_joined_checks": "passed; these do not override review findings"
+}

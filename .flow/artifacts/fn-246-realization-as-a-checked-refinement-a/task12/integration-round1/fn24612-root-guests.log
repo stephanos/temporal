@@ -1,0 +1,163 @@
+    Finished `dev` profile [unoptimized] target(s) in 0.05s
+   Compiling smallvec v1.16.3
+   Compiling prost v0.14.4
+   Compiling proc-macro-utils v0.10.0
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling manyhow-macros v0.14.1
+   Compiling manyhow v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 4.61s
+    Finished `dev` profile [unoptimized] target(s) in 0.04s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle)
+warning: `umpire-suite` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+warning: `umpire` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-reference-kettle` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-kettle-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle/guest)
+warning: `umpire-kettle-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 12.13s
+    Finished `dev` profile [unoptimized] target(s) in 0.02s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/control)
+warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1.53s
+    Finished `dev` profile [unoptimized] target(s) in 0.02s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+warning: `umpire-catalog` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 44.80s
+    Finished `dev` profile [unoptimized] target(s) in 0.03s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/caught-panic)
+warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1.66s
+    Finished `dev` profile [unoptimized] target(s) in 0.02s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-runtime` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/overflow)
+warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1.65s
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling anyhow v1.0.104
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.3
+   Compiling indexmap v2.14.2
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling heck v0.5.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive)
+   Compiling winnow v1.0.4
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling prettyplease v0.3.0
+   Compiling proc-macro-utils v0.10.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling foldhash v0.1.5
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling bytemuck v1.25.2
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling linux-raw-sys v0.12.1
+   Compiling regex-automata v0.4.18
+   Compiling prost v0.14.4
+   Compiling safe_arch v0.7.4
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling hashbrown v0.15.5
+   Compiling manyhow-macros v0.14.1
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling once_cell v1.21.4
+   Compiling fixedbitset v0.5.7
+   Compiling thiserror v2.0.21
+   Compiling fastrand v2.5.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling tempfile v3.27.0
+   Compiling petgraph v0.8.3
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling manyhow v0.14.1
+   Compiling regex v1.13.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling wide v0.7.33
+   Compiling prost-types v0.14.4
+   Compiling thiserror-impl v2.0.21
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling archery v1.2.3
+   Compiling imbl v7.0.2
+   Compiling prost-build v0.14.4
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime/guests/caught-panic)
+    Finished `guest` profile [optimized] target(s) in 14.45s
+     Running `/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/guest/panic-control-reports /home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/panic-native`
+
+thread 'main' (3048127) panicked at umpire/protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:84:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (3048127) panicked at umpire/protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:87:53:
+attempt to add with overflow

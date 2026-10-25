@@ -1,0 +1,5 @@
+ok  	umpire.local/temporal	50.775s
+ok  	umpire.local/temporal/reference/worker	0.005s
+ok  	umpire.local/temporal/reference/worker/raw	0.004s
+ok  	umpire.local/temporal/reference/worker/sdk	1.690s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]

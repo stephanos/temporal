@@ -1,0 +1,127 @@
+{
+  "source_commit": "1b2ae6aed6b5884509534fdceb90b14412770bfb",
+  "stages": [
+    {
+      "stage": "guests",
+      "command": [
+        "bash",
+        "model/scripts/tests/build-guests.sh"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "exit_code": 0,
+      "seconds": 82.447,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-guests.log",
+      "sha256": "632c85ea21456d8b4a8e0f9a4677cb46507e7c252f5f5c4161bd44b972580fc4"
+    },
+    {
+      "stage": "rust",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-catalog",
+        "-p",
+        "umpire-catalog-syntax",
+        "-p",
+        "umpire-catalog-build",
+        "-p",
+        "umpire-temporal-annotate-syntax",
+        "-p",
+        "umpire-temporal-api",
+        "-p",
+        "umpire-temporal",
+        "-p",
+        "umpire-reference-kettle"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "seconds": 129.739,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-rust.log",
+      "sha256": "4daedd402f04adab0bd6839a9ee5b459a9a5ac5ba63398e6fce26f19fc75c1b4"
+    },
+    {
+      "stage": "boundaries",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "cargo",
+        "test",
+        "-p",
+        "umpire-temporal-tests",
+        "--test",
+        "boundary"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "seconds": 9.744,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-boundaries.log",
+      "sha256": "1c69ba2b85a51492af8028055ea7fb874779ef53335caaa4857325d1837499b3"
+    },
+    {
+      "stage": "generic-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/hosts/go",
+      "exit_code": 0,
+      "seconds": 7.671,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-generic-host.log",
+      "sha256": "852c2b5915c69be38f63226294ea874900fcaf8b4cb63a1dd33beeb956c854ff"
+    },
+    {
+      "stage": "temporal-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go",
+      "exit_code": 0,
+      "seconds": 54.286,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-temporal-host.log",
+      "sha256": "e1b3c2dd73feb7e351bade18161538c1a9ffb583bf14125e64fb4fb6493edc77"
+    },
+    {
+      "stage": "kettle-host",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/reference/kettle",
+      "exit_code": 0,
+      "seconds": 34.614,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-kettle-host.log",
+      "sha256": "4cc385ca24c276fcce0d578936bc7febe66cdb1949ca3bc3f571a7b089727f01"
+    },
+    {
+      "stage": "freshness",
+      "command": [
+        "bash",
+        "model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal",
+      "exit_code": 0,
+      "seconds": 32.505,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-root-freshness.log",
+      "sha256": "dfcbfad170165741f1cb2ee196f3cf91bbd4b0063d428c5852521928929d9acf"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "base": "046922c29e",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a172e1-97ec-78f2-9898-159a9d7d50df",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a172e1-97eb-75a3-be1f-a8b173f94d56",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a172e1-97ec-7d53-90d9-11dccb7babe5",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "046922c29e1355824cc989575dfe24b42e622bca",
+    "headSha": "1b2ae6aed6b5884509534fdceb90b14412770bfb",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "046922c29e1355824cc989575dfe24b42e622bca",
+          "headSha": "1b2ae6aed6b5884509534fdceb90b14412770bfb",
+          "path": "model/umpire/catalog/build/src/claims.rs",
+          "side": "head",
+          "startLine": 28
+        },
+        "body": "`let kind = field.kind.to_string()` reads the coverage representation, which assigns `Bytes` to synthetic map-entry fields. Consequently, `Payload.metadata: Map<Text, Secret>` generates a `Bytes` claim for `Payload.MetadataEntry.value`. Temporal\u2019s new admission policy only suppresses bounds whose claim kind is `Secret`, so nine applicable length probes without predictions survive, including `StartActivityExecutionRequest.input.payloads.metadata.value:mutation.limit_plus_one(1000)`. This violates the required suppression of unsupported inferred Secret bounds.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "id": "finding-47342e5fe6b84fc668f70ab976119c65",
+        "lastSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "ordinal": 2,
+        "rIds": [
+          "R3",
+          "R4"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Preserve semantic map-value kinds when generating claims. Suppress these unsupported Secret bounds while retaining mutations that trigger explicit ancestor constraints, such as Start\u2019s input-size limit. Update the reconciliation manifest and add map-value coverage.",
+        "title": "`let kind = field"
+      },
+      {
+        "anchor": {
+          "baseSha": "046922c29e1355824cc989575dfe24b42e622bca",
+          "headSha": "1b2ae6aed6b5884509534fdceb90b14412770bfb",
+          "path": "model/temporal/annotate/syntax/src/realization.rs",
+          "side": "head",
+          "startLine": 137
+        },
+        "body": "Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads. For example, removing `ActivityExecutionInfo.run_state` from the claims generates an Ignored field, but the existing `reads(info.run_state)` still passes: `Schema::resolve` checks opacity only when traversing further descendants. The realization can therefore consume a field that its catalog declares unclaimed and skips validating.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "id": "finding-0653ac602a4baccc77d47c15b2297551",
+        "lastSeenReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Reject mapped reads/fills of unclaimed fields, including leaf fields. Add a negative control that removes a claim while retaining its realization read.",
+        "title": "Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-addc3c2da0975922cd81ec09fe694f3c234e23bfb001cd24680eaaf2d8ce86a3"
+  },
+  "id": "fn-246-realization-as-a-checked-refinement-a.12",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Expanding missing claims into Ignored fields before admission removes the previous exhaustiveness protection without checking those claims against realization reads. For example, removing `ActivityExecutionInfo.run_state` from the claims generates an Ignored field, but the existing `reads(info.run_state)` still passes: `Schema::resolve` checks opacity only when traversing further descendants. The realization can therefore consume a field that its catalog declares unclaimed and skips validating.\n- **Suggestion**: Reject mapped reads/fills of unclaimed fields, including leaf fields. Add a negative control that removes a claim while retaining its realization read.\n- **File:Line**: model/temporal/annotate/syntax/src/realization.rs:137\n- **R-IDs**: R3\n\n## Issue 2\n- **Severity**: P2\n- **Title**: `let kind = field\n- **Confidence**: 100\n- **Classification**: introduced\n- **Problem**: `let kind = field.kind.to_string()` reads the coverage representation, which assigns `Bytes` to synthetic map-entry fields. Consequently, `Payload.metadata: Map<Text, Secret>` generates a `Bytes` claim for `Payload.MetadataEntry.value`. Temporal\u2019s new admission policy only suppresses bounds whose claim kind is `Secret`, so nine applicable length probes without predictions survive, including `StartActivityExecutionRequest.input.payloads.metadata.value:mutation.limit_plus_one(1000)`. This violates the required suppression of unsupported inferred Secret bounds.\n- **Suggestion**: Preserve semantic map-value kinds when generating claims. Suppress these unsupported Secret bounds while retaining mutations that trigger explicit ancestor constraints, such as Start\u2019s input-size limit. Update the reconciliation manifest and add map-value coverage.\n- **File:Line**: model/umpire/catalog/build/src/claims.rs:28\n- **R-IDs**: R3, R4\n\n```json\n{\"classification_counts\": {\"introduced\": 2, \"pre_existing\": 0}, \"unaddressed\": [\"R3\", \"R4\"], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "8562fef31d484717b350ac24bee166b8",
+  "rid": "8562fef31d484717b350ac24bee166b8",
+  "session_id": "01a172e1-97ec-78f2-9898-159a9d7d50df",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T11:54:33.601028Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R3",
+    "R4"
+  ],
+  "verdict": "NEEDS_WORK"
+}
