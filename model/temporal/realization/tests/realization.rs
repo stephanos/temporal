@@ -1,4 +1,6 @@
 //! Native realization controls against the independently fixed activity Model.
+use umpire_runtime::protocol::{Method, RefusalCode};
+use umpire_runtime::testing::{GuestExt, ResponseExt};
 
 use umpire_runtime::AnyMessage as _;
 use umpire_runtime::realization::Error;
@@ -8,7 +10,7 @@ use umpire_runtime::realization::observation::Result as ObservationResult;
 use prost::Message;
 use umpire_dsl::{Machine, Outcome as StepOutcome, Rejection};
 use umpire_runtime::{
-    Dispatch, Guest, Projection, Realize,
+    Guest, Projection, Realize,
     prost_types::Any,
     protocol::{self, response::Outcome},
 };
@@ -34,8 +36,8 @@ fn successful_cancel_is_an_explained_step_and_reaches_canceled() {
         result: Some(ObservationResult::Response(Any::pack(&response))),
         request: None,
     });
-    explained(judge(&mut guest, cancel), &["Client::Cancel"]);
-    explained(judge(&mut guest, observation(4, 0)), &[]);
+    explained(guest.judge(cancel), &["Client::Cancel"]);
+    explained(guest.judge(observation(4, 0)), &[]);
 }
 
 fn any(name: &str, value: &impl Message) -> Any {
@@ -64,34 +66,8 @@ fn observation(status: i32, run_state: i32) -> Any {
     )
 }
 
-fn call(
-    guest: &mut Guest<impl Dispatch>,
-    method: u32,
-    request: &impl Message,
-) -> protocol::Response {
-    let mut response = None;
-    assert!(guest.dispatch_to(method, &request.encode_to_vec(), |bytes| {
-        response =
-            Some(protocol::Response::decode(bytes).unwrap_or_else(|e| panic!("decode: {e}")));
-        true
-    }));
-    response.unwrap_or_else(|| panic!("no response"))
-}
-
-fn judge(guest: &mut Guest<impl Dispatch>, value: Any) -> protocol::Response {
-    call(guest, 4, &protocol::JudgeRequest { observation: Some(value) })
-}
-
-fn explanation(response: protocol::Response) -> protocol::Explanation {
-    let Some(Outcome::Judge(value)) = response.outcome else { panic!("not Judge") };
-    let Some(protocol::judge_response::Judgment::Explained(value)) = value.judgment else {
-        panic!("not Explained")
-    };
-    value
-}
-
 fn explained(response: protocol::Response, steps: &[&str]) {
-    let value = explanation(response);
+    let value = response.explanation();
     assert_eq!(value.steps, steps);
     assert_eq!(value.outcomes, vec!["Accepted"; steps.len()]);
 }
@@ -118,19 +94,19 @@ fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
     ] {
         let mut guest = Guest::new(runtime());
         if terminal == 4 {
-            explained(judge(&mut guest, cancel(None)), &[step]);
+            explained(guest.judge(cancel(None)), &[step]);
         } else {
-            explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
-            explained(judge(&mut guest, observation(terminal, 0)), &[step]);
+            explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
+            explained(guest.judge(observation(terminal, 0)), &[step]);
         }
         for _ in 0..2 {
-            let result = explanation(judge(&mut guest, cancel(Some(5))));
+            let result = guest.judge(cancel(Some(5))).explanation();
             assert_eq!(result.steps, ["Client::Cancel"]);
             assert_eq!(result.outcomes, ["Rejected(NotFound)"]);
-            explained(judge(&mut guest, observation(terminal, 0)), &[]);
+            explained(guest.judge(observation(terminal, 0)), &[]);
         }
-        assert_eq!(unexplained(judge(&mut guest, cancel(None))), ["Client::Cancel"]);
-        assert_eq!(unexplained(judge(&mut guest, cancel(Some(5)))), ["Client::Cancel"]);
+        assert_eq!(guest.judge(cancel(None)).unexplained(), ["Client::Cancel"]);
+        assert_eq!(guest.judge(cancel(Some(5))).unexplained(), ["Client::Cancel"]);
     }
 }
 
@@ -195,10 +171,10 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
             }
             let mut guest = Guest::new(runtime());
             let expected = if phase == activity::Phase::Canceled {
-                explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
+                explained(guest.judge(cancel(None)), &["Client::Cancel"]);
                 vec!["Client::Cancel"]
             } else if phase == activity::Phase::Started {
-                explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
+                explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
                 vec![
                     "Client::Cancel",
                     "Worker::Poll(2)",
@@ -220,19 +196,19 @@ fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions
                     "Worker::RespondCanceled(3)",
                 ]
             };
-            assert_eq!(unexplained(judge(&mut guest, cancel(Some(code)))), expected);
-            assert_eq!(unexplained(judge(&mut guest, cancel(None))), expected);
-            call(&mut guest, 3, &protocol::ResetRequest::default());
-            explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
+            assert_eq!(guest.judge(cancel(Some(code))).unexplained(), expected);
+            assert_eq!(guest.judge(cancel(None)).unexplained(), expected);
+            guest.reset(None);
+            explained(guest.judge(cancel(None)), &["Client::Cancel"]);
         }
     }
 }
 
 #[test]
 fn cancel_envelope_refusals_preserve_state_and_frozen_evidence() {
-    let malformed = protocol::RefusalCode::MalformedRequest;
+    let malformed = RefusalCode::MalformedRequest;
     let cases = [
-        (Observation { method: "unknown".into(), result: Some(ObservationResult::Error(Error { code: 5, message: String::new() })), request: None }, protocol::RefusalCode::Unsupported),
+        (Observation { method: "unknown".into(), result: Some(ObservationResult::Error(Error { code: 5, message: String::new() })), request: None }, RefusalCode::Unsupported),
         (Observation { method: String::new(), result: Some(ObservationResult::Error(Error::default())), request: None }, malformed),
         (Observation { method: CANCEL.into(), result: None, request: None }, malformed),
         (Observation { method: CANCEL.into(), result: Some(ObservationResult::Response(Any::default())), request: None }, malformed),
@@ -241,14 +217,14 @@ fn cancel_envelope_refusals_preserve_state_and_frozen_evidence() {
     ];
     let mut guest = Guest::new(runtime());
     for (value, code) in &cases {
-        refused(judge(&mut guest, Any::pack(value)), *code);
-        explained(judge(&mut guest, observation(1, 1)), &[]);
+        guest.judge(Any::pack(value)).refusal(*code);
+        explained(guest.judge(observation(1, 1)), &[]);
     }
-    let frozen = unexplained(judge(&mut guest, cancel(Some(5))));
+    let frozen = guest.judge(cancel(Some(5))).unexplained();
     for (value, code) in cases {
-        refused(judge(&mut guest, Any::pack(&value)), code);
+        guest.judge(Any::pack(&value)).refusal(code);
     }
-    assert_eq!(unexplained(judge(&mut guest, cancel(None))), frozen);
+    assert_eq!(guest.judge(cancel(None)).unexplained(), frozen);
 }
 
 #[test]
@@ -257,12 +233,12 @@ fn cancel_publication_failure_preserves_state_and_freeze() {
     for value in [cancel(None), cancel(Some(5))] {
         let request = protocol::JudgeRequest { observation: Some(value) }.encode_to_vec();
         assert!(!guest.dispatch_to(4, &request, |_| false));
-        explained(judge(&mut guest, observation(1, 1)), &[]);
+        explained(guest.judge(observation(1, 1)), &[]);
     }
-    explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
+    explained(guest.judge(cancel(None)), &["Client::Cancel"]);
     let request = protocol::JudgeRequest { observation: Some(cancel(Some(5))) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &request, |_| false));
-    let result = explanation(judge(&mut guest, cancel(Some(5))));
+    let result = guest.judge(cancel(Some(5))).explanation();
     assert_eq!(result.steps, ["Client::Cancel"]);
     assert_eq!(result.outcomes, ["Rejected(NotFound)"]);
 }
@@ -332,8 +308,8 @@ fn actual_requests_leave_current_judgments_unchanged() {
     let judged: Vec<_> = script
         .into_iter()
         .map(|(value, carried)| {
-            let response = judge(&mut present, carried);
-            assert_eq!(response, judge(&mut absent, value));
+            let response = present.judge(carried);
+            assert_eq!(response, absent.judge(value));
             response
         })
         .collect();
@@ -342,21 +318,8 @@ fn actual_requests_leave_current_judgments_unchanged() {
     explained(scheduled, &[]);
     explained(canceled, &["Client::Cancel"]);
     explained(closed, &[]);
-    assert_eq!(explanation(after).outcomes, ["Rejected(NotFound)"]);
-    assert_eq!(unexplained(impossible), ["Client::Cancel"]);
-}
-
-fn unexplained(response: protocol::Response) -> Vec<String> {
-    let Some(Outcome::Judge(value)) = response.outcome else { panic!("not Judge") };
-    let Some(protocol::judge_response::Judgment::Unexplained(value)) = value.judgment else {
-        panic!("not Unexplained")
-    };
-    value.expected_actions
-}
-
-fn refused(response: protocol::Response, code: protocol::RefusalCode) {
-    let Some(Outcome::Refusal(value)) = response.outcome else { panic!("not Refusal") };
-    assert_eq!(value.code(), code);
+    assert_eq!(after.explanation().outcomes, ["Rejected(NotFound)"]);
+    assert_eq!(impossible.unexplained(), ["Client::Cancel"]);
 }
 
 #[test]
@@ -371,7 +334,8 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
     );
     let mut guest = Guest::new(umpire_runtime::Runtime::new(world, Realization::default()));
     let Some(Outcome::Explore(exploration)) =
-        call(&mut guest, 1, &protocol::ExploreRequest { budget: 64 }).outcome
+        GuestExt::call(&mut guest, Method::Explore, &protocol::ExploreRequest { budget: 64 })
+            .outcome
     else {
         panic!("missing exploration")
     };
@@ -384,7 +348,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
     let mut rows = String::new();
     for state_id in 0..exploration.reached {
         let Some(Outcome::Rows(value)) =
-            call(&mut guest, 2, &protocol::RowsRequest { state_id }).outcome
+            GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest { state_id }).outcome
         else {
             panic!("missing rows")
         };
@@ -397,8 +361,8 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
 
 #[test]
 fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
-    let malformed = protocol::RefusalCode::MalformedRequest;
-    let unsupported = protocol::RefusalCode::Unsupported;
+    let malformed = RefusalCode::MalformedRequest;
+    let unsupported = RefusalCode::Unsupported;
     let missing_info = any(
         "umpire.realization.v1.Observation",
         &Observation {
@@ -448,15 +412,15 @@ fn malformed_and_unsupported_observations_preserve_run_and_frozen_evidence() {
     ];
     let mut guest = Guest::new(runtime());
     for (value, code) in &cases {
-        refused(judge(&mut guest, value.clone()), *code);
-        explained(judge(&mut guest, observation(1, 1)), &[]);
+        guest.judge(value.clone()).refusal(*code);
+        explained(guest.judge(observation(1, 1)), &[]);
     }
-    explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
-    let first = unexplained(judge(&mut guest, observation(2, 0)));
+    explained(guest.judge(cancel(None)), &["Client::Cancel"]);
+    let first = guest.judge(observation(2, 0)).unexplained();
     for (value, code) in cases {
-        refused(judge(&mut guest, value), code);
+        guest.judge(value).refusal(code);
     }
-    assert_eq!(unexplained(judge(&mut guest, observation(1, 1))), first);
+    assert_eq!(guest.judge(observation(1, 1)).unexplained(), first);
 }
 
 #[test]
@@ -464,16 +428,16 @@ fn rejected_publication_rolls_back_delivery_terminal_freeze_and_reset() {
     let mut guest = Guest::new(runtime());
     let deliver = protocol::JudgeRequest { observation: Some(observation(1, 2)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &deliver, |_| false));
-    explained(judge(&mut guest, observation(1, 1)), &[]);
-    explained(judge(&mut guest, observation(1, 2)), &["Worker::Poll(1)"]);
+    explained(guest.judge(observation(1, 1)), &[]);
+    explained(guest.judge(observation(1, 2)), &["Worker::Poll(1)"]);
     let close = protocol::JudgeRequest { observation: Some(observation(2, 0)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &close, |_| false));
-    explained(judge(&mut guest, observation(1, 2)), &[]);
+    explained(guest.judge(observation(1, 2)), &[]);
     let stale = protocol::JudgeRequest { observation: Some(observation(1, 1)) }.encode_to_vec();
     assert!(!guest.dispatch_to(4, &stale, |_| false));
-    explained(judge(&mut guest, observation(2, 0)), &["Worker::RespondCompleted"]);
+    explained(guest.judge(observation(2, 0)), &["Worker::RespondCompleted"]);
     assert!(!guest.dispatch_to(3, &[], |_| false));
-    explained(judge(&mut guest, observation(2, 0)), &[]);
+    explained(guest.judge(observation(2, 0)), &[]);
 }
 
 #[test]
@@ -482,25 +446,24 @@ fn server_observations_evidence_delivery_and_fast_terminal_paths() {
         [(2, "Worker::RespondCompleted"), (3, "Worker::RespondFailed { retryable: false }")]
     {
         let mut guest = Guest::new(runtime());
-        explained(judge(&mut guest, observation(terminal, 0)), &["Worker::Poll(1)", action]);
-        explained(judge(&mut guest, observation(terminal, 0)), &[]);
-        assert_eq!(
-            unexplained(judge(&mut guest, observation(5 - terminal, 0))),
-            ["Client::Cancel"]
-        );
-        call(&mut guest, 3, &protocol::ResetRequest::default());
-        explained(judge(&mut guest, observation(1, 1)), &[]);
+        explained(guest.judge(observation(terminal, 0)), &["Worker::Poll(1)", action]);
+        explained(guest.judge(observation(terminal, 0)), &[]);
+        assert_eq!(guest.judge(observation(5 - terminal, 0)).unexplained(), ["Client::Cancel"]);
+        guest.reset(None);
+        explained(guest.judge(observation(1, 1)), &[]);
     }
 }
 
 #[test]
 fn temporal_has_no_live_answer_policy() {
     let mut guest = Guest::new(runtime());
-    refused(
-        call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(Any::default()) }),
-        protocol::RefusalCode::Unsupported,
-    );
-    explained(judge(&mut guest, observation(1, 1)), &[]);
+    GuestExt::call(
+        &mut guest,
+        Method::Answer,
+        &protocol::AnswerRequest { callback: Some(Any::default()) },
+    )
+    .refusal(RefusalCode::Unsupported);
+    explained(guest.judge(observation(1, 1)), &[]);
 }
 
 #[test]

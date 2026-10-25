@@ -1,4 +1,5 @@
 //! Catalog admission refusals reach every runtime consumer with existing protocol codes.
+use umpire_runtime::testing::ResponseExt;
 
 mod support;
 
@@ -62,13 +63,6 @@ impl Realize<Limited> for support::Realization {
     }
 }
 
-fn refused(response: &protocol::Response) -> (i32, String) {
-    let Some(Outcome::Refusal(refusal)) = &response.outcome else {
-        panic!("expected refusal, got {response:?}")
-    };
-    (refusal.code, refusal.message.clone())
-}
-
 #[test]
 fn catalog_refusals_map_to_the_budget_code() {
     for (error, message) in [
@@ -85,28 +79,28 @@ fn catalog_refusals_map_to_the_budget_code() {
             protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };
         let decoded = protocol::Response::decode(response.encode_to_vec().as_slice())
             .unwrap_or_else(|error| panic!("generated response must decode: {error}"));
-        assert_eq!(refused(&decoded), (protocol::RefusalCode::Budget as i32, message.into()));
+        assert_eq!(decoded.refusal(protocol::RefusalCode::Budget).message, message);
     }
 }
 
 #[test]
 fn explore_judge_answer_and_replay_refuse_without_publishing() {
-    let budget = protocol::RefusalCode::Budget as i32;
+    let budget = protocol::RefusalCode::Budget;
     let error = CatalogError::TooLarge { count: 4097, limit: 4096 };
     let message = "action catalog has 4097 actions, over limit 4096".to_owned();
     let mut runtime = Runtime::new(Limited(error), support::Realization);
     let explore = runtime.dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
-    assert_eq!(refused(&explore), (budget, message.clone()));
+    assert_eq!(explore.refusal(budget).message, message);
     let rows = runtime.dispatch(2, &protocol::RowsRequest { state_id: 0 }.encode_to_vec());
-    assert_eq!(refused(&rows).0, protocol::RefusalCode::NotExplored as i32);
+    rows.refusal(protocol::RefusalCode::NotExplored);
     for value in [1, 10, 200] {
         let judged = runtime
             .dispatch(4, &protocol::JudgeRequest { observation: Some(any(value)) }.encode_to_vec());
-        assert_eq!(refused(&judged), (budget, message.clone()), "observation {value}");
+        assert_eq!(judged.refusal(budget).message, message, "observation {value}");
     }
     let answered =
         runtime.dispatch(5, &protocol::AnswerRequest { callback: Some(any(1)) }.encode_to_vec());
-    assert_eq!(refused(&answered), (budget, message.clone()));
+    assert_eq!(answered.refusal(budget).message, message);
     let current =
         runtime.dispatch(4, &protocol::JudgeRequest { observation: Some(any(0)) }.encode_to_vec());
     let Some(Outcome::Judge(protocol::JudgeResponse {
@@ -123,5 +117,5 @@ fn explore_judge_answer_and_replay_refuse_without_publishing() {
     let overflow =
         Runtime::new(Limited(CatalogError::Overflow { limit: 4096 }), support::Realization)
             .dispatch(1, &protocol::ExploreRequest { budget: 8 }.encode_to_vec());
-    assert_eq!(refused(&overflow).0, budget);
+    overflow.refusal(budget);
 }

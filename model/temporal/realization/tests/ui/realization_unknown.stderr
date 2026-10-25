@@ -1,5 +1,0 @@
-error: unknown field path: temporal.api.activity.v1.ActivityExecutionInfo.not_a_field
- --> tests/ui/realization_unknown.rs:7:15
-  |
-7 |     #[observe(WorkflowService::DescribeActivityExecution, reads(info.not_a_field))]
-  |               ^^^^^^^^^^^^^^^

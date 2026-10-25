@@ -1,4 +1,6 @@
 //! Explicit initial-state selection retains the complete exploration and transactional run.
+use umpire_runtime::protocol::{Method, RefusalCode};
+use umpire_runtime::testing::{GuestExt, ResponseExt};
 
 mod support;
 
@@ -81,48 +83,17 @@ fn observation(value: u8) -> Vec<u8> {
     protocol::JudgeRequest { observation: Some(support::any(value)) }.encode_to_vec()
 }
 
-fn publish(
-    guest: &mut Guest<Runtime<World, support::Realization>>,
-    method: u32,
-    request: &[u8],
-) -> Outcome {
-    let mut result = None;
-    assert!(guest.dispatch_to(method, request, |bytes| {
-        result = protocol::Response::decode(bytes).ok().and_then(|response| response.outcome);
-        true
-    }));
-    result.unwrap_or_else(|| panic!("missing response"))
-}
-
-fn explained(outcome: Outcome) -> Vec<String> {
-    let Outcome::Judge(response) = outcome else { panic!("expected Judge") };
-    let Some(protocol::judge_response::Judgment::Explained(explanation)) = response.judgment else {
-        panic!("expected explanation")
-    };
-    explanation.steps
-}
-
-fn unexplained(outcome: Outcome) -> Vec<String> {
-    let Outcome::Judge(response) = outcome else { panic!("expected Judge") };
-    let Some(protocol::judge_response::Judgment::Unexplained(evidence)) = response.judgment else {
-        panic!("expected unexplained")
-    };
-    evidence.expected_actions
-}
-
 #[test]
 fn selected_initial_requires_exact_membership_including_other_fields() {
     for state in [State { value: 2, marker: false }, State { value: 1, marker: true }] {
         let Err(refusal) = Runtime::with_initial(World, support::Realization, state) else {
             panic!("invalid initial state accepted")
         };
-        assert_eq!(refusal.code, protocol::RefusalCode::State as i32);
+        assert_eq!(refusal.code, RefusalCode::State as i32);
     }
     let mut legacy = support::runtime();
     assert_eq!(
-        explained(
-            legacy.dispatch(4, &observation(0)).outcome.unwrap_or_else(|| panic!("missing Judge"))
-        ),
+        legacy.dispatch(Method::Judge as u32, &observation(0)).explanation().steps,
         [] as [String; 0],
     );
     for starts in [0, 1] {
@@ -138,20 +109,21 @@ fn selected_initial_requires_exact_membership_including_other_fields() {
 #[test]
 fn selected_reset_after_freeze_restores_initial_without_restricting_exploration() {
     let mut guest = Guest::new(selected());
-    assert_eq!(explained(publish(&mut guest, 4, &observation(1))), [] as [String; 0]);
-    assert_eq!(explained(publish(&mut guest, 4, &observation(2))), ["Respond"]);
-    assert_eq!(unexplained(publish(&mut guest, 4, &observation(0))), ["Finish"]);
-    assert!(matches!(publish(&mut guest, 3, &[]), Outcome::Reset(_)));
-    assert_eq!(explained(publish(&mut guest, 4, &observation(1))), [] as [String; 0]);
-    assert_eq!(explained(publish(&mut guest, 4, &observation(2))), ["Respond"]);
-    let Outcome::Explore(exploration) =
-        publish(&mut guest, 1, &protocol::ExploreRequest { budget: 16 }.encode_to_vec())
+    assert_eq!(guest.judge(support::any(1)).explanation().steps, [] as [String; 0]);
+    assert_eq!(guest.judge(support::any(2)).explanation().steps, ["Respond"]);
+    assert_eq!(guest.judge(support::any(0)).unexplained(), ["Finish"]);
+    assert!(matches!(guest.reset(None).outcome, Some(Outcome::Reset(_))));
+    assert_eq!(guest.judge(support::any(1)).explanation().steps, [] as [String; 0]);
+    assert_eq!(guest.judge(support::any(2)).explanation().steps, ["Respond"]);
+    let Some(Outcome::Explore(exploration)) =
+        GuestExt::call(&mut guest, Method::Explore, &protocol::ExploreRequest { budget: 16 })
+            .outcome
     else {
         panic!("expected Explore")
     };
     assert_eq!(exploration.starts, 2);
-    let Outcome::Rows(rows) =
-        publish(&mut guest, 2, &protocol::RowsRequest { state_id: 0 }.encode_to_vec())
+    let Some(Outcome::Rows(rows)) =
+        GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest { state_id: 0 }).outcome
     else {
         panic!("expected Rows")
     };
@@ -163,9 +135,12 @@ fn selected_publication_failures_preserve_advancement_freeze_and_reset() {
     for panics in [false, true] {
         let mut guest = Guest::new(selected());
         for (method, request) in [
-            (4, observation(2)),
-            (4, observation(0)),
-            (5, protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec()),
+            (Method::Judge as u32, observation(2)),
+            (Method::Judge as u32, observation(0)),
+            (
+                Method::Answer as u32,
+                protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec(),
+            ),
         ] {
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 guest.dispatch_to(method, &request, |bytes| {
@@ -181,12 +156,12 @@ fn selected_publication_failures_preserve_advancement_freeze_and_reset() {
             } else {
                 assert!(!result.unwrap_or(true));
             }
-            assert_eq!(explained(publish(&mut guest, 4, &observation(1))), [] as [String; 0]);
+            assert_eq!(guest.judge(support::any(1)).explanation().steps, [] as [String; 0]);
         }
-        assert_eq!(explained(publish(&mut guest, 4, &observation(2))), ["Respond"]);
-        assert_eq!(unexplained(publish(&mut guest, 4, &observation(0))), ["Finish"]);
+        assert_eq!(guest.judge(support::any(2)).explanation().steps, ["Respond"]);
+        assert_eq!(guest.judge(support::any(0)).unexplained(), ["Finish"]);
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            guest.dispatch_to(3, &[], |_| {
+            guest.dispatch_to(Method::Reset as u32, &[], |_| {
                 assert!(!panics, "publication failed");
                 false
             })
@@ -196,8 +171,8 @@ fn selected_publication_failures_preserve_advancement_freeze_and_reset() {
         } else {
             assert!(!result.unwrap_or(true));
         }
-        assert_eq!(unexplained(publish(&mut guest, 4, &observation(1))), ["Finish"]);
-        assert!(matches!(publish(&mut guest, 3, &[]), Outcome::Reset(_)));
-        assert_eq!(explained(publish(&mut guest, 4, &observation(1))), [] as [String; 0]);
+        assert_eq!(guest.judge(support::any(1)).unexplained(), ["Finish"]);
+        assert!(matches!(guest.reset(None).outcome, Some(Outcome::Reset(_))));
+        assert_eq!(guest.judge(support::any(1)).explanation().steps, [] as [String; 0]);
     }
 }

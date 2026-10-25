@@ -7,6 +7,9 @@ use umpire_runtime::prost_types::{
     ServiceDescriptorProto,
 };
 
+#[path = "../../syntax/tests/support/mod.rs"]
+mod support;
+
 #[test]
 fn second_service_uses_configured_identity_and_roots() -> Result<(), String> {
     let bytes = fixture().encode_to_vec();
@@ -122,7 +125,14 @@ fn omitted_field_enum_and_method_are_rejected() -> Result<(), String> {
         }],
     };
     let bytes = descriptors.encode_to_vec();
-    descriptor::check(&bytes, &coverage)?;
+    support::assert_additions_refused(
+        &bytes,
+        &coverage,
+        "example.v1.Input",
+        "example.v1.State",
+        "example.v1.Device",
+    )
+    .map_err(|error| error.to_string())?;
     for (kind, expected) in [("field", "state"), ("enum", "OFF"), ("method", "Set")] {
         let mut omitted = coverage.clone();
         match kind {

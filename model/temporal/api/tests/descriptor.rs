@@ -3,18 +3,18 @@
 use std::{fs, path::Path};
 
 use prost::Message;
-use umpire_runtime::prost_types::{
-    DescriptorProto, EnumValueDescriptorProto, FieldDescriptorProto, FileDescriptorSet,
-    MethodDescriptorProto,
-};
-use umpire_temporal_annotate_syntax::descriptor::{
+use umpire_catalog_syntax::descriptor::{
     Coverage, Disposition, EnumCoverage, MessageCoverage, MethodCoverage, ServiceCoverage, check,
 };
+use umpire_runtime::prost_types::{DescriptorProto, FieldDescriptorProto, FileDescriptorSet};
+
+#[path = "../../../umpire/catalog/syntax/tests/support/mod.rs"]
+mod support;
 
 #[test]
 fn executable_generated_api_declaration_matches_real_descriptors()
 -> Result<(), Box<dyn std::error::Error>> {
-    let declarations = umpire_temporal_annotate_syntax::catalogs(include_str!(
+    let declarations = umpire_catalog_syntax::catalogs(include_str!(
         "../../realization/tests/ui-pass/generated_api.rs"
     ))?;
     let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/annotation-api.binpb"));
@@ -181,61 +181,13 @@ fn nested_message_requires_coverage_and_refuses_added_fields()
 #[test]
 fn real_descriptor_additions_are_independently_refused() -> Result<(), Box<dyn std::error::Error>> {
     let (original, coverage) = fixture()?;
-    for kind in ["field", "enum", "rpc"] {
-        let mut descriptor = original.clone();
-        let added = "ADDED_UNANNOTATED_SYMBOL";
-        let mut mutated = false;
-        for file in &mut descriptor.file {
-            let package = file.package.as_deref().unwrap_or_default();
-            let message = file.message_type.iter_mut().find(|message| {
-                format!("{package}.{}", message.name.as_deref().unwrap_or_default())
-                    == coverage.messages[0].name
-            });
-            let enumeration = file.enum_type.iter_mut().find(|enumeration| {
-                format!("{package}.{}", enumeration.name.as_deref().unwrap_or_default())
-                    == coverage.enums[0].name
-            });
-            let service = file.service.iter_mut().find(|service| {
-                format!("{package}.{}", service.name.as_deref().unwrap_or_default())
-                    == coverage.services[0].name
-            });
-            match (kind, message, enumeration, service) {
-                ("field", Some(message), _, _) => {
-                    message.field.push(FieldDescriptorProto {
-                        name: Some(added.into()),
-                        number: Some(999_999),
-                        ..Default::default()
-                    });
-                    mutated = true;
-                }
-                ("enum", _, Some(enumeration), _) => {
-                    enumeration.value.push(EnumValueDescriptorProto {
-                        name: Some(added.into()),
-                        number: Some(999_999),
-                        ..Default::default()
-                    });
-                    mutated = true;
-                }
-                ("rpc", _, _, Some(service)) => {
-                    service.method.push(MethodDescriptorProto {
-                        name: Some(added.into()),
-                        ..Default::default()
-                    });
-                    mutated = true;
-                }
-                _ => {}
-            }
-            if mutated {
-                break;
-            }
-        }
-        assert!(mutated, "real {kind} descriptor was mutated");
-        let error = check(&descriptor.encode_to_vec(), &coverage)
-            .err()
-            .ok_or("added symbol must refuse")?;
-        assert!(error.contains(added), "{kind}: {error}");
-    }
-    Ok(())
+    support::assert_additions_refused(
+        &original.encode_to_vec(),
+        &coverage,
+        &coverage.messages[0].name,
+        &coverage.enums[0].name,
+        &coverage.services[0].name,
+    )
 }
 
 #[test]

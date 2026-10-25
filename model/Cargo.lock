@@ -1066,6 +1066,7 @@ version = "0.0.1"
 dependencies = [
  "darling",
  "heck",
+ "insta",
  "prettyplease 0.3.0",
  "proc-macro2",
  "prost",
@@ -1223,6 +1224,7 @@ dependencies = [
  "prost-types",
  "umpire-checker",
  "umpire-dsl",
+ "umpire-runtime",
 ]
 
 [[package]]
@@ -1264,7 +1266,6 @@ version = "0.0.1"
 dependencies = [
  "darling",
  "heck",
- "insta",
  "prettyplease 0.3.0",
  "proc-macro2",
  "prost",
@@ -1285,6 +1286,7 @@ dependencies = [
  "prost-types",
  "umpire-catalog",
  "umpire-catalog-build",
+ "umpire-catalog-syntax",
  "umpire-runtime",
  "umpire-temporal-annotate-syntax",
 ]

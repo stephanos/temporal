@@ -267,10 +267,14 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     where
         M::Outcome: PartialEq,
     {
-        match method {
-            1 => self.explore(decode::<protocol::ExploreRequest>(request)?.budget),
-            2 => self.rows(decode::<protocol::RowsRequest>(request)?.state_id),
-            3 => {
+        match i32::try_from(method).ok().and_then(|value| protocol::Method::try_from(value).ok()) {
+            Some(protocol::Method::Explore) => {
+                self.explore(decode::<protocol::ExploreRequest>(request)?.budget)
+            }
+            Some(protocol::Method::Rows) => {
+                self.rows(decode::<protocol::RowsRequest>(request)?.state_id)
+            }
+            Some(protocol::Method::Reset) => {
                 let request = decode::<protocol::ResetRequest>(request)?;
                 if request.configuration.is_some() {
                     return Err(protocol::Refusal::unsupported("configuration unsupported"));
@@ -299,19 +303,19 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                     }),
                 ))
             }
-            4 => {
+            Some(protocol::Method::Judge) => {
                 let request = decode::<protocol::JudgeRequest>(request)?;
                 let observation = Any::required(request.observation)?;
                 self.require_realization()?;
                 self.judge(&observation)
             }
-            5 => {
+            Some(protocol::Method::Answer) => {
                 let request = decode::<protocol::AnswerRequest>(request)?;
                 let callback = Any::required(request.callback)?;
                 self.require_realization()?;
                 self.answer(&callback)
             }
-            6 => {
+            Some(protocol::Method::Propose) => {
                 let request = decode::<protocol::ProposeRequest>(request)?;
                 self.require_realization()?;
                 self.propose(request.seed)

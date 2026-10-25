@@ -1,5 +1,0 @@
-error: tag requires a valid literal reason or positive consequence
- --> tests/admission-ui/empty_ignored_reason.rs:9:26
-  |
-9 | struct Mirror { #[mirror(ignored = "")] opaque: Ignored }
-  |                          ^^^^^^^

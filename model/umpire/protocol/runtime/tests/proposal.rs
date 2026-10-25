@@ -1,5 +1,7 @@
 //! Proposal publication and pending-run controls.
 use prost::Message;
+use umpire_runtime::protocol::{Method, RefusalCode};
+use umpire_runtime::testing::{GuestExt, ResponseExt};
 use umpire_runtime::{
     Guest,
     protocol::{self, response::Outcome},
@@ -7,13 +9,6 @@ use umpire_runtime::{
 #[path = "support/control.rs"]
 mod control;
 mod support;
-
-fn refused(response: protocol::Response, code: protocol::RefusalCode) {
-    let Some(Outcome::Refusal(value)) = response.outcome else {
-        panic!("expected refusal: {response:?}")
-    };
-    assert_eq!(value.code(), code);
-}
 
 #[test]
 fn proposal_is_transactional_and_pending_until_final_observation() {
@@ -37,10 +32,9 @@ fn proposal_is_transactional_and_pending_until_final_observation() {
         true
     }));
     assert!(guest.dispatch_to(6, &[8, 1], |bytes| {
-        refused(
-            protocol::Response::decode(bytes).unwrap_or_else(|error| panic!("{error}")),
-            protocol::RefusalCode::State,
-        );
+        protocol::Response::decode(bytes)
+            .unwrap_or_else(|error| panic!("{error}"))
+            .refusal(RefusalCode::State);
         true
     }));
     let observed = protocol::JudgeRequest { observation: Some(support::any(1)) }.encode_to_vec();
@@ -54,69 +48,77 @@ fn proposal_is_transactional_and_pending_until_final_observation() {
     }));
 }
 
-fn call(
-    guest: &mut Guest<impl umpire_runtime::Dispatch>,
-    method: u32,
-    request: &impl Message,
-) -> protocol::Response {
-    let mut response = None;
-    assert!(guest.dispatch_to(method, &request.encode_to_vec(), |bytes| {
-        response =
-            Some(protocol::Response::decode(bytes).unwrap_or_else(|error| panic!("{error}")));
-        true
-    }));
-    response.unwrap_or_else(|| panic!("response missing"))
-}
-
 #[test]
 fn bootstrap_configuration_admission_and_polling_publish_atomically() {
     let mut guest = Guest::new(control::control());
     let reset = protocol::ResetRequest { configuration: Some(support::any(0)) };
     let propose = protocol::ProposeRequest { seed: 7 };
     assert!(!guest.dispatch_to(3, &reset.encode_to_vec(), |_| false));
-    let Some(Outcome::Propose(before)) = call(&mut guest, 6, &propose).outcome else {
+    let Some(Outcome::Propose(before)) =
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome
+    else {
         panic!("proposal")
     };
     assert_eq!(before.kind(), protocol::ProposalKind::Action);
-    call(&mut guest, 3, &reset);
-    refused(
-        call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(support::any(4)) }),
-        protocol::RefusalCode::State,
-    );
-    let Some(Outcome::Propose(bootstrap)) = call(&mut guest, 6, &propose).outcome else {
+    GuestExt::call(&mut guest, Method::Reset, &reset);
+    GuestExt::call(
+        &mut guest,
+        Method::Answer,
+        &protocol::AnswerRequest { callback: Some(support::any(4)) },
+    )
+    .refusal(RefusalCode::State);
+    let Some(Outcome::Propose(bootstrap)) =
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome
+    else {
         panic!("bootstrap")
     };
     assert_eq!(bootstrap.kind(), protocol::ProposalKind::Bootstrap);
     assert_eq!(bootstrap.action, "");
     let start = protocol::JudgeRequest { observation: Some(support::any(0)) };
     assert!(!guest.dispatch_to(4, &start.encode_to_vec(), |_| false));
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    refused(
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(1)) }),
-        protocol::RefusalCode::State,
-    );
-    call(&mut guest, 4, &start);
-    let Some(Outcome::Propose(action)) = call(&mut guest, 6, &propose).outcome else {
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    GuestExt::call(
+        &mut guest,
+        Method::Judge,
+        &protocol::JudgeRequest { observation: Some(support::any(1)) },
+    )
+    .refusal(RefusalCode::State);
+    GuestExt::call(&mut guest, Method::Judge, &start);
+    let Some(Outcome::Propose(action)) =
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome
+    else {
         panic!("action")
     };
     assert_eq!(action.action, "Deliver");
     let poll = protocol::JudgeRequest { observation: Some(support::any(20)) };
-    let Some(Outcome::Judge(intermediate)) = call(&mut guest, 4, &poll).outcome else {
+    let Some(Outcome::Judge(intermediate)) =
+        GuestExt::call(&mut guest, Method::Judge, &poll).outcome
+    else {
         panic!("poll")
     };
     assert!(intermediate.continue_polling);
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    call(&mut guest, 5, &protocol::AnswerRequest { callback: Some(support::any(4)) });
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    let Some(Outcome::Judge(final_result)) =
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(2)) }).outcome
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    GuestExt::call(
+        &mut guest,
+        Method::Answer,
+        &protocol::AnswerRequest { callback: Some(support::any(4)) },
+    );
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    let Some(Outcome::Judge(final_result)) = GuestExt::call(
+        &mut guest,
+        Method::Judge,
+        &protocol::JudgeRequest { observation: Some(support::any(2)) },
+    )
+    .outcome
     else {
         panic!("final")
     };
     assert!(!final_result.continue_polling);
-    call(&mut guest, 6, &propose);
-    call(&mut guest, 3, &protocol::ResetRequest::default());
-    let Some(Outcome::Propose(again)) = call(&mut guest, 6, &propose).outcome else {
+    GuestExt::call(&mut guest, Method::Propose, &propose);
+    guest.reset(None);
+    let Some(Outcome::Propose(again)) =
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome
+    else {
         panic!("bootstrap after Reset")
     };
     assert_eq!(again, bootstrap);
@@ -153,7 +155,7 @@ impl umpire_runtime::Realize<support::World> for Disabled {
 #[test]
 fn disabled_proposal_refuses_without_committing_and_quiescent_is_distinct() {
     let mut disabled = umpire_runtime::Runtime::new(support::World { starts: 1 }, Disabled);
-    refused(disabled.dispatch(6, &[8, 1]), protocol::RefusalCode::State);
+    disabled.dispatch(6, &[8, 1]).refusal(RefusalCode::State);
     let observed = protocol::JudgeRequest { observation: Some(support::any(1)) }.encode_to_vec();
     assert!(matches!(disabled.dispatch(4, &observed).outcome, Some(Outcome::Judge(_))));
     assert!(matches!(disabled.dispatch(6, &[8, 1]).outcome, Some(Outcome::Propose(_))));
@@ -164,7 +166,7 @@ fn disabled_proposal_refuses_without_committing_and_quiescent_is_distinct() {
             &protocol::JudgeRequest { observation: Some(support::any(value)) }.encode_to_vec(),
         );
     }
-    refused(runtime.dispatch(6, &[8, 1]), protocol::RefusalCode::Quiescent);
+    runtime.dispatch(6, &[8, 1]).refusal(RefusalCode::Quiescent);
 }
 
 #[test]
@@ -175,20 +177,20 @@ fn selected_initial_state_still_requires_declared_bootstrap() {
         support::State(0),
     )
     .unwrap_or_else(|error| panic!("{error:?}"));
-    refused(
-        runtime.dispatch(
-            5,
-            &protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec(),
-        ),
-        protocol::RefusalCode::State,
-    );
+    runtime
+        .dispatch(5, &protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec())
+        .refusal(RefusalCode::State);
 }
 
 #[test]
 fn unpublished_bootstrap_and_unexplained_pending_effects_roll_back() {
     for panic in [false, true] {
         let mut guest = Guest::new(control::control());
-        call(&mut guest, 3, &protocol::ResetRequest { configuration: Some(support::any(0)) });
+        GuestExt::call(
+            &mut guest,
+            Method::Reset,
+            &protocol::ResetRequest { configuration: Some(support::any(0)) },
+        );
         let request = protocol::ProposeRequest { seed: 1 };
         let failed = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             guest.dispatch_to(6, &request.encode_to_vec(), |_| {
@@ -197,12 +199,21 @@ fn unpublished_bootstrap_and_unexplained_pending_effects_roll_back() {
             })
         }));
         assert_eq!(failed.is_err(), panic);
-        assert!(matches!(call(&mut guest, 6, &request).outcome, Some(Outcome::Propose(_))));
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(0)) });
-        call(&mut guest, 6, &request);
+        assert!(matches!(
+            GuestExt::call(&mut guest, Method::Propose, &request).outcome,
+            Some(Outcome::Propose(_))
+        ));
+        GuestExt::call(
+            &mut guest,
+            Method::Judge,
+            &protocol::JudgeRequest { observation: Some(support::any(0)) },
+        );
+        GuestExt::call(&mut guest, Method::Propose, &request);
         let impossible = protocol::JudgeRequest { observation: Some(support::any(2)) };
         assert!(!guest.dispatch_to(4, &impossible.encode_to_vec(), |_| false));
-        let Some(Outcome::Judge(unexplained)) = call(&mut guest, 4, &impossible).outcome else {
+        let Some(Outcome::Judge(unexplained)) =
+            GuestExt::call(&mut guest, Method::Judge, &impossible).outcome
+        else {
             panic!("Unexplained")
         };
         assert!(matches!(
@@ -210,9 +221,11 @@ fn unpublished_bootstrap_and_unexplained_pending_effects_roll_back() {
             Some(protocol::judge_response::Judgment::Unexplained(_))
         ));
         assert!(!unexplained.continue_polling);
-        refused(call(&mut guest, 6, &request), protocol::RefusalCode::State);
-        call(&mut guest, 3, &protocol::ResetRequest::default());
-        let Some(Outcome::Propose(again)) = call(&mut guest, 6, &request).outcome else {
+        GuestExt::call(&mut guest, Method::Propose, &request).refusal(RefusalCode::State);
+        guest.reset(None);
+        let Some(Outcome::Propose(again)) =
+            GuestExt::call(&mut guest, Method::Propose, &request).outcome
+        else {
             panic!("reset")
         };
         assert_eq!(again.kind(), protocol::ProposalKind::Bootstrap);
@@ -283,12 +296,10 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
 }
 #[test]
 fn enabled_internal_action_is_never_a_proposal() {
-    for (external, code) in
-        [(false, protocol::RefusalCode::Quiescent), (true, protocol::RefusalCode::State)]
-    {
+    for (external, code) in [(false, RefusalCode::Quiescent), (true, RefusalCode::State)] {
         let mut runtime =
             umpire_runtime::Runtime::new(InternalWorld { external }, InternalRealization);
-        refused(runtime.dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec()), code);
+        runtime.dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec()).refusal(code);
     }
 }
 
@@ -319,10 +330,9 @@ fn runtime_owns_quiescence_before_default_proposal_policy() {
             &protocol::JudgeRequest { observation: Some(support::any(value)) }.encode_to_vec(),
         );
     }
-    refused(
-        runtime.dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec()),
-        protocol::RefusalCode::Quiescent,
-    );
+    runtime
+        .dispatch(6, &protocol::ProposeRequest { seed: 1 }.encode_to_vec())
+        .refusal(RefusalCode::Quiescent);
 }
 
 struct ReadRealization {
@@ -339,7 +349,7 @@ where
 {
     fn program(&self) -> Result<prost_types::Any, protocol::Refusal> {
         if self.refuse_program {
-            Err(protocol::Refusal::new(protocol::RefusalCode::State, "program refused"))
+            Err(protocol::Refusal::new(RefusalCode::State, "program refused"))
         } else {
             Ok(support::any(42))
         }
@@ -373,7 +383,7 @@ where
         {
             Ok(())
         } else {
-            Err(protocol::Refusal::new(protocol::RefusalCode::State, "crossed read"))
+            Err(protocol::Refusal::new(RefusalCode::State, "crossed read"))
         }
     }
     fn continue_polling(
@@ -394,37 +404,49 @@ fn read_remains_pending_until_correlated_final_explanation_publishes() {
         support::World { starts: 1 },
         ReadRealization { refuse_program: false, continue_after_progress: false },
     ));
-    let Some(Outcome::Judge(unproposed)) =
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(20)) })
-            .outcome
+    let Some(Outcome::Judge(unproposed)) = GuestExt::call(
+        &mut guest,
+        Method::Judge,
+        &protocol::JudgeRequest { observation: Some(support::any(20)) },
+    )
+    .outcome
     else {
         panic!("unproposed observation")
     };
     assert!(!unproposed.continue_polling);
     let propose = protocol::ProposeRequest { seed: 7 };
-    let Some(Outcome::Propose(read)) = call(&mut guest, 6, &propose).outcome else {
+    let Some(Outcome::Propose(read)) =
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome
+    else {
         panic!("read")
     };
     assert_eq!(read.kind(), protocol::ProposalKind::Read);
     assert_eq!(read.action, "");
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    refused(
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(2)) }),
-        protocol::RefusalCode::State,
-    );
-    let Some(Outcome::Judge(intermediate)) =
-        call(&mut guest, 4, &protocol::JudgeRequest { observation: Some(support::any(20)) })
-            .outcome
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    GuestExt::call(
+        &mut guest,
+        Method::Judge,
+        &protocol::JudgeRequest { observation: Some(support::any(2)) },
+    )
+    .refusal(RefusalCode::State);
+    let Some(Outcome::Judge(intermediate)) = GuestExt::call(
+        &mut guest,
+        Method::Judge,
+        &protocol::JudgeRequest { observation: Some(support::any(20)) },
+    )
+    .outcome
     else {
         panic!("intermediate")
     };
     assert!(intermediate.continue_polling);
     assert!(intermediate.judgment.is_some());
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
     let final_read = protocol::JudgeRequest { observation: Some(support::any(1)) };
     assert!(!guest.dispatch_to(4, &final_read.encode_to_vec(), |_| false));
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    let Some(Outcome::Judge(final_result)) = call(&mut guest, 4, &final_read).outcome else {
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    let Some(Outcome::Judge(final_result)) =
+        GuestExt::call(&mut guest, Method::Judge, &final_read).outcome
+    else {
         panic!("final")
     };
     assert!(!final_result.continue_polling);
@@ -433,7 +455,10 @@ fn read_remains_pending_until_correlated_final_explanation_publishes() {
         panic!("explained")
     };
     assert_eq!(explanation.steps, ["Deliver"]);
-    assert!(matches!(call(&mut guest, 6, &propose).outcome, Some(Outcome::Propose(_))));
+    assert!(matches!(
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome,
+        Some(Outcome::Propose(_))
+    ));
 }
 
 #[test]
@@ -443,7 +468,7 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
         ReadRealization { refuse_program: false, continue_after_progress: true },
     ));
     let propose = protocol::ProposeRequest { seed: 7 };
-    call(&mut guest, 6, &propose);
+    GuestExt::call(&mut guest, Method::Propose, &propose);
     let progress = protocol::JudgeRequest { observation: Some(support::any(1)) };
     let mut unpublished = None;
     assert!(!guest.dispatch_to(4, &progress.encode_to_vec(), |bytes| {
@@ -451,8 +476,8 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
             Some(protocol::Response::decode(bytes).unwrap_or_else(|error| panic!("{error}")));
         false
     }));
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    let published = call(&mut guest, 4, &progress);
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    let published = GuestExt::call(&mut guest, Method::Judge, &progress);
     assert_eq!(Some(&published), unpublished.as_ref());
     let Some(Outcome::Judge(intermediate)) = published.outcome else { panic!("progress") };
     assert!(intermediate.continue_polling);
@@ -461,8 +486,10 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
         panic!("explained progress")
     };
     assert_eq!(explanation.steps, ["Deliver"]);
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    let Some(Outcome::Judge(repeated)) = call(&mut guest, 4, &progress).outcome else {
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    let Some(Outcome::Judge(repeated)) =
+        GuestExt::call(&mut guest, Method::Judge, &progress).outcome
+    else {
         panic!("committed progress")
     };
     assert!(repeated.continue_polling);
@@ -472,8 +499,10 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
     assert_eq!(explanation.steps, [] as [String; 0]);
     let final_read = protocol::JudgeRequest { observation: Some(support::any(2)) };
     assert!(!guest.dispatch_to(4, &final_read.encode_to_vec(), |_| false));
-    refused(call(&mut guest, 6, &propose), protocol::RefusalCode::State);
-    let Some(Outcome::Judge(final_result)) = call(&mut guest, 4, &final_read).outcome else {
+    GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
+    let Some(Outcome::Judge(final_result)) =
+        GuestExt::call(&mut guest, Method::Judge, &final_read).outcome
+    else {
         panic!("final")
     };
     assert!(!final_result.continue_polling);
@@ -482,7 +511,10 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
         panic!("explained final state")
     };
     assert_eq!(explanation.steps, ["Respond"]);
-    assert!(matches!(call(&mut guest, 6, &propose).outcome, Some(Outcome::Propose(_))));
+    assert!(matches!(
+        GuestExt::call(&mut guest, Method::Propose, &propose).outcome,
+        Some(Outcome::Propose(_))
+    ));
 }
 
 #[test]
@@ -510,22 +542,18 @@ fn reset_program_and_refusing_defaults_preserve_run_transactions() {
         };
         assert_eq!(reset.program, Some(support::any(42)));
     }
-    refused(
-        runtime.dispatch(
-            5,
-            &protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec(),
-        ),
-        protocol::RefusalCode::Unsupported,
-    );
+    runtime
+        .dispatch(5, &protocol::AnswerRequest { callback: Some(support::any(4)) }.encode_to_vec())
+        .refusal(RefusalCode::Unsupported);
     runtime.dispatch(6, &[]);
     runtime.replace_realization(ReadRealization {
         refuse_program: true,
         continue_after_progress: false,
     });
-    refused(runtime.dispatch(3, &[]), protocol::RefusalCode::State);
+    runtime.dispatch(3, &[]).refusal(RefusalCode::State);
     runtime.replace_realization(ReadRealization {
         refuse_program: false,
         continue_after_progress: false,
     });
-    refused(runtime.dispatch(6, &[]), protocol::RefusalCode::State);
+    runtime.dispatch(6, &[]).refusal(RefusalCode::State);
 }

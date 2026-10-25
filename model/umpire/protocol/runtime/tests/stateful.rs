@@ -1,4 +1,8 @@
 //! Stateful realization and transactional publication controls.
+use umpire_runtime::{
+    protocol::Method,
+    testing::{GuestExt, ResponseExt},
+};
 
 mod support;
 
@@ -6,39 +10,24 @@ use prost::Message;
 use support::{any, runtime};
 use umpire_runtime::protocol::{self, response::Outcome};
 
-fn refusal(response: protocol::Response, code: protocol::RefusalCode) {
-    let Some(Outcome::Refusal(result)) = response.outcome else { panic!("expected refusal") };
-    assert_eq!(result.code, code as i32);
-}
-
-fn unexplained(response: protocol::Response) -> Vec<String> {
-    let Some(Outcome::Judge(result)) = response.outcome else { panic!("expected Judge response") };
-    let Some(protocol::judge_response::Judgment::Unexplained(result)) = result.judgment else {
-        panic!("expected unexplained")
-    };
-    result.expected_actions
-}
-
 fn answer(
     runtime: &mut umpire_runtime::Runtime<support::World, support::Realization>,
     value: u8,
 ) -> protocol::Response {
-    runtime.dispatch(5, &protocol::AnswerRequest { callback: Some(any(value)) }.encode_to_vec())
+    runtime.dispatch(
+        Method::Answer as u32,
+        &protocol::AnswerRequest { callback: Some(any(value)) }.encode_to_vec(),
+    )
 }
 
 fn judge(
     runtime: &mut umpire_runtime::Runtime<support::World, support::Realization>,
     value: u8,
 ) -> protocol::Response {
-    runtime.dispatch(4, &protocol::JudgeRequest { observation: Some(any(value)) }.encode_to_vec())
-}
-
-fn explained(response: protocol::Response) -> Vec<String> {
-    let Some(Outcome::Judge(result)) = response.outcome else { panic!("expected Judge response") };
-    let Some(protocol::judge_response::Judgment::Explained(result)) = result.judgment else {
-        panic!("expected explanation")
-    };
-    result.steps
+    runtime.dispatch(
+        Method::Judge as u32,
+        &protocol::JudgeRequest { observation: Some(any(value)) }.encode_to_vec(),
+    )
 }
 
 #[test]
@@ -110,7 +99,10 @@ fn runtime_formats_unit_outcomes_with_debug() {
     }
     let mut runtime = Runtime::new(UnitWorld, support::Realization);
     let Some(Outcome::Judge(result)) = runtime
-        .dispatch(4, &protocol::JudgeRequest { observation: Some(any(1)) }.encode_to_vec())
+        .dispatch(
+            Method::Judge as u32,
+            &protocol::JudgeRequest { observation: Some(any(1)) }.encode_to_vec(),
+        )
         .outcome
     else {
         panic!("expected Judge")
@@ -125,10 +117,10 @@ fn runtime_formats_unit_outcomes_with_debug() {
 #[test]
 fn judge_replays_model_steps_and_repeated_current_observations_are_positive() {
     let mut runtime = runtime();
-    assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);
-    assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);
-    assert_eq!(explained(judge(&mut runtime, 1)), ["Deliver"]);
-    assert_eq!(explained(judge(&mut runtime, 1)), [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
     let encoded = judge(&mut runtime, 1).encode_to_vec();
     assert_eq!(encoded, vec![0x2a, 0x02, 0x0a, 0x00]);
 }
@@ -137,10 +129,10 @@ fn judge_replays_model_steps_and_repeated_current_observations_are_positive() {
 fn malformed_and_unknown_requests_preserve_the_current_run() {
     let mut runtime = runtime();
     for method in [3, 4, 5] {
-        refusal(runtime.dispatch(method, &[0xff]), protocol::RefusalCode::MalformedRequest);
+        runtime.dispatch(method, &[0xff]).refusal(protocol::RefusalCode::MalformedRequest);
     }
     for method in [4, 5] {
-        refusal(runtime.dispatch(method, &[]), protocol::RefusalCode::MalformedRequest);
+        runtime.dispatch(method, &[]).refusal(protocol::RefusalCode::MalformedRequest);
         for (value, code) in [
             (
                 prost_types::Any { type_url: "unknown".into(), value: vec![1] },
@@ -156,11 +148,11 @@ fn malformed_and_unknown_requests_preserve_the_current_run() {
             } else {
                 protocol::AnswerRequest { callback: Some(value) }.encode_to_vec()
             };
-            refusal(runtime.dispatch(method, &request), code);
-            assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);
+            runtime.dispatch(method, &request).refusal(code);
+            assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
         }
     }
-    refusal(runtime.dispatch(999, &[]), protocol::RefusalCode::UnknownMethod);
+    runtime.dispatch(999, &[]).refusal(protocol::RefusalCode::UnknownMethod);
     for observation in [14, 15] {
         assert!(
             std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| judge(
@@ -169,27 +161,34 @@ fn malformed_and_unknown_requests_preserve_the_current_run() {
             )))
             .is_err()
         );
-        assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);
+        assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
     }
-    assert_eq!(explained(judge(&mut runtime, 1)), ["Deliver"]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
 }
 
 #[test]
 fn invalid_candidates_freeze_the_first_enabled_actions_until_reset() {
     for observation in [2, 7, 8, 9, 11, 12, 13] {
         let mut runtime = runtime();
-        assert_eq!(unexplained(judge(&mut runtime, observation)), ["Deliver"]);
-        refusal(runtime.dispatch(4, &[0xff]), protocol::RefusalCode::MalformedRequest);
-        refusal(runtime.dispatch(999, &[]), protocol::RefusalCode::UnknownMethod);
+        assert_eq!(judge(&mut runtime, observation).unexplained(), ["Deliver"]);
+        runtime
+            .dispatch(Method::Judge as u32, &[0xff])
+            .refusal(protocol::RefusalCode::MalformedRequest);
+        runtime.dispatch(999, &[]).refusal(protocol::RefusalCode::UnknownMethod);
         let unknown = protocol::JudgeRequest {
             observation: Some(prost_types::Any { type_url: "unknown".into(), value: vec![1] }),
         }
         .encode_to_vec();
-        refusal(runtime.dispatch(4, &unknown), protocol::RefusalCode::Unsupported);
-        assert_eq!(unexplained(judge(&mut runtime, 1)), ["Deliver"]);
-        refusal(answer(&mut runtime, 4), protocol::RefusalCode::State);
-        assert!(matches!(runtime.dispatch(3, &[]).outcome, Some(Outcome::Reset(_))));
-        assert_eq!(explained(judge(&mut runtime, 1)), ["Deliver"]);
+        runtime
+            .dispatch(Method::Judge as u32, &unknown)
+            .refusal(protocol::RefusalCode::Unsupported);
+        assert_eq!(judge(&mut runtime, 1).unexplained(), ["Deliver"]);
+        answer(&mut runtime, 4).refusal(protocol::RefusalCode::State);
+        assert!(matches!(
+            runtime.dispatch(Method::Reset as u32, &[]).outcome,
+            Some(Outcome::Reset(_))
+        ));
+        assert_eq!(judge(&mut runtime, 1).explanation().steps, ["Deliver"]);
     }
 }
 
@@ -197,14 +196,17 @@ fn invalid_candidates_freeze_the_first_enabled_actions_until_reset() {
 fn explanations_replay_whole_candidate_sequences_and_isolate_instances() {
     let mut advanced = runtime();
     let mut untouched = runtime();
-    assert_eq!(explained(judge(&mut advanced, 10)), ["Deliver", "Respond"]);
-    assert_eq!(explained(judge(&mut advanced, 2)), [] as [String; 0]);
-    assert_eq!(explained(judge(&mut untouched, 0)), [] as [String; 0]);
-    assert_eq!(unexplained(judge(&mut advanced, 1)), ["Finish"]);
-    assert_eq!(explained(judge(&mut untouched, 1)), ["Deliver"]);
-    assert!(matches!(advanced.dispatch(3, &[]).outcome, Some(Outcome::Reset(_))));
-    assert_eq!(explained(judge(&mut advanced, 0)), [] as [String; 0]);
-    assert_eq!(explained(judge(&mut untouched, 1)), [] as [String; 0]);
+    assert_eq!(judge(&mut advanced, 10).explanation().steps, ["Deliver", "Respond"]);
+    assert_eq!(judge(&mut advanced, 2).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut untouched, 0).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut advanced, 1).unexplained(), ["Finish"]);
+    assert_eq!(judge(&mut untouched, 1).explanation().steps, ["Deliver"]);
+    assert!(matches!(
+        advanced.dispatch(Method::Reset as u32, &[]).outcome,
+        Some(Outcome::Reset(_))
+    ));
+    assert_eq!(judge(&mut advanced, 0).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut untouched, 1).explanation().steps, [] as [String; 0]);
 }
 
 #[test]
@@ -216,20 +218,20 @@ fn answer_validates_the_response_before_committing_delivery_and_awaits_response_
         (7, protocol::RefusalCode::MalformedRequest),
         (8, protocol::RefusalCode::State),
     ] {
-        refusal(answer(&mut runtime, callback), code);
-        assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);
+        answer(&mut runtime, callback).refusal(code);
+        assert_eq!(judge(&mut runtime, 0).explanation().steps, [] as [String; 0]);
     }
     let Some(Outcome::Answer(response)) = answer(&mut runtime, 4).outcome else {
         panic!("expected answer")
     };
     assert_eq!(response.reply, Some(any(42)));
-    assert_eq!(explained(judge(&mut runtime, 1)), [] as [String; 0]);
-    refusal(answer(&mut runtime, 4), protocol::RefusalCode::State);
-    assert_eq!(explained(judge(&mut runtime, 1)), [] as [String; 0]);
-    assert_eq!(explained(judge(&mut runtime, 2)), ["Respond"]);
-    assert_eq!(explained(judge(&mut runtime, 3)), ["Finish"]);
-    assert_eq!(unexplained(judge(&mut runtime, 0)), [] as [String; 0]);
-    assert_eq!(unexplained(judge(&mut runtime, 1)), [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
+    answer(&mut runtime, 4).refusal(protocol::RefusalCode::State);
+    assert_eq!(judge(&mut runtime, 1).explanation().steps, [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 2).explanation().steps, ["Respond"]);
+    assert_eq!(judge(&mut runtime, 3).explanation().steps, ["Finish"]);
+    assert_eq!(judge(&mut runtime, 0).unexplained(), [] as [String; 0]);
+    assert_eq!(judge(&mut runtime, 1).unexplained(), [] as [String; 0]);
 }
 
 #[test]
@@ -237,28 +239,10 @@ fn stateful_operations_require_a_unique_initial_state() {
     for starts in [0, 2] {
         let mut runtime =
             umpire_runtime::Runtime::new(support::World { starts }, support::Realization);
-        refusal(judge(&mut runtime, 0), protocol::RefusalCode::State);
-        refusal(answer(&mut runtime, 4), protocol::RefusalCode::State);
-        refusal(runtime.dispatch(3, &[]), protocol::RefusalCode::State);
+        judge(&mut runtime, 0).refusal(protocol::RefusalCode::State);
+        answer(&mut runtime, 4).refusal(protocol::RefusalCode::State);
+        runtime.dispatch(Method::Reset as u32, &[]).refusal(protocol::RefusalCode::State);
     }
-}
-
-fn publish(
-    guest: &mut umpire_runtime::Guest<
-        umpire_runtime::Runtime<support::World, support::Realization>,
-    >,
-    method: u32,
-    request: &[u8],
-) -> protocol::Response {
-    let mut result = None;
-    assert!(guest.dispatch_to(method, request, |bytes| {
-        result = Some(
-            protocol::Response::decode(bytes)
-                .unwrap_or_else(|error| panic!("invalid response: {error}")),
-        );
-        true
-    }));
-    result.unwrap_or_else(|| panic!("response not published"))
 }
 
 #[test]
@@ -267,11 +251,7 @@ fn failed_response_publication_preserves_judge_answer_reset_and_exploration() {
         for panics in [false, true] {
             let mut guest = umpire_runtime::Guest::new(runtime());
             if method == 3 {
-                explained(publish(
-                    &mut guest,
-                    4,
-                    &protocol::JudgeRequest { observation: Some(any(1)) }.encode_to_vec(),
-                ));
+                guest.judge(any(1)).explanation();
             }
             let request = match method {
                 1 => protocol::ExploreRequest { budget: 16 }.encode_to_vec(),
@@ -296,17 +276,11 @@ fn failed_response_publication_preserves_judge_answer_reset_and_exploration() {
                 assert!(!result.unwrap_or(true));
             }
             if method == 1 {
-                refusal(publish(&mut guest, 2, &[]), protocol::RefusalCode::NotExplored);
+                GuestExt::call(&mut guest, Method::Rows, &protocol::RowsRequest::default())
+                    .refusal(protocol::RefusalCode::NotExplored);
             }
             let current = u8::from(method == 3);
-            assert_eq!(
-                explained(publish(
-                    &mut guest,
-                    4,
-                    &protocol::JudgeRequest { observation: Some(any(current)) }.encode_to_vec()
-                )),
-                [] as [String; 0]
-            );
+            assert_eq!(guest.judge(any(current)).explanation().steps, [] as [String; 0]);
         }
     }
 }
@@ -315,11 +289,10 @@ fn failed_response_publication_preserves_judge_answer_reset_and_exploration() {
 fn failed_unexplained_publication_does_not_freeze_the_run() {
     let mut guest = umpire_runtime::Guest::new(runtime());
     let impossible = protocol::JudgeRequest { observation: Some(any(2)) }.encode_to_vec();
-    assert!(!guest.dispatch_to(4, &impossible, |_| false));
-    let delivery = protocol::JudgeRequest { observation: Some(any(1)) }.encode_to_vec();
-    assert_eq!(explained(publish(&mut guest, 4, &delivery)), ["Deliver"]);
-    assert!(matches!(publish(&mut guest, 3, &[]).outcome, Some(Outcome::Reset(_))));
-    assert_eq!(unexplained(publish(&mut guest, 4, &impossible)), ["Deliver"]);
-    assert!(!guest.dispatch_to(3, &[], |_| false));
-    assert_eq!(unexplained(publish(&mut guest, 4, &delivery)), ["Deliver"]);
+    assert!(!guest.dispatch_to(Method::Judge as u32, &impossible, |_| false));
+    assert_eq!(guest.judge(any(1)).explanation().steps, ["Deliver"]);
+    assert!(matches!(guest.reset(None).outcome, Some(Outcome::Reset(_))));
+    assert_eq!(guest.judge(any(2)).unexplained(), ["Deliver"]);
+    assert!(!guest.dispatch_to(Method::Reset as u32, &[], |_| false));
+    assert_eq!(guest.judge(any(1)).unexplained(), ["Deliver"]);
 }

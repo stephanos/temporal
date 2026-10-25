@@ -1,5 +1,0 @@
-error: expected Projection, Step, or a state value with project
- --> tests/ui/realization_return.rs:8:44
-  |
-8 |     fn first(response: Response) -> Result<usize, Refusal> { todo!() }
-  |                                            ^^^^^
