@@ -1,0 +1,17 @@
+{
+  "head": "a345ab4cde9e986c5b194c2999d3050f864d3b5d",
+  "model_tree": "39e10ffec4d12e3a5ae41ad030feb8a1688519b4",
+  "command": "UMPIRE_APALACHE=require make model-validate",
+  "backend_modes": {
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require"
+  },
+  "exit_code": 0,
+  "full_gate_seconds": 1163.386,
+  "inner_loop_seconds": 6.002,
+  "workspace_test_seconds": 997.024,
+  "log_sha256": "c356e362d0b38811186169762c8f9a7c809dde3c3269c13d3ea4c8d383db93c8",
+  "standalone_locked_test_exit": 0,
+  "standalone_native_tests": 6,
+  "notes": "Only standalone local-package dependency-edge metadata changed after preceding full gate. This fresh required run validates the integrated tree without relying on a narrowed gate; tool versions/package checksums unchanged."
+}

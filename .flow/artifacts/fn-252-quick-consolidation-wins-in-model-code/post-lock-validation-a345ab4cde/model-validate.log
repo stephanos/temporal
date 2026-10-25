@@ -1,0 +1,38 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, workspace and native-tool tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend required: real bounded checks and replay controls
+    Finished `dev` profile [unoptimized] target(s) in 0.03s
+/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar
+temporal-guest-freshness         33.005s
+retired-names                     0.833s
+timing-controls                   0.235s
+capability-controls               0.256s
+source-boundary                   8.955s
+protobuf-controls                 0.200s
+protobuf-freshness                0.075s
+kettle-protobuf-freshness         0.072s
+temporal-protobuf-freshness       0.051s
+fmt                               0.693s
+clippy                            8.497s
+docs                             12.531s
+tests                            997.024s
+wasm32-wasip1                     0.234s
+core-wasm-clippy                  0.194s
+wasm-guest                       54.150s
+go-host                           2.223s
+kettle-go-host                   30.849s
+temporal-go-host                 11.697s
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+inner source: umpire/backends/native/src/lib.rs
+inner command: mise exec -- cargo test -p umpire-checker --quiet
+inner loop (edit+test)            6.002s
+gate total                       1163.386s  (soft target 60s)
+inner loop                        6.002s  (soft target 10s)
+note: gate over soft target (fn-210 R30)
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'

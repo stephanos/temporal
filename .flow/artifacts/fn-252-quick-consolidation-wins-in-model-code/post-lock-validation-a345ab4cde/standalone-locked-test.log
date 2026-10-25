@@ -1,0 +1,45 @@
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+   Compiling umpire-native-symbolic v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/design/native-symbolic)
+warning: field `world` is never read
+  --> src/btor2.rs:48:9
+   |
+46 | pub struct Layout {
+   |            ------ field in this struct
+47 |     pub fields: Vec<(String, Id, Shape, Type)>,
+48 |     pub world: Vec<(String, Id, Shape, Type)>,
+   |         ^^^^^
+   |
+   = note: `Layout` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `describe` is never used
+   --> src/btor2.rs:688:8
+    |
+688 | pub fn describe(system: &System) -> String {
+    |        ^^^^^^^^
+
+warning: `umpire-native-symbolic` (bin "umpire-native-symbolic" test) generated 2 warnings
+    Finished `test` profile [unoptimized] target(s) in 4.40s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2523-current-spike/debug/deps/umpire_native_symbolic-cd294c607996aa89)
+
+running 6 tests
+test tests::big_native_heating_continues_to_one_million ... ok
+test tests::baseline_native_heating_stops_at_100 ... ok
+test witness::tests::unsupported_native_values_refuse_witness_comparison ... ok
+test tests::missing_verdicts_are_incomplete_and_disagreement_is_separate ... ok
+test tests::claim99_changes_the_current_admitted_check_expression ... ok
+test tests::baseline_and_big_keep_their_authored_boiling_thresholds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
