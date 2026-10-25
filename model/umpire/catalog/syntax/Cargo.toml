@@ -11,6 +11,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+heck.workspace = true
+darling.workspace = true
 syn.workspace = true
 quote.workspace = true
 proc-macro2.workspace = true

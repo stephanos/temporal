@@ -1,0 +1,101 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+warning: unused import: `spanned::Spanned`
+ --> umpire/catalog/syntax/src/derive.rs:9:49
+  |
+9 |     parse::ParseStream, punctuated::Punctuated, spanned::Spanned,
+  |                                                 ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+warning: `umpire-catalog-syntax` (lib) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.04s
+     Running tests/wire_generated.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/wire_generated-386f5242d4b001b8)
+
+running 1 test
+test generated_wire_setters_compile_and_preserve_carrier_mutations ... FAILED
+
+failures:
+
+---- generated_wire_setters_compile_and_preserve_carrier_mutations stdout ----
+
+thread 'generated_wire_setters_compile_and_preserve_carrier_mutations' (995366) panicked at umpire/catalog/build/tests/wire_generated.rs:75:5:
+error[E0425]: cannot find type `HTTPInput` in module `crate::example::v1`
+  --> /home/agent/.cache/codex-build/tmp/catalog-wire-controls-995365/control.rs:46:58
+   |
+15 |     #[derive(Default)] pub struct HttpInput {
+   |                        -------------------- similarly named struct `HttpInput` defined here
+...
+46 | DeviceMethod::Set=>{let mut message=<crate::example::v1::HTTPInput as ::prost::Message>::decode(bytes).map_err(|_|GenerationError::I...
+   |                                                          ^^^^^^^^^
+   |
+help: a struct with a similar name exists
+   |
+46 - DeviceMethod::Set=>{let mut message=<crate::example::v1::HTTPInput as ::prost::Message>::decode(bytes).map_err(|_|GenerationError::InvalidEncoding)?;mutate_set(&mut message,path,mutation)?;Ok(::prost::Message::encode_to_vec(&message))},
+46 + DeviceMethod::Set=>{let mut message=<crate::example::v1::HttpInput as ::prost::Message>::decode(bytes).map_err(|_|GenerationError::InvalidEncoding)?;mutate_set(&mut message,path,mutation)?;Ok(::prost::Message::encode_to_vec(&message))},
+   |
+
+error[E0425]: cannot find type `HTTPInput` in module `crate::example::v1`
+  --> /home/agent/.cache/codex-build/tmp/catalog-wire-controls-995365/control.rs:48:48
+   |
+15 |     #[derive(Default)] pub struct HttpInput {
+   |                        -------------------- similarly named struct `HttpInput` defined here
+...
+48 | fn mutate_set(message:&mut crate::example::v1::HTTPInput,path:&str,mutation:&WireMutation)->Result<(),GenerationError>{match path{
+   |                                                ^^^^^^^^^
+   |
+help: a struct with a similar name exists
+   |
+48 - fn mutate_set(message:&mut crate::example::v1::HTTPInput,path:&str,mutation:&WireMutation)->Result<(),GenerationError>{match path{
+48 + fn mutate_set(message:&mut crate::example::v1::HttpInput,path:&str,mutation:&WireMutation)->Result<(),GenerationError>{match path{
+   |
+
+error[E0609]: no field `http__value` on type `HttpChild`
+  --> /home/agent/.cache/codex-build/tmp/catalog-wire-controls-995365/control.rs:56:630
+   |
+56 | ...or::UnsupportedType)};WireValue::mutate(&mut node1.r#http__value,&WireKind::String,mutation)?;Ok(())},
+   |                                                       ^^^^^^^^^^^^^ unknown field
+   |
+help: a field with a similar name exists
+   |
+56 - "example.v1.HTTPInput.choice_child.HTTP__value"=>{let node0=message;if matches!(mutation,WireMutation::Absent)&&(!matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(_)))){return Ok(());}if !matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(_))){node0.r#__http__choice__=Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(Default::default()));}let Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(node1))=node0.r#__http__choice__.as_mut() else{return Err(GenerationError::UnsupportedType)};WireValue::mutate(&mut node1.r#http__value,&WireKind::String,mutation)?;Ok(())},
+56 + "example.v1.HTTPInput.choice_child.HTTP__value"=>{let node0=message;if matches!(mutation,WireMutation::Absent)&&(!matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(_)))){return Ok(());}if !matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(_))){node0.r#__http__choice__=Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(Default::default()));}let Some(crate::example::v1::http_input::HttpChoice::ChoiceChild(node1))=node0.r#__http__choice__.as_mut() else{return Err(GenerationError::UnsupportedType)};WireValue::mutate(&mut node1.http_value,&WireKind::String,mutation)?;Ok(())},
+   |
+
+error[E0308]: mismatched types
+  --> /home/agent/.cache/codex-build/tmp/catalog-wire-controls-995365/control.rs:57:623
+   |
+57 | ...GenerationError::UnsupportedType)};WireValue::mutate(value,&WireKind::String,mutation)?;}Ok(())},
+   |                                       ----------------- ^^^^^ expected `&mut _`, found `String`
+   |                                       |
+   |                                       arguments to this function are incorrect
+   |
+   = note: expected mutable reference `&mut _`
+                         found struct `String`
+note: method defined here
+  --> /home/agent/.cache/codex-build/tmp/catalog-wire-controls-995365/control.rs:8:26
+   |
+ 8 | pub trait WireValue { fn mutate(&mut self, kind: &WireKind, mutation: &WireMutation) -> Result<(), GenerationError>; }
+   |                          ^^^^^^      ----
+help: consider mutably borrowing here
+   |
+57 | "example.v1.HTTPInput.choice_text"=>{let node0=message;if matches!(mutation,WireMutation::Absent){if matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceText(_))){node0.r#__http__choice__=None;}}else{if !matches!(node0.r#__http__choice__,Some(crate::example::v1::http_input::HttpChoice::ChoiceText(_))){node0.r#__http__choice__=Some(crate::example::v1::http_input::HttpChoice::ChoiceText(Default::default()));}let Some(crate::example::v1::http_input::HttpChoice::ChoiceText(value))=node0.r#__http__choice__.as_mut() else{return Err(GenerationError::UnsupportedType)};WireValue::mutate(&mut value,&WireKind::String,mutation)?;}Ok(())},
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ++++
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0425, E0609.
+For more information about an error, try `rustc --explain E0308`.
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    generated_wire_setters_compile_and_preserve_carrier_mutations
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p umpire-catalog-build --test wire_generated`

@@ -24,6 +24,8 @@ path = "tests/realize.rs"
 workspace = true
 
 [dependencies]
+heck.workspace = true
+darling.workspace = true
 umpire-catalog-build.workspace = true
 umpire-catalog-syntax.workspace = true
 syn.workspace = true

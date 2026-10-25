@@ -1,0 +1,895 @@
+{
+  "darling": {
+    "crate": {
+      "id": "darling",
+      "name": "darling",
+      "updated_at": "2026-08-20T15:12:01.702411Z",
+      "versions": [
+        3039997,
+        2898596,
+        1857511,
+        1855474,
+        1696610,
+        1685862,
+        1670483,
+        1636359,
+        1500632,
+        1197698,
+        1145329,
+        1061847,
+        1060774,
+        1052133,
+        1033903,
+        1032425,
+        844710,
+        790849,
+        787064,
+        745910,
+        720849,
+        650601,
+        540444,
+        531787,
+        528212,
+        527835,
+        525570,
+        464429,
+        380616,
+        369202,
+        369128,
+        363266,
+        343713,
+        343177,
+        322845,
+        314950,
+        313748,
+        186242,
+        178512,
+        169759,
+        140472,
+        140190,
+        131972,
+        131908,
+        129359,
+        128782,
+        122157,
+        110404,
+        101032,
+        93858,
+        93813,
+        93219,
+        92990,
+        92271,
+        87758,
+        87398,
+        84609,
+        83767,
+        78868,
+        73397,
+        72614,
+        57146,
+        54264,
+        54260,
+        54197,
+        53616,
+        53493,
+        53411,
+        53399
+      ],
+      "keywords": [],
+      "categories": [],
+      "badges": [],
+      "created_at": "2017-05-15T19:26:00.393283Z",
+      "downloads": 843070269,
+      "recent_downloads": 231876252,
+      "default_version": "0.24.1",
+      "num_versions": 69,
+      "yanked": false,
+      "max_version": "0.24.1",
+      "newest_version": "0.24.1",
+      "max_stable_version": "0.24.1",
+      "description": "A proc-macro library for reading attributes into structs when\nimplementing custom derives.\n",
+      "homepage": null,
+      "documentation": "https://docs.rs/darling/0.24.1",
+      "repository": "https://github.com/TedDriggs/darling",
+      "links": {
+        "version_downloads": "/api/v1/crates/darling/downloads",
+        "versions": null,
+        "owners": "/api/v1/crates/darling/owners",
+        "owner_team": "/api/v1/crates/darling/owner_team",
+        "owner_user": "/api/v1/crates/darling/owner_user",
+        "reverse_dependencies": "/api/v1/crates/darling/reverse_dependencies"
+      },
+      "exact_match": false,
+      "trustpub_only": false
+    },
+    "versions": [
+      {
+        "id": 3039997,
+        "crate": "darling",
+        "num": "0.24.1",
+        "dl_path": "/api/v1/crates/darling/0.24.1/download",
+        "readme_path": "/api/v1/crates/darling/0.24.1/readme",
+        "updated_at": "2026-08-20T15:12:01.702411Z",
+        "created_at": "2026-08-20T15:12:01.702411Z",
+        "downloads": 22805767,
+        "features": {
+          "default": [
+            "suggestions"
+          ],
+          "diagnostics": [
+            "darling_core/diagnostics"
+          ],
+          "serde": [
+            "darling_core/serde"
+          ],
+          "suggestions": [
+            "darling_core/suggestions"
+          ]
+        },
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling/0.24.1/dependencies",
+          "version_downloads": "/api/v1/crates/darling/0.24.1/downloads",
+          "authors": "/api/v1/crates/darling/0.24.1/authors"
+        },
+        "crate_size": 51607,
+        "published_by": {
+          "id": 6324,
+          "login": "TedDriggs",
+          "name": "Ted Driggs",
+          "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+          "url": "https://github.com/TedDriggs",
+          "github_username_matches": true,
+          "created_at": "2013-06-24T18:21:42Z"
+        },
+        "audit_actions": [
+          {
+            "action": "publish",
+            "user": {
+              "id": 6324,
+              "login": "TedDriggs",
+              "name": "Ted Driggs",
+              "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+              "url": "https://github.com/TedDriggs",
+              "github_username_matches": true,
+              "created_at": "2013-06-24T18:21:42Z"
+            },
+            "time": "2026-08-20T15:12:01.702411Z"
+          }
+        ],
+        "checksum": "ed17f5901b6630b993ca003def43f2f8ef4014fc13b047b57aad617ff32bc2ec",
+        "rust_version": "1.88.0",
+        "has_lib": true,
+        "bin_names": [],
+        "edition": "2021",
+        "description": "A proc-macro library for reading attributes into structs when\nimplementing custom derives.\n",
+        "homepage": null,
+        "documentation": "https://docs.rs/darling/0.24.1",
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 93,
+              "comment_lines": 2,
+              "files": 2
+            },
+            "Shell": {
+              "code_lines": 1,
+              "comment_lines": 0,
+              "files": 1
+            }
+          },
+          "total_code_lines": 94,
+          "total_comment_lines": 2
+        }
+      },
+      {
+        "id": 92271,
+        "crate": "darling",
+        "num": "0.5.0",
+        "dl_path": "/api/v1/crates/darling/0.5.0/download",
+        "readme_path": "/api/v1/crates/darling/0.5.0/readme",
+        "updated_at": "2018-05-10T23:38:12.755700Z",
+        "created_at": "2018-05-10T23:38:12.755700Z",
+        "downloads": 29473,
+        "features": {},
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling/0.5.0/dependencies",
+          "version_downloads": "/api/v1/crates/darling/0.5.0/downloads",
+          "authors": "/api/v1/crates/darling/0.5.0/authors"
+        },
+        "crate_size": 12447,
+        "published_by": null,
+        "audit_actions": [],
+        "checksum": "ebfa6e6eb98ba452aaea6415e529e4890ab09a36aaf03c71146acf9f0eab89f6",
+        "rust_version": null,
+        "has_lib": true,
+        "bin_names": [],
+        "edition": null,
+        "description": "A proc-macro library for reading attributes into structs when\nimplementing custom derives.",
+        "homepage": null,
+        "documentation": "https://docs.rs/darling/0.5.0",
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 22,
+              "comment_lines": 0,
+              "files": 1
+            },
+            "Shell": {
+              "code_lines": 3,
+              "comment_lines": 0,
+              "files": 1
+            }
+          },
+          "total_code_lines": 25,
+          "total_comment_lines": 0
+        }
+      }
+    ]
+  },
+  "darling_core": {
+    "crate": {
+      "id": "darling_core",
+      "name": "darling_core",
+      "updated_at": "2026-08-20T15:11:43.129462Z",
+      "versions": [
+        3039995,
+        2898594,
+        1857508,
+        1855471,
+        1696608,
+        1685860,
+        1670481,
+        1636357,
+        1500628,
+        1197695,
+        1145325,
+        1061844,
+        1060772,
+        1052131,
+        1033900,
+        1032422,
+        844708,
+        790846,
+        787061,
+        745908,
+        720837,
+        650599,
+        540442,
+        531785,
+        528210,
+        527833,
+        524659,
+        464427,
+        380614,
+        369200,
+        369126,
+        363263,
+        343711,
+        343174,
+        322843,
+        314948,
+        313745,
+        186240,
+        178510,
+        169757,
+        140469,
+        140187,
+        131970,
+        131906,
+        129356,
+        128779,
+        122155,
+        110402,
+        101030,
+        93856,
+        93811,
+        93217,
+        92988,
+        92267,
+        87756,
+        87396,
+        84607,
+        83765,
+        78866,
+        73395,
+        72612,
+        57144,
+        54261,
+        54257,
+        54195,
+        53614,
+        53491,
+        53409,
+        53397
+      ],
+      "keywords": [],
+      "categories": [],
+      "badges": [],
+      "created_at": "2017-05-15T19:25:03.051442Z",
+      "downloads": 843269289,
+      "recent_downloads": 231966328,
+      "default_version": "0.24.1",
+      "num_versions": 69,
+      "yanked": false,
+      "max_version": "0.24.1",
+      "newest_version": "0.24.1",
+      "max_stable_version": "0.24.1",
+      "description": "Helper crate for proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n",
+      "homepage": null,
+      "documentation": null,
+      "repository": "https://github.com/TedDriggs/darling",
+      "links": {
+        "version_downloads": "/api/v1/crates/darling_core/downloads",
+        "versions": null,
+        "owners": "/api/v1/crates/darling_core/owners",
+        "owner_team": "/api/v1/crates/darling_core/owner_team",
+        "owner_user": "/api/v1/crates/darling_core/owner_user",
+        "reverse_dependencies": "/api/v1/crates/darling_core/reverse_dependencies"
+      },
+      "exact_match": false,
+      "trustpub_only": false
+    },
+    "versions": [
+      {
+        "id": 3039995,
+        "crate": "darling_core",
+        "num": "0.24.1",
+        "dl_path": "/api/v1/crates/darling_core/0.24.1/download",
+        "readme_path": "/api/v1/crates/darling_core/0.24.1/readme",
+        "updated_at": "2026-08-20T15:11:43.129462Z",
+        "created_at": "2026-08-20T15:11:43.129462Z",
+        "downloads": 22811990,
+        "features": {
+          "diagnostics": [],
+          "suggestions": [
+            "strsim"
+          ]
+        },
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling_core/0.24.1/dependencies",
+          "version_downloads": "/api/v1/crates/darling_core/0.24.1/downloads",
+          "authors": "/api/v1/crates/darling_core/0.24.1/authors"
+        },
+        "crate_size": 83947,
+        "published_by": {
+          "id": 6324,
+          "login": "TedDriggs",
+          "name": "Ted Driggs",
+          "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+          "url": "https://github.com/TedDriggs",
+          "github_username_matches": true,
+          "created_at": "2013-06-24T18:21:42Z"
+        },
+        "audit_actions": [
+          {
+            "action": "publish",
+            "user": {
+              "id": 6324,
+              "login": "TedDriggs",
+              "name": "Ted Driggs",
+              "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+              "url": "https://github.com/TedDriggs",
+              "github_username_matches": true,
+              "created_at": "2013-06-24T18:21:42Z"
+            },
+            "time": "2026-08-20T15:11:43.129462Z"
+          }
+        ],
+        "checksum": "6837e2cf7485aaae18f86181d2f0e9a7ed297a025e220aeabf63fdebd3a2ddff",
+        "rust_version": "1.88.0",
+        "has_lib": true,
+        "bin_names": [],
+        "edition": "2021",
+        "description": "Helper crate for proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n",
+        "homepage": null,
+        "documentation": null,
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 8351,
+              "comment_lines": 288,
+              "files": 79
+            }
+          },
+          "total_code_lines": 8351,
+          "total_comment_lines": 288
+        }
+      },
+      {
+        "id": 92267,
+        "crate": "darling_core",
+        "num": "0.5.0",
+        "dl_path": "/api/v1/crates/darling_core/0.5.0/download",
+        "readme_path": "/api/v1/crates/darling_core/0.5.0/readme",
+        "updated_at": "2018-05-10T23:37:09.511831Z",
+        "created_at": "2018-05-10T23:37:09.511831Z",
+        "downloads": 29531,
+        "features": {
+          "default": [
+            "syn/full"
+          ]
+        },
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling_core/0.5.0/dependencies",
+          "version_downloads": "/api/v1/crates/darling_core/0.5.0/downloads",
+          "authors": "/api/v1/crates/darling_core/0.5.0/authors"
+        },
+        "crate_size": 27445,
+        "published_by": null,
+        "audit_actions": [],
+        "checksum": "c8af196b04f843cd6f1d979c2b3697de0d33050892662efba69112ee7b1fc968",
+        "rust_version": null,
+        "has_lib": true,
+        "bin_names": [],
+        "edition": null,
+        "description": "Helper crate for proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.",
+        "homepage": null,
+        "documentation": null,
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 3428,
+              "comment_lines": 60,
+              "files": 42
+            }
+          },
+          "total_code_lines": 3428,
+          "total_comment_lines": 60
+        }
+      }
+    ]
+  },
+  "darling_macro": {
+    "crate": {
+      "id": "darling_macro",
+      "name": "darling_macro",
+      "updated_at": "2026-08-20T15:11:50.704280Z",
+      "versions": [
+        3039996,
+        2898595,
+        1857509,
+        1855473,
+        1696609,
+        1685861,
+        1670482,
+        1636358,
+        1500629,
+        1197696,
+        1145327,
+        1061845,
+        1060773,
+        1052132,
+        1033901,
+        1032423,
+        844709,
+        790847,
+        787062,
+        745909,
+        720838,
+        650600,
+        540443,
+        531786,
+        528211,
+        527834,
+        524660,
+        464428,
+        380615,
+        369201,
+        369127,
+        363265,
+        343712,
+        343176,
+        322844,
+        314949,
+        313747,
+        186241,
+        178511,
+        169758,
+        140471,
+        140189,
+        131971,
+        131907,
+        129358,
+        128781,
+        122156,
+        110403,
+        101031,
+        93857,
+        93812,
+        93218,
+        92989,
+        92269,
+        87757,
+        87397,
+        84608,
+        83766,
+        78867,
+        73396,
+        72613,
+        57145,
+        54263,
+        54259,
+        54196,
+        53615,
+        53492,
+        53410,
+        53398
+      ],
+      "keywords": [],
+      "categories": [],
+      "badges": [],
+      "created_at": "2017-05-15T19:25:34.841634Z",
+      "downloads": 843102621,
+      "recent_downloads": 231698165,
+      "default_version": "0.24.1",
+      "num_versions": 69,
+      "yanked": false,
+      "max_version": "0.24.1",
+      "newest_version": "0.24.1",
+      "max_stable_version": "0.24.1",
+      "description": "Internal support for a proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n",
+      "homepage": null,
+      "documentation": null,
+      "repository": "https://github.com/TedDriggs/darling",
+      "links": {
+        "version_downloads": "/api/v1/crates/darling_macro/downloads",
+        "versions": null,
+        "owners": "/api/v1/crates/darling_macro/owners",
+        "owner_team": "/api/v1/crates/darling_macro/owner_team",
+        "owner_user": "/api/v1/crates/darling_macro/owner_user",
+        "reverse_dependencies": "/api/v1/crates/darling_macro/reverse_dependencies"
+      },
+      "exact_match": false,
+      "trustpub_only": false
+    },
+    "versions": [
+      {
+        "id": 3039996,
+        "crate": "darling_macro",
+        "num": "0.24.1",
+        "dl_path": "/api/v1/crates/darling_macro/0.24.1/download",
+        "readme_path": "/api/v1/crates/darling_macro/0.24.1/readme",
+        "updated_at": "2026-08-20T15:11:50.704280Z",
+        "created_at": "2026-08-20T15:11:50.704280Z",
+        "downloads": 22785493,
+        "features": {},
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling_macro/0.24.1/dependencies",
+          "version_downloads": "/api/v1/crates/darling_macro/0.24.1/downloads",
+          "authors": "/api/v1/crates/darling_macro/0.24.1/authors"
+        },
+        "crate_size": 2481,
+        "published_by": {
+          "id": 6324,
+          "login": "TedDriggs",
+          "name": "Ted Driggs",
+          "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+          "url": "https://github.com/TedDriggs",
+          "github_username_matches": true,
+          "created_at": "2013-06-24T18:21:42Z"
+        },
+        "audit_actions": [
+          {
+            "action": "publish",
+            "user": {
+              "id": 6324,
+              "login": "TedDriggs",
+              "name": "Ted Driggs",
+              "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+              "url": "https://github.com/TedDriggs",
+              "github_username_matches": true,
+              "created_at": "2013-06-24T18:21:42Z"
+            },
+            "time": "2026-08-20T15:11:50.704280Z"
+          }
+        ],
+        "checksum": "2ac7135c3ef02b2f7833bbeb1be5ba7f966dcde8a87c6b87f65a778d71a02785",
+        "rust_version": "1.88.0",
+        "has_lib": true,
+        "bin_names": [],
+        "edition": "2021",
+        "description": "Internal support for a proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n",
+        "homepage": null,
+        "documentation": null,
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 33,
+              "comment_lines": 0,
+              "files": 1
+            }
+          },
+          "total_code_lines": 33,
+          "total_comment_lines": 0
+        }
+      },
+      {
+        "id": 92269,
+        "crate": "darling_macro",
+        "num": "0.5.0",
+        "dl_path": "/api/v1/crates/darling_macro/0.5.0/download",
+        "readme_path": "/api/v1/crates/darling_macro/0.5.0/readme",
+        "updated_at": "2018-05-10T23:37:41.839739Z",
+        "created_at": "2018-05-10T23:37:41.839739Z",
+        "downloads": 29473,
+        "features": {},
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT",
+        "links": {
+          "dependencies": "/api/v1/crates/darling_macro/0.5.0/dependencies",
+          "version_downloads": "/api/v1/crates/darling_macro/0.5.0/downloads",
+          "authors": "/api/v1/crates/darling_macro/0.5.0/authors"
+        },
+        "crate_size": 1226,
+        "published_by": null,
+        "audit_actions": [],
+        "checksum": "0619148430511a3ecf5e52752a9c948879207ab3096276a5a9ecf8b1e7fbe010",
+        "rust_version": null,
+        "has_lib": true,
+        "bin_names": [],
+        "edition": null,
+        "description": "Internal support for a proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.",
+        "homepage": null,
+        "documentation": null,
+        "repository": "https://github.com/TedDriggs/darling",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 47,
+              "comment_lines": 0,
+              "files": 1
+            }
+          },
+          "total_code_lines": 47,
+          "total_comment_lines": 0
+        }
+      }
+    ]
+  },
+  "ident_case": {
+    "crate": {
+      "id": "ident_case",
+      "name": "ident_case",
+      "updated_at": "2019-03-18T20:07:20.426691Z",
+      "versions": [
+        140185,
+        52942
+      ],
+      "keywords": [],
+      "categories": [],
+      "badges": [],
+      "created_at": "2017-05-10T19:51:31.395527Z",
+      "downloads": 533826181,
+      "recent_downloads": 137572893,
+      "default_version": "1.0.1",
+      "num_versions": 2,
+      "yanked": false,
+      "max_version": "1.0.1",
+      "newest_version": "1.0.1",
+      "max_stable_version": "1.0.1",
+      "description": "Utility for applying case rules to Rust identifiers.",
+      "homepage": null,
+      "documentation": "https://docs.rs/ident_case/1.0.1",
+      "repository": "https://github.com/TedDriggs/ident_case",
+      "links": {
+        "version_downloads": "/api/v1/crates/ident_case/downloads",
+        "versions": null,
+        "owners": "/api/v1/crates/ident_case/owners",
+        "owner_team": "/api/v1/crates/ident_case/owner_team",
+        "owner_user": "/api/v1/crates/ident_case/owner_user",
+        "reverse_dependencies": "/api/v1/crates/ident_case/reverse_dependencies"
+      },
+      "exact_match": false,
+      "trustpub_only": false
+    },
+    "versions": [
+      {
+        "id": 140185,
+        "crate": "ident_case",
+        "num": "1.0.1",
+        "dl_path": "/api/v1/crates/ident_case/1.0.1/download",
+        "readme_path": "/api/v1/crates/ident_case/1.0.1/readme",
+        "updated_at": "2019-03-18T20:07:20.426691Z",
+        "created_at": "2019-03-18T20:07:20.426691Z",
+        "downloads": 533490107,
+        "features": {},
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT/Apache-2.0",
+        "links": {
+          "dependencies": "/api/v1/crates/ident_case/1.0.1/dependencies",
+          "version_downloads": "/api/v1/crates/ident_case/1.0.1/downloads",
+          "authors": "/api/v1/crates/ident_case/1.0.1/authors"
+        },
+        "crate_size": 3492,
+        "published_by": {
+          "id": 6324,
+          "login": "TedDriggs",
+          "name": "Ted Driggs",
+          "avatar": "https://avatars.githubusercontent.com/u/4805575?v=4",
+          "url": "https://github.com/TedDriggs",
+          "github_username_matches": true,
+          "created_at": "2013-06-24T18:21:42Z"
+        },
+        "audit_actions": [],
+        "checksum": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39",
+        "rust_version": null,
+        "has_lib": true,
+        "bin_names": [],
+        "edition": null,
+        "description": "Utility for applying case rules to Rust identifiers.",
+        "homepage": null,
+        "documentation": "https://docs.rs/ident_case/1.0.1",
+        "repository": "https://github.com/TedDriggs/ident_case",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 122,
+              "comment_lines": 7,
+              "files": 1
+            }
+          },
+          "total_code_lines": 122,
+          "total_comment_lines": 7
+        }
+      }
+    ]
+  },
+  "heck": {
+    "crate": {
+      "id": "heck",
+      "name": "heck",
+      "updated_at": "2024-03-12T22:42:23.303234Z",
+      "versions": [
+        1080327,
+        872223,
+        716866,
+        465743,
+        385489,
+        317137,
+        123209,
+        62594,
+        51058,
+        48860,
+        48821
+      ],
+      "keywords": [
+        "case",
+        "camel",
+        "snake",
+        "unicode",
+        "string"
+      ],
+      "categories": [
+        "no-std"
+      ],
+      "badges": [],
+      "created_at": "2017-03-27T11:22:23.067190Z",
+      "downloads": 1455631256,
+      "recent_downloads": 336503553,
+      "default_version": "0.5.0",
+      "num_versions": 11,
+      "yanked": false,
+      "max_version": "0.5.0",
+      "newest_version": "0.5.0",
+      "max_stable_version": "0.5.0",
+      "description": "heck is a case conversion library.",
+      "homepage": null,
+      "documentation": null,
+      "repository": "https://github.com/withoutboats/heck",
+      "links": {
+        "version_downloads": "/api/v1/crates/heck/downloads",
+        "versions": null,
+        "owners": "/api/v1/crates/heck/owners",
+        "owner_team": "/api/v1/crates/heck/owner_team",
+        "owner_user": "/api/v1/crates/heck/owner_user",
+        "reverse_dependencies": "/api/v1/crates/heck/reverse_dependencies"
+      },
+      "exact_match": false,
+      "trustpub_only": false
+    },
+    "versions": [
+      {
+        "id": 1080327,
+        "crate": "heck",
+        "num": "0.5.0",
+        "dl_path": "/api/v1/crates/heck/0.5.0/download",
+        "readme_path": "/api/v1/crates/heck/0.5.0/readme",
+        "updated_at": "2024-03-12T22:42:23.303234Z",
+        "created_at": "2024-03-12T22:42:23.303234Z",
+        "downloads": 792681897,
+        "features": {},
+        "yanked": false,
+        "yank_message": null,
+        "lib_links": null,
+        "license": "MIT OR Apache-2.0",
+        "links": {
+          "dependencies": "/api/v1/crates/heck/0.5.0/dependencies",
+          "version_downloads": "/api/v1/crates/heck/0.5.0/downloads",
+          "authors": "/api/v1/crates/heck/0.5.0/authors"
+        },
+        "crate_size": 11517,
+        "published_by": {
+          "id": 6913,
+          "login": "jplatte",
+          "name": "Jonas Platte",
+          "avatar": "https://avatars.githubusercontent.com/u/951129?v=4",
+          "url": "https://github.com/jplatte",
+          "github_username_matches": true,
+          "created_at": "2011-08-01T07:32:04Z"
+        },
+        "audit_actions": [
+          {
+            "action": "publish",
+            "user": {
+              "id": 6913,
+              "login": "jplatte",
+              "name": "Jonas Platte",
+              "avatar": "https://avatars.githubusercontent.com/u/951129?v=4",
+              "url": "https://github.com/jplatte",
+              "github_username_matches": true,
+              "created_at": "2011-08-01T07:32:04Z"
+            },
+            "time": "2024-03-12T22:42:23.303234Z"
+          }
+        ],
+        "checksum": "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea",
+        "rust_version": "1.56",
+        "has_lib": true,
+        "bin_names": [],
+        "edition": "2021",
+        "description": "heck is a case conversion library.",
+        "homepage": null,
+        "documentation": null,
+        "repository": "https://github.com/withoutboats/heck",
+        "trustpub_data": null,
+        "linecounts": {
+          "languages": {
+            "Rust": {
+              "code_lines": 510,
+              "comment_lines": 9,
+              "files": 9
+            }
+          },
+          "total_code_lines": 510,
+          "total_comment_lines": 9
+        }
+      }
+    ]
+  }
+}

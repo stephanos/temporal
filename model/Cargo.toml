@@ -97,6 +97,8 @@ flate2 = { version = "=1.1.10", default-features = false, features = ["rust_back
 prost = "0.14"
 prost-build = "0.14"
 # proc macros
+heck = "0.5"
+darling = { version = "0.24.1", default-features = false }
 proc-macro-crate = "3.5.0"
 syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 quote = "1.0"

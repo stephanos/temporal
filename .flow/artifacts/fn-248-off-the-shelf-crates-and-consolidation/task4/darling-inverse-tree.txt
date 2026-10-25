@@ -1,0 +1,54 @@
+darling v0.24.1
+├── umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+│   ├── umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+│   │   └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax)
+│   │       ├── umpire-temporal-annotate-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/macros)
+│   │       │   └── umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate)
+│   │       │       └── umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization)
+│   │       │           └── umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/guest)
+│   │       │           [dev-dependencies]
+│   │       │           └── umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/testing)
+│   │       └── umpire-temporal-realization-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization/macros)
+│   │           └── umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization) (*)
+│   │       [build-dependencies]
+│   │       ├── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/api)
+│   │       │   └── umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization) (*)
+│   │       │   [dev-dependencies]
+│   │       │   ├── umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate) (*)
+│   │       │   └── umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/testing)
+│   │       └── umpire-temporal-realization-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization/macros) (*)
+│   │   [build-dependencies]
+│   │   ├── umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/reference/kettle)
+│   │   │   └── umpire-kettle-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/reference/kettle/guest)
+│   │   └── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/api) (*)
+│   ├── umpire-catalog-macros v0.0.1 (proc-macro) (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/macros)
+│   │   └── umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog)
+│   │       ├── umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/umpire)
+│   │       │   ├── umpire-author-consumer v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/umpire/tests/consumer)
+│   │       │   └── umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/reference/kettle) (*)
+│   │       │   [dev-dependencies]
+│   │       │   ├── umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/backends/apalache)
+│   │       │   ├── umpire-fixtures v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/dev/fixtures)
+│   │       │   └── umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/suite)
+│   │       │       └── umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/umpire) (*)
+│   │       │       [dev-dependencies]
+│   │       │       └── umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/testing)
+│   │       ├── umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/reference/kettle) (*)
+│   │       ├── umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/realization) (*)
+│   │       ├── umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate) (*)
+│   │       └── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/api) (*)
+│   └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax) (*)
+└── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax) (*)
+
+darling v0.24.1
+├── umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+│   ├── umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+│   │   └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax)
+│   │       [dev-dependencies]
+│   │       └── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/api) (*)
+│   │   [dev-dependencies]
+│   │   └── umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/api) (*)
+│   └── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax) (*)
+│   [dev-dependencies]
+│   └── umpire-reference-kettle v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/reference/kettle) (*)
+└── umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax) (*)
