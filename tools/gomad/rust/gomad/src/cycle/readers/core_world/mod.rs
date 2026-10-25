@@ -42,7 +42,7 @@ pub(crate) fn sha(raw: &[u8]) -> String {
     format!("{:x}", Sha256::digest(raw))
 }
 
-/// The caller supplies buffers independently reopened by RetainedSession.
+/// The caller supplies buffers independently reopened by `RetainedSession`.
 pub(crate) fn world(
     raw: &[u8],
     encoding: &str,
@@ -53,6 +53,10 @@ pub(crate) fn world(
     codec::observe_world(raw, encoding, broker)
 }
 
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Raw bytes, record and stream digests plus shared and local limits retain independent receiving authority"
+)]
 pub(crate) fn network(
     raw: &[u8],
     limit: u64,

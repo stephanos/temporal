@@ -1,4 +1,4 @@
-use super::*;
+use super::{BrokerConfig, NetworkModel, Value, codec, fields, integer, json, require, sha, world};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Current corpus bytes, independently read and bound to the admitted source inventory.
@@ -148,6 +148,10 @@ impl Corpus {
         Ok(())
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Each current corpus row is checked against its complete independently frozen response and state"
+    )]
     fn receive_rows(&self, stdout: &[u8]) -> Result<(), String> {
         let mut required = BTreeMap::new();
         for (name, doc) in &self.documents {
@@ -296,7 +300,7 @@ impl Corpus {
                         "clock repeated raw responses",
                     )?;
                 }
-                "final_world_wire_owner_round_trip" => self.roundtrip(name, doc, input, actual)?,
+                "final_world_wire_owner_round_trip" => Self::roundtrip(name, doc, input, actual)?,
                 "network.corpus.creation" | "network.corpus.initial" | "network.corpus.step" => {
                     let expected = if case.ends_with("creation") {
                         json!({"error":doc["creation_error"]})
@@ -304,7 +308,10 @@ impl Corpus {
                         doc["initial"].clone()
                     } else {
                         doc["steps"]
-                            .get(index.ok_or("network step index")? as usize)
+                            .get(
+                                usize::try_from(index.ok_or("network step index")?)
+                                    .map_err(|_| "network step index")?,
+                            )
                             .ok_or("network step index")?["expected"]
                             .clone()
                     };
@@ -323,13 +330,7 @@ impl Corpus {
         require(seen == required, "corpus harness omitted cases")
     }
 
-    fn roundtrip(
-        &self,
-        name: &str,
-        doc: &Value,
-        input: &Value,
-        actual: &Value,
-    ) -> Result<(), String> {
+    fn roundtrip(name: &str, doc: &Value, input: &Value, actual: &Value) -> Result<(), String> {
         let decode = |key: &str| -> Result<Vec<u8>, String> {
             crate::qualify::cells::base64(actual[key].as_str().ok_or("World encoded observation")?)
                 .ok_or("World base64".into())

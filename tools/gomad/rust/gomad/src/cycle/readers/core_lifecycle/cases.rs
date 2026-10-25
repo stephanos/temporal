@@ -1,5 +1,13 @@
-use super::*;
+use super::{
+    ATTRIBUTION, BOOT, BTreeMap, CALLBACK, CLEANUP, DEADLINE, DRAIN, GRACE, HOST, INTERNAL, LAZY,
+    MODEL, NETWORK, OPERATOR, ORACLE, RESTART, RETRY, SQLITE, Value, activity, bytes, capacity,
+    catalog, fields, handle, held_drain, integer, json, recovery, require, step, steps, stores,
+};
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The closed lifecycle catalog keeps each authored variant and its direct receiving predicates in one match"
+)]
 pub(super) fn validate(
     root: &str,
     variant: &str,
@@ -39,7 +47,7 @@ pub(super) fn validate(
             )?;
             steps(
                 &o["steps"],
-                if operator {
+                &if operator {
                     json!([step("start", "a"), step("wait", "a")])
                 } else {
                     json!([step("start", "a"), step("start", "b"), step("wait", "a")])
@@ -94,7 +102,7 @@ pub(super) fn validate(
                     o["terminal"] == "cancelled",
                     "pre-start cancellation classification",
                 )?;
-                steps(&o["steps"], json!([]))?;
+                steps(&o["steps"], &json!([]))?;
                 stores(&o["store_results"], &o["activity"], Some(&[]), true)?;
             } else {
                 fields(
@@ -175,8 +183,8 @@ pub(super) fn validate(
                 ],
             )?;
             require(
-                o["sealed_millis"] == 660000
-                    && o["bounded_millis"] == 420000
+                o["sealed_millis"] == 660_000
+                    && o["bounded_millis"] == 420_000
                     && o["zero_refused"] == true,
                 "sealed deadline extension",
             )?;
@@ -266,7 +274,7 @@ pub(super) fn validate(
                 ],
             )?;
             require(
-                o["execution_deadline_millis"] == 900000
+                o["execution_deadline_millis"] == 900_000
                     && o["cleanup_grace_millis"] == 5000
                     && (5_000_000_000..10_000_000_000).contains(&integer(&o["elapsed_nanos"])?),
                 "actual cleanup grace bound",
@@ -275,7 +283,7 @@ pub(super) fn validate(
                 o["cleanup_error"] == "actual scenario failure; cluster cleanup deadline exceeded",
                 "cleanup masked original failure",
             )?;
-            steps(&o["authored_steps"], json!([step("start", "a")]))?;
+            steps(&o["authored_steps"], &json!([step("start", "a")]))?;
             require(
                 o["joined_incarnations"] == 1
                     && o["acknowledged_stdout"] == json!(b"mark")
@@ -331,7 +339,10 @@ fn cleanup(variant: &str, o: &Value) -> Result<(), String> {
         ]);
     }
     fields(o, &names)?;
-    steps(&o["steps"], json!([step("start", "b"), step("start", "a")]))?;
+    steps(
+        &o["steps"],
+        &json!([step("start", "b"), step("start", "a")]),
+    )?;
     require(
         o["joined_incarnations"]
             == if after {

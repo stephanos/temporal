@@ -1,4 +1,4 @@
-use super::*;
+use super::{Value, bytes, fields, integer, json, require, sha, step, steps, stores};
 
 pub(super) const FINISH: &str = "i32.const 512 i32.const 16 call $config drop
     i32.const 995 i32.const 1 i32.store8
@@ -10,6 +10,10 @@ pub(super) fn module(body: &str) -> Vec<u8> {
         .into_bytes()
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The fixed capacity observation retains its complete request, namespace, model and store predicates together"
+)]
 pub(super) fn validate(variant: &str, o: &Value) -> Result<(), String> {
     fields(
         o,
@@ -59,7 +63,7 @@ pub(super) fn validate(variant: &str, o: &Value) -> Result<(), String> {
     )?;
     require(
         request["limits"]
-            == json!({"memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"evidence_bytes":1<<20,"wall_timeout_millis":5000})
+            == json!({"memory_bytes":65_536,"fuel":1_000_000,"output_bytes":1024,"evidence_bytes":1<<20,"wall_timeout_millis":5000})
             && request["arguments"] == json!([])
             && request["environment"] == json!(["PWD=/workspace"])
             && request["replay_trace"].is_null()
@@ -68,12 +72,12 @@ pub(super) fn validate(variant: &str, o: &Value) -> Result<(), String> {
     )?;
     let model = json!({"entropy_key":vec![0u8;32],"working_directory_sha256":sha(b"/workspace"),
         "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":0,"count":0,"chunks":0},
-        "seed":7,"mode":1,"limit":1048576,"diagnostics":false,"replay":null,"epoch_nanos":946684800000000000u64,
-        "read_step_nanos":0,"now":1,"limits":{"calls":1048576,"transcript_bytes":1048576,"pending_events":1024},
+        "seed":7,"mode":1,"limit":1_048_576,"diagnostics":false,"replay":null,"epoch_nanos":946_684_800_000_000_000u64,
+        "read_step_nanos":0,"now":1,"limits":{"calls":1_048_576,"transcript_bytes":1_048_576,"pending_events":1024},
         "digest_only":false,"split":false,"inspection":null});
     let namespace = json!({"entries":[{"path":b"/workspace","directory":true,"readonly":false,"data":[]}],
         "writable_directories":[b"/workspace"],"preopens":[b"/workspace"],"working_directory":b"/workspace","stdin":[],
-        "epoch_nanos":946684800000000000u64,"limits":{"files":100,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024}});
+        "epoch_nanos":946_684_800_000_000_000u64,"limits":{"files":100,"descriptors":16,"filesystem_bytes":4096,"output_bytes":1024}});
     require(
         request["model_configuration"] == model && request["namespace"] == namespace,
         "capacity request ownership",
@@ -88,15 +92,15 @@ pub(super) fn validate(variant: &str, o: &Value) -> Result<(), String> {
     )?;
     require(
         o["offered_fuel"] == 1_000_000
-            && o["memory_bytes"] == 65536
-            && o["peak_memory_bytes"] == 65536
+            && o["memory_bytes"] == 65_536
+            && o["peak_memory_bytes"] == 65_536
             && o["output_bytes"] == 4
             && (1..=1_000_000).contains(&integer(&o["fuel_remaining"])?),
         "capacity actual resources",
     )?;
     steps(
         &o["executed_steps"],
-        json!([step("start", "a"), step("wait", "a")]),
+        &json!([step("start", "a"), step("wait", "a")]),
     )?;
     let actual = stores(&o["store_results"], &o["activity"], Some(&["a/1"]), true)?;
     require(

@@ -138,7 +138,7 @@ fn step(action: &str, node: &str) -> Value {
     json!({"action":action,"handle":handle(node)})
 }
 
-fn steps(actual: &Value, expected: Value) -> Result<(), String> {
+fn steps(actual: &Value, expected: &Value) -> Result<(), String> {
     let items = actual
         .as_array()
         .ok_or("missing authored lifecycle steps")?;
@@ -152,7 +152,7 @@ fn steps(actual: &Value, expected: Value) -> Result<(), String> {
             "foreign authored lifecycle step",
         )?;
     }
-    require(actual == &expected, "authored lifecycle action order")
+    require(actual == expected, "authored lifecycle action order")
 }
 
 fn activity(value: &Value, launched: u64, callbacks: u64) -> Result<(), String> {
@@ -210,21 +210,21 @@ fn stores<'a>(
         )?;
         if !item["exit_code"].is_null() {
             require(
-                integer(&item["exit_code"])? <= u64::from(u32::MAX),
+                u32::try_from(integer(&item["exit_code"])?).is_ok(),
                 "exit code range",
             )?;
         }
-        if !item["authorization_to_terminal_nanos"].is_null() {
+        if item["authorization_to_terminal_nanos"].is_null() {
+            require(
+                !require_created && item["terminal"] == "inspection_aborted",
+                "store lost drop observation",
+            )?;
+        } else {
             require(
                 integer(&item["authorization_to_terminal_nanos"])? > 0,
                 "store drop duration",
             )?;
             created += 1;
-        } else {
-            require(
-                !require_created && item["terminal"] == "inspection_aborted",
-                "store lost drop observation",
-            )?;
         }
         if !item["stdout"].is_null() {
             bytes(&item["stdout"])?;
@@ -416,7 +416,7 @@ pub(crate) fn observations(
     let mut seen = BTreeSet::new();
     for line in text.lines().filter(|line| line.contains(SCHEMA)) {
         let start = line.find('{').ok_or("native lifecycle row lacks JSON")?;
-        let row = crate::cycle::custody::strict_json(line[start..].as_bytes())?;
+        let row = crate::cycle::custody::strict_json(&line.as_bytes()[start..])?;
         let root = if row.get("original_roots").is_some() {
             require(
                 row["original_roots"] == json!(STORAGE),
