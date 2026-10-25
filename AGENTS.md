@@ -209,7 +209,7 @@ reviewer: claude-opus-5-5 at high
 
 implementer: claude-opus-5-5 at medium
 
-fast scout: claude-opus-5-5 at low
+fast scout: claude-haiku-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
@@ -225,7 +225,7 @@ fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
 
-research: gpt-6-astra at medium
+research: gpt-6.1-sol at medium
 
 `research` includes codebase surveys, audits, tool and literature evaluations, and
 web research, including investigations supporting implementation or design. Always
