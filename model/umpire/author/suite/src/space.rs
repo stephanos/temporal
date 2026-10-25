@@ -240,16 +240,5 @@ where
     Path<S, A, O>: IntoWorldPath<S, K>,
     <S::World as Machine>::Action: 'static,
 {
-    let path = path.into_world_path();
-    if path.is_state_only() {
-        drop(path.alternatives(space.alternative_budget())?);
-        return search::through(
-            space.world().as_ref(),
-            space.starts().to_vec(),
-            &path,
-            space.state_budget(),
-            space.catalog_limit(),
-        );
-    }
-    crate::covered::find_pattern(space, &path)
+    crate::covered::find_pattern(space, &path.into_world_path())
 }

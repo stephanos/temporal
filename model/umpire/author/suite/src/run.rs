@@ -5,7 +5,7 @@ use umpire_dsl::{Associated, IntoWorldPath, Machine, Path, PathNode, Registered,
 
 use crate::{
     Refusal,
-    search::{self, Trace},
+    search::{self, Anchor, Graph, Rooted, Trace},
 };
 
 type Action<S> = <<S as Associated>::World as Machine>::Action;
@@ -120,29 +120,15 @@ impl<S: Associated> Run<S> {
         if count != 1 {
             return Err(Refusal::StoryAlternatives { count });
         }
-        if path.is_state_only() {
-            let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
-            let world = Rc::new(world());
-            let found = search::through(
-                world.as_ref(),
-                vec![start.clone()],
-                &path,
-                budget,
-                Checker::CATALOG_LIMIT,
-            )?;
-            return Ok(Self::retained(world, found));
-        }
         let alternatives = path.alternatives(1)?;
         let Some(PathNode::State(first)) = alternatives[0].nodes.first() else {
             return Err(Refusal::Unanchored);
         };
         let Waypoint::Is(start) = first.as_ref() else { return Err(Refusal::Unanchored) };
         let world = Rc::new(world());
-        let rooted =
-            search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
+        let rooted = Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
         let explored = rooted.explore(budget, Checker::CATALOG_LIMIT)?;
-        let graph = crate::pattern_search::Graph::new(&explored)?;
-        let found = match graph.shortest(&alternatives[0], false) {
+        let found = match Graph::new(&explored)?.shortest(&alternatives[0], Anchor::Starts) {
             Ok(found) => found,
             Err(error @ Refusal::Unbridged { .. }) => {
                 search::failed(&explored.verify_all()?, 0, None)?;

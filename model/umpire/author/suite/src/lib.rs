@@ -7,7 +7,6 @@
 
 mod coverage;
 mod covered;
-mod pattern_search;
 mod refusal;
 mod run;
 mod search;

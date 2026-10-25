@@ -37,7 +37,7 @@ refused: waypoint 1 is not reached from Model { temperature: 20, heating_on: fal
 below freezing, from 20 or 98:
 refused: waypoint 0 is not reached from the space's 2 starts
 duplicate starts, below freezing, budget 1:
-refused: waypoint 0 is not reached from the space's 2 starts within the state budget
+refused: waypoint 0 is not reached from Model { temperature: 20, heating_on: false, beeping: false } within the state budget
 predicate at start:
 refused: waypoint 0 panicked at Model { temperature: 97, heating_on: false, beeping: false }: start predicate
 predicate after a step:

@@ -3,8 +3,7 @@ use umpire_dsl::{Alternative, Associated, IntoWorldPath, Machine, Path};
 use crate::{
     Coverage, Refusal, Run, SpaceBinding,
     coverage::{ObservedStep, WitnessObservation, coverage},
-    pattern_search::{Graph, Rng, Witness},
-    search::{self, Rooted, Trace},
+    search::{self, Anchor, Graph, Rng, Rooted, Trace, Witness},
 };
 
 type WorldPath<S> = Path<
@@ -131,8 +130,9 @@ where
     let mut witnesses = Vec::with_capacity(alternatives.len());
     let mut records = 0usize;
     for (index, choice) in alternatives.iter().enumerate() {
-        let found =
-            graph.shortest(choice, true).map_err(|error| alternative::<S>(index, choice, error))?;
+        let found = graph
+            .shortest(choice, Anchor::Anywhere)
+            .map_err(|error| alternative::<S>(index, choice, error))?;
         charge(&mut records, found.rows.len() + 1)?;
         witnesses.push((index, found));
     }
@@ -173,7 +173,7 @@ where
         let index = rng.index(alternatives.len());
         let choice = &alternatives[index];
         let found = graph
-            .walk(choice, true, space.walk_bound(), &mut rng)
+            .walk(choice, Anchor::Anywhere, space.walk_bound(), &mut rng)
             .map_err(|error| alternative::<S>(index, choice, error))?;
         charge(&mut records, found.rows.len() + 1)?;
         witnesses.push((index, found));
@@ -272,7 +272,7 @@ where
     let mut best = None;
     let mut refusal = None;
     for choice in &alternatives {
-        match graph.shortest(choice, true) {
+        match graph.shortest(choice, Anchor::Anywhere) {
             Ok(found)
                 if best.as_ref().is_none_or(|old: &Trace<S::World>| {
                     found.trace.steps.len() < old.steps.len()
