@@ -10,11 +10,58 @@
     "fn-248-off-the-shelf-crates-and-consolidation"
   ],
   "id": "fn-250-shared-value-type-and-trace-layer-for",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-250-shared-value-type-and-trace-layer-for.3": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": "2026-10-24T22:28:08.208543Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a08c3e1b69e14c9baf9c9225a65f1f2d814cea4ba963a58976d61cb6c25ab23d",
+      "backend": "codex",
+      "base_sha": "6f030b6204bfc05161c02540c41cd8972667ca67",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5d6215c23647d4a3963981df02933846f21a5c7c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 165,
+      "output_sha256": "ccc8dd8b8ab85a49b7950b77eee26bdf1647278d4dadf9b3713ba9e32b1dea19",
+      "reservation_id": "0839cb095c94445da6273da3d6352369",
+      "round_consumed": true,
+      "scope": "impl:fn-250-shared-value-type-and-trace-layer-for.3",
+      "superseded_by": null,
+      "task": "fn-250-shared-value-type-and-trace-layer-for.3",
+      "timestamp": "2026-10-25T06:58:28.708186Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-250-shared-value-type-and-trace-layer-for.3": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-250-shared-value-type-and-trace-layer-for.3": 0
+  },
   "spec_path": ".flow/specs/fn-250-shared-value-type-and-trace-layer-for.md",
   "status": "open",
   "title": "Shared value, type and trace layer for the TLA+ back ends (model)",
@@ -29,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:28:08.719666Z"
+  "updated_at": "2026-10-25T06:58:28.711874Z"
 }
