@@ -49,11 +49,16 @@ fn transition(action: invalid::User) -> Transition<invalid::Action> {
 }
 
 impl Realize<invalid::World> for Realization {
+    type Target = umpire_runtime::NoTarget;
+
     fn observe(
         &self,
         observation: &Any,
         state: &invalid::Model,
-    ) -> Result<Projection<invalid::Action>, protocol::Refusal> {
+    ) -> Result<
+        Projection<invalid::Action, umpire_dsl::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         Ok(match observation.value.as_slice() {
             [0] if state.value == 0 => Projection::Current,
             [1] => Projection::steps([vec![transition(invalid::User::Bad)]]),

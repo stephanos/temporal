@@ -991,9 +991,10 @@ fn expand_scoped(
             pub const REALIZATION: &'static [#runtime::Context] = &[#(#contexts),*];
         }
         impl ::umpire_runtime::Realize<#model::World> for #ty {
+            type Target = ::umpire_runtime::NoTarget;
             #proposal
             fn observe(&self, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
-                -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
+                -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action, <#model::World as ::umpire_dsl::Machine>::Outcome, Self::Target>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
                 let __observed = #runtime::support::Observed::new(observation)?;
                 #(#observations)*

@@ -6,7 +6,10 @@ use std::{
     panic::{AssertUnwindSafe, catch_unwind},
 };
 
-use umpire_checker::{Checker, Path, PathStep, Report, StateId, Transition};
+use umpire_checker::{
+    Checker, Path, PathStep, Report, StateId, Transition,
+    search::{Label as SearchLabel, Traversal},
+};
 use umpire_dsl::{
     ActionCatalog, Alternative, CatalogError, CheckOutcome, Claim, Gap, Machine, PathNode,
     StepError, Steps, Verdict, Waypoint,
@@ -138,11 +141,7 @@ struct Position {
     depth: usize,
 }
 
-struct Label {
-    position: Position,
-    distance: usize,
-    parent: Option<(usize, Option<usize>)>,
-}
+type Label = SearchLabel<Position, usize>;
 
 const EMPTY: usize = usize::MAX;
 
@@ -334,24 +333,23 @@ impl<'a, M: Machine> Graph<'a, M> {
             .ok_or(Refusal::SearchLimit { limit: SEARCH_LIMIT })?
             .max(SEARCH_LIMIT);
         let mut best = Nondominated::new(cells.unwrap_or_default());
-        let mut labels: Vec<Label> = Vec::new();
-        let mut queue = VecDeque::new();
+        let mut search = Traversal::new(usize::MAX, limit);
+        let refusal = |_| Refusal::SearchLimit { limit };
         for state in 0..self.explored.counts.starts {
             let position = Position { state: StateId(state), next: 0, age: 0, depth: 0 };
-            best.insert(state * width, labels.len(), |_| false);
-            queue.push_back(labels.len());
-            labels.push(Label { position, distance: 0, parent: None });
+            let id = search.root(position).map_err(refusal)?;
+            best.insert(state * width, id, |_| false);
         }
         let mut furthest = None;
         let mut successors = Vec::new();
-        while let Some(id) = queue.pop_front() {
-            let position = labels[id].position;
-            let distance = labels[id].distance;
-            if furthest.is_none_or(|old: usize| labels[old].position.next < position.next) {
+        while let Some(id) = search.next() {
+            let position = search.label(id).position;
+            let distance = search.label(id).distance;
+            if furthest.is_none_or(|old: usize| search.label(old).position.next < position.next) {
                 furthest = Some(id);
             }
             if position.next == nodes.len() {
-                return Ok(self.witness(&labels, id));
+                return Ok(self.witness(search.labels(), id));
             }
             self.successors(
                 &nodes,
@@ -364,30 +362,19 @@ impl<'a, M: Machine> Graph<'a, M> {
                 let next_distance = distance + usize::from(row.is_some());
                 let cell = next.state.0 * width + next.next;
                 if best.any(cell, |old| {
-                    labels[old].distance <= next_distance && labels[old].position.age <= next.age
+                    search.label(old).distance <= next_distance
+                        && search.label(old).position.age <= next.age
                 }) {
                     continue;
                 }
-                if labels.len() >= limit {
-                    return Err(Refusal::SearchLimit { limit });
-                }
-                let next_id = labels.len();
+                let next_id = search.push(id, next, row).map_err(refusal)?;
                 best.insert(cell, next_id, |old| {
-                    next_distance <= labels[old].distance && next.age <= labels[old].position.age
+                    next_distance <= search.label(old).distance
+                        && next.age <= search.label(old).position.age
                 });
-                labels.push(Label {
-                    position: next,
-                    distance: next_distance,
-                    parent: Some((id, row)),
-                });
-                if row.is_some() {
-                    queue.push_back(next_id);
-                } else {
-                    queue.push_front(next_id);
-                }
             }
         }
-        let reached = furthest.map_or(0, |id| labels[id].position.next);
+        let reached = furthest.map_or(0, |id| search.label(id).position.next);
         let waypoint = ordinals[reached];
         // A cut may have dropped starts, so a cut search names only the admitted ones.
         let cut = self.explored.counts.cut;
@@ -397,7 +384,7 @@ impl<'a, M: Machine> Graph<'a, M> {
             (0, _, 1) => self.states[0].to_string(),
             (0, _, starts) if cut => format!("the {starts} admitted starts"),
             (0, _, starts) => format!("the space's {starts} starts"),
-            (_, Some(id), _) => self.states[labels[id].position.state.0].to_string(),
+            (_, Some(id), _) => self.states[search.label(id).position.state.0].to_string(),
         };
         Err(Refusal::Unbridged { waypoint, state, cut: cut && !self.settled(alternative) })
     }

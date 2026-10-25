@@ -100,6 +100,8 @@ pub(crate) fn transition(action: Action) -> Transition<Action> {
 }
 
 impl Realize<World> for Realization {
+    type Target = umpire_runtime::NoTarget;
+
     fn propose(
         &self,
         state: &State,
@@ -130,7 +132,7 @@ impl Realize<World> for Realization {
         &self,
         observation: &Any,
         state: &State,
-    ) -> Result<Projection<Action, Outcome>, protocol::Refusal> {
+    ) -> Result<Projection<Action, Outcome, umpire_runtime::NoTarget>, protocol::Refusal> {
         let value = payload(observation)?;
         Ok(match value {
             value if value == state.0 => Projection::Current,

@@ -91,7 +91,9 @@ matches only `Accepted`. An actual error with NotFound code 5 proposes the same 
 matches only `Rejected(NotFound)`, leaving the closed phase unchanged. The realization maps
 the recognized status vocabulary and compares the replayed outcome; contradictory or
 unknown codes are Unexplained and freeze the run. An unknown method is Unsupported.
-Explanations carry parallel steps/outcomes; repeated current Describe carries neither.
+Explanations carry parallel steps/outcomes for the complete retained witness from Reset.
+Repeated current Describe and validated Start replay return that full witness; initial
+Start admission retains its actual observation anchor with an empty path.
 
 The live SDK slice proves successful cancellation while the worker remains stopped and
 NotFound after completion, using fresh request IDs and actual RPC results. The client

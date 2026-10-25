@@ -7,11 +7,14 @@ use umpire_runtime::{AnswerPlan, Projection, Realize, Runtime, prost_types::Any,
 pub(crate) struct Unsupported;
 
 impl Realize<support::Tiny> for Unsupported {
+    type Target = umpire_runtime::NoTarget;
+
     fn observe(
         &self,
         _: &Any,
         _: &support::Value,
-    ) -> Result<Projection<support::Action, bool>, protocol::Refusal> {
+    ) -> Result<Projection<support::Action, bool, umpire_runtime::NoTarget>, protocol::Refusal>
+    {
         Err(protocol::Refusal::unsupported("control has no observation binding"))
     }
 

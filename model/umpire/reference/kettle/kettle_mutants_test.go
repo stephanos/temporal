@@ -158,8 +158,8 @@ func TestKettleMutants(t *testing.T) {
 			if w.driver == "Judge" {
 				healthy, explained := kettlePrematureWitness(t, "")
 				mutant, unexplained := kettlePrematureWitness(t, w.name)
-				if !proto.Equal(healthy.State, &kettlev1.State{Temperature: 20, HeatingOn: true}) || explained.GetExplained() == nil || len(explained.GetExplained().Steps) != 0 {
-					t.Fatalf("healthy current-only judgment: %v %v", healthy, explained)
+				if !proto.Equal(healthy.State, &kettlev1.State{Temperature: 20, HeatingOn: true}) || explained.GetExplained() == nil || !slices.Equal(explained.GetExplained().Steps, []string{"User::PressButton"}) {
+					t.Fatalf("healthy whole-prefix judgment: %v %v", healthy, explained)
 				}
 				if err := kettleJudgeDetected(w, healthy, mutant, explained, unexplained); err != nil {
 					t.Fatal(err)

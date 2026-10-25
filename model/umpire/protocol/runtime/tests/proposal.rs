@@ -126,6 +126,8 @@ fn bootstrap_configuration_admission_and_polling_publish_atomically() {
 
 struct Disabled;
 impl umpire_runtime::Realize<support::World> for Disabled {
+    type Target = umpire_runtime::NoTarget;
+
     fn propose(
         &self,
         _: &support::State,
@@ -140,8 +142,10 @@ impl umpire_runtime::Realize<support::World> for Disabled {
         &self,
         value: &prost_types::Any,
         state: &support::State,
-    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
-    {
+    ) -> Result<
+        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         umpire_runtime::Realize::observe(&support::Realization, value, state)
     }
     fn answer(
@@ -268,6 +272,8 @@ impl umpire_dsl::Machine for InternalWorld {
 }
 struct InternalRealization;
 impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
+    type Target = umpire_runtime::NoTarget;
+
     fn propose(
         &self,
         _: &support::State,
@@ -282,8 +288,10 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
         &self,
         _: &prost_types::Any,
         _: &support::State,
-    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
-    {
+    ) -> Result<
+        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         Ok(umpire_runtime::Projection::Current)
     }
     fn answer(
@@ -305,12 +313,16 @@ fn enabled_internal_action_is_never_a_proposal() {
 
 struct DefaultProposal;
 impl umpire_runtime::Realize<support::World> for DefaultProposal {
+    type Target = umpire_runtime::NoTarget;
+
     fn observe(
         &self,
         value: &prost_types::Any,
         state: &support::State,
-    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
-    {
+    ) -> Result<
+        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         umpire_runtime::Realize::observe(&support::Realization, value, state)
     }
     fn answer(
@@ -347,6 +359,8 @@ where
             Outcome = support::Outcome,
         >,
 {
+    type Target = umpire_runtime::NoTarget;
+
     fn program(&self) -> Result<prost_types::Any, protocol::Refusal> {
         if self.refuse_program {
             Err(protocol::Refusal::new(RefusalCode::State, "program refused"))
@@ -365,8 +379,10 @@ where
         &self,
         value: &prost_types::Any,
         state: &support::State,
-    ) -> Result<umpire_runtime::Projection<support::Action, support::Outcome>, protocol::Refusal>
-    {
+    ) -> Result<
+        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         if support::payload(value)? == 20 {
             return Ok(umpire_runtime::Projection::Current);
         }
@@ -496,7 +512,7 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
     let Some(protocol::judge_response::Judgment::Explained(explanation)) = repeated.judgment else {
         panic!("explained current state")
     };
-    assert_eq!(explanation.steps, [] as [String; 0]);
+    assert_eq!(explanation.steps, ["Deliver"]);
     let final_read = protocol::JudgeRequest { observation: Some(support::any(2)) };
     assert!(!guest.dispatch_to(4, &final_read.encode_to_vec(), |_| false));
     GuestExt::call(&mut guest, Method::Propose, &propose).refusal(RefusalCode::State);
@@ -510,7 +526,7 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
     else {
         panic!("explained final state")
     };
-    assert_eq!(explanation.steps, ["Respond"]);
+    assert_eq!(explanation.steps, ["Deliver", "Respond"]);
     assert!(matches!(
         GuestExt::call(&mut guest, Method::Propose, &propose).outcome,
         Some(Outcome::Propose(_))

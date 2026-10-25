@@ -89,7 +89,11 @@ fn rejected_cancel_after_completion_is_still_an_enabled_model_action() {
     let Some(protocol::judge_response::Judgment::Explained(explanation)) = result.judgment else {
         panic!("rejection is explained")
     };
-    assert_eq!(explanation.outcomes, ["Rejected(NotFound)"]);
+    assert_eq!(
+        explanation.steps,
+        ["Worker::Poll(1)", "Worker::RespondCompleted", "Client::Cancel"]
+    );
+    assert_eq!(explanation.outcomes, ["Accepted", "Accepted", "Rejected(NotFound)"]);
     assert_eq!(guest.propose(0).action, "Client::Cancel");
 }
 
@@ -303,6 +307,14 @@ fn read_remains_pending_through_retry_and_delivery_until_terminal_evidence() {
     else {
         panic!("terminal explanation")
     };
-    assert_eq!(explanation.steps, ["Worker::RespondCompleted"]);
+    assert_eq!(
+        explanation.steps,
+        [
+            "Worker::Poll(1)",
+            "Worker::RespondFailed { retryable: true }",
+            "Worker::Poll(2)",
+            "Worker::RespondCompleted"
+        ]
+    );
     assert_eq!(guest.propose(0).action, "Client::Cancel");
 }

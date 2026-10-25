@@ -28,7 +28,8 @@ pub use generated::umpire::{
 };
 pub use prost_types;
 pub use runtime::{
-    AnswerPlan, Candidate, Projection, Proposal, Realize, Runtime, Transaction, Transition,
+    AnswerPlan, Candidate, Evidence, EvidenceMatch, Exact, NoTarget, Projection, Proposal,
+    ReachTarget, Realize, Runtime, Scope, SingletonTarget, Transaction, Transition,
 };
 
 impl protocol::Refusal {

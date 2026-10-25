@@ -53,11 +53,16 @@ impl Machine for World {
 }
 
 impl Realize<World> for support::Realization {
+    type Target = umpire_runtime::NoTarget;
+
     fn observe(
         &self,
         observation: &prost_types::Any,
         state: &State,
-    ) -> Result<Projection<support::Action, support::Outcome>, protocol::Refusal> {
+    ) -> Result<
+        Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
         <Self as Realize<support::World>>::observe(self, observation, &support::State(state.value))
     }
 

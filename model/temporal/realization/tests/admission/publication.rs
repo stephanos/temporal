@@ -75,8 +75,8 @@ fn success_freeze_and_composed_reset_roll_back_false_panic_and_oversize() {
             assert_eq!(all_rows(&mut guest, exploration.reached), old_rows);
             match operation {
                 "reset live" => {
-                    explained(guest.judge(Any::pack(&captured)));
-                    explained(guest.judge(Any::pack(&describe(1, 1, 2))));
+                    advanced(guest.judge(Any::pack(&captured)), &["Worker::Poll(1)"]);
+                    advanced(guest.judge(Any::pack(&describe(1, 1, 2))), &["Worker::Poll(1)"]);
                     guest.reset(None);
                     explained(guest.judge(Any::pack(&captured)));
                     explained(guest.judge(Any::pack(&describe(1, 1, 1))));

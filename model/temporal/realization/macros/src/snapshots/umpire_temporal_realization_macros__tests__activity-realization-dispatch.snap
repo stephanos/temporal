@@ -3,6 +3,7 @@ source: temporal/realization/macros/src/lib.rs
 expression: render(dispatch)
 ---
 impl ::umpire_runtime::Realize<activity::World> for Realization {
+    type Target = ::umpire_runtime::NoTarget;
     fn propose(
         &self,
         state: &activity::Model,
@@ -33,7 +34,11 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
         observation: &::umpire_runtime::prost_types::Any,
         state: &activity::Model,
     ) -> Result<
-        ::umpire_runtime::Projection<<activity::World as ::umpire_dsl::Machine>::Action>,
+        ::umpire_runtime::Projection<
+            <activity::World as ::umpire_dsl::Machine>::Action,
+            <activity::World as ::umpire_dsl::Machine>::Outcome,
+            Self::Target,
+        >,
         ::umpire_runtime::protocol::Refusal,
     > {
         let _ = state;

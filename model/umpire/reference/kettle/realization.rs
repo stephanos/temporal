@@ -5,9 +5,8 @@ use crate::{
         PollHeatingResponse, PourResponse, RespondHeatingRequest, RespondHeatingResponse, State,
     },
 };
-use umpire_dsl::Machine;
 use umpire_runtime::{
-    AnswerPlan, Observed, Projection, Realize, callback,
+    AnswerPlan, Evidence, EvidenceMatch, Exact, Observed, Projection, Realize, callback,
     prost_types::Any,
     protocol::{Refusal, RefusalCode},
     reply,
@@ -26,20 +25,16 @@ fn required(state: Option<State>) -> Result<State, Refusal> {
     state.ok_or_else(|| Refusal::malformed("Kettle state is missing"))
 }
 
-fn current(observed: State, state: &Model) -> Projection<Action, ()> {
+fn current(observed: State, state: &Model) -> Projection<Action, (), Exact<Model>> {
     if matches(observed, state) { Projection::Current } else { Projection::Candidates(vec![]) }
 }
 
-fn transition(observed: State, state: &Model, action: Action) -> Projection<Action, ()> {
-    if kettle::world()
-        .step(state, action.clone())
-        .into_iter()
-        .any(|((), _, next)| matches(observed, &next))
-    {
-        Projection::step(action)
-    } else {
-        Projection::Candidates(vec![])
-    }
+fn transition(observed: State) -> Projection<Action, (), Exact<Model>> {
+    Projection::Reach(Exact(Model {
+        temperature: observed.temperature,
+        heating_on: observed.heating_on,
+        beeping: observed.beeping,
+    }))
 }
 
 fn heating(action: i32) -> Result<Action, Refusal> {
@@ -51,7 +46,13 @@ fn heating(action: i32) -> Result<Action, Refusal> {
 }
 
 impl Realize<kettle::World> for Realization {
-    fn observe(&self, value: &Any, state: &Model) -> Result<Projection<Action, ()>, Refusal> {
+    type Target = Exact<Model>;
+
+    fn observe(
+        &self,
+        value: &Any,
+        state: &Model,
+    ) -> Result<Projection<Action, (), Exact<Model>>, Refusal> {
         let observation = Observed::new(value)?;
         let method = observation
             .method
@@ -71,25 +72,17 @@ impl Realize<kettle::World> for Realization {
                     return Err(Refusal::malformed("kettle identity is missing"));
                 }
                 let response = required(observation.response::<HeatResponse>()?.state)?;
-                transition(
-                    response,
-                    state,
-                    if request.enabled {
-                        User::PressButton.into()
-                    } else {
-                        User::DepressButton.into()
-                    },
-                )
+                transition(response)
             }
             "RespondHeating" => {
                 let response = observation.response::<RespondHeatingResponse>()?;
-                let action = heating(response.action)?;
+                heating(response.action)?;
                 if let Some(request) = observation.request::<RespondHeatingRequest>()?
                     && (request.kettle_id.is_empty() || request.action != response.action)
                 {
                     return Err(Refusal::malformed("heating receipt does not match its request"));
                 }
-                transition(required(response.state)?, state, action)
+                transition(required(response.state)?)
             }
             _ => {
                 return Err(Refusal::new(
@@ -98,6 +91,37 @@ impl Realize<kettle::World> for Realization {
                 ));
             }
         })
+    }
+
+    fn reach_evidence(&self, value: &Any, path: &[&Evidence<kettle::World>]) -> EvidenceMatch {
+        if path.is_empty() {
+            return EvidenceMatch::Continue { cursor: 0 };
+        }
+        let [edge] = path else { return EvidenceMatch::Reject };
+        let expected = (|| {
+            let observed = Observed::new(value)?;
+            match observed.method.as_str() {
+                "/umpire.reference.kettle.v1.KettleService/Heat" => {
+                    let request = observed
+                        .request::<HeatRequest>()?
+                        .ok_or_else(|| Refusal::malformed("Heat requires its actual request"))?;
+                    Ok(if request.enabled {
+                        User::PressButton.into()
+                    } else {
+                        User::DepressButton.into()
+                    })
+                }
+                "/umpire.reference.kettle.v1.KettleService/RespondHeating" => {
+                    heating(observed.response::<RespondHeatingResponse>()?.action)
+                }
+                _ => Err(Refusal::unsupported("method does not authorize a Model action")),
+            }
+        })();
+        if expected.is_ok_and(|action| edge.action == action) && edge.choice == 0 {
+            EvidenceMatch::Match { cursor: 1 }
+        } else {
+            EvidenceMatch::Reject
+        }
     }
 
     fn answer(&self, value: &Any, state: &Model) -> Result<AnswerPlan<Action>, Refusal> {
