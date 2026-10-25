@@ -1,0 +1,21 @@
+{
+  "head": "d30d679fc1a9a9ef863cb3a796c77ee848094a5f",
+  "model_tree": "5930c3c08790a2f419146115002d5f899ae89da4",
+  "command": "UMPIRE_APALACHE=require make model-validate",
+  "backend_modes": {
+    "UMPIRE_BACKENDS": "require",
+    "UMPIRE_APALACHE": "require"
+  },
+  "exit_code": 0,
+  "full_gate_seconds": 1308.17,
+  "inner_loop_seconds": 8.882,
+  "log_sha256": "47fe95d43e9719769c469096b593ef37e44d35b413833bdb494a5d1423a28472",
+  "cache": "/home/agent/.cache/codex-build/umpire-milestones-20261024/joined",
+  "environment": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "4"
+  },
+  "notes": "Independent lanes were active; elapsed time is not a controlled performance comparison. Complete model tree unchanged through successful gate and task closures."
+}

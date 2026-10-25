@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-250-shared-value-type-and-trace-layer-for",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-25T08:37:00.114150Z",
   "created_at": "2026-10-24T22:10:13.772213Z",
   "default_impl": null,
   "default_review": null,
@@ -87,14 +87,61 @@
       "task": "fn-250-shared-value-type-and-trace-layer-for.3",
       "timestamp": "2026-10-25T07:47:09.683005Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "302b665bc3f6cb0a933a68f6a7c6c9427b553529e3d4035be0a542d973b38569",
+      "backend": "codex",
+      "base_sha": "f40149592b293c958b1b636ff4089299a36a6314",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-eb8fd83be1fb4d428b595d5c96ec4620",
+            "classification": "pre_existing",
+            "findingId": "finding-eb8fd83be1fb4d428b595d5c96ec4620",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4d07b017f3d66112d958270765f57708e2c42b7a",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 568951,
+      "output_sha256": "2b4596e1f207b0090d807f56b04b9ae9e43df67c9fe94b33e2ffef9bca31c1f3",
+      "reservation_id": "9f7d9da5dad04c18acf32efa957e46e0",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-25T08:37:00.098162Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-250-shared-value-type-and-trace-layer-for.3": 2
+    "impl:fn-250-shared-value-type-and-trace-layer-for.3": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-250-shared-value-type-and-trace-layer-for.3": 0
   },
   "spec_path": ".flow/specs/fn-250-shared-value-type-and-trace-layer-for.md",
@@ -111,5 +158,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T07:47:09.686899Z"
+  "updated_at": "2026-10-25T08:37:00.117457Z"
 }

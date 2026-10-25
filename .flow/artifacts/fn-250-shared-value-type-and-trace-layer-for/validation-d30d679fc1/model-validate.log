@@ -1,0 +1,37 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mTime the model feedback loop (fn-210 R30)...[0m
+step (warm)                         time
+backend modes: UMPIRE_BACKENDS=require UMPIRE_APALACHE=require
+gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check
+make[2]: Entering directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+[1;36mCheck model (fmt, clippy, docs, workspace and native-tool tests)...[0m
+TLC backend required: real source-lifted agreement and semantic controls
+Apalache backend required: real bounded checks and replay controls
+    Finished `dev` profile [unoptimized] target(s) in 0.07s
+/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4/lib/apalache.jar
+temporal-guest-freshness         42.819s
+retired-names                     0.972s
+timing-controls                   0.284s
+capability-controls               0.114s
+source-boundary                   8.845s
+protobuf-freshness                0.087s
+kettle-protobuf-freshness         0.075s
+temporal-protobuf-freshness       0.058s
+fmt                               0.690s
+clippy                            6.713s
+docs                              6.615s
+tests                            1107.343s
+wasm32-wasip1                     0.432s
+core-wasm-clippy                  1.412s
+wasm-guest                       69.580s
+go-host                           3.156s
+kettle-go-host                   42.249s
+temporal-go-host                 14.762s
+make[2]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
+inner source: umpire/backends/native/src/lib.rs
+inner command: mise exec -- cargo test -p umpire-checker --quiet
+inner loop (edit+test)            8.882s
+gate total                       1308.170s  (soft target 60s)
+inner loop                        8.882s  (soft target 10s)
+note: gate over soft target (fn-210 R30)
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/umpire/temporal'
