@@ -1,3 +1,5 @@
+//! Integration controls for catalog/syntax.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/admission.rs"]

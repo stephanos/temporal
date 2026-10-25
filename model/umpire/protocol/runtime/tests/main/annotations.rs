@@ -1,9 +1,5 @@
 //! Stateless annotation routing and transactional delegation use one runtime adapter.
-#[path = "../support/control.rs"]
-mod control;
-#[allow(dead_code, reason = "shared control support includes unrelated operations")]
-#[path = "../support/mod.rs"]
-mod support;
+use crate::control;
 
 use prost::{Message, Name};
 use umpire_runtime::{

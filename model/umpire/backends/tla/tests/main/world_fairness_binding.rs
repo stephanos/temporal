@@ -224,7 +224,7 @@ fn unresolved_embedded_plan_cannot_emit_as_an_empty_scope() -> Result<(), Box<dy
             ty: field.ty.clone(),
         });
     }
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/world_fairness_binding.rs");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/main/world_fairness_binding.rs");
     let embedded = Embedded { file: path.to_string_lossy().into_owned(), model: Ok(model), source };
     let lifted = Lift::embedded(Some(&embedded), &path)?;
     let error = Tla::emit(&lifted).err().ok_or("unresolved conditional scope emitted")?;
@@ -255,7 +255,7 @@ fn rebinding_reselects_original_conditional_branches_and_preserves_flat_scopes()
     for embedded in [false, true] {
         let lifted = if embedded {
             let path =
-                Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/world_fairness_binding.rs");
+                Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/main/world_fairness_binding.rs");
             let embedded = Embedded {
                 file: path.to_string_lossy().into_owned(),
                 ..selected::World::__umpire_lifted()

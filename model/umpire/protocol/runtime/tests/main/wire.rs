@@ -1,8 +1,6 @@
 //! Literal pre-rename wire controls, independent of generated descriptors.
 
-#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
 use prost::Message;
 use umpire_runtime::protocol::{self, response::Outcome};

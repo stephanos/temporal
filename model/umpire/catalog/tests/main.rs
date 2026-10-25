@@ -1,3 +1,5 @@
+//! Integration controls for catalog.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/black_box.rs"]

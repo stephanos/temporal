@@ -1,11 +1,9 @@
 //! Counterexamples are executed from retained starts, without a reached graph.
 #![forbid(unsafe_code)]
 
+use crate::selected_kettle as selected;
 use umpire_apalache::Replay;
 use umpire_dsl::{Claim, Machine};
-#[allow(unreachable_pub, reason = "shared public fixture")]
-#[path = "../../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
-mod selected;
 #[test]
 fn replay_refuses_an_undeclared_property_before_reading_a_witness()
 -> Result<(), Box<dyn std::error::Error>> {
@@ -27,8 +25,7 @@ fn replay_refuses_an_undeclared_property_before_reading_a_witness()
     Ok(())
 }
 
-#[path = "../fixtures/replay.rs"]
-mod authored;
+use crate::replay_fixture as authored;
 use serde_json::{Value as Json, json};
 use umpire_dsl::{__lifted::BindingOf, ActionValues, Value as NativeValue, Values};
 use umpire_tla::{Binding, Literal, Module};
@@ -340,8 +337,7 @@ fn colliding_renderings_cannot_replace_typed_replay_or_reenumerate_native_inputs
     Ok(())
 }
 
-#[path = "../fixtures/arithmetic_prefix.rs"]
-mod prefix_fixture;
+use crate::prefix_fixture;
 #[test]
 fn arithmetic_refusal_is_distinct_and_requires_the_exact_native_boundary()
 -> Result<(), Box<dyn std::error::Error>> {

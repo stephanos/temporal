@@ -2,8 +2,7 @@
 use umpire_runtime::protocol::{Method, RefusalCode};
 use umpire_runtime::testing::{GuestExt, ResponseExt};
 
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
 use prost::Message;
 use protocol::response::Outcome;

@@ -12,10 +12,6 @@ autotests = false
 name = "fixtures"
 path = "fixtures.rs"
 
-[[test]]
-name = "interpreted"
-path = "interpreted.rs"
-
 [lints]
 workspace = true
 

@@ -4,14 +4,12 @@
 #[allow(unreachable_pub, reason = "the shared reader is public when reexported by umpire-testing")]
 mod snapshot_payload;
 
-#[path = "../../guests/stock/src/model.rs"]
-mod stock;
+use crate::stock;
 
 use prost::Message;
 use umpire_runtime::protocol::{self, response::Outcome};
 
-#[path = "../../src/refusal.rs"]
-mod refusal_mapping;
+use crate::refusal_mapping;
 
 #[test]
 fn progress_query_refusals_survive_generated_protocol() {

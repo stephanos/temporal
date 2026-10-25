@@ -1,3 +1,5 @@
+//! Integration controls for backends/tla.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/emission.rs"]

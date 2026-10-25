@@ -1,3 +1,5 @@
+//! Integration controls for backends/native.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/oracle.rs"]

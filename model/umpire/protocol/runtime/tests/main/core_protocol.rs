@@ -1,11 +1,8 @@
 //! Generic operation encoding and staged dispatch contract.
 
-#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
-#[path = "../../guests/stock/src/model.rs"]
-mod stock;
+use crate::stock;
 
 use prost::Message;
 use umpire_runtime::AnyMessage as _;

@@ -5,15 +5,9 @@
 
 #![forbid(unsafe_code)]
 
-extern crate umpire as umpire_dsl;
+use crate::sample_kettle;
 
-#[path = "fixtures/sample_kettle/model.rs"]
-#[allow(unreachable_pub, missing_docs)]
-mod sample_kettle;
-
-#[path = "fixtures/optional_facts/model.rs"]
-#[allow(unreachable_pub, missing_docs)]
-mod optional_facts;
+use crate::optional_facts;
 
 #[path = "../../backends/tla/tests/fixtures/linear_returns.rs"]
 #[allow(unreachable_pub, missing_docs)]
@@ -58,9 +52,7 @@ mod replay;
 #[path = "../../backends/tlc/tests/fixtures/scaling_model.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod scaling_model;
-#[path = "fixtures/shared_returns/model.rs"]
-#[allow(unreachable_pub, missing_docs)]
-mod shared_returns;
+use crate::shared_returns;
 #[path = "../../backends/apalache/tests/fixtures/start_empty_first.rs"]
 #[allow(unreachable_pub, missing_docs)]
 mod start_empty_first;
@@ -543,7 +535,7 @@ fn timed<N: umpire::dsl::Machine>(
 /// alternate which side goes first; the report gives medians and their ratio, and with
 /// `UMPIRE_TIMING_OUT` set it is also written to that file. `UMPIRE_TIMING_SCALE` multiplies the
 /// repetitions. Run alone:
-/// `cargo test --release -p umpire-fixtures --test interpreted -- --ignored --nocapture timing`.
+/// `cargo test --release -p umpire-fixtures --test fixtures -- --ignored --nocapture interpreted::timing`.
 #[test]
 #[ignore = "timing; run alone in release"]
 #[allow(clippy::print_stderr, clippy::cast_precision_loss)]

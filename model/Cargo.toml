@@ -133,6 +133,10 @@ print_stderr = "warn"
 [profile.dev]
 overflow-checks = true
 
+[profile.test]
+debug = "line-tables-only"
+overflow-checks = true
+
 [profile.release]
 overflow-checks = true  # fn-210 R11: same arithmetic answer in every profile
 debug = 1          # symbols for profiling the checker

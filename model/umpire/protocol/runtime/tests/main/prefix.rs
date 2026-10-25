@@ -1,9 +1,7 @@
 //! Singleton whole-prefix retention through the publication transaction.
 #![forbid(unsafe_code)]
 
-#[allow(dead_code, reason = "shared controls include a default runtime unused by this binding")]
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
 use prost::Message as _;
 use support::{Action, Outcome, State, World, any};

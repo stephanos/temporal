@@ -1,7 +1,5 @@
 //! Current proposal and whole-prefix Reset wire contract.
-#[allow(dead_code, reason = "wire vectors use only the shared hex decoder")]
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
 use prost::Message;
 use umpire_runtime::{

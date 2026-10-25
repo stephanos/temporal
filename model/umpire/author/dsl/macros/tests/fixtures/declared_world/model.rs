@@ -1,5 +1,5 @@
 pub(crate) fn run() -> umpire_testing::RunResult {
-    let file = syn::parse_file(include_str!("../../../../../suite/tests/declared_world.rs"))?;
+    let file = syn::parse_file(include_str!("../../../../../suite/tests/main/declared_world.rs"))?;
     let mut module = file.items.into_iter().find_map(|item| match item {
         syn::Item::Mod(module) => Some(module),
         _ => None,

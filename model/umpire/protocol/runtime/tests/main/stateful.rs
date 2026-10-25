@@ -4,8 +4,7 @@ use umpire_runtime::{
     testing::{GuestExt, ResponseExt},
 };
 
-#[path = "../support/mod.rs"]
-mod support;
+use crate::support;
 
 use prost::Message;
 use support::{any, runtime};

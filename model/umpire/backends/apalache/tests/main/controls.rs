@@ -1,15 +1,13 @@
 //! Actual pinned-release safety and checked-arithmetic controls, never native-edge emission.
 #![forbid(unsafe_code)]
 
+use crate::selected_kettle;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 use umpire_apalache::{Apalache, Confirmation, Replay, native_bound};
 use umpire_dsl::Machine;
-#[allow(unreachable_pub, reason = "the canonical fixture is also included by public host crates")]
-#[path = "../../../../dev/fixtures/fixtures/sample_kettle/model.rs"]
-mod selected_kettle;
 use umpire_tla::{Lift, Tla};
 const KETTLE: &str = include_str!("../../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 // Apalache stays out of `UMPIRE_BACKENDS=require` until fn-211 resumes; opt in separately.
@@ -458,8 +456,7 @@ fn real_kettle_negative_is_replayed_and_tampering_fails() -> Result<(), Box<dyn 
     Ok(())
 }
 
-#[path = "../fixtures/arithmetic_prefix.rs"]
-mod prefix_fixture;
+use crate::prefix_fixture;
 #[test]
 fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
 -> Result<(), Box<dyn std::error::Error>> {
@@ -485,8 +482,7 @@ fn real_arithmetic_refusal_follows_a_replayed_valid_prefix()
     Ok(())
 }
 
-#[path = "../fixtures/replay.rs"]
-mod replay_fixture;
+use crate::replay_fixture;
 #[test]
 fn real_typed_payload_rejection_and_after_claims_replay() -> Result<(), Box<dyn std::error::Error>>
 {

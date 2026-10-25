@@ -5,7 +5,7 @@
 #[path = "main/action_inputs_builders.rs"]
 mod action_inputs_builders;
 #[path = "main/catalog.rs"]
-mod catalog;
+mod catalog_tests;
 #[path = "main/closable.rs"]
 mod closable;
 #[path = "main/declared_world.rs"]
@@ -19,11 +19,11 @@ mod outcome;
 #[path = "main/path_domains.rs"]
 mod path_domains;
 #[path = "main/path_expression_semantics.rs"]
-mod path_expression_semantics;
+pub mod path_expression_semantics;
 #[path = "main/path_language_patterns.rs"]
-mod path_language_patterns;
+pub mod path_language_patterns;
 #[path = "main/path_leading_patterns.rs"]
-mod path_leading_patterns;
+pub mod path_leading_patterns;
 #[path = "main/readme.rs"]
 mod readme;
 #[path = "main/replay_values.rs"]

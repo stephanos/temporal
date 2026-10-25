@@ -1,3 +1,5 @@
+//! Integration controls for reference/kettle.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/annotations.rs"]

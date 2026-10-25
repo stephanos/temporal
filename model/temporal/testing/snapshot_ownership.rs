@@ -25,7 +25,7 @@ const READERS: &[(&str, &str)] = &[
     ),
     (
         "umpire/catalog/syntax/tests/snapshots/expansion__typed-catalog.snap",
-        "cargo test -p umpire-catalog-syntax --test expansion executable_expansion_and_source_coverage",
+        "cargo test -p umpire-catalog-syntax --test main expansion::executable_expansion_and_source_coverage",
     ),
     (
         "umpire/catalog/tests/snapshots/controls__generated-catalog.snap",

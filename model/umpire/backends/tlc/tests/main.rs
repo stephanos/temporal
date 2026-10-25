@@ -1,3 +1,5 @@
+//! Integration controls for backends/tlc.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/controls.rs"]

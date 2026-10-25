@@ -1,3 +1,5 @@
+//! Integration controls for protocol/runtime.
+
 #![forbid(unsafe_code)]
 
 use umpire_runtime::protocol;
@@ -21,10 +23,18 @@ mod proposal;
 #[path = "main/proposal_wire.rs"]
 mod proposal_wire;
 #[path = "main/rejecting.rs"]
-mod rejecting;
+pub mod rejecting;
 #[path = "main/selected_start.rs"]
 mod selected_start;
 #[path = "main/stateful.rs"]
 mod stateful;
 #[path = "main/wire.rs"]
 mod wire;
+
+#[path = "support/control.rs"]
+mod control;
+#[path = "../src/refusal.rs"]
+mod refusal_mapping;
+#[path = "../guests/stock/src/model.rs"]
+mod stock;
+mod support;

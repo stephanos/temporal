@@ -1,4 +1,6 @@
 //! Proposal publication and pending-run controls.
+use crate::control;
+use crate::support;
 use prost::Message;
 use umpire_runtime::protocol::{Method, RefusalCode};
 use umpire_runtime::testing::{GuestExt, ResponseExt};
@@ -6,10 +8,6 @@ use umpire_runtime::{
     Guest,
     protocol::{self, response::Outcome},
 };
-#[path = "../support/control.rs"]
-mod control;
-#[path = "../support/mod.rs"]
-mod support;
 
 #[test]
 fn proposal_is_transactional_and_pending_until_final_observation() {

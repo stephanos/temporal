@@ -1,3 +1,5 @@
+//! Integration controls for catalog/build.
+
 #![forbid(unsafe_code)]
 
 #[path = "main/mirrors.rs"]

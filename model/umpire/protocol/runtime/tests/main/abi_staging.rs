@@ -2,8 +2,7 @@
 
 use std::{cell::Cell, panic::AssertUnwindSafe, rc::Rc};
 
-#[path = "../../guests/stock/src/model.rs"]
-mod stock;
+use crate::stock;
 
 use prost::Message;
 use umpire_runtime::{
