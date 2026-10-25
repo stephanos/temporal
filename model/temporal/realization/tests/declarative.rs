@@ -251,30 +251,53 @@ fn generated_callback_fills_once_from_the_admitted_actual_identity() {
 
 #[test]
 fn generated_observation_validates_actual_request_before_feature_delegation() {
-    use umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest;
+    use umpire_temporal_api::temporal::api::workflowservice::v1::{
+        DescribeActivityExecutionRequest, RequestCancelActivityExecutionRequest,
+    };
     let world = activity::World::new(3, None, None, None, None, false);
     let state = world.starts().remove(0);
-    let valid = Any::pack(&RequestCancelActivityExecutionResponse {});
-    let wrong = Any::pack(&DescribeActivityExecutionResponse::default());
-    for (response, request, expected) in [
-        (
-            valid.clone(),
-            Any::pack(&DescribeActivityExecutionRequest::default()),
-            RefusalCode::Unsupported,
-        ),
-        (valid, Any::default(), RefusalCode::MalformedRequest),
-        (wrong, Any::default(), RefusalCode::Unsupported),
-    ] {
-        let observation = Any::pack(&Observation {
-            method:
-                "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
-                    .into(),
-            result: Some(ObservationResult::Response(response)),
-            request: Some(request),
-        });
-        assert_eq!(
-            StepBinding.observe(&world, &observation, &state).err().map(|error| error.code()),
-            Some(expected),
-        );
+    for current in [false, true] {
+        let cancel = Any::pack(&RequestCancelActivityExecutionResponse {});
+        let describe = Any::pack(&DescribeActivityExecutionResponse::default());
+        let (method, valid, wrong, request) = if current {
+            (
+                "DescribeActivityExecution",
+                describe,
+                cancel,
+                Any::pack(&RequestCancelActivityExecutionRequest::default()),
+            )
+        } else {
+            (
+                "RequestCancelActivityExecution",
+                cancel,
+                describe,
+                Any::pack(&DescribeActivityExecutionRequest::default()),
+            )
+        };
+        for (response, request, expected) in [
+            (Some(valid.clone()), Some(request), Some(RefusalCode::Unsupported)),
+            (Some(valid.clone()), Some(Any::default()), Some(RefusalCode::MalformedRequest)),
+            (Some(wrong), Some(Any::default()), Some(RefusalCode::Unsupported)),
+            (Some(valid), None, None),
+            (None, None, Some(RefusalCode::MalformedRequest)),
+        ] {
+            let observation = Any::pack(&Observation {
+                method: format!("/temporal.api.workflowservice.v1.WorkflowService/{method}"),
+                result: response.map(ObservationResult::Response),
+                request,
+            });
+            let result = if current {
+                PresenceBinding.observe(&world, &observation, &state)
+            } else {
+                StepBinding.observe(&world, &observation, &state)
+            };
+            if let Some(code) = expected {
+                assert_eq!(result.err().map(|error| error.code()), Some(code));
+            } else if current {
+                assert!(matches!(result, Ok(Projection::Current)));
+            } else {
+                assert!(matches!(result, Ok(Projection::Candidates(_))));
+            }
+        }
     }
 }
