@@ -1,4 +1,9 @@
 {
+  "final-review-receipt.json": "9a024634a7fc92d5e54e10fc9ff06d0ddd793ebe482a0ae860e442f31b97565c",
+  "fn24612-ancestry-merge.json": "7284ae1f1854408b2d2198b21c0afd014f4f02302e6a3268f03aa302a874f2aa",
+  "fn24612-closure-evidence.json": "78ad99c3609dbfd81524e46281abf8166b74cbc5f46c4819ea807d298a27077b",
+  "fn24612-closure-summary.md": "a992932ceaf7a61f061609f3e16df5100027e4961fc1d40c0648bde1b57029fb",
+  "fn24612-done.json": "02a58f78c6d58fc0f3fca392d53c025f598be993e407da47e0624052b70dfb0c",
   "fn24612-evidence.json": "11b1a785847cb806a04d0f8b5b20d4ffe03e724f2c606d4cd438146229301aab",
   "fn24612-final-current-guests-hosts.json": "ea3cc5baef9e6fd10225a7abca0751d739ea82963ec50707b8ccb77336af291d",
   "fn24612-final-generic-host.log": "6c28ffb9ee9934fc6c332dc87e99218993ce939a7f2560db30adc87a043a9ab2",
@@ -6,6 +11,8 @@
   "fn24612-final-joined-tests.json": "71fba7e89a1d991f5eaefea971bcf23df7c333e55950212f0dca8c8c04ab8b64",
   "fn24612-final-joined-tests.log": "015ed3d8937e6fb08c353db2cb663b993a52a2a191aaba7d4601be74c4257b30",
   "fn24612-final-kettle-host.log": "0eb5bc989cb06ac132b95daeb47420c0c04f351de900e35c8517cb31113ae944",
+  "fn24612-final-primary-rereview.json": "70bce4d8b7e0c0cd4ab02ecb2c69f187941d8f68bb8cae15fdb74f38dcb25fae",
+  "fn24612-final-primary-rereview.stderr": "755f7fbda9196f2a7477adaee3a63556a81f63defcc3d5e06d949cee0cc94459",
   "fn24612-final-standard-guests.log": "ff890994c169ca56f7e5ce57dad4dd110a896bcd219b2b9507be8bc3bb87267f",
   "fn24612-final-temporal-guest.log": "18a9dda2832e5af6ad0d71f73e620f7777a22bcec88ef7cf94901b530d7c74fe",
   "fn24612-final-temporal-host.log": "4c1ece46cce167878faed3d9cbec8404b618af5369e6d78adb61809354332bab",

@@ -1,0 +1,230 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.12",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24612-catalog",
+  "base_commit": "a8e4067edba5ba8b68380ea19840752f43920635",
+  "head_commit": "755fd7b9b94d823cd759baff804c286cacabbc47",
+  "commits": [
+    "3dd5486d3098a4348ab4cd1ba7681289c3d70c09",
+    "da3ece49611e245a49e3f50106170b15578313db",
+    "755fd7b9b94d823cd759baff804c286cacabbc47",
+    "a70f54ec5b258f4e735c152c2f79c9ae6d129ee2",
+    "a479ed1a1b",
+    "143fc6de7c27bdbea5d2514c6db8b7ca252de478"
+  ],
+  "range": "a8e4067edba5ba8b68380ea19840752f43920635..755fd7b9b94d823cd759baff804c286cacabbc47",
+  "tests": [
+    "timeout 600 mise exec -- cargo test -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle",
+    "timeout 600 mise exec -- cargo clippy -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-targets --all-features -- -D warnings",
+    "RUSTDOCFLAGS='-D warnings' timeout 600 mise exec -- cargo doc -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-features --no-deps",
+    "mise exec -- cargo fmt --all -- --check",
+    "timeout 600 mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+    "python3 .flow/tmp/fn24612-compile-dump.py",
+    "python3 .flow/tmp/fn24612-account.py",
+    "Conductor joined8pkg locked suite:294passes/1existingignore;139.584s",
+    "Current Temporal+six standard guests/native panic, all3 Go modules and freshness: all exit0"
+  ],
+  "prs": [],
+  "command_results": [
+    {
+      "gate": "scoped-tests",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-verify.log",
+      "sha256": "97cfa600c977c594b7e25ab9b14be4c68924e438c8c40f4ed6cd307e1a016d07"
+    },
+    {
+      "gate": "clippy",
+      "command": "timeout 600 mise exec -- cargo clippy -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-targets --all-features -- -D warnings",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-clippy.log",
+      "sha256": "0a2d0e91cb787580957d9104e64d3dc7c5c2fd578cd92bf551ed582eb65f1cc9"
+    },
+    {
+      "gate": "docs",
+      "command": "RUSTDOCFLAGS='-D warnings' timeout 600 mise exec -- cargo doc -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-features --no-deps",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-doc.log",
+      "sha256": "a3fce8cbbb657b90603fb6b40b3198df07d60bc90e8b90679cbbaefcaacd9c4a"
+    },
+    {
+      "gate": "format",
+      "command": "mise exec -- cargo fmt --all -- --check",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "gate": "boundaries",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-boundary.log",
+      "sha256": "ef4c766e1317143fc78c0580f54c43274f919aa3c049aaf45daa347ae6104a2d"
+    }
+  ],
+  "baseline": {
+    "command": "mise exec -- cargo test -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal",
+    "observation": "inconclusive exit receipt; initial tool session id was not retained. Complete pre-edit log contains 217 passed tests and zero failures. Final scoped post-edit gate has a recorded exit 0.",
+    "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-baseline.log"
+  },
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "inventory": {
+    "base_commit": "a8e4067edba5ba8b68380ea19840752f43920635",
+    "before_count": 2317,
+    "after_count": 1141,
+    "removed_count": 1178,
+    "added_count": 2,
+    "retained_strict_count": 79,
+    "after_strict_count": 81,
+    "retained_metadata_changes": 4,
+    "removed_rules": {
+      "unclaimed Ignored subtree": 1122,
+      "unsupported inferred Secret bound": 56
+    },
+    "source_proofs": {
+      "old": "ecaf549eb7f7ef5277a320cf2d135b49af58520dfbe69a58555aa317a84c65d2",
+      "new": "1bd160baa1f14853bb8e69b972a18237c449173693449b368ba73c12cfd41c06"
+    }
+  },
+  "per_id_manifest": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/probe-accounting.json",
+  "proof_hashes": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/proof-hashes.json",
+  "semantic_provenance": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/semantic-provenance.md",
+  "proof_directory": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof",
+  "review": "Conductor owns resumed primary review; worker issued no verdict",
+  "deferred": [
+    "Conductor current guest refresh and full joined make model-validate gate",
+    "Tasks .3/.6 must execute current-guest make umpire-check-model-gaps and make umpire-check-model-slice",
+    "Retain TestTestpilotModelGapScopeBoundaries normal_queue_name_0/1 and retry_inverted/retry_ordered/retry_disabled/retry_default_maximum plus issued/empty/malformed worker tokens"
+  ],
+  "review_fix_base_commit": "3dd5486d3098a4348ab4cd1ba7681289c3d70c09",
+  "review_fix_commit": "da3ece49611e245a49e3f50106170b15578313db",
+  "review_followup": {
+    "root_review_receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-review-finalized.json",
+    "addressed": [
+      "integration:1 mapped leaf admission",
+      "contracts/integration Secret map kinds"
+    ],
+    "worker_verdict": null
+  },
+  "previous_command_results": [
+    {
+      "gate": "scoped-tests",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-verify.log",
+      "sha256": "3c611e5e68ce748a74585fb2a441421bd20222054abf471f94fc5161658edda4"
+    },
+    {
+      "gate": "clippy",
+      "command": "timeout 600 mise exec -- cargo clippy -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-targets --all-features -- -D warnings",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-clippy.log",
+      "sha256": "b72f230be04ca033ecbb232ad26e03484cec52c33d32633cf6ca45230e5e8cff"
+    },
+    {
+      "gate": "docs",
+      "command": "RUSTDOCFLAGS='-D warnings' timeout 600 mise exec -- cargo doc -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-features --no-deps",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-doc.log",
+      "sha256": "382115696715d1ca04503151498ae1c888507c787f03e863fbc46b6c6327014c"
+    },
+    {
+      "gate": "format",
+      "command": "mise exec -- cargo fmt --all -- --check",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "gate": "boundaries",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-boundary.log",
+      "sha256": "faab4b79ced12201281553804d7ddffc923a8c2d439b1990e15c723cc2b1b2a6"
+    }
+  ],
+  "red_green_evidence": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-map-red.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-map-green.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-claim-red.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-focused.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-map-type-red.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-map-type-diagnostic.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-verify.log"
+  ],
+  "header_controls": {
+    "restored_from_first_patch": 43,
+    "predictions": "none; actual live rejections remain visible findings",
+    "actual_read": "pre-capability feature/activity/temporal.rs Context.start.header.fields[SCENARIO_HEADER].data",
+    "ActivityExecutionInfo.header": "explicitly ignored and unchanged"
+  },
+  "final_source_fix_base_commit": "da3ece49611e245a49e3f50106170b15578313db",
+  "final_source_fix_commit": "755fd7b9b94d823cd759baff804c286cacabbc47",
+  "prior_review_command_results": [
+    {
+      "gate": "scoped-tests",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-verify.log",
+      "sha256": "0e23498b4cca9eb963af8b4583b3f4be2af87a2739ba8d116a068ebc664c6d53"
+    },
+    {
+      "gate": "clippy",
+      "command": "timeout 600 mise exec -- cargo clippy -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-targets --all-features -- -D warnings",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-clippy.log",
+      "sha256": "5cbeb8456c45b85cc870dcd9f2a960fe50414fd3d4d4c3891d59205ae53351c7"
+    },
+    {
+      "gate": "docs",
+      "command": "RUSTDOCFLAGS='-D warnings' timeout 600 mise exec -- cargo doc -p umpire-catalog -p umpire-catalog-syntax -p umpire-catalog-build -p umpire-temporal-annotate-syntax -p umpire-temporal-api -p umpire-temporal -p umpire-reference-kettle --all-features --no-deps",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-doc.log",
+      "sha256": "08414b108ee799c11aaa41077654c3df23e44053f0253af2563042cd80f5801f"
+    },
+    {
+      "gate": "format",
+      "command": "mise exec -- cargo fmt --all -- --check",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "gate": "boundaries",
+      "command": "timeout 600 mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-review-boundary.log",
+      "sha256": "68a60da8509c07ae72069a4997bc532752b3bec0fc6e04003c04a33b1ceb704f"
+    }
+  ],
+  "read_fill_audit": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/read-fill-audit.md",
+  "read_fill_audit_sources": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/read-fill-audit-sources.json",
+  "final_source_review_followup": {
+    "receipt": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-final-source-review-finalized.json",
+    "addressed": [
+      "Describe filled selectors and systematic read/fill claims",
+      "retry relation shared Duration projection consistency"
+    ],
+    "worker_verdict": null
+  },
+  "cache_release": {
+    "cache": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612",
+    "released_to_conductor": true,
+    "worker_commands_live": [],
+    "guest_hashes": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-guest-hashes.json",
+    "guest_builds_by_worker": 0,
+    "guest_freshness": "Inherited hashes only; combined-source refresh/check remains conductor-owned"
+  },
+  "round3_red_green_evidence": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-flags-red.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-normalize-red.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-focused.log",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24612-proof/fn24612-round3-verify.log"
+  ]
+}

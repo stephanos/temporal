@@ -8,7 +8,7 @@ Implement the R3 action-declaration seam after capabilities. This task owns gene
 
 **Size:** M
 **Files:** generic front/action macro metadata forwarding, Temporal annotation syntax/derive support and focused pass/fail controls.
-**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/**]
+**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/registry.rs, model/temporal/realization/tests/registry/**, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/capabilities.rs, model/temporal/realization/tests/realization.rs, model/temporal/realization/tests/realization_admission.rs, model/temporal/realization/tests/admission/**, model/temporal/realization/tests/ui/**, model/temporal/realization/tests/ui-pass/**]
 
 ### Approach
 
@@ -18,6 +18,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 2. Add Temporal-owned rpc/environmental/entity/read declarations using descriptor/type identity admission and existing realization syntax owners. Normalize registry rows once and expose typed classification, fill and evidence access to the capabilities; consumers must not rebuild per-action tables.
 3. Preserve actual generated enum/result type proofs. Test omitted/added actions and claimed fields against independent descriptor/type inventories rather than the declaration being checked. Keep correlation/read configuration typed and reject conflicting/unknown/duplicate declarations with located diagnostics.
 4. Prove a generic non-Temporal Machine still expands and keeps the same checking results (goldens may be re-accepted after review). Use synthetic Temporal examples to compile client proposal, worker fill and probe-baseline access before the activity switches. Refinement syntax is owned by .4 after its typed consumer exists.
+
+Synthetic registry controls belong in `tests/registry.rs` and `tests/registry/**`, retaining existing declarative, capability, admission, UI and renamed controls. Per-feature program codec/history controls remain with .14. This ownership follows the synthetic-before-activity migration boundary; any additional source owner requires a fresh admission check without reducing verification.
 
 **Dispatch exclusion:** Serialize with .12 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
 

@@ -1,0 +1,17 @@
+{
+  "status": "conductor decision for production resumption, not admission or proof",
+  "proposal": "fn24614-bridge-proposal.txt",
+  "proposal_sha256": "18fc9997db1c86f8d324eac4808e398365747c0d6ad8760fabd5654c53ba4803",
+  "accepted": "Per-Driver act capture; temporaldriver adapter; host assignment bridge; SDK coordinator; fault-only mechanical temporal.proto payload; Runner Driver.Close evidence handoff. Preserve existing successful terminal and empty-poll shutdown behavior.",
+  "capture_invocation_default": 4096,
+  "capture_encoded_byte_default": 1073741824,
+  "byte_default_replaces_proposal": 67108864,
+  "reason": "Preserve pinned SDK existing128MiB send/receive allowance;64MiB cannot reserve one worst-case response. Explicit larger infrastructure bound avoids silently narrowing supported transport messages.",
+  "requirements": [
+    "Validate configured invocation/byte limits and worst-case per-RPC reservation against actual configured message limits before connection effects.",
+    "Reserve completion metadata and byte capacity before invoke; release unused reservation after capture; never silently truncate or advance a history from incomplete/error captures.",
+    "Bound exhaustion is an explicit resource fault; SDK receives its actual invoke result unchanged.",
+    "Test bound behavior with small configured limits rather than allocating a GiB in controls.",
+    "No Model-budget inference, ActivityEvidence/journal/cut/gate implementation or live-proof credit."
+  ]
+}

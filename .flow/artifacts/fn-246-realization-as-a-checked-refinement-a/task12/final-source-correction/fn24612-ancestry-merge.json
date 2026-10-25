@@ -1,0 +1,7 @@
+{
+  "head": "143fc6de7c27bdbea5d2514c6db8b7ca252de478",
+  "model_tree_before": "83aeb79433bd665989a5e836fe6fab7b886fdca1",
+  "model_tree_after": "83aeb79433bd665989a5e836fe6fab7b886fdca1",
+  "source_unchanged": true,
+  "purpose": "Retain original catalog checkpoint ancestry after already verified cherry-pick; no source change."
+}
