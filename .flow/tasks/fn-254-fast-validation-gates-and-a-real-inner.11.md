@@ -13,6 +13,7 @@ Prove the framework stands alone and stays Temporal-agnostic (spec R7 errors), a
 
 ### Approach
 - Copy the exact current candidate bytes of `model/umpire` into scratch outside the repository, retaining a source manifest; `git archive HEAD` alone omits candidate edits. Exclude generated caches and reject source symlink escapes. No Temporal tree, root Makefile/.bin, Git metadata or repository-specific environment may supply an undeclared source/tool dependency. Use a separately owned compilation target, not the main checkout's target.
+- The isolated copy builds and invokes both framework-local xtask and its dedicated guest driver through their normal entry points. Clear repository-specific prebuilt-driver/root overrides, require the copied local pin/configuration inputs, and verify the shared context resolves only the copied framework and explicitly owned outputs. Missing copied local configuration refuses instead of finding the parent checkout. Do not use a parent prebuilt driver to conceal a source dependency.
 - The outer control runs the framework entry point once in a named child mode that skips only this copy-control stage. All other framework stages run exactly once; recursion and a silently skipped stage fail. Record cost and tier, then register the stage for .12.
 - Agnosticism checks follow .9's policy ownership: filesystem-based scanning works without Git; generic dependency/path checking has no Temporal knowledge; Temporal deny-vocabulary and any narrowly justified policy-data exceptions are explicit. Preserve the existing Temporal boundary test. Check both declared and resolved path dependencies; do not let copied caches supply absent inputs.
 - Negative controls: a planted path dependency on a Temporal crate fails, a planted `temporal` identifier fails, and a planted `../../../..` repo-root path fails.
@@ -28,7 +29,7 @@ Prove the framework stands alone and stays Temporal-agnostic (spec R7 errors), a
 The real directory-only framework entry-point run is the isolation gate being changed and remains required, alongside planted violation controls. Reuse equivalent evidence at .8 only if all relevant inputs remain unchanged. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
 
 ## Acceptance
-- [ ] The framework gate passes on an isolated copy of `model/umpire`.
+- [ ] The framework gate passes on an isolated copy of `model/umpire`, building its own local xtask/guest driver and consuming local context/pins without parent-source/configuration fallback.
 - [ ] All three planted violations fail with a named reason.
 - [ ] Cost recorded; the control's tier (quick, check or validate) is stated in the README.
 

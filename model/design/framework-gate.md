@@ -29,7 +29,8 @@ R18 admission and guest closure restrictions; this decision admits no new depend
 | `.cargo/config.toml` | Native dev-profile `xtask` alias; framework-local fmt/clippy/doc aliases. No parent-relative tool include. |
 | `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`, `deny.toml` | Copy current `model/` policy; preserve audited crate-local capability policies and process unsafe boundary. |
 | `mise.toml` | Local Rust 1.99.1, Go 1.27.0, protoc 29.5, Java temurin-27 pins, copied from root `mise.toml:1-6`; omit archived Scala. .3 adds the admitted nextest pin here. |
-| `dev/xtask/` | Move current `model/dev/xtask`, including tests and README; native gate orchestration belongs here. |
+| `dev/xtask/` | Thin general command front door, installer/retired-name commands and native gate orchestration. Guest operations execute the independent driver. |
+| `dev/guest-driver/` | Dedicated `umpire-guest-driver` package/executable with guest build, compiler wrapper, lock admission and support. Its library owns admitted tool/workspace context and raw-OS remap/environment encoding; it has no dependency on the general CLI/gate. |
 | `scripts/` | Framework bootstrap and thin tool wrappers relocated from `model/scripts`; no semantic parser duplicated in Bash. |
 | `dev/gate/policy/framework-boundary.txt` | Exact declarative gate-only name policy exception described below. |
 | `.bin/protoc-gen-go-v1.36.6`, `.bin/protoc-gen-go-grpc-v1.3.0` | Framework-owned pinned generators, provisioned without root Make. |
@@ -44,6 +45,20 @@ release/guest profiles and tool pins coherently; subsequent intentional shared-p
 update both copies and verify equality of the shared settings. Workspace-specific members,
 path dependencies, runner selections and budgets may differ. Root `mise.toml` remains
 Temporal/repository-owned; it is not the framework's authority.
+
+## Native tool ownership amendment
+
+2026-10-25, owner requested fixes for the three confirmed accidental-complexity sources in the existing tasks. The source investigation is retained in `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/planning/xtask-complexity-20261025/investigation.md`. It establishes cache/root/protocol coupling, not a measured performance improvement.
+
+Task .13 separates the dedicated guest-driver package from the general xtask/gate implementation. Move guest orchestration, compiler wrapping, lock admission and shared support into `dev/guest-driver`; installer, retired-name and gate commands stay in `dev/xtask`. The dependency direction is from general xtask to driver context utilities only. Guest operations execute the driver, so the executable copied as the compiler wrapper and hashed for the guest cache is the driver itself. The driver never depends on general CLI/gate code.
+
+One admitted context in the driver library owns framework tool/pin roots, caller compilation workspace, caller-relative output/target paths, sysroot/Cargo roots and canonical longest-root remaps. General commands consume its admitted roots rather than rediscovering repository ancestors. Guest orchestration and compiler wrapping share its raw-OS environment codec and remap list. Preserve native process dispatch, loader/jobserver inheritance, source/lock ambiguity refusal, per-output leases and atomic publication.
+
+Keep the exact driver binary hash, full current caller lockfile hash and compiler input in the guest cache key. Keep existing portable sidecar and per-package lock-closure semantics. Dropping identity inputs or hashing only a version string would weaken the contract. The full lockfile remains a deliberately coarse invalidation input; this amendment isolates unrelated compiled CLI/gate changes, not arbitrary lockfile changes.
+
+Task .13 proves focused driver/key independence and actual-driver invalidation alongside its existing guest reproduction checks. Task .10 adds gate orchestration and a discriminating compiled CLI-only mutation control. CLI bytes must change while driver bytes and the guest cache namespace stay fixed for identical guest/driver/lock/compiler inputs, and a representative guest must reuse admitted artifacts. A data edit that leaves the executable unchanged proves nothing about this coupling. Reuse required reproduction runs where their inputs match instead of adding a timing-baseline campaign. Task .11's directory-only gate builds and invokes both local tools, strips parent prebuilt-tool overrides and refuses missing local configuration instead of finding the parent checkout.
+
+These changes extend existing tasks .13/.10/.11. Unrelated broad validation remains deferred to .8. Existing source/jar/tool admission and Model semantics remain unchanged.
 
 ## Gate stage inventory
 
@@ -109,7 +124,7 @@ splitting responsibilities and final delegation are .10's.
 
 ## Every current xtask source module
 
-All nine files in `model/dev/xtask/src/` are F and move together. A generic tool can
+All nine files in `model/dev/xtask/src/` are F. Under the amendment above, `guest.rs`, `compiler.rs`, `lock.rs` and their support move to `dev/guest-driver`; the general dispatcher, installer, pins and retired-name command move to `dev/xtask`. The following table records their source-checkpoint responsibilities. A generic tool can
 compile an external consumer without owning that consumer's policies or inputs.
 
 | Module | Contract and coupling to resolve |

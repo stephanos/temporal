@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-25",
+  "owner_request": "can we add fixes for the three concrete sources of accidental complexity to existing tasks",
+  "tasks": {
+    "13": [
+      "dedicated independent guest-driver package/executable",
+      "single admitted tool/workspace context",
+      "one raw-OS context codec and canonical remap list",
+      "focused driver/key independence and invalidation controls"
+    ],
+    "10": [
+      "thin general xtask/gate delegation",
+      "actual compiled CLI-only change preserves driver/cache/artifact reuse"
+    ],
+    "11": [
+      "real directory-only gate builds local tools/driver",
+      "no parent configuration or prebuilt-driver source fallback"
+    ]
+  },
+  "new_tasks": false,
+  "coverage_removed": false,
+  "unrelated_full_validation_deferred_to": ".8",
+  "investigation_scope": "source reading only; no complexity reduction or timing improvement claimed"
+}

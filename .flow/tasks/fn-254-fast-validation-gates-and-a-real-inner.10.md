@@ -14,12 +14,13 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 **Touches:** [model/umpire/dev/**, model/umpire/protocol/**, model/umpire/hosts/go/**, model/umpire/reference/kettle/**, model/dev/xtask/**, model/scripts/**, model/temporal/hosts/go/**, model/temporal/guest/**, Makefile, model/README.md, model/umpire/README.md, model/GUEST_BUILDS.md]
 
 ### Approach
-- Consume .13's root resolution, tool/pin/cache migration and guest identity contract; do not repeat that migration.
+- Consume .13's dedicated guest driver and admitted context for root resolution, tool/pin/cache ownership and guest identity; do not repeat that migration. Keep gate orchestration in the general xtask package, with no reverse dependency from the guest driver. Guest commands cross the dedicated executable interface rather than invoking guest orchestration inside the general CLI process.
+- Add a discriminating native-build control: change only retained general-CLI/gate executable code, verify that CLI bytes change while driver bytes and guest cache namespace remain unchanged for identical driver/lock/compiler/guest inputs, and show a representative existing guest build still reuses admitted artifacts. A budget data edit that leaves executable bytes unchanged is insufficient. Preserve driver/lock/compiler invalidation controls and current-input freshness; never remove identity inputs merely to make a cache hit. Reuse .13 evidence only for unchanged inputs.
 - Framework protobuf generation and checks use framework-owned pinned generators, not the root `.bin/`.
 - Root `model-check`/`model-validate` delegate framework work and retain only Temporal guest freshness, source boundary, Temporal protobuf/API prerequisite, Temporal Go host and Temporal crate checks. Expose stage dependency information so .5 may overlap independent work; do not mandate all framework work precede all Temporal work. Full gates override inherited quick-cache enablement.
 - Split mixed guest/protobuf/retired-name controls: stock/control/Kettle/panic/overflow and core/Kettle stay framework-owned; Temporal guest/protobuf/API and deny-vocabulary policy stay Temporal-owned. Preserve all old logical tests exactly once. Regenerate affected current guest bytes through .13's identity primitives and prove source freshness/native-Wasm-Host parity, including possible Temporal embedded guest publication.
 - Stage names, fail-fast behaviour and `UMPIRE_TIME_STEPS` timing are preserved across both halves.
-- **Equivalence pin:** the combined stage list and the full test list (with ignored tests) are identical before and after; the TLC-required run passes.
+- **Equivalence pin:** the existing combined stage/test coverage (with ignored tests) is preserved exactly once under the checked migration mapping; newly required controls have a separate explicit inventory; the TLC-required run passes.
 
 ### Investigation targets
 **Required:**
@@ -33,6 +34,7 @@ Compose the framework gate and Temporal delegation on .13's independently builda
 Keep changed framework/root entry-point wiring, both-workspace coverage accounting, modes, cache bypass and named failure controls now; unrelated unfiltered combined gates wait for .8. Deferred checks remain final .8 requirements and are never reported green. This owner instruction supersedes earlier broad per-task verification commands.
 
 ## Acceptance
+- [ ] A real compiled CLI/gate-only change preserves guest-driver bytes and guest cache/artifact reuse; actual driver/lock/compiler changes still invalidate. Gate/installer/guest callers consume .13's shared context without duplicated root or remap policy.
 - [ ] The framework entry point runs every framework stage from `model/umpire`; the root `Makefile` contains no framework stage.
 - [ ] .13's standalone path/tool contract remains intact; every split mixed control and generated producer/consumer has one owner. All affected guests reproduce, are fresh and pass Host/native-Wasm parity.
 - [ ] Stage/test coverage is preserved in sum, and changed entry-point/mode/cache/failure controls pass. Unrelated unfiltered `model-check`/TLC-required `model-validate` execution is deferred to .8 under the owner cadence amendment.

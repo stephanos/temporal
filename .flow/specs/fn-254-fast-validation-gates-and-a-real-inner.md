@@ -10,6 +10,8 @@
 > user (2026-10-25): "can we ignore baseline measurement? we already have historic data"
 > user (2026-10-25): "can we postpone most of the validation gates to the end of fn-254? except for the ones we're changing in that task?"
 
+> user (2026-10-25): "can we add fixes for the three concrete sources of accidental complexity to existing tasks"
+
 ## Goal & Context
 
 <!-- scope: business -->
@@ -83,6 +85,8 @@ Findings this spec acts on (verified 2026-10-25):
   Errors: every stage still runs in `model-validate` and a failing stage still fails the gate with its own exit and name.
 - **R6:** Final warm measurements are recorded beside R1's historical references in `model/design/gate-speed.md`. `time-gate.sh` gains the realistic Model-edit inner loop. Execution targets: `model-quick` under 60 s for an activity edit, `model-check` under 3 min, TLC-required `model-validate` under 10 min. Errors: a missed target is reported with its cause, not relabelled as met; incomparable historical modes/workloads are separated and do not support an attributed speedup claim.
 - **R7:** The framework's checks live in `model/umpire` and run without the Temporal tree. One framework entry point (decided in task .9) runs every framework stage: fmt, clippy, docs and tests of `umpire` crates; the stock, control and Kettle guests; core and Kettle protobuf; the generic and Kettle Go hosts; framework controls. The root `Makefile` keeps only Temporal steps and calls that entry point. Framework tools, pins and caches (TLC/Apalache jars, protoc generators, xtask modules) resolve relative to `model/umpire`, not the Temporal repository root. Errors: a control runs the framework entry point on a copy of `model/umpire` alone, with no `model/temporal` and no root `Makefile`, and it passes; a planted dependency from an `umpire` crate on a Temporal crate, or a Temporal name in `model/umpire`, fails the framework gate.
+The R7 tool contract also requires a dedicated guest-driver executable independent of the general xtask/gate executable. Guest cache invalidation follows the exact guest driver, current lockfile and compiler inputs. Unrelated general-CLI/gate implementation changes must not select a new guest cache. One admitted context owns framework tool/pin roots, caller workspace/output/target resolution, raw-OS environment encoding and canonical physical-to-logical remaps; commands do not rediscover these independently. Missing local pins or escaping/ambiguous roots refuse explicitly. These requirements retain existing compiler/lock/source admission and cache invalidation for actual guest-driver changes.
+
 - **R8:** Each gate stage has a committed budget in one table under `model/umpire` (plus a Temporal-side table for Temporal stages):
   - work counts where the stage has them (test count, generated cases, corpus inputs, TLC launches), enforced hard;
   - a warm wall-time budget per stage and per tier.
@@ -175,3 +179,7 @@ conformance policy changes are authorized by this design.
 
 - How compile/link time splits against run time inside the 1,707 s `tests` stage (R1 measures it).
 - Whether TLC can report several violated properties exactly in one run, or batching must stop at the first violation and rerun the rest.
+
+### Native tool simplification amendment
+
+2026-10-25, owner requested fixes for the three confirmed accidental-complexity sources in existing tasks. Task .13 extracts a dedicated `umpire-guest-driver` package/executable at `model/umpire/dev/guest-driver`, centralizes admitted tool/workspace context and remap/environment encoding there, and leaves `dev/xtask` as the general command front door. The general CLI may reuse the driver library's context utilities but invokes the driver executable for guest operations; the driver never depends on the CLI or gate implementation. Task .10 composes gates through those interfaces and proves a compiled CLI-only change leaves driver bytes and the guest cache namespace unchanged. Task .11 exercises the same local tools/driver in the real directory-only gate. Preserve the full current lock/compiler inputs and exact driver hash, portable sidecar semantics, raw OS bytes, jobserver/loader inheritance, leases, cleanup and atomic publication. No new tasks, Model semantics, third-party dependencies or broad per-task validation gates are introduced.

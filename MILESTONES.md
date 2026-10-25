@@ -59,10 +59,10 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After .4 and committed fn-246 closure: one test binary per `temporal` crate (R4) |
 | fn-254.8 | ⬜ todo | After .2–.7, .11, .12: final measurement against the baseline, targets, docs (R6, R1) |
-| fn-254.10 | ⬜ todo | After .13: compose framework gate in `model/umpire`; root Makefile delegates and keeps Temporal steps (R7) |
+| fn-254.10 | ⬜ todo | After .13: framework gate and root delegation; prove CLI changes preserve guest caches (R7) |
 | fn-254.11 | ⬜ todo | After .10: framework gate passes on `model/umpire` alone; planted Temporal coupling fails (R7) |
 | fn-254.12 | ⬜ todo | After framework optimizations and controls: committed stage budgets; hard work counts, bounded timing retry, unbudgeted stages fail (R8) |
-| fn-254.13 | ⬜ todo | After .9: separate framework workspace, tools, pins, cache/input roots and guest identity (R7) |
+| fn-254.13 | ⬜ todo | Separate framework workspace, dedicated guest driver, shared root/context/remap handling (R7) |
 
 ### fn-255: Thorough framework testing
 
