@@ -166,6 +166,17 @@ fn enclosing(items: &[Item], location: LineColumn, parent: &[String]) -> Option<
             Item::Impl(item) if item.impl_token.span.start() == location => {
                 return Some(parent.to_vec());
             }
+            Item::Macro(item)
+                if item
+                    .mac
+                    .path
+                    .segments
+                    .first()
+                    .is_some_and(|segment| segment.ident.span().start() <= location)
+                    && location <= item.mac.delimiter.span().close().end() =>
+            {
+                return Some(parent.to_vec());
+            }
             Item::Mod(module) if module.content.is_some() => {
                 let (_, items) = module.content.as_ref()?;
                 let mut child = parent.to_vec();
@@ -410,6 +421,14 @@ impl Scope {
         } else {
             kind
         }
+    }
+
+    pub(super) fn named_imported(&self, name: &str) -> bool {
+        self.frames
+            .iter()
+            .rev()
+            .chain(self.modules.get(&self.module))
+            .any(|scope| scope.bindings.get(name).is_some_and(Option::is_some))
     }
 
     pub(super) fn imported(&self, name: &str) -> bool {

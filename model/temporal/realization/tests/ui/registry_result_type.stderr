@@ -1,0 +1,83 @@
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed, request_reads(namespace, task...
+  |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RespondActivityTaskCompletedResponse`, found `RequestCancelActivityExecutionResponse`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed,
+  |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `RespondActivityTaskCompletedResponse`, found `RequestCancelActivityExecutionResponse`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed, request_reads(namespace, task...
+  |                                                                                            ^^^^^^^^^
+  |                                                                                            |
+  |                                                                                            expected `RequestCancelActivityExecutionResponse`, found `RespondActivityTaskCompletedResponse`
+  |                                                                                            arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: expected enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse, i32>`
+             found enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedResponse, i32>`
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...fn completed(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, p...
+  |       ^^^^^^^^^                                                      -----------------------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed,
+  |                                                                                            ^^^^^^^^^
+  |                                                                                            |
+  |                                                                                            expected `RequestCancelActivityExecutionResponse`, found `RespondActivityTaskCompletedResponse`
+  |                                                                                            arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: expected enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse, i32>`
+             found enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedResponse, i32>`
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...fn completed(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, p...
+  |       ^^^^^^^^^                                                      -----------------------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)

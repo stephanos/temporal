@@ -769,7 +769,7 @@ fn edit_methods(items: &mut [Item], machine: &Machine) {
 #[allow(dead_code, reason = "expansion snapshots render the module without its embedded Model")]
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
     let module = generate(&declare::machine(args, input)?, input)?;
-    Ok(quote!(#module))
+    finish(input, &module)
 }
 
 /// The expanded module: the executable Model.
@@ -882,4 +882,36 @@ pub(crate) fn generate(machine: &Machine, input: &ItemMod) -> manyhow::Result<It
     };
     items.extend(syn::parse2::<syn::File>(generated)?.items);
     Ok(input)
+}
+
+/// Resolves generated dependencies while retaining opaque variant declarations verbatim.
+pub(crate) fn finish(original: &ItemMod, module: &ItemMod) -> manyhow::Result<TokenStream> {
+    let mut module: ItemMod = syn::parse2(crate::roots::resolve(quote!(#module)))?;
+    let Some((_, original_items)) = &original.content else { unreachable!("inline module") };
+    let Some((_, items)) = &mut module.content else { unreachable!("inline module") };
+    let mut actors = Vec::new();
+    for original in original_items {
+        let Item::Enum(original) = original else { continue };
+        if !declare::derives(&original.attrs, "Action")? {
+            continue;
+        }
+        actors.push(original);
+        let Some(Item::Enum(generated)) = items
+            .iter_mut()
+            .find(|item| matches!(item, Item::Enum(item) if item.ident == original.ident))
+        else {
+            unreachable!("registered actor retained")
+        };
+        for (variant, source) in generated.variants.iter_mut().zip(&original.variants) {
+            for (attr, source) in variant.attrs.iter_mut().zip(&source.attrs) {
+                if source.path().is_ident("metadata") {
+                    *attr = source.clone();
+                }
+            }
+        }
+    }
+    let metadata =
+        crate::action::metadata_bridge(&syn::parse_quote!(action_metadata), &quote!(#(#actors)*));
+    items.extend(syn::parse2::<syn::File>(metadata)?.items);
+    Ok(quote!(#module))
 }

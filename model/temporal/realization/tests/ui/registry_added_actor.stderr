@@ -1,0 +1,29 @@
+error[E0004]: non-exhaustive patterns: `&specimen::Action::Worker(_)` and `&specimen::Action::Environment(_)` not covered
+  --> tests/ui/registry_added_actor.rs:13:1
+   |
+13 | / umpire_temporal::registry! {
+14 | |     model { specimen }
+15 | |     actors { enum Client { #[metadata(temporal(event = "event", evidence = event))] Ping } }
+16 | |     body {
+...  |
+22 | | }
+   | |_^ patterns `&specimen::Action::Worker(_)` and `&specimen::Action::Environment(_)` not covered
+   |
+note: `specimen::Action` defined here
+  --> tests/ui/../registry/fixture.rs
+   |
+   | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+...
+   |     pub(crate) enum Worker {
+   |                     ------ not covered
+...
+   |     pub(crate) enum Environment {
+   |                     ----------- not covered
+   = note: the matched value is of type `&specimen::Action`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern, a match arm with multiple or-patterns as shown, or multiple match arms
+   |
+22 ~ },
+23 + &specimen::Action::Worker(_) | &specimen::Action::Environment(_) => todo!()
+   |

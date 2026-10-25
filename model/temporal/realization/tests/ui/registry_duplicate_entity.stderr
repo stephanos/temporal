@@ -1,0 +1,5 @@
+error: duplicate entity declaration
+ --> tests/ui/registry_duplicate_entity.rs:7:9
+  |
+7 |         #[entity(rpc = WorkflowService::StartActivityExecution)]
+  |         ^

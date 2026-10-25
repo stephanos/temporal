@@ -73,6 +73,42 @@ pub fn realization(
     result.map_or_else(syn::Error::into_compile_error, roots::resolve).into()
 }
 
+/// Admit the complete opaque action inventory as a typed Temporal registry.
+#[proc_macro]
+pub fn registry(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input: proc_macro2::TokenStream = input.into();
+    let result = schema().map_err(|error| syn::Error::new_spanned(&input, error)).and_then(
+        |(schema, mut inputs)| {
+            let span = umpire_temporal_annotate_syntax::registry::source_span(input.clone())?;
+            let source = span
+                .local_file()
+                .ok_or_else(|| syn::Error::new(span, "registry requires its Rust source scope"))?;
+            let source = std::fs::canonicalize(source).map_err(|error| {
+                syn::Error::new(span, format!("cannot locate registry source scope: {error}"))
+            })?;
+            let text = std::fs::read_to_string(&source).map_err(|error| {
+                syn::Error::new(span, format!("cannot read registry source scope: {error}"))
+            })?;
+            let expanded = umpire_temporal_annotate_syntax::registry::expand_in_source(
+                input,
+                &syn::parse_str(RUNTIME_ROOT)?,
+                &schema,
+                &text,
+                span.start(),
+            )?;
+            inputs.push(source);
+            let tracked =
+                inputs.iter().map(|path| path.to_string_lossy().into_owned()).map(|path| {
+                    quote!(
+                        const _: &[u8] = include_bytes!(#path);
+                    )
+                });
+            Ok(quote!(#(#tracked)* #expanded))
+        },
+    );
+    result.map_or_else(syn::Error::into_compile_error, roots::resolve).into()
+}
+
 fn misplaced(name: &str) -> proc_macro::TokenStream {
     syn::Error::new(
         proc_macro::Span::call_site().into(),
@@ -271,6 +307,44 @@ mod tests {
             .ok_or("missing offending token")?;
             assert_error_at(source, &error, offset, token);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn typed_registry_expansion() -> Result<(), Box<dyn std::error::Error>> {
+        let (schema, _) = super::schema()?;
+        let expanded = umpire_temporal_annotate_syntax::registry::expand(
+            quote::quote! {
+                model { specimen }
+                actors {
+                    pub enum Client {
+                        #[metadata(temporal(rpc = WorkflowService::RequestCancelActivityExecution,
+                            direction = client, request = RequestCancelActivityExecutionRequest,
+                            response = RequestCancelActivityExecutionResponse,
+                            request_reads(namespace, activity_id, run_id, request_id),
+                            fill = cancel, evidence = canceled))]
+                        Cancel,
+                        #[metadata(temporal(event = "explicit refresh", evidence = refreshed))]
+                        Refresh,
+                    }
+                }
+                body {
+                    #[registry(inputs = Inputs)]
+                    #[entity(rpc = WorkflowService::StartActivityExecution,
+                        request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+                        receipt = Receipt, admit = admitted, make_receipt = receipt, correlate = correlation)]
+                    #[read(rpc = WorkflowService::DescribeActivityExecution,
+                        request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
+                        target = Target, fill = read_request, project = read_target,
+                        finality = is_final, continue_polling = polling)]
+                    impl Binding {}
+                }
+            },
+            &syn::parse_str(super::RUNTIME_ROOT)?,
+            &schema,
+        )?;
+        let file = syn::parse2(expanded)?;
+        insta::assert_snapshot!("typed-action-registry", prettyplease::unparse(&file));
         Ok(())
     }
 

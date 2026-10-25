@@ -1,0 +1,5 @@
+error: unknown field path: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.unknown_field
+ --> tests/ui/registry_claimed_field.rs:3:54
+  |
+3 |     actors { enum Client { #[metadata(temporal(rpc = WorkflowService::RequestCancelActivityExecution, direction = client, request = R...
+  |                                                      ^^^^^^^^^^^^^^^
