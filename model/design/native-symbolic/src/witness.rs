@@ -104,7 +104,7 @@ fn decode(bits: &str, shape: Shape, ty: &Type) -> Result<Lit, String> {
     })
 }
 
-fn native(values: &[(&'static str, Value)]) -> Vec<(String, Lit)> {
+fn native(values: &[(&'static str, Value)]) -> Result<Vec<(String, Lit)>, String> {
     values
         .iter()
         .map(|(name, value)| {
@@ -112,9 +112,9 @@ fn native(values: &[(&'static str, Value)]) -> Vec<(String, Lit)> {
                 Value::Bool(b) => Lit::Bool(*b),
                 Value::Int(i) => Lit::Int(*i),
                 Value::Enum(e) => Lit::Enum((*e).to_owned()),
-                Value::Sequence(_) => Lit::Enum("<sequence>".into()),
+                other => return Err(format!("unsupported native witness value for {name}: {other:?}")),
             };
-            ((*name).to_owned(), lit)
+            Ok(((*name).to_owned(), lit))
         })
         .collect()
 }
@@ -158,7 +158,11 @@ where
     let mut state = world
         .starts()
         .into_iter()
-        .find(|start| native(&start.values()) == initial)
+        .map(|start| native(&start.values()).map(|values| (start, values)))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .find(|(_, values)| *values == initial)
+        .map(|(start, _)| start)
         .ok_or_else(|| format!("initial state {initial:?} is not a declared start"))?;
     let mut path = format!("start: {state}\n");
     let mut steps = 0usize;
@@ -170,7 +174,7 @@ where
         let decoded = frame_state(&frames[k], layout)?;
         if act >= catalog.len() {
             if let Some(decoded) = &decoded {
-                if native(&state.values()) != *decoded {
+                if native(&state.values())? != *decoded {
                     return Err(format!("frame {k}: no action chosen but the state changed"));
                 }
             }
@@ -180,7 +184,7 @@ where
         let edges = world.checked_step(&state, action.clone()).map_err(|e| format!("frame {k}: {action}: {e}"))?;
         if edges.is_empty() {
             if let Some(decoded) = &decoded {
-                if native(&state.values()) != *decoded {
+                if native(&state.values())? != *decoded {
                     return Err(format!("frame {k}: {action} is disabled natively but the witness steps"));
                 }
             }
@@ -189,7 +193,10 @@ where
         let choice = match &decoded {
             Some(decoded) => edges
                 .iter()
-                .position(|(_, _, next)| native(&next.values()) == *decoded)
+                .map(|(_, _, next)| native(&next.values()))
+                .collect::<Result<Vec<_>, _>>()?
+                .iter()
+                .position(|values| values == decoded)
                 .ok_or_else(|| format!("frame {k}: {action} has no native edge to {decoded:?}"))?,
             None => 0,
         };
@@ -222,4 +229,16 @@ where
         Kind::Arithmetic => Err("arithmetic fault replay is outside the spike".into()),
     };
     Ok(Confirmed { path, steps, confirmed })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unsupported_native_values_refuse_witness_comparison() {
+        for value in [Value::Bounded { name: "Count", raw: 1 }, Value::Optional(None), Value::Sequence(vec![])] {
+            assert!(native(&[("field", value)]).unwrap_err().contains("unsupported native witness value for field"));
+        }
+    }
 }

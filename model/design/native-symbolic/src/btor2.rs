@@ -270,6 +270,7 @@ impl Emitter {
                 let fault = self.or(c.fault, arm);
                 V { id, shape: y.shape, fault }
             }
+            ExprKind::Check(_, inner) => self.expr(inner, env)?,
             ExprKind::Checks(checks) => {
                 let mut ids = Vec::new();
                 let mut faults = Vec::new();
