@@ -19,6 +19,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 3. Explore natively and retain states/edges/starts/outcomes/invariants per selected admitted World. Add required TLC own-invariant and state-set agreement through existing fixture/backend paths, using explicit comparable World/bound reports. Increase selected Worlds where required by the pinned contract; incomplete/unsupported backend results cannot pass.
 4. Own a shared neutral parameter contract provisionally at `model/temporal/shared/protocol/activity/parameters.rs`, neutral observable-view types and protocol-full-state-to-view conversion, plus the protocol-local World adapter. .3 owns the feature-local World adapter, candidate-state-to-view compatibility and total full-state map in `feature/activity/realization.rs`; no shared module imports the feature. Validate exact parameters against both independent World schemas and account every full-state field, retaining field/domain/type provenance. Reject omissions/misnaming, wrong kinds/bounds, erased budgets, clamping/defaults and lost None/present-zero distinctions. Keep local Worlds separate; no generic imported/shared-World admission. Reanchor fn-237.3 constructors/accessors after committed fn-247. Snapshot decoding only constructs an observable target, never the protocol's latent full state. Preserve independent semantic lifecycle/checkpoint evidence in Git, without the removed original-artifact hash manifest; report an exact disagreement rather than fit either Model.
 
+**Dispatch exclusion:** Serialize with .2 on realization/src/lib.rs; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
 ### Investigation targets
 
 **Required:**

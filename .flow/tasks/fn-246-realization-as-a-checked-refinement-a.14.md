@@ -22,6 +22,8 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 6. Reuse the existing transport seam or deepen it minimally for actual completion notification. If an additional mechanical bridge is necessary, coordinate exact ownership with the conductor before editing the later journal/gate surface. Transport failure/malformed/missing response, context cancellation and Close do not fabricate a bit or advance a key. Wake/join blocked waits and retain partial actual evidence through existing fault owners.
 7. Supply server-free program/native/mock-transport tests now. Mandatory actual live cooperative witnesses remain fn-237.4; this task must not claim them from mocks. Existing terminal live rows remain in .5/.6's validation.
 
+**Dispatch exclusion:** Serialize with .2 on realization/tests/program.rs; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+
 ### Investigation targets
 
 **Required:**

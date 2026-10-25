@@ -13,10 +13,10 @@ Establish one current default whole-prefix proof contract across generic guest e
 
 ## Approach
 
-1. Reanchor prerequisite source/build owners. Make whole-observation-prefix witnesses the ordinary current framework contract for all current guests, including Exact/Kettle. Complete-state matching remains supported; old delta presentation and old readers are not maintained.
+1. Reanchor prerequisite source/build owners and verify .1/.7's actual bounded singleton prefix retention/publication before advertising the contract. Make whole-observation-prefix witnesses the ordinary current framework contract for all current guests, including Exact/Kettle. Complete-state matching remains supported; old delta presentation and old readers are not maintained.
 2. Declare the single current proof-contract revision in the ordinary recorded Reset response, using a required admission value in the new protocol. The framework guest produces it from its real runtime contract; Host validates the actual response before Driver effects. Update native/wasm exports, Host and generated bindings together. No separate version export, hidden probe, opt-in mode, Wasm custom-section carrier, unmarked fallback or fat-LTO marker-retention obligation remains.
 3. Fail explicitly for malformed or incompatible current-contract responses; never silently reinterpret an old delta guest as a whole-prefix guest. Historical guest/Run formats need no reader or migration. Current model_hash still binds exact loaded guest bytes, and production source/guest freshness remains required.
-4. Demonstrate current-contract Reset and ordinary calls through the production guest builder and generic Host. Coordinate with .9's Run recording and .10's frontier integration so advertised whole-prefix semantics match actual runtime behavior. Document the format break and regenerate current fixtures/goldens; arbitrary old-byte equivalence is not a gate.
+4. Demonstrate current-contract Reset and ordinary calls through the production guest builder and generic Host. Use .1/.7's independently working runtime for ordinary multi-observation controls, including Current after a nonempty witness and callback delivery; actual responses must already be whole-prefix before this task closes. .9 records this supported singleton behavior. .10 later extends compatible alternatives and changed-canonical-past selection; those controls do not gate .8 and cannot excuse delta responses here. Document the format break and regenerate current fixtures/goldens; arbitrary old-byte equivalence is not a gate.
 
 ## Investigation targets
 
@@ -26,7 +26,7 @@ Establish one current default whole-prefix proof contract across generic guest e
 - Existing Host.New/call/admission and generic protocol generation owners.
 - Current Kettle and Temporal guest exports and native/wasm parity controls.
 - Final fn-247 production guest builder/xtask and freshness contract.
-- .9 Run/replay integration and .10 actual whole-prefix runtime contract.
+- .1/.7's singleton whole-prefix runtime, .9 Run/replay integration and .10 compatible-frontier extension.
 
 ## Verification
 
@@ -37,7 +37,7 @@ Run focused native/runtime, production guest and generic Go-host tests with test
 - [ ] All current generic, Kettle and Temporal guest/Host consumers agree on one default whole-prefix contract through the actual recorded Reset response.
 - [ ] Malformed/incompatible contract identity fails admission; caller intent cannot substitute for the actual guest response. Current model_hash and source/guest freshness retain their integrity role.
 - [ ] Current protocol/export/bindings and goldens regenerate coherently; the format break is documented. Old readers, records, delta mode, custom metadata and unchanged byte layouts are not required.
-- [ ] Production native/wasm/Host controls establish the current ordinary protocol path before dependent integration; .10 still supplies the actual bounded-prefix proof and publication correctness.
+- [ ] Production native/wasm/Host controls establish the actual singleton whole-prefix runtime through multi-observation, Current-after-nonempty-history and callback-delivery cases before dependent integration; .10 still supplies the compatible-frontier proof and changed-canonical-past publication correctness.
 
 ## Done summary
 TBD
