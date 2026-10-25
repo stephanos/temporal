@@ -83,3 +83,29 @@ The Rust port uses off-the-shelf crates instead of re-implementing what the Pyth
 ## Owner throughput amendment — 2026-10-24
 
 Avoid building what later specs delete or replace. fn-249.1's inventory, which may run during this spec, marks the cycle stages and leaf commands that exercise the test-only Go reference models, the `reference-helper`/`conformance` binaries or `helper_corpus`. Port those stages with their exact leaf argv and existing catching proofs only. Add no new shared reader, producer or abstraction for them, because fn-249 removes them after cutover through a recorded stage-plan delta. Readers of retained binary formats call the `wasmhost` decoders (tasks .21 and .27) instead of re-implementing parsing, so fn-247's protobuf move touches one decoder. Original acceptance, catching-proof obligations and the 96-stage cutover contract are unchanged.
+
+## Owner gate-speed amendment — 2026-10-25
+
+R2's "same resource policy" does not cover the three mechanisms below. The Rust cycle verb replaces each one with the version described here. Integrity, bounds, the 3,600-second limit and every stage's leaf assertions are unchanged. This amendment governs the historical resource-policy wording in the task and batch descriptions.
+
+- **G1 (custody once per cycle):**
+  - The freeze hashes the full inventory once, as it does today.
+  - Each stage boundary checks only the cheap invariants: the config digest, the frozen HEAD, the symlink inventory, and `git status --porcelain --untracked-files=all` limited to the allowed scratch paths.
+  - The cycle's final step, before the verdict, hashes the full inventory again.
+  - A digest mismatch at any point fails the cycle, exactly as today.
+  - Catching proof, against the original `guard()` obligation IDs, records a valid control and proves that a tracked-file mutation mid-cycle fails the final check, and an untracked file or moved HEAD fails the next stage boundary.
+  - A stage that reads a frozen file whose content changed mid-cycle still fails, because the leaf digests it consumes are unchanged.
+- **G2 (job count matches the admitted cores):**
+  - Each stage's `CARGO_BUILD_JOBS`, `GOFLAGS=-p` and test-thread count equal the cores the scheduler admitted it with, rather than 1.
+  - Exceptions are only stages whose assertions depend on single-threaded execution: timing, exclusive and solo stages, and any stage whose leaf contract names a thread count. Each exception is listed in the stage table with its reason.
+  - Memory admission is unchanged.
+- **G3 (compile once):**
+  - Stages that need the same artifacts get them from one producer stage, sharing one cycle-scoped target directory.
+  - The clippy feature matrix runs as one stage over a shared target.
+  - The Rust test chain builds each `gomad-wasmhost` feature set once.
+  - The `cargo-check-target` lock serialises only the stages that actually write that target.
+  - Leaf argv for lint and test assertions is unchanged apart from `--target-dir` and the job count.
+
+**R6 acceptance addition:** A parallel 12-core run shows the per-stage boundary overhead, stage wall time minus leaf wall time, under 5 seconds at the median. The stage table records the old and new wall time for `portable`, `rust-lint` and the Rust test chain.
+
+Fail-fast, exclusive and solo admission, the memory guard, and every leaf assertion and bound remain unchanged. Final qualification in fn-246 still runs every stage fresh. The complementary inner loop, cheap-first ordering and development-stage reuse are owned by fn-253; this amendment does not enable stage reuse in a closure or final-qualification run.
