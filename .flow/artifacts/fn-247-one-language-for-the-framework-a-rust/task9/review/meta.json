@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-247-one-language-for-the-framework-a-rust.9",
+  "standalone": false,
+  "base_branch": "75f7749e6e5b5d05ecf37fa5a9d070e839204276",
+  "reviewed_base_sha": "75f7749e6e5b5d05ecf37fa5a9d070e839204276",
+  "reviewed_head_sha": "2c3c308ee27d2920063dcd29777c5ef084484381",
+  "artifact_sha256": "f6b7a8f4df5771332dafe49bf67ddfdfdadc12b31227b91ab273424c1a3a7231",
+  "reservation_id": "ed8599f0e03f4bbfbac10fa1298efec9",
+  "rid": "ed8599f0e03f4bbfbac10fa1298efec9",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1705d-987b-7630-820f-7da4e36386c0",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T00:02:23.485463Z",
+      "finished_at": "2026-10-25T00:04:03.519137Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1705d-9862-7a63-b025-909476e84906",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T00:02:23.485717Z",
+      "finished_at": "2026-10-25T00:03:30.954536Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1705d-9861-75d1-b8e5-eaa4a47fe8f9",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T00:02:23.485961Z",
+      "finished_at": "2026-10-25T00:03:57.175661Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ed8599f0e03f4bbfbac10fa1298efec9/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-247-one-language-for-the-framework-a-rust.9.json",
+  "created_at": "2026-10-25T00:04:03.542233Z"
+}

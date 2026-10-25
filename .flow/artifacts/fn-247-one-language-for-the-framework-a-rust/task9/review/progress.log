@@ -1,0 +1,3 @@
+draw contracts: SHIP in 67.5s
+draw integration: SHIP in 93.7s
+draw correctness: SHIP in 100.0s

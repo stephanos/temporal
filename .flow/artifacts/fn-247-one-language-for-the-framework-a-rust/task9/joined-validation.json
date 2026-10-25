@@ -21,5 +21,12 @@
   "clippy_exit": 0,
   "commands_exit": 0,
   "scope": "merged xtask/process tests, TLC/Apalache libraries and four-package all-target Clippy; no full Model rerun",
-  "claim": "exec session 38179 completed exit 0, root inspected all three logs"
+  "claim": "exec session 38179 completed exit 0, root inspected all three logs",
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+  "commands": [
+    "BASH_ENV=/dev/null CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo test -p xtask -p umpire-backend-process --locked",
+    "BASH_ENV=/dev/null CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo test -p umpire-tlc -p umpire-apalache --lib --locked",
+    "BASH_ENV=/dev/null CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2479-target MISE_AUTO_INSTALL=false MISE_EXEC_AUTO_INSTALL=false mise exec -- cargo clippy -p xtask -p umpire-backend-process -p umpire-tlc -p umpire-apalache --all-targets --locked -- -D warnings"
+  ],
+  "argv_provenance": "Root supplied exact sequential argv from exec session38179 after review; command/log/source hashes and exit0 observations predate review."
 }
