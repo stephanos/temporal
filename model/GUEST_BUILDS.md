@@ -174,8 +174,9 @@ is not claimed for this migration. The earlier proofs below retain their own pin
 fn-248's six lanes changed sources and the lockfile inside the Temporal guest closure
 (`thiserror`, `prost-types` WKTs, `quote`/`darling` catalog generation, IR traversal;
 enum-iterator removed), so the committed asset went stale. `make umpire-guest` on the
-joined inputs published 3516063 bytes, SHA-256
-`dca9ec1ac97038d5ff2cf9793eb72a0c878a0a720306c049b5e7518aa48b93c5`. A clean clone at a
+joined inputs, including the completion-review fixes that fully qualify the generated
+`AnyMessage` calls, published 3516063 bytes, SHA-256
+`11c953c35455d99d003aa774c75b11ffe90239e52acaaad3ba04a42afad8f68a`. A clean clone at a
 different path with an independent empty target rebuilt identical bytes and passed the
 freshness check. The fn-250.4/.5 back-end changes are outside the guest closure.
 Linux/aarch64 only; no macOS certification is claimed.
