@@ -113,7 +113,6 @@ the xtask and the guest regeneration.
 | --- | --- | --- |
 | fn-248.1 | 🔄 in progress | Goldens on insta: hand-rolled comparisons and fixture-runner text snapshots; independent source lane, joined snapshots accepted once (R4) |
 | fn-248.2 | 🔄 in progress | One copy each: panic message, SplitMix64, probe applicability, front error collector, test edit and hex helpers (R2) |
-| fn-248.4 | 🔄 in progress | Parallel source lane: `heck`, `darling` and `quote` in the macro and build crates (R1) |
 | fn-248.5 | 🔄 in progress | Parallel source lane: `thiserror` and `prost-types`; remove `enum-iterator` (R1) |
 | fn-248.7 | ⬜ todo | After .1–.6: central merge, reviewed snapshot acceptance, current guest proof and one complete validation pipeline (R5) |
 
@@ -156,13 +155,14 @@ before fn-246, which rewrites the same probes.
 Filed on 2026-10-24 from the owner's duplication review: independent small consolidations (about 1,100–1,300 lines,
 plus ~12.9k lines of committed spike output). A parallel lane after fn-248, before fn-246, which reuses the search
 and migrates the activity tests.
+On 2026-10-25 the owner authorized .3 and .4 ahead of the whole fn-248 closure in separate isolated lanes; other fn-252 work still waits for fn-248.
 [Spec](.flow/specs/fn-252-quick-consolidation-wins-in-model-code.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-252.1 | ⬜ todo | One shortest-path search in the suite (R1) |
-| fn-252.3 | ⬜ todo | Delete committed spike output; no copied Kettle in the spike (R3) |
-| fn-252.4 | ⬜ todo | Native fixtures reuse `Tiny`; one `SpaceBinding` impl (R4) |
+| fn-252.3 | 🔄 in progress | Delete committed spike output; no copied Kettle in the spike (R3) |
+| fn-252.4 | 🔄 in progress | Native fixtures reuse `Tiny`; one `SpaceBinding` impl (R4) |
 | fn-252.5 | ⬜ todo | After fn-251.6 where it touches `temporal/annotate`: trybuild cases to tables, guest test harness, `protocol::Method`, catalog-syntax tests (R5) |
 | fn-252.6 | ⬜ todo | Activity TLC replay through the shared replay (fn-250.3's core if landed) (R6) |
 | fn-252.7 | ⬜ todo | One proto-go script, one wasm environment variable, workspace lints for guests (R7) |
