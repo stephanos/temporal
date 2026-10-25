@@ -34,9 +34,9 @@ fn nested_blocks_and_effect_helpers_preserve_caller_locals()
         })
         .collect::<BTreeSet<_>>();
     assert_eq!(expected.len(), 2);
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let result = Tlc::discover(&root)?.check_module(&module)?;
-    let evidence = root.join(".flow/tmp/tlc-controls");
+    let evidence = root.join("build/evidence/tlc-controls");
     fs::create_dir_all(&evidence)?;
     fs::write(evidence.join("shadowing.txt"), &result.output)?;
     assert_eq!(result.states, expected);

@@ -64,13 +64,13 @@ func newKettleRunWithOptions(t *testing.T, options kettle.Options) *kettleRun {
 	if path == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../../target"
+			target = "../../target"
 		}
 		path = filepath.Join(target, "wasm32-wasip1", "guest", "umpire_kettle_guest.wasm")
 	}
 	wasm, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("Kettle guest required; build with model/scripts/guest.sh umpire-kettle-guest <path>: %v", err)
+		t.Fatalf("Kettle guest required; build with scripts/guest.sh umpire-kettle-guest <path>: %v", err)
 	}
 	host, err := model.New(ctx, wasm)
 	if err != nil {

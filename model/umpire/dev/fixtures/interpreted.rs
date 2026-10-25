@@ -235,7 +235,7 @@ fn length_differences_agree_on_every_back_end() -> TestResult {
         );
         return Ok(());
     }
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = umpire_tlc::Tlc::discover(&root)?;
     // rustc names this `#[path]` module's file relative to the workspace, not to this test.
     let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lengths.rs");

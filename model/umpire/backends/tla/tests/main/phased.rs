@@ -188,7 +188,7 @@ fn shared_definitions_never_take_an_authored_name() -> Result<(), Box<dyn std::e
     if std::env::var("UMPIRE_BACKENDS").as_deref() == Ok("require") {
         use umpire_tlc::{State, Value};
         let module = umpire_tla::Tla::emit(&Lift::parse("collision.rs", &source)?)?;
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
         let expected = [(0, false), (1, true), (2, true)]
             .map(|(count, done)| {

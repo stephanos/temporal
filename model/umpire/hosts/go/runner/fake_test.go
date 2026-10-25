@@ -28,13 +28,13 @@ func guest(t *testing.T, variable, name string) []byte {
 	if path == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../../../target"
+			target = "../../../target"
 		}
 		path = filepath.Join(target, "wasm32-wasip1", "guest", name)
 	}
 	wasm, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("%s required; build with model/scripts/tests/build-guests.sh: %v", name, err)
+		t.Fatalf("%s required; build with scripts/tests/build-guests.sh: %v", name, err)
 	}
 	return wasm
 }

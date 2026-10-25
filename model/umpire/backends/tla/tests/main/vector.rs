@@ -98,7 +98,7 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
     );
     let conditional_limit =
         conditional_guard("if self.values.len() < (if condition { 2 } else { 2 })");
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     for (name, source) in [
         ("vector", source),
         ("vector_saved_length", saved.as_str()),
@@ -110,8 +110,8 @@ fn real_vector_native_and_tlc_states_and_properties_agree() -> Result<(), Box<dy
     ] {
         let module = Tla::emit(&Lift::parse("vector.rs", source)?)?;
         let result = umpire_tlc::Tlc::discover(&root)?.check_module(&module)?;
-        fs::create_dir_all(root.join(".flow/tmp/tlc-controls"))?;
-        fs::write(root.join(format!(".flow/tmp/tlc-controls/{name}.txt")), &result.output)?;
+        fs::create_dir_all(root.join("build/evidence/tlc-controls"))?;
+        fs::write(root.join(format!("build/evidence/tlc-controls/{name}.txt")), &result.output)?;
         assert_eq!(result.states, expected);
         assert_eq!(result.properties["Invariant_contents"].verdict, Verdict::Verified);
         assert_eq!(result.properties["Invariant_never_two"].verdict, Verdict::Refuted);
@@ -266,14 +266,17 @@ fn vector_get_keeps_eager_default_failures_when_element_is_present()
         "vector_fallback.rs",
         include_str!("../fixtures/vector_fallback.rs"),
     )?)?;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let error = umpire_tlc::Tlc::discover(&root)?
         .check_module(&module)
         .err()
         .ok_or("present Vector element suppressed eager fallback failure")?;
     assert!(error.to_string().contains("overflow"), "{error}");
-    std::fs::create_dir_all(root.join(".flow/tmp/tlc-controls"))?;
-    std::fs::write(root.join(".flow/tmp/tlc-controls/vector_fallback.txt"), error.to_string())?;
+    std::fs::create_dir_all(root.join("build/evidence/tlc-controls"))?;
+    std::fs::write(
+        root.join("build/evidence/tlc-controls/vector_fallback.txt"),
+        error.to_string(),
+    )?;
     Ok(())
 }
 

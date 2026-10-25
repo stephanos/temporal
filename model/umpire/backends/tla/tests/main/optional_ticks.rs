@@ -272,7 +272,7 @@ fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
 -> Result<(), Box<dyn std::error::Error>> {
     use eager::optional_eager::World;
     use umpire_dsl::Machine;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let source =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/optional_eager.rs");
     for site in 0..=2 {
@@ -316,7 +316,7 @@ fn present_optional_keeps_eager_errors_in_guard_assignment_and_claim()
             "site {site}"
         );
         std::fs::write(
-            root.join(format!(".flow/tmp/fn2372-eager-safety-{site}.log")),
+            root.join(format!("build/evidence/fn2372-eager-safety-{site}.log")),
             checked.output,
         )?;
     }

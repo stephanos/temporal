@@ -439,7 +439,7 @@ fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
         Ok(umpire_tla::Tla::emit(&umpire_tla::Lift::parse("facts.rs", source)?.bind(&binding)?)?)
     };
     let module = emit(source)?;
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let tlc = umpire_tlc::Tlc::discover(&root)?;
     let result = tlc.check_module(&module)?;
     let starts = FactEdges.starts();

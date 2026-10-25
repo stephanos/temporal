@@ -16,14 +16,15 @@ retains the complete witness from Reset, including earlier callback delivery;
 a later Current observation repeats that witness. Reports already returned remain
 claims about their own observation prefixes.
 
-From `model/`, run `mise exec -- cargo test -p umpire-reference-kettle`.
-The guest uses the common pinned builder via `make model-check` at repository root.
+From the framework root, run `mise exec -- cargo test -p umpire-reference-kettle`.
+Build its guest from the same root with
+`bash scripts/guest.sh umpire-kettle-guest target/wasm32-wasip1/guest/umpire_kettle_guest.wasm`.
 
 The Go server, native/wasm parity and live host tests live here in module
 `umpire.local/kettle`, with generated API under `gen/kettle/v1`. Its `go.mod`
 replaces `umpire.local/model` with `../../hosts/go`; it imports the transport
 from `umpire.local/model/host`. Regenerate with
-`bash model/scripts/proto-go.sh kettle` at repository root; `--check` verifies
+`bash scripts/proto-go.sh kettle` at the framework root; `--check` verifies
 the pinned protoc 29.5, protoc-gen-go v1.36.6 and protoc-gen-go-grpc v1.3.0 output.
 The host test requires the built guest and fails if it is missing.
 
@@ -38,16 +39,16 @@ These measurements include the new reference in the normal gate.
 per-kettle tag limit through the shared resolved-limit context. The live guest uses
 `annotation_runtime()` so every healthy RPC request and response is inspected.
 
-The native `tests/main/probes.rs` checks `expected/coverage.txt.snap`. From `model/`,
+The native `tests/main/probes.rs` checks `expected/coverage.txt.snap`. From the framework root,
 produce candidates with `INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test main probes::`.
 Go remains the live producer/comparator of `expected/{coverage,gaps,mutants,transcript}.txt.snap`.
-To export live candidates, from `model/umpire/reference/kettle` run:
+To export live candidates, from `reference/kettle` run:
 
 ```sh
 go test -tags test_dep -run '^TestKettle(AnnotationCoverageAndActualWireGaps|Mutants|JudgeAnswerTranscript)$' -count=1 . -args -umpire-snapshot-candidates /tmp/kettle-candidates
 ```
 
-Comparisons still run and mismatches fail. Then, from `model/`, import those explicit candidates:
+Comparisons still run and mismatches fail. Then, from the framework root, import those explicit candidates:
 
 ```sh
 UMPIRE_SNAPSHOT_CANDIDATES=/tmp/kettle-candidates INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots -- --ignored

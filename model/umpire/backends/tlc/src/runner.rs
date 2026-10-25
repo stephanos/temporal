@@ -13,7 +13,7 @@ pub const JAR_VERSION: &str = "1.7.4";
 /// SHA-256 of the official v1.7.4 release asset.
 pub const JAR_SHA256: &str = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88";
 const TLC_VERSION: &str = "Version 2.19 of 08 August 2024";
-const CACHE: &str = "model/build/tlc";
+const CACHE: &str = "build/tlc";
 use umpire_backend_process::{PinnedJar, Scratch, bounded_text, java_command, run_process};
 
 /// An admitted property result.
@@ -125,7 +125,7 @@ impl Tlc {
         })
         .map_err(|Refusal(message)| {
             if message.starts_with("missing pinned jar") {
-                Refusal(format!("{message}; run bash model/scripts/fetch-tlc.sh"))
+                Refusal(format!("{message}; run bash scripts/fetch-tlc.sh"))
             } else {
                 Refusal(message)
             }
@@ -941,23 +941,23 @@ mod tests {
     #[test]
     #[cfg(unix)]
     fn escaping_cache_symlinks_are_refused_before_creating_files() -> Result<(), Refusal> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let result = (|| {
             let fake = scratch.path().join("repo");
             let outside = scratch.path().join("outside");
-            fs::create_dir_all(fake.join("model"))?;
+            fs::create_dir_all(&fake)?;
             fs::create_dir(&outside)?;
-            std::os::unix::fs::symlink(&outside, fake.join("model/build"))?;
+            std::os::unix::fs::symlink(&outside, fake.join("build"))?;
             assert!(Scratch::new(&fake).is_err());
             assert!(
                 !outside.join("tlc").exists(),
                 "escaping cache wrote outside the root before admission"
             );
-            let scripts = fake.join("model/scripts");
+            let scripts = fake.join("scripts");
             fs::create_dir(&scripts)?;
             let script = scripts.join("fetch-tlc.sh");
-            fs::copy(root.join("model/scripts/fetch-tlc.sh"), &script)?;
+            fs::copy(root.join("scripts/fetch-tlc.sh"), &script)?;
             let mut fetch = Command::new("bash");
             fetch.arg(&script).current_dir(&fake);
             let (status, output) =
@@ -975,18 +975,15 @@ mod tests {
 
     #[test]
     fn process_limits_kill_and_reap_and_jar_admission_fails_closed() -> Result<(), Refusal> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").canonicalize()?;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let scratch = Scratch::new(&root)?;
         let result = (|| {
             let error = Tlc::discover(scratch.path())
                 .err()
                 .ok_or_else(|| Refusal("missing jar admitted".into()))?;
             assert!(error.0.contains("missing pinned jar"));
-            fs::create_dir_all(scratch.path().join("model/build/tlc"))?;
-            fs::write(
-                scratch.path().join("model/build/tlc/tla2tools-1.7.4.jar"),
-                b"wrong version",
-            )?;
+            fs::create_dir_all(scratch.path().join("build/tlc"))?;
+            fs::write(scratch.path().join("build/tlc/tla2tools-1.7.4.jar"), b"wrong version")?;
             fs::write(scratch.path().join("mise.toml"), "java = \"temurin-27\"\n")?;
             let error = Tlc::discover(scratch.path())
                 .err()

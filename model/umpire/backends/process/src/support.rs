@@ -49,7 +49,7 @@ pub struct Scratch(tempfile::TempDir);
 
 impl Scratch {
     pub fn new(root: &Path) -> Result<Self, Refusal> {
-        Self::new_in(root, "model/build/tlc")
+        Self::new_in(root, "build/tlc")
     }
 
     pub fn new_in(root: &Path, relative: &str) -> Result<Self, Refusal> {

@@ -1,7 +1,7 @@
-use umpire_tla::observers::PENDING;
 use crate::action_inputs::inputs;
 use inputs::World;
 use umpire::dsl::{CATALOG_LIMIT, Claim, Machine};
+use umpire_tla::observers::PENDING;
 
 // The golden World polls up to two attempts and has no skip slots.
 umpire_testing::fixture!(
@@ -87,9 +87,12 @@ fn each_source_binding_carries_its_selected_catalog_into_every_configuration()
         }
     );
     let fair = |module: &umpire_tla::Module, claim: &str| {
-        module.metadata.progress.iter().find(|progress| progress.name == claim).map(|progress| {
-            (progress.allowed_inputs.clone(), progress.fair_inputs.clone())
-        })
+        module
+            .metadata
+            .progress
+            .iter()
+            .find(|progress| progress.name == claim)
+            .map(|progress| (progress.allowed_inputs.clone(), progress.fair_inputs.clone()))
     };
     assert_eq!(fair(&first, "excluded_poll_settles"), Some((vec![1, 2, 3], vec![1])));
     assert_eq!(fair(&second, "excluded_poll_settles"), Some((vec![1, 2, 3, 4, 5, 6], vec![1])));
@@ -166,20 +169,21 @@ fn mutated(
         .filter(|line| !line.starts_with("INVARIANT") && !line.starts_with("PROPERTY"))
         .flat_map(|line| [line, "\n"])
         .collect();
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let result = umpire_tlc::Tlc::discover(&root)?.check_module(&reduced)?;
     Ok(result.properties[&format!("Progress_{claim}")].verdict)
 }
 
 #[test]
-fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts()
--> umpire_testing::TestResult {
+fn exact_payload_fairness_mutations_disagree_with_the_native_verdicts() -> umpire_testing::TestResult
+{
     use umpire_tlc::Verdict::{Refuted, Verified};
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
         return Ok(());
     }
     let module = lifted(std::path::Path::new("fixtures/action_inputs/model.rs"))?;
-    let fair = format!("Fair_current_poll_settles_Worker_Poll_2 == ({PENDING} = 1) /\\ Worker_Poll_At(2)");
+    let fair =
+        format!("Fair_current_poll_settles_Worker_Poll_2 == ({PENDING} = 1) /\\ Worker_Poll_At(2)");
     let readmitted = " /\\ WF_vars(Fair_excluded_poll_settles_Worker_Poll_2)";
     for (claim, edits, native, mutant) in [
         // One obligation over the existential union is discharged by stale self-loops.

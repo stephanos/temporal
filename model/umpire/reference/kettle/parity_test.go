@@ -17,7 +17,7 @@ func guestBytes(t testing.TB) []byte {
 	if path == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../../target"
+			target = "../../target"
 		}
 		path = filepath.Join(target, "wasm32-wasip1/guest/umpire_stock_guest.wasm")
 	}

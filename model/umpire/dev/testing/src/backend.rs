@@ -105,10 +105,7 @@ pub fn check_exploration<M: Machine<State: Values, Outcome: IntoValue, Fact: Int
     native: &crate::Files,
     identity: Option<&dyn Fn(&M::Action) -> Concrete>,
 ) -> crate::RunResult {
-    let root = folder
-        .ancestors()
-        .find(|path| path.join("mise.toml").is_file())
-        .ok_or("backend repository root not found")?;
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     if native_graph.counts.cut {
         return Err("native exploration is cut; no complete agreement".into());
     }
@@ -119,7 +116,7 @@ pub fn check_exploration<M: Machine<State: Values, Outcome: IntoValue, Fact: Int
     if native_states.len() != native_graph.counts.reached {
         return Err("native state Display collision prevents exact backend agreement".into());
     }
-    let complete = umpire_tlc::Tlc::discover(root)?.check_module(module)?;
+    let complete = umpire_tlc::Tlc::discover(&root)?.check_module(module)?;
     eprintln!("TLC raw output for {}:\n{}", folder.display(), complete.output);
     let states = complete
         .states
