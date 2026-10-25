@@ -7,10 +7,10 @@
 
 ## Rules
 
-- Use WASM for guest execution.
-- Keep execution and replay deterministic.
-- Authenticate retained evidence.
-- Keep resource limits explicit.
-- Prefer typed contracts and shared validators.
-- Test real boundaries before expensive runs.
-- Match completion claims to execution evidence.
+- WASM: run guest code inside WASM.
+- Determinism: the same candidate and inputs produce the same guest behavior.
+- Evidence: verify provenance and contents before trusting artifacts.
+- Limits: make memory, fuel, time, and output bounds explicit.
+- Types and validators: use structs/enums and shared validation code.
+- Tests: exercise small, real boundaries before expensive runs.
+- Completion: claim only what the required acceptance checks actually prove.
