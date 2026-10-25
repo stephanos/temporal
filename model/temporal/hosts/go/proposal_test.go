@@ -123,7 +123,7 @@ func TestConfiguredProposalNativeWasmParity(t *testing.T) {
 		t.Fatalf("an unchanged Started read must continue: %v", current)
 	}
 	result = judge(t, h, configuredObservation(t, instruction.GetRequest(), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), program, "Complete", 1))
-	explained(t, result, "Worker::RespondCompleted")
+	explained(t, result, "Worker::Poll(1)", "Worker::RespondCompleted")
 	if result.GetContinuePolling() {
 		t.Fatalf("response is final: %v", result)
 	}
@@ -178,12 +178,12 @@ func TestProposalReviewedRaces(t *testing.T) {
 				_, err = h.Propose(ctx, &modelv1.ProposeRequest{Seed: 1})
 				refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
 				result = judge(t, h, configuredObservation(t, instruction.GetRequest(), started(t), program, "RetryThenComplete", 2))
-				explained(t, result, "Worker::Poll(2)")
+				explained(t, result, "Worker::Poll(1)", "Worker::RespondFailed { retryable: true }", "Worker::Poll(2)")
 				if !result.GetContinuePolling() {
 					t.Fatalf("retry Started progress must preserve pending read: %v", result)
 				}
 				result = judge(t, h, configuredObservation(t, instruction.GetRequest(), observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0), program, "RetryThenComplete", 2))
-				explained(t, result, "Worker::RespondCompleted")
+				explained(t, result, "Worker::Poll(1)", "Worker::RespondFailed { retryable: true }", "Worker::Poll(2)", "Worker::RespondCompleted")
 				if result.GetContinuePolling() {
 					t.Fatalf("terminal retry result must finish read: %v", result)
 				}

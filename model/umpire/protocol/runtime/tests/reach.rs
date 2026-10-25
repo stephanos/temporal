@@ -258,9 +258,12 @@ fn positive_zero_step_model_self_loop_and_declared_stutter_require_separate_evid
     unexplained(&judge(&mut changed));
     let mut declared = Runtime::new(Graph(CHANGE), binding(0, 0, 16, Predicate::DeclaredStutter));
     assert_eq!(explanation(judge(&mut declared)).steps, [] as [String; 0]);
-    let mut changed_target =
-        Runtime::new(Graph(CHANGE), binding(1, 0, 16, Predicate::DeclaredStutter));
-    unexplained(&judge(&mut changed_target));
+    for target in [State(1, Some(3)), State(0, Some(2))] {
+        let mut changed = binding(0, 0, 16, Predicate::DeclaredStutter);
+        changed.target = target;
+        let mut changed_target = Runtime::new(Graph(CHANGE), changed);
+        unexplained(&judge(&mut changed_target));
+    }
 }
 
 #[derive(Clone, Copy)]
