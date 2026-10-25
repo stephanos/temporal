@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: User::Advance choice=0 outcome=Accepted facts=[] -> Model { value: 1 }
+0: User::Ping choice=0 outcome=Accepted facts=[] -> Model { value: 0 }
+0: User::Refuse choice=0 outcome=Rejected(FailedPrecondition) facts=[] -> Model { value: 0 }
+1: User::Ping choice=0 outcome=Accepted facts=[] -> Model { value: 1 }
+1: User::Refuse choice=0 outcome=Rejected(FailedPrecondition) facts=[] -> Model { value: 1 }

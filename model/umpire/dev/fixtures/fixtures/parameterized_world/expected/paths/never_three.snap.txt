@@ -1,2 +1,0 @@
-start: Model { value: 2, origin: 2 }
-1: User::Advance choice=0 -> Model { value: 3, origin: 2 }

@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+CONSTANT __umpire_world_value = 1
+CONSTANT __umpire_world_limit = 3
+INVARIANT Invariant_bounded
+PROPERTY Post_advances

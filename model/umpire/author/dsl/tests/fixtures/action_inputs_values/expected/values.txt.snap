@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+Idle | User::Idle
+Set { value: 0, enabled: false } | User::Set { value: 0, enabled: false }
+Set { value: 0, enabled: true } | User::Set { value: 0, enabled: true }
+Set { value: 1, enabled: false } | User::Set { value: 1, enabled: false }
+Set { value: 1, enabled: true } | User::Set { value: 1, enabled: true }
+Label("a") | User::Label("a")
+Label("b") | User::Label("b")
+unique cloned actions: 7
+Clock::Tick(1): internal=true fault=true
+Clock::Tick(2): internal=true fault=true
+Network::Drop: internal=false fault=true

@@ -71,7 +71,7 @@ fn with_control(
     let expected = root.join("control/expected");
     fs::create_dir_all(&expected)?;
     fs::write(root.join("control/model.rs"), "")?;
-    fs::write(expected.join("coverage.snap.txt"), "seed\n")?;
+    fs::write(expected.join("coverage.txt.snap"), "---\nsource: control.rs\n---\nseed\n")?;
     let result = check(&root, &expected);
     fs::remove_dir_all(root)?;
     result
@@ -82,8 +82,11 @@ fn suite_snapshots_update_compare_and_reject_orphans() -> Result<(), Box<dyn Err
     with_control("snapshots", |root, expected| {
         let updated = child(root, "always", "first\n", true, false)?;
         assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
-        for file in ["expansion.snap.txt", "expansion/sample.snap.txt", "coverage.snap.txt"] {
-            assert_eq!(fs::read_to_string(expected.join(file))?, "first\n");
+        for file in ["expansion.txt.snap", "expansion/sample.txt.snap", "coverage.txt.snap"] {
+            assert_eq!(
+                umpire_testing::snapshot_payload(&fs::read_to_string(expected.join(file))?)?,
+                "first\n"
+            );
         }
         for _ in 0..2 {
             let checked = child(root, "no", "first\n", true, false)?;
@@ -96,7 +99,7 @@ fn suite_snapshots_update_compare_and_reject_orphans() -> Result<(), Box<dyn Err
             "{}",
             String::from_utf8_lossy(&mismatch.stderr)
         );
-        fs::write(expected.join("expansion/orphan.snap.txt"), "orphan\n")?;
+        fs::write(expected.join("expansion/orphan.txt.snap"), "orphan\n")?;
         let orphan = child(root, "always", "first\n", true, false)?;
         assert!(!orphan.status.success(), "orphan suite golden passed during update");
         assert!(String::from_utf8_lossy(&orphan.stderr).contains("golden has no fixture"));
@@ -124,11 +127,21 @@ fn checker_and_suite_share_one_fixture_producer() -> Result<(), Box<dyn Error>> 
         assert!(
             String::from_utf8_lossy(&unselected.stderr).contains("undeclared output report.txt")
         );
-        fs::write(expected.join("report.snap.txt"), "seed\n")?;
+        fs::write(expected.join("report.txt.snap"), "---\nsource: control.rs\n---\nseed\n")?;
         let updated = child(root, "always", "suite selected\n", true, true)?;
         assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stderr));
-        assert_eq!(fs::read_to_string(expected.join("report.snap.txt"))?, "checker selected\n");
-        assert_eq!(fs::read_to_string(expected.join("coverage.snap.txt"))?, "suite selected\n");
+        assert_eq!(
+            umpire_testing::snapshot_payload(&fs::read_to_string(
+                expected.join("report.txt.snap")
+            )?)?,
+            "checker selected\n"
+        );
+        assert_eq!(
+            umpire_testing::snapshot_payload(&fs::read_to_string(
+                expected.join("coverage.txt.snap")
+            )?)?,
+            "suite selected\n"
+        );
         let checked = child(root, "no", "suite selected\n", true, true)?;
         assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stderr));
         Ok(())

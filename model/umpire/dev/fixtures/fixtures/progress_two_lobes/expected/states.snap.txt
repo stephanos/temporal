@@ -1,4 +1,0 @@
-0: Model { value: 0 }
-1: Model { value: 1 }
-2: Model { value: 2 }
-3: Model { value: 9 }

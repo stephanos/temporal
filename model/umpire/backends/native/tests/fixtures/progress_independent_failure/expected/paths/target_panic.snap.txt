@@ -1,2 +1,0 @@
-start: State { 0: 0 }
-failure: claim target_panic panicked: broken progress target

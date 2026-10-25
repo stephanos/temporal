@@ -1,2 +1,0 @@
-start: Model { remaining: None, started: false }
-1: Clock::Start choice=0 -> Model { remaining: Some(Remaining { ticks: 3 }), started: true }

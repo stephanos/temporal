@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+prefix:
+start: Model { attempt: 1, done: false, failed: false, skipped: false }
+cycle:
+1: Worker::Poll(2) choice=0 -> Model { attempt: 1, done: false, failed: false, skipped: false }
+repeat cycle

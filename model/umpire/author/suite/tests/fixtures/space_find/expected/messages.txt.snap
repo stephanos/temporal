@@ -1,0 +1,46 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+beeping, from 97:
+start: Model { temperature: 97, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 97, heating_on: true, beeping: false }
+2: Heater::Heat choice=0 -> Model { temperature: 98, heating_on: true, beeping: false }
+3: Heater::Heat choice=0 -> Model { temperature: 99, heating_on: true, beeping: false }
+4: Heater::Heat choice=0 -> Model { temperature: 100, heating_on: true, beeping: false }
+5: Heater::Failover choice=0 -> Model { temperature: 100, heating_on: false, beeping: true }
+boiling, from whichever of 20 and 98 is above 90:
+start: Model { temperature: 98, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 98, heating_on: true, beeping: false }
+2: Heater::Heat choice=0 -> Model { temperature: 99, heating_on: true, beeping: false }
+3: Heater::Heat choice=0 -> Model { temperature: 100, heating_on: true, beeping: false }
+heating, 99 within 2, then off:
+start: Model { temperature: 97, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 97, heating_on: true, beeping: false }
+2: Heater::Heat choice=0 -> Model { temperature: 98, heating_on: true, beeping: false }
+3: Heater::Heat choice=0 -> Model { temperature: 99, heating_on: true, beeping: false }
+4: User::DepressButton choice=0 -> Model { temperature: 99, heating_on: false, beeping: false }
+beeping within 4 steps:
+refused: waypoint 1 is not reached from Model { temperature: 97, heating_on: false, beeping: false }
+below freezing:
+refused: waypoint 1 is not reached from Model { temperature: 97, heating_on: false, beeping: false }
+beeping, from 20, budget 10:
+refused: waypoint 1 is not reached from Model { temperature: 20, heating_on: false, beeping: false } within the state budget
+beeping, from 20 outside the space:
+refused: waypoint 0 is not reached from Model { temperature: 97, heating_on: false, beeping: false }
+heating, then 22 within 1 (the first heating state is too far):
+start: Model { temperature: 20, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 20, heating_on: true, beeping: false }
+2: Heater::Heat choice=0 -> Model { temperature: 21, heating_on: true, beeping: false }
+3: Heater::Heat choice=0 -> Model { temperature: 22, heating_on: true, beeping: false }
+beeping within 2, from 20, budget 10:
+refused: waypoint 1 is not reached from Model { temperature: 20, heating_on: false, beeping: false }
+below freezing, from 20 or 98:
+refused: waypoint 0 is not reached from the space's 2 starts
+duplicate starts, below freezing, budget 1:
+refused: waypoint 0 is not reached from the space's 2 starts within the state budget
+predicate at start:
+refused: waypoint 0 panicked at Model { temperature: 97, heating_on: false, beeping: false }: start predicate
+predicate after a step:
+refused: waypoint 1 panicked at Model { temperature: 98, heating_on: true, beeping: false }: later predicate
+non-string predicate panic:
+refused: waypoint 1 panicked at Model { temperature: 97, heating_on: false, beeping: false }: non-string panic payload

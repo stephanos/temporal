@@ -1,8 +1,0 @@
-prefix:
-start: Model { value: 0 }
-cycle:
-1: Environment::Left choice=0 -> Model { value: 1 }
-2: Environment::Left choice=0 -> Model { value: 0 }
-3: Environment::Right choice=0 -> Model { value: 2 }
-4: Environment::Right choice=0 -> Model { value: 0 }
-repeat cycle

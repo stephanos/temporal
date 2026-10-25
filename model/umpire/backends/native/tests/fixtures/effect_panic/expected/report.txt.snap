@@ -1,0 +1,18 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 4
+refused: 3
+depth: 0
+cut: false
+outcome: Refuted
+claim safe: Verified
+claim step_0_0: Refuted
+failure step_0_0: action Action::Advance panicked: broken heater
+vacuity: action Action::Advance never fired
+vacuity: action Action::Reset never fired
+vacuity: action Action::Idle never fired
+vacuity: action Action::Unused never fired

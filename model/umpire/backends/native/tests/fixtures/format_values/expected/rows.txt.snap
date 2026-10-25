@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Action::Advance { amount: 1 } choice=0 outcome=Accepted facts=[Changed { amount: 1 }] -> State { value: Some((1, true)) }

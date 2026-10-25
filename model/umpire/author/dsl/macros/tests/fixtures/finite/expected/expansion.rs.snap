@@ -1,0 +1,41 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+#[automatically_derived]
+impl ::umpire_dsl::Finite for Speed {
+    fn domain() -> impl ::core::iter::Iterator<Item = Self> {
+        ::core::iter::IntoIterator::into_iter([Self::Slow, Self::Fast] as [Self; 2usize])
+    }
+}
+#[doc(hidden)]
+impl ::umpire_dsl::IntoValue for Speed {
+    fn value(&self) -> ::umpire_dsl::Value {
+        match *self {
+            Self::Slow => ::umpire_dsl::Value::Enum("Speed::Slow"),
+            Self::Fast => ::umpire_dsl::Value::Enum("Speed::Fast"),
+        }
+    }
+}
+#[automatically_derived]
+impl ::umpire_dsl::Finite for Level {
+    fn domain() -> impl ::core::iter::Iterator<Item = Self> {
+        ::core::ops::RangeInclusive::<i8>::new(-1, 3).map(|raw| Self(raw))
+    }
+    fn __umpire_input_domain() -> ::umpire_dsl::InputDomain<Self>
+    where
+        Self: 'static,
+    {
+        ::umpire_dsl::InputDomain::range(::core::ops::RangeInclusive::<i8>::new(-1, 3))
+            .map(|raw| Self(raw))
+    }
+}
+impl Level {
+    /// Builds a value only when `raw` lies in the declared range.
+    pub fn try_new(raw: i8) -> ::core::option::Option<Self> {
+        Self::contains(raw).then_some(Self(raw))
+    }
+    /// Whether `raw` lies in the declared range.
+    pub fn contains(raw: i8) -> bool {
+        ::core::ops::RangeInclusive::<i8>::new(-1, 3).contains(&raw)
+    }
+}

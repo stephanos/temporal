@@ -1,2 +1,0 @@
-0: Action::Advance choice=0 outcome=() facts=[] -> State { 0: 1 }
-0: Action::Loop choice=0 outcome=() facts=[] -> State { 0: 2 }

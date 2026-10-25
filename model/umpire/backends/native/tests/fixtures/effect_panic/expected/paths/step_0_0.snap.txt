@@ -1,2 +1,0 @@
-start: Value { 0: 0 }
-failure: action Action::Advance panicked: broken heater

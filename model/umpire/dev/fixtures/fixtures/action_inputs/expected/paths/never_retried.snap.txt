@@ -1,2 +1,0 @@
-start: Model { attempt: 1, done: false, failed: false, skipped: false }
-1: Worker::Fail { retryable: true } choice=0 -> Model { attempt: 2, done: false, failed: false, skipped: false }

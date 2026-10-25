@@ -30,8 +30,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	model "umpire.local/model/host"
 	annotationsv1 "umpire.local/model/gen/umpire/annotations/v1"
+	model "umpire.local/model/host"
+	"umpire.local/model/snapshot"
 	temporalmodel "umpire.local/temporal"
 	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
@@ -477,7 +478,7 @@ func TestTestpilotModelGaps(t *testing.T) {
 	require.NoError(t, writeErr)
 	require.NoError(t, closeErr)
 	require.False(t, report.Fails, "catalog gap classification failed; value-free report:\n%s", report.Report)
-	golden, err := os.ReadFile(filepath.Join("..", "model", "temporal", "feature", "activity", "expected", "gaps.txt"))
+	golden, err := snapshot.Read(filepath.Join("..", "model", "temporal", "feature", "activity", "expected", "gaps.txt.snap"))
 	require.NoError(t, err, "gaps golden must be explicitly reviewed and created")
-	require.Equal(t, string(golden), report.Report, "stale gap golden")
+	require.Equal(t, golden, report.Report, "stale gap golden; import the actual .flow/tmp/fn2174-live-gap-report.txt through the explicit Rust insta control")
 }

@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+room_never_switched_off: Verified; Verified { longest: Some(81) }
+room_unrestricted: Refuted; Cycle
+hint: cycle User::DepressButton, User::PressButton: Heater::Heat stays enabled and is never taken; add fair(Heater::Heat) to the assumption, or admit fewer actions with only
+room_press_only: Refuted; Deadlock
+hint: deadlock: User::PressButton ends in Model { temperature: 20, heating_on: true, beeping: false }
+room_within_80: Refuted; MissedDeadline
+hint: a path of 80 steps reaches no target state
+room_fair_heat: Refuted; Cycle
+hint: cycle User::DepressButton, User::PressButton: Heater::Heat stays enabled and is never taken; add fair(Heater::Heat) to the assumption, or admit fewer actions with only
+cold_never_switched_off: Verified; Verified { longest: Some(141) }
+room_budget_10: Unknown; Unknown

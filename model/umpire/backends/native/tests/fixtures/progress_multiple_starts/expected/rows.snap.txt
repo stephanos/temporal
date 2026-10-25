@@ -1,1 +1,0 @@
-1: Action::Left choice=0 outcome=() facts=[] -> State { 0: 0 }

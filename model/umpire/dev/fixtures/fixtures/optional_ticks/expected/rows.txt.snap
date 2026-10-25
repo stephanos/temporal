@@ -1,0 +1,7 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Clock::Start choice=0 outcome=() facts=[] -> Model { remaining: Some(Remaining { ticks: 3 }), started: true }
+1: Clock::Tick choice=0 outcome=() facts=[] -> Model { remaining: Some(Remaining { ticks: 2 }), started: true }
+2: Clock::Tick choice=0 outcome=() facts=[] -> Model { remaining: Some(Remaining { ticks: 1 }), started: true }
+3: Clock::Tick choice=0 outcome=() facts=[] -> Model { remaining: Some(Remaining { ticks: 0 }), started: true }

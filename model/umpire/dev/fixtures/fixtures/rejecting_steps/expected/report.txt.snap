@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 2
+emitted: 5
+evaluated: 8
+refused: 3
+depth: 1
+cut: false
+outcome: Verified
+claim correct_outcome: Verified
+claim rejected_not_found: Verified
+vacuity: action User::Disabled never fired

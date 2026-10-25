@@ -1,0 +1,4 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+fixtures/kettle_progress/model.rs:1:1: warning: the lifter reads #[machine] Models; this source declares none; TLA+ emission refused

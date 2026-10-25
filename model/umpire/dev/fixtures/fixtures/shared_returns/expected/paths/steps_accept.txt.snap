@@ -1,0 +1,7 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+start: Model { count: 0, done: false, level: 250 }
+1: Client::Step choice=0 -> Model { count: 3, done: true, level: 250 }
+2: Client::Step choice=0 -> Model { count: 3, done: true, level: 250 }
+failure: check!(*outcome == Outcome::Accepted || self.count < 3) failed at Model { count: 3, done: true, level: 250 }

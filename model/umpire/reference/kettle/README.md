@@ -34,10 +34,23 @@ These measurements include the new reference in the normal gate.
 per-kettle tag limit through the shared resolved-limit context. The live guest uses
 `annotation_runtime()` so every healthy RPC request and response is inspected.
 
-The native `tests/probes.rs` checks the catalog coverage snapshot. Refresh it with
-`UMPIRE_UPDATE_KETTLE_COVERAGE=1 mise exec -- cargo test -p umpire-reference-kettle --test probes`.
-The Go actual-wire probe test owns `expected/gaps.txt`; from `model/umpire/reference/kettle`,
-refresh with `UMPIRE_UPDATE_KETTLE_GAPS=1 go test -tags test_dep -run '^TestKettleAnnotationCoverageAndActualWireGaps$' -count=1 .`.
+The native `tests/probes.rs` checks `expected/coverage.txt.snap`. From `model/`,
+produce candidates with `INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test probes`.
+Go remains the live producer/comparator of `expected/{coverage,gaps,mutants,transcript}.txt.snap`.
+To export live candidates, from `model/umpire/reference/kettle` run:
+
+```sh
+go test -tags test_dep -run '^TestKettle(AnnotationCoverageAndActualWireGaps|Mutants|JudgeAnswerTranscript)$' -count=1 . -args -umpire-snapshot-candidates /tmp/kettle-candidates
+```
+
+Comparisons still run and mismatches fail. Then, from `model/`, import those explicit candidates:
+
+```sh
+UMPIRE_SNAPSHOT_CANDIDATES=/tmp/kettle-candidates INSTA_UPDATE=new mise exec -- cargo test -p umpire-reference-kettle --test live_snapshots -- --ignored
+```
+
+Review the resulting text snapshot diffs before acceptance. The import control only bridges
+live output into insta; it establishes no Go execution or agreement itself.
 Invalid probes bypass normal request filling so the original bytes reach the server;
 unsupported mutations and transport failures cannot establish a server finding.
 

@@ -1,5 +1,0 @@
-start: Model { remaining: None, started: false }
-1: Clock::Start choice=0 -> Model { remaining: Some(Remaining { ticks: 3 }), started: true }
-2: Clock::Tick choice=0 -> Model { remaining: Some(Remaining { ticks: 2 }), started: true }
-failure: check!(self.remaining.unwrap_or(Remaining { ticks: 0 }).ticks ==
-previous.remaining.unwrap_or(Remaining { ticks: 0 }).ticks) failed at Model { remaining: Some(Remaining { ticks: 2 }), started: true }

@@ -1,0 +1,6 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+CONSTANT __umpire_world_limit = 2
+PROPERTY Post_steps_accept

@@ -1,0 +1,27 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 8
+emitted: 33
+evaluated: 56
+refused: 23
+depth: 4
+cut: false
+outcome: Refuted
+claim terminal_remains: Refuted
+failure terminal_remains: check!(after.phase() == before.phase()) failed at Model { phase: Queued, attempt: 2 }
+claim closed_rejects: Refuted
+failure closed_rejects: check!(after == before) failed at Model { phase: Queued, attempt: 2 }
+claim drop_rejects: Verified
+claim reopen_remains: Refuted
+failure reopen_remains: check!(after.phase() == before.phase()) failed at Model { phase: Queued, attempt: 2 }
+claim touch_remains: Verified
+claim touch_rejects: Refuted
+failure touch_rejects: check!(*outcome == Outcome::Rejected(expected)) failed at Model { phase: Dropped, attempt: 1 }
+claim recheck_rejects: Refuted
+failure recheck_rejects: check!(*outcome == Outcome::Rejected(expected)) failed at Model { phase: Dropped, attempt: 1 }
+claim steps_accept: Refuted
+failure steps_accept: check!(*outcome == Outcome::Accepted || self.closed()) failed at Model { phase: Queued, attempt: 1 }
+claim queued_job_runs: Verified
+vacuity: none

@@ -1,2 +1,0 @@
-0: User::Left choice=0 outcome=() facts=[] -> Model { value: 0 }
-0: Environment::Escape choice=0 outcome=() facts=[] -> Model { value: 9 }

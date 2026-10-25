@@ -1,1 +1,0 @@
-fixtures/kettle_cut/model.rs:1:1: warning: the lifter reads #[machine] Models; this source declares none; TLA+ emission refused

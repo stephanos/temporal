@@ -1,0 +1,11 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 283; native: 283; agreement: yes
+claim beeps_only_when_off: Verified; native: Verified; agreement: yes
+claim boils: Verified; native: Verified; agreement: yes
+claim fails_over_at_boiling: Verified; native: Verified; agreement: yes
+claim never_beeps: Refuted; native: Refuted; agreement: yes
+claim warms_only_when_on: Verified; native: Verified; agreement: yes
+counterexamples replayed: 1

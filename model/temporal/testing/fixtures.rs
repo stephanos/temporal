@@ -31,7 +31,7 @@ const TLC: umpire_testing::Consumer =
 const GAPS: umpire_testing::ExternalConsumer = umpire_testing::ExternalConsumer {
     name: "make umpire-check-model-gaps (TestTestpilotModelGaps)",
     fixture: "activity",
-    expected: "gaps.txt",
+    expected: "gaps.txt.snap",
 };
 
 #[allow(clippy::print_stderr)]
@@ -61,7 +61,7 @@ fn fixtures() -> umpire_testing::TestResult {
             );
         }
         for name in admitted(&root) {
-            if !root.join(name).join("expected/tlc.snap.txt").is_file() {
+            if !root.join(name).join("expected/tlc.txt.snap").is_file() {
                 return Err(format!("unselected backend coverage: {name} has no TLC golden").into());
             }
         }
@@ -73,4 +73,18 @@ fn fixtures() -> umpire_testing::TestResult {
         if required { &[] } else { &["tlc"] },
         &[GAPS],
     )
+}
+
+/// Import only an explicitly selected report produced by the live Go gaps test.
+#[test]
+#[ignore = "requires an explicitly selected live Go gap report"]
+fn import_live_gap_candidate() -> umpire_testing::TestResult {
+    let candidate = std::env::var_os("UMPIRE_GAP_CANDIDATE").ok_or("missing live gap candidate")?;
+    let candidate = std::fs::read_to_string(candidate)?;
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path("../feature/activity/expected");
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_omit_expression(true);
+    settings.bind(|| insta::assert_snapshot!("gaps.txt", candidate));
+    Ok(())
 }

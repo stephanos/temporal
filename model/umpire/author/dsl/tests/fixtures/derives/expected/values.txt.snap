@@ -1,0 +1,18 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+Kettle { temperature: -1, heating_on: false, beeping: false }
+Kettle { temperature: 0, heating_on: false, beeping: false }
+Kettle { temperature: 1, heating_on: false, beeping: false }
+Product { first: 1, second: 4, label: "" }
+Product { first: 1, second: 5, label: "" }
+Product { first: 2, second: 4, label: "" }
+Product { first: 2, second: 5, label: "" }
+Defaults { type: "" }
+empty starts: 0
+unique cloned states: 4
+User::PressButton internal: false
+User::DepressButton internal: false
+unique cloned actions: 2
+Heater::Heat internal: true
+Heater::Failover internal: true

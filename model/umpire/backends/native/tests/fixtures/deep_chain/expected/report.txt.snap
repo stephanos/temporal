@@ -1,0 +1,14 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+starts: 1
+reached: 1001
+emitted: 1000
+evaluated: 1001
+refused: 1
+depth: 1000
+cut: false
+outcome: Verified
+claim safe: Verified
+vacuity: none
+clone_work: linear

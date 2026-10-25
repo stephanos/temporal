@@ -1,0 +1,10 @@
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/umpire/protocol/runtime/guests/caught-panic)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.49s
+     Running `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/panic-control-reports /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-native-controls`
+
+thread 'main' (1095093) panicked at umpire/protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:74:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (1095093) panicked at umpire/protocol/runtime/guests/caught-panic/src/bin/../../../../tests/support/../../../../backends/native/tests/support/mod.rs:77:53:
+attempt to add with overflow

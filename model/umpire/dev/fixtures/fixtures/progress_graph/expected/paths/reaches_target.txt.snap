@@ -1,0 +1,10 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+prefix:
+start: Model { value: 0 }
+1: User::Enter choice=0 -> Model { value: 1 }
+cycle:
+2: User::Left choice=0 -> Model { value: 2 }
+3: User::Right choice=0 -> Model { value: 1 }
+repeat cycle

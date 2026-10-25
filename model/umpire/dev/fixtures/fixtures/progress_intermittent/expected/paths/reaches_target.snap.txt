@@ -1,6 +1,0 @@
-prefix:
-start: Model { value: 0 }
-cycle:
-1: User::Left choice=0 -> Model { value: 1 }
-2: User::Right choice=0 -> Model { value: 0 }
-repeat cycle

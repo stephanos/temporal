@@ -8,6 +8,8 @@ mod bound;
 mod interpreted;
 mod render;
 mod runner;
+mod snapshot_payload;
+pub use snapshot_payload::snapshot_payload;
 
 pub use bound::{Bound, Declared, bound};
 #[doc(hidden)]

@@ -1,8 +1,0 @@
-0: Model { phase: Queued, attempt: 1 }
-1: Model { phase: Running, attempt: 1 }
-2: Model { phase: Dropped, attempt: 1 }
-3: Model { phase: Done, attempt: 1 }
-4: Model { phase: Queued, attempt: 2 }
-5: Model { phase: Running, attempt: 2 }
-6: Model { phase: Dropped, attempt: 2 }
-7: Model { phase: Done, attempt: 2 }

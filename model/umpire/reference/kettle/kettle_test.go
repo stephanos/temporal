@@ -279,19 +279,10 @@ func TestKettleJudgeAnswerTranscript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedReport, err := os.ReadFile("expected/report.snap.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exploration.GetStarts() != 81 || exploration.GetReport() != string(expectedReport) {
+	expectedReport := readSnapshot(t, "expected/report.txt.snap")
+	if exploration.GetStarts() != 81 || exploration.GetReport() != expectedReport {
 		t.Fatalf("canonical exploration changed: %v", exploration)
 	}
 	fmt.Fprintf(&r.transcript, "Explore: starts=%d reached=%d outcome=Verified\n", exploration.GetStarts(), exploration.GetReached())
-	expected, err := os.ReadFile("expected/transcript.snap.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r.transcript.String() != string(expected) {
-		t.Fatalf("Kettle transcript differs:\n%s", r.transcript.String())
-	}
+	compareSnapshot(t, "transcript.txt", r.transcript.String())
 }

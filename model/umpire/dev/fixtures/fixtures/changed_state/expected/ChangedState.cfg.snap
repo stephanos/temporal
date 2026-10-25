@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+SPECIFICATION Spec
+PROPERTY Post_no_change_checked
+PROPERTY Post_same_value_checked
+PROPERTY Post_mutate_restore_checked
+PROPERTY Post_actual_change_checked

@@ -1,0 +1,96 @@
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2481-snapshots/model/umpire/dev/testing)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.90s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_testing-f4e5c1cbf20d5bb3)
+
+running 12 tests
+test backend::tests::actual_tlc_fact_traces_replay_exact_vectors ... ok
+test bound::tests::nominal_exports_preserve_identity_and_optional_structure ... ok
+test backend::tests::nominal_action_literals_require_exact_typed_identity ... ok
+test backend::tests::replay_uses_checked_steps_without_panicking ... ok
+test backend::tests::projection_refuses_state_or_edge_changes_without_a_real_edge ... ok
+test snapshot_payload::tests::preserves_body_and_refuses_invalid_headers ... ok
+test backend::tests::agreement_compares_complete_sets_and_every_verdict ... ok
+test backend::tests::replay_uses_retained_starts_without_enumerating_again ... ok
+test backend::tests::typed_replay_identifies_the_exact_catalog_payload ... ok
+test backend::tests::nominal_debug_preserves_authored_shapes_and_exact_optional_codes ... ok
+test backend::tests::nonempty_facts_are_typed_and_preserved_on_observer_activation ... ok
+test backend::tests::replay_compares_the_typed_outcome_of_a_rejected_self_loop ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/consumers-43430eb9bb9c9219)
+
+running 5 tests
+test runner_child ... ok
+test rejects_orphan_snapshot_artifacts ... ok
+test skipped_backend_requires_selected_complete_goldens ... ok
+test consumers_select_generic_snapshot_files ... ok
+test pending_text_snapshots_require_explicit_acceptance ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/declared_values.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/declared_values-11dd0c484b07547e)
+
+running 1 test
+test world_and_state_enums_bind_without_finite ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/discovery.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/discovery-544dc11c3962868c)
+
+running 2 tests
+test refuses_incomplete_fixtures ... ok
+test compiles_distinct_non_identifier_folder_names ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/empty_control.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/empty_control-afc9f329d9fdd9d7)
+
+running 1 test
+test rejects_fixture_without_owned_outputs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/external_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/external_consumers-0eb22581bfbacc99)
+
+running 3 tests
+test external_runner_child ... ok
+test external_declarations_refuse_invalid_ownership_and_paths ... ok
+test external_artifact_is_unchanged_during_native_update_and_compare ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/fixture_composition.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/fixture_composition-bd677c98cc74711c)
+
+running 2 tests
+test fixture_refuses_extra_files_that_replace_checker_outputs ... ok
+test fixture_appends_suite_files_after_retaining_negative_outputs ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/orphan_control.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/orphan_control-366dac55de1617a7)
+
+running 1 test
+test orphan_control ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/snapshot_ownership.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/snapshot_ownership-03a40fb818492268)
+
+running 2 tests
+test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
+test current_snapshots_have_explicit_owners ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/suite_consumers.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/suite_consumers-3e22a4d2778f7579)
+
+running 5 tests
+test runner_child ... ok
+test suite_producer_rejects_unknown_and_ambiguous_outputs ... ok
+test suite_snapshots_reject_nondeterministic_producers ... ok
+test checker_and_suite_share_one_fixture_producer ... ok
+test suite_snapshots_update_compare_and_reject_orphans ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+

@@ -1,0 +1,32 @@
+[
+  {
+    "old": "model/umpire/reference/kettle/expected/coverage.snap",
+    "new": "model/umpire/reference/kettle/expected/coverage.txt.snap",
+    "payload_sha256": "6433747fc74211d590e419fec5e0ebeaeaa37ec2e51c2050867497b8bcc434ce"
+  },
+  {
+    "old": "model/umpire/reference/kettle/expected/gaps.txt",
+    "new": "model/umpire/reference/kettle/expected/gaps.txt.snap",
+    "payload_sha256": "a761582977d5756eb692ea5b601c97697765a3a307fa6ebddeeafac6ddb9f54f"
+  },
+  {
+    "old": "model/umpire/reference/kettle/expected/mutants.snap.txt",
+    "new": "model/umpire/reference/kettle/expected/mutants.txt.snap",
+    "payload_sha256": "97f9c08cad9b5221ef9d459aa7834705f6975b8f314b71cf16532a937811de6f"
+  },
+  {
+    "old": "model/umpire/reference/kettle/expected/report.snap.txt",
+    "new": "model/umpire/reference/kettle/expected/report.txt.snap",
+    "payload_sha256": "119e6790de274127452d429f79253b90bbb27d964f8eca9f1c30e34e5844326a"
+  },
+  {
+    "old": "model/umpire/reference/kettle/expected/transcript.snap.txt",
+    "new": "model/umpire/reference/kettle/expected/transcript.txt.snap",
+    "payload_sha256": "4b6d35ba1996bc6522fdf90ecf06f73eaf3a42d504d79f387880931cb147ca4b"
+  },
+  {
+    "old": "model/temporal/feature/activity/expected/gaps.txt",
+    "new": "model/temporal/feature/activity/expected/gaps.txt.snap",
+    "payload_sha256": "a3974ea8da0f3c46234770068fe0f163d5e17529b275cea086c2292a124284a0"
+  }
+]

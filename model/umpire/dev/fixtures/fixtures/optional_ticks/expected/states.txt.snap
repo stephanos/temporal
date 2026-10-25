@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Model { remaining: None, started: false }
+1: Model { remaining: Some(Remaining { ticks: 3 }), started: true }
+2: Model { remaining: Some(Remaining { ticks: 2 }), started: true }
+3: Model { remaining: Some(Remaining { ticks: 1 }), started: true }
+4: Model { remaining: Some(Remaining { ticks: 0 }), started: true }

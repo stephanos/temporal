@@ -1,0 +1,15 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+TLC 1.7.4; complete source-lifted exploration
+states: 8; native: 8; agreement: yes
+claim closed_rejects: Refuted; native: Refuted; agreement: yes
+claim drop_rejects: Verified; native: Verified; agreement: yes
+claim queued_job_runs: Verified; native: Verified; agreement: yes
+claim recheck_rejects: Refuted; native: Refuted; agreement: yes
+claim reopen_remains: Refuted; native: Refuted; agreement: yes
+claim steps_accept: Refuted; native: Refuted; agreement: yes
+claim terminal_remains: Refuted; native: Refuted; agreement: yes
+claim touch_rejects: Refuted; native: Refuted; agreement: yes
+claim touch_remains: Verified; native: Verified; agreement: yes
+counterexamples replayed: 6

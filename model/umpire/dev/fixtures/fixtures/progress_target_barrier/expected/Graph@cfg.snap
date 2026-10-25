@@ -1,5 +1,0 @@
----
-source: umpire/dev/testing/src/runner.rs
-extension: cfg
-snapshot_kind: binary
----

@@ -1,0 +1,8 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+prefix:
+start: State { 0: 0 }
+cycle:
+1: Action::Advance choice=0 -> State { 0: 0 }
+repeat cycle

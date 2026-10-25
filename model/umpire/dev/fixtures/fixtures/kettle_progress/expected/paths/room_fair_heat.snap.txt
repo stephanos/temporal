@@ -1,7 +1,0 @@
-prefix:
-start: Model { temperature: 20, heating_on: false, beeping: false }
-1: User::PressButton choice=0 -> Model { temperature: 20, heating_on: true, beeping: false }
-cycle:
-2: User::DepressButton choice=0 -> Model { temperature: 20, heating_on: false, beeping: false }
-3: User::PressButton choice=0 -> Model { temperature: 20, heating_on: true, beeping: false }
-repeat cycle

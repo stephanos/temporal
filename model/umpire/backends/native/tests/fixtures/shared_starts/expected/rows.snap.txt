@@ -1,4 +1,0 @@
-0: Action::Advance choice=0 outcome=true facts=[] -> Value { 0: 1 }
-1: Action::Advance choice=0 outcome=true facts=[] -> Value { 0: 2 }
-1: Action::Reset choice=0 outcome=true facts=[] -> Value { 0: 0 }
-2: Action::Idle choice=0 outcome=true facts=[] -> Value { 0: 2 }

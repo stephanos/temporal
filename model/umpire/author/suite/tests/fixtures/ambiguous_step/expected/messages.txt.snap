@@ -1,0 +1,5 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+tossed: Toss emits 2 steps at Coin::Unseen; an example takes exactly one
+tossed a seen coin: Toss is disabled at Coin::Heads

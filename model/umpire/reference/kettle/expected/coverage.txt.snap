@@ -1,0 +1,55 @@
+---
+source: umpire/reference/kettle/tests/probes.rs
+---
+google.protobuf.Duration response
+  google.protobuf.Duration.nanos Counter(NumberRules { gt: None, gte: None, lt: None, lte: None }) tags=[("Observed", Observed)] expectations={}
+  google.protobuf.Duration.seconds Counter(NumberRules { gt: None, gte: None, lt: None, lte: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.State response
+  umpire.reference.kettle.v1.State.beeping Flag tags=[("Observed", Observed)] expectations={}
+  umpire.reference.kettle.v1.State.heating_on Flag tags=[("Observed", Observed)] expectations={}
+  umpire.reference.kettle.v1.State.temperature Counter(NumberRules { gt: None, gte: Some(-40), lt: None, lte: Some(100) }) tags=[("Observed", Observed)] expectations={"int32.gte": Expected { expectation: Unobservable }, "int32.lte": Expected { expectation: Unobservable }}
+umpire.reference.kettle.v1.FillRequest.FillOptions request
+  umpire.reference.kettle.v1.FillRequest.FillOptions.cartridge Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Decided", Decided)] expectations={}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.labels Bytes(BytesRules { min_len: Some(1), max_len: None }) tags=[("Decided", Decided)] expectations={"bytes.min_len": Expected { expectation: Rejects { code: 3, message_pattern: "labels require nonempty keys and values", details_type: None } }}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.legacy_note Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Ignored", Ignored("Deprecated note is retained for wire compatibility; the service assigns it no semantics"))] expectations={}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.tags Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"repeated.max_items": Expected { expectation: Rejects { code: 3, message_pattern: "tags exceed per-kettle scoped limit", details_type: None } }}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.tap Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.timeout Duration(NumberRules { gt: Some(0), gte: None, lt: None, lte: Some(60000000000) }) tags=[("Decided", Decided)] expectations={"duration.gt": Expected { expectation: Rejects { code: 3, message_pattern: "timeout must be a valid positive duration at most 60 seconds", details_type: None } }, "duration.lte": Expected { expectation: Rejects { code: 3, message_pattern: "timeout must be a valid positive duration at most 60 seconds", details_type: None } }, "duration.valid": Expected { expectation: Rejects { code: 3, message_pattern: "timeout must be a valid positive duration at most 60 seconds", details_type: None } }}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.water_kind DefinedEnum(EnumValidator { name: "umpire_reference_kettle::wire::umpire::reference::kettle::v1::fill_request::fill_options::WaterKind", default: 0, .. }) tags=[("Decided", Decided)] expectations={"enum.defined_only": Expected { expectation: Rejects { code: 3, message_pattern: "water_kind must be TAP or FILTERED|water source must match water_kind", details_type: None } }}
+  Rule { presence: AnyOf(["tap", "cartridge"]), expected: Some(Expected { expectation: Rejects { code: 3, message_pattern: "water source must match water_kind", details_type: None } }) }
+umpire.reference.kettle.v1.FillRequest request
+  umpire.reference.kettle.v1.FillRequest.idempotency_key Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided), ("IdempotencyKey", IdempotencyKey)] expectations={}
+  umpire.reference.kettle.v1.FillRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+  umpire.reference.kettle.v1.FillRequest.options Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Decided", Decided)] expectations={}
+umpire.reference.kettle.v1.FillRequest request
+  umpire.reference.kettle.v1.FillRequest.idempotency_key Uuid tags=[("Decided", Decided), ("IdempotencyKey", IdempotencyKey)] expectations={"string.uuid": Expected { expectation: Accepts }}
+umpire.reference.kettle.v1.FillResponse response
+  umpire.reference.kettle.v1.FillResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.HeatRequest request
+  umpire.reference.kettle.v1.HeatRequest.enabled Flag tags=[("Decided", Decided)] expectations={}
+  umpire.reference.kettle.v1.HeatRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+umpire.reference.kettle.v1.HeatResponse response
+  umpire.reference.kettle.v1.HeatResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.PourRequest request
+  umpire.reference.kettle.v1.PourRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+umpire.reference.kettle.v1.PourResponse response
+  umpire.reference.kettle.v1.PourResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.DescribeRequest request
+  umpire.reference.kettle.v1.DescribeRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+umpire.reference.kettle.v1.DescribeResponse response
+  umpire.reference.kettle.v1.DescribeResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.PollHeatingRequest request
+  umpire.reference.kettle.v1.PollHeatingRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+umpire.reference.kettle.v1.PollHeatingResponse response
+  umpire.reference.kettle.v1.PollHeatingResponse.action DefinedEnum(EnumValidator { name: "umpire_reference_kettle::wire::umpire::reference::kettle::v1::HeatingAction", default: 0, .. }) tags=[("Observed", Observed)] expectations={}
+  umpire.reference.kettle.v1.PollHeatingResponse.kettle_id Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Observed", Observed)] expectations={}
+  umpire.reference.kettle.v1.PollHeatingResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.RespondHeatingRequest request
+  umpire.reference.kettle.v1.RespondHeatingRequest.action DefinedEnum(EnumValidator { name: "umpire_reference_kettle::wire::umpire::reference::kettle::v1::HeatingAction", default: 0, .. }) tags=[("Decided", Decided)] expectations={"enum.defined_only": Expected { expectation: Rejects { code: 3, message_pattern: "heating action must be HEAT or FAILOVER", details_type: None } }}
+  umpire.reference.kettle.v1.RespondHeatingRequest.kettle_id Text(StringRules { min_len: None, max_len: None, min_bytes: Some(1), max_bytes: Some(32), prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={"string.max_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }, "string.min_bytes": Expected { expectation: Rejects { code: 3, message_pattern: "kettle_id must contain 1..32 bytes", details_type: None } }}
+umpire.reference.kettle.v1.RespondHeatingResponse response
+  umpire.reference.kettle.v1.RespondHeatingResponse.action DefinedEnum(EnumValidator { name: "umpire_reference_kettle::wire::umpire::reference::kettle::v1::HeatingAction", default: 0, .. }) tags=[("Observed", Observed)] expectations={}
+  umpire.reference.kettle.v1.RespondHeatingResponse.state Bytes(BytesRules { min_len: None, max_len: None }) tags=[("Observed", Observed)] expectations={}
+umpire.reference.kettle.v1.FillRequest.FillOptions.LabelsEntry response
+  umpire.reference.kettle.v1.FillRequest.FillOptions.LabelsEntry.key Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={}
+  umpire.reference.kettle.v1.FillRequest.FillOptions.LabelsEntry.value Text(StringRules { min_len: None, max_len: None, prefix: None, suffix: None, contains: None }) tags=[("Decided", Decided)] expectations={}

@@ -1,0 +1,5 @@
+---
+source: umpire/dev/testing/src/runner.rs
+---
+0: Action::Advance choice=0 outcome=() facts=[] -> State { 0: 0 }
+0: Action::Advance choice=1 outcome=() facts=[] -> State { 0: 1 }
