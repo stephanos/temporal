@@ -1,0 +1,39 @@
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/dev/xtask)
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2476-port/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.39s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/controls-afa321f410d57e5d)
+
+running 14 tests
+test real_kettle_negative_is_replayed_and_tampering_fails ... ok
+test real_arithmetic_refusal_follows_a_replayed_valid_prefix ... ok
+test real_kettle_checks_source_safety_and_history ... ok
+test real_evaluated_start_failure_cannot_disappear_into_an_empty_range ... ok
+test pinned_installer_and_runner_agree ... ok
+test real_typed_payload_rejection_and_after_claims_replay ... ok
+test real_payload_identity_and_outcome_history_are_typed ... ok
+test real_postcondition_filter_excludes_unrelated_actions ... ok
+test real_typed_vector_projection_keeps_eager_fallback_errors ... ok
+test real_start_evaluation_respects_field_order_before_empty_domains ... ok
+test real_later_start_fault_preserves_partial_binding ... ok
+test real_vector_witness_replays_typed_sequence ... ok
+test real_discarded_condition_keeps_its_evaluation_guard ... ok
+test real_arithmetic_faults_are_reachable_and_guards_remain_total ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/apalache_install.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2476-target/debug/deps/apalache_install-5cde3a1436ba7a29)
+
+running 8 tests
+test installer::tests::download_failure_cleans_private_staging_and_never_publishes ... ok
+test installer::tests::partial_wrong_and_nonregular_installations_never_download ... ok
+test installer::tests::native_dispatch_usage_failure_is_nonzero_and_structured ... ok
+test installer::tests::malicious_lock_types_refuse_without_following_or_blocking ... ok
+test installer::tests::hash_before_parse_and_exact_regular_member_before_publication ... ok
+test installer::tests::symlinks_in_every_component_including_dangling_are_refused ... ok
+test installer::tests::native_curl_contract_and_download_failure_cleanup ... ok
+test installer::tests::concurrent_installers_publish_once_and_return_same_path ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

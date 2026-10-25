@@ -15,6 +15,27 @@ fn run() -> xtask::Result<i32> {
     }
     let mut arguments = argv;
     match arguments.next().as_deref() {
+        Some(command) if command == OsStr::new("fetch-apalache") => {
+            let root = if let Some(root) = arguments.next() {
+                std::path::PathBuf::from(root)
+            } else {
+                let current = env::current_dir()?;
+                current
+                    .ancestors()
+                    .find(|path| path.join("model/Cargo.toml").is_file())
+                    .unwrap_or(&current)
+                    .to_owned()
+            };
+            if arguments.next().is_some() {
+                return Err(xtask::Error::Invalid(
+                    "usage: cargo xtask fetch-apalache [workspace-root]".into(),
+                ));
+            }
+            let path = xtask::fetch_apalache::install(Path::new(&root))?;
+            io::stdout().write_all(path.as_os_str().as_encoded_bytes())?;
+            io::stdout().write_all(b"\n")?;
+            Ok(0)
+        }
         Some(command) if command == OsStr::new("guest") => {
             xtask::guest::run(&arguments.collect::<Vec<_>>(), false)
         }
@@ -48,7 +69,7 @@ fn run() -> xtask::Result<i32> {
             ))
         }
         _ => Err(xtask::Error::Invalid(
-            "commands: guest, guest-freshness, guest-lock, guest-rustc, retired-names".into(),
+            "commands: fetch-apalache, guest, guest-freshness, guest-lock, guest-rustc, retired-names".into(),
         )),
     }
 }

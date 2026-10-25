@@ -47,3 +47,25 @@ POSIX character classes. The shell resolves the compiled tool once through
 `scripts/xtask.sh`; `UMPIRE_XTASK` can select an absolute prebuilt executable for
 isolated caller controls. `cargo test -p xtask --test retired_names --locked` covers
 the stream contract, active spellings, historical exclusions and tool failures.
+
+## Apalache installer
+
+`fetch-apalache [workspace-root]` admits the official pinned Apalache jar. The
+optional root defaults to the enclosing repository root identified by
+`model/Cargo.toml`, or to the current directory outside a checkout. The root
+contains `model/`; missing cache components are created. Success
+prints the absolute jar path followed by a newline and exits 0. Failures exit 1
+with `xtask: <native error>` on stderr; curl can also write its own diagnostics.
+Paths are OS arguments, including non-UTF-8 paths on Unix. No Python diagnostic,
+exception type or output encoding compatibility is promised.
+
+The installer requires curl and Unix filesystem admission. It stores the jar at
+`model/build/apalache/apalache-<version>/lib/apalache.jar`, locks a persistent
+regular `.install.lock` using `File::lock()`, and refuses symlink components,
+wrong existing jars and partial installations. Download and validation use a
+private 0700 staging directory. The archive hash is checked before gzip/tar
+parsing, the exact regular jar member is hashed before publication, and the
+validated directory is renamed into place while holding the lock. Staging is
+removed on success and failure. Installation pins live only in
+`src/apalache_pins.rs`, included by the runtime backend as well as xtask.
+The production command accepts no URL, version, archive or hash overrides.

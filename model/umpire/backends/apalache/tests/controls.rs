@@ -247,7 +247,7 @@ fn real_typed_vector_projection_keeps_eager_fallback_errors()
 
 #[test]
 fn pinned_installer_and_runner_agree() {
-    let script = include_str!("../../../../scripts/fetch-apalache.py");
+    let script = include_str!("../../../../dev/xtask/src/apalache_pins.rs");
     for pin in
         [umpire_apalache::VERSION, umpire_apalache::ARCHIVE_SHA256, umpire_apalache::JAR_SHA256]
     {
