@@ -54,6 +54,12 @@ fn files(root: &Path, target: &Path) -> Result<Vec<PathBuf>> {
     if root.starts_with(&target) {
         return Err(Error::Invalid("output target must not hide framework sources".into()));
     }
+    if target.starts_with(&root)
+        && !target.starts_with(root.join("target"))
+        && !target.starts_with(root.join("build"))
+    {
+        return Err(Error::Invalid("output target resolves into framework sources".into()));
+    }
     let mut output = Vec::new();
     inventory(&root, &root, &target, &mut output)?;
     Ok(output)

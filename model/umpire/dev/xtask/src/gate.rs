@@ -109,18 +109,14 @@ impl Gate {
     fn stage(&self, name: &str) -> Result<i32> {
         let command = match name {
             "proto-tools" => self.script("proto-tools.sh", &[]),
-            "retired-names" => return boundary::retired(&self.root, &self.target),
-            "source-boundary" => {
-                boundary::check(&self.root, &self.target)?;
-                let output =
-                    self.cargo(&["metadata", "--locked", "--format-version", "1"]).output()?;
-                if !output.status.success() {
-                    io::stderr().write_all(&output.stderr)?;
-                    return Ok(output.status.code().unwrap_or(1));
+            "retired-names" => {
+                let code = boundary::retired(&self.root, &self.target)?;
+                if code != 0 {
+                    writeln!(io::stderr(), "framework stage {name} failed (exit {code})")?;
                 }
-                boundary::metadata(&self.root, &output.stdout)?;
-                return Ok(0);
+                return Ok(code);
             }
+            "source-boundary" => return self.boundary(),
             "timing-controls" => {
                 let code = self.execute(name, self.script("test-time-gate.sh", &[]))?;
                 if code != 0 {
@@ -203,6 +199,19 @@ impl Gate {
             _ => return Err(Error::Invalid(format!("unknown framework stage: {name}"))),
         };
         self.execute(name, command)
+    }
+    fn boundary(&self) -> Result<i32> {
+        boundary::check(&self.root, &self.target)?;
+        let output = self.cargo(&["metadata", "--locked", "--format-version", "1"]).output()?;
+        if !output.status.success() {
+            io::stderr().write_all(&output.stderr)?;
+            let code =
+                output.status.code().unwrap_or_else(|| 128 + output.status.signal().unwrap_or(0));
+            writeln!(io::stderr(), "framework stage source-boundary failed (exit {code})")?;
+            return Ok(code);
+        }
+        boundary::metadata(&self.root, &output.stdout)?;
+        Ok(0)
     }
     fn full(&self) -> Result<i32> {
         writeln!(
