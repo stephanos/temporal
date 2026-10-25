@@ -11,9 +11,28 @@ use umpire_tla::{Binding, Concrete, Module};
 
 /// A declared World whose derives export its own, its states' and its actions' values, and
 /// whose `#[machine]` embeds the admitted Model.
-pub trait Declared: Machine<State: Values, Action: ActionValues<Self>> + Values + Lifts {}
+pub trait Declared:
+    Machine<
+        State: Values,
+        Action: ActionValues<Self>,
+        Outcome: umpire_dsl::IntoValue,
+        Fact: umpire_dsl::IntoValue,
+    > + Values
+    + Lifts
+{
+}
 
-impl<M: Machine<State: Values, Action: ActionValues<M>> + Values + Lifts> Declared for M {}
+impl<
+    M: Machine<
+            State: Values,
+            Action: ActionValues<M>,
+            Outcome: umpire_dsl::IntoValue,
+            Fact: umpire_dsl::IntoValue,
+        > + Values
+        + Lifts,
+> Declared for M
+{
+}
 
 /// One selected World, its starts enumerated once and the values of its checked catalog, with a
 /// fixture's state budget and optional negative claim.

@@ -1,3 +1,4 @@
+use crate::observers::{ACTION, CHOICE, ERROR, FACTS, HAS_STEP, INPUT, INVALID, OUTCOME, STUTTER};
 mod value;
 use crate::{
     Diagnostic, Lifted, Module, Property, Type,
@@ -9,9 +10,6 @@ use crate::{
 use std::collections::BTreeMap;
 use umpire_front::tree::{Branch, Start};
 use value::Values;
-const ERROR: &str = "__umpire_arithmetic_error";
-const HAS_STEP: &str = "__umpire_has_step";
-const STUTTER: &str = "__umpire_stutter";
 
 /// The safety module's observers: its event flags and edge, and each field's before-state.
 pub(crate) fn observers<'a>(
@@ -24,15 +22,15 @@ pub(crate) fn observers<'a>(
         (ERROR.into(), Type::Bool),
         (HAS_STEP.into(), Type::Bool),
         (STUTTER.into(), Type::Bool),
-        ("__umpire_invalid_step".into(), Type::Bool),
-        ("__umpire_action".into(), Type::Text),
-        ("__umpire_input".into(), Type::Int { min: 0, max: input }),
-        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
-        ("__umpire_outcome".into(), outcome.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(fact.clone()))),
+        (INVALID.into(), Type::Bool),
+        (ACTION.into(), Type::Text),
+        (INPUT.into(), Type::Int { min: 0, max: input }),
+        (CHOICE.into(), Type::Int { min: 0, max: 0 }),
+        (OUTCOME.into(), outcome.clone()),
+        (FACTS.into(), Type::Seq(Box::new(fact.clone()))),
     ]);
     for (name, ty) in fields {
-        observers.insert(format!("__umpire_before_{name}"), ty.clone());
+        observers.insert(crate::observers::before(name), ty.clone());
     }
     observers
 }
@@ -102,17 +100,17 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     let (starts, starts_valid) = initial_states(model, &mut values)?;
     let mut initial = Vec::new();
     for field in &model.fields {
-        initial.push(format!("__umpire_before_{} = {}", field.name, default(&field.ty)));
+        initial.push(format!("{} = {}", crate::observers::before(&field.name), default(&field.ty)));
     }
     initial.extend([
         format!("{HAS_STEP} = FALSE"),
         format!("{STUTTER} = TRUE"),
-        "__umpire_invalid_step = FALSE".into(),
-        "__umpire_action = \"\"".into(),
-        "__umpire_input = 0".into(),
-        "__umpire_choice = 0".into(),
-        format!("__umpire_outcome = {}", default(&model.outcome_type)),
-        "__umpire_facts = <<>>".into(),
+        format!("{INVALID} = FALSE"),
+        format!("{ACTION} = \"\""),
+        format!("{INPUT} = 0"),
+        format!("{CHOICE} = 0"),
+        format!("{OUTCOME} = {}", default(&model.outcome_type)),
+        format!("{FACTS} = <<>>"),
     ]);
     let cfg =
         module.cfg.lines().filter(|l| l.starts_with("CONSTANT ")).collect::<Vec<_>>().join("\n");
@@ -227,10 +225,10 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         values.post = true;
         let v = values.emit(&claim.expr);
         let name = format!("Post_{}", claim.name);
-        let applies = claim.after.as_ref().map_or_else(
-            || HAS_STEP.into(),
-            |a| format!("{HAS_STEP} /\\ __umpire_action = {}", text(a)),
-        );
+        let applies = claim
+            .after
+            .as_ref()
+            .map_or_else(|| HAS_STEP.into(), |a| format!("{HAS_STEP} /\\ {ACTION} = {}", text(a)));
         definition(
             &mut out,
             &name,
@@ -240,7 +238,7 @@ pub(super) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         module.metadata.postconditions.push(property(claim.name.clone(), name, &cfg));
     }
     definition(&mut out, "ArithmeticSafe", "Bool", format!("~{ERROR}"));
-    definition(&mut out, "ValidStep", "Bool", "~__umpire_invalid_step");
+    definition(&mut out, "ValidStep", "Bool", format!("~{INVALID}"));
     module.metadata.arithmetic = vec![property("arithmetic".into(), "ArithmeticSafe".into(), &cfg)];
     module.metadata.invariants.push(property("valid_step".into(), "ValidStep".into(), &cfg));
     line(&mut out, "====");
@@ -278,7 +276,7 @@ fn claim_valid(model: &Lifted, successor: bool, post: bool) -> String {
         for c in &model.postconditions {
             let v = posts.emit(&c.expr);
             terms.push(c.after.as_ref().map_or(v.valid.clone(), |a| {
-                format!("IF __umpire_action' = {} THEN {} ELSE TRUE", text(a), v.valid)
+                format!("IF {ACTION}' = {} THEN {} ELSE TRUE", text(a), v.valid)
             }));
         }
         let body = conjoin(terms);
@@ -321,7 +319,7 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
     );
     let enabled = if branch.preserve_self_loop { "TRUE".into() } else { changed };
     let mut terms = vec![
-        format!("~{ERROR} /\\ ~__umpire_invalid_step"),
+        format!("~{ERROR} /\\ ~{INVALID}"),
         format!("~({}) \\/ ({})", guard.valid, guard.value),
         format!("~({ok}) \\/ ({enabled})"),
     ];
@@ -332,31 +330,31 @@ fn step(model: &Lifted, action: &str, branch: &Branch, ordinal: &str, claims: &s
             v.map_or(f.name.clone(), |v| v.value),
             f.name
         ));
-        terms.push(format!("__umpire_before_{}' = {}", f.name, f.name));
+        terms.push(format!("{}' = {}", crate::observers::before(&f.name), f.name));
     }
     terms.extend([
         format!("{HAS_STEP}' = TRUE"),
         format!("{STUTTER}' = FALSE"),
-        format!("__umpire_action' = {}", text(action)),
-        format!("__umpire_input' = {ordinal}"),
-        "__umpire_choice' = 0".into(),
+        format!("{ACTION}' = {}", text(action)),
+        format!("{INPUT}' = {ordinal}"),
+        format!("{CHOICE}' = 0"),
         format!(
-            "__umpire_outcome' = IF {ok} THEN {} ELSE {}",
+            "{OUTCOME}' = IF {ok} THEN {} ELSE {}",
             outcome.value,
             default(&model.outcome_type)
         ),
         facts.map_or_else(
-            || "__umpire_facts' = <<>>".into(),
-            |facts| format!("__umpire_facts' = IF {ok} THEN {} ELSE <<>>", facts.value),
+            || format!("{FACTS}' = <<>>"),
+            |facts| format!("{FACTS}' = IF {ok} THEN {} ELSE <<>>", facts.value),
         ),
         format!("{ERROR}' = (~({ok}) \\/ ~({claims}))"),
     ]);
     let unchanged = conjoin(model.fields.iter().map(|f| format!("{}' = {}", f.name, f.name)));
     terms.push(if model.outcome_type == Type::Unit {
-        "__umpire_invalid_step' = FALSE".into()
+        format!("{INVALID}' = FALSE")
     } else {
         format!(
-            "__umpire_invalid_step' = ({ok} /\\ __umpire_outcome' # {} /\\ ~({unchanged}))",
+            "{INVALID}' = ({ok} /\\ {OUTCOME}' # {} /\\ ~({unchanged}))",
             text("Outcome::Accepted")
         )
     });
@@ -368,7 +366,7 @@ fn validate(model: &Lifted) -> Result<(), Diagnostic> {
         ERROR.to_owned(),
         HAS_STEP.to_owned(),
         STUTTER.to_owned(),
-        "__umpire_invalid_step".into(),
+        INVALID.into(),
         "ArithmeticSafe".into(),
         "ValidStep".into(),
         "Stutter".into(),
@@ -376,7 +374,7 @@ fn validate(model: &Lifted) -> Result<(), Diagnostic> {
         "__umpire_abs_a".into(),
         "__umpire_abs_b".into(),
     ];
-    generated.extend(model.fields.iter().map(|f| format!("__umpire_before_{}", f.name)));
+    generated.extend(model.fields.iter().map(|f| crate::observers::before(&f.name)));
     for f in &model.fields {
         if generated.contains(&f.name) {
             return Err(Diagnostic::of(

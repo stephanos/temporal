@@ -1,4 +1,5 @@
 //! Authored-source admission and emitter controls.
+use umpire_tla::observers::EDGE_TICK;
 use umpire_tla::{Lift, Tla, Type};
 
 const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
@@ -16,7 +17,7 @@ fn kettle_source_lifts_registered_properties_and_explicit_assumptions()
     assert_eq!(module.metadata.progress[0].allowed.len(), 3);
     assert_eq!(module.metadata.progress[0].fair, Vec::<String>::new());
     assert!(!module.tla.contains("WF_vars("));
-    assert!(module.tla.contains("__umpire_edge_tick' = ~__umpire_edge_tick"));
+    assert!(module.tla.contains(&format!("{EDGE_TICK}' = ~{EDGE_TICK}")));
     assert!(module.tla.contains("Scoped_boils == Assumption_never_switched_off"));
     Ok(())
 }
@@ -94,7 +95,7 @@ fn admission_refuses_type_cfg_resolution_and_observer_collisions()
             Lift::parse("refusal.rs", &source).err().ok_or("unsupported source was admitted")?;
         assert!(error.message.contains(reason), "{error}");
     }
-    let source = KETTLE.replace("temperature", "__umpire_edge_tick");
+    let source = KETTLE.replace("temperature", EDGE_TICK);
     assert!(
         Lift::parse("collision.rs", &source)
             .err()
@@ -185,7 +186,7 @@ fn progress_bounds_are_fail_closed() -> Result<(), Box<dyn std::error::Error>> {
     let source = KETTLE.replace(", .., self.beeping]", ", ..=2147483646, self.beeping]");
     let module = Tla::emit(&Lift::parse("bound.rs", &source)?)?;
     assert!(matches!(
-        module.metadata.observer_types["__umpire_steps"],
+        module.metadata.observer_types[umpire_tla::observers::STEPS],
         Type::Int { max: 2_147_483_647, .. }
     ));
     Ok(())

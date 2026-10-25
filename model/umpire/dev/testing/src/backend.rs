@@ -4,8 +4,12 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Write,
 };
-use umpire_dsl::Machine;
+use umpire_dsl::{IntoValue, Machine, Values};
 use umpire_tla::{Concrete, Module, Type};
+use umpire_tla::{
+    observers::{FACTS, INPUT},
+    replay::{self as core, EdgeValues, ReplayError},
+};
 use umpire_tlc::{State, Value};
 
 fn debug_value(ty: &Type, value: &Value) -> Result<String, Box<dyn std::error::Error>> {
@@ -71,7 +75,7 @@ fn state_text(module: &Module, state: &State) -> Result<String, Box<dyn std::err
 }
 
 /// Execute the independently emitted module and replay every returned counterexample.
-pub fn check_machine<M: Machine>(
+pub fn check_machine<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
     world: &M,
     module: &Module,
     folder: &std::path::Path,
@@ -92,7 +96,7 @@ pub fn check_machine<M: Machine>(
 /// project, through the typed `identity`, to exactly the emitted concrete identity.
 #[allow(clippy::print_stderr)]
 #[expect(clippy::too_many_arguments, reason = "The typed identity extends the shared route")]
-pub fn check_exploration<M: Machine>(
+pub fn check_exploration<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
     world: &M,
     starts: &[M::State],
     native_graph: &umpire_checker::Result<M>,
@@ -154,7 +158,7 @@ pub fn check_exploration<M: Machine>(
     Ok(crate::Files::from([("tlc.txt".into(), report)]))
 }
 
-fn replay<M: Machine>(
+fn replay<M: Machine<State: Values, Outcome: IntoValue, Fact: IntoValue>>(
     world: &M,
     starts: &[M::State],
     module: &Module,
@@ -165,8 +169,17 @@ fn replay<M: Machine>(
     if trace.states.is_empty() {
         return Err("empty TLC counterexample".into());
     }
-    let first = state_text(module, &trace.states[0].state)?;
-    if !starts.iter().any(|state| state.to_string() == first) {
+    let typed_state = |state: &M::State| {
+        core::fields(
+            state.values(),
+            module.metadata.fields.iter().map(|f| (f.name.as_str(), &f.ty)),
+        )
+    };
+    let native = native
+        .values()
+        .map(|state| typed_state(state).map(|value| (value, *state)))
+        .collect::<Result<BTreeMap<_, _>, _>>()?;
+    if !starts.iter().any(|state| typed_state(state).is_ok_and(|s| s == trace.states[0].state)) {
         return Err("TLC counterexample does not begin at a Model start".into());
     }
     let mut pairs = trace.states.windows(2).map(|pair| (&pair[0], &pair[1])).collect::<Vec<_>>();
@@ -176,104 +189,64 @@ fn replay<M: Machine>(
             trace.states.get(index).ok_or("invalid TLC cycle index")?,
         ));
     }
-    for (before, after) in pairs {
-        let before_text = state_text(module, &before.state)?;
-        let after_text = state_text(module, &after.state)?;
-        let tick_before = before.observers.get("__umpire_edge_tick").ok_or("missing edge tick")?;
-        let tick_after =
-            after.observers.get("__umpire_edge_tick").ok_or("missing next edge tick")?;
+    for (index, (before, after)) in pairs.into_iter().enumerate() {
+        let tick_before =
+            before.observers.get(umpire_tla::observers::EDGE_TICK).ok_or("missing edge tick")?;
+        let tick_after = after
+            .observers
+            .get(umpire_tla::observers::EDGE_TICK)
+            .ok_or("missing next edge tick")?;
         if tick_before == tick_after {
             validate_projection(module, before, after)?;
             continue;
         }
-        let Some(Value::Text(action_name)) = after.observers.get("__umpire_action") else {
-            return Err("counterexample lacks action identity".into());
-        };
-        let Some(Value::Int(choice)) = after.observers.get("__umpire_choice") else {
-            return Err("counterexample lacks choice identity".into());
-        };
-        let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?.into_actions();
-        let action = if module.metadata.catalog.is_empty() {
-            catalog
-                .into_iter()
-                .find(|action| action.to_string() == *action_name)
-                .ok_or("TLC action is not in Model catalog")?
-        } else {
-            typed_action(module, catalog, after, action_name, identity)?
-        };
         let state =
-            native.get(&before_text).ok_or("TLC trace predecessor is not reachable natively")?;
-        let steps = native_steps(world, state, action)?;
-        let step = steps
-            .get(usize::try_from(*choice)?)
-            .ok_or("TLC trace choice is not emitted by Model")?;
-        if step.2.to_string() != after_text {
-            return Err(format!("TLC trace replay differs: {action_name} choice {choice}").into());
-        }
-        let outcome = after.observers.get("__umpire_outcome").ok_or("missing TLC outcome")?;
-        let facts = after.observers.get("__umpire_facts").ok_or("missing TLC facts")?;
-        let fact_type =
-            module.metadata.observer_types.get("__umpire_facts").ok_or("missing TLC fact type")?;
-        if format!("{:?}", step.0) != debug_value(&module.metadata.outcome_type, outcome)?
-            || format!("{:?}", step.1) != debug_value(fact_type, facts)?
-        {
-            return Err("TLC counterexample outcome/facts differ from Model replay".into());
+            native.get(&before.state).ok_or("TLC trace predecessor is not reachable natively")?;
+        let catalog = world.checked_catalog(umpire_dsl::CATALOG_LIMIT)?.into_actions();
+        let replayed = core::step(
+            module,
+            after,
+            &catalog,
+            |action| {
+                identity.map_or_else(
+                    || {
+                        module
+                            .metadata
+                            .catalog
+                            .is_empty()
+                            .then(|| Concrete { action: action.to_string(), fields: vec![] })
+                    },
+                    |identity| Some(identity(action)),
+                )
+            },
+            |action| native_steps(world, state, action.clone()),
+            |step| {
+                let Some(Type::Seq(fact_type)) = module.metadata.observer_types.get(FACTS) else {
+                    return Err(umpire_tla::Refusal("missing facts observer type".into()));
+                };
+                Ok(EdgeValues {
+                    state: typed_state(&step.2)?,
+                    outcome: core::admitted(step.0.value(), &module.metadata.outcome_type)?,
+                    facts: step
+                        .1
+                        .iter()
+                        .map(|fact| core::admitted(fact.value(), fact_type))
+                        .collect::<Result<_, _>>()?,
+                })
+            },
+        );
+        match replayed {
+            Ok(_) => {}
+            Err(ReplayError::Divergence(error)) => {
+                return Err(format!("TLC transition {}: {error}", index + 1).into());
+            }
+            Err(ReplayError::Native(error)) => {
+                return Err(format!("TLC transition {}: {error}", index + 1).into());
+            }
         }
     }
     Ok(())
 }
-
-/// The native action at the decoded catalog ordinal, after validating the emitted identity
-/// against the typed metadata and the generated native projection; never by display text.
-fn typed_action<A>(
-    module: &Module,
-    catalog: Vec<A>,
-    after: &umpire_tlc::TraceState,
-    action_name: &str,
-    identity: Option<&dyn Fn(&A) -> Concrete>,
-) -> Result<A, Box<dyn std::error::Error>> {
-    let Some(Value::Int(ordinal)) = after.observers.get(INPUT) else {
-        return Err("counterexample lacks input identity".into());
-    };
-    let ordinal = usize::try_from(*ordinal)?;
-    let entry =
-        module.metadata.catalog.get(ordinal).ok_or("TLC input ordinal is outside the catalog")?;
-    if entry.action != action_name {
-        return Err(format!(
-            "TLC input ordinal {ordinal} is {}, not the edge's action {action_name}",
-            entry.action
-        )
-        .into());
-    }
-    let declared = module
-        .metadata
-        .actions
-        .iter()
-        .find(|action| action.name == entry.action)
-        .ok_or("TLC input names an undeclared action")?;
-    if entry.fields.len() != declared.fields.len()
-        || !entry
-            .fields
-            .iter()
-            .zip(&declared.fields)
-            .all(|((name, value), field)| *name == field.name && value.admit(&field.ty).is_ok())
-    {
-        return Err(
-            format!("TLC input ordinal {ordinal} does not match its declared fields").into()
-        );
-    }
-    let identity = identity.ok_or("an input catalog requires the typed native identity")?;
-    let action = catalog
-        .into_iter()
-        .nth(ordinal)
-        .ok_or("TLC input ordinal is outside the native catalog")?;
-    if identity(&action) != *entry {
-        return Err(format!("native catalog ordinal {ordinal} differs from the TLC input").into());
-    }
-    Ok(action)
-}
-
-const INPUT: &str = "__umpire_input";
 
 fn validate_projection(
     module: &Module,
@@ -284,19 +257,24 @@ fn validate_projection(
         return Err("observer-only TLC step changes Model state".into());
     }
     let input = (!module.metadata.catalog.is_empty()).then_some(INPUT);
-    for name in ["__umpire_action", "__umpire_choice", "__umpire_outcome", "__umpire_facts"]
-        .into_iter()
-        .chain(input)
+    for name in [
+        umpire_tla::observers::ACTION,
+        umpire_tla::observers::CHOICE,
+        umpire_tla::observers::OUTCOME,
+        FACTS,
+    ]
+    .into_iter()
+    .chain(input)
     {
         if before.observers.get(name) != after.observers.get(name) {
             return Err(format!("observer-only TLC step changes edge field {name}").into());
         }
     }
     let unchanged = before.observers == after.observers;
-    let activation = before.observers.get("__umpire_pending") == Some(&Value::Int(0))
-        && after.observers.get("__umpire_pending") == Some(&Value::Int(1))
-        && before.observers.get("__umpire_steps") == Some(&Value::Int(0))
-        && after.observers.get("__umpire_steps") == Some(&Value::Int(0));
+    let activation = before.observers.get(umpire_tla::observers::PENDING) == Some(&Value::Int(0))
+        && after.observers.get(umpire_tla::observers::PENDING) == Some(&Value::Int(1))
+        && before.observers.get(umpire_tla::observers::STEPS) == Some(&Value::Int(0))
+        && after.observers.get(umpire_tla::observers::STEPS) == Some(&Value::Int(0));
     if !unchanged && !activation {
         return Err("counterexample has an undeclared observer-only step".into());
     }

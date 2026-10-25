@@ -1,7 +1,7 @@
 use crate::{
     Type,
-    emit::OUTCOME,
     lower::{arithmetic, conjoin, default, division, integer, leaf, signed_overflow, symbol},
+    observers::OUTCOME,
     snowcat::ty,
 };
 use std::{collections::HashMap, fmt::Write};
@@ -60,7 +60,7 @@ impl<'a> Values<'a> {
             ExprKind::Local(n) => self.locals[n].clone(),
             ExprKind::Check(_, inner) => return self.emit(inner),
             ExprKind::Var(n, primed) => total(if self.post && !primed {
-                format!("__umpire_before_{n}{}", if self.successor { "'" } else { "" })
+                format!("{}{}", crate::observers::before(n), if self.successor { "'" } else { "" })
             } else {
                 format!("{n}{}", if self.successor { "'" } else { "" })
             }),

@@ -1028,3 +1028,12 @@ Realization authoring uses `#[propose]` on one `(&self, state, seed)` handler re
 correlation and completion hooks; omitted hooks retain the core's fail-closed correlation and
 final-observation defaults. The polling hook receives the prospective state and optional typed
 pending action. This changes no Model syntax or transition semantics.
+
+Trace observer names and predecessor-field names are owned by `umpire_tla::observers`.
+`EdgeObservers::decode` and the shared `umpire_tla::replay::step` select the canonical
+concrete input, execute the chosen native action once and compare typed successor,
+outcome and ordered facts. Native callbacks keep the TLA crate independent of the
+DSL and checker. TLC retains tick/cycle/progress projection; Apalache retains tagged
+stutters, before-state history, arithmetic boundaries and selected-claim confirmation.
+The DSL's generated `__umpire_*` Rust methods and the emitter's hygienic TLA locals
+and arithmetic operators are internal helpers, separate from trace observer fields.

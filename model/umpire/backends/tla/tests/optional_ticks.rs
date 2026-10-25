@@ -155,12 +155,17 @@ fn exact_optional_decode_includes_before_observers_and_rejects_wrong_kinds()
             ("remaining".into(), bounded("Remaining", 0)),
             ("raw".into(), Type::Bounded(ticks("Ticks", 1))),
         ]),
-        observers: BTreeMap::from([("__umpire_before_configured".into(), bounded("Ticks", 1))]),
+        observers: BTreeMap::from([(
+            umpire_tla::observers::before("configured"),
+            bounded("Ticks", 1),
+        )]),
     };
-    let dump =
-        "/\\ configured = 2\n/\\ remaining = 1\n/\\ raw = 1\n/\\ __umpire_before_configured = 0";
+    let dump = &format!(
+        "/\\ configured = 2\n/\\ remaining = 1\n/\\ raw = 1\n/\\ {} = 0",
+        umpire_tla::observers::before("configured")
+    );
     assert_eq!(decode_state(dump, &schema)?.state["remaining"], Value::Int(1));
-    for field in ["configured", "__umpire_before_configured"] {
+    for field in ["configured", &umpire_tla::observers::before("configured")] {
         let initial = if field == "configured" { "2" } else { "0" };
         for invalid in ["1", "5", "-1", "TRUE", "\"2\"", "<<2>>"] {
             let forged =
@@ -246,11 +251,11 @@ fn shared_countdown_keeps_selected_codes_in_all_cfgs_and_before_metadata()
         let safety = Tla::safety(&bound)?;
         assert!(safety.cfg.contains(&assignment));
         assert_eq!(
-            safety.metadata.observer_types["__umpire_before_remaining"],
+            safety.metadata.observer_types[&umpire_tla::observers::before("remaining")],
             module.metadata.fields[0].ty
         );
         assert!(matches!(
-            safety.metadata.observer_types["__umpire_before_remaining"],
+            safety.metadata.observer_types[&umpire_tla::observers::before("remaining")],
             Type::Optional(_)
         ));
     }

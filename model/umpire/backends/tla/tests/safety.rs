@@ -1,4 +1,5 @@
 //! Source-derived symbolic safety projection.
+use umpire_tla::observers::{HAS_STEP, STUTTER};
 use umpire_tla::{Lift, Tla};
 const KETTLE: &str = include_str!("../../../dev/fixtures/fixtures/sample_kettle/model.rs");
 
@@ -18,9 +19,13 @@ fn safety_has_typed_history_and_preserving_stutter() -> Result<(), Box<dyn std::
     for forbidden in ["ENABLED", "Assert(", "Complete ==", "PROPERTY "] {
         assert!(!module.tla.contains(forbidden), "{forbidden}");
     }
-    assert!(module.tla.contains("__umpire_before_temperature' = temperature"));
-    assert!(module.tla.contains("__umpire_has_step = FALSE"));
-    assert!(module.tla.contains("Stutter == __umpire_stutter' = TRUE /\\ UNCHANGED"));
+    assert!(
+        module
+            .tla
+            .contains(&format!("{}' = temperature", umpire_tla::observers::before("temperature")))
+    );
+    assert!(module.tla.contains(&format!("{HAS_STEP} = FALSE")));
+    assert!(module.tla.contains(&format!("Stutter == {STUTTER}' = TRUE /\\ UNCHANGED")));
     assert_eq!(module.metadata.postconditions.len(), tlc.metadata.postconditions.len());
     assert_eq!(module.metadata.arithmetic[0].operator, "ArithmeticSafe");
     let root =
@@ -58,7 +63,7 @@ fn safety_definition_growth_stays_linear() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn safety_history_names_refuse_collisions_and_temporaries_are_hygienic()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = KETTLE.replace("heating_on", "__umpire_before_temperature");
+    let source = KETTLE.replace("heating_on", &umpire_tla::observers::before("temperature"));
     let lifted = Lift::parse("collision.rs", &source)?;
     Tla::emit(&lifted)?;
     let refusal = Tla::safety(&lifted).err().ok_or("history collision admitted")?;

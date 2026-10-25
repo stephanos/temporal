@@ -93,12 +93,12 @@ fn replay_uses_checked_steps_without_panicking() -> crate::TestResult {
 struct RetainedStarts;
 
 impl Machine for RetainedStarts {
-    type State = String;
+    type State = Polled;
     type Action = u8;
     type Outcome = ();
     type Fact = ();
 
-    fn starts(&self) -> Vec<String> {
+    fn starts(&self) -> Vec<Polled> {
         panic!("authored starts must not be enumerated during replay")
     }
     fn actions(&self) -> Vec<u8> {
@@ -107,7 +107,7 @@ impl Machine for RetainedStarts {
     fn internal(&self, _: &u8) -> bool {
         false
     }
-    fn step(&self, _: &String, _: u8) -> umpire_dsl::Steps<String, (), ()> {
+    fn step(&self, _: &Polled, _: u8) -> umpire_dsl::Steps<Polled, (), ()> {
         umpire_dsl::Steps::new()
     }
 }
@@ -139,12 +139,13 @@ fn module(actions: Vec<umpire_tla::Action>, catalog: Vec<Concrete>) -> Module {
 
 #[test]
 fn replay_uses_retained_starts_without_enumerating_again() -> crate::TestResult {
-    let module = module(Vec::new(), Vec::new());
-    let starts = ["Model { value: false }".to_owned()];
-    let native = starts.iter().map(|state| (state.clone(), state)).collect();
+    let mut module = module(Vec::new(), Vec::new());
+    module.metadata.fields[0].ty = Type::Int { min: 0, max: 1 };
+    let starts = [Polled(0)];
+    let native = starts.iter().map(|state| (state.to_string(), state)).collect();
     let trace = umpire_tlc::Trace {
         states: vec![umpire_tlc::TraceState {
-            state: State::from([("value".into(), Value::Bool(false))]),
+            state: State::from([("value".into(), Value::Int(0))]),
             observers: State::new(),
         }],
         back_to: None,
@@ -163,7 +164,7 @@ struct Polled(u8);
 
 impl std::fmt::Display for Polled {
     fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(out, "Model {{ value: {} }}", self.0)
+        write!(out, "native state {}", self.0)
     }
 }
 
@@ -202,18 +203,19 @@ fn polled(value: i128, tick: bool, action: &str, input: i128) -> umpire_tlc::Tra
     umpire_tlc::TraceState {
         state: State::from([("value".into(), Value::Int(value))]),
         observers: State::from([
-            ("__umpire_edge_tick".into(), Value::Bool(tick)),
-            ("__umpire_action".into(), Value::Text(action.into())),
-            ("__umpire_choice".into(), Value::Int(0)),
-            ("__umpire_outcome".into(), Value::Seq(Vec::new())),
-            ("__umpire_facts".into(), Value::Seq(Vec::new())),
+            (umpire_tla::observers::EDGE_TICK.into(), Value::Bool(tick)),
+            (umpire_tla::observers::ACTION.into(), Value::Text(action.into())),
+            (umpire_tla::observers::CHOICE.into(), Value::Int(0)),
+            (umpire_tla::observers::OUTCOME.into(), Value::Seq(Vec::new())),
+            (FACTS.into(), Value::Seq(Vec::new())),
             (INPUT.into(), Value::Int(input)),
         ]),
     }
 }
 
 #[test]
-fn typed_replay_identifies_the_exact_catalog_payload() -> crate::TestResult {
+fn typed_replay_identifies_the_exact_catalog_payload_without_display_identity() -> crate::TestResult
+{
     let actions = vec![umpire_tla::Action {
         name: "Poll".into(),
         operator: "Poll".into(),
@@ -222,7 +224,7 @@ fn typed_replay_identifies_the_exact_catalog_payload() -> crate::TestResult {
     }];
     let mut valid = module(actions, vec![poll(1), poll(2)]);
     valid.metadata.fields[0].ty = Type::Int { min: 0, max: 1 };
-    valid.metadata.observer_types.insert("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit)));
+    valid.metadata.observer_types.insert(FACTS.into(), Type::Seq(Box::new(Type::Unit)));
     let starts = [Polled(0)];
     let native = BTreeMap::from([("Model { value: 0 }".to_owned(), &starts[0])]);
     let identity = |action: &u8| poll(i128::from(*action));
@@ -239,7 +241,7 @@ fn typed_replay_identifies_the_exact_catalog_payload() -> crate::TestResult {
     let mut untyped = valid.clone();
     untyped.metadata.catalog[0] = poll(9);
     let mut choice = polled(1, true, "Poll", 0);
-    choice.observers.insert("__umpire_choice".into(), Value::Int(1));
+    choice.observers.insert(umpire_tla::observers::CHOICE.into(), Value::Int(1));
     let mut unidentified = polled(1, true, "Poll", 0);
     unidentified.observers.remove(INPUT);
     for (module, after, typed, reason) in [
@@ -249,7 +251,7 @@ fn typed_replay_identifies_the_exact_catalog_payload() -> crate::TestResult {
         (&valid, polled(1, true, "Poll", 0), false, "requires the typed native identity"),
         (&valid, choice, true, "choice is not emitted"),
         (&valid, unidentified, true, "lacks input identity"),
-        (&altered, polled(1, true, "Poll", 0), true, "differs from the TLC input"),
+        (&altered, polled(1, true, "Poll", 0), true, "differs from the emitted input"),
         (&untyped, polled(1, true, "Poll", 0), true, "does not match its declared fields"),
     ] {
         let identity: Option<&dyn Fn(&u8) -> Concrete> = typed.then_some(&identity);
@@ -293,17 +295,17 @@ fn replay_compares_the_typed_outcome_of_a_rejected_self_loop() -> crate::TestRes
     let mut module = module(Vec::new(), Vec::new());
     module.metadata.fields[0].ty = Type::Int { min: 0, max: 1 };
     module.metadata.outcome_type = Type::outcome();
-    module.metadata.observer_types.insert("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit)));
+    module.metadata.observer_types.insert(FACTS.into(), Type::Seq(Box::new(Type::Unit)));
     let starts = [Polled(0)];
     let native = BTreeMap::from([("Model { value: 0 }".to_owned(), &starts[0])]);
     let state = |tick: bool, outcome: Value| umpire_tlc::TraceState {
         state: State::from([("value".into(), Value::Int(0))]),
         observers: State::from([
-            ("__umpire_edge_tick".into(), Value::Bool(tick)),
-            ("__umpire_action".into(), Value::Text(if tick { "1" } else { "" }.into())),
-            ("__umpire_choice".into(), Value::Int(0)),
-            ("__umpire_outcome".into(), outcome),
-            ("__umpire_facts".into(), Value::Seq(Vec::new())),
+            (umpire_tla::observers::EDGE_TICK.into(), Value::Bool(tick)),
+            (umpire_tla::observers::ACTION.into(), Value::Text(if tick { "1" } else { "" }.into())),
+            (umpire_tla::observers::CHOICE.into(), Value::Int(0)),
+            (umpire_tla::observers::OUTCOME.into(), outcome),
+            (FACTS.into(), Value::Seq(Vec::new())),
         ]),
     };
     let replayed = |outcome: &str| {
@@ -460,7 +462,7 @@ fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
         } else {
             vec![Value::Text(format!("Fact::{expected}"))]
         };
-        assert_eq!(edge.observers["__umpire_facts"], Value::Seq(facts));
+        assert_eq!(edge.observers[FACTS], Value::Seq(facts));
         let replacements = if expected.is_empty() {
             vec![Value::Seq(vec![Value::Text("Fact::A".into())])]
         } else {
@@ -478,18 +480,18 @@ fn actual_tlc_fact_traces_replay_exact_vectors() -> crate::TestResult {
                 .last_mut()
                 .ok_or("empty forged trace")?
                 .observers
-                .insert("__umpire_facts".into(), replacement);
+                .insert(FACTS.into(), replacement);
             let error = replay(&FactEdges, &starts, &module, &native, &forged, Some(&fact_input))
                 .err()
                 .ok_or("forged facts replayed")?;
             assert!(error.to_string().contains("outcome/facts differ"), "{error}");
         }
         let mut omitted = trace.clone();
-        omitted.states.last_mut().ok_or("empty omitted trace")?.observers.remove("__umpire_facts");
+        omitted.states.last_mut().ok_or("empty omitted trace")?.observers.remove(FACTS);
         let error = replay(&FactEdges, &starts, &module, &native, &omitted, Some(&fact_input))
             .err()
             .ok_or("missing fact observer replayed")?;
-        assert!(error.to_string().contains("missing TLC facts"), "{error}");
+        assert!(error.to_string().contains("missing or invalid edge observer"), "{error}");
     }
     let mutant = emit(&source.replacen("Some(Fact::A)", "Some(Fact::B)", 1))?;
     assert_ne!(module.tla, mutant.tla);
@@ -511,35 +513,30 @@ fn nonempty_facts_are_typed_and_preserved_on_observer_activation() -> crate::Tes
     let schema = umpire_tlc::Schema {
         fields: BTreeMap::from([("value".into(), Type::Bool)]),
         observers: BTreeMap::from([(
-            "__umpire_facts".into(),
+            FACTS.into(),
             Type::Seq(Box::new(Type::Enum { name: "Fact".into(), variants })),
         )]),
     };
-    umpire_tlc::decode_state("value = FALSE /\\ __umpire_facts = <<\"Fact::A\">>", &schema)?;
+    umpire_tlc::decode_state(&format!("value = FALSE /\\ {FACTS} = <<\"Fact::A\">>"), &schema)?;
     for invalid in ["<<\"Fact::Unknown\">>", "<<TRUE>>", "\"Fact::A\""] {
         assert!(
-            umpire_tlc::decode_state(
-                &format!("value = FALSE /\\ __umpire_facts = {invalid}"),
-                &schema
-            )
-            .is_err(),
+            umpire_tlc::decode_state(&format!("value = FALSE /\\ {FACTS} = {invalid}"), &schema)
+                .is_err(),
             "{invalid}"
         );
     }
     let mut before = polled(1, true, "Signal::A", 0);
-    before
-        .observers
-        .insert("__umpire_facts".into(), Value::Seq(vec![Value::Text("Fact::A".into())]));
-    before.observers.insert("__umpire_pending".into(), Value::Int(0));
-    before.observers.insert("__umpire_steps".into(), Value::Int(0));
+    before.observers.insert(FACTS.into(), Value::Seq(vec![Value::Text("Fact::A".into())]));
+    before.observers.insert(umpire_tla::observers::PENDING.into(), Value::Int(0));
+    before.observers.insert(umpire_tla::observers::STEPS.into(), Value::Int(0));
     let mut after = before.clone();
-    after.observers.insert("__umpire_pending".into(), Value::Int(1));
+    after.observers.insert(umpire_tla::observers::PENDING.into(), Value::Int(1));
     let module = module(Vec::new(), Vec::new());
     validate_projection(&module, &before, &after)?;
-    after.observers.insert("__umpire_facts".into(), Value::Seq(Vec::new()));
+    after.observers.insert(FACTS.into(), Value::Seq(Vec::new()));
     let error =
         validate_projection(&module, &before, &after).err().ok_or("activation cleared facts")?;
-    assert!(error.to_string().contains("__umpire_facts"), "{error}");
+    assert!(error.to_string().contains(FACTS), "{error}");
     Ok(())
 }
 
@@ -591,27 +588,27 @@ fn projection_refuses_state_or_edge_changes_without_a_real_edge() -> crate::Test
     let before = umpire_tlc::TraceState {
         state: State::from([("value".into(), Value::Bool(false))]),
         observers: State::from([
-            ("__umpire_edge_tick".into(), Value::Bool(false)),
-            ("__umpire_pending".into(), Value::Int(0)),
-            ("__umpire_steps".into(), Value::Int(0)),
-            ("__umpire_action".into(), Value::Text(String::new())),
-            ("__umpire_choice".into(), Value::Int(0)),
-            ("__umpire_outcome".into(), Value::Seq(Vec::new())),
-            ("__umpire_facts".into(), Value::Seq(Vec::new())),
+            (umpire_tla::observers::EDGE_TICK.into(), Value::Bool(false)),
+            (umpire_tla::observers::PENDING.into(), Value::Int(0)),
+            (umpire_tla::observers::STEPS.into(), Value::Int(0)),
+            (umpire_tla::observers::ACTION.into(), Value::Text(String::new())),
+            (umpire_tla::observers::CHOICE.into(), Value::Int(0)),
+            (umpire_tla::observers::OUTCOME.into(), Value::Seq(Vec::new())),
+            (FACTS.into(), Value::Seq(Vec::new())),
         ]),
     };
     let module = module(Vec::new(), Vec::new());
     validate_projection(&module, &before, &before)?;
     let mut activation = before.clone();
-    activation.observers.insert("__umpire_pending".into(), Value::Int(1));
+    activation.observers.insert(umpire_tla::observers::PENDING.into(), Value::Int(1));
     validate_projection(&module, &before, &activation)?;
     for (name, value, is_state) in [
         ("value", Value::Bool(true), true),
-        ("__umpire_action", Value::Text("User::Change".into()), false),
-        ("__umpire_choice", Value::Int(1), false),
-        ("__umpire_outcome", Value::Bool(false), false),
-        ("__umpire_facts", Value::Seq(vec![Value::Text("forged".into())]), false),
-        ("__umpire_pending", Value::Int(2), false),
+        (umpire_tla::observers::ACTION, Value::Text("User::Change".into()), false),
+        (umpire_tla::observers::CHOICE, Value::Int(1), false),
+        (umpire_tla::observers::OUTCOME, Value::Bool(false), false),
+        (FACTS, Value::Seq(vec![Value::Text("forged".into())]), false),
+        (umpire_tla::observers::PENDING, Value::Int(2), false),
     ] {
         let mut after = before.clone();
         if is_state {
@@ -622,4 +619,20 @@ fn projection_refuses_state_or_edge_changes_without_a_real_edge() -> crate::Test
         assert!(validate_projection(&module, &before, &after).is_err(), "projected away {name}");
     }
     Ok(())
+}
+
+impl Values for Polled {
+    fn values(&self) -> Vec<(&'static str, umpire_dsl::Value)> {
+        vec![("value", umpire_dsl::Value::Int(self.0.into()))]
+    }
+}
+impl IntoValue for Fact {
+    fn value(&self) -> umpire_dsl::Value {
+        umpire_dsl::Value::Enum(match self {
+            Self::A => "Fact::A",
+            Self::B => "Fact::B",
+            Self::C => "Fact::C",
+            Self::D => "Fact::D",
+        })
+    }
 }

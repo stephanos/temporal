@@ -10,6 +10,8 @@ use std::{
 use syn::spanned::Spanned;
 #[doc(hidden)]
 pub use umpire_backend_process as process;
+pub mod observers;
+pub mod replay;
 pub mod values;
 pub use process::{Limits, Refusal};
 
@@ -259,11 +261,11 @@ impl Module {
     /// As [`Module::schema`], and refuses observers other than the safety emitter's.
     pub fn safety_schema(&self) -> Result<values::Schema, Refusal> {
         let schema = self.schema()?;
-        let fact = match schema.observers.get("__umpire_facts") {
+        let fact = match schema.observers.get(observers::FACTS) {
             Some(Type::Seq(fact)) => fact.as_ref(),
             _ => return Err(Refusal("missing facts observer".into())),
         };
-        let Some(Type::Int { min: 0, max: input }) = schema.observers.get("__umpire_input") else {
+        let Some(Type::Int { min: 0, max: input }) = schema.observers.get(observers::INPUT) else {
             return Err(Refusal("missing input observer".into()));
         };
         let expected = safety::observers(

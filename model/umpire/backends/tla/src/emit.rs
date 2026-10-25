@@ -1,3 +1,5 @@
+use crate::observers::TLC as OBSERVERS;
+use crate::observers::{ACTION, CHOICE, EDGE_TICK, FACTS, INPUT, OUTCOME, PENDING, STEPS};
 use crate::{
     Action, Diagnostic, Field, Lifted, Metadata, Module, Progress, Property, Type,
     bind::Entry,
@@ -13,18 +15,6 @@ use umpire_front::{
     expr::{Expr, ExprKind, Unary},
     tree::{ActionDef, ActionRef, AssumptionDef, Branch, FieldDef, Start},
 };
-
-/// The observer holding an edge's outcome.
-pub(crate) const OUTCOME: &str = "__umpire_outcome";
-pub(crate) const OBSERVERS: [&str; 7] = [
-    "__umpire_edge_tick",
-    "__umpire_pending",
-    "__umpire_steps",
-    "__umpire_action",
-    "__umpire_choice",
-    OUTCOME,
-    "__umpire_facts",
-];
 
 #[expect(clippy::too_many_lines, reason = "Definitions are emitted in module dependency order")]
 pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
@@ -156,13 +146,13 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     }
     let outcome_type = model.outcome_type.clone();
     initial.extend([
-        "__umpire_edge_tick = FALSE".into(),
-        "__umpire_pending = 0".into(),
-        "__umpire_steps = 0".into(),
-        "__umpire_action = \"\"".into(),
-        "__umpire_choice = 0".into(),
-        format!("__umpire_outcome = {}", default(&outcome_type)),
-        "__umpire_facts = <<>>".into(),
+        format!("{EDGE_TICK} = FALSE"),
+        format!("{PENDING} = 0"),
+        format!("{STEPS} = 0"),
+        format!("{ACTION} = \"\""),
+        format!("{CHOICE} = 0"),
+        format!("{OUTCOME} = {}", default(&outcome_type)),
+        format!("{FACTS} = <<>>"),
     ]);
     if inputs {
         initial.push(format!("{INPUT} = 0"));
@@ -208,10 +198,12 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         &mut out,
         format!("ModelNext == {}", disjoin(model.actions.iter().map(|a| operator(&a.name)))),
     );
-    predicate(&mut out, "ModelEdge == __umpire_edge_tick' # __umpire_edge_tick");
+    predicate(&mut out, format!("ModelEdge == {EDGE_TICK}' # {EDGE_TICK}"));
     predicate(
         &mut out,
-        "Edge == ModelNext /\\ (__umpire_edge_tick' = ~__umpire_edge_tick) /\\ UNCHANGED <<__umpire_pending, __umpire_steps>>",
+        format!(
+            "Edge == ModelNext /\\ ({EDGE_TICK}' = ~{EDGE_TICK}) /\\ UNCHANGED <<{PENDING}, {STEPS}>>"
+        ),
     );
     predicate(&mut out, "Complete == ~ENABLED ModelNext /\\ UNCHANGED vars");
     predicate(&mut out, "Next == Edge \\/ Complete");
@@ -239,7 +231,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             let operator = format!("Post_{}", claim.name);
             let applies = claim.after.as_ref().map_or_else(
                 || "ModelEdge".into(),
-                |action| format!("ModelEdge /\\ (__umpire_action' = {})", text(action)),
+                |action| format!("ModelEdge /\\ ({ACTION}' = {})", text(action)),
             );
             predicate(
                 &mut out,
@@ -305,7 +297,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         predicate(
             &mut out,
             format!(
-                "Activate_{name} == (__umpire_pending = 0) /\\ ({}) /\\ ~({}) /\\ (__umpire_pending' = 1) /\\ (__umpire_steps' = 0) /\\ UNCHANGED <<ModelVars, __umpire_edge_tick, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts{}>>",
+                "Activate_{name} == ({PENDING} = 0) /\\ ({}) /\\ ~({}) /\\ ({PENDING}' = 1) /\\ ({STEPS}' = 0) /\\ UNCHANGED <<ModelVars, {EDGE_TICK}, {ACTION}, {CHOICE}, {OUTCOME}, {FACTS}{}>>",
                 expr(&claim.trigger),
                 expr(&claim.target),
                 if inputs { format!(", {INPUT}") } else { String::new() }
@@ -313,30 +305,25 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         );
         let count = claim.bound.map_or_else(
             || "0".into(),
-            |bound| {
-                format!(
-                    "(IF __umpire_steps < {} THEN __umpire_steps + 1 ELSE __umpire_steps)",
-                    bound + 1
-                )
-            },
+            |bound| format!("(IF {STEPS} < {} THEN {STEPS} + 1 ELSE {STEPS})", bound + 1),
         );
         let target = prime(&claim.target);
         predicate(
             &mut out,
             format!(
-                "Monitor_{name} == (__umpire_edge_tick' = ~__umpire_edge_tick) /\\ (__umpire_pending' = (IF {} THEN 2 ELSE 1)) /\\ (__umpire_steps' = {count})",
+                "Monitor_{name} == ({EDGE_TICK}' = ~{EDGE_TICK}) /\\ ({PENDING}' = (IF {} THEN 2 ELSE 1)) /\\ ({STEPS}' = {count})",
                 expr(&target)
             ),
         );
         predicate(
             &mut out,
-            format!("ActiveEdge_{name} == (__umpire_pending = 1) /\\ {scoped} /\\ Monitor_{name}"),
+            format!("ActiveEdge_{name} == ({PENDING} = 1) /\\ {scoped} /\\ Monitor_{name}"),
         );
-        predicate(&mut out, format!("PrefixEdge_{name} == (__umpire_pending = 0) /\\ Edge"));
+        predicate(&mut out, format!("PrefixEdge_{name} == ({PENDING} = 0) /\\ Edge"));
         predicate(
             &mut out,
             format!(
-                "Complete_{name} == ((__umpire_pending = 2) \\/ ((__umpire_pending = 1) /\\ ~ENABLED {scoped}) \\/ ((__umpire_pending = 0) /\\ ~ENABLED ModelNext)) /\\ UNCHANGED vars"
+                "Complete_{name} == (({PENDING} = 2) \\/ (({PENDING} = 1) /\\ ~ENABLED {scoped}) \\/ (({PENDING} = 0) /\\ ~ENABLED ModelNext)) /\\ UNCHANGED vars"
             ),
         );
         predicate(
@@ -350,7 +337,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             for (fair, relation) in fair_relations(model, name, &claim.assumption) {
                 predicate(
                     &mut out,
-                    format!("{fair} == (__umpire_pending = 1) /\\ {relation} /\\ Monitor_{name}"),
+                    format!("{fair} == ({PENDING} = 1) /\\ {relation} /\\ Monitor_{name}"),
                 );
                 write!(spec, " /\\ WF_vars({fair})").ok();
             }
@@ -359,14 +346,13 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         predicate(
             &mut out,
             format!(
-                "Maximal_{name} == (([]<>__umpire_edge_tick) /\\ ([]<>(~__umpire_edge_tick))) \\/ (<>[]((__umpire_pending = 1) /\\ ~ENABLED {scoped}))"
+                "Maximal_{name} == (([]<>{EDGE_TICK}) /\\ ([]<>(~{EDGE_TICK}))) \\/ (<>[](({PENDING} = 1) /\\ ~ENABLED {scoped}))"
             ),
         );
         let operator = format!("Progress_{name}");
-        let mut property =
-            format!("(Maximal_{name} => ((__umpire_pending = 1) ~> (__umpire_pending = 2)))");
+        let mut property = format!("(Maximal_{name} => (({PENDING} = 1) ~> ({PENDING} = 2)))");
         if let Some(bound) = claim.bound {
-            write!(property, " /\\ [](__umpire_steps <= {bound})").ok();
+            write!(property, " /\\ []({STEPS} <= {bound})").ok();
         }
         predicate(&mut out, format!("{operator} == {property}"));
         progress.push(Progress {
@@ -494,10 +480,10 @@ fn step<'e>(
         terms.push(format!("{}' = {next}", field.name));
     }
     terms.extend([
-        format!("__umpire_action' = {}", text(action)),
-        "__umpire_choice' = 0".into(),
-        format!("__umpire_outcome' = {}", value(&branch.outcome)),
-        format!("__umpire_facts' = {}", value(&branch.facts)),
+        format!("{ACTION}' = {}", text(action)),
+        format!("{CHOICE}' = 0"),
+        format!("{OUTCOME}' = {}", value(&branch.outcome)),
+        format!("{FACTS}' = {}", value(&branch.facts)),
     ]);
     if model.has_inputs()
         && let Some(identity) = identity
@@ -506,7 +492,6 @@ fn step<'e>(
     }
     terms
 }
-pub(crate) const INPUT: &str = "__umpire_input";
 /// The stock accepted outcome, as the front end spells it.
 const ACCEPTED: &str = "Outcome::Accepted";
 
@@ -822,13 +807,13 @@ fn observer_types(model: &Lifted) -> BTreeMap<String, Type> {
         .max()
         .map_or(0, |bound| i128::from(bound) + 1);
     let mut observer_types = BTreeMap::from([
-        ("__umpire_edge_tick".into(), Type::Bool),
-        ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
-        ("__umpire_steps".into(), Type::Int { min: 0, max: max_steps }),
-        ("__umpire_action".into(), Type::Text),
-        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
-        ("__umpire_outcome".into(), model.outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(model.fact_type.clone()))),
+        (EDGE_TICK.into(), Type::Bool),
+        (PENDING.into(), Type::Int { min: 0, max: 2 }),
+        (STEPS.into(), Type::Int { min: 0, max: max_steps }),
+        (ACTION.into(), Type::Text),
+        (CHOICE.into(), Type::Int { min: 0, max: 0 }),
+        (OUTCOME.into(), model.outcome_type.clone()),
+        (FACTS.into(), Type::Seq(Box::new(model.fact_type.clone()))),
     ]);
     if model.has_inputs() {
         let max = i128::try_from(model.catalog.as_ref().map_or(0, Vec::len).saturating_sub(1))
