@@ -1,5 +1,6 @@
 ---
 source: temporal/realization/macros/src/lib.rs
+assertion_line: 443
 expression: render(authored)
 ---
 impl Realization {
@@ -515,7 +516,13 @@ impl Realization {
             self,
             &Action::from(action),
             world,
-            &FillInputs::Worker,
+            &FillInputs::Worker {
+                attempt: u8::try_from(attempt)
+                    .map_err(|_| Refusal::unsupported(
+                        "worker attempt is out of range",
+                    ))?,
+                details: None,
+            },
             &identity,
         )?;
         Ok((action, umpire_runtime::capability::Request::pack_request(&request)))

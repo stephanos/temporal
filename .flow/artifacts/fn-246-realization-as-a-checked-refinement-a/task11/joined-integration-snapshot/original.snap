@@ -1,0 +1,523 @@
+---
+source: temporal/realization/macros/src/lib.rs
+expression: render(authored)
+---
+impl Realization {
+    fn proposal(
+        &self,
+        world: &activity::World,
+        state: &activity::Model,
+        seed: u64,
+    ) -> Result<Proposal<Action>, Refusal> {
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let describe = Any::pack(
+            &DescribeActivityExecutionRequest {
+                namespace: context.start.namespace.clone(),
+                activity_id: context.start.activity_id.clone(),
+                run_id: context.run_id.clone(),
+                include_outcome: true,
+                include_last_failure: true,
+                ..Default::default()
+            },
+        );
+        let read = Any::pack(
+            &umpire_temporal_api::umpire::temporal::v1::ObserveActivity {
+                request: Some(describe),
+                poll_interval_ms: 10,
+                read_timeout_ms: 30_000,
+                backoff_ms: 10,
+            },
+        );
+        if !umpire_dsl::Phase::closed(&state.phase) && seed % 2 == 1 {
+            return Ok(Proposal::Read { request: read });
+        }
+        let hold = state.phase == Phase::Scheduled && seed & 2 != 0;
+        if !umpire_dsl::Phase::closed(&state.phase) && !hold {
+            return Err(
+                Refusal::unsupported(
+                    "unheld cancellation of an open activity is outside the atomic cancellation Model",
+                ),
+            );
+        }
+        let action = Action::from(Client::Cancel);
+        let identity = umpire_runtime::capability::Identity::identify(
+            self,
+            &Any::pack(&context.start),
+        )?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &action,
+            world,
+            &FillInputs::Cancel { hold, read },
+            &identity,
+        )?;
+        Ok(Proposal::Action {
+            action,
+            request: umpire_runtime::capability::Request::pack_request(&request),
+        })
+    }
+    fn matches_proposal(&self, request: &Any, observation: &Any) -> Result<(), Refusal> {
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let observed = crate::support::Observed::new(observation)?;
+        let observation = observed.current();
+        let actual = observation
+            .request
+            .as_ref()
+            .ok_or_else(|| Refusal::malformed("actual request is missing"))?;
+        if request.type_url
+            == <umpire_temporal_api::umpire::temporal::v1::TemporalInstruction as prost::Name>::type_url()
+        {
+            let instruction: umpire_temporal_api::umpire::temporal::v1::TemporalInstruction = request
+                .unpack()?;
+            if observation.method
+                == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+            {
+                if observed.acknowledged().is_some() {
+                    return Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "compound evidence requires the reconciliation read",
+                        ),
+                    );
+                }
+                return if instruction.request.as_ref() == Some(actual) {
+                    Ok(())
+                } else {
+                    Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "observation does not match cancellation invocation",
+                        ),
+                    )
+                };
+            }
+            if observation.method
+                == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+            {
+                let read: umpire_temporal_api::umpire::temporal::v1::ObserveActivity = Any::required(
+                        instruction.not_found_read,
+                    )?
+                    .unpack()?;
+                let acknowledged = observed
+                    .acknowledged()
+                    .ok_or_else(|| Refusal::new(
+                        umpire_runtime::protocol::RefusalCode::State,
+                        "reconciliation requires the actual cancellation acknowledgment",
+                    ))?;
+                if acknowledged.method
+                    != "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
+                    || acknowledged.request.as_ref() != instruction.request.as_ref()
+                    || !matches!(
+                        & acknowledged.result,
+                        Some(umpire_runtime::realization::observation::Result::Error(error))
+                        if error.code == 5
+                    )
+                {
+                    return Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "reconciliation acknowledgment does not match cancellation NotFound",
+                        ),
+                    );
+                }
+                return if read.request.as_ref() == Some(actual) {
+                    Ok(())
+                } else {
+                    Err(
+                        Refusal::new(
+                            umpire_runtime::protocol::RefusalCode::State,
+                            "Describe differs from cancellation reconciliation read",
+                        ),
+                    )
+                };
+            }
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "observation does not match cancellation invocation",
+                ),
+            );
+        }
+        if observed.acknowledged().is_some() {
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "compound evidence requires a pending cancellation",
+                ),
+            );
+        }
+        if observation.method
+            != "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+        {
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "observation RPC does not correlate with proposal",
+                ),
+            );
+        }
+        let actual: DescribeActivityExecutionRequest = actual.unpack()?;
+        if actual.namespace != context.start.namespace
+            || actual.activity_id != context.start.activity_id
+            || actual.run_id != context.run_id
+        {
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "observation crosses proposal identity",
+                ),
+            );
+        }
+        if request.type_url
+            == <umpire_temporal_api::umpire::temporal::v1::ObserveActivity as prost::Name>::type_url()
+        {
+            let instruction: umpire_temporal_api::umpire::temporal::v1::ObserveActivity = request
+                .unpack()?;
+            let expected: DescribeActivityExecutionRequest = Any::required(
+                    instruction.request,
+                )?
+                .unpack()?;
+            if expected != actual {
+                return Err(
+                    Refusal::new(
+                        umpire_runtime::protocol::RefusalCode::State,
+                        "Describe differs from proposal",
+                    ),
+                );
+            }
+        } else {
+            return Err(Refusal::unsupported("unknown proposal request"));
+        }
+        Ok(())
+    }
+    fn polling(
+        &self,
+        observation: &Any,
+        state: &activity::Model,
+        action: Option<&Action>,
+    ) -> Result<bool, Refusal> {
+        let observed = crate::support::Observed::new(observation)?;
+        Ok(
+            self.context.is_some()
+                && observed.method
+                    == "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+                && (action.is_some() || !umpire_dsl::Phase::closed(&state.phase)),
+        )
+    }
+    #[allow(
+        clippy::unnecessary_wraps,
+        reason = "Realization handlers share a fallible return contract"
+    )]
+    fn cancel(
+        response: Result<RequestCancelActivityExecutionResponse, i32>,
+    ) -> Result<Projection<Action>, Refusal> {
+        let outcome = if let Err(code) = response {
+            let Some(rejection) = rejection(code) else {
+                return Ok(Projection::steps([]));
+            };
+            Outcome::Rejected(rejection)
+        } else {
+            Outcome::Accepted
+        };
+        Ok(
+            Projection::Candidates(
+                vec![
+                    Candidate { path : vec![Action::from(Client::Cancel).into()], outcome
+                    : Some(outcome), }
+                ],
+            ),
+        )
+    }
+    #[allow(
+        clippy::unnecessary_wraps,
+        reason = "Realization handlers share a fallible return contract"
+    )]
+    fn describe(
+        &self,
+        response: DescribeActivityExecutionResponse,
+        state: &activity::Model,
+        world: &activity::World,
+    ) -> Result<Projection<Action>, Refusal> {
+        let info = response
+            .info
+            .ok_or_else(|| Refusal::malformed("activity info is missing"))?;
+        let raw_attempt = info.attempt;
+        let phase = Phase::try_from(info.clone())?;
+        let attempt = u8::try_from(raw_attempt)
+            .map_err(|_| Refusal::unsupported(
+                "Describe attempt is outside maximum_attempts",
+            ))?;
+        if !(state.attempt..=3).contains(&attempt) {
+            return Err(
+                Refusal::new(
+                    umpire_runtime::protocol::RefusalCode::State,
+                    "Describe attempt does not match the current attempt",
+                ),
+            );
+        }
+        let mut terminal_retryable = false;
+        if let Some(context) = &self.context {
+            let scenario = context
+                .start
+                .header
+                .as_ref()
+                .and_then(|header| header.fields.get(SCENARIO_HEADER))
+                .and_then(|payload| std::str::from_utf8(&payload.data).ok())
+                .ok_or_else(|| Refusal::malformed("Start scenario header is missing"))?;
+            if let Some(failure) = info.last_failure.as_ref() {
+                Self::programmed_failure(failure)?;
+            }
+            if let Some(Value::Failure(failure)) = response
+                .outcome
+                .as_ref()
+                .and_then(|outcome| outcome.value.as_ref())
+            {
+                Self::programmed_failure(failure)?;
+            }
+            if !Self::consistent_evidence(
+                phase,
+                attempt,
+                info.last_failure.as_ref(),
+                response.outcome.as_ref(),
+            ) {
+                return Ok(Projection::steps([]));
+            }
+            if attempt > 1 && phase != Phase::Failed {
+                let (action, expected) = self
+                    .response(world, scenario, i32::from(attempt - 1))?;
+                if !matches!(action, Worker::RespondFailed { retryable : true }) {
+                    return Ok(Projection::steps([]));
+                }
+                let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+                if !Self::same_failure(
+                    info.last_failure.as_ref(),
+                    expected.failure.as_ref(),
+                ) {
+                    return Ok(Projection::steps([]));
+                }
+            }
+            for skipped in state.attempt..attempt {
+                let (action, _) = self.response(world, scenario, i32::from(skipped))?;
+                if !matches!(action, Worker::RespondFailed { retryable : true }) {
+                    return Ok(Projection::steps([]));
+                }
+            }
+            let (action, expected) = self.response(world, scenario, raw_attempt)?;
+            match phase {
+                Phase::Completed => {
+                    let Some(Value::Result(result)) = response
+                        .outcome
+                        .as_ref()
+                        .and_then(|outcome| outcome.value.as_ref()) else {
+                        return Ok(Projection::steps([]));
+                    };
+                    if !matches!(action, Worker::RespondCompleted) {
+                        return Ok(Projection::steps([]));
+                    }
+                    let expected: RespondActivityTaskCompletedRequest = expected
+                        .unpack()?;
+                    if expected.result.as_ref() != Some(result) {
+                        return Ok(Projection::steps([]));
+                    }
+                }
+                Phase::Failed => {
+                    let Some(Value::Failure(failure)) = response
+                        .outcome
+                        .as_ref()
+                        .and_then(|outcome| outcome.value.as_ref()) else {
+                        return Ok(Projection::steps([]));
+                    };
+                    let Worker::RespondFailed { retryable } = action else {
+                        return Ok(Projection::steps([]));
+                    };
+                    terminal_retryable = retryable;
+                    let expected: RespondActivityTaskFailedRequest = expected.unpack()?;
+                    if !Self::same_failure(Some(failure), expected.failure.as_ref())
+                        || !Self::same_failure(
+                            info.last_failure.as_ref(),
+                            expected.failure.as_ref(),
+                        )
+                    {
+                        return Ok(Projection::steps([]));
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(
+            Self::project_phase(
+                state,
+                &Self::observed_state(phase, attempt),
+                terminal_retryable,
+            ),
+        )
+    }
+    fn consistent_evidence(
+        phase: Phase,
+        attempt: u8,
+        last_failure: Option<&Failure>,
+        outcome: Option<&ActivityExecutionOutcome>,
+    ) -> bool {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+        if attempt == 1 && !matches!(phase, Phase::Failed | Phase::TimedOut)
+            && last_failure.is_some()
+        {
+            return false;
+        }
+        let Some(outcome) = outcome else {
+            return true;
+        };
+        match phase {
+            Phase::Scheduled | Phase::Started => false,
+            Phase::Canceled => {
+                matches!(
+                    & outcome.value, Some(Value::Failure(failure)) if matches!(& failure
+                    .failure_info, Some(FailureInfo::CanceledFailureInfo(_)))
+                )
+            }
+            Phase::TimedOut => {
+                matches!(
+                    & outcome.value, Some(Value::Failure(failure)) if matches!(& failure
+                    .failure_info, Some(FailureInfo::TimeoutFailureInfo(_)))
+                )
+            }
+            Phase::Completed | Phase::Failed => true,
+        }
+    }
+    fn programmed_failure(failure: &Failure) -> Result<(), Refusal> {
+        use umpire_temporal_api::temporal::api::failure::v1::failure::FailureInfo;
+        if matches!(
+            & failure.failure_info, Some(FailureInfo::ApplicationFailureInfo(info)) if
+            info.r#type == "umpire.unprogrammed"
+        ) {
+            return Err(Refusal::unsupported("unprogrammed worker task"));
+        }
+        Ok(())
+    }
+    fn same_failure(observed: Option<&Failure>, expected: Option<&Failure>) -> bool {
+        fn content(failure: &Failure) -> Failure {
+            let mut failure = failure.clone();
+            failure.source.clear();
+            failure.stack_trace.clear();
+            failure.cause = failure.cause.map(|cause| Box::new(content(&cause)));
+            failure
+        }
+        observed.map(content) == expected.map(content)
+    }
+    fn observed_state(phase: Phase, attempt: u8) -> activity::Model {
+        activity::Model {
+            phase,
+            attempt,
+            cancel_requested: false,
+            schedule_to_start_remaining: None,
+            start_to_close_remaining: None,
+            schedule_to_close_remaining: None,
+            heartbeat_remaining: None,
+        }
+    }
+    fn project_phase(
+        state: &activity::Model,
+        observed: &activity::Model,
+        terminal_retryable: bool,
+    ) -> Projection<Action> {
+        if state == observed {
+            return Projection::Current;
+        }
+        if umpire_dsl::Phase::closed(&state.phase) {
+            return Projection::steps([]);
+        }
+        let mut phase = state.phase;
+        let mut path = Vec::new();
+        for attempt in state.attempt..observed.attempt {
+            if phase == Phase::Scheduled {
+                path.push(Action::from(Worker::Poll(attempt)).into());
+            }
+            path.push(
+                Action::from(Worker::RespondFailed {
+                        retryable: true,
+                    })
+                    .into(),
+            );
+            phase = Phase::Scheduled;
+        }
+        if phase == Phase::Scheduled
+            && matches!(
+                observed.phase, Phase::Started | Phase::Completed | Phase::Failed
+            )
+        {
+            path.push(Action::from(Worker::Poll(observed.attempt)).into());
+            phase = Phase::Started;
+        }
+        if phase == Phase::Started {
+            match observed.phase {
+                Phase::Started => {}
+                Phase::Completed => {
+                    path.push(Action::from(Worker::RespondCompleted).into());
+                    phase = Phase::Completed;
+                }
+                Phase::Failed => {
+                    path.push(
+                        Action::from(Worker::RespondFailed {
+                                retryable: terminal_retryable,
+                            })
+                            .into(),
+                    );
+                    phase = Phase::Failed;
+                }
+                _ if observed.attempt == state.attempt => return Projection::steps([]),
+                _ => {}
+            }
+        }
+        if path.is_empty() || phase != observed.phase {
+            Projection::steps([])
+        } else {
+            Projection::steps([path])
+        }
+    }
+    fn select_response(scenario: &str, attempt: i32) -> Result<Worker, Refusal> {
+        match scenario {
+            "RetryThenComplete" if attempt == 1 => {
+                Ok(Worker::RespondFailed {
+                    retryable: true,
+                })
+            }
+            "Complete" | "RetryThenComplete" => Ok(Worker::RespondCompleted),
+            "Fail" => {
+                Ok(Worker::RespondFailed {
+                    retryable: false,
+                })
+            }
+            _ => Err(Refusal::unsupported("unsupported worker scenario")),
+        }
+    }
+    fn response(
+        &self,
+        world: &activity::World,
+        scenario: &str,
+        attempt: i32,
+    ) -> Result<(Worker, Any), Refusal> {
+        let action = Self::select_response(scenario, attempt)?;
+        let context = self
+            .context
+            .as_ref()
+            .ok_or_else(|| Refusal::unsupported("proposal configuration required"))?;
+        let identity = umpire_runtime::capability::Identity::identify(
+            self,
+            &Any::pack(&context.start),
+        )?;
+        let request = umpire_runtime::capability::Fill::fill(
+            self,
+            &Action::from(action),
+            world,
+            &FillInputs::Worker,
+            &identity,
+        )?;
+        Ok((action, umpire_runtime::capability::Request::pack_request(&request)))
+    }
+}
