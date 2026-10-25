@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "verdict": "REVIEW",
+  "mode": "triage_review",
+  "reason": "code change detected: .flow/artifacts/fn-252-quick-consolidation-wins-in-model-code/task3/evidence/build-control/umpire/dev/fixtures/fixtures/sample_kettle/model.rs",
+  "source": "deterministic",
+  "base": "8dfb781724d9d05a52f19bddf78da166dbe7a9d4",
+  "changed_file_count": 165
+}

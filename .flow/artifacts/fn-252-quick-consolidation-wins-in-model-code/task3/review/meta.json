@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-252-quick-consolidation-wins-in-model-code.3",
+  "standalone": false,
+  "base_branch": "8dfb781724d9d05a52f19bddf78da166dbe7a9d4",
+  "reviewed_base_sha": "8dfb781724d9d05a52f19bddf78da166dbe7a9d4",
+  "reviewed_head_sha": "6a8d3ee660a394898f85fd7f2d8813b6cbe9eddf",
+  "artifact_sha256": "7d5b26008acfa03a8b5eabe62ceb09dbca0b49317bd6009da90e57e5e564288c",
+  "reservation_id": "ce7f1cccf40940a18b93b4b0ee57d005",
+  "rid": "ce7f1cccf40940a18b93b4b0ee57d005",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1710d-ba7b-7c43-a7e7-96a22fffaefe",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T03:14:47.247134Z",
+      "finished_at": "2026-10-25T03:16:07.140638Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1710d-bb32-79a2-b245-953e02bce9d3",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T03:14:47.247330Z",
+      "finished_at": "2026-10-25T03:16:10.889052Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1710d-ba78-7a50-b34d-9f46ecf03f81",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-25T03:14:47.247523Z",
+      "finished_at": "2026-10-25T03:16:58.368606Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/review-fanout/ce7f1cccf40940a18b93b4b0ee57d005/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-8f37faba39e2-fn-252-quick-consolidation-wins-in-model-code.3.json",
+  "created_at": "2026-10-25T03:16:58.378890Z"
+}

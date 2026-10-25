@@ -1,0 +1,27 @@
+{
+  "base_commit": "8dfb781724d9d05a52f19bddf78da166dbe7a9d4",
+  "source_commit": "6a8d3ee660a394898f85fd7f2d8813b6cbe9eddf",
+  "current_source_hashes": {
+    "model/design/native-symbolic/.gitignore": "93634a05aab76eb7d7e758d284bab78784b85c371d018f8781cd2eb63435f287",
+    "model/design/native-symbolic/Cargo.lock": "5310a63f278e6de72101ae9070a94f830565bfde18ef080186c3c0a91e997804",
+    "model/design/native-symbolic/Cargo.toml": "49c9ca85c1daad50da2b8b0a90731dc376a94706f042521d0c1e25c144bb0e27",
+    "model/design/native-symbolic/README.md": "5059439710bb92bfc574da7e181c38c7eb3e800f4e64a18e3c4762800e633b89",
+    "model/design/native-symbolic/build.rs": "4c6505ea352ab60bb6661a8aa4a1eac7ed7879e2d1f81767838fa98fee7494e9",
+    "model/design/native-symbolic/run.sh": "90e0c154c3cceeed962eb1a949596b099e832fb16d883e75e8e945ec281fea3f",
+    "model/design/native-symbolic/rust-toolchain.toml": "5a7b7b624394e3ece3fb4c9e0391aa400eeebf7a7a1efd18e74c5b68b71cd65e",
+    "model/design/native-symbolic/src/btor2.rs": "a23279a8dabf26fc753691494d39fcf13aa1bf9c331f5569ad9cd6e2fc7874d0",
+    "model/design/native-symbolic/src/main.rs": "dece547ab76a4b30ea8411ad2c3b4b7f0c1d14588bdb148494a5cf6ec0569f49",
+    "model/design/native-symbolic/src/smt.rs": "9b2ae419ed7d702f34adad21dbd48ad72dd2d570c7a54d55c97b7f207a4e83ce",
+    "model/design/native-symbolic/src/witness.rs": "7b7328254a013d681abd78fed712bbf0132939b9aa9a169ec500e5d7076da79f",
+    "model/umpire/dev/fixtures/fixtures/sample_kettle/model.rs": "6adf1d33cbd161a956033a234b770af1c4eb22cb81d3a2a24ed6d51603e5c714"
+  },
+  "focused_test_count": 6,
+  "test_exit": 0,
+  "locked_check_exit": 0,
+  "bash_syntax_exit": 0,
+  "fmt_exit": 0,
+  "warnings": "Two inherited dead-code warnings; not suppressed.",
+  "source_evidence": "task3/joined-source-binding.json",
+  "actual_solver_evidence": "task3/evidence; original manifest116files verified;114textfiles durable and2binarySHArefs.",
+  "limits": "No current joined solver execution, full gate or duplicate big exploration. Retained worker big never_beeps timeout does not establish proof/full agreement."
+}
