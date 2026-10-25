@@ -6,7 +6,7 @@ The feedback loop is too slow to steer by.
 - **The full cycle has never completed inside the hour.** Cycle 8 (2026-10-24) used 3,554 s, ran 25 of 96 stages, and failed on `rust-diagnostic-test` about 50 minutes in. The stage estimates add up to about 8,300 s.
 - **The everyday Rust loop is slow too.** After touching one file, `cargo test --release -p gomad --no-run` takes 3 min 11 s (22 CPU-minutes). `make lint-rust` runs 16 release clippy builds one after another at 12–18 s each. Only `cargo check` (4 s) is fast.
 
-The overhead inside the cycle driver (per-stage custody hashing, single-job stages, repeated compiles) is proposed as an fn-242 amendment: `.flow/artifacts/fn242-gate-speed-amendment-draft-2026-10-25.md`, pending owner approval. This spec covers the rest.
+The overhead inside the cycle driver (per-stage custody hashing, single-job stages, repeated compiles) is covered by the applied fn-242 gate-speed amendment (366a3ebba9), with rationale in `.flow/artifacts/fn242-gate-speed-amendment-draft-2026-10-25.md`. This spec covers the rest.
 
 ## Goal
 
@@ -26,7 +26,7 @@ Three loops, each fast enough for its job:
 
 ## Acceptance Criteria
 
-- **R1:** A `check-fast` entrypoint (a mise task under R5) runs `cargo check`, one clippy pass with all features, `cargo fmt --check`, and the unit plus golden tests of the crates changed since a base revision. Incremental wall time after a one-file edit is recorded before and after. Errors: a target that skips a crate with changed sources is a finding.
+- **R1:** A `check-fast` entrypoint (a mise task under R5) runs `cargo check`, one lint phase covering every supported feature mode, `cargo fmt --check`, and the unit plus golden tests of the crates changed since a base revision. Incremental wall time after a one-file edit is recorded before and after. Errors: a target that skips a crate with changed sources or a supported lint mode is a finding.
 - **R2:** Development builds optimise dependencies (`[profile.dev.package."*"] opt-level = 3`) and leave our own crates unoptimised, so guests run at usable speed in the inner loop. The pre-merge gate and the cycle keep `--release`. Errors: a test that passes only under one profile is a finding, to be fixed rather than skipped.
 - **R3:** The cycle schedules cheap stages first. Each stage has a measured cost class, and no stage of class "long" (over about 300 s) is admitted while a "cheap" stage (under about 60 s) is still pending, unless the cheap stage depends on the long one. Errors: a failure that a cheap stage would have caught, surfacing only after a long stage ran, is a finding.
 - **R4:** Development cycles can reuse a stage whose receipt came from a green run and whose full input closure (sources, toolchain, config and upstream artifacts, hashed) is unchanged. Reuse is never available in fn-246 final qualification or in any cycle that claims closure. Errors: a reused stage whose closure misses an input that changes its outcome is a finding, shown by a mutation of that input.
@@ -39,5 +39,13 @@ Three loops, each fast enough for its job:
 ## Decision Context
 
 Owner, 2026-10-25: "one of the most important things is the validation gates; and making sure they are fast. we need a fast feedback loop." Measurements and analysis were taken from cycle 8 evidence and from timing the gomad crates on 2026-10-25. fn-178 once had stage reuse (`run-qualification-fast.sh --reuse`, keyed on git pathspecs). R4 brings it back keyed on content hashes, because a pathspec misses any input it doesn't name.
+
+### Implementation clarification — 2026-10-25
+
+The existing host and engine deliberately reject incompatible feature combinations with `compile_error!`; literal `clippy --all-features` cannot be a passing gate. R1 therefore uses the complete existing supported feature matrix (9 host modes and 7 engine modes), with `--all-targets -D warnings`, shared by the fast and pre-merge entrypoints from one authoritative Rust table. One lint phase may require one Cargo invocation per valid mode. Invalid-feature guards stay intact; selecting only the default or a convenient combined mode does not satisfy R1.
+
+Golden coverage includes the valid engine `reference-helper` mode required by the existing engine, cluster, helper-corpus and replay-preflight integration targets. Default and reference-helper test discovery are compared separately; doctests run separately from nextest. Timing is recorded honestly under the existing quiet-host deferral, without dropping feature or test coverage to reach the target.
+
+R6's single-copy rule applies to retained immutable payloads. Relocation and mutation assertions may require independent private execution trees; those are explicitly leased scratch, retain their existing isolation and file-authentication checks, and are reported separately from the retained-blob census. Complete content-addressed manifests and actual reader resolution or deterministic private materialization must preserve verification after lease cleanup. An archive-only store that leaves duplicate retained executable/module payloads does not satisfy R6. The first real retention/prune still requires the owner's approval of its concrete dry-run plan.
 
 Owner, 2026-10-25 (same day): "we also want to move the gomad specific makefile targets out of there and into cargo/mise where appropriate inside tools/gomad. they need to work standalone. temporal/ doesn't care/know about them." This became R5. The same day's disk audit found ≈79 GiB of evidence (624k files), ≈34 GiB in 93 worktrees and 36 GiB in `~/.cache/codex-build`, with ≈30 GiB of payloads duplicated across runs and no retention rule; that became R6. Owner decided the same day to adopt cargo-nextest without a measurement first (R7): it builds tests once into a reusable archive, runs them in parallel with serial groups for single-thread tests, and reports slow and hung tests (input for R3).

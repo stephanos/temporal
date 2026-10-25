@@ -23,6 +23,8 @@ Do:
 
 Never delete without the owner's go-ahead on the first dry run. Handoffs live inside evidence directories (B08, B14), and codex's lanes are paused, not finished. Umpire's cache is outside this spec; flag it to the owner.
 
+The spec's implementation clarification distinguishes retained immutable blobs from leased private relocation/mutation scratch. Keep the original private-tree isolation and file authentication; do not hardlink executables to bypass `nlink == 1`. Reader resolution or deterministic private materialization must preserve retained proofs after lease cleanup. An archive-only cache is insufficient, and unknown or unconverted legacy receipts remain pinned until their references and verification are understood.
+
 ## Acceptance
 - After the store lands, one cycle's evidence contains each distinct executable or module once (checked by a digest census), and a second cycle reuses the first one's blobs.
 - The retention verb's dry run on the 2026-10-25 tree lists what it would delete, with pinned references excluded, and the owner approves it before the first real run. After pruning, every retained receipt still verifies against the store.
