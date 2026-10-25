@@ -8,7 +8,7 @@ Implement R3's descriptor catalog/claims and the inventory semantics needed by R
 
 **Size:** M
 **Files:** Temporal descriptor catalog generation/field kinds, service declaration admission, generic catalog extension only where necessary, Temporal inventory preparation and exact delta controls.
-**Touches:** [model/temporal/shared/catalog/**, model/temporal/foundation/**, model/temporal/annotate/syntax/src/services.rs, model/temporal/annotate/tests/**, model/temporal/realization/src/probes/generic.rs, model/temporal/realization/tests/{catalog,probes,start_mirror}.rs, model/umpire/catalog/**]
+**Touches:** [model/temporal/shared/catalog/**, model/temporal/foundation/**, model/temporal/annotate/syntax/src/services.rs, model/temporal/annotate/syntax/src/realization.rs, model/temporal/annotate/tests/**, model/temporal/api/src/lib.rs, model/temporal/api/build_inputs.rs, model/temporal/feature/activity/api.rs, model/temporal/feature/activity/claims.rs, model/temporal/feature/activity/probe_gaps.rs, model/temporal/realization/src/probes/generic.rs, model/temporal/realization/tests/catalog.rs, model/temporal/realization/tests/probes.rs, model/temporal/realization/tests/start_mirror.rs, model/temporal/realization/tests/probe_accounting.rs, model/temporal/realization/tests/data/probes-before-claims.binpb, model/umpire/catalog/**]
 
 ### Approach
 
@@ -20,7 +20,7 @@ All source coordinates are provisional planning anchors. Reanchor final fn-237.3
 4. Implement the conductor-approved R4 clarification. Conditional queue-name and retry-ordering cases remain present, with independently justified typed semantic rules and preserved paired controls. Validate actual API/World applicability before giving strict predictions; retain visible gaps and fail acceptance if the rule cannot be justified. Do not fit a rule to a live rejection.
 5. Produce an exact per-ID old/new inventory reconciliation. A retained case may gain a strict prediction; a removed case must cite its actual opaque/claim rule. Remove no claimed-field/enum/request-evidence/response-validation controls.
 
-**Dispatch exclusion:** Serialize with .11 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
+**Dispatch exclusion:** Descriptor generation also owns the existing Temporal API include/build-input seams. Serialize production schema/API integration with .14; its completed SDK-only proof is disjoint. Serialize with .11 on annotation syntax/tests; the parent overlap guard applies even when the task DAG otherwise permits parallel work. Preserve existing dependencies.
 
 ### Investigation targets
 
