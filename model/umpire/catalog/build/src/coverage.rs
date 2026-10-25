@@ -37,11 +37,9 @@ fn collect(root: &Path, inputs: &mut Inputs) -> io::Result<()> {
         let path = entry.path();
         if entry.file_type()?.is_dir() {
             collect(&path, inputs)?;
-        } else if path
-            .file_name()
-            .and_then(std::ffi::OsStr::to_str)
-            .is_some_and(|name| ["api.rs", "enum_inventory.rs", "service.rs"].contains(&name))
-        {
+        } else if path.file_name().and_then(std::ffi::OsStr::to_str).is_some_and(|name| {
+            ["api.rs", "claims.rs", "enum_inventory.rs", "service.rs"].contains(&name)
+        }) {
             inputs.files.push(path);
         }
     }
@@ -65,7 +63,10 @@ pub fn check(
     }
     for path in inputs.files {
         println!("cargo:rerun-if-changed={}", path.display());
-        let source = fs::read_to_string(&path)?;
+        let mut source = fs::read_to_string(&path)?;
+        if path.file_name().is_some_and(|name| name == "claims.rs") {
+            source = crate::mirrors::expand(&source, graph)?;
+        }
         let error = |error| io::Error::other(format!("{}: {error}", path.display()));
         for catalog in catalogs(&source).map_err(error)? {
             let projected = catalog.coverage();

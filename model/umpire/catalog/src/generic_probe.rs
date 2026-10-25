@@ -30,6 +30,13 @@ pub trait ProbeSystem {
     fn rpc_path(&self, method: Self::Method) -> String;
     /// Descriptor fields, including ignored catalog fields.
     fn fields(&self, method: Self::Method) -> Vec<WireField>;
+    /// Whether a system's explicit claim policy admits this inferred mutation.
+    ///
+    /// # Errors
+    /// Refuses inconsistent claim metadata or an invalid policy witness.
+    fn admits_case(&self, _method: Self::Method, _case: &WireCase) -> Result<bool> {
+        Ok(true)
+    }
     /// Explicit externally chosen mutation bounds.
     fn bounds(&self) -> Vec<u64>;
     /// Valid slots used only to establish value-free canonical metadata.
@@ -139,6 +146,9 @@ impl<S: ProbeSystem> Engine<S> {
         let mut entries = Vec::new();
         for (method, prerequisite) in system.methods() {
             for case in wire_cases(&system.fields(method), &bounds) {
+                if !system.admits_case(method, &case)? {
+                    continue;
+                }
                 entries.push(Entry { method, prerequisite, case, canonical: OnceLock::new() });
                 if entries.len() > MAX_CASES {
                     return Err("generic probe inventory exceeds metadata budget".into());

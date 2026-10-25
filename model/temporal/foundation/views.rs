@@ -71,3 +71,87 @@ pub mod activity_type {
         Ok(())
     }
 }
+
+/// `TaskQueue.normal_name` is defined only for sticky queues in the pinned protocol.
+pub mod poll_normal_name {
+    use umpire_catalog::GenerationError;
+    use umpire_temporal_api::temporal::api::{
+        enums::v1::TaskQueueKind, workflowservice::v1::PollActivityTaskQueueRequest,
+    };
+
+    /// Projects the nonsticky queue name whose only admitted length is zero.
+    pub fn view(value: &PollActivityTaskQueueRequest) -> String {
+        value
+            .task_queue
+            .as_ref()
+            .filter(|queue| queue.kind != TaskQueueKind::Sticky as i32)
+            .map_or_else(String::new, |queue| queue.normal_name.clone())
+    }
+
+    /// Writes the projection without changing the declared queue kind.
+    pub fn set(
+        value: &mut PollActivityTaskQueueRequest,
+        name: String,
+    ) -> Result<(), GenerationError> {
+        let queue = value.task_queue.as_mut().ok_or(GenerationError::UnsupportedType)?;
+        if queue.kind == TaskQueueKind::Sticky as i32 && !name.is_empty() {
+            return Err(GenerationError::InapplicableMutation);
+        }
+        queue.normal_name = name;
+        Ok(())
+    }
+}
+
+/// The documented public retry contract applies to explicit enabled policy intervals.
+pub mod start_retry_order {
+    use umpire_catalog::{FieldValue, GenerationError, Kind};
+    use umpire_runtime::prost_types::Duration;
+    use umpire_temporal_api::temporal::api::workflowservice::v1::StartActivityExecutionRequest;
+
+    fn total(value: &Duration) -> Option<i128> {
+        let duration = umpire_catalog::Duration { seconds: value.seconds, nanos: value.nanos };
+        duration
+            .violations(&Kind::Duration(umpire_catalog::NumberRules::default()))
+            .is_empty()
+            .then_some(i128::from(value.seconds) * 1_000_000_000 + i128::from(value.nanos))
+    }
+
+    /// Compares explicit positive intervals, preserving default and disabled policies.
+    pub fn view(value: &StartActivityExecutionRequest) -> i32 {
+        let Some(policy) = &value.retry_policy else { return 1 };
+        if policy.maximum_attempts == 1 {
+            return 1;
+        }
+        let (Some(initial), Some(maximum)) = (
+            policy.initial_interval.as_ref().and_then(total),
+            policy.maximum_interval.as_ref().and_then(total),
+        ) else {
+            return 1;
+        };
+        i32::from(initial <= 0 || maximum <= 0 || initial <= maximum)
+    }
+
+    /// Writes an ordered or inverted initial interval under the actual explicit maximum.
+    pub fn set(
+        value: &mut StartActivityExecutionRequest,
+        valid: i32,
+    ) -> Result<(), GenerationError> {
+        if valid >= 1 && view(value) >= 1 {
+            return Ok(());
+        }
+        let policy = value.retry_policy.as_mut().ok_or(GenerationError::UnsupportedType)?;
+        let maximum = policy.maximum_interval.as_ref().ok_or(GenerationError::UnsupportedType)?;
+        if valid < 1 {
+            if policy.maximum_attempts == 1 || total(maximum).is_none_or(|maximum| maximum <= 0) {
+                return Err(GenerationError::InapplicableMutation);
+            }
+            policy.initial_interval = Some(Duration {
+                seconds: maximum.seconds.checked_add(1).ok_or(GenerationError::SizeLimit)?,
+                nanos: 0,
+            });
+        } else {
+            policy.initial_interval = Some(*maximum);
+        }
+        Ok(())
+    }
+}

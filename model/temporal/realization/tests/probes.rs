@@ -6,7 +6,7 @@ use umpire_runtime::annotations::ProbeMatch;
 use umpire_runtime::annotations::ProbeObservation;
 
 #[test]
-fn black_box_inventory_includes_ignored_wire_fields() -> Result<(), Box<dyn std::error::Error>> {
+fn descriptor_inventory_preserves_claimed_wire_fields() -> Result<(), Box<dyn std::error::Error>> {
     use prost::Message;
     let inventory = probe(&ProbeRequest::default())?;
     assert!(
@@ -114,28 +114,28 @@ fn generic_actual_witness_predictions_and_observation_admission()
     request.observations[index].code = 0;
     assert!(probe(&request)?.fails, "acceptance despite a violated reject rule must fail");
     assert_invalid_generic_metadata(&request, index);
-    let ignored = inventory
-        .cases
-        .iter()
-        .find(|case| {
-            case.generic
-                && case.id.contains("StartActivityExecution::")
-                && case.id.ends_with("StartActivityExecutionRequest.header:mutation.empty")
-        })
-        .ok_or("missing unreviewed ignored header")?;
-    assert_eq!(ignored.predictions.len(), 0);
-    assert!(dispositions::unannotated().iter().all(|(id, _)| id != &ignored.id));
-    let ignored_index = request
-        .observations
-        .iter()
-        .position(|observation| observation.case_id == ignored.id)
-        .ok_or("missing ignored observation")?;
     request.observations[index].accepted = false;
     request.observations[index].code = metadata.predictions[0].code;
     request.observations[index].predictions[0].message_matches = true;
     assert!(!probe(&request)?.fails, "one matched rejection explains the generic outcome");
-    request.observations[ignored_index].accepted = false;
-    request.observations[ignored_index].code = 3;
+    let unpredicted = inventory
+        .cases
+        .iter()
+        .find(|case| {
+            case.generic
+                && case.id.ends_with(
+                    "RespondActivityTaskCompletedRequest.resource_id:mutation.limit_plus_one(1000)",
+                )
+        })
+        .ok_or("missing nonopaque unpredicted control")?;
+    assert_eq!(unpredicted.predictions, []);
+    let index = request
+        .observations
+        .iter()
+        .position(|observation| observation.case_id == unpredicted.id)
+        .ok_or("missing unpredicted observation")?;
+    request.observations[index].accepted = false;
+    request.observations[index].code = 3;
     let result = probe(&request)?;
     assert!(
         result.fails && result.report.contains("Unannotated"),
@@ -236,7 +236,7 @@ fn every_generic_attempt_checks_actual_context_against_canonical_predictions()
 -> Result<(), Box<dyn std::error::Error>> {
     let inventory = probe(&ProbeRequest::default())?;
     let cases: Vec<_> = inventory.cases.iter().filter(|case| case.generic).collect();
-    assert_eq!(cases.len(), 2238);
+    assert_eq!(cases.len(), 1037);
     for context in [false, true] {
         let slots = ProbeRequest {
             operation: Operation::Prepare as i32,
@@ -446,7 +446,7 @@ fn source_dispositions_validate_before_applying_a_dated_waiver()
         .is_err()
     );
     let known = dispositions::unannotated();
-    assert_eq!(known.len(), 217, "only the explicitly reviewed observations are scoped");
+    assert_eq!(known.len(), 0, "semantic cases now carry explicit predictions");
     assert!(known.iter().all(|(_, gap)| gap.date == "2026-10-21"));
     let inventory = probe(&ProbeRequest::default())?;
     dispositions::Dispositions::with_unannotated(
@@ -651,5 +651,38 @@ fn shared_dispatch_preserves_method_and_live_prerequisite_refusals()
             expected
         );
     }
+    Ok(())
+}
+
+#[test]
+fn temporal_opaque_admission_preserves_explicit_constraints()
+-> Result<(), Box<dyn std::error::Error>> {
+    let inventory = probe(&ProbeRequest::default())?;
+    for prefix in [
+        "StartActivityExecutionRequest.header:",
+        "StartActivityExecutionRequest.links.",
+        "StartActivityExecutionRequest.priority.",
+        "PollActivityTaskQueueRequest.worker_version_capabilities.",
+    ] {
+        assert!(
+            inventory.cases.iter().all(|case| !case.generic || !case.id.contains(prefix)),
+            "opaque subtree {prefix}"
+        );
+    }
+    for method in
+        ["RespondActivityTaskCompleted", "RespondActivityTaskFailed", "RespondActivityTaskCanceled"]
+    {
+        assert!(inventory.cases.iter().all(|case| !case.generic
+            || !case.id.contains(&format!("{method}Request.task_token:mutation.limit_plus_one"))));
+        assert!(inventory.cases.iter().any(|case| !case.generic
+            && case.method.ends_with(method)
+            && case.id.contains(":required(")
+            && case.id.ends_with(".task_token")));
+    }
+    assert!(inventory.cases.iter().any(|case| case.generic
+        && case.id.contains(
+            "StartActivityExecutionRequest.input.payloads.data:mutation.limit_plus_one(2097152)"
+        )
+        && !case.predictions.is_empty()));
     Ok(())
 }

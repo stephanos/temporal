@@ -104,6 +104,12 @@ fn build_inventory() -> Result<Vec<Entry>> {
         catalog::task_queue(&Limits::default())
     );
     register!(
+        "start.retry_order",
+        "StartActivityExecution",
+        "start",
+        crate::activity_api::start_retry_order(&Limits::default())
+    );
+    register!(
         "start.retry",
         "StartActivityExecution",
         "start",
@@ -144,6 +150,12 @@ fn build_inventory() -> Result<Vec<Entry>> {
         "PollActivityTaskQueue",
         "poll",
         catalog::poll_activity_task_queue_request(&Limits::default())
+    );
+    register!(
+        "poll_queue.normal_name",
+        "PollActivityTaskQueue",
+        "poll",
+        crate::activity_api::poll_normal_name(&Limits::default())
     );
     register!(
         "poll_queue.queue",
@@ -506,7 +518,10 @@ fn mutate(bytes: &[u8], entry: &Entry) -> Result<Vec<u8>> {
             Ok($message.encode_to_vec())
         }};
         (PollActivityTaskQueue, $message:ident, $entry:ident, $field:ident) => {{
-            if $entry.context == "poll_queue.queue" {
+            if $entry.context == "poll_queue.normal_name" {
+                let queue = $message.task_queue.as_mut().ok_or("missing queue")?;
+                queue.normal_name = $entry.negative_text(&queue.normal_name)?;
+            } else if $entry.context == "poll_queue.queue" {
                 mutate_queue($message.task_queue.as_mut().ok_or("missing queue")?, $field, $entry)?;
             } else {
                 match $field {
@@ -599,6 +614,9 @@ fn mutate_start(m: &mut StartActivityExecutionRequest, field: &str, entry: &Entr
         }
         "start.queue" => {
             mutate_queue(m.task_queue.as_mut().ok_or("missing queue")?, field, entry)?;
+        }
+        "start.retry_order" => {
+            crate::foundation::views::start_retry_order::set(m, 0)?;
         }
         "start.retry" => {
             let v = m.retry_policy.as_mut().ok_or("missing retry")?;

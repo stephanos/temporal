@@ -8,7 +8,7 @@ use std::{
 use heck::ToShoutySnakeCase;
 use umpire_catalog_syntax::proto::Graph;
 
-use crate::{coverage, services, wire_schema};
+use crate::{claims, coverage, services, wire_schema};
 
 /// A protobuf service, its generated Rust root and its catalog declarations.
 ///
@@ -36,8 +36,8 @@ pub struct System<'a> {
 }
 
 impl System<'_> {
-    /// Check the catalogs against `descriptor` and write `services.rs` and `wire_schema.rs`
-    /// into `out_dir`, emitting every input as a Cargo build input.
+    /// Check the catalogs against `descriptor` and write service dispatch, wire mutations,
+    /// field claims and structural mirrors into `out_dir`, emitting every Cargo build input.
     #[allow(clippy::print_stdout, reason = "Cargo consumes build input directives on stdout")]
     pub fn generate(&self, descriptor: &Path, out_dir: &Path) -> io::Result<()> {
         println!("cargo:rerun-if-changed={}", descriptor.display());
@@ -50,6 +50,25 @@ impl System<'_> {
             services::generate(&graph, &coverage, &classifications, self)
                 .map_err(io::Error::other)?,
         )?;
+        fs::write(out_dir.join("claims.rs"), claims::generate(&graph, self)?)?;
+        let mut mirrors = String::new();
+        for path in coverage::inputs(&self.catalog_root)?.files {
+            if path.file_name().is_some_and(|name| name == "claims.rs") {
+                let relative = path.strip_prefix(&self.catalog_root).map_err(io::Error::other)?;
+                let stem = relative
+                    .parent()
+                    .ok_or_else(|| io::Error::other("missing claims owner"))?
+                    .to_string_lossy()
+                    .replace(['/', '-'], "_");
+                let name = format!("{}_{}_catalog", self.prefix, stem);
+                mirrors.push_str(&crate::mirrors::generate(
+                    &fs::read_to_string(&path)?,
+                    &graph,
+                    &name,
+                )?);
+            }
+        }
+        fs::write(out_dir.join("mirrors.rs"), mirrors)?;
         let local = Graph::new(&bytes, &self.local_root()).map_err(io::Error::other)?;
         fs::write(
             out_dir.join("wire_schema.rs"),

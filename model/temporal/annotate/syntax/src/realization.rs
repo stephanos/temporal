@@ -125,17 +125,22 @@ impl Schema {
         descriptor: &Path,
         rust_root: &str,
     ) -> Result<(Self, Vec<PathBuf>), String> {
+        let bytes =
+            fs::read(descriptor).map_err(|error| format!("{}: {error}", descriptor.display()))?;
+        let graph = Graph::new(&bytes, rust_root)?;
         let mut inputs = catalog_inputs(root)?.files;
         let mut catalogs = Vec::new();
         for path in &inputs {
-            let source =
+            let mut source =
                 fs::read_to_string(path).map_err(|error| format!("{}: {error}", path.display()))?;
+            if path.file_name().is_some_and(|name| name == "claims.rs") {
+                source = umpire_catalog_build::mirrors::expand(&source, &graph)
+                    .map_err(|error| format!("{}: {error}", path.display()))?;
+            }
             catalogs.extend(
                 crate::catalogs(&source).map_err(|error| format!("{}: {error}", path.display()))?,
             );
         }
-        let bytes =
-            fs::read(descriptor).map_err(|error| format!("{}: {error}", descriptor.display()))?;
         inputs.push(descriptor.to_owned());
         Ok((Self::new(&bytes, rust_root, &catalogs)?, inputs))
     }
