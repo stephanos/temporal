@@ -11607,10 +11607,29 @@
     "current_allocation": {
       "B03": 1,
       "B04": 1,
-      "B06": 1,
+      "B05": 1,
+      "B08": 1,
       "B09": 1,
-      "B10": 1,
-      "B11": 1
+      "B10": 1
+    },
+    "risk_followthrough_2026_10_24": {
+      "authority": "Owner repeated: can we take more risks, too?",
+      "default": "Proceed with reversible source and interface decisions inside admitted scopes; report decisions instead of requesting permission for each change.",
+      "checkpoint_merges": "Checkpoint own source, then merge committed sibling source in isolated dependent branches without per-commit approval; report commit IDs and conflicts. No history rewrite, Flow lifecycle transfer or acceptance credit.",
+      "validation": "Compile coherent checkpoints; reuse unchanged compiled controls, batch input mutations, use representative source mutants and one independent whole-batch review. Preserve actual current behavior, authentication, resource limits and honest failure evidence.",
+      "released_writers": [
+        "B06",
+        "B11"
+      ],
+      "shared_scope_extensions": {
+        "B03": "process/mod.rs readonly Runner::private_context accessor; preserve strict context guard.",
+        "B05": "Visibility only replay/inspection.rs search_admission and wasmhost linked_inspection.rs validate; additive coordination with B06.",
+        "B08": "Single-parser build/mod.rs sealed read-only record reader; command/private_inputs.rs admission and exact command/mod.rs map/resolver hooks coordinated B04; preparation/inputs/inventory.rs single resolver translates admitted private roots while preserving raw keys and validating bytes/existence/listings/generated cache separately; replay.rs retain_observed current backend_publication and exact campaign/execution.rs caller plumbing.",
+        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier.",
+        "B10": "primary/preparation.rs session-preserving wrappers delegate one existing capture body. B11 released writer lane reassigned to B10."
+      },
+      "deferred_proof": "B13 must supply actual module-cache integrity authority; B09 source may depend on it provisionally, no integrity waiver.",
+      "role_fixture": "B11 selected current roles use existing DryRun/build, compose, authenticate, freeze/open APIs; no second builder or stale donor sourcepins."
     }
   }
 }
