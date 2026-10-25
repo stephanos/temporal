@@ -39,30 +39,24 @@ fn policy(root: &Path) -> Result<Policy> {
 fn files(root: &Path, target: &Path) -> Result<Vec<PathBuf>> {
     let target = normalize(target);
     let root = fs::canonicalize(root)?;
-    if root.starts_with(&target) {
+    admit_target(&root, &target)?;
+    let target = if target.exists() { fs::canonicalize(target)? } else { target };
+    admit_target(&root, &target)?;
+    let mut output = Vec::new();
+    inventory(&root, &root, &target, &mut output)?;
+    Ok(output)
+}
+fn admit_target(root: &Path, target: &Path) -> Result<()> {
+    if root.starts_with(target) {
         return Err(Error::Invalid("output target must not hide framework sources".into()));
     }
-    if target.starts_with(&root)
-        && target != root.join("target")
+    if target.starts_with(root)
         && !target.starts_with(root.join("target"))
-        && target != root.join("build")
         && !target.starts_with(root.join("build"))
     {
         return Err(Error::Invalid("output target overlaps framework source inventory".into()));
     }
-    let target = if target.exists() { fs::canonicalize(target)? } else { target };
-    if root.starts_with(&target) {
-        return Err(Error::Invalid("output target must not hide framework sources".into()));
-    }
-    if target.starts_with(&root)
-        && !target.starts_with(root.join("target"))
-        && !target.starts_with(root.join("build"))
-    {
-        return Err(Error::Invalid("output target resolves into framework sources".into()));
-    }
-    let mut output = Vec::new();
-    inventory(&root, &root, &target, &mut output)?;
-    Ok(output)
+    Ok(())
 }
 fn normalize(path: &Path) -> PathBuf {
     let mut result = PathBuf::new();
@@ -494,6 +488,17 @@ mod tests {
         let file = child.join("test.rs");
         source_paths(root, &file, b"include_str!(\"../../../../fixture\")")?;
         assert!(source_paths(root, &file, b"include_str!(\"../../../../../outside\")").is_err());
+        Ok(())
+    }
+    #[test]
+    fn external_target_alias_cannot_hide_source_subtree() -> Result<()> {
+        let directory = tempfile::tempdir()?;
+        let root = directory.path().join("root");
+        fs::create_dir(&root)?;
+        fs::create_dir(root.join("author"))?;
+        let alias = directory.path().join("cargo-target");
+        std::os::unix::fs::symlink(root.join("author"), &alias)?;
+        assert!(files(&root, &alias).is_err());
         Ok(())
     }
     #[test]
