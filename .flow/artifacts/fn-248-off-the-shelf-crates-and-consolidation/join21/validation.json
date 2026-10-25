@@ -1,0 +1,90 @@
+{
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24821-join",
+  "branch": "work/fn24821-join",
+  "base": "4c4e99ca7e89d87f6c64e7b30cdbbb764294d758",
+  "task2_input": "44a42e1a84f2b27ab76b457b2d2d59123fd41165",
+  "task1_input": "b4193d6f320656cf2c2d1077ce080d15b1b5380d",
+  "A2": "f10ff7a4fa6304f802a33afe6976c56a964f563e",
+  "B1": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+  "cargo_target_dir": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target",
+  "source_bindings": "source-bindings.json",
+  "checks": [
+    {
+      "source_commit": "f10ff7a4fa6304f802a33afe6976c56a964f563e",
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-checker -p umpire-suite -p umpire-catalog -p umpire-front --lib --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 27,
+      "log": "A2-lib.log"
+    },
+    {
+      "source_commit": "f10ff7a4fa6304f802a33afe6976c56a964f563e",
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-runtime --test wire --test core_protocol --test proposal_wire --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 7,
+      "log": "A2-wire.log"
+    },
+    {
+      "source_commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+      "cwd": "model",
+      "command": "mise exec -- cargo test -p umpire-testing --tests --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 34,
+      "log": "B1-testing.log"
+    },
+    {
+      "source_commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+      "cwd": "model",
+      "command": "INSTA_UPDATE=no mise exec -- cargo test -p umpire-reference-kettle --test probes --test realization --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 10,
+      "log": "B1-kettle.log"
+    },
+    {
+      "source_commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+      "cwd": "model",
+      "command": "INSTA_UPDATE=no mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership --test boundary --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 4,
+      "log": "B1-ownership-boundary.log"
+    },
+    {
+      "source_commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+      "cwd": "model",
+      "command": "INSTA_UPDATE=no mise exec -- cargo test -p umpire-fixtures --test fixtures interpreted_agrees_with_compiled --locked",
+      "exit": 0,
+      "kind": "test",
+      "passed": 1,
+      "log": "B1-interpreted.log"
+    },
+    {
+      "source_commit": "f44fb2b6bdf4a2160f1f4f69b23396edca20d12d",
+      "cwd": ".",
+      "command": "mise exec -- cargo fmt --manifest-path model/Cargo.toml --all --check",
+      "exit": 0,
+      "kind": "format",
+      "passed": null,
+      "log": "B1-format.log"
+    }
+  ],
+  "preservation_checks": {
+    "task3_ancestor_of_base": true,
+    "ir_and_native_interpreter_and_dsl_macro_paths_base_to_B1_unchanged": true,
+    "interpreted_rs_A2_to_B1_unchanged": true,
+    "historical_and_canonical_guest_paths_base_to_B1_unchanged": true
+  },
+  "limits": [
+    "Isolated join only; MAIN source/index and original branches untouched. Coordinator uncommitted fixes were excluded by starting from the exact committed base.",
+    "No Flow commands, new task, full Model pipeline, golden reacceptance or canonical guest publication.",
+    "No backend agreement/live Go/wasm execution evidence inferred from these native focused checks.",
+    "Original lane evidence remains historical; only the checks in this manifest bind the specified joined source checkpoints.",
+    "One lib.rs conflict resolved additively; no semantic expectation changed to obtain a pass.",
+    "Captured log trailing empty lines removed; substantive output retained."
+  ]
+}

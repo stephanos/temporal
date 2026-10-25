@@ -94,4 +94,3 @@ test coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_
 test pattern_search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon ... ok
 
 test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
