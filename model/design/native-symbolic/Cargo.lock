@@ -637,6 +637,7 @@ dependencies = [
 name = "umpire-front"
 version = "0.0.1"
 dependencies = [
+ "heck",
  "prettyplease 0.3.0",
  "proc-macro2",
  "quote",
