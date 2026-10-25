@@ -1,0 +1,38 @@
+[
+  {
+    "name": "caught_panic_control.wasm",
+    "sha256": "16bdf703328273c57741940a4ec420150576a5a02e84fcc5d279afba14429a12",
+    "bytes": 228653,
+    "same_as_prior": true
+  },
+  {
+    "name": "overflow_control.wasm",
+    "sha256": "7815ea7d693a5cb9f3d6a326c0adcc948b38585d726d751c4cb64e3a2259205e",
+    "bytes": 228653,
+    "same_as_prior": true
+  },
+  {
+    "name": "stateful_control.wasm",
+    "sha256": "0ce0f654b66cc01a6b52670af9175f1047fa79c51fd5039e7c9742bc205e6b87",
+    "bytes": 165966,
+    "same_as_prior": true
+  },
+  {
+    "name": "umpire_kettle_guest.wasm",
+    "sha256": "f47eeca8991182ce5d2160a8794ae3e83007de4a0db2a2c5a095c2a0439f2228",
+    "bytes": 1235811,
+    "same_as_prior": true
+  },
+  {
+    "name": "umpire_stock_guest.wasm",
+    "sha256": "4979d134ba8ae6afc4ba79dadc046251afbbf4ca34397ed61af184205a371222",
+    "bytes": 198992,
+    "same_as_prior": true
+  },
+  {
+    "name": "umpire_temporal_guest.wasm",
+    "sha256": "c83e883a38647cdc988ace1b32efbccd546a4a1f2acbe10d53485e7d8438c4cc",
+    "bytes": 3988334,
+    "same_as_prior": true
+  }
+]

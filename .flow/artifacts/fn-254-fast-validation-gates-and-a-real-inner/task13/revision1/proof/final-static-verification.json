@@ -1,0 +1,14 @@
+{
+  "source_commit": "748806bed3d5b9264331b98fb7af99de393afc60",
+  "preserved_snapshot_ui_hashes": 563,
+  "preserved_registry_coordinates_and_checksums": 119,
+  "registry_resolutions_unchanged": true,
+  "framework_lock_unchanged": true,
+  "outer_lock_delta": "one local temporal-xtask -> umpire-guest-driver dependency edge only",
+  "current_standalone_input_hashes_match": 1162,
+  "current_reproduction_source_b_input_hashes_match": 1662,
+  "post_reproduction_source_a_deltas": {
+    "model/design/framework-gate.md": "documentation updated to current proof index and review correction description; outside guest compiler closure",
+    "tools/canary/policy/production-canary.json": "newly admitted producer/consumer hash pin outside Rust compiler inputs; tested on final guest"
+  }
+}

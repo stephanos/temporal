@@ -1,0 +1,21 @@
+   Compiling umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/guest-driver)
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/xtask)
+   Compiling temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.95s
+     Running unittests src/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/temporal_xtask-ec453d7574f7d635)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/main.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25413-workspace/framework-native/debug/deps/main-25f9f380eb62b893)
+
+running 5 tests
+test absent_embedded_guest_fails_go_compilation ... ok
+test actual_make_freshness_recipe_propagates_stale_failure ... ok
+test retired_names::shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test retired_names::tool_failures_never_report_clean ... ok
+test retired_names::active_spellings_and_historical_exclusions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.44s
+

@@ -8,10 +8,11 @@ use std::{
     path::Path,
     process::Command,
 };
-use umpire_guest_driver::context::ToolRoot;
+use umpire_guest_driver::context::{ToolRoot, cargo_home};
 
 fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
     let tools = ToolRoot::local()?;
+    let cargo_home = cargo_home(&env::current_dir()?)?;
     let executable = env::current_exe()?;
     let directory = executable
         .parent()
@@ -34,6 +35,7 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
         ])
         .arg(target)
         .current_dir(tools.path())
+        .env("CARGO_HOME", &cargo_home)
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false");
     for key in [
@@ -50,7 +52,11 @@ fn guest(arguments: Vec<OsString>) -> xtask::Result<i32> {
     if !status.success() {
         return Ok(status.code().unwrap_or_else(|| 128 + status.signal().unwrap_or(0)));
     }
-    Err(Command::new(directory.join("umpire-guest-driver")).args(arguments).exec().into())
+    Err(Command::new(directory.join("umpire-guest-driver"))
+        .args(arguments)
+        .env("CARGO_HOME", cargo_home)
+        .exec()
+        .into())
 }
 
 fn run() -> xtask::Result<i32> {

@@ -15,6 +15,7 @@ use std::{
 fn run() -> io::Result<i32> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let caller = env::current_dir()?;
+    let cargo_home = umpire_guest_driver::context::cargo_home(&caller).map_err(io::Error::other)?;
     let mut arguments: Vec<_> = env::args_os().skip(1).collect();
     let guest =
         arguments.first().is_some_and(|command| command == "guest" || command == "guest-freshness");
@@ -43,6 +44,7 @@ fn run() -> io::Result<i32> {
     }
     let output = Command::new("/bin/bash")
         .arg(root.join("scripts/xtask.sh"))
+        .env("CARGO_HOME", &cargo_home)
         .stderr(Stdio::inherit())
         .output()?;
     if !output.status.success() {
@@ -54,7 +56,7 @@ fn run() -> io::Result<i32> {
     let path = output.stdout.strip_suffix(b"\n").unwrap_or(&output.stdout);
     let tool = PathBuf::from(OsString::from_vec(path.to_owned()));
     let mut command = Command::new(tool);
-    command.args(arguments).current_dir(workspace);
+    command.args(arguments).current_dir(workspace).env("CARGO_HOME", cargo_home);
     if guest && let Some(target) = env::var_os("CARGO_TARGET_DIR") {
         let target = PathBuf::from(target);
         command.env(

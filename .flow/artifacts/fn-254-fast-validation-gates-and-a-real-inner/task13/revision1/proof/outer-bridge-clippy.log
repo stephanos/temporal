@@ -1,0 +1,9 @@
+   Compiling rustix v1.1.5
+    Checking linux-raw-sys v0.12.1
+    Checking serde v1.0.229
+    Checking thiserror v2.0.21
+    Checking tempfile v3.27.0
+    Checking umpire-guest-driver v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/guest-driver)
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/umpire/dev/xtask)
+    Checking temporal-xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn25413-workspace/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.04s

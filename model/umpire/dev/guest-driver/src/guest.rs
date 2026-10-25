@@ -1,7 +1,7 @@
 //! Native guest orchestration, prerequisite admission and artifact publication.
 use crate::{
     Error, Result,
-    context::{Context, ToolRoot, caller_path},
+    context::{Context, ToolRoot, caller_path, cargo_home},
     support,
 };
 use serde::Deserialize;
@@ -22,10 +22,11 @@ fn invalid(message: impl Into<String>) -> Error {
     Error::Invalid(message.into())
 }
 
-fn probe(workspace: &Path, args: &[&str]) -> Result<Vec<u8>> {
+fn probe(workspace: &Path, cargo_home: &Path, args: &[&str]) -> Result<Vec<u8>> {
     let output = Command::new("mise")
         .args(args)
         .current_dir(workspace)
+        .env("CARGO_HOME", cargo_home)
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false")
         .output()?;
@@ -79,7 +80,7 @@ fn executable(path: &Path) -> bool {
 }
 
 /// Admit installed pinned tools and Rust source/target readiness on every freshness call.
-fn prerequisites(workspace: &Path) -> Result<()> {
+fn prerequisites(workspace: &Path, cargo_home: &Path) -> Result<()> {
     let pins: Pins = toml::from_str(&fs::read_to_string(workspace.join("mise.toml"))?)?;
     let rust: ToolchainFile =
         toml::from_str(&fs::read_to_string(workspace.join("rust-toolchain.toml"))?)?;
@@ -91,8 +92,11 @@ fn prerequisites(workspace: &Path) -> Result<()> {
         ("go", pins.tools.go.as_str(), &["go"][..]),
         ("protoc", pins.tools.protoc.as_str(), &["protoc"][..]),
     ] {
-        let entries: Vec<ToolInstallation> =
-            serde_json::from_slice(&probe(workspace, &["ls", "--installed", "--json", tool])?)?;
+        let entries: Vec<ToolInstallation> = serde_json::from_slice(&probe(
+            workspace,
+            cargo_home,
+            &["ls", "--installed", "--json", tool],
+        )?)?;
         let mut matched = entries.iter().filter(|e| e.version == pin && e.installed && e.active);
         let entry =
             matched.next().ok_or_else(|| invalid(format!("missing pinned {tool} {pin}")))?;
@@ -112,6 +116,7 @@ fn prerequisites(workspace: &Path) -> Result<()> {
                     if up.dev() == cc.dev() && up.ino() == cc.ino() {
                         let output = Command::new(rustup)
                             .args(["toolchain", "list"])
+                            .env("CARGO_HOME", cargo_home)
                             .env("MISE_AUTO_INSTALL", "false")
                             .env("MISE_EXEC_AUTO_INSTALL", "false")
                             .output()?;
@@ -134,8 +139,11 @@ fn prerequisites(workspace: &Path) -> Result<()> {
             }
         }
     }
-    let sysroot =
-        PathBuf::from(text(probe(workspace, &["exec", "--", "rustc", "--print", "sysroot"])?)?);
+    let sysroot = PathBuf::from(text(probe(
+        workspace,
+        cargo_home,
+        &["exec", "--", "rustc", "--print", "sysroot"],
+    )?)?);
     if !sysroot.join("lib/rustlib/src/rust/library/Cargo.toml").is_file() {
         return Err(invalid("missing rust-src"));
     }
@@ -223,17 +231,14 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
     }
     let tools = ToolRoot::local()?;
     let workspace = env::current_dir()?.canonicalize()?;
+    let cargo_home = cargo_home(&workspace)?;
     let output = caller_path(PathBuf::from(&arguments[1]), &workspace);
     if freshness {
-        prerequisites(tools.path())?;
+        prerequisites(tools.path(), &cargo_home)?;
     }
-    let sysroot = text(probe(tools.path(), &["exec", "--", "rustc", "--print", "sysroot"])?)?;
-    let compiler = text(probe(tools.path(), &["exec", "--", "rustc", "-V"])?)?;
-    let cargo_home = env::var_os("CARGO_HOME")
-        .map(PathBuf::from)
-        .or_else(|| env::var_os("HOME").map(|p| PathBuf::from(p).join(".cargo")))
-        .ok_or_else(|| invalid("missing CARGO_HOME/HOME"))?;
-    let cargo_home = caller_path(cargo_home, &workspace);
+    let sysroot =
+        text(probe(tools.path(), &cargo_home, &["exec", "--", "rustc", "--print", "sysroot"])?)?;
+    let compiler = text(probe(tools.path(), &cargo_home, &["exec", "--", "rustc", "-V"])?)?;
     let target = caller_path(
         env::var_os("CARGO_TARGET_DIR").map_or_else(|| workspace.join("target"), PathBuf::from),
         &workspace,
@@ -245,7 +250,7 @@ pub fn run(arguments: &[OsString], freshness: bool) -> Result<i32> {
     let cache = target.join("guest-cache").join(&key);
     let wrapper = target.join("guest-wrappers").join(&key).join("guest-rustc");
     launcher(&wrapper, &binary)?;
-    let metadata = metadata(tools.path(), &workspace)?;
+    let metadata = metadata(tools.path(), &workspace, &cargo_home)?;
     let lock = crate::lock::publish(&metadata, &workspace.join("Cargo.lock"), &cache)?;
     let previous =
         env::var_os("RUSTC_WRAPPER").filter(|p| p != wrapper.as_os_str()).unwrap_or_default();
@@ -364,7 +369,7 @@ pub(crate) fn cache_key(driver: &[u8], lock: &[u8], compiler: &str) -> Result<St
     Ok(support::hash(&support::canonical(&(support::hash(driver), support::hash(lock), compiler))?))
 }
 
-fn metadata(tools: &Path, workspace: &Path) -> Result<Vec<u8>> {
+fn metadata(tools: &Path, workspace: &Path, cargo_home: &Path) -> Result<Vec<u8>> {
     let metadata = Command::new("mise")
         .args([
             "exec",
@@ -378,6 +383,7 @@ fn metadata(tools: &Path, workspace: &Path) -> Result<Vec<u8>> {
         ])
         .arg(workspace.join("Cargo.toml"))
         .current_dir(tools)
+        .env("CARGO_HOME", cargo_home)
         .env("MISE_AUTO_INSTALL", "false")
         .env("MISE_EXEC_AUTO_INSTALL", "false")
         .output()?;

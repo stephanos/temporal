@@ -2,7 +2,6 @@
 # Times the model gate (fn-210 R30), recording overruns against soft targets.
 # Small isolated overruns do not block completion; investigate substantial or repeated overruns.
 set -euo pipefail
-cd "$(dirname "$0")/.."
 
 INNER_BUDGET=${UMPIRE_INNER_BUDGET:-10}  # seconds: edit one crate, rebuild, run its fixtures
 GATE_BUDGET=${UMPIRE_GATE_BUDGET:-60}    # seconds: the whole local gate, warm
@@ -30,6 +29,8 @@ if [ "${1:-}" = --step ]; then
   printf '%s\n' "${out%$'\n'*}"
   exit 0
 fi
+
+cd "$(dirname "$0")/.."
 
 inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
 inner_file=${UMPIRE_INNER_SOURCE:-umpire/backends/native/src/lib.rs}

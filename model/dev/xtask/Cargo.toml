@@ -11,6 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
+umpire-guest-driver.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]

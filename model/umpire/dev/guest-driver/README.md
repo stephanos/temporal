@@ -5,7 +5,7 @@ Build this host-only tool before setting guest compilation flags:
 ```sh
 cd model/umpire
 mise exec -- cargo build -p umpire-guest-driver --bin umpire-guest-driver --profile dev --locked
-mise exec -- cargo run -p umpire-guest-driver -- guest-lock Cargo.lock build/identities < metadata.json
+mise exec -- cargo run -p umpire-guest-driver --bin umpire-guest-driver -- guest-lock Cargo.lock build/identities < metadata.json
 ```
 
 The alias selects the development profile; callers must bootstrap without a guest `--target`, `RUSTC_WRAPPER`, `RUSTFLAGS` or `CARGO_ENCODED_RUSTFLAGS`. Subsequent compiler invocations call the built native executable directly as `umpire-guest-driver guest-rustc <rustc> <arguments...>`. They never launch Cargo recursively. `scripts/xtask.sh` now owns bootstrap and prints the absolute executable path under `<target>/xtask-bootstrap/debug/umpire-guest-driver`. Guest launchers copy that native executable atomically as `guest-rustc`, which dispatches by argv[0] before parsing command arguments.

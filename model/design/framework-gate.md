@@ -370,8 +370,8 @@ The dedicated guest driver owns compiler wrapping and admitted context; the gene
 CLI can use its context library but cannot enter a guest runtime closure.
 
 The durable task13 proof index is
-[task13/index.json](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/index.json).
-It records the source identities, 925 preserved logical tests plus four new context
+[task13/current-index.json](../../.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/task13/current-index.json).
+It records the source identities, 925 preserved logical tests plus five new native
 controls, all 563 preserved snapshot/UI hashes, unchanged registry resolutions,
 both locked build/test-compilation closures, an isolated framework build, and
 current-input guest reproduction/freshness and Go host results. Earlier failed or
@@ -382,3 +382,11 @@ gate composition, protobuf/host orchestration and renewal of driver independence
 with a compiled general-CLI mutation after gate code is added. Task .11 owns the
 real standalone full-gate control; .8 retains unrelated workspace execution and
 combined validation. Their deferred checks are not task .13 results.
+
+Review corrections preserve timer caller directories in step mode and align all
+root Go guest/native paths with the builder's target. Cargo home resolves before
+commands change directories, with existing symlinks canonicalized consistently
+for tool execution and source remaps. The optional-eager TLC control creates its
+evidence parent when absent. The canary policy pins the exact committed Temporal
+guest; all other policy fields and refusal checks are preserved. The current proof
+index retains the initial checkpoint and trial failures as historical evidence.
