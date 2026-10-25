@@ -171,6 +171,7 @@ fn stock_catalog_declares_every_outcome_even_when_never_emitted() {
 
 #[test]
 fn one_typed_consumer_accepts_state_and_world_paths_for_each_outcome_type() {
+    #[allow(clippy::needless_pass_by_value, reason = "takes a path by value as find does")]
     fn count<S: umpire_dsl::Registered>(
         _: &S,
         path: umpire_dsl::Path<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,

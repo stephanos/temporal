@@ -34,11 +34,13 @@ impl<S: Registered> Run<S> {
     }
 
     /// Finds a story using the registered world within a state budget.
+    // By value, matching `Run::along(path![..])`.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn along_with_budget(path: WorldPath<S>, budget: usize) -> Result<Self, Refusal>
     where
         Action<S>: 'static,
     {
-        Self::along_with_world(S::world, path, budget)
+        Self::along_with_world(S::world, &path, budget)
     }
 }
 
@@ -99,12 +101,12 @@ impl<S: Associated> Run<S> {
     where
         Action<S>: 'static,
     {
-        Self::along_with_world(|| world, path, budget)
+        Self::along_with_world(|| world, &path, budget)
     }
 
     fn along_with_world(
         world: impl FnOnce() -> S::World,
-        path: WorldPath<S>,
+        path: &WorldPath<S>,
         budget: usize,
     ) -> Result<Self, Refusal>
     where

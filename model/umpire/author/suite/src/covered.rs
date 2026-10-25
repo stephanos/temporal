@@ -103,6 +103,8 @@ fn alternative<S: Associated>(index: usize, choice: &Choice<S>, failure: Refusal
 
 /// Finds one shortest witness per authored alternative over one retained Model graph.
 /// A case-count mismatch precedes Model stepping; a cut graph always refuses coverage.
+// By value, so `cover(&space, Cases(n), path![..])` reads as the question it is.
+#[allow(clippy::needless_pass_by_value)]
 pub fn cover<S: Associated>(
     space: &impl SpaceBinding<S>,
     cases: Cases,
@@ -136,6 +138,8 @@ where
 /// Performs a finite seeded experiment of actual pattern-admitted random walks.
 /// Each selected alternative must finish within `Space::walk_bound`; cuts refuse the experiment.
 /// Sampling establishes only this experiment, never exhaustive alternative coverage.
+// By value, matching `cover`.
+#[allow(clippy::needless_pass_by_value)]
 pub fn sample<S: Associated>(
     space: &impl SpaceBinding<S>,
     path: WorldPath<S>,

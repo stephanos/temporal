@@ -27,6 +27,7 @@ pub mod world {
 }
 use world::{Model, User};
 
+#[allow(clippy::needless_pass_by_value, reason = "takes a path by value as find does")]
 fn consume<S: Registered>(
     _: &S,
     pattern: Path<S, <S::World as Machine>::Action, <S::World as Machine>::Outcome>,
