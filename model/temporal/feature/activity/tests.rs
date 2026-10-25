@@ -355,6 +355,17 @@ fn tlc_refutes_closure_law_mutants_of_this_source() -> umpire_testing::TestResul
 }
 
 #[test]
+fn nonpending_attempt_expiry_retries_with_exact_timeout_fact() -> umpire_testing::TestResult {
+    let world = world();
+    let before = state(Phase::Started, 1);
+    assert_eq!(
+        world.checked_step(&before, Deadline::Tick.into())?.into_vec(),
+        [(Outcome::Accepted, vec![ExpiredDeadline::StartToClose], state(Phase::Scheduled, 2))]
+    );
+    Ok(())
+}
+
+#[test]
 fn retry_policy_caps_and_stale_delivery() {
     use crate::activity::activity::World;
     for maximum in [1, 3] {
