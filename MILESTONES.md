@@ -20,7 +20,7 @@ The Scala tree under `model/archived/` is frozen reference material.
 Current order: **fn-254 → fn-255 → fn-246 → fn-237.4 → fn-243.5 → fn-237.5 → fn-245**. fn-240 and fn-211 remain deferred.
 fn-254 (fast gates, and a framework gate that runs from `model/umpire` without the Temporal tree) leads: the owner
 ranks a fast feedback loop among the most important properties. fn-246's in-flight work is wrapped;
-fn-254.13 is next: extract the standalone framework workspace. Deliver fn-254's independent framework/gate checkpoint,
+fn-254.4 is consolidating framework test binaries; .13 then extracts the standalone framework workspace. Deliver fn-254's independent framework/gate checkpoint,
 resume fn-246 to closure, then finish fn-254.7/.8.
 The owner waived fresh baseline measurements; final measurements remain. fn-254.7 waits for fn-246, and fn-254.13's workspace move lands at an
 integration boundary. fn-253.2–.5 (countdown spike and library) may run as a lane when one is free; fn-253.1, .7, .9
@@ -54,7 +54,7 @@ directory alone (R7). First in the current order; only .7 waits for fn-246's clo
 | Name | Status | What |
 | --- | --- | --- |
 | fn-254.3 | ⬜ todo | After .10: cargo-nextest across binaries with a JVM test group; identical logical test inventory (R4) |
-| fn-254.4 | ⬜ todo | After .9: one test binary per `umpire` crate, cheaper test debuginfo, faster linker if measured (R4) |
+| fn-254.4 | 🔄 in progress | One test binary per `umpire` crate, cheaper test debuginfo, faster linker if measured (R4) |
 | fn-254.5 | ⬜ todo | After .10: Apalache out of routine gates, overlapping stages, trybuild trim, dead `model-check-changed` removed (R5) |
 | fn-254.6 | ⬜ todo | After .2, .10: `make model-quick` with affected crates and a cached TLC result for unchanged modules (R2) |
 | fn-254.7 | ⛔ blocked | After .4 and committed fn-246 closure: one test binary per `temporal` crate (R4) |
