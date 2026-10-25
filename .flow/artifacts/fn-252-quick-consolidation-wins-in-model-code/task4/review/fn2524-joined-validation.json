@@ -1,0 +1,25 @@
+{
+  "base_commit": "3b11e230f2475d68cdc544f036e2b58cb0dc6f85",
+  "source_commit": "aca114eab95a27a88073669f419b27f8017d4b28",
+  "source_hashes": {
+    "model/umpire/author/suite/src/space.rs": "0ca441dc4a0306aba00be1a611ed614cd314de86fbec5432f67ab6c952fced36",
+    "model/umpire/backends/native/tests/fixtures/choices/model.rs": "d46c9e15708a612a1d5ee35a10a0e7b8a716632210967aa528f4beedd371a7b7",
+    "model/umpire/backends/native/tests/fixtures/edge_checks/model.rs": "984cd220b1d78dbc6e5bf30d1256773dff5cf0d2480bc9893e183ab83dbef261",
+    "model/umpire/backends/native/tests/fixtures/shared_starts/model.rs": "6be5c14b908d41dbac0433f416d55306e52f5d4ab08a1a84e6b3be47567edbb1",
+    "model/umpire/backends/native/tests/fixtures/vacuity/model.rs": "2b329210bf5fb28c4e939c4b3c4c450d13fcaea9f42d2fc138f384168266f3d0",
+    "model/umpire/backends/native/tests/support/mod.rs": "036ca6525d4be2262e4251aa78475b467151647365a074aafe1243a93c1ed812"
+  },
+  "worker_source_match": true,
+  "tests_exit": 0,
+  "tests_passed": 56,
+  "compile_fail_doctest_passed": 1,
+  "inherited_ignored": 1,
+  "clippy_exit": 0,
+  "fmt_exit": 0,
+  "logs": [
+    "fn2524-joined-tests.log",
+    "fn2524-joined-clippy.log",
+    "fn2524-joined-fmt.log"
+  ],
+  "limitations": "R9 complete gate deferred; no snapshots modified; same-family readonly reviewers Cargo runs blocked before execution. Triage wrong-SHA probe errored then fell through to authentic review on actual premerge base."
+}

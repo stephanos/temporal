@@ -1,0 +1,4 @@
+{
+  "success": false,
+  "error": "git diff --name-only 3b11e230f25e4b7fc80e393830ae621b7d4781f9..HEAD failed: fatal: Invalid revision range 3b11e230f25e4b7fc80e393830ae621b7d4781f9..HEAD"
+}

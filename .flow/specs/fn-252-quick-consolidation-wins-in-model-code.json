@@ -10,11 +10,58 @@
     "fn-248-off-the-shelf-crates-and-consolidation"
   ],
   "id": "fn-252-quick-consolidation-wins-in-model-code",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-252-quick-consolidation-wins-in-model-code.4": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": "2026-10-24T22:28:10.788667Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "2f47249a469efb4c159edeaaf9f28a3fc700769c3249ca04ef57d37210a1995b",
+      "backend": "codex",
+      "base_sha": "3b11e230f2475d68cdc544f036e2b58cb0dc6f85",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "aca114eab95a27a88073669f419b27f8017d4b28",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "33172e462152449b912b5d7f99fbdbcd",
+      "round_consumed": true,
+      "scope": "impl:fn-252-quick-consolidation-wins-in-model-code.4",
+      "superseded_by": null,
+      "task": "fn-252-quick-consolidation-wins-in-model-code.4",
+      "timestamp": "2026-10-25T03:12:08.212945Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-252-quick-consolidation-wins-in-model-code.4": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-252-quick-consolidation-wins-in-model-code.4": 0
+  },
   "spec_path": ".flow/specs/fn-252-quick-consolidation-wins-in-model-code.md",
   "status": "open",
   "title": "Quick consolidation wins in model code, tests and tooling (model)",
@@ -29,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-24T22:28:11.306744Z"
+  "updated_at": "2026-10-25T03:12:08.215721Z"
 }

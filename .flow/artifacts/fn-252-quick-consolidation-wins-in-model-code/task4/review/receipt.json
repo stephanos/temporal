@@ -1,0 +1,51 @@
+{
+  "base": "3b11e230f2475d68cdc544f036e2b58cb0dc6f85",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17109-eedd-72b2-b748-c1586500cfa6",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17109-eec5-7550-b0e6-d44c5fdf3458",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17109-eed8-7781-8fff-7f1288a2377f",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "3b11e230f2475d68cdc544f036e2b58cb0dc6f85",
+    "headSha": "aca114eab95a27a88073669f419b27f8017d4b28",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-52dacc92ece2a7d74d662856381a310ad72eb574d3eea58f9880447e1db738e2"
+  },
+  "id": "fn-252-quick-consolidation-wins-in-model-code.4",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "33172e462152449b912b5d7f99fbdbcd",
+  "rid": "33172e462152449b912b5d7f99fbdbcd",
+  "session_id": "01a17109-eedd-72b2-b748-c1586500cfa6",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T03:12:08.210447Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

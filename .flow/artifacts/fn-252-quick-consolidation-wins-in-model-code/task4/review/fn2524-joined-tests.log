@@ -1,0 +1,163 @@
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.96s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_checker-34cd31bb3c9db349)
+
+running 8 tests
+test helper_tests::panic_payloads_preserve_strings_and_share_one_fallback ... ok
+test helper_tests::seeded_stream_refuses_empty_domain - should panic ... ok
+test interpret::optional_tests::imports_exact_nominal_optional_values ... ok
+test helper_tests::seeded_stream_reproduces_and_indices_stay_in_domain ... ok
+test interpret::optional_tests::optional_default_is_eager_and_decodes_zero_payload ... ok
+test interpret::optional_tests::resolver_preserves_scalar_conversions_and_backing_arithmetic ... ok
+test interpret::exported_values::world_validation_tests::primitive_world_import_refuses_missing_duplicate_extra_kinds_and_ranges ... ok
+test interpret::optional_tests::some_encoding_checks_ordinal_bounds_without_finite_validation ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/catalog_admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/catalog_admission-b34f0e182669aa2d)
+
+running 5 tests
+test an_empty_factor_admits_an_overflowing_partner_and_reports_the_variant ... ok
+test empty_world_domains_stay_visible_including_with_no_starts ... ok
+test progress_revalidates_the_catalog_under_the_explored_limit ... ok
+test fairness_names_one_concrete_input_not_its_variant ... ok
+test over_limit_catalog_is_refused_before_any_step ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.33s
+
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/fixtures-08aa92bab32f6c59)
+
+running 12 tests
+test progress_evaluation::manual_invalid_actions_are_refused_even_without_reached_states ... ok
+test formatting::report_and_path_propagate_formatter_errors ... ok
+test progress_evaluation::dynamic_invalid_actions_are_refused_only_after_real_state_evaluation ... ok
+test progress_evaluation::combined_evaluation_runs_once_per_reached_state_and_rendering_reuses_results ... ok
+test progress_evaluation::registered_queries_refuse_missing_ambiguous_and_changed_catalogs ... ok
+test progress_evaluation::query_assumption_override_replaces_inconsistent_metadata ... ok
+test progress_evaluation::assumptions_are_fixed_per_exploration_rather_than_across_worlds ... ok
+test progress_evaluation::simultaneous_claims_can_use_different_fixed_assumptions ... ok
+test progress_evaluation::zero_start_queries_validate_overrides_without_evaluating_a_state ... ok
+test progress_evaluation::registered_queries_reuse_graph_and_canonical_callbacks_without_mutating_cache ... ok
+test recorder::evidence_belongs_to_actual_evaluation_and_counterexample_state ... ok
+test fixtures ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+     Running tests/oracle.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/oracle-cd5eed8d93a03f12)
+
+running 1 test
+test brute_force_oracle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/umpire_suite-988eb4b26ac615c4)
+
+running 11 tests
+test coverage::tests::undeclared_and_complete_empty_catalogs_remain_distinct ... ok
+test coverage::tests::progress_uses_the_combined_evaluator_on_witness_states ... ok
+test pattern_search::tests::finds_a_global_shortest_match_and_searches_before_the_first_node ... ok
+test pattern_search::tests::bounded_gap_loops_do_not_spend_work_once_their_labels_are_dominated ... ok
+test pattern_search::tests::exact_outcome_retains_the_selected_row ... ok
+test pattern_search::tests::cut_graph_answers_only_settled_searches ... ok
+test pattern_search::tests::only_explicit_gaps_consume_intervening_edges ... ok
+test coverage::tests::catalog_validation_and_row_classification_avoid_quadratic_equality_scans ... ok
+test coverage::tests::classifies_retained_outcomes_and_equal_display_actions_by_typed_identity ... ok
+test coverage::tests::refuses_invalid_metadata_and_panicking_callbacks ... ok
+test pattern_search::tests::seeded_walks_retain_loops_and_refuse_too_short_a_horizon ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/alternative_search.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/alternative_search-6578fd30f7f749ef)
+
+running 3 tests
+test along_keeps_predicate_failure_ahead_of_unrelated_skips ... ok
+test along_preserves_skipped_step_refusals_for_structural_and_legacy_paths ... ok
+test skipped_deep_effect_cannot_hide_a_shorter_alternative ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/declared_world.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/declared_world-177c2806d7647957)
+
+running 1 test
+test complete_starts_keep_correlation_first_occurrence_and_deduplication ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/explicit_world.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/explicit_world-51e552ddb81decf5)
+
+running 3 tests
+test cloning_and_formatting_spaces_require_no_world_traits ... ok
+test explicit_queries_use_selected_constants_and_starts ... ok
+test explicit_runs_retain_the_owned_world_after_space_is_dropped ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fixtures.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/fixtures-c87fccb59f97abe4)
+
+running 1 test
+test fixtures ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/full_patterns.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/full_patterns-9b39d56cd11adc53)
+
+running 5 tests
+test cases_mismatch_and_alternative_budget_precede_model_search ... ok
+test model_state_budget_does_not_spend_alternative_capacity ... ok
+test cover_refuses_empty_unwitnessed_and_cut_spaces ... ok
+test full_grammar_find_and_along_preserve_state_inference ... ok
+test sampling_walks_admitted_loops_reproducibly_and_reports_its_bound ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/retained.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/retained-3767fa2f7ca8f8da)
+
+running 4 tests
+test legacy_spaces_preserve_unconstrained_configuration_and_auto_traits ... ok
+test refused_stories_do_not_construct_the_registered_world ... ok
+test cover_and_along_never_replay_effects_or_rebuild_worlds ... ok
+test legacy_queries_preserve_explicit_generic_argument_counts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/world_domains.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2481-target/debug/deps/world_domains-db8ae0affe4371a5)
+
+running 2 tests
+test every_suite_route_admits_the_catalog_under_the_space_limit ... ok
+test contextual_domains_take_the_selected_world ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_checker
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_suite
+
+running 1 test
+test umpire/author/suite/src/lib.rs - expect (line 28) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test umpire/author/suite/src/space.rs - space::Space<S>::with_world (line 69) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+all doctests ran in 0.19s; merged doctests compilation took 0.13s

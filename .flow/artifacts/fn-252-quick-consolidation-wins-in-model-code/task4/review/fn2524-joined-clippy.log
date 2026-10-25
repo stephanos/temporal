@@ -1,0 +1,47 @@
+   Compiling serde_core v1.0.229
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/dsl)
+    Checking rand_core v0.10.1
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/native)
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir/derive)
+   Compiling libc v0.2.191
+   Compiling cfg-if v1.0.5
+   Compiling regex-syntax v0.8.11
+   Compiling linux-raw-sys v0.12.1
+   Compiling once_cell v1.21.4
+    Checking getrandom v0.4.3
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/suite)
+    Checking wait-timeout v0.2.1
+    Checking bit-vec v0.10.1
+   Compiling rustix v1.1.5
+    Checking quick-error v1.2.3
+    Checking tempfile v3.27.0
+    Checking fnv v1.0.7
+    Checking bit-set v0.11.1
+    Checking rand v0.10.3
+    Checking num-traits v0.2.19
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/process)
+    Checking insta v1.49.0
+    Checking rusty-fork v0.3.1
+    Checking chacha20 v0.10.2
+    Checking rand_xorshift v0.5.0
+    Checking core_detect v1.0.0
+    Checking unarray v0.1.4
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling regex-automata v0.4.18
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/ir)
+   Compiling proc-macro-crate v3.5.0
+    Checking proptest v1.12.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/front)
+   Compiling regex v1.13.1
+   Compiling prost-build v0.14.4
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tla)
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/backends/tlc)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/protocol/runtime)
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/dev/testing)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/catalog)
+    Checking umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/umpire/author/umpire)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.74s
