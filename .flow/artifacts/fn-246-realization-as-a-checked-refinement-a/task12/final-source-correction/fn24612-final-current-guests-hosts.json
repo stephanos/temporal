@@ -1,0 +1,103 @@
+{
+  "source_commit": "a70f54ec5b258f4e735c152c2f79c9ae6d129ee2",
+  "source_model_tree": "362f914242b881452aa6fbb1edfd7dbd4476311c",
+  "status": "terminal-passed",
+  "results": [
+    {
+      "name": "temporal-guest",
+      "command": [
+        "make",
+        "umpire-guest"
+      ],
+      "exit_code": 0,
+      "seconds": 59.387,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-temporal-guest.log",
+      "log_sha256": "18a9dda2832e5af6ad0d71f73e620f7777a22bcec88ef7cf94901b530d7c74fe"
+    },
+    {
+      "name": "standard-guests",
+      "command": [
+        "bash",
+        "model/scripts/tests/build-guests.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 60.711,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-standard-guests.log",
+      "log_sha256": "ff890994c169ca56f7e5ce57dad4dd110a896bcd219b2b9507be8bc3bb87267f"
+    },
+    {
+      "name": "generic-host",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "model/umpire/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "exit_code": 0,
+      "seconds": 5.318,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-generic-host.log",
+      "log_sha256": "6c28ffb9ee9934fc6c332dc87e99218993ce939a7f2560db30adc87a043a9ab2"
+    },
+    {
+      "name": "kettle-host",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "model/umpire/reference/kettle",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "exit_code": 0,
+      "seconds": 35.945,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-kettle-host.log",
+      "log_sha256": "0eb5bc989cb06ac132b95daeb47420c0c04f351de900e35c8517cb31113ae944"
+    },
+    {
+      "name": "temporal-host",
+      "command": [
+        "mise",
+        "exec",
+        "--",
+        "go",
+        "-C",
+        "model/temporal/hosts/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./..."
+      ],
+      "exit_code": 0,
+      "seconds": 55.906,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-temporal-host.log",
+      "log_sha256": "4c1ece46cce167878faed3d9cbec8404b618af5369e6d78adb61809354332bab"
+    },
+    {
+      "name": "guest-freshness",
+      "command": [
+        "bash",
+        "model/scripts/guest-freshness.sh",
+        "umpire-temporal-guest",
+        "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 35.634,
+      "log": ".flow/tmp/milestones-resume-20261024/fn24612-final-guest-freshness.log",
+      "log_sha256": "2e984da650e0c02152ee2d17d99a757b42b849efc8f05e6482f50abe130dee7d"
+    }
+  ],
+  "guest_sha256": "0f560e1073b6b4b25feed794fcfdffd0c94b4ad409c7c711fefbfd2d0f67acc4"
+}
