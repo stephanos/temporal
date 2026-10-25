@@ -1,0 +1,14 @@
+{
+  "task": "fn-246.7",
+  "source_checkpoint": "42e301bee485b60095395b9e4447c33fbd2caf72",
+  "integrated_commit": "3b4a00f52f04959ad051ad284dad39d2151345af",
+  "workspace_check": {
+    "command": "mise exec -- cargo check --workspace --all-targets --locked",
+    "exit_code": 0,
+    "seconds": 17.07,
+    "log_sha256": "c4146b74589d0f8ae762eaebebb0240f888558fe673de82f2b14a72e1fc19163"
+  },
+  "fixture_dependencies": "Every external package/version/source/checksum in renamed fixture lock exists in main workspace lock.",
+  "pending": "Joint catalog fixes, fresh guest/full validation, independent task7 implementation review.",
+  "status": "in_progress"
+}

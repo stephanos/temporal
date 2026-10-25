@@ -1,0 +1,440 @@
+{
+  "task": "fn-246-realization-as-a-checked-refinement-a.7",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
+  "base_commit": "046922c29e1355824cc989575dfe24b42e622bca",
+  "head": "42e301bee485b60095395b9e4447c33fbd2caf72",
+  "commits": [
+    "42e301bee485b60095395b9e4447c33fbd2caf72"
+  ],
+  "environment": {
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "GOCACHE": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn2467/go",
+    "GOMAXPROCS": "2",
+    "CGO_ENABLED": "0"
+  },
+  "records": [
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/baseline.log",
+      "stage": "pre-edit baseline",
+      "observed": "190 passed; 1 existing ignored live snapshot import",
+      "sha256": "e7bd8aa6847f01d0530ea5ebfa5fc8ddbd48aa83eed852d46fe0dd939b6703ba"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/verify-six-frozen.log",
+      "stage": "frozen verification",
+      "observed": "201 passed; 1 existing ignored live snapshot import",
+      "sha256": "54851998fa6598b933b858083455496b3dcea472394ba56dd15df1e812a5dc29"
+    },
+    {
+      "command": "mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-author-consumer --all-targets --all-features -- -D warnings",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/clippy-4.log",
+      "stage": "strict lint",
+      "sha256": "1997928b36cf8664c32713779a1eda8633d9e8adba8656ee36f1b30d4fae739f"
+    },
+    {
+      "command": "mise exec -- cargo fmt --all --check",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 0,
+      "log": "logs/fmt.log",
+      "stage": "format",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "bash model/scripts/tests/build-guests.sh",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
+      "exit_code": 0,
+      "log": "logs/guests.log",
+      "stage": "six standard guests and native panic reports",
+      "observed": "stock, Kettle, control, Temporal, caught-panic, overflow; expected EH warnings and caught native panic diagnostics",
+      "sha256": "dc1efa0ce4500e32d83f7e8d50ab82e84dde3e1de0359511f62d63c89a69d738"
+    },
+    {
+      "command": "mise exec -- go test -p 2 -tags test_dep -count=1 ./...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model/umpire/reference/kettle",
+      "exit_code": 0,
+      "log": "logs/go-kettle.log",
+      "stage": "fresh current-guest Kettle transcript/parity/mutants",
+      "observed": "umpire.local/kettle 34.706s; goldens unchanged",
+      "sha256": "ecda598f4a9742085884f5b11c4a32d827a8e23183f7455c408ddab4e4288aa0"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime --test capabilities",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 101,
+      "log": "logs/capability-red.log",
+      "stage": "valid new API red",
+      "observed": "unresolved capability import before implementation",
+      "sha256": "d377a6c6e856d21dfee6af7af51ffc3f19e3dc5b6b4811b34356145797d9e960"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal --test support typed_evidence",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 101,
+      "log": "logs/evidence-red.log",
+      "stage": "valid new evidence API red",
+      "observed": "absent typed evidence module/accessors before implementation",
+      "sha256": "d241e2800ad1350b2d666742ea79301824314820fb66a8a614d38103bb698b2e"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-annotate-syntax --test realize realization_assembles_explicit_capabilities",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model",
+      "exit_code": 101,
+      "log": "logs/macro-red-valid.log",
+      "stage": "valid assembly red",
+      "observed": "only Realize generated; explicit capability list absent",
+      "sha256": "d48a46fd7752dbe3911462c5132ccb692c4323136e3589daffea930673589390"
+    },
+    {
+      "command": "flowctl gate classify --base 046922c29e1355824cc989575dfe24b42e622bca",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities",
+      "exit_code": 1,
+      "log": "logs/gate-classify.log",
+      "stage": "classification",
+      "observed": "FULL: unmatched: model/Cargo.lock; no docs-only skip or shared receipt written",
+      "sha256": "694b684a6a8f26c0da491e2ad8a42bb2b03e97f5e989770921f4d3d28e00c169"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-annotate-syntax --test realize callback_dispatch_uses_the_typed_filler",
+      "exit_code": 101,
+      "log": "logs/macro-callback-red-valid.log",
+      "sha256": "c3994f8780690ef1d1aebfc777cc54b17149683e7b6882018105632e2986c86a",
+      "note": "structural red: missing Identity::identify",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-annotate-syntax",
+      "exit_code": 0,
+      "log": "logs/macro-syntax-green.log",
+      "sha256": "db10b0e70fcb9fd0b7822cf7eb515ca29429f1dfa142a941c42034cfb7521c76",
+      "note": "13 integration tests and library controls",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "INSTA_UPDATE=always mise exec -- cargo test -p umpire-temporal-realization-macros --lib",
+      "exit_code": 0,
+      "log": "logs/macro-lib-green.log",
+      "sha256": "2047f3a14bb37bf9e81b163b034c103326738a269ea54490384d8a068b8e97f3",
+      "note": "deliberate generated output pin migration",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo check --manifest-path temporal/realization/macros/tests/renamed/Cargo.toml --offline",
+      "exit_code": 0,
+      "log": "logs/macro-renamed-bootstrap.log",
+      "sha256": "1ca7e98cfd8aba6c6230ba946afb0530676baa6189bf2b8621d8eebced4e4d0a",
+      "note": "real renamed macro consumer compiled; fixture lock normalized using existing pinned packages",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal --test declarative generated_observation_validates_actual_request_before_feature_delegation",
+      "exit_code": 101,
+      "log": "logs/macro-request-mutation-red.log",
+      "sha256": "98c76e74bc4db4d08fb134b6681421fb7d2c41ca2c42f043e262b0a33fd818a6",
+      "note": "mutation red: only descriptor request decode line removed; test added after implementation; source restored in finally",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal --test declarative",
+      "exit_code": 0,
+      "log": "logs/macro-declarative-green.log",
+      "sha256": "17896538843e95932e781b7657e34db82034aa5d54bc0aa0ed6333be85710651",
+      "note": "all five controls passed; unused qualification subsequently fixed",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "INSTA_UPDATE=always mise exec -- cargo test -p umpire-temporal-realization-macros --lib activity_expansion",
+      "exit_code": 0,
+      "log": "logs/macro-snapshot-policy-update.log",
+      "sha256": "b9c79fdc33b18c5e0baa28aac627c04b711eae20c555f62c4b3289b0a8b62ea1",
+      "note": "pin narrow generated deprecation allowance",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "exit_code": 101,
+      "log": "logs/verify-six-macro.log",
+      "sha256": "ed0a275b836e6e13fbf792d2cae44467a9169cc82e204eb2afe44c2bb95fb509",
+      "note": "failed runtime compiler control selected incoherent DSL artifacts; parent notified",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-realization-macros",
+      "exit_code": 0,
+      "log": "logs/macro-complete-green.log",
+      "sha256": "e7fc589e479de046edaadfdda982dd00b478c5b200e926ec3be6201fbb0419cb",
+      "note": "frozen pins; 5 lib tests and one real renamed fixture checking positive alias compilation and negative generated-enum refusal",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal --test realization_admission",
+      "exit_code": 0,
+      "log": "logs/macro-ui-identity-green.log",
+      "sha256": "48475a58cd9490976bb2a542db87e7709a174710f365ba12902e159be8e7eeee",
+      "note": "all three original compile-fail controls green; appended explicit refusing Identity/Fill to identity fixture, original E0308 stderr unchanged",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2467-capabilities/model"
+    }
+  ],
+  "files": {
+    "compiler-controls/fixture-3050151/Cargo.lock": {
+      "sha256": "5d1996e2045b145c874ede81332c3b870fd7badf04d18ac74ee0eac165474b9f",
+      "bytes": 15777
+    },
+    "compiler-controls/fixture-3050151/Cargo.toml": {
+      "sha256": "ea17e05ca0d538fcfe426a74aed804b6132248a04f532cbe34a0455090bd3f92",
+      "bytes": 376
+    },
+    "compiler-controls/fixture-3050151/Evidence.stderr": {
+      "sha256": "775c79d691803ea81cb4ceb87b5653f2326aaf7a0bb89f21db76dbeb3afdb45b",
+      "bytes": 1628
+    },
+    "compiler-controls/fixture-3050151/Fill.stderr": {
+      "sha256": "9de1150ed6e859d6406a71304a3c0010bfd43ec83d5adda8235bc2d0a45d7983",
+      "bytes": 1131
+    },
+    "compiler-controls/fixture-3050151/Identity.stderr": {
+      "sha256": "658e7f527c16b1c134f19a66e306958f1bb776332b58551ed9a9e9939911acb7",
+      "bytes": 1826
+    },
+    "compiler-controls/fixture-3050151/ReplyPolicy.stderr": {
+      "sha256": "18690a3b702d44fd1102e1dd29a8d1c307664f4af4d6a7661d5a12c0c71e3e7e",
+      "bytes": 1127
+    },
+    "compiler-controls/fixture-3050151/Snapshot.stderr": {
+      "sha256": "849e9c39b6d182ccb15cea99f0dd29fc88e689fe0a555867e30ea23a57249d0e",
+      "bytes": 1641
+    },
+    "compiler-controls/fixture-3050151/complete.stderr": {
+      "sha256": "ad200c3e4283fb25831bc9fab5aa0cbd3d113abf66211dff3e6d807c18c37a7a",
+      "bytes": 3270
+    },
+    "compiler-controls/fixture-3050151/src/lib.rs": {
+      "sha256": "2cba6e6a2b81ae15ae1e0319452867588f5f60861806ea97f99fe1580a6bc248",
+      "bytes": 900
+    },
+    "compiler-controls/fixture-3066367/Cargo.lock": {
+      "sha256": "5d1996e2045b145c874ede81332c3b870fd7badf04d18ac74ee0eac165474b9f",
+      "bytes": 15777
+    },
+    "compiler-controls/fixture-3066367/Cargo.toml": {
+      "sha256": "ea17e05ca0d538fcfe426a74aed804b6132248a04f532cbe34a0455090bd3f92",
+      "bytes": 376
+    },
+    "compiler-controls/fixture-3066367/Evidence.stderr": {
+      "sha256": "204668022d2dac2c17ea7d071126a35e9d0a61851424913e386360c30d445bb6",
+      "bytes": 1628
+    },
+    "compiler-controls/fixture-3066367/Fill.stderr": {
+      "sha256": "b1a6f0effcbdd68a71678678f8bd233116572f5a70aef97e2daa6fb728e23912",
+      "bytes": 1131
+    },
+    "compiler-controls/fixture-3066367/Identity.stderr": {
+      "sha256": "f40641c133b02111cd43e42857b6fce0320dfd476d67a93a7e5368723b08bb1a",
+      "bytes": 1826
+    },
+    "compiler-controls/fixture-3066367/ReplyPolicy.stderr": {
+      "sha256": "ca9a784fac7cd431d5fb33581fd3eb7a2c0a8b316dd8c31b8758abffb2df9e23",
+      "bytes": 1127
+    },
+    "compiler-controls/fixture-3066367/Snapshot.stderr": {
+      "sha256": "375e8e5b0a784d236fcddddde8ae2bab132dab6eda89ccbaae69c8da5b0c5651",
+      "bytes": 1641
+    },
+    "compiler-controls/fixture-3066367/complete.stderr": {
+      "sha256": "95ce7b60467bdb0688a37544f73ace2eecc2be10aa3e7ebe40f9d33c8d98df57",
+      "bytes": 571
+    },
+    "compiler-controls/fixture-3066367/src/lib.rs": {
+      "sha256": "2cba6e6a2b81ae15ae1e0319452867588f5f60861806ea97f99fe1580a6bc248",
+      "bytes": 900
+    },
+    "guests/caught_panic_control.wasm": {
+      "sha256": "46581ad9c773bd253c9a2b1c19c35621b6a13ea123e903d5824777a4778a2cb0",
+      "bytes": 228447
+    },
+    "guests/overflow_control.wasm": {
+      "sha256": "b10a6ecc514d953d07901baae549e465d0879ae4fd55487fc023027f0f0c37a4",
+      "bytes": 228447
+    },
+    "guests/stateful_control.wasm": {
+      "sha256": "cb57c37d93d795d482c5296cfec31c797a33d1b6e8e1d039b7cb121b4e9c2a75",
+      "bytes": 165749
+    },
+    "guests/umpire_kettle_guest.wasm": {
+      "sha256": "17956646835eddcaee059e66c5ef0b86ac30103cbc7a7b75c7a2137740b106a0",
+      "bytes": 1234522
+    },
+    "guests/umpire_stock_guest.wasm": {
+      "sha256": "b37215682ff86ae996d3d0930d7abef41832f6c444cc127c88ba225feb575e75",
+      "bytes": 198770
+    },
+    "guests/umpire_temporal_guest.wasm": {
+      "sha256": "0d36d7956062c311662a2bd31a2e64b4d03b813adec6f8de46eeb83e431a21ec",
+      "bytes": 3568149
+    },
+    "logs/baseline.log": {
+      "sha256": "e7bd8aa6847f01d0530ea5ebfa5fc8ddbd48aa83eed852d46fe0dd939b6703ba",
+      "bytes": 34072
+    },
+    "logs/capability-red.log": {
+      "sha256": "d377a6c6e856d21dfee6af7af51ffc3f19e3dc5b6b4811b34356145797d9e960",
+      "bytes": 778
+    },
+    "logs/clippy-2.log": {
+      "sha256": "10ea16e08beab647ffe747860fccb32f7c60575878e82654093ad961be4401a9",
+      "bytes": 2175
+    },
+    "logs/clippy-3.log": {
+      "sha256": "8d9fa925dd7cd0b744e725594215efba62a018283d2813e83ce934a9c5b73ec4",
+      "bytes": 2114
+    },
+    "logs/clippy-4.log": {
+      "sha256": "1997928b36cf8664c32713779a1eda8633d9e8adba8656ee36f1b30d4fae739f",
+      "bytes": 526
+    },
+    "logs/clippy.log": {
+      "sha256": "b55daad65143db959792d2535832f78ca96d1eb67350e0641761df800d2a036f",
+      "bytes": 3516
+    },
+    "logs/control-focused-2.log": {
+      "sha256": "04a1aa7b698cc5bd65bd529ec1c1a22782b155bbb06b4323459cbb45a6547f3f",
+      "bytes": 1825
+    },
+    "logs/control-focused-3.log": {
+      "sha256": "7591a736039b48ed6c5cdd6f8b0ae341bb2f48491cf1b4cb74be966ab98a8358",
+      "bytes": 1859
+    },
+    "logs/control-focused.log": {
+      "sha256": "467ad1d86d381b0a45cc544da3d39c3dea64d37b645758c36888439cbbe050b1",
+      "bytes": 17309
+    },
+    "logs/core-green.log": {
+      "sha256": "c07d414379f51290d2b335e8148ad7e4746930023fafab0f43ccf1751652562c",
+      "bytes": 1638
+    },
+    "logs/evidence-red.log": {
+      "sha256": "d241e2800ad1350b2d666742ea79301824314820fb66a8a614d38103bb698b2e",
+      "bytes": 3009
+    },
+    "logs/fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "logs/gate-classify.log": {
+      "sha256": "694b684a6a8f26c0da491e2ad8a42bb2b03e97f5e989770921f4d3d28e00c169",
+      "bytes": 34
+    },
+    "logs/go-kettle.log": {
+      "sha256": "ecda598f4a9742085884f5b11c4a32d827a8e23183f7455c408ddab4e4288aa0",
+      "bytes": 88
+    },
+    "logs/guests.log": {
+      "sha256": "dc1efa0ce4500e32d83f7e8d50ab82e84dde3e1de0359511f62d63c89a69d738",
+      "bytes": 14106
+    },
+    "logs/macro-callback-red-valid.log": {
+      "sha256": "c3994f8780690ef1d1aebfc777cc54b17149683e7b6882018105632e2986c86a",
+      "bytes": 1020
+    },
+    "logs/macro-callback-red.log": {
+      "sha256": "ae91d6fb86564f3e6ed8a8084e04ea6e8cbefd2ab5d309161a05b0ecd780a2dc",
+      "bytes": 1276
+    },
+    "logs/macro-complete-green.log": {
+      "sha256": "e7fc589e479de046edaadfdda982dd00b478c5b200e926ec3be6201fbb0419cb",
+      "bytes": 1819
+    },
+    "logs/macro-declarative-green.log": {
+      "sha256": "17896538843e95932e781b7657e34db82034aa5d54bc0aa0ed6333be85710651",
+      "bytes": 2133
+    },
+    "logs/macro-helper-evidence.json": {
+      "sha256": "cbb24a5a44fc7c7379952b683713498c66fd12b4a3cd3fa2a7262c534ed71d1e",
+      "bytes": 3804
+    },
+    "logs/macro-lib-green.log": {
+      "sha256": "2047f3a14bb37bf9e81b163b034c103326738a269ea54490384d8a068b8e97f3",
+      "bytes": 1942
+    },
+    "logs/macro-lib.log": {
+      "sha256": "7de75a9ea7d1b36b609a9c8890a5ff6729ac2646f10c9debbf4b861ba3e6df47",
+      "bytes": 14976
+    },
+    "logs/macro-red-valid.log": {
+      "sha256": "d48a46fd7752dbe3911462c5132ccb692c4323136e3589daffea930673589390",
+      "bytes": 1531
+    },
+    "logs/macro-red.log": {
+      "sha256": "64c60037fa6e3eaf01d09839d5099dc983cfed0e2a317697f4c7588da7eadef7",
+      "bytes": 1812
+    },
+    "logs/macro-renamed-bootstrap.log": {
+      "sha256": "1ca7e98cfd8aba6c6230ba946afb0530676baa6189bf2b8621d8eebced4e4d0a",
+      "bytes": 4598
+    },
+    "logs/macro-request-mutation-red.log": {
+      "sha256": "98c76e74bc4db4d08fb134b6681421fb7d2c41ca2c42f043e262b0a33fd818a6",
+      "bytes": 3657
+    },
+    "logs/macro-snapshot-policy-update.log": {
+      "sha256": "b9c79fdc33b18c5e0baa28aac627c04b711eae20c555f62c4b3289b0a8b62ea1",
+      "bytes": 943
+    },
+    "logs/macro-syntax-green.log": {
+      "sha256": "db10b0e70fcb9fd0b7822cf7eb515ca29429f1dfa142a941c42034cfb7521c76",
+      "bytes": 2213
+    },
+    "logs/macro-ui-identity-green.log": {
+      "sha256": "48475a58cd9490976bb2a542db87e7709a174710f365ba12902e159be8e7eeee",
+      "bytes": 1682
+    },
+    "logs/task-state.json": {
+      "sha256": "bf17946ae8c1632ab5db37a84393fc91ffaf188582e3e5ad5bdf44b6229c292c",
+      "bytes": 710
+    },
+    "logs/verify-six-2.log": {
+      "sha256": "16f3dc60f7e2985adfa201b3d91f7a306dfb7b1f12c9a81d283887816b78446b",
+      "bytes": 2666
+    },
+    "logs/verify-six-final.log": {
+      "sha256": "ad1a66ecadf366a9ce3cb4bbe8835f1e30b7ff7d9443e9ab10022890aae36356",
+      "bytes": 31155
+    },
+    "logs/verify-six-frozen.log": {
+      "sha256": "54851998fa6598b933b858083455496b3dcea472394ba56dd15df1e812a5dc29",
+      "bytes": 30815
+    },
+    "logs/verify-six-macro.log": {
+      "sha256": "ed0a275b836e6e13fbf792d2cae44467a9169cc82e204eb2afe44c2bb95fb509",
+      "bytes": 18647
+    },
+    "logs/verify-six.log": {
+      "sha256": "3ce16970fa594bd0e336edecf2fa6232e607bd5395c4e53e41dc79a454fadea8",
+      "bytes": 3793
+    },
+    "panic-native/effect_overflow.pb": {
+      "sha256": "a6676ea2fe6667eda4b26ea04419c3f7802e377aeb466e72b81399670b378cef",
+      "bytes": 402
+    },
+    "panic-native/effect_panic.pb": {
+      "sha256": "57e9cbe2fa91e1476b75eb392b7fb8a00cd723adc0a2fe5be4852605d0836c53",
+      "bytes": 387
+    },
+    "source.patch": {
+      "sha256": "04409940d32baea948d1ba8607fd55c6577caa55993b48b7904f676d9a78bcc3",
+      "bytes": 184763
+    }
+  },
+  "intermediate_failures": "All intermediate logs retained. macro-red.log/macro-callback-red.log were setup errors, not valid red controls. verify-six-macro.log exposed an incoherent manually selected rlib control; replaced with Cargo-owned isolated coherent compiler fixture. Other interim compile/lint errors are resolved by the frozen green suite and strict clippy. No red baseline or skipped full-suite receipt is claimed."
+}

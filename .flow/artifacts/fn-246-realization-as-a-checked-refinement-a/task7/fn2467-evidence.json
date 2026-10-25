@@ -1,0 +1,14 @@
+{
+  "commits": [
+    "42e301bee485b60095395b9e4447c33fbd2caf72"
+  ],
+  "base_commit": "046922c29e1355824cc989575dfe24b42e622bca",
+  "tests": [
+    "mise exec -- cargo test -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+    "mise exec -- cargo clippy -p umpire-runtime -p umpire-reference-kettle -p umpire-temporal-annotate-syntax -p umpire-temporal-realization-macros -p umpire-temporal -p umpire-author-consumer --all-targets --all-features -- -D warnings",
+    "mise exec -- cargo fmt --all --check",
+    "bash model/scripts/tests/build-guests.sh",
+    "mise exec -- go test -p 2 -tags test_dep -count=1 ./..."
+  ],
+  "prs": []
+}
