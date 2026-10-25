@@ -11,13 +11,14 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
     #[read(rpc = WorkflowService::DescribeActivityExecution,
         request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
         target = bool, fill = read_fill, project = project,
-        finality = finality, continue_polling = polling)]
+        finality = finality, continue_polling = polling, correlate = read_correlate)]
     impl Binding {
         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<RequestCancelActivityExecutionRequest, Refusal> { Ok(RequestCancelActivityExecutionRequest::default()) }
         fn evidence(&self, _: RequestCancelActivityExecutionRequest, _: Result<RequestCancelActivityExecutionResponse, i32>, _: &[&Evidence<specimen::World>]) -> Result<EvidenceMatch, Refusal> { Ok(EvidenceMatch::Reject) }
         fn admit(&self, _: &StartActivityExecutionRequest, _: &StartActivityExecutionResponse) -> Result<(), Refusal> { Ok(()) }
-        fn receipt(&self, _: &(), _: &StartActivityExecutionResponse) -> Result<(), Refusal> { Ok(()) }
+        fn receipt(&self, _: &(), _: &StartActivityExecutionRequest, _: &StartActivityExecutionResponse) -> Result<(), Refusal> { Ok(()) }
         fn correlate(&self, _: &(), _: &StartActivityExecutionRequest, _: &StartActivityExecutionResponse) -> Result<(), Refusal> { Ok(()) }
+        fn read_correlate(&self, _: &(), _: &DescribeActivityExecutionRequest, _: &DescribeActivityExecutionResponse) -> Result<(), Refusal> { Ok(()) }
         fn read_fill(&self, _: &specimen::World, _: &()) -> Result<DescribeActivityExecutionRequest, Refusal> { Ok(DescribeActivityExecutionRequest::default()) }
         fn project(&self, _: &DescribeActivityExecutionResponse) -> Result<bool, Refusal> { Ok(false) }
         fn finality(&self, _: &bool) -> i32 { 0 }

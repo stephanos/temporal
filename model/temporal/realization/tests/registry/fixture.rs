@@ -68,6 +68,11 @@ pub(crate) struct ActualId {
     pub(crate) run: String,
     pub(crate) token: Vec<u8>,
 }
+pub(crate) struct Receipt {
+    pub(crate) identity: ActualId,
+    pub(crate) request_id: String,
+}
+
 pub(crate) struct Inputs {
     pub(crate) request_id: String,
 }
@@ -98,11 +103,11 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
     #[registry(inputs = Inputs)]
     #[entity(rpc = WorkflowService::StartActivityExecution,
         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
-        receipt = ActualId, admit = admitted, make_receipt = receipt, correlate = correlation)]
+        receipt = Receipt, admit = admitted, make_receipt = receipt, correlate = correlation)]
     #[read(rpc = WorkflowService::DescribeActivityExecution,
         request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
         target = bool, fill = read_request, project = read_target,
-        finality = is_final, continue_polling = polling)]
+        finality = is_final, continue_polling = polling, correlate = read_correlation)]
     impl Binding {
         fn cancel(&self, _: &specimen::Client, world: &specimen::World, inputs: &Inputs, id: &ActualId)
             -> Result<RequestCancelActivityExecutionRequest, Refusal> {
@@ -131,13 +136,17 @@ specimen::action_metadata!(umpire_temporal::registry; specimen; {
             if request.namespace.is_empty() || request.activity_id.is_empty() || request.request_id.is_empty() || response.run_id.is_empty() { return Err(Refusal::malformed("bootstrap identity missing")); }
             Ok(ActualId { namespace: request.namespace.clone(), entity: request.activity_id.clone(), run: response.run_id.clone(), token: vec![9] })
         }
-        fn receipt(&self, id: &ActualId, _: &StartActivityExecutionResponse) -> Result<ActualId, Refusal> { Ok(id.clone()) }
-        fn correlation(&self, receipt: &ActualId, request: &StartActivityExecutionRequest, response: &StartActivityExecutionResponse) -> Result<(), Refusal> {
-            if receipt.namespace != request.namespace || receipt.entity != request.activity_id || receipt.run != response.run_id { return Err(Refusal::malformed("crossed bootstrap")); }
+        fn receipt(&self, id: &ActualId, request: &StartActivityExecutionRequest, _: &StartActivityExecutionResponse) -> Result<Receipt, Refusal> { Ok(Receipt { identity: id.clone(), request_id: request.request_id.clone() }) }
+        fn correlation(&self, receipt: &Receipt, request: &StartActivityExecutionRequest, response: &StartActivityExecutionResponse) -> Result<(), Refusal> {
+            if receipt.identity.namespace != request.namespace || receipt.identity.entity != request.activity_id || receipt.identity.run != response.run_id || receipt.request_id != request.request_id { return Err(Refusal::malformed("crossed bootstrap")); }
             Ok(())
         }
-        fn read_request(&self, _: &specimen::World, receipt: &ActualId) -> Result<DescribeActivityExecutionRequest, Refusal> {
-            Ok(DescribeActivityExecutionRequest { namespace: receipt.namespace.clone(), activity_id: receipt.entity.clone(), run_id: receipt.run.clone(), ..Default::default() })
+        fn read_request(&self, _: &specimen::World, receipt: &Receipt) -> Result<DescribeActivityExecutionRequest, Refusal> {
+            Ok(DescribeActivityExecutionRequest { namespace: receipt.identity.namespace.clone(), activity_id: receipt.identity.entity.clone(), run_id: receipt.identity.run.clone(), ..Default::default() })
+        }
+        fn read_correlation(&self, receipt: &Receipt, request: &DescribeActivityExecutionRequest, response: &DescribeActivityExecutionResponse) -> Result<(), Refusal> {
+            if receipt.identity.namespace != request.namespace || receipt.identity.entity != request.activity_id || receipt.identity.run != request.run_id || receipt.identity.run != response.run_id { return Err(Refusal::malformed("crossed read")); }
+            Ok(())
         }
         fn read_target(&self, value: &DescribeActivityExecutionResponse) -> Result<bool, Refusal> { Ok(value.outcome.is_some()) }
         fn is_final(&self, value: &bool) -> bool { *value }

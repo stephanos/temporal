@@ -10,7 +10,9 @@ use umpire_runtime::{
     protocol::Refusal,
 };
 use umpire_temporal::registry::{ActionKind, Direction, Registry};
-use umpire_temporal_api::temporal::api::workflowservice::v1::*;
+use umpire_temporal_api::temporal::api::{
+    activity::v1::ActivityExecutionOutcome, workflowservice::v1::*,
+};
 
 #[path = "registry/fixture.rs"]
 mod fixture;
@@ -222,8 +224,11 @@ fn typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph() ->
         umpire_runtime::Proposal::Bootstrap { request: Any::pack(&request) };
     assert!(matches!(bootstrap, umpire_runtime::Proposal::Bootstrap { .. }));
     let actual = (entity.admit)(&binding, &request, &response)?;
-    let receipt = (entity.receipt)(&binding, &actual, &response)?;
+    let receipt = (entity.receipt)(&binding, &actual, &request, &response)?;
     (entity.correlate)(&binding, &receipt, &request, &response)?;
+    let mut crossed_request = request.clone();
+    crossed_request.request_id = "crossed".into();
+    assert!((entity.correlate)(&binding, &receipt, &crossed_request, &response).is_err());
     let mut crossed = response.clone();
     crossed.run_id = "crossed".into();
     assert!((entity.correlate)(&binding, &receipt, &request, &crossed).is_err());
@@ -234,22 +239,28 @@ fn typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph() ->
         (current.namespace.as_str(), current.activity_id.as_str(), current.run_id.as_str()),
         ("ns", "entity", "run")
     );
-    let target = (read.project)(&binding, &DescribeActivityExecutionResponse::default())?;
+    let observed_read =
+        DescribeActivityExecutionResponse { run_id: "run".into(), ..Default::default() };
+    (read.correlate)(&binding, &receipt, &current, &observed_read)?;
+    let mut crossed_read_request = current.clone();
+    crossed_read_request.namespace = "crossed".into();
+    assert!((read.correlate)(&binding, &receipt, &crossed_read_request, &observed_read).is_err());
+    let mut crossed_read_response = observed_read.clone();
+    crossed_read_response.run_id = "crossed".into();
+    assert!((read.correlate)(&binding, &receipt, &current, &crossed_read_response).is_err());
+    let target = (read.project)(&binding, &observed_read)?;
     assert!(!(read.finality)(&binding, &target));
     assert!((read.continue_polling)(&binding, &target));
     let proposal: umpire_runtime::Proposal<specimen::Action> =
         umpire_runtime::Proposal::Read { request: Any::pack(&current) };
     assert!(matches!(proposal, umpire_runtime::Proposal::Read { .. }));
-    let final_target = (read.project)(
-        &binding,
-        &DescribeActivityExecutionResponse {
-            outcome: Some(
-                umpire_temporal_api::temporal::api::activity::v1::ActivityExecutionOutcome::default(
-                ),
-            ),
-            ..Default::default()
-        },
-    )?;
+    let final_read = DescribeActivityExecutionResponse {
+        run_id: "run".into(),
+        outcome: Some(ActivityExecutionOutcome::default()),
+        ..Default::default()
+    };
+    (read.correlate)(&binding, &receipt, &current, &final_read)?;
+    let final_target = (read.project)(&binding, &final_read)?;
     assert!((read.finality)(&binding, &final_target));
     assert!(!(read.continue_polling)(&binding, &final_target));
     assert!(!world.starts()[0].ping);

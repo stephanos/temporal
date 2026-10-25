@@ -13,7 +13,10 @@ struct RequestCancelActivityExecutionRequest {
 }
 impl prost::Name for RequestCancelActivityExecutionRequest {
     const NAME: &'static str = "RequestCancelActivityExecutionRequest";
-    const PACKAGE: &'static str = "fake";
+    const PACKAGE: &'static str = "temporal.api.workflowservice.v1";
+    fn type_url() -> String {
+        <umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest as prost::Name>::type_url()
+    }
 }
 #[path = "../registry/fixture.rs"]
 mod fixture;

@@ -311,6 +311,29 @@ mod tests {
     }
 
     #[test]
+    fn read_configuration_requires_a_typed_correlation_hook()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let (schema, _) = super::schema()?;
+        let error = umpire_temporal_annotate_syntax::registry::expand(quote::quote! {
+            model { specimen }
+            actors {}
+            body {
+                #[registry(inputs = ())]
+                #[entity(rpc = WorkflowService::StartActivityExecution,
+                    request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+                    receipt = Receipt, admit = admitted, make_receipt = receipt, correlate = correlation)]
+                #[read(rpc = WorkflowService::DescribeActivityExecution,
+                    request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
+                    target = Target, fill = read_request, project = read_target,
+                    finality = is_final, continue_polling = polling)]
+                impl Binding {}
+            }
+        }, &syn::parse_str(super::RUNTIME_ROOT)?, &schema).err().ok_or("missing read correlation admitted")?;
+        assert_eq!(error.to_string(), "missing temporal declaration option: correlate");
+        Ok(())
+    }
+
+    #[test]
     fn typed_registry_expansion() -> Result<(), Box<dyn std::error::Error>> {
         let (schema, _) = super::schema()?;
         let expanded = umpire_temporal_annotate_syntax::registry::expand(
@@ -335,7 +358,7 @@ mod tests {
                         receipt = Receipt, admit = admitted, make_receipt = receipt, correlate = correlation)]
                     #[read(rpc = WorkflowService::DescribeActivityExecution,
                         request = DescribeActivityExecutionRequest, response = DescribeActivityExecutionResponse,
-                        target = Target, fill = read_request, project = read_target,
+                        target = Target, fill = read_request, correlate = read_correlation, project = read_target,
                         finality = is_final, continue_polling = polling)]
                     impl Binding {}
                 }

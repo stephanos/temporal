@@ -629,16 +629,18 @@ fn configurations(
     let witnesses = entity_rpc.witnesses();
     let value = entity_rpc.configuration(runtime);
     let read = read.map(|options| -> syn::Result<_> {
-        options.admit(&["rpc", "request", "response", "target", "fill", "project", "finality", "continue_polling"], span)?;
+        options.admit(&["rpc", "request", "response", "target", "fill", "correlate", "project", "finality", "continue_polling"], span)?;
         let rpc = rpc(options, schema, span)?;
         let request = &rpc.request;
         let response = &rpc.response;
         let target: Type = options.required("target", span)?;
         let fill: Ident = options.required("fill", span)?;
+        let correlate: Ident = options.required("correlate", span)?;
         let project: Ident = options.required("project", span)?;
         let finality: Ident = options.required("finality", span)?;
         let polling: Ident = options.required("continue_polling", span)?;
         let fill = hook(&fill);
+        let correlate = hook(&correlate);
         let project = hook(&project);
         let finality = hook(&finality);
         let polling = hook(&polling);
@@ -647,7 +649,7 @@ fn configurations(
         Ok(quote! {
             pub fn read() -> #runtime::registry::Read<Self, #model::World, #receipt, #request, #response, #target> {
                 #witnesses
-                #runtime::registry::Read { rpc: #value, fill: #fill, project: #project, finality: #finality, continue_polling: #polling }
+                #runtime::registry::Read { rpc: #value, fill: #fill, correlate: #correlate, project: #project, finality: #finality, continue_polling: #polling }
             }
         })
     }).transpose()?;

@@ -75,8 +75,8 @@ pub struct Entity<B: Identity, R, Q, S> {
     pub bootstrap: Rpc<Q, S>,
     /// Admit the actual namespace/entity/run identity from one invocation.
     pub admit: fn(&B, &Q, &S) -> Result<B::Id, Refusal>,
-    /// Construct a receipt from the admitted identity and actual response.
-    pub receipt: fn(&B, &B::Id, &S) -> Result<R, Refusal>,
+    /// Construct a receipt from the admitted identity and actual bootstrap invocation.
+    pub receipt: fn(&B, &B::Id, &Q, &S) -> Result<R, Refusal>,
     /// Check the receipt against the actual request and response.
     pub correlate: fn(&B, &R, &Q, &S) -> Result<(), Refusal>,
 }
@@ -87,6 +87,8 @@ pub struct Read<B, W, R, Q, S, T> {
     pub rpc: Rpc<Q, S>,
     /// Construct from the current World and actual receipt.
     pub fill: fn(&B, &W, &R) -> Result<Q, Refusal>,
+    /// Correlate the actual read request and response with their receipt.
+    pub correlate: fn(&B, &R, &Q, &S) -> Result<(), Refusal>,
     /// Project only the actual response's observable data.
     pub project: fn(&B, &S) -> Result<T, Refusal>,
     /// Decide finality from the typed observable projection.

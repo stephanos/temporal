@@ -245,6 +245,7 @@ impl Binding {
                 types: ::core::marker::PhantomData,
             },
             fill: Self::read_request,
+            correlate: Self::read_correlation,
             project: Self::read_target,
             finality: Self::is_final,
             continue_polling: Self::polling,
