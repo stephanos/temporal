@@ -1,0 +1,1 @@
+FULL: code/config extension .toml: model/umpire/backends/apalache/Cargo.toml
