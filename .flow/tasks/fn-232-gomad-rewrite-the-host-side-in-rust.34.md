@@ -26,3 +26,25 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+### Prequalification checkpoint — 2026-10-25
+
+Source candidate `3611a9e503a9fb8804ebff36fee3a6c912c797bc` in
+`/home/agent/wt/fn232-wasmtime49` pins Wasmtime 49.0.4 and preserves the existing
+guest capability boundary, explicitly disabling its newly enabled wide arithmetic.
+Policy follow-up `c619df8bb465cabdd0437e4c57467153e0e7c6c6` checks the complete
+workspace feature graph and permits the BSD-3-Clause alternative used by profiling's
+ittapi crates. GPL remains absent from the allowlist; no advisory ignores were added.
+The all-feature third-party graph matches the supported guest-profile/conformance
+union. Metadata collection does not compile incompatible workspace feature modes.
+
+On that committed candidate, `cargo +1.99.1 deny --workspace --locked check -D warnings`
+exited 0 for all four checks with freshly fetched official RustSec data at
+2026-10-25T20:31:27Z (database commit `21d909e4c8bd4e14c7aea58bf980c881a0053ab1`).
+Raw output and bindings are retained in
+`/home/agent/wt/evidence/fn232-wasmtime49/policy-committed-canonical-fresh.{log,json}`.
+
+This is an isolated source and dependency-policy checkpoint, not integration or
+runtime qualification. Compilation, actual guest checks, fuel-outcome analysis
+and the required full qualification remain unproven. fn-242 stays owner-parked;
+this task stays open and authorizes no cycle launch.
