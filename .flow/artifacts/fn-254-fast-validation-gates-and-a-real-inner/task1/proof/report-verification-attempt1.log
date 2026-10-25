@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/probe/verify_report.py", line 16, in <module>
+    assert float(row[1].replace('*','')) == stage['seconds'], (stage['name'], row[1], stage['seconds'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('temporal-protobuf-freshness', '0.324', 0.21)

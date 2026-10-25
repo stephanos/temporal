@@ -1,0 +1,40 @@
+{
+  "binary": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/synthetic/fake-harness",
+  "argv": [
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/synthetic/fake-harness",
+    "--format=pretty",
+    "--test-threads=1"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2541-baseline",
+  "pid": 3786827,
+  "binary_sha256": "14d5dc90cc79a7e080a311ab4038fa39d13ac8cec9c52fc5628e253618054a0e",
+  "mode": "serial-observer",
+  "started_ns": 221164504369397,
+  "tests": [
+    {
+      "name": "slow::case",
+      "started_ns": 221164511643897,
+      "ended_ns": 221164601733522,
+      "seconds": 0.090089625,
+      "status": "ok"
+    },
+    {
+      "name": "ignored",
+      "started_ns": 221164601733522,
+      "ended_ns": 221164601733522,
+      "seconds": 0.0,
+      "status": "ignored"
+    },
+    {
+      "name": "failed",
+      "started_ns": 221164601733522,
+      "ended_ns": 221164663082689,
+      "seconds": 0.061349167,
+      "status": "FAILED"
+    }
+  ],
+  "exit_code": 101,
+  "raw_output": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/synthetic/binary-output/b88c4ed24cb543c385bf8c5828e52a28.log",
+  "ended_ns": 221164664737564,
+  "seconds": 0.160368167
+}

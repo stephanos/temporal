@@ -1,0 +1,5 @@
+running 3 tests
+test slow::case ... ok
+test ignored ... ignored, intentional
+test failed ... FAILED
+test result: FAILED. 1 passed; 1 failed; 1 ignored

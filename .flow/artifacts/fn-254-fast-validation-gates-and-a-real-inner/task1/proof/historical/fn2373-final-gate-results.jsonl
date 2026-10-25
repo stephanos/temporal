@@ -1,0 +1,4 @@
+{"gate": "model-check", "command": "make model-check", "exit_code": 0, "seconds": 455.374}
+{"gate": "model-check-required", "command": "UMPIRE_BACKENDS=require make model-check", "exit_code": 0, "seconds": 960.602}
+{"gate": "model-time", "command": "make model-time", "exit_code": 0, "seconds": 373.928}
+{"gate": "model-check", "command": "make model-check", "exit_code": 0, "seconds": 441.325, "reason": "fresh run after external non-.flow metadata invalidated earlier receipt"}

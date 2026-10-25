@@ -1,0 +1,28 @@
+{
+  "kind": "tlc-model",
+  "argv": [
+    "tlc2.TLC",
+    "-tool",
+    "-config",
+    "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/synthetic/Run.cfg",
+    "Toy"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn254-baseline/synthetic",
+  "pid": 3786848,
+  "binary": null,
+  "context": null,
+  "started_ns": 221164721211731,
+  "exit_code": 101,
+  "files": [
+    {
+      "name": "Toy.tla",
+      "sha256": "46d9bacf8606e3134f7f88490ea32165e6873bccffd325bdf83c96dd363e0bf9"
+    },
+    {
+      "name": "Run.cfg",
+      "sha256": "5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87"
+    }
+  ],
+  "ended_ns": 221164882442898,
+  "seconds": 0.161231167
+}

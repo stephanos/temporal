@@ -1,0 +1,10 @@
+{
+  "exit_code": 0,
+  "assertions": [
+    "partial-byte start timing",
+    "serial identity/status",
+    "nonzero exit preservation",
+    "mise exact interception/delegation",
+    "TLC input snapshots and elapsed/nonzero status"
+  ]
+}

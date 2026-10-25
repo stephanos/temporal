@@ -1,0 +1,39 @@
+{
+  "status": "in_progress; conductor owns commit/review/closure",
+  "source_head": "f90bb325e5d383019f3287b31c3d9a713676fb7b",
+  "changed_owner": "model/temporal/testing/snapshot_ownership.rs",
+  "source_sha256": "37197f51c8460fce5c476509c3afef9b4bb033a204f937a7cb5e7c12cd35b04c",
+  "tests": [
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24611-snapshot-owner-logs/ownership.log",
+      "sha256": "97d7e67c16ab50ede6b4101964258dbab3cbb970d68c45cd287109c8d9138821"
+    },
+    {
+      "command": "mise exec -- cargo test -p umpire-temporal-realization-macros tests::typed_registry_expansion -- --exact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24611-snapshot-owner-logs/consumer.log",
+      "sha256": "205d0e0d176de3c12f558cdc3c3e23491a9f43df75c8c9626dc4da0c8149077a"
+    },
+    {
+      "command": "mise exec -- cargo clippy -p umpire-temporal-tests --test snapshot_ownership -- -D warnings",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24611-snapshot-owner-logs/clippy.log",
+      "sha256": "0aa45257f4d77999c77a5b62979db961c3b65769626fd56098675ffa251b2984"
+    },
+    {
+      "command": "mise exec -- cargo fmt -p umpire-temporal-tests --check",
+      "cwd": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model",
+      "exit_code": 0,
+      "log": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/milestones-resume-20261024/fn24611-snapshot-owner-logs/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "all_commands_terminal": true,
+  "cache_lease_released": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612",
+  "red": "Conductor retained joined full gate attempt2 exit2: unowned typed-action-registry snapshot; no full gate rerun requested."
+}

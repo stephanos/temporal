@@ -1,0 +1,18 @@
+{
+  "commits": [
+    "ded1ffe904d7df20d2dc281daf70778ed929c39d",
+    "ef14f4e6549d131d7739d7126c18c57fe1996f7d"
+  ],
+  "base_commit": "72272d6f5e06258ee5d31179231c7b3a00fd3545",
+  "tests": [
+    "bash .flow/tmp/fn254-baseline/run.sh historical (exit 0; existing evidence only)",
+    "python3 .flow/tmp/fn254-baseline/probe/verify_report.py model/design/gate-speed.md (exit 0; timing/reference/hash verification)",
+    "python3 .flow/tmp/fn254-baseline/probe/controls.py (exit 0; synthetic executables only)",
+    "bash -n .flow/tmp/fn254-baseline/run.sh (exit 0)",
+    "git diff --check (exit 0)",
+    "flowctl gate classify --base 72272d6f5e06258ee5d31179231c7b3a00fd3545 (FULL: inherited conductor MILESTONES.md)",
+    "flowctl gate classify --base ded1ffe904d7df20d2dc281daf70778ed929c39d (exit 1; FULL: unmatched: model/design/gate-speed.md; no classifier pass claimed)",
+    "Production gates not run: owner waiver committed ded1ffe904d7df20d2dc281daf70778ed929c39d; no fresh baseline measurement or pass claimed"
+  ],
+  "prs": []
+}

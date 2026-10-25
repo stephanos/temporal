@@ -8,9 +8,11 @@ Implement the R3 action-declaration seam after capabilities. This task owns gene
 
 **Size:** M
 **Files:** generic front/action macro metadata forwarding, Temporal annotation syntax/derive support and focused pass/fail controls.
-**Touches:** [model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/registry.rs, model/temporal/realization/tests/registry/**, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/capabilities.rs, model/temporal/realization/tests/realization.rs, model/temporal/realization/tests/realization_admission.rs, model/temporal/realization/tests/admission/**, model/temporal/realization/tests/ui/**, model/temporal/realization/tests/ui-pass/**]
+**Touches:** [model/temporal/testing/snapshot_ownership.rs, model/umpire/front/src/**, model/umpire/author/dsl/macros/src/**, model/umpire/author/dsl/src/action.rs, model/umpire/author/dsl/src/lib.rs, model/umpire/author/dsl/**/tests/**, model/umpire/author/umpire/tests/consumer/**, model/temporal/annotate/**, model/temporal/realization/macros/**, model/temporal/realization/src/registry.rs, model/temporal/realization/src/lib.rs, model/temporal/realization/tests/registry.rs, model/temporal/realization/tests/registry/**, model/temporal/realization/tests/declarative.rs, model/temporal/realization/tests/capabilities.rs, model/temporal/realization/tests/realization.rs, model/temporal/realization/tests/realization_admission.rs, model/temporal/realization/tests/admission/**, model/temporal/realization/tests/ui/**, model/temporal/realization/tests/ui-pass/**]
 
 ### Approach
+
+2026-10-25 joined-gate amendment: the second required gate passed all 39 activity fixture tests (2 inherited ignored), then rejected the new typed-action-registry snapshot as unowned. Reopen .11 and add its exact existing typed_registry_expansion consumer to the canonical READERS list. This additional test-metadata owner is admitted after the failed gate; preserve the orphan/pending/missing-reader negative controls and snapshot bytes. Run the ownership target and real snapshot consumer, scoped fmt/clippy, then renew review. No broad scanner exception or new behavior is authorized.
 
 All source coordinates are provisional planning anchors. Reanchor final fn-237.3 fields, emitted graph, accessors and fn-247 xtask/build owners after their committed closures before implementation. The current fn-237.3 source checkpoint and fn-247 plan do not satisfy those gates.
 
@@ -56,6 +58,6 @@ stage: impl-review - SHIP (original primary session 01a173e8-01cb-73d2-a411-2613
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: e78e5aa417f483d5ae19c1314d82433b6dc116ff, 5036795dc1cafbf2872a4b80a4fe5389de19373b
-- Tests: mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer, mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings, mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check, mise exec -- cargo test -p umpire-temporal-tests --test boundary
+- Commits:
+- Tests:
 - PRs:

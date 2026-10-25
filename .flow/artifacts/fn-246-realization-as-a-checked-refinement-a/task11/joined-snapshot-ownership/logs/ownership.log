@@ -1,0 +1,13 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/temporal/testing)
+    Finished `test` profile [unoptimized] target(s) in 10.31s
+     Running snapshot_ownership.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24612/debug/deps/snapshot_ownership-7c460655cafdf93e)
+
+running 2 tests
+test nonfixture_orphan_pending_and_missing_reader_refuse ... ok
+test current_snapshots_have_explicit_owners ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

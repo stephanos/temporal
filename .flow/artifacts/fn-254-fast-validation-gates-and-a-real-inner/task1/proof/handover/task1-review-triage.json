@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "verdict": "SHIP",
+  "mode": "triage_skip",
+  "reason": "docs-only (model/design/gate-speed.md)",
+  "source": "deterministic",
+  "base": "ded1ffe904",
+  "changed_file_count": 1,
+  "receipt": "/tmp/impl-review-receipt-8f37faba39e2-fn-254-fast-validation-gates-and-a-real-inner.1.json"
+}

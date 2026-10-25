@@ -1,0 +1,12 @@
+{
+  "source_commit": "8dab804688abb1c2d07a208fefd79799a641d06e",
+  "model_tree": "0ccc7c4c5a0f15b7bbe3c32e4c18734b3a1404a6",
+  "command": [
+    "make",
+    "model-validate"
+  ],
+  "started_at": "2026-10-25T18:55:05.840159+00:00",
+  "status": "running",
+  "cache_state": "warm root target after 116-test Temporal crate suite; no other build owners admitted",
+  "pid": 3718270
+}

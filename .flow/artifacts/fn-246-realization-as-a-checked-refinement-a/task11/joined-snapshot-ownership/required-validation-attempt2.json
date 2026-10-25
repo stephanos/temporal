@@ -1,0 +1,17 @@
+{
+  "source_commit": "8dab804688abb1c2d07a208fefd79799a641d06e",
+  "model_tree": "0ccc7c4c5a0f15b7bbe3c32e4c18734b3a1404a6",
+  "command": [
+    "make",
+    "model-validate"
+  ],
+  "started_at": "2026-10-25T18:55:05.840159+00:00",
+  "status": "terminal",
+  "cache_state": "warm root target after 116-test Temporal crate suite; no other build owners admitted",
+  "pid": 3718270,
+  "exit_code": 2,
+  "seconds": 1187.243,
+  "finished_at": "2026-10-25T19:14:53.083495+00:00",
+  "log": ".flow/tmp/milestones-resume-20261024/fn246-joined-required-validation-attempt2.log",
+  "log_sha256": "7f2eb7bb33d1eff7982149d75f3b6a54cda7dd6f811642c05e0cac52216976ad"
+}

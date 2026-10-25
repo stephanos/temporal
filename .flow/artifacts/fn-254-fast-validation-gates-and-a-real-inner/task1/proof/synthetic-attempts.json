@@ -1,0 +1,13 @@
+[
+  {
+    "attempt": 1,
+    "exit_code": 1,
+    "reason": "mise wrapper resolved java symlink to observer.py; synthetic assertion failed before production run"
+  },
+  {
+    "attempt": 2,
+    "exit_code": 0,
+    "command": "python3 .flow/tmp/fn254-baseline/probe/controls.py",
+    "reason": "absolute unresolved java wrapper preserves dispatch identity"
+  }
+]

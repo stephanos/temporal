@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+import sys,time
+print('running 3 tests',flush=True)
+print('test slow::case ... ',end='',flush=True)
+time.sleep(0.09)
+print('ok',flush=True)
+print('test ignored ... ignored, intentional',flush=True)
+print('test failed ... ',end='',flush=True)
+time.sleep(0.06)
+print('FAILED',flush=True)
+print('test result: FAILED. 1 passed; 1 failed; 1 ignored',flush=True)
+raise SystemExit(101)

@@ -1,0 +1,11 @@
+{
+  "base": "ded1ffe904",
+  "changed_file_count": 1,
+  "id": "fn-254.1",
+  "mode": "triage_skip",
+  "reason": "docs-only (model/design/gate-speed.md)",
+  "source": "deterministic",
+  "timestamp": "2026-10-25T19:17:30.919709Z",
+  "type": "impl_review",
+  "verdict": "SHIP"
+}

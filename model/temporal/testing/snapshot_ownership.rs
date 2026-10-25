@@ -20,6 +20,10 @@ const FIXTURES: &[&str] = &[
 
 const READERS: &[(&str, &str)] = &[
     (
+        "temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__typed-action-registry.snap",
+        "realization macros::tests::typed_registry_expansion",
+    ),
+    (
         "umpire/catalog/syntax/tests/snapshots/expansion__typed-catalog.snap",
         "cargo test -p umpire-catalog-syntax --test expansion executable_expansion_and_source_coverage",
     ),
