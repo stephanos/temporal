@@ -23,6 +23,7 @@ helper-stress-jitter = ["gomad-wasmhost/stress-jitter"]
 helper-determinism-fixture = ["gomad-wasmhost/determinism-fixture"]
 
 [dependencies]
+proc-macro2.workspace = true
 gomad-wasmhost = { path = "../wasmhost" }
 serde.workspace = true
 serde_json = { workspace = true, features = ["unbounded_depth"] }

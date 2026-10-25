@@ -454,6 +454,7 @@ name = "gomad"
 version = "0.1.0"
 dependencies = [
  "gomad-wasmhost",
+ "proc-macro2",
  "rustix",
  "serde",
  "serde_json",

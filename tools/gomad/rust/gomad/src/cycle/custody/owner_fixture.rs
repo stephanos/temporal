@@ -12,6 +12,9 @@ fn main() {
         "source" => cycle::custody::run_cases(&owner).expect("source custody cases"),
         "inputs" => cycle::preparation::inputs::run_cases(&owner).expect("preparation input cases"),
         "build" => cycle::build::run_cases(&owner).expect("build role cases"),
+        "bindings" => {
+            cycle::preparation::bindings::run_cases(&owner).expect("freeze binding cases");
+        }
         _ => panic!("unmapped custody fixture family"),
     }
 }

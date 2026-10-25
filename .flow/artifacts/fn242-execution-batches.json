@@ -6101,7 +6101,8 @@
         "tools/gomad/rust/Cargo.toml",
         "tools/gomad/rust/gomad/Cargo.toml",
         "tools/gomad/rust/Cargo.lock",
-        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.17": "**Touches:** tools/gomad/rust/gomad/src/cycle/preparation/bindings/**",
@@ -6252,7 +6253,14 @@
         "file": "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
         "purpose": "Add bindings family to existing exclusive-owner fixture; preserve all existing families/initializer/Cargo targets."
       },
-      "current_public_and_native_contract": "The public binding contract uses authenticated current release and diagnostic roles where their current behavior/noninterference is required; the historical seven-role public inventory/cardinality is not an acceptance requirement. Additional current roles may be supplied, but every supplied or actually referenced role must be authenticated/sealed, and missing roles consumed by selected cases/stages must refuse. This does not make complete StageBindings optional or earn unexecuted qualification credit. Use representative genuine public controls rather than compile unrelated roles solely for legacy labels. Existing native measurement BuildReceipt isolation remains unchanged: B03 slot1 may transfer serially from its shared target to fresh native-helper targets under HOST .build-cache/fn242-b03-native-controls, with the shared target idle; preserve original executable/log/receipt inputs, explicit leases and resource floors. Do not refactor measurement/build.rs merely to share a mutable target."
+      "current_public_and_native_contract": "The public binding contract uses authenticated current release and diagnostic roles where their current behavior/noninterference is required; the historical seven-role public inventory/cardinality is not an acceptance requirement. Additional current roles may be supplied, but every supplied or actually referenced role must be authenticated/sealed, and missing roles consumed by selected cases/stages must refuse. This does not make complete StageBindings optional or earn unexecuted qualification credit. Use representative genuine public controls rather than compile unrelated roles solely for legacy labels. Existing native measurement BuildReceipt isolation remains unchanged: B03 slot1 may transfer serially from its shared target to fresh native-helper targets under HOST .build-cache/fn242-b03-native-controls, with the shared target idle; preserve original executable/log/receipt inputs, explicit leases and resource floors. Do not refactor measurement/build.rs merely to share a mutable target.",
+      "aggregate_admission_correction": {
+        "scope": "Exact check_files whole-input aggregate comparison only; retain checked sum, 50000 count, per-file128MiB, descriptor/hash checks and separate source-inventory512MiB bound.",
+        "finding": "Original driver.py72 check_files never had an aggregate byte cap. B01 introduced whole-candidate512MiB refusal. Measured deduplicated closure lower bound522870371 before diagnostic binary/Go sources, at least548283163 with native release binary size proxy: exceeds536870912 by11412251. Preserve actual final diagnostic/freeze evidence separately.",
+        "proof": "Genuine full closure pre-fix refusal then corrected acceptance plus retained-bound catchers; no source identity normalization, unsupported input omission or splitting public selection to mask regression. Current final source controls must authenticate actual rebuilt identities.",
+        "not_a_waiver": "Correct erroneous port restriction, not workload budget/resource or legacy compatibility waiver.",
+        "cache": "Safe copy/reflink completed idle native dependency caches into fresh isolated targets permitted; no mutable hardlink aliases, genuine pinned Cargo and embedded source validation still required."
+      }
     },
     {
       "id": "B04",
@@ -6684,6 +6692,11 @@
           "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
         ],
         "purpose": "B04 additionally owns exactly build/identity.rs to make helper_identity crate-visible and build/mod.rs to re-export it crate-visibly. Reuse this existing authoritative helper identity implementation from the command receiver and remove the duplicate include. No source list, algorithm, schema, identity behavior or unrelated build code changes; no duplicate-mod lint exemption."
+      },
+      "current_command_admission_corrections": {
+        "real_roles": "Extract shared build::read_record from existing authoritative B01 validator; preserve DryRun guard/fallback, no B10 environment/Role import. authenticate_build retains only exact authenticated immutable role authority for command bytes/source rechecks, no arbitrary registration.",
+        "bounds": "Generic artifact output uses independently established installed global1GiB ceiling; measurement-specific256MiB remains in ReadLimits::for_request. Other existing module/metadata/engine bounds and same-fd checked reads remain. Generic read does not prove authenticated per-request lower bounds.",
+        "command_expectation": "Use existing process::Command reference for expected cwd/argv/accepted/timeouts/private context; no compatibility command_at wrapper."
       }
     },
     {
@@ -7096,7 +7109,8 @@
         "tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
         "tools/gomad/rust/wasmhost/src/linked_cluster.rs",
         "tools/gomad/rust/wasmhost/src/world/retained.rs",
-        "tools/gomad/rust/wasmhost/src/linked_inspection.rs"
+        "tools/gomad/rust/wasmhost/src/linked_inspection.rs",
+        "tools/gomad/rust/wasmhost/src/world/owner_preservation_tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.27": "**Touches:** tools/gomad/rust/gomad/src/cycle/readers/core_world/**",
@@ -7401,7 +7415,8 @@
         "purpose": "Return immutable admitted World/network/lifecycle facts through existing authoritative decoders, retaining wrappers and parser behavior. No second parser, mutable model exposure, extra dependency or Cargo change. linked_inspection narrow lifecycle projection reserved to B06; future B05 coordinates additive seam.",
         "authority": "Owner aggressive provisional execution; conductor scope grant 2026-10-24",
         "provisional_dependency": "B04 command/core codec API; no formal admission/integration/completion before .18/.21 actual done."
-      }
+      },
+      "measured_fixture_retention": "Only existing measured20k/200k probes optionally export already-generated expanded/compressed bytes to private absolute evidence directory via create_new0600, sync and hashes; unchanged models/cardinality/bounds, no generator or public fixture API."
     },
     {
       "id": "B07",
@@ -8309,7 +8324,11 @@
         "tools/gomad/rust/Cargo.toml",
         "tools/gomad/rust/gomad/Cargo.toml",
         "tools/gomad/rust/Cargo.lock",
-        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf/static_commands.rs",
+        "tools/gomad/rust/gomad/src/cycle/plan/leaf_tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/readers/command/cargo.rs",
+        "tools/gomad/rust/gomad/src/cycle/readers/command/mod.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.28": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/static_adapter/**",
@@ -8558,7 +8577,10 @@
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
-      "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target."
+      "provisional_scope_extension": "B09 additionally owns tools/gomad/rust/Cargo.toml, gomad/Cargo.toml and Cargo.lock solely for a pinned tar archive dependency; preserve B03 proc-macro2 and unrelated lock entries. B09 alone owns producer Cargo edits. Exact cycle/custody/owner_fixture.rs extension adds only CUSTODY_FAMILY=producer-static-installed dispatch to its owned fixture using the existing exclusive owner; conductor integrates B03/B04 family arms. No new fixture framework or target.",
+      "canonical_build_recipe_extension": "Exact static_commands.rs build-role leaves map explicitly to existing B01 DryRun/cargo_command semantics, ordinary-reference to reference-transport; no duplicate builder/parser, independent current expected argv in leaf_tests.rs, preserve stage IDs/resources/actual features/targets and offline policy (authenticated CARGO_NET_OFFLINE=true if needed). No wholesale catalog/golden regeneration or pinned raw discovery edits.",
+      "closed_consumer_control_extension": "A small fixed source-bound shell control under existing authenticated Bash via Runner may exercise actual pipe marker then closing read FD while current CLI is alive; retain real PID/status/source/argv/current retained failed-delivery integrity and whole supervisor descendant cleanup. No unsupervised host std::process launcher, new Cargo target or production Runner changes; genuine refusal/normal controls required.",
+      "dynamic_test_admission": "B09 owns new command/cargo.rs and only module/re-export lines in command/mod.rs for static Cargo-test artifact admission. Independently reopen genuine expected Cargo command/raw artifact output, frozen source/features/target/environment and binary bytes; reuse one pure static artifact parser, no producer PASS flag/arbitrary hash registration/second parser or generic guard weakening. B04 need not wait for B09-specific acceptance."
     },
     {
       "id": "B10",
@@ -8596,7 +8618,10 @@
         "tools/gomad/rust/gomad/src/cycle/producers/build/**",
         "tools/gomad/rust/gomad/src/cycle/producers/identity/**",
         "tools/gomad/rust/gomad/src/cycle/producers/primary/**",
-        "tools/gomad/rust/gomad/src/cycle/build/mod.rs"
+        "tools/gomad/rust/gomad/src/cycle/build/mod.rs",
+        "tools/gomad/rust/gomad/src/cycle/build/tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/preparation/bindings/owner_cases.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.29": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/build/**",
@@ -8992,7 +9017,9 @@
       },
       "sizing": "Roughly 100k tokens per implementation iteration remains a guardrail. Counts measure work shape, not a hard cap. Reuse same-boundary validators and fixture builders; retain direct catching evidence per guarantee.",
       "earliest_review_wave": 3,
-      "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit."
+      "provisional_scope_extension": "B10 additionally owns exact cycle/build/mod.rs solely to extend the existing authenticated Role/Cargo target selection for real helper/host allocation_receiving, implementation_identity and broad-host-test (--lib determinism-fixture) roles. Preserve original roles, feature authentication and immutable role publication. B04's crate-visible helper_identity re-export is an explicit additive overlap integrated by conductor. No second builder, unrelated source identity change or shared Cargo edit.",
+      "explicit_build_environment_extension": "Existing DryRun::build takes explicit environment map; actual effective sealed tools/cache/offline settings pass through owned Runner, fixed target/toolchain/jobs/incremental remain enforced and unsafe Git/SANDBOX/GOROOT overrides refuse. Exact build/tests.rs and bindings/owner_cases.rs/custody fixture changes are signature/environment plumbing and directly catching tests only. No compatibility wrapper or second builder. B10 sole shared build writer; conductor merges additive B03/B04 arms and visibility.",
+      "owner_fixture_family": "Exact existing custody/owner_fixture.rs adds producer-build-primary-identity dispatch to owned build::run_cases using current exclusive initializer; preserve other B03/B04/B09/B11 arms and Cargo target. Conductor merges additive arms."
     },
     {
       "id": "B11",
@@ -9032,7 +9059,14 @@
         "tools/gomad/rust/gomad/src/cycle/producers/workload/**",
         "tools/gomad/rust/gomad/src/cli/qualify.rs",
         "tools/gomad/rust/gomad/src/cycle/preparation/inputs/source.rs",
-        "tools/gomad/internal/backends/wasm/QUALIFICATION.md"
+        "tools/gomad/internal/backends/wasm/QUALIFICATION.md",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection.rs",
+        "tools/gomad/rust/gomad/src/qualify/support.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection/recording.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/inspection_driver_tests.rs",
+        "tools/gomad/rust/gomad/src/cycle/custody/owner_fixture.rs",
+        "tools/gomad/rust/gomad/src/qualify/support/tests.rs"
       ],
       "original_touch_declarations": {
         "fn-242-gomad-shrink-the-qualification.30": "**Touches:** tools/gomad/rust/gomad/src/cycle/producers/workload/**",
@@ -9289,7 +9323,10 @@
         "purpose": "Extend existing source recipe/stage/verify for actual inspection-shard/workflow/onebox and smoke/frontend selections, unchanged frozen module closure and original transformations/limits/custody; no duplicate copier. Document fn232.33 compile cache.",
         "admission": "Any nonprovisional cell installation without compile_cache_root refuses status2 namedreason, not only sqlite/multi-instance; provisional behavior preserved. Reuse existing installation accessor.",
         "proof": "Actual Rust producer argv catcher replaces old Python test; genuine standalone success/canary warm-cache/budget evidence still required, no completion from source alone."
-      }
+      },
+      "terminal_reuse": "Use existing three genuine terminal_controls test functions through authenticated counterfactual-harness; actual selected count/pass and command lineage required. No warm.rs visibility edit needed; preserve current timing/teardown guarantees.",
+      "support_receipt_extension": "Exact qualify/support/inspection.rs migrates current receipt consumption to real B11 inspection/Runner schema; preserve owner/gate coverage, source/compiler/preparation authentication, actual detach and integrity controls. Legacy schema/measurement-command topology may retire, not current guarantees. No synthetic old receipt; B05/B14 reader proof remains separate. Related exact inspection recording/driver/tests and support.rs Request/Gate, stage_commands/validate_stage/measured_stage/admit plus validate-inspection arm migrate coherently to common Runner/B04 admission. Preserve ordered actual eight-gate dispatch and source/compiler/preparation/detach/status/bounds/prefix/snapshot/heap/inventory guarantees; no dual dialect or publication-only support pass. Exact qualify/support/tests.rs fixtures/assertions migrate to common Runner metadata while preserving independently authored source/compiler/result/budget/gate/refusal expectations.",
+      "owner_fixture_family": "Existing exclusive owner fixture adds producer-workload-reference dispatch only; preserve all families/initializer/target. Current B03 role inputs required for genuine controls."
     },
     {
       "id": "B12",
@@ -11454,7 +11491,8 @@
         "B04": "command/RetainedSession family arm only"
       },
       "integration": "Conductor preserves both arms after isolated commits; no production scope overlap, no new test target or owner mechanism."
-    }
+    },
+    "non_timing_driver_profile": "For non-timing focused driver diagnostic compiles/tests, explicitly pass --config profile.release.package.gomad.opt-level=0; environment package knob is ignored. Genuine production release/native identities and timing controls retain actual release profile. Do not restart an already-live opt3 build solely for this optimization."
   },
   "first_dispatches": [
     {
@@ -11567,12 +11605,56 @@
     "risk_policy": "Larger coherent batches, provisional APIs, boundary integration fixes, shared fixture/build evidence, retire legacy-only work; preserve current behavior/custody/bounds/classification/replay.",
     "shared_files": "Conductor serializes Cargo and exclusive-owner fixture integration; provisional workers own only declared producer subtrees.",
     "current_allocation": {
-      "B03": 1,
       "B04": 1,
-      "B06": 1,
+      "B07": 1,
+      "B08": 1,
       "B09": 1,
-      "B10": 1,
-      "B11": 1
+      "B12": 1
+    },
+    "risk_followthrough_2026_10_24": {
+      "authority": "Owner repeated: can we take more risks, too?",
+      "default": "Proceed with reversible source and interface decisions inside admitted scopes; report decisions instead of requesting permission for each change.",
+      "checkpoint_merges": "Checkpoint own source, then merge committed sibling source in isolated dependent branches without per-commit approval; report commit IDs and conflicts. No history rewrite, Flow lifecycle transfer or acceptance credit.",
+      "validation": "Compile coherent checkpoints; reuse unchanged compiled controls, batch input mutations, use representative source mutants and one independent whole-batch review. Preserve actual current behavior, authentication, resource limits and honest failure evidence.",
+      "released_writers": [
+        "B06",
+        "B11"
+      ],
+      "shared_scope_extensions": {
+        "B03": "process/mod.rs readonly Runner::private_context accessor; preserve strict context guard.",
+        "B05": "Visibility only replay/inspection.rs search_admission and wasmhost linked_inspection.rs validate; additive coordination with B06.",
+        "B08": "Single-parser build/mod.rs sealed read-only record reader; command/private_inputs.rs admission and exact command/mod.rs map/resolver hooks coordinated B04; preparation/inputs/inventory.rs single resolver translates admitted private roots while preserving raw keys and validating bytes/existence/listings/generated cache separately; replay.rs retain_observed current backend_publication and exact campaign/execution.rs caller plumbing. Exact readers/command/preparation.rs verifier callsite routes through single Inventory private resolver; wasmhost model/inspection.rs shared diagnostic96/terminal16 typed views factor existing Witness prefix without acceptance changes, exact model/imports.rs RuntimeFinish and campaign/execution.rs consumers. Derived postfreeze role authority design must retain one validator and authenticate generated outputs through actual canonical command; no caller hash augmentation. Exact custody/mod.rs Capture CommandRef and observe_command_with_capture retain same observed child/root/name/rawstreams; one finite derived-output seal helper and exact command/mod.rs dispatch (preparation-required rejects derived-only seals). Exact producers/build/mod.rs typed derived wrappers retain one transaction/parser, no candidate.files augmentation. Install/actionlint reuse same actual callback seal; independent finite consumer validates expected command/kind/path/source/bytes before authority.",
+        "B09": "Use existing tar/extract and measurement executable publication for authenticated private copies; shared B08 admission, no second tree copier or cache verifier. Exact preparation/inputs/module_cache.rs shared current ZIP/extracted cache and go.mod h1 verifier binds candidate frozen go.sum, inputs/mod.rs module/reexport only. One delegated writer lane, leader sole committer, dependency pin separately checked; no integrity waiver. Approved workspace zip=9.1.0 default-features=false features=[deflate-flate2-zlib-rs], gomad workspace import only; primary published Cargo.toml independently checked Rust1.88 and exact backend feature. Exact command/static_tool.rs +module declaration finite actionlint-build output admission binds expected command/env/GOBIN/fresh root/version/bytes/futureargv, reuses B08 observed output seal.",
+        "B10": "primary/preparation.rs session-preserving wrappers delegate one existing capture body. B11 released writer lane reassigned to B10.",
+        "B07": "Owned retained/workload/cells reader union plus exact qualify/workloads/mod.rs and retry.rs per-admitted-Opened callback factors; existing wrappers delegate one unchanged oracle/witness. Visibility-only qualify/cells.rs::explore_options. Related necessary pure visibility plumbing preauthorized, algorithm changes outside owned reader scopes require exact coordination.",
+        "B13": "Own final_readers/{installed,clusters,public}/** plus visibility-only static_adapter/mod.rs::inventory and inventory.rs::{rust_names,verify_rust,frames,go_inventory,verify_go,Root,GoInventory} from pub(super) to pub(crate). Reuse the one existing Go/Rust inventory parser; no acceptance, parsing or producer behavior change. B13 leader sole committer, nested writers remain in disjoint reader subtrees."
+      },
+      "deferred_proof": "B13 must supply actual module-cache integrity authority; B09 source may depend on it provisionally, no integrity waiver.",
+      "role_fixture": "B11 selected current roles use existing DryRun/build, compose, authenticate, freeze/open APIs; no second builder or stale donor sourcepins."
+    },
+    "shared_target_provenance": "Before crediting a cross-worktree target run, verify actual emitted executable, correct package/worktree manifest provenance and nonzero named test selection. Cargo relative dep paths/mtime reused B04 libtest in B06 and selected0: no proof. On foreign provenance, preserve copied evidence and rebuild only gomad/gomad-wasmhost packages under exclusive lease; no blanket cache wipe or live-command restart.",
+    "additional_short_diagnostic_slot": {
+      "maximum": 1,
+      "authority": "Repeated owner requests to accept more risk and parallelize; inspected host has12logicalCPUs, ~12GiB availableRAM,90GiBhost/39GiBoverlay free",
+      "scope": "Single-job opt-level0 host diagnostics and directly focused tests only; isolated target, no shared mutable artifacts",
+      "admission": "At dispatch require MemAvailable>=8GiB, hostfree>=60GiB, overlayfree>=22GiB and existing task-specific floors; no new dispatch when below. Preserve evidence/active targets. Copy/reflink only idle donor caches with distinct inodes; clean only local gomad/wasmhost packages when foreign provenance.",
+      "excluded": "Production timing, broad stress/soak, full qualification and acceptance-budget dispatch. Existing final qualification contracts remain unchanged.",
+      "lease": "Conductor assigns and returns diagnostic slot3; no worker self-admission.",
+      "overlay_reserve_rationale": "Observed same-worktree project outputs122.3MiB plus95MiB retained testbinary;2GiB reserve above unchanged20GiB normal overlayfloor suffices for one bounded diagnostic. Memory8GiB and host60GiB thresholds unchanged; actual taskfloors remain."
     }
+  },
+  "aggressive_verification_amendment": {
+    "authority": "Owner: can we speed up verification for each batch; aggressively speed things up, 2026-10-24",
+    "evidence": "B04 diagnostics16\u201318 changed only command/tests.rs but reran36passing reader cases and3passingClippy; recorded126.36seconds build/test time; external advisory /home/agent/wt/evidence/fn242-verification-throughput/b04-gate-cost.md",
+    "iteration_gate": {
+      "fixture_or_expected_refusal_only": "Run current-parser fixture preflight and actual affected owner case; retain unchanged reader/lint results. Surface inner stderr directly.",
+      "production_change": "Run directly affected tests; rerun other green gates only for relevant source/dependency changes or a concrete unresolved risk.",
+      "compile_failure": "Within conductor-granted15minute diagnostic lease, fix focused compiler errors and retry same-worktree target without packageclean or per-retry approval. Freeze source for each command and retain all exits; stop at deadline/return lease.",
+      "final_batch": "One affected whole-batch focused test run plus fmt and scoped Clippy at finalfreeze, reusing exact relevant-source/dependency evidence. One independent batch review; required fix loop remains."
+    },
+    "existing_owner_reuse": "Existing meaningful Rust tests may discharge multiple original check IDs for the same guarantee. Map exact executed evidence and dependencies. New thin wrappers test new behavior, parameter forwarding, absence of dropped inputs and actual delegation with normal/refusal controls; do not duplicate all upstream parser/corruption matrices or create a new test per original Python predicate. Test existence or ancestor-only refusal alone earns no proof.",
+    "optimization": "Opt-level0 release-profile correctness harnesses are sufficient final functional evidence if relevant cfg/features/source dependencies match. No additional optimized owner rebuild solely for optimization. Actual production role identities, native profiles, timing/resource budgets and final qualification retain genuine required profile/configuration and original gates.",
+    "cache": "Keep target owned by its worktree through a diagnostic fix loop. Narrowclean only on foreign provenance/stale embedded source or actual build need. Preserve every still-referenced generated binding/compiler input before cleanup; regenerate honestly if already removed, without rewriting old receipts.",
+    "raw_inventory": "Preserve all original IDs and explicit guarantee/retirement mappings; no fabricated PASS or blanket retirement. Final behavior/identity/custody/replay/resource requirements stay binding."
   }
 }
