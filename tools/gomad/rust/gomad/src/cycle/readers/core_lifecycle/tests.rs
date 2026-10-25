@@ -135,6 +135,14 @@ fn predicate_mutants(root: &str, variant: &str, o: &Value) -> Vec<(Value, &'stat
         changed[key] = value;
         mutants.push((changed, reason));
     };
+    if o["activity"]["launched_stores"]
+        .as_u64()
+        .is_some_and(|n| n > 0)
+    {
+        let mut activity = o["activity"].clone();
+        activity["launched_stores"] = json!(0);
+        add("activity", activity, "native activity ownership");
+    }
     match root {
         MODEL if variant.starts_with("memory-capacity-") => {
             add("memory_bytes", json!(65537), "capacity actual resources");
@@ -327,12 +335,12 @@ fn genuine_lifecycle_direct_predicate_mutations() {
         };
         let variant = row["variant"].as_str().unwrap();
         for (changed, predicate) in predicate_mutants(&root, variant, &row["observed"]) {
-            let error = cases::validate(&root, variant, &changed, row.get("inputs")).unwrap_err();
-            assert_eq!(error, predicate, "{root}/{variant}");
             println!(
                 "B06_DIRECT_MUTANT root={root} variant={variant} input_sha256={} predicate={predicate}",
                 sha(&serde_json::to_vec(&changed).unwrap())
             );
+            let error = cases::validate(&root, variant, &changed, row.get("inputs")).unwrap_err();
+            assert_eq!(error, predicate, "{root}/{variant}");
             caught += 1;
         }
     }
