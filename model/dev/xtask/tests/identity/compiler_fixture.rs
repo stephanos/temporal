@@ -10,6 +10,9 @@ use std::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arguments: Vec<_> = env::args_os().skip(1).collect();
+    if let Some(expected) = env::var_os("FIXTURE_EXPECT_LOADER") {
+        assert_eq!(env::var_os("DYLD_FALLBACK_LIBRARY_PATH"), Some(expected));
+    }
     if env::var_os("FIXTURE_PREVIOUS").is_some()
         && arguments.first().is_some_and(|v| Path::new(v).is_file())
     {

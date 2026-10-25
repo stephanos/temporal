@@ -1,0 +1,76 @@
+{
+  "base": "535f6bd90ea83cadda452262aab93d2b790e0466",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7f1-7f63-8cc1-c4b682e851fc",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7f0-7b73-8406-daac8ebca031",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7fa-7331-aa6b-af06c678fe1a",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "535f6bd90ea83cadda452262aab93d2b790e0466",
+    "headSha": "93d6b9a70b8e26ae8c92b95654f123cf7eed6f36",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "535f6bd90ea83cadda452262aab93d2b790e0466",
+          "headSha": "93d6b9a70b8e26ae8c92b95654f123cf7eed6f36",
+          "path": "model/dev/xtask/tests/guest_pipeline.rs",
+          "side": "head",
+          "startLine": 112
+        },
+        "body": "The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`. On macOS with SIP enabled, protected system binaries purge dyld environment variables. The fake mise, previous wrapper, and compiler probe therefore discard the marker, causing guest success-path tests to fail regardless of whether the native launcher preserves it. [Apple\u2019s runtime protection documentation](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) confirms this behavior.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-7e9f227b0487d87fe484cbef188f1ed8466edc626d6a482bff20905ffe42131c",
+        "id": "finding-7a733bc7f8c261f5aebba329db185278",
+        "lastSeenReceiptId": "review-7e9f227b0487d87fe484cbef188f1ed8466edc626d6a482bff20905ffe42131c",
+        "ordinal": 1,
+        "rIds": [
+          "R2",
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Inject the marker immediately before launching the native wrapper and observe it through native compiler and previous-wrapper fixtures. Keep shell orchestration checks separate from the loader inheritance assertion.",
+        "title": "The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-7e9f227b0487d87fe484cbef188f1ed8466edc626d6a482bff20905ffe42131c"
+  },
+  "id": "fn-247-one-language-for-the-framework-a-rust.5",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`. On macOS with SIP enabled, protected system binaries purge dyld environment variables. The fake mise, previous wrapper, and compiler probe therefore discard the marker, causing guest success-path tests to fail regardless of whether the native launcher preserves it. [Apple\u2019s runtime protection documentation](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) confirms this behavior.\n- **Suggestion**: Inject the marker immediately before launching the native wrapper and observe it through native compiler and previous-wrapper fixtures. Keep shell orchestration checks separate from the loader inheritance assertion.\n- **File:Line**: model/dev/xtask/tests/guest_pipeline.rs:112\n- **R-IDs**: R2, R3\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "0a20982fc42c4fccaecdd043d533938f",
+  "rid": "0a20982fc42c4fccaecdd043d533938f",
+  "session_id": "01a1707f-e7f1-7f63-8cc1-c4b682e851fc",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T00:43:29.804774Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

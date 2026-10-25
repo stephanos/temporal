@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-247-one-language-for-the-framework-a-rust.5",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a1707f-e7f1-7f63-8cc1-c4b682e851fc",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: The replacement loader control runs `#!/bin/bash` fixtures while requiring `DYLD_FALLBACK_LIBRARY_PATH=loader-marker`. On macOS with SIP enabled, protected system binaries purge dyld environment variables. The fake mise, previous wrapper, and compiler probe therefore discard the marker, causing guest success-path tests to fail regardless of whether the native launcher preserves it. [Apple\u2019s runtime protection documentation](https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/RuntimeProtections/RuntimeProtections.html) confirms this behavior.\n- **Suggestion**: Inject the marker immediately before launching the native wrapper and observe it through native compiler and previous-wrapper fixtures. Keep shell orchestration checks separate from the loader inheritance assertion.\n- **File:Line**: model/dev/xtask/tests/guest_pipeline.rs:112\n- **R-IDs**: R2, R3\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7f1-7f63-8cc1-c4b682e851fc",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7f0-7b73-8406-daac8ebca031",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1707f-e7fa-7331-aa6b-af06c678fe1a",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

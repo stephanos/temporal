@@ -97,6 +97,8 @@ printf '%s\n' "$CARGO_TARGET_DIR" > "$FIXTURE/guest-cache"
 [[ "$CARGO_MAKEFLAGS" = 'jobserver-marker' ]]
 [[ "$CARGO_ENCODED_RUSTFLAGS" = *'-Cpanic=unwind'* ]]
 [[ "$CARGO_ENCODED_RUSTFLAGS" = *'--remap-path-prefix='* ]]
+DYLD_FALLBACK_LIBRARY_PATH=loader-marker FIXTURE_EXPECT_LOADER=loader-marker \
+FIXTURE_PREVIOUS="$FIXTURE/previous-called" FIXTURE_OUTPUT="$FIXTURE/loader.json" \
 "$RUSTC_WRAPPER" "$FIXTURE/compiler probe" -V
 [[ "${FAIL_BUILD:-}" != 1 ]] || { echo guest-compiler-failed >&2; exit 37; }
 case "${ARTIFACT_MODE:-one}" in
@@ -107,11 +109,9 @@ case "${ARTIFACT_MODE:-one}" in
 esac
 "#,
         );
-        executable(
-            &root.join("compiler probe"),
-            "#!/bin/bash\n[[ \"$DYLD_FALLBACK_LIBRARY_PATH\" = loader-marker ]]\n",
-        );
-        executable(&root.join("previous wrapper"), "#!/bin/bash\nexec \"$@\"\n");
+        for name in ["compiler probe", "previous wrapper"] {
+            fs::copy(env!("CARGO_BIN_EXE_identity-compiler-fixture"), root.join(name)).unwrap();
+        }
         Self { root, model }
     }
     fn command(&self, freshness: bool, shell: bool) -> Command {
@@ -140,7 +140,6 @@ esac
             .env("CARGO_HOME", self.root.join("cargo home"))
             .env("RUSTC_WRAPPER", self.root.join("previous wrapper"))
             .env("CARGO_MAKEFLAGS", "jobserver-marker")
-            .env("DYLD_FALLBACK_LIBRARY_PATH", "loader-marker")
             .env("MISE_AUTO_INSTALL", "false")
             .env("MISE_EXEC_AUTO_INSTALL", "false")
             .env_remove("RUSTFLAGS")
@@ -403,4 +402,18 @@ fn absent_embedded_guest_fails_go_compilation() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
+}
+
+#[test]
+fn loader_inheritance_survives_orchestration_environment_purge() {
+    let f = Fixture::new();
+    let mise = f.root.join("bin/mise");
+    let script = fs::read_to_string(&mise).unwrap();
+    fs::write(&mise, script.replace("set -eu\n", "set -eu\nunset DYLD_FALLBACK_LIBRARY_PATH\n"))
+        .unwrap();
+    code(&f.command(false, false).output().unwrap(), 0);
+    assert_eq!(fs::read(f.root.join("previous-called")).unwrap(), b"called");
+    let observed: serde_json::Value =
+        serde_json::from_slice(&fs::read(f.root.join("loader.json")).unwrap()).unwrap();
+    assert_eq!(observed["loader"], serde_json::json!(b"loader-marker".as_slice()));
 }

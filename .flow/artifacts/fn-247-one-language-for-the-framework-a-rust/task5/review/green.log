@@ -1,0 +1,17 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+     Running tests/guest_pipeline.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/guest_pipeline-6402c920a74b7108)
+
+running 9 tests
+test cold_bootstrap_failures_never_build_or_publish ... ok
+test rust_toolchain_metadata_and_rustup_failures_refuse ... ok
+test absent_embedded_guest_fails_go_compilation ... ok
+test native_prerequisite_failures_stop_before_guest_build ... ok
+test loader_inheritance_survives_orchestration_environment_purge ... ok
+test actual_make_freshness_recipe_propagates_stale_failure ... ok
+test cold_shell_bootstrap_and_cached_native_validation ... ok
+test shell_caller_relative_paths_and_changed_inputs_select_new_cache ... ok
+test guest_build_check_and_artifact_refusals ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.96s
+

@@ -1,0 +1,19 @@
+{
+  "proof_source": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "model_make_modulemap_diff": [
+    "model/dev/xtask/tests/guest_pipeline.rs",
+    "model/dev/xtask/tests/identity/compiler_fixture.rs",
+    "model/dev/xtask/tests/retired_names.rs",
+    "model/scripts/retired-names.sh",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+  ],
+  "production_guest_build_compiler_identity_inputs_unchanged": true,
+  "root_authority": "Conductor explicitly approved test-only native fixture correction and confirmed proof remains valid without regeneration/full-gate repeat.",
+  "current_sha256": {
+    "model/dev/xtask/tests/guest_pipeline.rs": "472bbe7a9bcd4a2cd6cc47791a3850becfca7199bda73099d0e9cc3856bb5208",
+    "model/dev/xtask/tests/identity/compiler_fixture.rs": "5a36ee9ba6f6b95c3e5fef22e5351e5e6f93ea61eac1f02f0f1322525d09a7d0",
+    "model/dev/xtask/tests/retired_names.rs": "cee01937f14c2faba6cb4ea38c1d3e8a69326e1ecb9353c704909a447c13e5e8",
+    "model/scripts/retired-names.sh": "b463c9c439a3dd85c365fb3db93d3b4fff3926a13125fb4528594273448abdef",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872"
+  }
+}

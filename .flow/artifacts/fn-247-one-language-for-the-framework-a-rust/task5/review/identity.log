@@ -1,0 +1,9 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.74s
+     Running tests/guest_identity.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2475-target/debug/deps/guest_identity-03db4cb74b8b22ad)
+
+running 1 test
+test compiler::previous_wrapper_and_loader_environment_keep_raw_os_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.01s
+
