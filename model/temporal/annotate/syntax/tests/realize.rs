@@ -523,12 +523,12 @@ fn proposal_dispatch_delegates_the_handler_and_optional_hooks()
         ("#[propose(matches = correlated, continue_polling = polling)]", true),
     ] {
         let item = syn::parse_str(&format!(
-            "impl Realization {{ {attribute} fn selected(&self, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {{ todo!() }} }}"
+            "impl Realization {{ {attribute} fn selected(&self, world: &activity::World, state: &activity::Model, seed: u64) -> Result<Proposal<Action>, Refusal> {{ todo!() }} }}"
         ))?;
         let expanded =
             expand(&syn::parse_str("activity")?, &syn::parse_str("runtime")?, item, &schema)?
                 .to_string();
-        assert!(expanded.contains("self . selected (state , seed)"));
+        assert!(expanded.contains("self . selected (world , state , seed)"));
         assert_eq!(expanded.contains("self . correlated"), hooks);
         assert_eq!(expanded.contains("self . polling"), hooks);
     }
@@ -546,5 +546,81 @@ fn observation_only_realizations_inherit_the_refusing_answer_default()
         &schema,
     )?;
     assert!(!expanded.to_string().contains("fn answer"));
+    Ok(())
+}
+
+#[test]
+fn realization_assembles_explicit_capabilities() -> Result<(), Box<dyn std::error::Error>> {
+    let schema = Schema::new(&[], "", &[])?;
+    let expanded = expand(
+        &syn::parse_str("activity")?,
+        &syn::parse_str("runtime")?,
+        syn::parse_str("impl Realization {}")?,
+        &schema,
+    )?;
+    let file: syn::File = syn::parse2(expanded)?;
+    let traits: Vec<_> = file
+        .items
+        .iter()
+        .filter_map(|item| {
+            let syn::Item::Impl(item) = item else { return None };
+            item.trait_
+                .as_ref()
+                .and_then(|(path, _)| path.segments.last())
+                .map(|segment| segment.ident.to_string())
+        })
+        .collect();
+    assert_eq!(traits, ["Snapshot", "Evidence", "ReplyPolicy", "Realize"]);
+    Ok(())
+}
+
+#[test]
+fn callback_dispatch_uses_the_typed_filler() -> Result<(), Box<dyn std::error::Error>> {
+    use prost::Message as _;
+    use umpire_runtime::prost_types::{
+        DescriptorProto, FileDescriptorProto, FileDescriptorSet, MethodDescriptorProto,
+        ServiceDescriptorProto,
+    };
+    let bytes = FileDescriptorSet {
+        file: vec![FileDescriptorProto {
+            package: Some("test".into()),
+            message_type: ["Request", "Task"]
+                .map(|name| DescriptorProto { name: Some(name.into()), ..Default::default() })
+                .to_vec(),
+            service: vec![ServiceDescriptorProto {
+                name: Some("Service".into()),
+                method: vec![MethodDescriptorProto {
+                    name: Some("Poll".into()),
+                    input_type: Some(".test.Request".into()),
+                    output_type: Some(".test.Task".into()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        }],
+    }
+    .encode_to_vec();
+    let catalogs = umpire_temporal_annotate_syntax::catalogs(
+        r#"
+        #[derive(Catalog)] #[mirror(request = "test.Request")] struct Request {}
+        #[derive(Catalog)] #[mirror(response = "test.Task")] struct Task {}
+    "#,
+    )?;
+    let schema = Schema::new(&bytes, "::api", &catalogs)?;
+    let expanded = expand(
+        &syn::parse_str("activity")?,
+        &syn::parse_str("runtime")?,
+        syn::parse_str("impl Binding { #[answer(Task, produces(Request, fields()))] fn respond(task: Task) -> Result<Reply<Worker, ()>, Refusal> { todo!() } }")?,
+        &schema,
+    )?.to_string();
+    assert!(expanded.contains("Identity :: identify (self , value)"));
+    assert!(
+        expanded.contains(
+            "Fill :: fill (self , & __action , world , & __reply . inputs , & __identity)"
+        )
+    );
+    assert!(expanded.contains("Request :: pack_request"));
+    assert!(!expanded.contains("__reply . request"));
     Ok(())
 }

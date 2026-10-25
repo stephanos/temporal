@@ -48,11 +48,28 @@ fn transition(action: invalid::User) -> Transition<invalid::Action> {
     Transition { action: action.into(), choice: 0 }
 }
 
-impl Realize<invalid::World> for Realization {
+impl umpire_runtime::capability::Identity for Realization {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<invalid::World as umpire_dsl::Machine>::Action>
+    for Realization
+{
+    type World = invalid::World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<invalid::World> for Realization {
     type Target = umpire_runtime::NoTarget;
 
-    fn observe(
+    fn project(
         &self,
+        _world: &invalid::World,
         observation: &Any,
         state: &invalid::Model,
     ) -> Result<
@@ -65,9 +82,17 @@ impl Realize<invalid::World> for Realization {
             _ => Projection::Candidates(Vec::new()),
         })
     }
+}
 
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Realization {
+    type World = invalid::World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<invalid::World> for Realization {
     fn answer(
         &self,
+        _world: &invalid::World,
         callback: &Any,
         _: &invalid::Model,
     ) -> Result<AnswerPlan<invalid::Action>, protocol::Refusal> {
@@ -79,6 +104,8 @@ impl Realize<invalid::World> for Realization {
         })
     }
 }
+
+impl Realize<invalid::World> for Realization {}
 
 fn payload(value: u8) -> Any {
     Any { type_url: "test/rejecting".into(), value: vec![value] }

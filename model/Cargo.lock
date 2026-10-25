@@ -1305,6 +1305,8 @@ version = "0.0.1"
 dependencies = [
  "insta",
  "prettyplease 0.3.0",
+ "proc-macro-crate",
+ "proc-macro2",
  "quote",
  "syn 3.0.9",
  "umpire-catalog-build",

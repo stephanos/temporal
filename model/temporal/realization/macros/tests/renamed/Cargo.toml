@@ -1,0 +1,15 @@
+[package]
+name = "umpire-realization-renamed-control"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[features]
+invalid-enum = []
+
+[dependencies]
+author-kit = { package = "umpire", path = "../../../../../umpire/author/umpire" }
+temporal-kit = { package = "umpire-temporal", path = "../../.." }
+api-kit = { package = "umpire-temporal-api", path = "../../../../api" }

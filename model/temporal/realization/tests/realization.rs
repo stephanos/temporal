@@ -118,6 +118,7 @@ fn cancel_after_closure_is_a_rejected_step_and_success_contradicts_it() {
 
 #[test]
 fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
+    let world = activity::World::new(3, None, None, None, None, false);
     for phase in [
         activity::Phase::Scheduled,
         activity::Phase::Started,
@@ -136,7 +137,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
             heartbeat_remaining: None,
         };
         let Projection::Candidates(paths) = Realization::default()
-            .observe(&cancel(Some(5)), &before)
+            .observe(&world, &cancel(Some(5)), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
         else {
             panic!("cancel must replay")
@@ -153,7 +154,7 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
         assert_eq!(paths[0].outcome.as_ref() == Some(&outcome), closed);
         assert_eq!(paths[0].outcome, Some(StepOutcome::Rejected(Rejection::NotFound)));
         let Projection::Candidates(success) = Realization::default()
-            .observe(&cancel(None), &before)
+            .observe(&world, &cancel(None), &before)
             .unwrap_or_else(|error| panic!("{error:?}"))
         else {
             panic!("cancel must replay")
@@ -474,6 +475,7 @@ fn temporal_has_no_live_answer_policy() {
 
 #[test]
 fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_phase() {
+    let world = activity::World::new(3, None, None, None, None, false);
     for status in [4, 6] {
         let mut observed: Observation =
             observation(status, 0).unpack().unwrap_or_else(|e| panic!("{e:?}"));
@@ -494,7 +496,7 @@ fn skipped_retry_projection_never_accepts_a_path_that_stops_before_the_observed_
             heartbeat_remaining: None,
         };
         let Projection::Candidates(paths) = Realization::default()
-            .observe(&Any::pack(&observed), &state)
+            .observe(&world, &Any::pack(&observed), &state)
             .unwrap_or_else(|e| panic!("{e:?}"))
         else {
             panic!("candidates")

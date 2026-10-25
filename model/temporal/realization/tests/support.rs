@@ -215,3 +215,85 @@ fn phase_conversion_preserves_all_pairs_and_unknown_enum_precedence() {
         }
     }
 }
+
+#[test]
+fn typed_evidence_retains_actual_invocation_and_order() {
+    use umpire_runtime::evidence::{ReconciledView, RpcView, SnapshotView};
+
+    let request = Callback { task: Some(Any::pack(&Error { code: 7, message: "request".into() })) };
+    let response =
+        Reply { request: Some(Any::pack(&Error { code: 9, message: "response".into() })) };
+    let invocation = Observation {
+        method: "read".into(),
+        request: Some(Any::pack(&request)),
+        result: Some(ResultValue::Response(Any::pack(&response))),
+    };
+    let value = Any::pack(&invocation);
+    let rpc = RpcView::new(&value).unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(rpc.raw(), &invocation);
+    assert_eq!(rpc.request::<Callback>().unwrap_or_else(|e| panic!("{e:?}")), Some(request));
+    let snapshot = SnapshotView::<Reply>::new(&value).unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(snapshot.rpc().raw(), &invocation);
+    assert_eq!(snapshot.value(), &response);
+
+    let acknowledgment = Observation {
+        method: "acknowledged".into(),
+        request: None,
+        result: Some(ResultValue::Error(Error { code: 5, message: "acknowledged".into() })),
+    };
+    let pair = ReconciledView::new(&Any::pack(&acknowledgment), &value)
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(pair.acknowledged().raw(), &acknowledgment);
+    assert_eq!(pair.current().raw(), &invocation);
+    assert_eq!(pair.acknowledged().code().unwrap_or_else(|e| panic!("{e:?}")), Some(5));
+    let transported = Observed::new(&Any::pack(
+        &umpire_temporal_api::umpire::temporal::v1::ReconciledObservation {
+            acknowledged: Some(Any::pack(&acknowledgment)),
+            current: Some(value),
+        },
+    ))
+    .unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(transported.rpc().raw(), &invocation);
+    assert_eq!(
+        transported.acknowledged_rpc().unwrap_or_else(|| panic!("expected pair")).raw(),
+        &acknowledgment,
+    );
+}
+
+#[test]
+fn typed_evidence_preserves_decoder_and_result_precedence() {
+    use umpire_runtime::evidence::{ReconciledView, RpcView, SnapshotView};
+
+    let malformed = RefusalCode::MalformedRequest;
+    let unsupported = RefusalCode::Unsupported;
+    assert_eq!(code(RpcView::new(&Any::default())), malformed);
+    assert_eq!(code(RpcView::new(&Any::pack(&Reply::default()))), unsupported);
+    assert_eq!(
+        code(ReconciledView::new(&Any::pack(&Reply::default()), &Any::default())),
+        unsupported,
+    );
+    assert_eq!(
+        code(ReconciledView::new(&Any::default(), &Any::pack(&Reply::default()))),
+        malformed,
+    );
+    for (acknowledged, current, expected) in [
+        (Some(Any::pack(&Reply::default())), None, unsupported),
+        (Some(Any::pack(&Observation::default())), Some(Any::pack(&Reply::default())), malformed),
+    ] {
+        let pair = umpire_temporal_api::umpire::temporal::v1::ReconciledObservation {
+            acknowledged,
+            current,
+        };
+        assert_eq!(code(Observed::new(&Any::pack(&pair))), expected);
+    }
+    for (result, expected) in [
+        (None, malformed),
+        (Some(ResultValue::Error(Error { code: 5, message: String::new() })), malformed),
+        (Some(ResultValue::Response(Any::default())), malformed),
+        (Some(ResultValue::Response(Any::pack(&Callback::default()))), unsupported),
+    ] {
+        let invocation = Any::pack(&Observation { method: "read".into(), request: None, result });
+        assert!(RpcView::new(&invocation).is_ok());
+        assert_eq!(code(SnapshotView::<Reply>::new(&invocation)), expected);
+    }
+}

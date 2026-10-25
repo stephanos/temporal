@@ -5,8 +5,10 @@ mod abi;
 #[path = "annotations.rs"]
 mod annotation_dispatch;
 mod any;
+pub mod capability;
 #[path = "realization.rs"]
 mod envelopes;
+pub mod evidence;
 mod refusal;
 mod runtime;
 
@@ -26,6 +28,7 @@ pub use envelopes::{Observed, callback, reply};
 pub use generated::umpire::{
     annotations::v1 as annotations, model::v1 as protocol, realization::v1 as realization,
 };
+pub use prost;
 pub use prost_types;
 pub use runtime::{
     AnswerPlan, Candidate, Evidence, EvidenceMatch, Exact, NoTarget, Projection, Proposal,

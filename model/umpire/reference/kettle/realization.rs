@@ -45,11 +45,48 @@ fn heating(action: i32) -> Result<Action, Refusal> {
     }
 }
 
-impl Realize<kettle::World> for Realization {
+impl umpire_runtime::capability::Identity for Realization {
+    type Id = String;
+    fn identify(&self, value: &Any) -> Result<String, Refusal> {
+        let task: PollHeatingResponse = callback(value)?;
+        if task.kettle_id.is_empty() {
+            return Err(Refusal::malformed("kettle identity is missing"));
+        }
+        Ok(task.kettle_id)
+    }
+}
+
+impl umpire_runtime::capability::Fill<Action> for Realization {
+    type World = kettle::World;
+    type Inputs = ();
+    type Request = RespondHeatingRequest;
+    fn fill(
+        &self,
+        action: &Action,
+        _: &kettle::World,
+        (): &(),
+        identity: &String,
+    ) -> Result<Self::Request, Refusal> {
+        if identity.is_empty() {
+            return Err(Refusal::malformed("kettle identity is missing"));
+        }
+        let action = if *action == Heater::Heat.into() {
+            HeatingAction::Heat
+        } else if *action == Heater::Failover.into() {
+            HeatingAction::Failover
+        } else {
+            return Err(Refusal::unsupported("action has no heater request"));
+        };
+        Ok(RespondHeatingRequest { kettle_id: identity.clone(), action: action as i32 })
+    }
+}
+
+impl umpire_runtime::capability::Snapshot<kettle::World> for Realization {
     type Target = Exact<Model>;
 
-    fn observe(
+    fn project(
         &self,
+        _world: &kettle::World,
         value: &Any,
         state: &Model,
     ) -> Result<Projection<Action, (), Exact<Model>>, Refusal> {
@@ -92,30 +129,38 @@ impl Realize<kettle::World> for Realization {
             }
         })
     }
+}
 
-    fn reach_evidence(&self, value: &Any, path: &[&Evidence<kettle::World>]) -> EvidenceMatch {
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Realization {
+    type World = kettle::World;
+    type View = Observed;
+    fn admit_evidence(&self, value: &Any) -> Result<Observed, Refusal> {
+        Observed::new(value)
+    }
+    fn check_evidence(
+        &self,
+        observed: &Observed,
+        path: &[&Evidence<kettle::World>],
+    ) -> EvidenceMatch {
         if path.is_empty() {
             return EvidenceMatch::Continue { cursor: 0 };
         }
         let [edge] = path else { return EvidenceMatch::Reject };
-        let expected = (|| {
-            let observed = Observed::new(value)?;
-            match observed.method.as_str() {
-                "/umpire.reference.kettle.v1.KettleService/Heat" => {
-                    let request = observed
-                        .request::<HeatRequest>()?
-                        .ok_or_else(|| Refusal::malformed("Heat requires its actual request"))?;
-                    Ok(if request.enabled {
-                        User::PressButton.into()
-                    } else {
-                        User::DepressButton.into()
-                    })
-                }
-                "/umpire.reference.kettle.v1.KettleService/RespondHeating" => {
-                    heating(observed.response::<RespondHeatingResponse>()?.action)
-                }
-                _ => Err(Refusal::unsupported("method does not authorize a Model action")),
+        let expected = (|| match observed.method.as_str() {
+            "/umpire.reference.kettle.v1.KettleService/Heat" => {
+                let request = observed
+                    .request::<HeatRequest>()?
+                    .ok_or_else(|| Refusal::malformed("Heat requires its actual request"))?;
+                Ok(if request.enabled {
+                    User::PressButton.into()
+                } else {
+                    User::DepressButton.into()
+                })
             }
+            "/umpire.reference.kettle.v1.KettleService/RespondHeating" => {
+                heating(observed.response::<RespondHeatingResponse>()?.action)
+            }
+            _ => Err(Refusal::unsupported("method does not authorize a Model action")),
         })();
         if expected.is_ok_and(|action| edge.action == action) && edge.choice == 0 {
             EvidenceMatch::Match { cursor: 1 }
@@ -123,8 +168,15 @@ impl Realize<kettle::World> for Realization {
             EvidenceMatch::Reject
         }
     }
+}
 
-    fn answer(&self, value: &Any, state: &Model) -> Result<AnswerPlan<Action>, Refusal> {
+impl umpire_runtime::capability::ReplyPolicy<kettle::World> for Realization {
+    fn answer(
+        &self,
+        world: &kettle::World,
+        value: &Any,
+        state: &Model,
+    ) -> Result<AnswerPlan<Action>, Refusal> {
         let task: PollHeatingResponse = callback(value)?;
         let observed = required(task.state)?;
         if task.kettle_id.is_empty() || !matches(observed, state) || !state.heating_on {
@@ -141,7 +193,15 @@ impl Realize<kettle::World> for Realization {
         Ok(AnswerPlan::new(
             vec![],
             heating(task.action)?,
-            reply(&RespondHeatingRequest { kettle_id: task.kettle_id, action: task.action }),
+            reply(&umpire_runtime::capability::Fill::fill(
+                self,
+                &heating(task.action)?,
+                world,
+                &(),
+                &umpire_runtime::capability::Identity::identify(self, value)?,
+            )?),
         ))
     }
 }
+
+impl Realize<kettle::World> for Realization {}

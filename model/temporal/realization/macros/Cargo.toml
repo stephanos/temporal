@@ -18,6 +18,8 @@ umpire-catalog-build.workspace = true
 umpire-temporal-annotate-syntax.workspace = true
 syn.workspace = true
 quote.workspace = true
+proc-macro-crate.workspace = true
+proc-macro2.workspace = true
 
 [build-dependencies]
 umpire-catalog-build.workspace = true

@@ -18,36 +18,70 @@ struct Bounded {
     reject_old: bool,
 }
 
-impl Realize<World> for Bounded {
+impl umpire_runtime::capability::Identity for Bounded {
+    type Id = ();
+
+    fn identify(&self, _: &Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<World as umpire_dsl::Machine>::Action> for Bounded {
+    type World = World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<World> for Bounded {
     type Target = NoTarget;
 
-    fn scope(&self) -> Scope {
-        Scope { prefix: self.prefix, ..Scope::default() }
-    }
-
-    fn observe(
+    fn project(
         &self,
+        world: &World,
         actual: &Any,
         state: &State,
     ) -> Result<Projection<Action, Outcome, NoTarget>, protocol::Refusal> {
         if self.reject_old && support::payload(actual)? == 1 && state.0 == 0 {
             return Ok(Projection::Candidates(Vec::new()));
         }
-        support::Realization.observe(actual, state)
+        Realize::observe(&support::Realization, world, actual, state)
+    }
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Bounded {
+    type World = World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<World> for Bounded {
+    fn scope(&self) -> Scope {
+        Scope { prefix: self.prefix, ..Scope::default() }
     }
 
-    fn propose(&self, state: &State, seed: u64) -> Result<Proposal<Action>, protocol::Refusal> {
-        support::Realization.propose(state, seed)
+    fn propose(
+        &self,
+        world: &World,
+        state: &State,
+        seed: u64,
+    ) -> Result<Proposal<Action>, protocol::Refusal> {
+        Realize::propose(&support::Realization, world, state, seed)
     }
 
     fn matches(&self, request: &Any, actual: &Any) -> Result<(), protocol::Refusal> {
-        support::Realization.matches(request, actual)
+        Realize::matches(&support::Realization, request, actual)
     }
 
-    fn answer(&self, actual: &Any, state: &State) -> Result<AnswerPlan<Action>, protocol::Refusal> {
-        support::Realization.answer(actual, state)
+    fn answer(
+        &self,
+        world: &World,
+        actual: &Any,
+        state: &State,
+    ) -> Result<AnswerPlan<Action>, protocol::Refusal> {
+        Realize::answer(&support::Realization, world, actual, state)
     }
 }
+
+impl Realize<World> for Bounded {}
 
 fn run(prefix: usize) -> Runtime<World, Bounded> {
     Runtime::new(World { starts: 1 }, Bounded { prefix, reject_old: false })

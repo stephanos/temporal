@@ -1,36 +1,16 @@
 ---
 source: temporal/realization/macros/src/lib.rs
-expression: render(dispatch)
+expression: "prettyplease::unparse(&dispatch)"
 ---
-impl ::umpire_runtime::Realize<activity::World> for Realization {
+impl ::umpire_runtime::capability::Snapshot<activity::World> for Realization {
     type Target = ::umpire_runtime::NoTarget;
-    fn propose(
+    #[allow(
+        deprecated,
+        reason = "descriptor admission validates deprecated wire fields"
+    )]
+    fn project(
         &self,
-        state: &activity::Model,
-        seed: u64,
-    ) -> Result<
-        ::umpire_runtime::Proposal<<activity::World as ::umpire_dsl::Machine>::Action>,
-        ::umpire_runtime::protocol::Refusal,
-    > {
-        self.proposal(state, seed)
-    }
-    fn matches(
-        &self,
-        request: &::umpire_runtime::prost_types::Any,
-        observation: &::umpire_runtime::prost_types::Any,
-    ) -> Result<(), ::umpire_runtime::protocol::Refusal> {
-        self.matches_proposal(request, observation)
-    }
-    fn continue_polling(
-        &self,
-        observation: &::umpire_runtime::prost_types::Any,
-        state: &activity::Model,
-        action: Option<&<activity::World as ::umpire_dsl::Machine>::Action>,
-    ) -> Result<bool, ::umpire_runtime::protocol::Refusal> {
-        self.polling(observation, state, action)
-    }
-    fn observe(
-        &self,
+        world: &activity::World,
         observation: &::umpire_runtime::prost_types::Any,
         state: &activity::Model,
     ) -> Result<
@@ -41,7 +21,7 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
         >,
         ::umpire_runtime::protocol::Refusal,
     > {
-        let _ = state;
+        let _ = (world, state);
         let __observed = ::umpire_temporal::support::Observed::new(observation)?;
         if __observed.method
             == "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution"
@@ -59,6 +39,9 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
                     ))?;
                 Ok(__response)
             };
+            let _: Option<
+                ::umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest,
+            > = __observed.request()?;
             return Self::cancel(__response);
         }
         if __observed.method
@@ -66,7 +49,10 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
         {
             let __response: ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionResponse = __observed
                 .response()?;
-            return self.describe(__response, state);
+            let _: Option<
+                ::umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest,
+            > = __observed.request()?;
+            return self.describe(__response, state, world);
         }
         Err(
             ::umpire_runtime::protocol::Refusal::unsupported(
@@ -75,3 +61,43 @@ impl ::umpire_runtime::Realize<activity::World> for Realization {
         )
     }
 }
+impl ::umpire_runtime::capability::Evidence<::umpire_runtime::evidence::Rpc>
+for Realization {
+    type World = activity::World;
+    type View = ::umpire_temporal::support::Observed;
+    fn admit_evidence(
+        &self,
+        observation: &::umpire_runtime::prost_types::Any,
+    ) -> Result<Self::View, ::umpire_runtime::protocol::Refusal> {
+        ::umpire_temporal::support::Observed::new(observation)
+    }
+}
+impl ::umpire_runtime::capability::ReplyPolicy<activity::World> for Realization {
+    fn propose(
+        &self,
+        world: &activity::World,
+        state: &activity::Model,
+        seed: u64,
+    ) -> Result<
+        ::umpire_runtime::Proposal<<activity::World as ::umpire_dsl::Machine>::Action>,
+        ::umpire_runtime::protocol::Refusal,
+    > {
+        self.proposal(world, state, seed)
+    }
+    fn matches(
+        &self,
+        request: &::umpire_runtime::prost_types::Any,
+        observation: &::umpire_runtime::prost_types::Any,
+    ) -> Result<(), ::umpire_runtime::protocol::Refusal> {
+        self.matches_proposal(request, observation)
+    }
+    fn continue_polling(
+        &self,
+        observation: &::umpire_runtime::prost_types::Any,
+        state: &activity::Model,
+        action: Option<&<activity::World as ::umpire_dsl::Machine>::Action>,
+    ) -> Result<bool, ::umpire_runtime::protocol::Refusal> {
+        self.polling(observation, state, action)
+    }
+}
+impl ::umpire_runtime::Realize<activity::World> for Realization {}

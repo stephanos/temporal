@@ -125,11 +125,52 @@ fn bootstrap_configuration_admission_and_polling_publish_atomically() {
 }
 
 struct Disabled;
-impl umpire_runtime::Realize<support::World> for Disabled {
+impl umpire_runtime::capability::Identity for Disabled {
+    type Id = ();
+
+    fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<support::World as umpire_dsl::Machine>::Action>
+    for Disabled
+{
+    type World = support::World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<support::World> for Disabled {
     type Target = umpire_runtime::NoTarget;
 
+    fn project(
+        &self,
+        _world: &support::World,
+        value: &prost_types::Any,
+        state: &support::State,
+    ) -> Result<
+        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
+        protocol::Refusal,
+    > {
+        umpire_runtime::Realize::observe(
+            &support::Realization,
+            &support::World { starts: 1 },
+            value,
+            state,
+        )
+    }
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for Disabled {
+    type World = support::World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<support::World> for Disabled {
     fn propose(
         &self,
+        _world: &support::World,
         _: &support::State,
         _: u64,
     ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
@@ -138,24 +179,23 @@ impl umpire_runtime::Realize<support::World> for Disabled {
             request: support::any(2),
         })
     }
-    fn observe(
-        &self,
-        value: &prost_types::Any,
-        state: &support::State,
-    ) -> Result<
-        umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
-        protocol::Refusal,
-    > {
-        umpire_runtime::Realize::observe(&support::Realization, value, state)
-    }
+
     fn answer(
         &self,
+        _world: &support::World,
         value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
-        umpire_runtime::Realize::answer(&support::Realization, value, state)
+        umpire_runtime::Realize::answer(
+            &support::Realization,
+            &support::World { starts: 1 },
+            value,
+            state,
+        )
     }
 }
+
+impl umpire_runtime::Realize<support::World> for Disabled {}
 #[test]
 fn disabled_proposal_refuses_without_committing_and_quiescent_is_distinct() {
     let mut disabled = umpire_runtime::Runtime::new(support::World { starts: 1 }, Disabled);
@@ -271,21 +311,28 @@ impl umpire_dsl::Machine for InternalWorld {
     }
 }
 struct InternalRealization;
-impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
+impl umpire_runtime::capability::Identity for InternalRealization {
+    type Id = ();
+
+    fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<InternalWorld as umpire_dsl::Machine>::Action>
+    for InternalRealization
+{
+    type World = InternalWorld;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<InternalWorld> for InternalRealization {
     type Target = umpire_runtime::NoTarget;
 
-    fn propose(
+    fn project(
         &self,
-        _: &support::State,
-        _: u64,
-    ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
-        Ok(umpire_runtime::Proposal::Action {
-            action: support::Action::Deliver,
-            request: support::any(1),
-        })
-    }
-    fn observe(
-        &self,
+        _world: &InternalWorld,
         _: &prost_types::Any,
         _: &support::State,
     ) -> Result<
@@ -294,14 +341,37 @@ impl umpire_runtime::Realize<InternalWorld> for InternalRealization {
     > {
         Ok(umpire_runtime::Projection::Current)
     }
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for InternalRealization {
+    type World = InternalWorld;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<InternalWorld> for InternalRealization {
+    fn propose(
+        &self,
+        _world: &InternalWorld,
+        _: &support::State,
+        _: u64,
+    ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
+        Ok(umpire_runtime::Proposal::Action {
+            action: support::Action::Deliver,
+            request: support::any(1),
+        })
+    }
+
     fn answer(
         &self,
+        _world: &InternalWorld,
         _: &prost_types::Any,
         _: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
         Err(protocol::Refusal::unsupported("no callbacks"))
     }
 }
+
+impl umpire_runtime::Realize<InternalWorld> for InternalRealization {}
 #[test]
 fn enabled_internal_action_is_never_a_proposal() {
     for (external, code) in [(false, RefusalCode::Quiescent), (true, RefusalCode::State)] {
@@ -312,27 +382,65 @@ fn enabled_internal_action_is_never_a_proposal() {
 }
 
 struct DefaultProposal;
-impl umpire_runtime::Realize<support::World> for DefaultProposal {
+impl umpire_runtime::capability::Identity for DefaultProposal {
+    type Id = ();
+
+    fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl umpire_runtime::capability::Fill<<support::World as umpire_dsl::Machine>::Action>
+    for DefaultProposal
+{
+    type World = support::World;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl umpire_runtime::capability::Snapshot<support::World> for DefaultProposal {
     type Target = umpire_runtime::NoTarget;
 
-    fn observe(
+    fn project(
         &self,
+        _world: &support::World,
         value: &prost_types::Any,
         state: &support::State,
     ) -> Result<
         umpire_runtime::Projection<support::Action, support::Outcome, umpire_runtime::NoTarget>,
         protocol::Refusal,
     > {
-        umpire_runtime::Realize::observe(&support::Realization, value, state)
+        umpire_runtime::Realize::observe(
+            &support::Realization,
+            &support::World { starts: 1 },
+            value,
+            state,
+        )
     }
+}
+
+impl umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for DefaultProposal {
+    type World = support::World;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl umpire_runtime::capability::ReplyPolicy<support::World> for DefaultProposal {
     fn answer(
         &self,
+        _world: &support::World,
         value: &prost_types::Any,
         state: &support::State,
     ) -> Result<umpire_runtime::AnswerPlan<support::Action>, protocol::Refusal> {
-        umpire_runtime::Realize::answer(&support::Realization, value, state)
+        umpire_runtime::Realize::answer(
+            &support::Realization,
+            &support::World { starts: 1 },
+            value,
+            state,
+        )
     }
 }
+
+impl umpire_runtime::Realize<support::World> for DefaultProposal {}
 #[test]
 fn runtime_owns_quiescence_before_default_proposal_policy() {
     let mut runtime = umpire_runtime::Runtime::new(support::World { starts: 1 }, DefaultProposal);
@@ -347,11 +455,40 @@ fn runtime_owns_quiescence_before_default_proposal_policy() {
         .refusal(RefusalCode::Quiescent);
 }
 
-struct ReadRealization {
+struct ReadRealization<M> {
+    world: std::marker::PhantomData<fn() -> M>,
     refuse_program: bool,
     continue_after_progress: bool,
 }
-impl<M> umpire_runtime::Realize<M> for ReadRealization
+impl<M> umpire_runtime::capability::Identity for ReadRealization<M>
+where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >,
+{
+    type Id = ();
+
+    fn identify(&self, _: &prost_types::Any) -> Result<(), protocol::Refusal> {
+        Ok(())
+    }
+}
+
+impl<M> umpire_runtime::capability::Fill<<M as umpire_dsl::Machine>::Action> for ReadRealization<M>
+where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >,
+{
+    type World = M;
+    type Inputs = ();
+    type Request = umpire_runtime::capability::NoRequest;
+}
+
+impl<M> umpire_runtime::capability::Snapshot<M> for ReadRealization<M>
 where
     M: umpire_dsl::Machine<
             State = support::State,
@@ -361,22 +498,9 @@ where
 {
     type Target = umpire_runtime::NoTarget;
 
-    fn program(&self) -> Result<prost_types::Any, protocol::Refusal> {
-        if self.refuse_program {
-            Err(protocol::Refusal::new(RefusalCode::State, "program refused"))
-        } else {
-            Ok(support::any(42))
-        }
-    }
-    fn propose(
+    fn project(
         &self,
-        _: &support::State,
-        _: u64,
-    ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
-        Ok(umpire_runtime::Proposal::Read { request: support::any(99) })
-    }
-    fn observe(
-        &self,
+        _world: &M,
         value: &prost_types::Any,
         state: &support::State,
     ) -> Result<
@@ -386,8 +510,52 @@ where
         if support::payload(value)? == 20 {
             return Ok(umpire_runtime::Projection::Current);
         }
-        umpire_runtime::Realize::observe(&support::Realization, value, state)
+        umpire_runtime::Realize::observe(
+            &support::Realization,
+            &support::World { starts: 1 },
+            value,
+            state,
+        )
     }
+}
+
+impl<M> umpire_runtime::capability::Evidence<umpire_runtime::evidence::Rpc> for ReadRealization<M>
+where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >,
+{
+    type World = M;
+    type View = umpire_runtime::capability::NoEvidence;
+}
+
+impl<M> umpire_runtime::capability::ReplyPolicy<M> for ReadRealization<M>
+where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >,
+{
+    fn program(&self) -> Result<prost_types::Any, protocol::Refusal> {
+        if self.refuse_program {
+            Err(protocol::Refusal::new(RefusalCode::State, "program refused"))
+        } else {
+            Ok(support::any(42))
+        }
+    }
+
+    fn propose(
+        &self,
+        _world: &M,
+        _: &support::State,
+        _: u64,
+    ) -> Result<umpire_runtime::Proposal<support::Action>, protocol::Refusal> {
+        Ok(umpire_runtime::Proposal::Read { request: support::any(99) })
+    }
+
     fn matches(
         &self,
         request: &prost_types::Any,
@@ -402,6 +570,7 @@ where
             Err(protocol::Refusal::new(RefusalCode::State, "crossed read"))
         }
     }
+
     fn continue_polling(
         &self,
         value: &prost_types::Any,
@@ -414,11 +583,24 @@ where
     }
 }
 
+impl<M> umpire_runtime::Realize<M> for ReadRealization<M> where
+    M: umpire_dsl::Machine<
+            State = support::State,
+            Action = support::Action,
+            Outcome = support::Outcome,
+        >
+{
+}
+
 #[test]
 fn read_remains_pending_until_correlated_final_explanation_publishes() {
     let mut guest = Guest::new(umpire_runtime::Runtime::new(
         support::World { starts: 1 },
-        ReadRealization { refuse_program: false, continue_after_progress: false },
+        ReadRealization {
+            world: std::marker::PhantomData,
+            refuse_program: false,
+            continue_after_progress: false,
+        },
     ));
     let Some(Outcome::Judge(unproposed)) = GuestExt::call(
         &mut guest,
@@ -481,7 +663,11 @@ fn read_remains_pending_until_correlated_final_explanation_publishes() {
 fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
     let mut guest = Guest::new(umpire_runtime::Runtime::new(
         support::World { starts: 1 },
-        ReadRealization { refuse_program: false, continue_after_progress: true },
+        ReadRealization {
+            world: std::marker::PhantomData,
+            refuse_program: false,
+            continue_after_progress: true,
+        },
     ));
     let propose = protocol::ProposeRequest { seed: 7 };
     GuestExt::call(&mut guest, Method::Propose, &propose);
@@ -537,7 +723,11 @@ fn read_commits_intermediate_progress_without_consuming_the_pending_request() {
 fn read_does_not_require_enabled_external_model_action() {
     let mut runtime = umpire_runtime::Runtime::new(
         InternalWorld { external: false },
-        ReadRealization { refuse_program: false, continue_after_progress: false },
+        ReadRealization {
+            world: std::marker::PhantomData,
+            refuse_program: false,
+            continue_after_progress: false,
+        },
     );
     let Some(Outcome::Propose(read)) = runtime.dispatch(6, &[]).outcome else { panic!("read") };
     assert_eq!(read.kind(), protocol::ProposalKind::Read);
@@ -550,7 +740,11 @@ fn reset_program_and_refusing_defaults_preserve_run_transactions() {
     assert!(reset.program.is_none());
     let mut runtime = umpire_runtime::Runtime::new(
         support::World { starts: 1 },
-        ReadRealization { refuse_program: false, continue_after_progress: false },
+        ReadRealization {
+            world: std::marker::PhantomData,
+            refuse_program: false,
+            continue_after_progress: false,
+        },
     );
     for _ in 0..2 {
         let Some(Outcome::Reset(reset)) = runtime.dispatch(3, &[]).outcome else {
@@ -563,11 +757,13 @@ fn reset_program_and_refusing_defaults_preserve_run_transactions() {
         .refusal(RefusalCode::Unsupported);
     runtime.dispatch(6, &[]);
     runtime.replace_realization(ReadRealization {
+        world: std::marker::PhantomData,
         refuse_program: true,
         continue_after_progress: false,
     });
     runtime.dispatch(3, &[]).refusal(RefusalCode::State);
     runtime.replace_realization(ReadRealization {
+        world: std::marker::PhantomData,
         refuse_program: false,
         continue_after_progress: false,
     });

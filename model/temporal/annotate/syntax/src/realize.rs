@@ -246,10 +246,10 @@ fn handler(function: &ImplItemFn, attribute: &Attribute, answer: bool) -> syn::R
             FnArg::Receiver(_) => None,
         })
         .collect();
-    if typed.is_empty() || typed.len() > 2 {
+    if typed.is_empty() || typed.len() > 3 {
         return Err(syn::Error::new(
             function.sig.span(),
-            "handler takes a typed message and optional Model state",
+            "handler takes a typed message and optional Model state and World",
         ));
     }
     let fallible = type_name(typed[0]).as_deref() == Some("Result");
@@ -338,10 +338,18 @@ fn call(handler: &Handler, value: &TokenStream) -> TokenStream {
         } else {
             quote!(Self::#name)
         };
-    let state =
-        (handler.function.sig.inputs.iter().filter(|arg| matches!(arg, FnArg::Typed(_))).count()
-            == 2)
-            .then(|| quote!(, state));
+    let state = match handler
+        .function
+        .sig
+        .inputs
+        .iter()
+        .filter(|arg| matches!(arg, FnArg::Typed(_)))
+        .count()
+    {
+        2 => quote!(, state),
+        3 => quote!(, state, world),
+        _ => TokenStream::new(),
+    };
     quote!(#receiver(#value #state))
 }
 
@@ -381,6 +389,10 @@ fn observation(
     } else {
         quote!(let __response: #input = __observed.response()?; #guards)
     };
+    let request = schema
+        .message(&method_info.input)
+        .map_err(|error| syn::Error::new(target.span(), error))?;
+    let request: Type = syn::parse_str(&request.rust_type)?;
     let called = call(handler, &quote!(__response));
     let projection = match handler.output {
         Output::Projection => quote!(return #called;),
@@ -402,7 +414,11 @@ fn observation(
     } else {
         quote!(return Ok(#projection);)
     };
-    Ok(quote!(if __observed.method == #method { #decode #result }))
+    Ok(quote!(if __observed.method == #method {
+        #decode
+        let _: Option<#request> = __observed.request()?;
+        #result
+    }))
 }
 
 fn answer(
@@ -464,8 +480,8 @@ fn answer(
         let canonical: Type = syn::parse_str(&request.rust_type)?;
         outputs.push(quote! {
             let _: fn(#ty) -> #canonical = |value| value;
-            if __reply.request.type_url == <#canonical as ::prost::Name>::type_url() {
-                let __request: #canonical = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(&__reply.request)?;
+            if __request_any.type_url == <#canonical as ::umpire_runtime::prost::Name>::type_url() {
+                let __request: #canonical = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(&__request_any)?;
                 #guards
                 __recognized = true;
             }
@@ -481,12 +497,15 @@ fn answer(
     let called = call(handler, &quote!(__task));
     let input: Type = syn::parse_str(&response.rust_type)?;
     Ok(quote! {
-        if __task_any.type_url == <#input as ::prost::Name>::type_url() {
+        if __task_any.type_url == <#input as ::umpire_runtime::prost::Name>::type_url() {
             let __task: #input = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(&__task_any)?;
             #guards
+            let __identity = ::umpire_runtime::capability::Identity::identify(self, value)?;
             let __reply = #called?;
-            #validate
             let __action: <#model::World as ::umpire_dsl::Machine>::Action = __reply.action.into();
+            let __request = ::umpire_runtime::capability::Fill::fill(self, &__action, world, &__reply.inputs, &__identity)?;
+            let __request_any = ::umpire_runtime::capability::Request::pack_request(&__request);
+            #validate
             let __delivery: Vec<::umpire_runtime::Transition<<#model::World as ::umpire_dsl::Machine>::Action>> =
                 __reply.delivery.into_iter().map(|action| {
                     let action: <#model::World as ::umpire_dsl::Machine>::Action = action.into();
@@ -495,7 +514,7 @@ fn answer(
             return Ok(::umpire_runtime::AnswerPlan::new(__delivery, __action,
                 <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::pack(
                     &::umpire_runtime::realization::Reply {
-                        request: Some(__reply.request),
+                        request: Some(__request_any),
                     }
                 )
             ));
@@ -870,8 +889,8 @@ fn proposal_dispatch(model: &Path, handler: &ProposalHandler) -> TokenStream {
             -> Result<bool, ::umpire_runtime::protocol::Refusal> { self.#name(observation, state, action) }
     });
     quote! {
-        fn propose(&self, state: &#model::Model, seed: u64)
-            -> Result<::umpire_runtime::Proposal<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> { self.#name(state, seed) }
+        fn propose(&self, world: &#model::World, state: &#model::Model, seed: u64)
+            -> Result<::umpire_runtime::Proposal<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> { self.#name(world, state, seed) }
         #matches
         #polling
     }
@@ -967,7 +986,8 @@ fn expand_scoped(
     }
     let proposal = proposal.as_ref().map(|name| proposal_dispatch(model, name));
     let answer_dispatch = (!answers.is_empty()).then(|| quote! {
-            fn answer(&self, value: &::umpire_runtime::prost_types::Any, state: &#model::Model)
+            #[allow(deprecated, reason = "descriptor admission validates deprecated wire fields")]
+            fn answer(&self, world: &#model::World, value: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::AnswerPlan<<#model::World as ::umpire_dsl::Machine>::Action>, ::umpire_runtime::protocol::Refusal> {
                 let _ = state;
                 let __callback: ::umpire_runtime::realization::Callback = <::umpire_runtime::prost_types::Any as ::umpire_runtime::AnyMessage>::unpack(value)?;
@@ -990,18 +1010,30 @@ fn expand_scoped(
             /// Declared coverage in each incoming and outgoing protobuf context.
             pub const REALIZATION: &'static [#runtime::Context] = &[#(#contexts),*];
         }
-        impl ::umpire_runtime::Realize<#model::World> for #ty {
+        impl ::umpire_runtime::capability::Snapshot<#model::World> for #ty {
             type Target = ::umpire_runtime::NoTarget;
-            #proposal
-            fn observe(&self, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
+            #[allow(deprecated, reason = "descriptor admission validates deprecated wire fields")]
+            fn project(&self, world: &#model::World, observation: &::umpire_runtime::prost_types::Any, state: &#model::Model)
                 -> Result<::umpire_runtime::Projection<<#model::World as ::umpire_dsl::Machine>::Action, <#model::World as ::umpire_dsl::Machine>::Outcome, Self::Target>, ::umpire_runtime::protocol::Refusal> {
-                let _ = state;
+                let _ = (world, state);
                 let __observed = #runtime::support::Observed::new(observation)?;
                 #(#observations)*
                 Err(::umpire_runtime::protocol::Refusal::unsupported("unsupported observation method"))
             }
+        }
+        impl ::umpire_runtime::capability::Evidence<::umpire_runtime::evidence::Rpc> for #ty {
+            type World = #model::World;
+            type View = #runtime::support::Observed;
+            fn admit_evidence(&self, observation: &::umpire_runtime::prost_types::Any)
+                -> Result<Self::View, ::umpire_runtime::protocol::Refusal> {
+                #runtime::support::Observed::new(observation)
+            }
+        }
+        impl ::umpire_runtime::capability::ReplyPolicy<#model::World> for #ty {
+            #proposal
             #answer_dispatch
         }
+        impl ::umpire_runtime::Realize<#model::World> for #ty {}
     })
 }
 
