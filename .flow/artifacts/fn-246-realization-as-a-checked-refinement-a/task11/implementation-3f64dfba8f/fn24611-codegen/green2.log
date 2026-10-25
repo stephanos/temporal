@@ -1,0 +1,51 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+warning: unnecessary qualification
+   --> temporal/annotate/syntax/src/registry.rs:481:77
+    |
+481 | ...   let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(proc_macro2::Span::call_site(), "missing metadata was adm...
+    |                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: requested on the command line with `-W unused-qualifications`
+help: remove the unnecessary path segments
+    |
+481 -         let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(proc_macro2::Span::call_site(), "missing metadata was admitted"))?;
+481 +         let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(Span::call_site(), "missing metadata was admitted"))?;
+    |
+
+warning: unnecessary qualification
+   --> temporal/annotate/syntax/src/registry.rs:497:81
+    |
+497 | ...   let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(proc_macro2::Span::call_site(), "invalid option was admit...
+    |                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+help: remove the unnecessary path segments
+    |
+497 -             let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(proc_macro2::Span::call_site(), "invalid option was admitted"))?;
+497 +             let error = rows(&input.actors).err().ok_or_else(|| syn::Error::new(Span::call_site(), "invalid option was admitted"))?;
+    |
+
+warning: `umpire-temporal-annotate-syntax` (lib test) generated 2 warnings (run `cargo fix --lib -p umpire-temporal-annotate-syntax --tests` to apply 2 suggestions)
+    Finished `test` profile [unoptimized] target(s) in 0.77s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_temporal_annotate_syntax-9a330419fdae3aee)
+
+running 2 tests
+test registry::tests::missing_action_metadata_is_located_on_the_actual_variant ... FAILED
+test registry::tests::invalid_variant_options_are_refused_at_the_declared_option ... ok
+
+failures:
+
+---- registry::tests::missing_action_metadata_is_located_on_the_actual_variant stdout ----
+
+thread 'registry::tests::missing_action_metadata_is_located_on_the_actual_variant' (3272495) panicked at temporal/annotate/syntax/src/registry.rs:483:9:
+assertion `left == right` failed
+  left: 40
+ right: 38
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    registry::tests::missing_action_metadata_is_located_on_the_actual_variant
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal-annotate-syntax --lib`

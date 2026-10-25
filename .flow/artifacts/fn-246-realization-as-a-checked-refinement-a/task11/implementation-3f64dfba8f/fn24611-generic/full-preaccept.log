@@ -1,0 +1,293 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/suite)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire)
+   Compiling umpire-author-consumer v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire/tests/consumer)
+    Finished `test` profile [unoptimized] target(s) in 6.04s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_author_consumer-8e4bd1622c9f45d5)
+
+running 3 tests
+test forwards_opaque_metadata_through_renamed_facade ... ok
+test capabilities::renamed_facade_preserves_generic_bounds_empty_actions_and_refusing_defaults ... ok
+test authors_a_machine_path_suite_and_catalog_through_one_dependency ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_dsl_macros-e5ced3c1c79ce298)
+
+running 3 tests
+test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/fixtures-d823e8fd5cd7b440)
+
+running 6 tests
+test roots::tests::normalizes_derive_paths_using_dependency_roots ... ok
+test roots::tests::normalizes_facade_imports_through_groups_without_stripping_other_prefixes ... ok
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+    Checking unicode-ident v1.0.27
+    Checking libc v0.2.191
+    Checking proc-macro2 v1.0.107
+stored new snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap.new
+test fixtures ... FAILED
+    Checking quote v1.0.47
+    Checking typenum v1.20.1
+    Checking equivalent v1.0.3
+    Checking cfg-if v1.0.5
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking hybrid-array v0.4.15
+    Checking rustix v1.1.5
+    Checking crypto-common v0.2.2
+    Checking block-buffer v0.12.1
+    Checking thiserror v2.0.21
+    Checking getrandom v0.4.3
+    Checking umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir)
+    Checking syn v3.0.9
+    Checking bytemuck v1.25.2
+    Checking const-oid v0.10.2
+    Checking hashbrown v0.17.1
+    Checking fastrand v2.5.0
+    Checking once_cell v1.21.4
+    Checking tempfile v3.27.0
+    Checking indexmap v2.14.2
+    Checking digest v0.11.3
+    Checking safe_arch v0.7.4
+    Checking cpufeatures v0.3.1
+    Checking rand_core v0.9.5
+    Checking rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+    Checking prettyplease v0.3.0
+    Checking sha2 v0.11.1
+    Checking wide v0.7.33
+    Checking foldhash v0.1.5
+    Checking archery v1.2.3
+    Checking heck v0.5.0
+    Checking imbl-sized-chunks v0.2.0
+    Checking imbl v7.0.2
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+    Checking hashbrown v0.15.5
+    Checking umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/process)
+    Checking fixedbitset v0.5.7
+    Checking winnow v1.0.4
+    Checking smallvec v1.16.3
+    Checking toml_parser v1.1.5+spec-1.1.0
+    Checking petgraph v0.8.3
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+    Checking umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+    Checking console v0.16.6
+    Checking toml_datetime v1.1.2+spec-1.1.0
+    Checking similar v2.7.0
+    Checking rustc-hash v2.1.3
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+    Checking insta v1.49.0
+    Checking toml_edit v0.25.17+spec-1.1.0
+    Checking umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+    Checking proc-macro-crate v3.5.0
+    Checking umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+    Checking manyhow v0.14.1
+    Checking umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 4.40s
+
+
+test tests/ui/action_domain_conflict.rs ... ok
+test tests/ui/action_domain_duplicate.rs ... ok
+test tests/ui/action_domain_item_type.rs ... ok
+test tests/ui/action_domain_unbound.rs ... ok
+test tests/ui/action_domain_variant.rs ... ok
+test tests/ui/action_domain_without_world.rs ... ok
+test tests/ui/action_domain_world_mismatch.rs ... ok
+test tests/ui/action_finite_missing.rs ... ok
+test tests/ui/action_inputs_duplicate.rs ... ok
+test tests/ui/action_inputs_invalid.rs ... ok
+test tests/ui/action_inputs_missing.rs ... ok
+test tests/ui/action_inputs_variant_fault.rs ... ok
+test tests/ui/action_metadata_duplicate.rs ... wip
+
+NOTE: writing the following output to `wip/action_metadata_duplicate.stderr`.
+Move this file to `tests/ui/action_metadata_duplicate.stderr` to accept it as correct.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: duplicate action metadata namespace
+ --> tests/ui/action_metadata_duplicate.rs:6:16
+  |
+6 |     #[metadata(example(second))]
+  |                ^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/action_metadata_namespace.rs ... wip
+
+NOTE: writing the following output to `wip/action_metadata_namespace.stderr`.
+Move this file to `tests/ui/action_metadata_namespace.stderr` to accept it as correct.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: expected parentheses
+ --> tests/ui/action_metadata_namespace.rs:5:24
+  |
+5 |     #[metadata(example = "value")]
+  |                        ^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/action_metadata_placement.rs ... wip
+
+NOTE: writing the following output to `wip/action_metadata_placement.stderr`.
+Move this file to `tests/ui/action_metadata_placement.stderr` to accept it as correct.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: #[metadata] belongs on an action variant
+ --> tests/ui/action_metadata_placement.rs:4:1
+  |
+4 | #[metadata(example(enum_value))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: #[metadata] belongs on an action variant
+ --> tests/ui/action_metadata_placement.rs:6:12
+  |
+6 |     Toggle(#[metadata(example(field_value))] bool),
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/finite_shape.rs ... ok
+test tests/ui/machine_actor_arity.rs ... ok
+test tests/ui/machine_actor_mismatch.rs ... ok
+test tests/ui/machine_actor_receiver.rs ... ok
+test tests/ui/machine_after_inputs.rs ... ok
+test tests/ui/machine_claim_async.rs ... ok
+test tests/ui/machine_claim_returns.rs ... ok
+test tests/ui/machine_duplicate_actor.rs ... ok
+test tests/ui/machine_duplicate_kind.rs ... ok
+test tests/ui/machine_effect_arguments.rs ... ok
+test tests/ui/machine_generic.rs ... ok
+test tests/ui/machine_handler_async.rs ... ok
+test tests/ui/machine_handler_returns.rs ... ok
+test tests/ui/machine_invariant_parameters.rs ... ok
+test tests/ui/machine_legacy_effects.rs ... ok
+test tests/ui/machine_legacy_invariants.rs ... ok
+test tests/ui/machine_legacy_scopes.rs ... ok
+test tests/ui/machine_legacy_transitions.rs ... ok
+test tests/ui/machine_marker_trait.rs ... ok
+test tests/ui/machine_misplaced_effect.rs ... ok
+test tests/ui/machine_missing_actor.rs ... ok
+test tests/ui/machine_mutable_aliased_helper.rs ... ok
+test tests/ui/machine_mutable_const_helper.rs ... ok
+test tests/ui/machine_mutable_helper.rs ... ok
+test tests/ui/machine_mutable_invariant.rs ... ok
+test tests/ui/machine_mutable_local_helper.rs ... ok
+test tests/ui/machine_mutable_local_projection.rs ... ok
+test tests/ui/machine_mutable_nested_helper.rs ... ok
+test tests/ui/machine_mutable_qualified_helper.rs ... ok
+test tests/ui/machine_mutable_typed_helper.rs ... ok
+test tests/ui/machine_nonactor_parameter.rs ... ok
+test tests/ui/machine_noncontiguous_kind.rs ... ok
+test tests/ui/machine_nonexhaustive_actor.rs ... ok
+test tests/ui/machine_out_of_order.rs ... ok
+test tests/ui/machine_path_builders.rs ... ok
+test tests/ui/machine_post_async.rs ... ok
+test tests/ui/machine_post_returns_unit.rs ... ok
+test tests/ui/machine_progress_chain.rs ... ok
+test tests/ui/machine_progress_gap.rs ... ok
+test tests/ui/machine_scope_actor.rs ... ok
+test tests/ui/machine_starts_without_world.rs ... ok
+test tests/ui/machine_stay_effect.rs ... ok
+test tests/ui/machine_stay_helper.rs ... ok
+test tests/ui/machine_unknown_actor.rs ... ok
+test tests/ui/machine_unknown_after.rs ... ok
+test tests/ui/machine_unknown_scope.rs ... ok
+test tests/ui/machine_unsafe_allowed.rs ... ok
+test tests/ui/machine_within_bare.rs ... ok
+test tests/ui/non_range_starts.rs ... ok
+test tests/ui/non_unit_internal.rs ... ok
+test tests/ui/optional_facts_direct_reject.rs ... ok
+test tests/ui/optional_facts_payload.rs ... ok
+test tests/ui/stay_outside_machine.rs ... ok
+test tests/ui/variant_internal.rs ... ok
+test tests/ui/world_duplicate.rs ... ok
+test tests/ui/world_parameter_duplicate.rs ... ok
+test tests/ui/world_parameter_mutable.rs ... ok
+test tests/ui/world_parameter_position.rs ... ok
+test tests/ui/world_starts_empty_mixed.rs ... ok
+test tests/ui/world_starts_impl_block.rs ... ok
+test tests/ui/world_starts_mixed.rs ... ok
+test tests/ui/world_starts_receiver.rs ... ok
+test tests/ui/world_starts_return.rs ... ok
+test tests/ui/world_starts_twice.rs ... ok
+
+
+test refusals ... FAILED
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+   Compiling umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 1.28s
+
+
+test tests/pass/action_metadata.rs ... ok
+test tests/pass/optional_facts.rs ... ok
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+test private_state ... ok
+
+failures:
+
+---- fixtures stdout ----
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ Snapshot Summary ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Snapshot file: umpire/author/dsl/macros/tests/fixtures/action/expected/expansion.rs.snap
+Snapshot: expansion.rs
+Source: umpire/dev/testing/src/runner.rs:330
+────────────────────────────────────────────────────────────────────────────────
+-old snapshot
++new results
+────────────┬───────────────────────────────────────────────────────────────────
+  177   177 │             __umpire_count,
+  178   178 │             move |mut __umpire_index| { Heater::Failover },
+  179   179 │         )
+  180   180 │     }
+  181       │-}
+        181 │+}
+        182 │+#[doc(hidden)]
+        183 │+#[allow(unused_macros)]
+        184 │+macro_rules! __umpire_metadata_Heater {
+        185 │+    ($consumer:path; $model:path; { $($body:tt)* }) => {
+        186 │+        $consumer ! { model { $model } actors { #[internal] pub enum Heater { Heat,
+        187 │+        Failover, } } body { $($body)* } }
+        188 │+    };
+        189 │+}
+        190 │+#[doc(hidden)]
+        191 │+#[allow(unused_imports)]
+        192 │+pub(crate) use __umpire_metadata_Heater;
+────────────┴───────────────────────────────────────────────────────────────────
+To update snapshots run `cargo insta review` or set `INSTA_UPDATE=always`
+Stopped on the first failure. Run `cargo insta test` to run all snapshots.
+
+thread 'fixtures' (3277542) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.49.0/src/runtime.rs:734:13:
+snapshot assertion for 'expansion.rs' failed in line 330
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- refusals stdout ----
+
+thread 'refusals' (3277544) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:106:13:
+successfully created new stderr files for 3 test cases
+
+
+failures:
+    fixtures
+    refusals
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.69s
+
+error: test failed, to rerun pass `-p umpire-dsl-macros --test fixtures`

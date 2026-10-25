@@ -1,0 +1,550 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+error: unknown temporal action option
+   --> temporal/realization/tests/registry/fixture.rs:110:58
+    |
+110 |         finality = is_final, continue_polling = polling, correlate = read_correlation)]
+    |                                                          ^^^^^^^^^
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry/fixture.rs:176:35
+    |
+176 | impl Realize<specimen::World> for Binding {
+    |                                   ^^^^^^^ unsatisfied trait bound
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `Realize`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+243 | pub trait Realize<M: Machine>:
+    |           ------- required by a bound in this trait
+...
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize`
+
+error[E0277]: the trait bound `fixture::Binding: Registry<_>` is not satisfied
+   --> temporal/realization/tests/registry/fixture.rs:182:36
+    |
+182 |         Registry::check_registered(self, observation, path)
+    |         -------------------------- ^^^^ unsatisfied trait bound
+    |         |
+    |         required by a bound introduced by this call
+    |
+help: the trait `Registry<_>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:35:27
+   |
+35 |     let request = binding.fill(&client, &world, &inputs, &identity)?.pack_request();
+   |                           ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:80:1
+   |
+80 | pub(crate) struct Binding {
+   | ------------------------- method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:40:17
+   |
+40 |         binding.fill(&client, &world, &inputs, &identity)?.pack_request().unpack()?;
+   |                 ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:80:1
+   |
+80 | pub(crate) struct Binding {
+   | ------------------------- method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:52:17
+    |
+ 52 |         binding.row(&client).kind,
+    |                 ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- method `row` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `row`, perhaps you need to implement it:
+            candidate #1: `Registry`
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:69:14
+   |
+68 |           let row: RespondActivityTaskCompletedRequest = binding
+   |  ________________________________________________________-
+69 | |             .fill(
+   | |             -^^^^ method not found in `fixture::Binding`
+   | |_____________|
+   |
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:80:1
+   |
+80 |   pub(crate) struct Binding {
+   |   ------------------------- method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:80:21
+    |
+ 80 |             binding.row(&action).kind,
+    |                     ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- method `row` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `row`, perhaps you need to implement it:
+            candidate #1: `Registry`
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:86:17
+   |
+86 |         binding.fill(&repeated, &world, &inputs, &identity)?.pack_request().unpack()?;
+   |                 ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:80:1
+   |
+80 | pub(crate) struct Binding {
+   | ------------------------- method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:88:24
+    |
+ 88 |     assert_eq!(binding.row(&repeated).variant, "RetryNotify");
+    |                        ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- method `row` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `row`, perhaps you need to implement it:
+            candidate #1: `Registry`
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:91:17
+    |
+ 91 |         binding.row(&event).kind,
+    |                 ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- method `row` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `row`, perhaps you need to implement it:
+            candidate #1: `Registry`
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:94:21
+   |
+94 |     assert!(binding.fill(&event, &world, &inputs, &identity).is_err());
+   |                     ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:80:1
+   |
+80 | pub(crate) struct Binding {
+   | ------------------------- method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:123:10
+    |
+122 |       let request = binding
+    |  ___________________-
+123 | |         .fill(&worker.action, &world, &Inputs { request_id: "request".into() }, &id())?
+    | |         -^^^^ method not found in `fixture::Binding`
+    | |_________|
+    |
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 |   pub(crate) struct Binding {
+    |   ------------------------- method `fill` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `fill`, perhaps you need to implement it:
+            candidate #1: `Fill`
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:132:58
+    |
+132 |         binding.reach_evidence(&Any::pack(&observation), &[&client, &worker])?,
+    |                 --------------                           ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                 |
+    |                 required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:136:58
+    |
+136 |         binding.reach_evidence(&Any::pack(&observation), &[&worker])?,
+    |                 --------------                           ^^^^^^^^^^ unsatisfied trait bound
+    |                 |
+    |                 required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:155:60
+    |
+155 |         assert!(binding.reach_evidence(&Any::pack(&wrong), &[&client, &worker]).is_err());
+    |                         --------------                     ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:156:60
+    |
+156 |         assert!(binding.reach_evidence(&Any::pack(&wrong), &[]).is_err());
+    |                         --------------                     ^^^ unsatisfied trait bound
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:166:62
+    |
+166 |         assert!(binding.reach_evidence(&Any::pack(&crossed), &[&client, &worker]).is_err());
+    |                         --------------                       ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:171:57
+    |
+171 |     assert!(binding.reach_evidence(&Any::pack(&absent), &[&client, &worker]).is_err());
+    |                     --------------                      ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:175:56
+    |
+175 |     assert!(binding.reach_evidence(&Any::pack(&wrong), &[&client, &worker]).is_err());
+    |                     --------------                     ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:183:52
+    |
+183 |         binding.reach_evidence(&Any::pack(&error), &[&client, &worker])?,
+    |                 --------------                     ^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+    |                 |
+    |                 required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:187:10
+    |
+186 |       let mut cancel = binding
+    |  ______________________-
+187 | |         .fill(&client.action, &world, &Inputs { request_id: "request".into() }, &id())?
+    | |         -^^^^ method not found in `fixture::Binding`
+    | |_________|
+    |
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 |   pub(crate) struct Binding {
+    |   ------------------------- method `fill` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `fill`, perhaps you need to implement it:
+            candidate #1: `Fill`
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:197:58
+    |
+197 |     assert!(binding.reach_evidence(&Any::pack(&crossed), &[&client]).is_err());
+    |                     --------------                       ^^^^^^^^^^ unsatisfied trait bound
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0277]: the trait bound `fixture::Binding: Fill<fixture::specimen::Action>` is not satisfied
+   --> temporal/realization/tests/registry.rs:205:58
+    |
+205 |     assert!(binding.reach_evidence(&Any::pack(&missing), &[&client]).is_err());
+    |                     --------------                       ^^^^^^^^^^ unsatisfied trait bound
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+help: the trait `Fill<fixture::specimen::Action>` is not implemented for `fixture::Binding`
+   --> temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^
+help: the trait `Fill<<umpire_temporal::activity::World as Machine>::Action>` is implemented for `Realization`
+   --> temporal/realization/src/../../feature/activity/temporal.rs:643:1
+    |
+643 | impl umpire_runtime::capability::Fill<Action> for Realization {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `reach_evidence`
+   --> umpire/protocol/runtime/src/runtime.rs:247:7
+    |
+247 |     + crate::capability::Fill<M::Action, World = M>
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Realize::reach_evidence`
+...
+307 |     fn reach_evidence(
+    |        -------------- required by a bound in this associated function
+
+error[E0599]: no associated function or constant named `entity` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:213:27
+    |
+213 |     let entity = Binding::entity();
+    |                           ^^^^^^ associated function or constant not found in `fixture::Binding`
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- associated function or constant `entity` not found for this struct
+    |
+help: there is a method `identify` with a similar name, but with different arguments
+   --> umpire/protocol/runtime/src/capability.rs:14:5
+    |
+ 14 |     fn identify(&self, value: &Any) -> Result<Self::Id, Refusal>;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `read` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:233:25
+    |
+233 |     let read = Binding::read();
+    |                         ^^^^ associated function or constant not found in `fixture::Binding`
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:80:1
+    |
+ 80 | pub(crate) struct Binding {
+    | ------------------------- associated function or constant `read` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `read`, perhaps you need to implement it:
+            candidate #1: `std::io::Read`
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `umpire-temporal` (test "registry") due to 26 previous errors

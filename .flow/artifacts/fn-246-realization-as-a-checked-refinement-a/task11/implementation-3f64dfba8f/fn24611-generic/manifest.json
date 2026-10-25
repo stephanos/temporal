@@ -1,0 +1,79 @@
+{
+  "logs": [
+    {
+      "path": ".flow/tmp/fn24611-generic/red.log",
+      "exit_code": 101,
+      "sha256": "bd2ffe0c261c7957c3ff224214561903accc96644ec811a05daf70a2659bcaa8"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/green.log",
+      "exit_code": 101,
+      "sha256": "d50f16227ed8592d86181e9172c1b9ce0d6111a4fa66ac136397e7fbfd655ceb"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/green2.log",
+      "exit_code": 0,
+      "sha256": "2bcc8d970fa49d2ac05c76d4e3deb1690043569cc519686ceaf93e1d3f576e03"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/opaque-green.log",
+      "exit_code": 0,
+      "sha256": "c5e71334b7ca345a10ae0d8424680d8c322b1d9d3ea9bcc4ef871a445885eda9"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/dollar-red.log",
+      "exit_code": 101,
+      "sha256": "90a44ebae1b43895e0aa4a070c29f6d7b08daa59c4babdb4878a143a4fd4f3f3"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/full-preaccept.log",
+      "exit_code": 101,
+      "sha256": "a01b39f5d5963acf560ba7686b8f469522d59fea01473660a26e79d49ee56d7a"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/full-accept.log",
+      "exit_code": 101,
+      "sha256": "fc661e0e7e95cbe80fc40832c48d00ebffe54407a108b1170644244b540746c7"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/repetition-red.log",
+      "exit_code": 101,
+      "sha256": "bcd4d4269021f03797175fa17c018a178e7b5b744dafb68400153073c50365e3"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/repetition-green.log",
+      "exit_code": 101,
+      "sha256": "586ad47a883fe17809d1d5ecef963e71ec923a36acd25bd9d7a7db41aa007e90"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/repetition-green2.log",
+      "exit_code": 101,
+      "sha256": "44ef0fe30b23cda5fc4ab8d77913b3927d79a779ac544c5092a490dd031538b8"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/repetition-green3.log",
+      "exit_code": 0,
+      "sha256": "64ea01b27aac0405e08c8408b81145eb7cbe85828e7e20729720e3073dc5e1fa"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/full-accept2.log",
+      "exit_code": 101,
+      "sha256": "15b2b72ce181ffaa3dc73b9103feb49861fe13522305700a7bf1f9208423cb77"
+    },
+    {
+      "path": ".flow/tmp/fn24611-generic/full-green.log",
+      "exit_code": 0,
+      "sha256": "384614292475b8e76e036b4077d68a9bd55ddc7a2a1d3ccb7206e6769f80e423"
+    }
+  ],
+  "status": "generic source complete; generic3 ordinary focused gate green; parent owns final combined strict clippy/boundary gate",
+  "green_command": "mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-author-consumer",
+  "proofs": [
+    "generic tuple/named/unit and empty callback inventories",
+    "missing metadata retained in full machine inventory",
+    "exact original absolute DSL prefix and opaque dollar repetition under renamed facade",
+    "unchanged native checking reached=3 and Verified",
+    "located duplicate namespace, placement and malformed namespace diagnostics"
+  ],
+  "snapshot_update": "five macro expansion snapshots add inventory bridges only"
+}

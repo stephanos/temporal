@@ -1,0 +1,24 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized] target(s) in 1.14s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_temporal_annotate_syntax-9a330419fdae3aee)
+
+running 1 test
+test registry::tests::rpc_type_witnesses_are_located_at_the_authored_type_options ... FAILED
+
+failures:
+
+---- registry::tests::rpc_type_witnesses_are_located_at_the_authored_type_options stdout ----
+
+thread 'registry::tests::rpc_type_witnesses_are_located_at_the_authored_type_options' (3322377) panicked at temporal/annotate/syntax/src/registry.rs:788:13:
+assertion `left == right` failed
+  left: 0
+ right: 10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    registry::tests::rpc_type_witnesses_are_located_at_the_authored_type_options
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-temporal-annotate-syntax --lib`

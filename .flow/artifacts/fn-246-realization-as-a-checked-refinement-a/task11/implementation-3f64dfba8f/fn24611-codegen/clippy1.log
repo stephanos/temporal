@@ -1,0 +1,55 @@
+    Checking unicode-ident v1.0.27
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir/derive)
+    Checking proc-macro2 v1.0.107
+    Checking quote v1.0.47
+    Checking equivalent v1.0.3
+    Checking bytemuck v1.25.2
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir)
+    Checking safe_arch v0.7.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+    Checking foldhash v0.1.5
+    Checking rand_core v0.9.5
+    Checking hashbrown v0.17.1
+    Checking rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+    Checking indexmap v2.14.2
+    Checking hashbrown v0.15.5
+    Checking wide v0.7.33
+    Checking bytes v1.12.1
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+    Checking imbl-sized-chunks v0.2.0
+    Checking fixedbitset v0.5.7
+    Checking archery v1.2.3
+    Checking petgraph v0.8.3
+    Checking imbl v7.0.2
+    Checking prost v0.14.4
+    Checking thiserror v2.0.21
+    Checking syn v3.0.9
+error: this argument is passed by value, but not consumed in the function body
+  --> umpire/author/dsl/macros/src/action.rs:69:58
+   |
+69 | pub(crate) fn metadata_bridge(name: &syn::Ident, actors: TokenStream) -> TokenStream {
+   |                                                          ^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_pass_by_value
+   = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+69 | pub(crate) fn metadata_bridge(name: &syn::Ident, actors: &TokenStream) -> TokenStream {
+   |                                                          +
+
+error: this argument is passed by value, but not consumed in the function body
+   --> umpire/author/dsl/macros/src/machine.rs:888:50
+    |
+888 | pub(crate) fn finish(original: &ItemMod, module: ItemMod) -> manyhow::Result<TokenStream> {
+    |                                                  ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+888 | pub(crate) fn finish(original: &ItemMod, module: &ItemMod) -> manyhow::Result<TokenStream> {
+    |                                                  +
+
+error: could not compile `umpire-dsl-macros` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

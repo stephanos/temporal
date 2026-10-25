@@ -1,0 +1,20 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+    Finished `test` profile [unoptimized] target(s) in 21.19s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_temporal_realization_macros-ec7b8866447c1a35)
+
+running 1 test
+test tests::read_configuration_requires_a_typed_correlation_hook ... FAILED
+
+failures:
+
+---- tests::read_configuration_requires_a_typed_correlation_hook stdout ----
+Error: "missing read correlation admitted"
+
+
+failures:
+    tests::read_configuration_requires_a_typed_correlation_hook
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.42s
+
+error: test failed, to rerun pass `-p umpire-temporal-realization-macros --lib`

@@ -33,7 +33,7 @@ name normal domain dependencies; test-only dependencies do not reverse the produ
 | --- | --- | --- |
 | `umpire`, `author/umpire` | Model author facade: DSL declarations, suite questions, `Catalog` and `annotate`; named `dsl`, `suite` and `catalog` module roots. | DSL, suite and catalog; runtime re-export for generated support. |
 | `umpire-dsl`, `author/dsl` | Model, World, state, action, outcome, claim and path contracts; native Models embed the admitted tree. | DSL macros; IR on native targets. |
-| `umpire-dsl-macros`, `author/dsl/macros` | Generate author declarations and preserve existing direct-crate macro expansion. | Front and IR; no backend. |
+| `umpire-dsl-macros`, `author/dsl/macros` | Generate author declarations, retain opaque per-variant metadata, and expose the complete action inventory through `action_metadata!`; preserve direct-crate macro expansion. | Front and IR; no backend or system-specific metadata semantics. |
 | `umpire-front`, `front` | Read declarations once and admit bodies into the typed tree, with located diagnostics. | IR; no backend or system Model. |
 | `umpire-ir`, `ir` and `umpire-ir-derive`, `ir/derive` | Represent the admitted tree, expressions and embedded typed values; admit exported literals into typed values (`Literal::admit`); derive constructor tokens. | IR depends on its derive support; no front or backend import. |
 | `umpire-checker`, `backends/native` | Explore a `Machine`, evaluate claims and retain exact rows and witnesses; interpreted checking uses the same admitted tree. | DSL, including its embedded IR contract; no symbolic adapter or system Model. |
@@ -54,7 +54,10 @@ Process support preserves Linux adopted-descendant cleanup and Darwin descendant
 other platforms refuse. Native macOS execution is not inferred from Linux/source controls.
 The default model gate leaves Apalache opt-in (`UMPIRE_APALACHE=require`); required TLC
 agreement uses `UMPIRE_BACKENDS=require`. `model/temporal/` owns system Models, API acquisition,
-annotation defaults, realization, guest and its Go adapter. Generic crates retain the source
+annotation defaults, realization, guest and its Go adapter. Temporal annotation syntax and realization
+macros admit descriptor-typed action registries; `realization::registry` exposes shared Fill
+classification, fallible full-prefix evidence and immutable entity/read configuration with typed
+correlation hooks. Production activity lens/probe installation remains separate work. Generic crates retain the source
 boundary against system-specific imports and names. The Go host, Runner, generated protocol
 and Kettle module ownership rows below describe their current paths.
 

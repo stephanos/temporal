@@ -1,0 +1,548 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 8.70s
+     Running tests/registry.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/registry-89aa15a0652be74c)
+
+running 4 tests
+test typed_bootstrap_and_read_hooks_keep_correlation_outside_the_action_graph ... ok
+test evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix ... ok
+test proposals_worker_rows_and_probe_baselines_use_one_current_typed_filler ... ok
+   Compiling anyhow v1.0.104
+   Compiling rustix v1.1.5
+   Compiling syn v2.0.119
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling smallvec v1.16.3
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling proc-macro-utils v0.10.0
+   Compiling linux-raw-sys v0.12.1
+   Compiling bytes v1.12.1
+   Compiling prettyplease v0.2.37
+   Compiling bitflags v2.13.2
+   Compiling prost-derive v0.14.4
+   Compiling fixedbitset v0.5.7
+   Compiling regex-syntax v0.8.11
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling petgraph v0.8.3
+   Compiling manyhow-macros v0.14.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling manyhow v0.14.1
+   Compiling tempfile v3.27.0
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling bytemuck v1.25.2
+   Compiling safe_arch v0.7.4
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling wide v0.7.33
+   Compiling thiserror v2.0.21
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling archery v1.2.3
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling ident_case v1.0.1
+   Compiling imbl v7.0.2
+   Compiling darling_core v0.24.1
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling rustc-hash v2.1.3
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling insta v1.49.0
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+   Compiling umpire-temporal-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized] target(s) in 16.82s
+
+
+test tests/ui/registry_added_actor.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_added_actor.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+warning: unused imports: `Fill` and `Request`
+ --> tests/ui/registry_added_actor.rs:1:52
+  |
+1 | use umpire_runtime::{AnyMessage as _, capability::{Fill, Identity, Request}, prost_types::Any, protocol::Refusal};
+  |                                                    ^^^^            ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0004]: non-exhaustive patterns: `&specimen::Action::Worker(_)` and `&specimen::Action::Environment(_)` not covered
+  --> tests/ui/registry_added_actor.rs:11:1
+   |
+11 | / umpire_temporal::registry! {
+12 | |     model { specimen }
+13 | |     actors { enum Client { #[metadata(temporal(event = "event", evidence = event))] Ping } }
+14 | |     body {
+...  |
+20 | | }
+   | |_^ patterns `&specimen::Action::Worker(_)` and `&specimen::Action::Environment(_)` not covered
+   |
+note: `specimen::Action` defined here
+  --> tests/ui/../registry/fixture.rs
+   |
+   | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+...
+   |     pub(crate) enum Worker {
+   |                     ------ not covered
+...
+   |     pub(crate) enum Environment {
+   |                     ----------- not covered
+   = note: the matched value is of type `&specimen::Action`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern, a match arm with multiple or-patterns as shown, or multiple match arms
+   |
+20 ~ },
+21 + &specimen::Action::Worker(_) | &specimen::Action::Environment(_) => todo!()
+   |
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_claimed_field.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_claimed_field.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: unknown field path: temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.unknown_field
+ --> tests/ui/registry_claimed_field.rs:3:54
+  |
+3 |     actors { enum Client { #[metadata(temporal(rpc = WorkflowService::RequestCancelActivityExecution, direction = client, request = R...
+  |                                                      ^^^^^^^^^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_conflicting_action.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_conflicting_action.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: event declaration cannot contain RPC options
+ --> tests/ui/registry_conflicting_action.rs:3:140
+  |
+3 | ...wService::RequestCancelActivityExecution, evidence = event))] First } }
+  |                                                                  ^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_descriptor_type.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_descriptor_type.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+warning: unused imports: `Fill` and `Request`
+ --> tests/ui/registry_descriptor_type.rs:1:52
+  |
+1 | use umpire_runtime::{AnyMessage as _, capability::{Fill, Identity, Request}, prost_types::Any, protocol::Refusal};
+  |                                                    ^^^^            ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionRequest`, found a different `RequestCancelActivityExecutionRequest`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: `RequestCancelActivityExecutionRequest` and `RequestCancelActivityExecutionRequest` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionRequest` is defined in the current crate
+ --> tests/ui/registry_descriptor_type.rs:4:1
+  |
+4 | struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionRequest` is defined in crate `umpire_temporal_api`
+ --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+  |
+  | pub struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: `?` operator has incompatible types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionRequest`, found a different `RequestCancelActivityExecutionRequest`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: `?` operator cannot convert from `RequestCancelActivityExecutionRequest` to `umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest`
+  = note: `RequestCancelActivityExecutionRequest` and `RequestCancelActivityExecutionRequest` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionRequest` is defined in the current crate
+ --> tests/ui/registry_descriptor_type.rs:4:1
+  |
+4 | struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionRequest` is defined in crate `umpire_temporal_api`
+ --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+  |
+  | pub struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionRequest`, found a different `RequestCancelActivityExecutionRequest`
+...
+  |               response = RequestCancelActivityExecutionResponse, fill = cancel, evidence = canceled, request_reads(namespace, acti...
+  |                                                                                            -------- arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: `RequestCancelActivityExecutionRequest` and `RequestCancelActivityExecutionRequest` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionRequest` is defined in crate `umpire_temporal_api`
+ --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+  |
+  | pub struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionRequest` is defined in the current crate
+ --> tests/ui/registry_descriptor_type.rs:4:1
+  |
+4 | struct RequestCancelActivityExecutionRequest {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...   fn canceled(&self, request: RequestCancelActivityExecutionRequest, response: Result<RequestCancelActivityExecutionResponse, ...
+  |          ^^^^^^^^        ----------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_duplicate_entity.rs [should fail to compile] ... test registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types has been running for over 60 seconds
+wip
+
+NOTE: writing the following output to `tests/ui/registry_duplicate_entity.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: duplicate entity declaration
+ --> tests/ui/registry_duplicate_entity.rs:7:9
+  |
+7 |         #[entity(rpc = WorkflowService::StartActivityExecution)]
+  |         ^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_duplicate_option.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_duplicate_option.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: duplicate temporal action option
+ --> tests/ui/registry_duplicate_option.rs:3:65
+  |
+3 |     actors { enum Client { #[metadata(temporal(event = "event", event = "duplicate", evidence = event))] First } }
+  |                                                                 ^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_duplicate_read.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_duplicate_read.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: duplicate read declaration
+ --> tests/ui/registry_duplicate_read.rs:7:9
+  |
+7 |         #[read(rpc = WorkflowService::DescribeActivityExecution)]
+  |         ^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_evidence_result.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_evidence_result.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error[E0308]: mismatched types
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |   #[umpire_dsl::machine]
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+   |   |
+   |   expected `Result<EvidenceMatch, Refusal>`, found `Result<bool, Refusal>`
+   |   expected `std::result::Result<EvidenceMatch, umpire_runtime::protocol::Refusal>` because of return type
+   |
+  ::: tests/ui/registry_evidence_result.rs:5:1
+   |
+ 5 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 6 | |     #[registry(inputs = ())]
+ 7 | |     impl Binding {
+ 8 | |         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<RequestCancelActivityExecutionRequest,...
+...  |
+15 | | });
+   | |__- in this macro invocation
+   |
+   = note: expected enum `Result<EvidenceMatch, Refusal>`
+              found enum `Result<bool, Refusal>`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_filler_result.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_filler_result.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error[E0308]: `?` operator has incompatible types
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |   #[umpire_dsl::machine]
+   |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionRequest`, found `DescribeActivityExecutionRequest`
+   |
+  ::: tests/ui/registry_filler_result.rs:5:1
+   |
+ 5 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 6 | |     #[registry(inputs = ())]
+ 7 | |     impl Binding {
+ 8 | |         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<DescribeActivityExecutionRequest, Refu...
+...  |
+15 | | });
+   | |__- in this macro invocation
+   |
+   = note: `?` operator cannot convert from `umpire_temporal_api::temporal::api::workflowservice::v1::DescribeActivityExecutionRequest` to `umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionRequest`
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_missing_action.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_missing_action.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: action variant requires one temporal declaration
+  --> tests/ui/registry_missing_action.rs:9:9
+   |
+ 9 |           Added,
+   |           ^^^^^
+...
+15 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+16 | |     #[registry(inputs = ())]
+17 | |     impl Binding {}
+18 | | });
+   | |__- in this macro invocation
+   |
+   = note: this error originates in the macro `__umpire_forward_metadata` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_nested_result_enum.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_nested_result_enum.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: generated enum matches must name every variant; wildcard arm is forbidden
+  --> tests/ui/registry_nested_result_enum.rs:10:73
+   |
+10 |                     Ok(status) => match status { Status::Running => (), _ => () },
+   |                                                                         ^
+
+warning: unused import: `umpire_temporal_api::temporal::api::enums::v1::ActivityExecutionStatus as Status`
+ --> tests/ui/registry_nested_result_enum.rs:1:5
+  |
+1 | use umpire_temporal_api::temporal::api::enums::v1::ActivityExecutionStatus as Status;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_read_without_entity.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_read_without_entity.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: read declaration requires entity configuration
+ --> tests/ui/registry_read_without_entity.rs:4:95
+  |
+4 |     body { #[registry(inputs = ())] #[read(rpc = WorkflowService::DescribeActivityExecution)] impl Binding {} }
+  |                                                                                               ^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_response_identity.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_response_identity.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+warning: unused imports: `Fill` and `Request`
+ --> tests/ui/registry_response_identity.rs:1:52
+  |
+1 | use umpire_runtime::{AnyMessage as _, capability::{Fill, Identity, Request}, prost_types::Any, protocol::Refusal};
+  |                                                    ^^^^            ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionResponse`, found a different `RequestCancelActivityExecutionResponse`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: `RequestCancelActivityExecutionResponse` and `RequestCancelActivityExecutionResponse` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionResponse` is defined in the current crate
+ --> tests/ui/registry_response_identity.rs:3:1
+  |
+3 | struct RequestCancelActivityExecutionResponse;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionResponse` is defined in crate `umpire_temporal_api`
+ --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+  |
+  | pub struct RequestCancelActivityExecutionResponse {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionResponse`, found a different `RequestCancelActivityExecutionResponse`
+...
+  |               response = RequestCancelActivityExecutionResponse, fill = cancel, evidence = canceled, request_reads(namespace, acti...
+  |                                                                                            -------- arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: `RequestCancelActivityExecutionResponse` and `RequestCancelActivityExecutionResponse` have similar names, but are actually distinct types
+note: `RequestCancelActivityExecutionResponse` is defined in crate `umpire_temporal_api`
+ --> $OUT_DIR[umpire-temporal-api]/temporal.api.workflowservice.v1.rs
+  |
+  | pub struct RequestCancelActivityExecutionResponse {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `RequestCancelActivityExecutionResponse` is defined in the current crate
+ --> tests/ui/registry_response_identity.rs:3:1
+  |
+3 | struct RequestCancelActivityExecutionResponse;
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...fn canceled(&self, request: RequestCancelActivityExecutionRequest, response: Result<RequestCancelActivityExecutionResponse, i32>, p...
+  |       ^^^^^^^^                                                        -------------------------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_result_type.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_result_type.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+warning: unused imports: `Fill` and `Request`
+ --> tests/ui/registry_result_type.rs:1:52
+  |
+1 | use umpire_runtime::{AnyMessage as _, capability::{Fill, Identity, Request}, prost_types::Any, protocol::Refusal};
+  |                                                    ^^^^            ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RespondActivityTaskCompletedResponse`, found `RequestCancelActivityExecutionResponse`
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionResponse`, found `RespondActivityTaskCompletedResponse`
+...
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed, request_reads(namespace, task...
+  |                                                                                            --------- arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: expected enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse, i32>`
+             found enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedResponse, i32>`
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...fn completed(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, p...
+  |       ^^^^^^^^^                                                      -----------------------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/ui/../registry/fixture.rs
+  |
+  |   #[umpire_dsl::machine]
+  |   ^^^^^^^^^^^^^^^^^^^^^^ expected `RequestCancelActivityExecutionResponse`, found `RespondActivityTaskCompletedResponse`
+...
+  |               response = RespondActivityTaskCompletedResponse, fill = complete, evidence = completed,
+  |                                                                                            --------- arguments to this method are incorrect
+...
+  | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+  | |     #[registry(inputs = Inputs)]
+  | |     #[entity(rpc = WorkflowService::StartActivityExecution,
+  | |         request = StartActivityExecutionRequest, response = StartActivityExecutionResponse,
+... |
+  | | });
+  | |__- in this macro invocation
+  |
+  = note: expected enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RequestCancelActivityExecutionResponse, i32>`
+             found enum `Result<umpire_temporal_api::temporal::api::workflowservice::v1::RespondActivityTaskCompletedResponse, i32>`
+note: method defined here
+ --> tests/ui/../registry/fixture.rs
+  |
+  | ...fn completed(&self, request: RespondActivityTaskCompletedRequest, response: Result<RespondActivityTaskCompletedResponse, i32>, p...
+  |       ^^^^^^^^^                                                      -----------------------------------------------------------
+  = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/registry_unknown_option.rs [should fail to compile] ... wip
+
+NOTE: writing the following output to `tests/ui/registry_unknown_option.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: unknown temporal action option
+ --> tests/ui/registry_unknown_option.rs:3:83
+  |
+3 |     actors { enum Client { #[metadata(temporal(event = "event", evidence = event, unknown = value))] First } }
+  |                                                                                   ^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui-pass/registry_empty.rs [should pass] ... ok
+
+
+test registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 163.08s
+

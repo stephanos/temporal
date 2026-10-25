@@ -1,0 +1,223 @@
+{
+  "scope": "fn-246.11 Temporal registry codegen delegated subtask",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry",
+  "cargo_target_dir": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry",
+  "command_prefix": "unset BASH_ENV; cd <workspace>/model; CARGO_TARGET_DIR=<cargo_target_dir> CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0 CARGO_INCREMENTAL=0 CARGO_BUILD_JOBS=2 mise exec --",
+  "logs": [
+    {
+      "path": ".flow/tmp/fn24611-codegen/red.log",
+      "sha256": "189859e7139bf25ac4542331523f1eea0efe29c9f8a94f0a2d4f091ff26a76db",
+      "bytes": 3658,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib registry::tests",
+      "exit": 101,
+      "observation": "expected missing registry feature Input/rows symbols"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/green1.log",
+      "sha256": "8ef638e2e33af31ab384f48bf5eef156c76a0f618aa2cb5bdc13a5d6a0f865b8",
+      "bytes": 4879,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib registry::tests",
+      "exit": 101,
+      "observation": "implementation compile error: missing Spanned import"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/green2.log",
+      "sha256": "21b7eacc6e229d29986c7a56debb21ddc00759b01e1645da561f3472088fdf05",
+      "bytes": 2882,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib registry::tests",
+      "exit": 101,
+      "observation": "located-span assertion expected offset was hand-counted incorrectly; actual Missing starts column40"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/green3.log",
+      "sha256": "61aca8b42df768fda8376a3d145b537e595da9f38117e33e668355244c4945e6",
+      "bytes": 2503,
+      "command": "cargo test -p umpire-temporal-annotate-syntax",
+      "exit": 0,
+      "observation": "7 lib tests and13 realize controls passed"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/green4.log",
+      "sha256": "0d4c4d22a5b76f236a2aa573bcab5cb5e2ad4c40c562d5d24f041351fc0acd92",
+      "bytes": 2278,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib",
+      "exit": 0,
+      "observation": "9 lib tests passed, including config and nested macro scope controls"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/clippy1.log",
+      "sha256": "c496e783f17db85477a1658610e157bda44de6cbc9073b42394348b59f4342a8",
+      "bytes": 2918,
+      "command": "cargo clippy -p umpire-temporal-annotate-syntax --all-targets -- -D warnings",
+      "exit": 101,
+      "observation": "blocked on generic worker dependency needless_pass_by_value; worker subsequently fixed; own code clippy not reached"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/compile-backtrace.log",
+      "sha256": "f9499abaaa7707231efe965f06143217c6be5da29e87134f668f7be5a6ac43e5",
+      "bytes": 29281,
+      "command": "RUST_BACKTRACE=1 cargo test -p umpire-temporal --test registry evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+      "exit": 101,
+      "observation": "proc macro compiler/fallback mismatch; ordinary backtrace env did not expose stack"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/compile-hook.log",
+      "sha256": "4444009b81b6a150eb16b3932cb69a88aa668efc266c8682b11e74d94611dcb2",
+      "bytes": 34479,
+      "command": "cargo test -p umpire-temporal --test registry evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+      "exit": 101,
+      "observation": "temporary panic hook localized fallback ItemMacro::span re-quotation; hook removed after smallest direct-span fix"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/evidence-red2.log",
+      "sha256": "958515cc6c43152ea1ea9e332b37da80d988df982931c83ebb6153da78ad0445",
+      "bytes": 6324,
+      "command": "cargo test -p umpire-temporal --test registry evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+      "exit": 101,
+      "observation": "intended runtime red: malformed known-RPC evidence on empty path was not refused at registry.rs:64"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/evidence-green.log",
+      "sha256": "b303c33fc8aa59a3199c7c8f50471085255444d3df630ffd563c07d335ec932b",
+      "bytes": 5754,
+      "command": "cargo test -p umpire-temporal --test registry evidence_decodes_actual_types_and_preserves_the_complete_checked_prefix",
+      "exit": 0,
+      "observation": "1 focused evidence test passed after deduped type-only preadmission"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/payload-red.log",
+      "sha256": "1eb28919702ec7b01ae0b44f03847dcdc3f9d8dc3ba0665c3faad0bc6418016d",
+      "bytes": 1900,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib local_action_payload_bindings",
+      "exit": 101,
+      "observation": "intended regression red: ordinary local action tuple/struct payload binding was misclassified as an unknown external enum under glob import"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/payload-green.log",
+      "sha256": "073a7f4bb72abff09b4309f6f1b5861d9f8be0608bc81caf89f306800cebb9ff",
+      "bytes": 2802,
+      "command": "cargo test -p umpire-temporal-annotate-syntax",
+      "exit": 0,
+      "observation": "10 library and13 realize controls passed after positive-only variant provenance inference; generated aliases/nested/rest/reference controls retained"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/spans-red.log",
+      "sha256": "139127cae9faee6c6fccb40c210232066c47786475d1b9821e53da640cd5a936",
+      "bytes": 1173,
+      "command": "cargo test -p umpire-temporal-annotate-syntax --lib rpc_type_witnesses_are_located",
+      "exit": 101,
+      "observation": "intended red: generated witness coercion body at column0 rather than original type option column10"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/spans-green.log",
+      "sha256": "bf782c314ab2fe47bcec8173973c5e1797744c18967b68faaf49a7bfe3cdf0b7",
+      "bytes": 2891,
+      "command": "cargo test -p umpire-temporal-annotate-syntax",
+      "exit": 0,
+      "observation": "11 library and13 realize controls passed after exact type/hook diagnostic span mapping"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/clippy2.log",
+      "sha256": "14d4ba0e9a4a94a06ee0aabce5bb4f0096ebdf4546d94126126c64bdec4fa771",
+      "bytes": 1840,
+      "command": "cargo clippy -p umpire-temporal-annotate-syntax --all-targets -- -D warnings",
+      "exit": 0,
+      "observation": "strict syntax clippy passed including generic dependencies"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/macro-snapshots.log",
+      "sha256": "8c6af7bb2588ec4defb9e75a3823842d1d5f7f94ec8f1ef06e194f8d4103e146",
+      "bytes": 1777,
+      "command": "INSTA_UPDATE=always cargo test -p umpire-temporal-realization-macros --lib",
+      "exit": 0,
+      "observation": "6 macro tests passed; one new typed-action-registry snapshot intentionally accepted; existing activity snapshots unchanged"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/clippy-hook.log",
+      "sha256": "390b210cb152a1fb7c901da256ce1ea970fcfaccc1ab3d74d874b212d27cd397",
+      "bytes": 225,
+      "command": "cargo clippy -p umpire-temporal-annotate-syntax --all-targets -- -D warnings",
+      "exit": 0,
+      "observation": "strict syntax clippy passed after targeted RPC evidence/read policy fixed-signature allowances"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/macro-hook-snapshots.log",
+      "sha256": "33245d2dc4ece828203c6fa37588acf3eadc2415dc48d4e5a38f82610def85a6",
+      "bytes": 1080,
+      "command": "INSTA_UPDATE=always cargo test -p umpire-temporal-realization-macros --lib",
+      "exit": 0,
+      "observation": "6 macro controls passed; snapshots unchanged because representative authored impl has no hook bodies; actual synthetic fixture full clippy remains parent-owned"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/legacy-scope-green.log",
+      "sha256": "a307c270628f7ae4ac7c2711ec810a2c7232457b3d0b2545ab6998794c82d1d1",
+      "bytes": 2014,
+      "command": "cargo test -p umpire-temporal --test realization_admission",
+      "exit": 0,
+      "observation": "ordinary gate passed all3 legacy UI controls, including unchanged source-scope refusal golden"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/registry-scope-green.log",
+      "sha256": "b0415e9ae59c2ef6de09daf0f2274d7ce393487c4da503542967da94ac40152c",
+      "bytes": 2891,
+      "command": "cargo test -p umpire-temporal-annotate-syntax",
+      "exit": 0,
+      "observation": "11 library and13 realize controls passed, including registry macro-source permit and enum scope controls"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/scope-clippy.log",
+      "sha256": "b5ec3b7b1c0297e9b4baef385a15e60b2c5ccd0e8606bd55013af4f8e74ed5f7",
+      "bytes": 225,
+      "command": "cargo clippy -p umpire-temporal-annotate-syntax --all-targets -- -D warnings",
+      "exit": 0,
+      "observation": "strict syntax clippy passed after limiting macro-containing source lookup to registry only"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/read-correlation-red.log",
+      "sha256": "71e0ec9121376600e687e4e265be37f28fd40dc034726040af100afc48648380",
+      "bytes": 1052,
+      "command": "cargo test -p umpire-temporal-realization-macros --lib read_configuration_requires_a_typed_correlation_hook",
+      "exit": 101,
+      "observation": "intended red: otherwise-complete read config without correlation hook expanded successfully"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/read-correlation-green.log",
+      "sha256": "23d1ec98cb2709f684dd57d7648b597fe554997a1a933044394531a3e96b7599",
+      "bytes": 1368,
+      "command": "INSTA_UPDATE=always cargo test -p umpire-temporal-realization-macros --lib",
+      "exit": 0,
+      "observation": "7 macro controls passed; omitted read correlation now refuses; typed registry snapshot adds required correlate pointer"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/read-correlation-syntax.log",
+      "sha256": "15395de301899e29f22e6f28ecfc8495da6c0078becd27162960238c91f42e2c",
+      "bytes": 2891,
+      "command": "cargo test -p umpire-temporal-annotate-syntax",
+      "exit": 0,
+      "observation": "11 library and13 realize controls passed after mandatory typed read correlation"
+    },
+    {
+      "path": ".flow/tmp/fn24611-codegen/read-correlation-clippy.log",
+      "sha256": "b93f29cf92629633165b2278eedd4fcb768e93b6bf08fe0c29f541c145eb63aa",
+      "bytes": 226,
+      "command": "cargo clippy -p umpire-temporal-annotate-syntax --all-targets -- -D warnings",
+      "exit": 0,
+      "observation": "strict syntax clippy passed after mandatory typed read correlation"
+    }
+  ],
+  "active_commands": [],
+  "commits": [],
+  "deferred": [
+    "Parent owns final combined focused gates, registry UI stderr reacceptance for mapped diagnostics, full combined strict clippy, task evidence and source commit",
+    "Production activity registry/lens migration and full parent gate are outside this delegated scope"
+  ],
+  "source_sha256": {
+    "model/temporal/annotate/syntax/src/registry.rs": "b1a07fdf6318e502fa9005371f169534010b503afff4264cd40340cb96394249",
+    "model/temporal/annotate/syntax/src/lib.rs": "86b8b9e11307324afaad9cd51f77a2e0e8f6078c6160473a3158806be255fb21",
+    "model/temporal/annotate/syntax/src/realize.rs": "526072ff6fd702a178949ebc3649d013fe16ad5e4cc2f73096212cd0429923c8",
+    "model/temporal/annotate/syntax/src/realize/source.rs": "08f1bdd32ebd8eb971cffa73440760ff948d61ef362f65a3a058d72ff891ce0a",
+    "model/temporal/annotate/syntax/src/realize/patterns.rs": "0bb73cbdd8c596d44526aa44b11e09cdfc22d7f37190fdc5f64302b4f3614e9d",
+    "model/temporal/realization/macros/src/lib.rs": "7a1401942e39bedc1167976bff9bacea0df4fbddf44ae69e1d1698c49e531779",
+    "model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__typed-action-registry.snap": "f8031511fd2ce61f6e42bb4328741cdbcc2a77457b4517ee728d0f5bc4fae699"
+  }
+}

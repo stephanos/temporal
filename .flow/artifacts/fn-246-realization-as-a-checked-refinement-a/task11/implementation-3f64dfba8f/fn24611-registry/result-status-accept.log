@@ -1,0 +1,63 @@
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+    Finished `test` profile [unoptimized] target(s) in 10.24s
+     Running tests/registry.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/registry-89aa15a0652be74c)
+
+running 1 test
+    Checking bytes v1.12.1
+    Checking umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+    Checking umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+    Checking prost v0.14.4
+    Checking prost-types v0.14.4
+    Checking linux-raw-sys v0.12.1
+    Checking rustix v1.1.5
+    Checking umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+    Checking tempfile v3.27.0
+    Checking insta v1.49.0
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+    Checking umpire-temporal-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-temporal)
+    Finished `dev` profile [unoptimized] target(s) in 6.53s
+
+
+test tests/ui/registry_result_error_type.rs ... wip
+
+NOTE: writing the following output to `tests/ui/registry_result_error_type.stderr`.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error[E0308]: mismatched types
+  --> tests/ui/../registry/signature_model.rs
+   |
+   |               response = RequestCancelActivityExecutionResponse, fill = fill, evidence = evidence))]
+   |                                                                                          ^^^^^^^^
+   |                                                                                          |
+   |                                                                                          expected `Result<_, u16>`, found `Result<_, i32>`
+   |                                                                                          arguments to this method are incorrect
+   |
+  ::: tests/ui/registry_result_error_type.rs:6:1
+   |
+ 6 | / specimen::action_metadata!(umpire_temporal::registry; specimen; {
+ 7 | |     #[registry(inputs = ())]
+ 8 | |     impl Binding {
+ 9 | |         fn fill(&self, _: &specimen::Client, _: &specimen::World, _: &(), _: &()) -> Result<RequestCancelActivityExecutionRequest,...
+...  |
+12 | | });
+   | |__- in this macro invocation
+   |
+   = note: expected enum `Result<RequestCancelActivityExecutionResponse, u16>`
+              found enum `Result<RequestCancelActivityExecutionResponse, i32>`
+note: method defined here
+  --> tests/ui/registry_result_error_type.rs:10:12
+   |
+10 | ...   fn evidence(&self, _: RequestCancelActivityExecutionRequest, _: Result<RequestCancelActivityExecutionResponse, u16>, _: &[&Evi...
+   |          ^^^^^^^^                                                  ------------------------------------------------------
+   = note: this error originates in the macro `umpire_temporal::registry` which comes from the expansion of the macro `specimen::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+
+
+test registry_admission_uses_actual_inventory_descriptor_edges_and_rust_types ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 17.78s
+

@@ -1,0 +1,285 @@
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling winnow v1.0.4
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling tempfile v3.27.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling trybuild v1.0.122
+   Compiling insta v1.49.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+error[E0432]: unresolved import `umpire_temporal::registry`
+ --> temporal/realization/tests/registry.rs:6:22
+  |
+6 | use umpire_temporal::registry::{ActionKind, Direction, Registry};
+  |                      ^^^^^^^^ could not find `registry` in `umpire_temporal`
+
+error[E0433]: cannot find `registry` in `umpire_temporal`
+  --> temporal/realization/tests/registry/fixture.rs:60:45
+   |
+60 | specimen::action_metadata!(umpire_temporal::registry; specimen; {
+   |                                             ^^^^^^^^ could not find `registry` in `umpire_temporal`
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:22:27
+   |
+22 |     let request = binding.fill(&client, &world, &inputs, &identity)?.pack_request();
+   |                           ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:25:67
+   |
+25 |     let baseline: RequestCancelActivityExecutionRequest = binding.fill(&client, &world, &inputs, &identity)?.pack_request().unpack()?;
+   |                                                                   ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:28:30
+    |
+ 28 |     assert!(matches!(binding.row(&client).kind, ActionKind::Rpc { direction: Direction::Client, method: "/temporal.api.workflowserv...
+    |                              ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:48:1
+    |
+ 48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+    | ------------------ method `row` not found for this struct
+    |
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:32:64
+   |
+32 | ...   let row: RespondActivityTaskCompletedRequest = binding.fill(&action, &specimen::World::new(world_tag), &Inputs { request_id: i...
+   |                                                              ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:35:34
+    |
+ 35 |         assert!(matches!(binding.row(&action).kind, ActionKind::Rpc { direction: Direction::Worker, .. }));
+    |                                  ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:48:1
+    |
+ 48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+    | ------------------ method `row` not found for this struct
+    |
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `row` found for struct `fixture::Binding` in the current scope
+   --> temporal/realization/tests/registry.rs:38:30
+    |
+ 38 |     assert!(matches!(binding.row(&event).kind, ActionKind::Event { reason: "explicit refresh observation" }));
+    |                              ^^^
+    |
+   ::: temporal/realization/tests/registry/fixture.rs:48:1
+    |
+ 48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+    | ------------------ method `row` not found for this struct
+    |
+help: there is a method `borrow` with a similar name, but with different arguments
+   --> /home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/borrow.rs:179:5
+    |
+179 |     fn borrow(&self) -> &Borrowed;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:39:21
+   |
+39 |     assert!(binding.fill(&event, &world, &inputs, &identity).is_err());
+   |                     ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:55:27
+   |
+55 |     let request = binding.fill(&worker.action, &world, &Inputs { request_id: "request".into() }, &id())?.pack_request();
+   |                           ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:57:30
+   |
+57 |     assert!(matches!(binding.check_registered(&Any::pack(&observation), &[&client, &worker])?, EvidenceMatch::Match { cursor: 2 }));
+   |                              ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:58:30
+   |
+58 |     assert!(matches!(binding.check_registered(&Any::pack(&observation), &[&worker])?, EvidenceMatch::Reject));
+   |                              ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:62:25
+   |
+62 |         assert!(binding.check_registered(&Any::pack(&wrong), &[&client, &worker]).is_err());
+   |                         ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:65:21
+   |
+65 |     assert!(binding.check_registered(&Any::pack(&absent), &[&client, &worker]).is_err());
+   |                     ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:67:21
+   |
+67 |     assert!(binding.check_registered(&Any::pack(&wrong), &[&client, &worker]).is_err());
+   |                     ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:70:30
+   |
+70 |     assert!(matches!(binding.check_registered(&Any::pack(&error), &[&client, &worker])?, EvidenceMatch::Reject));
+   |                              ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no method named `fill` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:71:30
+   |
+71 |     let mut cancel = binding.fill(&client.action, &world, &Inputs { request_id: "request".into() }, &id())?.pack_request().unpack::<...
+   |                              ^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `fill` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `fill`, perhaps you need to implement it:
+           candidate #1: `Fill`
+
+error[E0599]: no method named `check_registered` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:74:21
+   |
+74 |     assert!(binding.check_registered(&Any::pack(&crossed), &[&client]).is_err());
+   |                     ^^^^^^^^^^^^^^^^ method not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ method `check_registered` not found for this struct
+
+error[E0599]: no associated function or constant named `entity` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:81:27
+   |
+81 |     let entity = Binding::entity();
+   |                           ^^^^^^ associated function or constant not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ associated function or constant `entity` not found for this struct
+   |
+help: there is a method `identify` with a similar name, but with different arguments
+  --> umpire/protocol/runtime/src/capability.rs:14:5
+   |
+14 |     fn identify(&self, value: &Any) -> Result<Self::Id, Refusal>;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no associated function or constant named `read` found for struct `fixture::Binding` in the current scope
+  --> temporal/realization/tests/registry.rs:89:25
+   |
+89 |     let read = Binding::read();
+   |                         ^^^^ associated function or constant not found in `fixture::Binding`
+   |
+  ::: temporal/realization/tests/registry/fixture.rs:48:1
+   |
+48 | pub struct Binding { pub calls: std::cell::Cell<usize> }
+   | ------------------ associated function or constant `read` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `read`, perhaps you need to implement it:
+           candidate #1: `std::io::Read`
+
+Some errors have detailed explanations: E0432, E0433, E0599.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `umpire-temporal` (test "registry") due to 20 previous errors

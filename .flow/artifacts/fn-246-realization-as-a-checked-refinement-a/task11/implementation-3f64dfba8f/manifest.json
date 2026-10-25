@@ -1,0 +1,565 @@
+{
+  "task_id": "fn-246-realization-as-a-checked-refinement-a.11",
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry",
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "commits": [
+    "a65f4ba7a3bfe6633ab74b6ba78c8ca07a8f81c4",
+    "7dcd40b98a12f8ff94d24ba4c7c64ec62baeff42",
+    "3f64dfba8ffbacd12adabb853bbd6b98435b2916"
+  ],
+  "source_model_tree": "9b819a501d1b0b457b35ee0b0956afa8c054fbc3",
+  "baseline": {
+    "mode": "conductor-provided scoped source evidence",
+    "model_trees": {
+      "143fc6de7c": "83aeb79433bd665989a5e836fe6fab7b886fdca1",
+      "93a9d06479": "83aeb79433bd665989a5e836fe6fab7b886fdca1"
+    },
+    "worker_pre_edit_suite": null,
+    "strict_flow_only_receipt_reused": false,
+    "limitation": "History includes MILESTONES.md. Parent full required gate remains outstanding after the recorded operational Apalache refusal."
+  },
+  "descriptor": {
+    "raw_sha256": "0f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d",
+    "linked": [
+      {
+        "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/build/umpire-temporal-realization-macros-28e2950875d7b96f/out/realization-api.binpb",
+        "sha256": "0e99f829e4fe91d10d3375755f98b984b7da1e858a68f98cfa23971782424f0c"
+      },
+      {
+        "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/build/umpire-temporal-realization-macros-3a27c2126fff9f10/out/realization-api.binpb",
+        "sha256": "0e99f829e4fe91d10d3375755f98b984b7da1e858a68f98cfa23971782424f0c"
+      },
+      {
+        "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/build/umpire-temporal-realization-macros-9f9768dd039bf823/out/realization-api.binpb",
+        "sha256": "0e99f829e4fe91d10d3375755f98b984b7da1e858a68f98cfa23971782424f0c"
+      },
+      {
+        "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/build/umpire-temporal-realization-macros-e82b1f93ae1a5a9f/out/realization-api.binpb",
+        "sha256": "0e99f829e4fe91d10d3375755f98b984b7da1e858a68f98cfa23971782424f0c"
+      }
+    ],
+    "canonical_comparison": "descriptor-image-comparison.json"
+  },
+  "toolchain": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo": "1.99.1 (5f94df478 2026-08-27)",
+    "CARGO_TARGET_DIR": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "checks": [
+    {
+      "id": "focused",
+      "command": "mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+      "exit_code": 0,
+      "log": "fn24611-registry/focused-final3.log",
+      "rust_totals": {
+        "passed": 167,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "id": "catalog",
+      "command": "mise exec -- cargo test -p umpire-catalog --test admission --test ui",
+      "exit_code": 0,
+      "log": "fn24611-registry/catalog-admission.log",
+      "rust_totals": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "id": "boundary",
+      "command": "mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+      "exit_code": 0,
+      "log": "fn24611-registry/boundary.log",
+      "rust_totals": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "id": "clippy",
+      "command": "mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "fn24611-registry/clippy-final2.log",
+      "rust_totals": null
+    },
+    {
+      "id": "fmt",
+      "command": "mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check",
+      "exit_code": 0,
+      "log": "fn24611-registry/fmt-final3.log",
+      "rust_totals": null
+    }
+  ],
+  "worker_attempts": [
+    {
+      "log": "fn24611-registry/boundary.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/catalog-admission.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/classify-final.log",
+      "exit_code": 1
+    },
+    {
+      "log": "fn24611-registry/classify.log",
+      "exit_code": 1
+    },
+    {
+      "log": "fn24611-registry/clippy-final.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/clippy-final2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/clippy.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/clippy2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/correlation-green.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/correlation-red.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/evidence-red.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/fmt-final.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/fmt-final2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/fmt-final3.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/fmt.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/focused-final.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/focused-final2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/focused-final3.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/read-correlation-ui.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/red.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/registry-accept.log",
+      "exit_code": 101
+    },
+    {
+      "log": "fn24611-registry/registry-accept2.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/registry-locations-accept.log",
+      "exit_code": 0
+    },
+    {
+      "log": "fn24611-registry/result-status-accept.log",
+      "exit_code": 0
+    }
+  ],
+  "acceptance_control_counts": {
+    "registry_compile_fail": 18,
+    "registry_compile_pass": 1,
+    "catalog_compile_fail": 10,
+    "catalog_compile_pass": 1
+  },
+  "commands_terminal": true,
+  "review": "deferred to conductor under parallel-wave policy",
+  "files": [
+    {
+      "path": "descriptor-image-comparison.json",
+      "bytes": 911,
+      "sha256": "20aa29a04702a47b906bd5a37eb7a84d3c05b5934f3e744b762855341ef16e52"
+    },
+    {
+      "path": "fn24611-codegen/clippy-hook.log",
+      "bytes": 225,
+      "sha256": "390b210cb152a1fb7c901da256ce1ea970fcfaccc1ab3d74d874b212d27cd397"
+    },
+    {
+      "path": "fn24611-codegen/clippy1.log",
+      "bytes": 2918,
+      "sha256": "c496e783f17db85477a1658610e157bda44de6cbc9073b42394348b59f4342a8"
+    },
+    {
+      "path": "fn24611-codegen/clippy2.log",
+      "bytes": 1840,
+      "sha256": "14d4ba0e9a4a94a06ee0aabce5bb4f0096ebdf4546d94126126c64bdec4fa771"
+    },
+    {
+      "path": "fn24611-codegen/compile-backtrace.log",
+      "bytes": 29281,
+      "sha256": "f9499abaaa7707231efe965f06143217c6be5da29e87134f668f7be5a6ac43e5"
+    },
+    {
+      "path": "fn24611-codegen/compile-hook.log",
+      "bytes": 34479,
+      "sha256": "4444009b81b6a150eb16b3932cb69a88aa668efc266c8682b11e74d94611dcb2"
+    },
+    {
+      "path": "fn24611-codegen/evidence-green.log",
+      "bytes": 5754,
+      "sha256": "b303c33fc8aa59a3199c7c8f50471085255444d3df630ffd563c07d335ec932b"
+    },
+    {
+      "path": "fn24611-codegen/evidence-red2.log",
+      "bytes": 6324,
+      "sha256": "958515cc6c43152ea1ea9e332b37da80d988df982931c83ebb6153da78ad0445"
+    },
+    {
+      "path": "fn24611-codegen/green1.log",
+      "bytes": 4879,
+      "sha256": "8ef638e2e33af31ab384f48bf5eef156c76a0f618aa2cb5bdc13a5d6a0f865b8"
+    },
+    {
+      "path": "fn24611-codegen/green2.log",
+      "bytes": 2882,
+      "sha256": "21b7eacc6e229d29986c7a56debb21ddc00759b01e1645da561f3472088fdf05"
+    },
+    {
+      "path": "fn24611-codegen/green3.log",
+      "bytes": 2503,
+      "sha256": "61aca8b42df768fda8376a3d145b537e595da9f38117e33e668355244c4945e6"
+    },
+    {
+      "path": "fn24611-codegen/green4.log",
+      "bytes": 2278,
+      "sha256": "0d4c4d22a5b76f236a2aa573bcab5cb5e2ad4c40c562d5d24f041351fc0acd92"
+    },
+    {
+      "path": "fn24611-codegen/handover.md",
+      "bytes": 4356,
+      "sha256": "d0cf81e7a4808220023157252b1263247d73ca07cc958540d0b2b9fdb184a988"
+    },
+    {
+      "path": "fn24611-codegen/legacy-scope-green.log",
+      "bytes": 2014,
+      "sha256": "a307c270628f7ae4ac7c2711ec810a2c7232457b3d0b2545ab6998794c82d1d1"
+    },
+    {
+      "path": "fn24611-codegen/macro-hook-snapshots.log",
+      "bytes": 1080,
+      "sha256": "33245d2dc4ece828203c6fa37588acf3eadc2415dc48d4e5a38f82610def85a6"
+    },
+    {
+      "path": "fn24611-codegen/macro-snapshots.log",
+      "bytes": 1777,
+      "sha256": "8c6af7bb2588ec4defb9e75a3823842d1d5f7f94ec8f1ef06e194f8d4103e146"
+    },
+    {
+      "path": "fn24611-codegen/manifest.json",
+      "bytes": 12044,
+      "sha256": "21ea746a633b0657c56854fec78b171a078a783563e56b8f8d59377aa415d49d"
+    },
+    {
+      "path": "fn24611-codegen/payload-green.log",
+      "bytes": 2802,
+      "sha256": "073a7f4bb72abff09b4309f6f1b5861d9f8be0608bc81caf89f306800cebb9ff"
+    },
+    {
+      "path": "fn24611-codegen/payload-red.log",
+      "bytes": 1900,
+      "sha256": "1eb28919702ec7b01ae0b44f03847dcdc3f9d8dc3ba0665c3faad0bc6418016d"
+    },
+    {
+      "path": "fn24611-codegen/read-correlation-clippy.log",
+      "bytes": 226,
+      "sha256": "b93f29cf92629633165b2278eedd4fcb768e93b6bf08fe0c29f541c145eb63aa"
+    },
+    {
+      "path": "fn24611-codegen/read-correlation-green.log",
+      "bytes": 1368,
+      "sha256": "23d1ec98cb2709f684dd57d7648b597fe554997a1a933044394531a3e96b7599"
+    },
+    {
+      "path": "fn24611-codegen/read-correlation-red.log",
+      "bytes": 1052,
+      "sha256": "71e0ec9121376600e687e4e265be37f28fd40dc034726040af100afc48648380"
+    },
+    {
+      "path": "fn24611-codegen/read-correlation-syntax.log",
+      "bytes": 2891,
+      "sha256": "15395de301899e29f22e6f28ecfc8495da6c0078becd27162960238c91f42e2c"
+    },
+    {
+      "path": "fn24611-codegen/red.log",
+      "bytes": 3658,
+      "sha256": "189859e7139bf25ac4542331523f1eea0efe29c9f8a94f0a2d4f091ff26a76db"
+    },
+    {
+      "path": "fn24611-codegen/registry-scope-green.log",
+      "bytes": 2891,
+      "sha256": "b0415e9ae59c2ef6de09daf0f2274d7ce393487c4da503542967da94ac40152c"
+    },
+    {
+      "path": "fn24611-codegen/scope-clippy.log",
+      "bytes": 225,
+      "sha256": "b5ec3b7b1c0297e9b4baef385a15e60b2c5ccd0e8606bd55013af4f8e74ed5f7"
+    },
+    {
+      "path": "fn24611-codegen/spans-green.log",
+      "bytes": 2891,
+      "sha256": "bf782c314ab2fe47bcec8173973c5e1797744c18967b68faaf49a7bfe3cdf0b7"
+    },
+    {
+      "path": "fn24611-codegen/spans-red.log",
+      "bytes": 1173,
+      "sha256": "139127cae9faee6c6fccb40c210232066c47786475d1b9821e53da640cd5a936"
+    },
+    {
+      "path": "fn24611-generic/dollar-red.log",
+      "bytes": 2711,
+      "sha256": "90a44ebae1b43895e0aa4a070c29f6d7b08daa59c4babdb4878a143a4fd4f3f3"
+    },
+    {
+      "path": "fn24611-generic/full-accept.log",
+      "bytes": 10073,
+      "sha256": "fc661e0e7e95cbe80fc40832c48d00ebffe54407a108b1170644244b540746c7"
+    },
+    {
+      "path": "fn24611-generic/full-accept2.log",
+      "bytes": 12477,
+      "sha256": "15b2b72ce181ffaa3dc73b9103feb49861fe13522305700a7bf1f9208423cb77"
+    },
+    {
+      "path": "fn24611-generic/full-green.log",
+      "bytes": 9667,
+      "sha256": "384614292475b8e76e036b4077d68a9bd55ddc7a2a1d3ccb7206e6769f80e423"
+    },
+    {
+      "path": "fn24611-generic/full-preaccept.log",
+      "bytes": 16925,
+      "sha256": "a01b39f5d5963acf560ba7686b8f469522d59fea01473660a26e79d49ee56d7a"
+    },
+    {
+      "path": "fn24611-generic/green.log",
+      "bytes": 4538,
+      "sha256": "d50f16227ed8592d86181e9172c1b9ce0d6111a4fa66ac136397e7fbfd655ceb"
+    },
+    {
+      "path": "fn24611-generic/green2.log",
+      "bytes": 738,
+      "sha256": "2bcc8d970fa49d2ac05c76d4e3deb1690043569cc519686ceaf93e1d3f576e03"
+    },
+    {
+      "path": "fn24611-generic/manifest.json",
+      "bytes": 3036,
+      "sha256": "9f70dc468a3b7f79bfbba61dc69a49efa343d00a085dd99733f725127b2aa6c6"
+    },
+    {
+      "path": "fn24611-generic/opaque-green.log",
+      "bytes": 1890,
+      "sha256": "c5e71334b7ca345a10ae0d8424680d8c322b1d9d3ea9bcc4ef871a445885eda9"
+    },
+    {
+      "path": "fn24611-generic/red.log",
+      "bytes": 10722,
+      "sha256": "bd2ffe0c261c7957c3ff224214561903accc96644ec811a05daf70a2659bcaa8"
+    },
+    {
+      "path": "fn24611-generic/repetition-green.log",
+      "bytes": 4618,
+      "sha256": "586ad47a883fe17809d1d5ecef963e71ec923a36acd25bd9d7a7db41aa007e90"
+    },
+    {
+      "path": "fn24611-generic/repetition-green2.log",
+      "bytes": 4672,
+      "sha256": "44ef0fe30b23cda5fc4ab8d77913b3927d79a779ac544c5092a490dd031538b8"
+    },
+    {
+      "path": "fn24611-generic/repetition-green3.log",
+      "bytes": 2190,
+      "sha256": "64ea01b27aac0405e08c8408b81145eb7cbe85828e7e20729720e3073dc5e1fa"
+    },
+    {
+      "path": "fn24611-generic/repetition-red.log",
+      "bytes": 2486,
+      "sha256": "bcd4d4269021f03797175fa17c018a178e7b5b744dafb68400153073c50365e3"
+    },
+    {
+      "path": "fn24611-registry/anchor.txt",
+      "bytes": 74697,
+      "sha256": "d3b9c1b466bcb427a136dc137343e41643ae6e730f7285cfb21c659bd039d69d"
+    },
+    {
+      "path": "fn24611-registry/baseline-source-trees.json",
+      "bytes": 123,
+      "sha256": "63cb71f49321193b6e863dc40dd0297f5c5a08e76da66bb6ea08903cc3dfcb74"
+    },
+    {
+      "path": "fn24611-registry/baseline.txt",
+      "bytes": 764,
+      "sha256": "19a288321e4021a3dcc665d0acafa8a20f7f4895b5f1faccafad7201517b01fe"
+    },
+    {
+      "path": "fn24611-registry/boundary.log",
+      "bytes": 1679,
+      "sha256": "d8e2a2c8be31ed2fe05ff23b525e8c6cc3a460274b739c643c66fbf76d425c50"
+    },
+    {
+      "path": "fn24611-registry/catalog-admission.log",
+      "bytes": 2589,
+      "sha256": "490ad60f2c27a17c56cef9cbcb64314f1cb0b601aa9fc21aac79fa5f735669e3"
+    },
+    {
+      "path": "fn24611-registry/classify-final.log",
+      "bytes": 75,
+      "sha256": "713fe4322af912f89f4ec7737cfc0f6ecce8f4269942c45479a1fccf37089c53"
+    },
+    {
+      "path": "fn24611-registry/classify.log",
+      "bytes": 75,
+      "sha256": "713fe4322af912f89f4ec7737cfc0f6ecce8f4269942c45479a1fccf37089c53"
+    },
+    {
+      "path": "fn24611-registry/clippy-final.log",
+      "bytes": 1286,
+      "sha256": "7217f4fa5bac0f8308409998708912282a8e22ee5e238675ea30520ced4a15f1"
+    },
+    {
+      "path": "fn24611-registry/clippy-final2.log",
+      "bytes": 518,
+      "sha256": "9b585160712fc01886c35268ac5acb5a81d831f2683d015acfb3dc45070d4d7c"
+    },
+    {
+      "path": "fn24611-registry/clippy.log",
+      "bytes": 7502,
+      "sha256": "bfb06ebfe7cac33fbfbd3a97e630fbdb3351fd2d986b424b77f3501006501ded"
+    },
+    {
+      "path": "fn24611-registry/clippy2.log",
+      "bytes": 816,
+      "sha256": "62772559744c9e604fadb30811e15f29d0f077a27947bc5b81f0d7190d8fb644"
+    },
+    {
+      "path": "fn24611-registry/correlation-green.log",
+      "bytes": 1026,
+      "sha256": "ebd6e45763f400939a8434eb28d17282a83269ec1e400c0896d5ef9e11026213"
+    },
+    {
+      "path": "fn24611-registry/correlation-red.log",
+      "bytes": 26960,
+      "sha256": "935ac814b5d1a3699c28be125279dd78ccb588dc2c3311046f646810b1cc26b1"
+    },
+    {
+      "path": "fn24611-registry/evidence-red.log",
+      "bytes": 28543,
+      "sha256": "29f1c9728c9c100a3781c0fea4b4c75c80bcec4b96989dd79cd9a006c86d45cf"
+    },
+    {
+      "path": "fn24611-registry/fmt-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fn24611-registry/fmt-final2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fn24611-registry/fmt-final3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fn24611-registry/fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "fn24611-registry/focused-final.log",
+      "bytes": 25142,
+      "sha256": "e1c7279eaf88b0505c62b700f5177ff943751ceaa35cf4a696e4bb925a013bef"
+    },
+    {
+      "path": "fn24611-registry/focused-final2.log",
+      "bytes": 29671,
+      "sha256": "95a150e40e6a9e6f195761b27417ea9ea4f5d9ff1c278433ce83a2ab3d57b4f9"
+    },
+    {
+      "path": "fn24611-registry/focused-final3.log",
+      "bytes": 29990,
+      "sha256": "d22e98680fa341f6abf753c4fab72a22a2d0954e30ecda3d5daa678f9fc137a9"
+    },
+    {
+      "path": "fn24611-registry/read-correlation-ui.log",
+      "bytes": 4288,
+      "sha256": "1e2819f242de2915b9946d72a4ebac42e1dd100baf40cbd9b56cab86ce31d171"
+    },
+    {
+      "path": "fn24611-registry/red.log",
+      "bytes": 15492,
+      "sha256": "537286c09c031633cbe3ee8e57bc82014c8a686373a9fa9d976ab1794af73824"
+    },
+    {
+      "path": "fn24611-registry/registry-accept.log",
+      "bytes": 30110,
+      "sha256": "763e636ac4a60ab6acf27b1a9748ca765d533c15b48add98d4210e28080a1e48"
+    },
+    {
+      "path": "fn24611-registry/registry-accept2.log",
+      "bytes": 33355,
+      "sha256": "ad4a656ce68629b22c4868171d2ab4b37cf17a7862be9889cac1ee4ca26e6efa"
+    },
+    {
+      "path": "fn24611-registry/registry-locations-accept.log",
+      "bytes": 26688,
+      "sha256": "6ffcedfcd90ec275246239dd2edc8de48522648d046946364f7b61dbb3902241"
+    },
+    {
+      "path": "fn24611-registry/result-status-accept.log",
+      "bytes": 4410,
+      "sha256": "306b0dc91b6b522588b437f2a3badd523bcaa0c4cfb36b7b7fe0141f6551416a"
+    },
+    {
+      "path": "fn24611-registry/task-status.json",
+      "bytes": 719,
+      "sha256": "d6c9f2ac4eedf56d3a141c5a05bf142c4d66a54ad134c7f8aa2847868d7f946b"
+    },
+    {
+      "path": "preparation.txt",
+      "bytes": 22810,
+      "sha256": "6ade21eafe6a509406603d953a84446dfebedc6d7937b927afe91ca74ee9f8e5"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling darling v0.24.1
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/suite)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire)
+   Compiling umpire-author-consumer v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire/tests/consumer)
+    Finished `test` profile [unoptimized] target(s) in 3.92s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_author_consumer-83168673ab4370f1)
+
+running 3 tests
+test forwards_opaque_metadata_through_renamed_facade ... ok
+test capabilities::renamed_facade_preserves_generic_bounds_empty_actions_and_refusing_defaults ... ok
+test authors_a_machine_path_suite_and_catalog_through_one_dependency ... FAILED
+
+failures:
+
+---- authors_a_machine_path_suite_and_catalog_through_one_dependency stdout ----
+
+thread 'authors_a_machine_path_suite_and_catalog_through_one_dependency' (3275414) panicked at umpire/author/umpire/tests/consumer/src/lib.rs:97:5:
+Err(Diagnostic { line: 29, column: 9, message: "unsupported attribute `metadata` (cfg and external resolution are not inferred)" })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    authors_a_machine_path_suite_and_catalog_through_one_dependency
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p umpire-author-consumer --lib`

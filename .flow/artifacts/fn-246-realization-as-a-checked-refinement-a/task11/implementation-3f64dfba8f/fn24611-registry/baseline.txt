@@ -1,0 +1,6 @@
+Baseline: inherited green scoped source evidence supplied by conductor; no full-gate receipt claimed.
+Task7 integrated closure f83f643bc7: root six-crate209 pass/1 ignore.
+Task12 integrated closure93a9d06479: root eight-crate294 pass/1 ignore at source143fc6de7c.
+Conductor source tree83aeb79433bd665989a5e836fe6fab7b886fdca1 remained unchanged. History audit finds .flow/** plus MILESTONES.md, so no strict .flow-only receipt shortcut is claimed.
+Parent full required gate remains red/inconclusive operational Apalache refusal; no parent green receipt claimed.
+Raw proto/api.binpb source pinned to root SHA2560f8845ad30e19673abb7b5e7638cd32d4041d9ae7afe32318a673ac62eb4630d by explicit conductor correction; old5613 pin was unrelated historical worker raw image.

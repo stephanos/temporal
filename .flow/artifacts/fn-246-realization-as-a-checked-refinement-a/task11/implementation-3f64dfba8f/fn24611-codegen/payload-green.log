@@ -1,0 +1,43 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized] target(s) in 1.31s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_temporal_annotate_syntax-9a330419fdae3aee)
+
+running 10 tests
+test registry::tests::missing_action_metadata_is_located_on_the_actual_variant ... ok
+test realize::proposal_options_controls::proposal_options_refuse_malformed_values_and_locate_duplicates ... ok
+test registry::tests::entity_and_read_configuration_refuses_missing_conflicting_and_unknown_options ... ok
+test realization::tests::catalog_discovery_tracks_empty_directories_and_only_admitted_filenames ... ok
+test registry::tests::metadata_callback_scope_preserves_generated_enum_alias_coverage ... ok
+test registry::tests::local_action_payload_bindings_are_not_external_variants_from_a_glob ... ok
+test realization::tests::contexts_follow_rpc_input_output_edges_instead_of_message_admission ... ok
+test realization::tests::graph_retains_decoded_optional_presence_and_opaque_catalog_reason ... ok
+test registry::tests::invalid_variant_options_are_refused_at_the_declared_option ... ok
+test realization::tests::omitted_claim_cannot_be_consumed_but_explicit_ignore_remains_valid ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/realize.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/realize-012f85b8ada8c0f5)
+
+running 13 tests
+test realization_assembles_explicit_capabilities ... ok
+test generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks ... ok
+test proposal_dispatch_delegates_the_handler_and_optional_hooks ... ok
+test observation_only_realizations_inherit_the_refusing_answer_default ... ok
+test callback_dispatch_uses_the_typed_filler ... ok
+test handler_admission_rejects_ambiguous_or_unclassified_handlers ... ok
+test nested_descriptor_enums_are_recognized_by_their_generated_rust_path ... ok
+test method_and_cast_results_require_proven_coverage ... ok
+test deferred_and_reassigned_bindings_require_proven_coverage ... ok
+test dereferenced_enum_subjects_preserve_coverage ... ok
+test rest_patterns_cover_actual_payload_positions ... ok
+test wrapper_alias_payloads_do_not_erase_enum_identity ... ok
+test enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests umpire_temporal_annotate_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

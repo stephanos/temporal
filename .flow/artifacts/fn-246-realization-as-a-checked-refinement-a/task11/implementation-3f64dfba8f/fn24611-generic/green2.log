@@ -1,0 +1,18 @@
+    Finished `test` profile [unoptimized] target(s) in 0.04s
+     Running tests/fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/fixtures-d823e8fd5cd7b440)
+
+running 1 test
+   Compiling umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 0.08s
+
+
+test tests/pass/action_metadata.rs ... ok
+test tests/pass/optional_facts.rs ... ok
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+test private_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.66s
+

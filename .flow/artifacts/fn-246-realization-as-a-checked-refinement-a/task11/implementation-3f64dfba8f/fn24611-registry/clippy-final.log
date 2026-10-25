@@ -1,0 +1,15 @@
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+    Checking umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization)
+error: calling `ActivityExecutionOutcome::default()` is more clear than this expression
+   --> temporal/realization/tests/registry.rs:257:23
+    |
+257 |         outcome: Some(Default::default()),
+    |                       ^^^^^^^^^^^^^^^^^^ help: try: `ActivityExecutionOutcome::default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#default_trait_access
+    = note: `-D clippy::default-trait-access` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::default_trait_access)]`
+
+error: could not compile `umpire-temporal` (test "registry") due to 1 previous error

@@ -1,0 +1,16 @@
+{
+  "commits": [
+    "a65f4ba7a3bfe6633ab74b6ba78c8ca07a8f81c4",
+    "7dcd40b98a12f8ff94d24ba4c7c64ec62baeff42",
+    "3f64dfba8ffbacd12adabb853bbd6b98435b2916"
+  ],
+  "base_commit": "93a9d06479fe706b41fe77c7004cfedd7cf2ed5e",
+  "tests": [
+    "mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer",
+    "mise exec -- cargo test -p umpire-catalog --test admission --test ui",
+    "mise exec -- cargo test -p umpire-temporal-tests --test boundary",
+    "mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings",
+    "mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check"
+  ],
+  "prs": []
+}

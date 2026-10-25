@@ -1,0 +1,20 @@
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/annotate/syntax)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros)
+    Finished `test` profile [unoptimized] target(s) in 3.72s
+     Running unittests src/lib.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/umpire_temporal_realization_macros-ec7b8866447c1a35)
+
+running 6 tests
+test roots::dependency_roots::tests::resolves_absolute_roots_without_rewriting_qualified_caller_paths ... ok
+test tests::field_declarations_use_the_admitted_catalog_graph ... ok
+test tests::answer_contexts_follow_rpc_descriptor_edges ... ok
+test tests::migrated_realization_refusals_retain_source_locations ... ok
+updated snapshot /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/temporal/realization/macros/src/snapshots/umpire_temporal_realization_macros__tests__typed-action-registry.snap
+test tests::typed_registry_expansion ... ok
+test tests::activity_expansion ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+

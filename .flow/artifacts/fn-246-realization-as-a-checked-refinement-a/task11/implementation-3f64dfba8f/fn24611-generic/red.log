@@ -1,0 +1,250 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling serde_core v1.0.229
+   Compiling syn v3.0.9
+   Compiling libc v0.2.191
+   Compiling winnow v1.0.4
+   Compiling equivalent v1.0.3
+   Compiling prettyplease v0.3.0
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir/derive)
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling getrandom v0.4.3
+   Compiling thiserror v2.0.21
+   Compiling hashbrown v0.17.1
+   Compiling rustix v1.1.5
+   Compiling cfg-if v1.0.5
+   Compiling indexmap v2.14.2
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir)
+   Compiling thiserror-impl v2.0.21
+   Compiling bitflags v2.13.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling heck v0.5.0
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling fastrand v2.5.0
+   Compiling once_cell v1.21.4
+   Compiling bytemuck v1.25.2
+   Compiling const-oid v0.10.2
+   Compiling digest v0.11.3
+   Compiling safe_arch v0.7.4
+   Compiling tempfile v3.27.0
+   Compiling manyhow-macros v0.14.1
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling cpufeatures v0.3.1
+   Compiling rand_core v0.9.5
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling rand_xoshiro v0.7.0
+   Compiling proc-macro-crate v3.5.0
+   Compiling sha2 v0.11.1
+   Compiling manyhow v0.14.1
+   Compiling wide v0.7.33
+   Compiling foldhash v0.1.5
+   Compiling archery v1.2.3
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling zmij v1.0.23
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling hashbrown v0.15.5
+   Compiling imbl v7.0.2
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/process)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling fixedbitset v0.5.7
+   Compiling target-tuple v1.0.2
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.229
+   Compiling petgraph v0.8.3
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+   Compiling console v0.16.6
+   Compiling serde_spanned v1.1.2
+   Compiling similar v2.7.0
+   Compiling rustc-hash v2.1.3
+   Compiling itoa v1.0.18
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling memchr v2.8.3
+   Compiling insta v1.49.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+   Compiling serde_derive v1.0.229
+   Compiling termcolor v1.4.1
+   Compiling glob v0.3.4
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+   Compiling trybuild v1.0.122
+    Finished `test` profile [unoptimized] target(s) in 10.82s
+     Running tests/fixtures.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/fixtures-d823e8fd5cd7b440)
+
+running 1 test
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling prettyplease v0.3.0
+   Compiling libc v0.2.191
+   Compiling syn v3.0.9
+   Compiling typenum v1.20.1
+   Compiling hybrid-array v0.4.15
+   Compiling equivalent v1.0.3
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling thiserror v2.0.21
+   Compiling getrandom v0.4.3
+   Compiling cfg-if v1.0.5
+   Compiling proc-macro-utils v0.10.0
+   Compiling winnow v1.0.4
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling hashbrown v0.17.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling indexmap v2.14.2
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/ir)
+   Compiling manyhow-macros v0.14.1
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling const-oid v0.10.2
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling fastrand v2.5.0
+   Compiling bytemuck v1.25.2
+   Compiling once_cell v1.21.4
+   Compiling tempfile v3.27.0
+   Compiling safe_arch v0.7.4
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling digest v0.11.3
+   Compiling cpufeatures v0.3.1
+   Compiling heck v0.5.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling rand_core v0.9.5
+   Compiling rand_xoshiro v0.7.0
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/front)
+   Compiling sha2 v0.11.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling wide v0.7.33
+   Compiling manyhow v0.14.1
+   Compiling archery v1.2.3
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling imbl v7.0.2
+   Compiling umpire-backend-process v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/process)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling umpire-tla v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tla)
+   Compiling console v0.16.6
+   Compiling rustc-hash v2.1.3
+   Compiling similar v2.7.0
+   Compiling insta v1.49.0
+   Compiling umpire-tlc v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/tlc)
+   Compiling umpire-testing v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/dev/testing)
+   Compiling umpire-dsl-macros-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-dsl-macros)
+    Finished `dev` profile [unoptimized] target(s) in 9.46s
+
+
+test tests/pass/action_metadata.rs ... error
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error[E0433]: cannot find `action_metadata` in `model`
+  --> tests/pass/action_metadata.rs:75:8
+   |
+75 | model::action_metadata!(machine_inventory; model; { MACHINE_ACTORS });
+   |        ^^^^^^^^^^^^^^^ could not find `action_metadata` in `model`
+
+error: cannot find attribute `metadata` in this scope
+ --> tests/pass/action_metadata.rs:8:7
+  |
+8 |     #[metadata(example(arbitrary => [tokens]))]
+  |       ^^^^^^^^
+
+error: cannot find macro `__umpire_metadata_Generic` in this scope
+  --> tests/pass/action_metadata.rs:31:1
+   |
+31 | __umpire_metadata_Generic!(generic_inventory; Generic<bool>; { GENERIC_VARIANTS });
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: cannot find macro `__umpire_metadata_Empty` in this scope
+  --> tests/pass/action_metadata.rs:32:1
+   |
+32 | __umpire_metadata_Empty!(empty_inventory; Empty; {});
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: cannot find attribute `metadata` in this scope
+  --> tests/pass/action_metadata.rs:43:11
+   |
+43 |         #[metadata(example(opaque = path::to::item))]
+   |           ^^^^^^^^
+
+error[E0425]: cannot find value `GENERIC_VARIANTS` in this scope
+  --> tests/pass/action_metadata.rs:78:16
+   |
+78 |     assert_eq!(GENERIC_VARIANTS, 3);
+   |                ^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `MACHINE_ACTORS` in this scope
+  --> tests/pass/action_metadata.rs:79:16
+   |
+79 |     assert_eq!(MACHINE_ACTORS, 2);
+   |                ^^^^^^^^^^^^^^ not found in this scope
+
+warning: unused macro definition: `generic_inventory`
+  --> tests/pass/action_metadata.rs:17:14
+   |
+17 | macro_rules! generic_inventory {
+   |              ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused macro definition: `empty_inventory`
+  --> tests/pass/action_metadata.rs:27:14
+   |
+27 | macro_rules! empty_inventory {
+   |              ^^^^^^^^^^^^^^^
+
+warning: unused macro definition: `machine_inventory`
+  --> tests/pass/action_metadata.rs:65:14
+   |
+65 | macro_rules! machine_inventory {
+   |              ^^^^^^^^^^^^^^^^^
+
+error[E0310]: the parameter type `T` may not live long enough
+ --> tests/pass/action_metadata.rs:6:10
+  |
+6 | #[derive(Action)]
+  |          ^^^^^^
+  |          |
+  |          the parameter type `T` must be valid for the static lifetime...
+  |          ...so that the type `T` will meet its required lifetime bounds
+  |
+  = note: this error originates in the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider adding an explicit lifetime bound
+  |
+7 | enum Generic<T: Clone + 'static> {
+  |                       +++++++++
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/pass/optional_facts.rs ... ok
+test tests/pass/private_state.rs ... ok
+test tests/pass/public_actor_private_state.rs ... ok
+
+
+test private_state ... FAILED
+
+failures:
+
+---- private_state stdout ----
+
+thread 'private_state' (3262271) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:103:13:
+1 of 4 tests failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    private_state
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 16.10s
+
+error: test failed, to rerun pass `-p umpire-dsl-macros --test fixtures`

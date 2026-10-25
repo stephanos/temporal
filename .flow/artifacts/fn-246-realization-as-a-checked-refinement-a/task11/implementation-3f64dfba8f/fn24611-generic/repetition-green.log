@@ -1,0 +1,89 @@
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl/macros)
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/dsl)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/backends/native)
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/syntax)
+   Compiling umpire-suite v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/suite)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire)
+   Compiling umpire-author-consumer v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/author/umpire/tests/consumer)
+error: expected identifier, found `;`
+ --> umpire/author/umpire/tests/consumer/src/lib.rs:5:1
+  |
+5 | #[author_kit::machine]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `author_kit::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected identifier, found `;`
+  --> umpire/author/umpire/tests/consumer/src/lib.rs:56:1
+   |
+56 | #[author_kit::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `author_kit::machine` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected identifier, found `;`
+  --> umpire/author/umpire/tests/consumer/src/lib.rs:65:14
+   |
+65 |     #[derive(Action, Copy)]
+   |              ^^^^^^
+   |
+   = note: this error originates in the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected identifier, found `;`
+  --> umpire/author/umpire/tests/consumer/src/lib.rs:27:14
+   |
+27 |     #[derive(Action, Copy)]
+   |              ^^^^^^
+   |
+   = note: this error originates in the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find macro `action_metadata` in this scope
+   --> umpire/author/umpire/tests/consumer/src/lib.rs:5:1
+    |
+  5 | #[author_kit::machine]
+    | ^^^^^^^^^^^^^^^^^^^^^^
+...
+258 | counter::action_metadata!(inventory; counter; { DECLARED_ACTORS });
+    | ------------------------------------------------------------------ in this macro invocation
+    |
+    = help: have you added the `#[macro_use]` on the module/import?
+    = note: this error originates in the macro `counter::action_metadata` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing one of these macros
+    |
+  5 + use crate::counter::action_metadata;
+    |
+  5 + use crate::unsupported::action_metadata;
+    |
+
+error: cannot find macro `__umpire_metadata_User` in this scope
+   --> umpire/author/umpire/tests/consumer/src/lib.rs:27:14
+    |
+ 27 |     #[derive(Action, Copy)]
+    |              ^^^^^^
+...
+259 | counter::__umpire_metadata_User!(inventory; counter; { DECLARED_VARIANTS });
+    | --------------------------------------------------------------------------- in this macro invocation
+    |
+    = help: have you added the `#[macro_use]` on the module/import?
+    = note: this error originates in the macro `counter::__umpire_metadata_User` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider importing one of these macros
+    |
+  5 + use crate::counter::__umpire_metadata_User;
+    |
+  5 + use crate::unsupported::__umpire_metadata_User;
+    |
+
+warning: unused macro definition: `inventory`
+   --> umpire/author/umpire/tests/consumer/src/lib.rs:247:14
+    |
+247 | macro_rules! inventory {
+    |              ^^^^^^^^^
+    |
+    = note: `#[warn(unused_macros)]` (part of `#[warn(unused)]`) on by default
+
+warning: `umpire-author-consumer` (lib) generated 1 warning
+error: could not compile `umpire-author-consumer` (lib) due to 6 previous errors; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

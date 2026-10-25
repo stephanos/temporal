@@ -1,0 +1,44 @@
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+    Finished `test` profile [unoptimized] target(s) in 1.12s
+     Running tests/admission.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/admission-49d1d8acd5a5969f)
+
+running 1 test
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+    Checking umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized] target(s) in 0.57s
+
+
+test tests/admission-ui/added_action.rs ... ok
+test tests/admission-ui/added_actor.rs ... ok
+test tests/admission-ui/added_oneof_variant.rs ... ok
+test tests/admission-ui/invalid_response_checks.rs ... ok
+test tests/admission-ui/kind_type_mismatch.rs ... ok
+test tests/admission-ui/repeated_bytes_scalar.rs ... ok
+test tests/admission-ui/repeated_text_scalar.rs ... ok
+
+
+test declarations_reject_unclassified_or_incompatible_shapes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.42s
+
+     Running tests/ui.rs (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/debug/deps/ui-7ede0c25a57d8f99)
+
+running 1 test
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/protocol/runtime)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn24611-registry/model/umpire/catalog)
+   Compiling umpire-catalog-tests v0.0.0 (/home/agent/.cache/codex-build/umpire-milestones-20261024/fn24611-registry/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized] target(s) in 0.79s
+
+
+test tests/ui/added_enum_variant.rs [should fail to compile] ... ok
+test tests/ui/omitted_field.rs [should fail to compile] ... ok
+test tests/ui/wrong_message_map.rs [should fail to compile] ... ok
+test tests/pass/prost_names.rs [should pass] ... ok
+
+
+test catalog_requires_every_field_and_enum_variant ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.10s
+
