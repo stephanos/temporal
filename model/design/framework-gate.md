@@ -247,6 +247,14 @@ inactive target edge cannot evade the declaration check. The control includes an
 benign crate outside the root as well as an absent outside path, so an incidental Cargo
 resolution failure cannot masquerade as a proved containment check.
 
+Source-path checks resolve literal Rust `path`/`include*` references from their source file
+and manifest-root joins from their actual crate manifest, then require containment. The
+planted manifest-root `../../../..` escape must fail by this structural check. Do not ban
+the spelling globally: several deeper fixture includes with four or more parents remain
+inside the framework. Dynamic backend/cache paths still pass the existing runtime root
+admission, including isolated synthetic roots used by negative controls. .13 changes the
+45 known root joins; .10/.11 enforce the source-path guard and its planted control.
+
 This is the smallest explicit exception reconciling R7's local name ban with its agnostic
 libraries: operator policy data may name the banned system; ordinary framework files may
 not. The conductor must record this exact exception with the selections in Decision Context
