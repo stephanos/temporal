@@ -859,11 +859,63 @@
       "task": "fn-246-realization-as-a-checked-refinement-a.8",
       "timestamp": "2026-10-25T18:58:07.706145Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "21dfbc2f78c9eacee44fb208fa6286b028a8fb83e9573908e03baa0362692547",
+      "backend": "codex",
+      "base_sha": "f90bb325e5d383019f3287b31c3d9a713676fb7b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f1dcb29e5da3360dac2e71b4ccd8d53b",
+            "classification": "introduced",
+            "findingId": "finding-f1dcb29e5da3360dac2e71b4ccd8d53b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3230f667764744b3f1368f0f04a383b8",
+            "classification": "introduced",
+            "findingId": "finding-3230f667764744b3f1368f0f04a383b8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "3d54e19b1bfbce799ada92e4d5ffc7e8db636797",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "46a6242d0acd4cff89f8dfcc2f352e2b",
+      "round_consumed": true,
+      "scope": "impl:fn-246-realization-as-a-checked-refinement-a.11",
+      "superseded_by": null,
+      "task": "fn-246-realization-as-a-checked-refinement-a.11",
+      "timestamp": "2026-10-25T19:32:04.147990Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-246-realization-as-a-checked-refinement-a.1": 1,
-    "impl:fn-246-realization-as-a-checked-refinement-a.11": 1,
+    "impl:fn-246-realization-as-a-checked-refinement-a.11": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.12": 2,
     "impl:fn-246-realization-as-a-checked-refinement-a.14": 1,
     "impl:fn-246-realization-as-a-checked-refinement-a.7": 1,
@@ -896,5 +948,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-25T18:58:07.709621Z"
+  "updated_at": "2026-10-25T19:32:04.154628Z"
 }

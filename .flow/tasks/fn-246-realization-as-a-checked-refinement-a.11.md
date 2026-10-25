@@ -56,8 +56,10 @@ The joined full gate is running, not claimed complete by this task; task .15 ret
 Tier: AGENTS implementer gpt-6.1-sol/medium; reviewer gpt-6.1-sol/high (same family).
 stage: impl-review - SHIP (original primary session 01a173e8-01cb-73d2-a411-26134e411a9e).
 
+Joined snapshot-owner correction: second required gate passed all39 activity tests (2 inherited ignored) then refused the new typed-action-registry snapshot as unowned. Reopened .11; commit6bd6fc28c0 registers only its exact existing typed_registry_expansion reader, with unchanged scanner, negative controls and snapshot bytes. Ownership2 and actualconsumer1 tests, scoped strictclippy/fmt passed. New three-axis review at3d54e19b1b finalized SHIP, with independent cached-test/hash checks. The third joined required gate is running; its full pass remains mandatory for .15 and is not claimed here. Earlier failed gate/closure/review evidence is preserved.
+
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e78e5aa417f483d5ae19c1314d82433b6dc116ff, 5036795dc1cafbf2872a4b80a4fe5389de19373b, 6bd6fc28c0
+- Tests: mise exec -- cargo test -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer, mise exec -- cargo clippy -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --all-targets -- -D warnings, mise exec -- cargo fmt -p umpire-front -p umpire-dsl-macros -p umpire-temporal-annotate-syntax -p umpire-temporal -p umpire-temporal-realization-macros -p umpire-author-consumer --check, mise exec -- cargo test -p umpire-temporal-tests --test boundary, mise exec -- cargo test -p umpire-temporal-tests --test snapshot_ownership, mise exec -- cargo test -p umpire-temporal-realization-macros tests::typed_registry_expansion -- --exact, mise exec -- cargo clippy -p umpire-temporal-tests --test snapshot_ownership -- -D warnings, mise exec -- cargo fmt -p umpire-temporal-tests --check
 - PRs:
