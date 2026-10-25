@@ -150,6 +150,14 @@ fn command_custody_rejects_alias_mode_link_bound_and_root_substitution() {
     let session = fixture.session();
     let path = fixture.root.join("probe.stdout");
     assert_eq!(session.read(&path, 17).unwrap(), b"actual raw output");
+    session.write(&path, b"actual raw output").unwrap();
+    let error = session.write(&path, b"actual raw outpuX").unwrap_err();
+    assert_eq!(error, "retained recomputation differs");
+    proof(
+        "retained recomputation equality",
+        &json!({"actual":"actual raw output","expected":"actual raw outpuX"}),
+        &error,
+    );
     assert!(session.read(&path, 16).unwrap_err().contains("bound"));
     fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
     assert!(session.read(&path, 17).is_err());
