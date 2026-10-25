@@ -18,7 +18,11 @@ scan() (
   git grep --untracked --exclude-standard --color=never -n -z -I -E "$pattern" -- . "${historical[@]}" "$@" |
     "$helper" retired-names "$pattern"
   statuses=("${PIPESTATUS[@]}")
-  if [ "${statuses[0]}" -gt 1 ]; then exit "${statuses[0]}"; fi
+  if [ "${statuses[0]}" -gt 1 ]; then
+    if [ "${statuses[0]}" -ne 141 ] || [ "${statuses[1]}" -le 1 ]; then
+      exit "${statuses[0]}"
+    fi
+  fi
   case "${statuses[1]}" in
     0) exit 0 ;;
     1) printf '%s\n' 'retired Umpire crate name or path in active files' >&2; exit 1 ;;

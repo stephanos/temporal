@@ -1,0 +1,20 @@
+{
+  "proof_source": "523d131d2cf992b04a43b4d595ea0f1a434f44b6",
+  "current_changed_model_paths": [
+    "model/dev/xtask/tests/retired_names.rs",
+    "model/scripts/retired-names.sh",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm"
+  ],
+  "proof_relevant_source_unchanged": true,
+  "excluded_non_guest_inputs": [
+    "model/scripts/retired-names.sh",
+    "model/dev/xtask/tests/retired_names.rs"
+  ],
+  "canonical_asset_sha256": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872",
+  "authority": "Conductor explicitly approved narrow shell/test fix and confirmed neither file is a guest/compiler/identity input; no guest reproduction rerun for these changes alone.",
+  "source_hashes": {
+    "model/dev/xtask/tests/retired_names.rs": "cee01937f14c2faba6cb4ea38c1d3e8a69326e1ecb9353c704909a447c13e5e8",
+    "model/scripts/retired-names.sh": "b463c9c439a3dd85c365fb3db93d3b4fff3926a13125fb4528594273448abdef",
+    "model/temporal/hosts/go/umpire_temporal_guest.wasm": "bc27af7d5b6b1ed8fa5c524015046f3a8b7c12d2d488e9ce7cb3df3ea9217872"
+  }
+}

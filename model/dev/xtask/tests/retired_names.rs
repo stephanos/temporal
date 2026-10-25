@@ -264,3 +264,47 @@ fn io_and_missing_grep_errors_fail_closed() {
         .unwrap();
     assert_eq!(child.wait_with_output().unwrap().status.code(), Some(2));
 }
+
+#[cfg(unix)]
+#[test]
+fn shell_preserves_filter_failure_when_git_grep_gets_sigpipe() {
+    use std::os::unix::fs::PermissionsExt;
+    let scratch = Scratch::new();
+    scratch.write(
+        "model/scripts/retired-names.sh",
+        include_bytes!("../../../scripts/retired-names.sh"),
+    );
+    assert!(Command::new("git").args(["init", "-q"]).arg(&scratch.0).status().unwrap().success());
+    scratch.write("model/source.rs", ["author/umpire/", "tests/x\n"].concat().repeat(50_000));
+    for (git_failure, code, expected) in [(None, 2, 2), (None, 9, 9), (Some(7), 9, 7)] {
+        let bin = Scratch::new();
+        bin.write("grep", format!("#!/bin/sh\nexit {code}\n"));
+        std::fs::set_permissions(bin.0.join("grep"), std::fs::Permissions::from_mode(0o755))
+            .unwrap();
+        if let Some(git_failure) = git_failure {
+            bin.write(
+                "git",
+                format!(
+                    "#!/bin/sh\nprintf 'file\\0001\\000{}\\n'\nexit {git_failure}\n",
+                    ["author/umpire/", "tests/x"].concat()
+                ),
+            );
+            std::fs::set_permissions(bin.0.join("git"), std::fs::Permissions::from_mode(0o755))
+                .unwrap();
+        }
+        let path = std::env::join_paths(
+            std::iter::once(bin.0.clone())
+                .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+        )
+        .unwrap();
+        let output = Command::new("bash")
+            .arg(scratch.0.join("model/scripts/retired-names.sh"))
+            .env("BASH_ENV", "/dev/null")
+            .env("UMPIRE_XTASK", env!("CARGO_BIN_EXE_xtask"))
+            .env("PATH", path)
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(expected), "{output:?}");
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
+    }
+}

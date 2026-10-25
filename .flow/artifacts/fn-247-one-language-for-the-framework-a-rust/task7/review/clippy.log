@@ -1,0 +1,19 @@
+    Checking bitflags v2.13.2
+    Checking linux-raw-sys v0.12.1
+    Checking libc v0.2.191
+    Checking simd-adler32 v0.3.10
+    Checking adler2 v2.0.1
+    Checking crc32fast v1.5.3
+    Checking once_cell v1.21.4
+    Checking fastrand v2.5.0
+    Checking miniz_oxide v0.9.1
+    Checking rustix v1.1.5
+    Checking flate2 v1.1.10
+    Checking getrandom v0.4.3
+    Checking cpufeatures v0.3.1
+    Checking filetime v0.2.29
+    Checking sha2 v0.11.1
+    Checking tar v0.4.46
+    Checking tempfile v3.27.0
+    Checking xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.47s

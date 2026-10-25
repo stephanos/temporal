@@ -1,0 +1,16 @@
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.92s
+     Running tests/retired_names.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/retired_names-de900af57be1c172)
+
+running 7 tests
+retired-name filtering failed: control
+test io_and_missing_grep_errors_fail_closed ... ok
+test malformed_records_fail_closed ... ok
+test posix_ere_recheck_and_grep_failure_propagate ... ok
+test raw_records_exempt_only_author_facade_tokens ... ok
+test tool_failures_never_report_clean ... ok
+test shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... ok
+test active_spellings_and_historical_exclusions ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+

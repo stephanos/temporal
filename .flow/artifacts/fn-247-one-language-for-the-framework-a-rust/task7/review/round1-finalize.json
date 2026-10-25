@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "type": "impl_review",
+  "id": "fn-247-one-language-for-the-framework-a-rust.7",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a17074-dcee-7f43-87ee-dc5118dea7c9",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "standalone": false,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Returning a grep error immediately leaves stdin unread\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Returning a grep error immediately leaves stdin unread. With sufficient pending input, upstream `git grep` receives SIGPIPE; `retired-names.sh:21` prioritizes that status and returns 141 instead of the filter\u2019s error. The previous Python implementation consumed stdin before filtering. A caller reproduction using real `git grep` and an early-exiting filter stub returning 9 produced status 141. Existing tests exercise grep failures directly against xtask, missing this shell interaction.\n- **Suggestion**: Drain the remaining input before returning the filter error, or adjust shell status precedence to preserve filter errors when upstream receives SIGPIPE. Add a shell control with input exceeding pipe capacity and an injected grep failure.\n- **File:Line**: model/dev/xtask/src/retired_names.rs:85\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "draws": [
+    {
+      "axis": "correctness",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcee-7f43-87ee-dc5118dea7c9",
+      "verdict": "SHIP",
+      "failed": false
+    },
+    {
+      "axis": "contracts",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcee-7ff0-b54c-fc8d9fcb18ce",
+      "verdict": "NEEDS_WORK",
+      "failed": false
+    },
+    {
+      "axis": "integration",
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcec-79f2-988f-34a6527ba894",
+      "verdict": "SHIP",
+      "failed": false
+    }
+  ],
+  "needs_work_survivors": 1,
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "review_rounds": 1,
+  "review_rounds_cap": 8
+}

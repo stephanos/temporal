@@ -1,0 +1,37 @@
+   Compiling crc32fast v1.5.3
+   Compiling rustix v1.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling simd-adler32 v0.3.10
+   Compiling adler2 v2.0.1
+   Compiling filetime v0.2.29
+   Compiling cpufeatures v0.3.1
+   Compiling once_cell v1.21.4
+   Compiling sha2 v0.11.1
+   Compiling miniz_oxide v0.9.1
+   Compiling tar v0.4.46
+   Compiling flate2 v1.1.10
+   Compiling tempfile v3.27.0
+   Compiling xtask v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/model/dev/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.45s
+     Running tests/retired_names.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2477-target/debug/deps/retired_names-de900af57be1c172)
+
+running 1 test
+test shell_preserves_filter_failure_when_git_grep_gets_sigpipe ... FAILED
+
+failures:
+
+---- shell_preserves_filter_failure_when_git_grep_gets_sigpipe stdout ----
+
+thread 'shell_preserves_filter_failure_when_git_grep_gets_sigpipe' (762047) panicked at dev/xtask/tests/retired_names.rs:285:9:
+assertion `left == right` failed: Output { status: ExitStatus(unix_wait_status(36096)), stdout: "", stderr: "" }
+  left: Some(141)
+ right: Some(2)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shell_preserves_filter_failure_when_git_grep_gets_sigpipe
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p xtask --test retired_names`

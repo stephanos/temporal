@@ -1,0 +1,75 @@
+{
+  "base": "744128984f534ef7b081e78e07cd539e2ca8c7a7",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcee-7f43-87ee-dc5118dea7c9",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcee-7ff0-b54c-fc8d9fcb18ce",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a17074-dcec-79f2-988f-34a6527ba894",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "744128984f534ef7b081e78e07cd539e2ca8c7a7",
+    "headSha": "8cbe8ee453025d0a494586ecd122af3ba6f11525",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "744128984f534ef7b081e78e07cd539e2ca8c7a7",
+          "headSha": "8cbe8ee453025d0a494586ecd122af3ba6f11525",
+          "path": "model/dev/xtask/src/retired_names.rs",
+          "side": "head",
+          "startLine": 85
+        },
+        "body": "Returning a grep error immediately leaves stdin unread. With sufficient pending input, upstream `git grep` receives SIGPIPE; `retired-names.sh:21` prioritizes that status and returns 141 instead of the filter\u2019s error. The previous Python implementation consumed stdin before filtering. A caller reproduction using real `git grep` and an early-exiting filter stub returning 9 produced status 141. Existing tests exercise grep failures directly against xtask, missing this shell interaction.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-c9c30ff53a80293cd65585cf3f99aaa550b05deb742c68a63ddae2d82bc2525b",
+        "id": "finding-6246167a648536e9496ec3aba645a287",
+        "lastSeenReceiptId": "review-c9c30ff53a80293cd65585cf3f99aaa550b05deb742c68a63ddae2d82bc2525b",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Drain the remaining input before returning the filter error, or adjust shell status precedence to preserve filter errors when upstream receives SIGPIPE. Add a shell control with input exceeding pipe capacity and an injected grep failure.",
+        "title": "Returning a grep error immediately leaves stdin unread"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-c9c30ff53a80293cd65585cf3f99aaa550b05deb742c68a63ddae2d82bc2525b"
+  },
+  "id": "fn-247-one-language-for-the-framework-a-rust.7",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "## Issue 1\n- **Severity**: P2\n- **Title**: Returning a grep error immediately leaves stdin unread\n- **Confidence**: 75\n- **Classification**: introduced\n- **Problem**: Returning a grep error immediately leaves stdin unread. With sufficient pending input, upstream `git grep` receives SIGPIPE; `retired-names.sh:21` prioritizes that status and returns 141 instead of the filter\u2019s error. The previous Python implementation consumed stdin before filtering. A caller reproduction using real `git grep` and an early-exiting filter stub returning 9 produced status 141. Existing tests exercise grep failures directly against xtask, missing this shell interaction.\n- **Suggestion**: Drain the remaining input before returning the filter error, or adjust shell status precedence to preserve filter errors when upstream receives SIGPIPE. Add a shell control with input exceeding pipe capacity and an injected grep failure.\n- **File:Line**: model/dev/xtask/src/retired_names.rs:85\n- **R-IDs**: R2\n\n```json\n{\"classification_counts\": {\"introduced\": 1, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "review_reservation_id": "7089fdb19aa04831aad2b9eb1eae9ea7",
+  "rid": "7089fdb19aa04831aad2b9eb1eae9ea7",
+  "session_id": "01a17074-dcee-7f43-87ee-dc5118dea7c9",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-25T00:30:46.874505Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}
