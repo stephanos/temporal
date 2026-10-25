@@ -1,7 +1,8 @@
 use crate::activity::activity::{
     Client, Deadline, ExpiredDeadline, Model, Phase, Ticks, Worker, World,
 };
-use umpire_dsl::{Machine, Outcome, Phase as _, Rejection, Verdict, __lifted::ConcreteOf};
+use umpire_dsl::{__lifted::ConcreteOf, Machine, Outcome, Phase as _, Rejection, Verdict};
+use umpire_tla::observers;
 
 fn checked_world(
     maximum: u8,
@@ -453,21 +454,21 @@ fn actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model()
         let [before, after] = pair else {
             return Err("missing trace pair".into());
         };
-        if before.observers["__umpire_edge_tick"] == after.observers["__umpire_edge_tick"] {
+        if before.observers[observers::EDGE_TICK] == after.observers[observers::EDGE_TICK] {
             assert_eq!(before.state, after.state);
             continue;
         }
         assert_eq!(before.state["attempt"], Value::Int(i128::from(current.attempt)));
         assert_eq!(before.state["phase"], Value::Text(format!("Phase::{:?}", current.phase)));
-        let Value::Int(ordinal) = after.observers["__umpire_input"] else {
+        let Value::Int(ordinal) = after.observers[observers::INPUT] else {
             return Err("missing input".into());
         };
         let action =
             world.actions().get(usize::try_from(ordinal)?).ok_or("invalid action ordinal")?.clone();
         let identity = umpire_tla::Concrete::of::<World>(&action);
-        assert_eq!(after.observers["__umpire_action"], Value::Text(identity.action.clone()));
+        assert_eq!(after.observers[observers::ACTION], Value::Text(identity.action.clone()));
         assert_eq!(module.metadata.catalog[usize::try_from(ordinal)?], identity);
-        let Value::Int(choice) = after.observers["__umpire_choice"] else {
+        let Value::Int(choice) = after.observers[observers::CHOICE] else {
             return Err("missing choice".into());
         };
         let steps = world.checked_step(&current, action)?;
@@ -487,9 +488,9 @@ fn actual_tlc_rejected_outcome_counterexample_replays_in_the_activity_model()
             }
             Outcome::Rejected(_) => return Err("unexpected activity rejection".into()),
         };
-        assert_eq!(after.observers["__umpire_outcome"], Value::Text(expected.into()));
+        assert_eq!(after.observers[observers::OUTCOME], Value::Text(expected.into()));
         assert_eq!(facts.as_slice(), []);
-        assert_eq!(after.observers["__umpire_facts"], Value::Seq(vec![]));
+        assert_eq!(after.observers[observers::FACTS], Value::Seq(vec![]));
         current = destination.clone();
     }
     assert!(rejected);

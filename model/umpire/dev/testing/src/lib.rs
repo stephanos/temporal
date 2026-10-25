@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 pub mod backend;
+pub use backend::{Divergence, replay_trace};
 pub mod boundary;
 pub mod discovery;
 
