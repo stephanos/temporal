@@ -1,0 +1,7 @@
+{
+  "source_commit": "9eefdd2f94cf890cfc7ad37b677bd5abcbb94e1f",
+  "report_sha256": "98519e0b0ca3b70db8ca0410746adb4d559e19bd4c03971c647016e5fce05a6f",
+  "scope": "read-only declaration and inheritance inventory; no metadata/build/test pass claimed",
+  "pending_tlc_source": "be919e0999dbab7f3084f3211080c91d773e128e",
+  "implementation_obligation": "Preserve final integrated TLC feature; verify locked graph, exact inventory and affected tool/guest boundaries in task13."
+}
