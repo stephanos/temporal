@@ -1,0 +1,7 @@
+[tools."http:apalache"]
+version = "0.62.4"
+url = "https://github.com/apalache-mc/apalache/releases/download/v0.62.4/apalache-0.62.4.tgz"
+format = "tar.gz"
+strip_components = 1
+bin_path = "bin"
+checksum = "sha256:b781b53bba32fac14ac2e02b0332e1dc2edc64cb7b850c0608d8142cc7aa2ef4"

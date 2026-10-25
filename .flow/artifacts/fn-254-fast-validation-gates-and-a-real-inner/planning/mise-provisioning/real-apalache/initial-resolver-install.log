@@ -1,0 +1,6 @@
+mise by @jdx – installing 1 tool
+mise ✗ http:apalache@0.62.4  20ms · failed: Http backend requires 'url' option
+mise ████████████████ 1/1 · installed 0 tools · 1 failed in 21ms
+mise ERROR Failed to install http:apalache@0.62.4: Http backend requires 'url' option
+mise ERROR Version: 2026.10.11 linux-arm64 (2026-10-15)
+mise ERROR Run with --verbose or MISE_VERBOSE=1 for more information

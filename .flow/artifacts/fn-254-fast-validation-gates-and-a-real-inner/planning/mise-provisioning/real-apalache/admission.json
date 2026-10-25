@@ -1,0 +1,48 @@
+{
+  "installed": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4",
+  "jar": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4/lib/apalache.jar",
+  "jar_bytes": 197019382,
+  "jar_sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+  "path_components": [
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4/lib",
+      "mode": "0o40755",
+      "type": "directory"
+    },
+    {
+      "path": "/home/agent/.cache/codex-build/umpire-milestones-20261024/fn25416-apalache-probe/clean-context/data/installs/http-apalache/0.62.4/lib/apalache.jar",
+      "mode": "0o100644",
+      "type": "file"
+    }
+  ]
+}

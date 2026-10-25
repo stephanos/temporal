@@ -25,6 +25,10 @@ Runs after .13's workspace/tool extraction and .14's tool-probe removal. Task .1
 - [ ] Focused xtask/process/backend provisioning tests and affected fmt/clippy pass. Documentation and entry-point callers use the mise provider; broad model gates/timing remain assigned to .8 and directory-only gate proof to .11.
 
 
+## Actual release feasibility
+
+The isolated follow-up successfully installed the actual official Apalache release through mise HTTP, independently matched the archive/JAR hashes and ran the admitted JAR `version` command under pinned Java. Exact configs, resolver environment, statuses and limits are retained at `.flow/artifacts/fn-254-fast-validation-gates-and-a-real-inner/planning/mise-provisioning/real-apalache/report.md`. This is preparatory evidence, not a passing implementation/provider test. Future changed resolver/admission inputs need renewed relevant controls; production .14 probes remain removed. The installed data stays outside Git for reuse.
+
 ## Done summary
 TBD
 
