@@ -1,0 +1,6 @@
+{
+  "source": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/build/apalache/apalache-0.62.4",
+  "destination": "model/build/apalache/apalache-0.62.4",
+  "jar_sha256": "e5223915507b65cc5f1638bd037ede60f8a4fc1644aff46355779f9b05df9262",
+  "symlinks": false
+}

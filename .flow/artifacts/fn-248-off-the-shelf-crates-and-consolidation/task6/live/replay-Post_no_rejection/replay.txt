@@ -1,0 +1,5 @@
+property=Post_no_rejection bound=1 World={"__umpire_world_limit": Int(2)}
+Violation
+0: {"value": Int(1)}
+1: User::Set input=0 choice=0 outcome=Text("Outcome::Rejected(NotFound)") facts=Seq([])
+   {"value": Int(1)}

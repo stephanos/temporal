@@ -1,0 +1,5 @@
+property=Post_no_reset bound=1 World={"__umpire_world_limit": Int(2)}
+Violation
+0: {"value": Int(1)}
+1: User::Reset input=3 choice=0 outcome=Text("Outcome::Accepted") facts=Seq([])
+   {"value": Int(0)}

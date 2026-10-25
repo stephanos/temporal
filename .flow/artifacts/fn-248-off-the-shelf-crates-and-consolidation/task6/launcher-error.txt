@@ -1,0 +1,5 @@
+Initial launcher observation (inconclusive; no tests executed):
+bash: line 1: cd: model: No such file or directory
+suite_rc=1
+Nested Bash startup reset cwd; corrected with absolute cd before the actual green baseline.
+Tool-copy preparation first searched JAR_SHA256 in lib.rs, but the constant is re-exported; assertion stopped before any copy. Corrected to the existing authoritative pins file before copying and validating the jar.

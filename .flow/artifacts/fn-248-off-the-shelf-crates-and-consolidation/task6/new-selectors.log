@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target/debug/deps/controls-463741acbe9bc4c9)
+
+running 3 tests
+test strict_envelope_world_and_state_bounds ... ok
+test strict_envelope_presence_and_object_controls ... ok
+test strict_envelope_resource_controls ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.14s
+

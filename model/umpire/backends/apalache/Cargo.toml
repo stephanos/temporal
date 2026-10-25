@@ -15,7 +15,7 @@ umpire-backend-process.workspace = true
 umpire-tla.workspace = true
 umpire-checker.workspace = true
 umpire-dsl.workspace = true
-serde.workspace = true
+serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 
 [dev-dependencies]

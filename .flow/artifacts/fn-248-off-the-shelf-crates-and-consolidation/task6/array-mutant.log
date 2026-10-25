@@ -1,0 +1,22 @@
+   Compiling umpire-apalache v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2486-itf/model/umpire/backends/apalache)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.88s
+     Running tests/controls.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2486-target/debug/deps/controls-463741acbe9bc4c9)
+
+running 1 test
+test strict_envelope_presence_and_object_controls ... FAILED
+
+failures:
+
+---- strict_envelope_presence_and_object_controls stdout ----
+
+thread 'strict_envelope_presence_and_object_controls' (1010379) panicked at umpire/backends/apalache/tests/controls.rs:660:5:
+assertion failed: decode_itf(&positional.to_string(), &schema, &BTreeMap::new(), 0).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    strict_envelope_presence_and_object_controls
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p umpire-apalache --test controls`
