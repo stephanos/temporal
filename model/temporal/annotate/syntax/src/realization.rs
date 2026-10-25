@@ -200,7 +200,7 @@ impl Schema {
                 ignores.iter().map(|(path, reason)| (path, Classification::Ignored, Some(reason))),
             )
         {
-            self.resolve(name, path)?;
+            self.resolve(name, path, class == Classification::Mapped)?;
             if reason.is_some_and(|reason| reason.trim().is_empty()) {
                 return Err(format!("ignore requires a nonempty reason: {path}"));
             }
@@ -244,7 +244,7 @@ impl Schema {
         Ok(())
     }
 
-    fn resolve(&self, name: &str, path: &str) -> Result<(), String> {
+    fn resolve(&self, name: &str, path: &str, mapped: bool) -> Result<(), String> {
         let (head, tail) =
             path.split_once('.').map_or((path, None), |(head, tail)| (head, Some(tail)));
         let field = self
@@ -253,6 +253,9 @@ impl Schema {
             .iter()
             .find(|field| field.name == head)
             .ok_or_else(|| format!("unknown field path: {name}.{path}"))?;
+        if mapped && self.opaque(name, head) {
+            return Err(format!("unclaimed field cannot be mapped: {name}.{path}"));
+        }
         if let Some(tail) = tail {
             if self.opaque(name, head) {
                 return Err(format!("opaque field stops nested path: {name}.{path}"));
@@ -260,7 +263,7 @@ impl Schema {
             let Kind::Message { target } = &field.kind else {
                 return Err(format!("field has no nested paths: {name}.{path}"));
             };
-            self.resolve(target, tail)?;
+            self.resolve(target, tail, mapped)?;
         }
         Ok(())
     }
@@ -376,8 +379,11 @@ mod tests {
     };
 
     fn fixture() -> Result<Schema, String> {
-        let catalogs = crate::catalogs(
-            r#"
+        fixture_with_claim(false)
+    }
+
+    fn fixture_with_claim(omitted: bool) -> Result<Schema, String> {
+        let source = r#"
             #[derive(Catalog)] #[mirror(response = "test.Response")]
             struct Response { #[mirror(decided)] info: Message<Info>, extra: Text }
             #[derive(Catalog)] #[mirror(response = "test.Info")]
@@ -386,9 +392,7 @@ mod tests {
                 #[mirror(ignored = "external storage is opaque")]
                 external: Ignored,
             }
-        "#,
-        )
-        .map_err(|error| error.to_string())?;
+        "#;
         let scalar = |name: &str, number| FieldDescriptorProto {
             name: Some(name.into()),
             number: Some(number),
@@ -441,7 +445,29 @@ mod tests {
             }],
         }
         .encode_to_vec();
+        let source = if omitted { source.replace("status: Counter,", "") } else { source.into() };
+        let graph = Graph::new(&bytes, "::api")?;
+        let expanded = umpire_catalog_build::mirrors::expand(&source, &graph)
+            .map_err(|error| error.to_string())?;
+        let catalogs = crate::catalogs(&expanded).map_err(|error| error.to_string())?;
         Schema::new(&bytes, "::api", &catalogs)
+    }
+
+    #[test]
+    fn omitted_claim_cannot_be_consumed_but_explicit_ignore_remains_valid() -> Result<(), String> {
+        let claimed = fixture()?;
+        claimed.fields("test.Response", &["info.status".into()], &[])?;
+        let unclaimed = fixture_with_claim(true)?;
+        assert_eq!(
+            unclaimed.fields("test.Response", &["info.status".into()], &[]).err().as_deref(),
+            Some("unclaimed field cannot be mapped: test.Info.status")
+        );
+        unclaimed.fields(
+            "test.Response",
+            &[],
+            &[("info.status".into(), "Not projected".into())],
+        )?;
+        Ok(())
     }
 
     #[test]
@@ -453,7 +479,7 @@ mod tests {
         assert!(schema.opaque("test.Info", "external"));
         assert!(!schema.opaque("test.Info", "status"));
         assert_eq!(
-            schema.resolve("test.Response", "info.external.value").err().as_deref(),
+            schema.resolve("test.Response", "info.external.value", false).err().as_deref(),
             Some("opaque field stops nested path: test.Info.external.value")
         );
         Ok(())

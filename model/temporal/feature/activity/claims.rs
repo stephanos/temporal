@@ -200,6 +200,8 @@ pub struct StartActivityExecutionRequest {
     id_reuse_policy: Enum<e::ActivityIdReusePolicy>,
     #[rule(rejects = "unsupported ID conflict policy")]
     id_conflict_policy: Enum<e::ActivityIdConflictPolicy>,
+    #[mirror(decided)]
+    header: Message<c::Header>,
     #[rule(gte = 0, rejects = "invalid StartDelay")]
     start_delay: Duration,
 }

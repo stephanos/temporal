@@ -484,3 +484,26 @@ fn explicit_retry_order_uses_actual_enabled_policy_and_nanosecond_boundaries()
     }
     Ok(())
 }
+
+#[test]
+fn start_header_claim_preserves_actual_correlation_payload()
+-> Result<(), Box<dyn std::error::Error>> {
+    use umpire_temporal_api::temporal::api::common::v1::Header;
+    let mut request = start();
+    request.header = Some(Header {
+        fields: std::collections::BTreeMap::from([(
+            "umpire-scenario".into(),
+            Payload { data: b"Complete".to_vec(), ..Default::default() },
+        )]),
+    });
+    let annotated = annotate("StartActivityExecution", false, &request.encode_to_vec(), 7)?;
+    assert_eq!(annotated.violations, [] as [String; 0]);
+    let actual = StartActivityExecutionRequest::decode(annotated.bytes.as_slice())?;
+    assert_eq!(actual.header, request.header);
+    let claim = umpire_temporal_api::workflow_field_claim(
+        "temporal.api.workflowservice.v1.StartActivityExecutionRequest.header",
+    )
+    .ok_or("missing Header claim")?;
+    assert_eq!(claim.ignored, None);
+    Ok(())
+}

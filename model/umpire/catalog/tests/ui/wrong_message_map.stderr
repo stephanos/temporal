@@ -1,0 +1,27 @@
+error[E0271]: type mismatch resolving `<&BTreeMap<String, Actual> as IntoIterator>::Item == (&String, &Wrong)`
+  --> tests/ui/wrong_message_map.rs:13:10
+   |
+13 | #[derive(Catalog)]
+   |          ^^^^^^^ expected `(&String, &Wrong)`, found `(&String, &Actual)`
+   |
+   = note: expected tuple `(&String, &Wrong)`
+              found tuple `(&String, &Actual)`
+note: required by a bound in `message_entries`
+  --> src/views.rs
+   |
+   | pub fn message_entries<'a, T: Message + 'a>(
+   |        --------------- required by a bound in this function
+   |     values: impl IntoIterator<Item = (&'a String, &'a T)>,
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `message_entries`
+   = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: `?` operator has incompatible types
+  --> tests/ui/wrong_message_map.rs:13:10
+   |
+13 | #[derive(Catalog)]
+   |          ^^^^^^^ expected `BTreeMap<String, Actual>`, found `BTreeMap<String, Wrong>`
+   |
+   = note: `?` operator cannot convert from `BTreeMap<String, Wrong>` to `BTreeMap<String, Actual>`
+   = note: expected struct `BTreeMap<String, Actual>`
+              found struct `BTreeMap<String, Wrong>`
+   = note: this error originates in the derive macro `Catalog` (in Nightly builds, run with -Z macro-backtrace for more info)

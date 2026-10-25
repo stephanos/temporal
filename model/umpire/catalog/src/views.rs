@@ -28,6 +28,31 @@ pub fn metadata_entries<'a>(
     entries
 }
 
+/// Encodes message-valued map entries with their actual protobuf payload bytes.
+pub fn message_entries<'a, T: Message + 'a>(
+    values: impl IntoIterator<Item = (&'a String, &'a T)>,
+) -> Vec<MetadataEntry> {
+    let mut entries: Vec<_> = values
+        .into_iter()
+        .map(|(key, value)| MetadataEntry { key: key.clone(), value: value.encode_to_vec() })
+        .collect();
+    entries.sort_by(|a, b| a.key.cmp(&b.key));
+    entries
+}
+
+/// Decodes every typed message value before returning a replacement map.
+pub fn decode_message_entries<T: Message + Default>(
+    values: Vec<Vec<u8>>,
+) -> Result<std::collections::BTreeMap<String, T>, GenerationError> {
+    values
+        .into_iter()
+        .map(|bytes| {
+            let entry: MetadataEntry = decode_message(&bytes)?;
+            Ok((entry.key, decode_message(&entry.value)?))
+        })
+        .collect()
+}
+
 impl<K: 'static, V: 'static> View<kinds::Map<K, V>> for std::collections::BTreeMap<String, Vec<u8>>
 where
     String: View<K>,
