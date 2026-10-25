@@ -16,7 +16,7 @@ mkdir -p "$target"
 target=$(cd "$target" && pwd -P)
 bootstrap="$target/xtask-bootstrap"
 if ! (
-  unset RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP
+  unset CARGO_BUILD_TARGET RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER RUSTFLAGS CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP
   mise exec -- cargo build --locked -p xtask --bin xtask -p umpire-guest-driver --bin umpire-guest-driver --profile dev --target-dir "$bootstrap" >&2
 ); then
   printf 'xtask bootstrap failed: installed pinned Rust/Cargo are required\n' >&2

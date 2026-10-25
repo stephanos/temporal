@@ -10,6 +10,7 @@ cat > "$scratch/bin/mise" <<'TOOL'
 set -euo pipefail
 [ "$MISE_AUTO_INSTALL" = false ] && [ "$MISE_EXEC_AUTO_INSTALL" = false ]
 [ -z "${RUSTC_WRAPPER:-}" ] && [ -z "${RUSTFLAGS:-}" ]
+[ -z "${CARGO_BUILD_TARGET:-}" ]
 [ "$UMPIRE_TOOL_ROOT" = "$CONTROL_FRAMEWORK" ]
 [ "$PWD" = "$CONTROL_FRAMEWORK" ]
 [ "$1" = exec ] && [ "$2" = -- ] && [ "$3" = cargo ] && [ "$4" = build ]
@@ -32,7 +33,7 @@ TOOL
 chmod +x "$scratch/bin/mise"
 export PATH="$scratch/bin:$PATH" CONTROL_FRAMEWORK="$scratch/framework" CONTROL_CALLER="$scratch/caller" CONTROL_OUTPUT="$scratch/arguments"
 cd "$scratch/caller"
-CARGO_TARGET_DIR=target RUSTC_WRAPPER=bad RUSTFLAGS=bad bash "$scratch/framework/scripts/guest.sh" example relative.wasm --check
+CARGO_BUILD_TARGET=wasm32-wasip1 CARGO_TARGET_DIR=target RUSTC_WRAPPER=bad RUSTFLAGS=bad bash "$scratch/framework/scripts/guest.sh" example relative.wasm --check
 [ -x "$scratch/caller/target/xtask-bootstrap/debug/umpire-guest-driver" ]
 printf 'guest\nexample\n%s/relative.wasm\n--check\n' "$scratch/caller" > "$scratch/expected"
 cmp "$scratch/expected" "$scratch/arguments"
