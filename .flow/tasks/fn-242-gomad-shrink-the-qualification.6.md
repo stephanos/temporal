@@ -3,6 +3,8 @@ satisfies: [R4]
 ---
 # fn-242-gomad-shrink-the-qualification.6 Remove duplicated measurement checking
 
+**Owner amendment, 2026-10-25 (size counting is informational).** The `gomad-source-size/v1` counter crate and `tools/gomad/docs/source-size.md` are deleted. Record sizes with `tokei` on the named revisions, listing the path groups (production, tests, generated) next to the numbers. Size never gates or blocks closure. Requirements below for the original counter, counter versions, blob hashes/authentication and the three-path classifier correction are retired; earlier reports stay as history.
+
 ## Description
 Using the .1 inventory, remove logic in tools/gomad/rust/gomad/src/measurement/ (about 25k lines) that re-checks what qualify, report and the Result/receipt readers already prove; keep producers (host-owner-profile, runtime-cost-profile, stress, warm, cluster, retention) and their own checks. Each removal cites its inventory row. Fixture tests stay green; no bound or assertion weakened.
 

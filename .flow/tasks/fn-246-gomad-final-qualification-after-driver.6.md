@@ -5,6 +5,8 @@ satisfies: [R1, R8]
 
 **Owner acceptance amendment, 2026-10-24 (legacy compatibility retired).** Apply the [current compatibility policy](../artifacts/legacy-compatibility-policy-2026-10-24.md). Legacy Go/Python byte, schema, CLI/message and compatibility-only frozen-host requirements below are retired. Current behavior, integrity and same-candidate deterministic replay remain required; compatibility-only proof rows may retire explicitly without replacement proof.
 
+**Owner amendment, 2026-10-25 (size counting is informational).** The `gomad-source-size/v1` counter crate and `tools/gomad/docs/source-size.md` are deleted. Record sizes with `tokei` on the named revisions, listing the path groups (production, tests, generated) next to the numbers. Size never gates or blocks closure. Requirements below for the original counter, counter versions, blob hashes/authentication and the three-path classifier correction are retired; earlier reports stay as history.
+
 Touches: .flow/artifacts/fn246-r4-public-closeout-*, fn232 source-size/identity/custody ledger append; source232/fn185 state remains .7-owned
 
 ## Description

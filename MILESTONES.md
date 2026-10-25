@@ -73,6 +73,10 @@ Workers pick fn-253 tasks ahead of any other ready task outside fn-242.
 
 [fn-254](.flow/specs/fn-254-gomad-deeper-rust-host-testing-mutation.md) (deeper testing: cargo-mutants, decoder fuzzing, shuttle/loom, proptest, Miri, ThreadSanitizer; owner-approved 2026-10-25) follows fn-253 and runs alongside the cleanup ladder without blocking it. It adds only small proptest runs to the fast loop; everything else runs in the scheduled `mise run deep` tier.
 
+### Size counting is informational (owner ruling, 2026-10-25)
+
+The `gomad-source-size` crate (`rust/tools/source_size`) and `docs/source-size.md` are deleted. Size records in fn-232.25, fn-242 R5/.7 and fn-246 R8/.6 use `tokei` on named revisions, with path groups listed. Size never gates or blocks closure, and the counter-version, blob-hash and classifier-correction requirements are retired. Earlier reports stay as history.
+
 ### Cleanup first (owner amendment, 2026-10-24)
 
 Finish the narrow fn-232.30 checkpoint, then complete fn-242's Rust driver implementation

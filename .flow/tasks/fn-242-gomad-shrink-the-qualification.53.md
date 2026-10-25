@@ -3,6 +3,8 @@ satisfies: [R1, R2]
 ---
 # fn-242-gomad-shrink-the-qualification.53 Process receipt field review: keep only fields that catch a named failure
 
+**Owner amendment, 2026-10-25 (size counting is informational).** The `gomad-source-size/v1` counter crate and `tools/gomad/docs/source-size.md` are deleted. Record sizes with `tokei` on the named revisions, listing the path groups (production, tests, generated) next to the numbers. Size never gates or blocks closure. Requirements below for the original counter, counter versions, blob hashes/authentication and the three-path classifier correction are retired; earlier reports stay as history.
+
 ## Description
 Review the process custody receipt, field by field, against the obligation inventory. Keep a field only if it catches a named failure.
 

@@ -462,15 +462,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gomad-source-size"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
 name = "gomad-wasmhost"
 version = "0.1.0"
 dependencies = [

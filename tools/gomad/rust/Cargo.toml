@@ -1,5 +1,5 @@
 [workspace]
-members = ["gomad", "wasmhost", "tools/source_size"]
+members = ["gomad", "wasmhost"]
 default-members = ["gomad"]
 resolver = "3"
 
