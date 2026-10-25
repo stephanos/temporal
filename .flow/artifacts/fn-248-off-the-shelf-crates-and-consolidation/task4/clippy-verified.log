@@ -1,0 +1,9 @@
+    Checking getrandom v0.4.3
+    Checking console v0.16.6
+    Checking umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+    Checking tempfile v3.27.0
+    Checking prost-build v0.14.4
+    Checking insta v1.49.0
+    Checking umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+    Checking umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.46s

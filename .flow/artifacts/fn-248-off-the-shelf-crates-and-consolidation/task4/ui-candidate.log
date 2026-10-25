@@ -1,0 +1,72 @@
+   Compiling darling_core v0.24.1
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/macros)
+   Compiling umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.34s
+     Running tests/ui.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/ui-5637ecb799efd98c)
+
+running 1 test
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling darling_macro v0.24.1
+   Compiling darling v0.24.1
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/macros)
+    Checking umpire-catalog v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog)
+    Checking umpire-catalog-tests v0.0.0 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/tests/trybuild/umpire-catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.97s
+
+
+test tests/ui/added_enum_variant.rs ... ok
+test tests/ui/malformed_attributes.rs ... wip
+
+NOTE: writing the following output to `wip/malformed_attributes.stderr`.
+Move this file to `tests/ui/malformed_attributes.stderr` to accept it as correct.
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+error: Duplicate field `supplemental`
+ --> tests/ui/malformed_attributes.rs:4:48
+  |
+4 | #[mirror(response = "test.Wire", supplemental, supplemental)]
+  |                                                ^^^^^^^^^^^^
+
+error: Duplicate field `context`
+ --> tests/ui/malformed_attributes.rs:8:51
+  |
+8 | #[mirror(response = "test.Wire", context = First, context = Second, api = first, api = second)]
+  |                                                   ^^^^^^^
+
+error: Duplicate field `api`
+ --> tests/ui/malformed_attributes.rs:8:82
+  |
+8 | #[mirror(response = "test.Wire", context = First, context = Second, api = first, api = second)]
+  |                                                                                  ^^^
+
+error: expected identifier
+  --> tests/ui/malformed_attributes.rs:12:44
+   |
+12 | #[mirror(response = "test.Wire", context = "crate::Context")]
+   |                                            ^^^^^^^^^^^^^^^^
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+test tests/ui/omitted_field.rs ... ok
+
+
+test catalog_requires_every_field_and_enum_variant ... FAILED
+
+failures:
+
+---- catalog_requires_every_field_and_enum_variant stdout ----
+
+thread 'catalog_requires_every_field_and_enum_variant' (1031255) panicked at /home/agent/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/trybuild-1.0.122/src/run.rs:106:13:
+successfully created new stderr files for 1 test cases
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    catalog_requires_every_field_and_enum_variant
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.11s
+
+error: test failed, to rerun pass `-p umpire-catalog --test ui`

@@ -1,0 +1,176 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling equivalent v1.0.3
+   Compiling hashbrown v0.17.1
+   Compiling anyhow v1.0.104
+   Compiling either v1.19.0
+   Compiling rustix v1.1.5
+   Compiling foldhash v0.1.5
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling fastrand v2.5.0
+   Compiling hashbrown v0.15.5
+   Compiling prettyplease v0.2.37
+   Compiling itertools v0.14.0
+   Compiling prettyplease v0.3.0
+   Compiling regex-syntax v0.8.11
+   Compiling winnow v1.0.4
+   Compiling smallvec v1.16.3
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling bytemuck v1.25.2
+   Compiling indexmap v2.14.2
+   Compiling safe_arch v0.7.4
+   Compiling heck v0.5.0
+   Compiling once_cell v1.21.4
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling fixedbitset v0.5.7
+   Compiling rand_core v0.9.5
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/dsl/macros)
+   Compiling wide v0.7.33
+   Compiling imbl-sized-chunks v0.2.0
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling regex-automata v0.4.18
+   Compiling proc-macro-utils v0.10.0
+   Compiling petgraph v0.8.3
+   Compiling rand_xoshiro v0.7.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/author/dsl)
+   Compiling manyhow-macros v0.14.1
+   Compiling tempfile v3.27.0
+   Compiling archery v1.2.3
+   Compiling regex v1.13.1
+   Compiling libc v0.2.191
+   Compiling proc-macro-crate v3.5.0
+   Compiling thiserror v2.0.21
+   Compiling imbl v7.0.2
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/backends/native)
+   Compiling getrandom v0.4.3
+   Compiling rustc-hash v2.1.3
+   Compiling cfg-if v1.0.5
+   Compiling similar v2.7.0
+   Compiling console v0.16.6
+   Compiling insta v1.49.0
+   Compiling manyhow v0.14.1
+   Compiling prost-derive v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling umpire-ir-derive v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/ir/derive)
+   Compiling thiserror-impl v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling prost v0.14.4
+   Compiling prost-types v0.14.4
+   Compiling umpire-ir v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/ir)
+   Compiling umpire-front v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/front)
+   Compiling prost-build v0.14.4
+   Compiling umpire-runtime v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/protocol/runtime)
+   Compiling umpire-catalog-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/syntax)
+   Compiling umpire-catalog-build v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/umpire/catalog/build)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/fn2484-macros/model/temporal/annotate/syntax)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 33s
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_catalog_build-55deb87d236d2f50)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/neutral.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/neutral-1d8f457780b1cbf2)
+
+running 7 tests
+test second_service_uses_configured_identity_and_roots ... ok
+test omitted_field_enum_and_method_are_rejected ... ok
+test an_annotated_rpc_must_be_claimed ... ok
+test coverage_build_reads_the_explicit_catalog_root_and_descriptor_path ... ok
+test coverage_build_resolves_feature_claims_against_one_service_table ... ok
+test added_method_and_action_break_exhaustive_generated_matches ... ok
+test payload_classification_binds_every_value_and_rejects_duplicate_variants ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.70s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_catalog_syntax-36219dd49f776227)
+
+running 9 tests
+test services::tests::classification_rejects_non_declarative_or_unexplained_arms ... ok
+test services::tests::claims_resolve_against_the_service_table_in_table_order ... ok
+test services::tests::unrelated_matches_are_not_service_declarations ... ok
+test tests::context_and_api_parameters_require_the_catalog_item ... ok
+test services::tests::tables_and_claim_fallbacks_are_declarative ... ok
+test services::tests::ordinary_match_projects_source_order_and_model_action ... ok
+test services::tests::duplicate_or_unclassified_claims_are_named ... ok
+test services::tests::claims_bind_or_observe_and_name_their_wildcard_parameter ... ok
+test services::tests::classification_accepts_single_expression_arm_blocks ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running unittests src/lib.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/umpire_temporal_annotate_syntax-6d781c48b6682172)
+
+running 3 tests
+test realization::tests::catalog_discovery_tracks_empty_directories_and_only_admitted_filenames ... ok
+test realization::tests::contexts_follow_rpc_input_output_edges_instead_of_message_admission ... ok
+test realization::tests::graph_retains_decoded_optional_presence_and_opaque_catalog_reason ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/admission.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/admission-c12bb045742bb3ba)
+
+running 13 tests
+test disabled_derive_enum_constraint_needs_no_expectation ... ok
+test derive_validates_supplemental_intents_and_nested_map_coverage ... ok
+test request_constraints_need_expectations ... ok
+test oneof_rules_require_known_nonignored_source_aliases_and_projection ... ok
+test derive_catalog_uses_shared_admission_and_discovery ... ok
+test stacked_presence_expectations_may_differ_from_field_constraints ... ok
+test derive_attributes_preserve_admission_errors ... ok
+test catalog_expansion_accepts_a_caller_owned_context_and_api_root ... ok
+test rpc_classification_names_the_bound_action_variant ... ok
+test supplemental_mirrors_do_not_claim_descriptor_coverage ... ok
+test string_byte_constraints_require_typed_literals_and_request_expectations ... ok
+test disabled_repeated_constraint_needs_no_request_expectation ... ok
+test item_presence_algebra_and_helper_boundaries_are_explicit ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/expansion.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/expansion-961357e271711d8b)
+
+running 1 test
+test executable_expansion_and_source_coverage ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+     Running tests/realize.rs (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2484-target/debug/deps/realize-49e70d7a2d639291)
+
+running 10 tests
+test handler_admission_rejects_ambiguous_or_unclassified_handlers ... ok
+test observation_only_realizations_inherit_the_refusing_answer_default ... ok
+test method_and_cast_results_require_proven_coverage ... ok
+test proposal_dispatch_delegates_the_handler_and_optional_hooks ... ok
+test wrapper_alias_payloads_do_not_erase_enum_identity ... ok
+test generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks ... ok
+test rest_patterns_cover_actual_payload_positions ... ok
+test deferred_and_reassigned_bindings_require_proven_coverage ... ok
+test dereferenced_enum_subjects_preserve_coverage ... ok
+test enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+   Doc-tests umpire_catalog_build
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_catalog_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests umpire_temporal_annotate_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -19,7 +19,7 @@ fn handler_admission_rejects_ambiguous_or_unclassified_handlers()
             "expected Projection, Step, or a state value with project",
         ),
         ("#[propose] fn first() {} #[propose] fn second() {}", "duplicate proposal handler"),
-        ("#[propose(unknown = method)] fn first() {}", "unknown proposal hook"),
+        ("#[propose(unknown = method)] fn first() {}", "Unknown field: `unknown`"),
         (
             "#[answer(Task, ignores(input = \" \"))] fn first(task: Task) -> Result<Reply<Action>, Refusal> { todo!() }",
             "ignore reason must not be empty",
