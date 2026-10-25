@@ -9,11 +9,11 @@ Cut compile and link time (spec R4): fewer integration-test binaries, less debug
 
 **Size:** M
 **Files:** `model/umpire/**/tests/*.rs` (moved under one `tests/main.rs` per crate), `model/Cargo.toml` (profiles), `model/.cargo/config.toml` (linker, if adopted).
-**Touches:** [model/umpire/**/tests/**, model/umpire/**/Cargo.toml, model/umpire/dev/fixtures/*.rs, model/umpire/Cargo.toml, model/umpire/.cargo/config.toml, model/Cargo.toml, model/.cargo/config.toml]
+**Touches:** [model/umpire/reference/kettle/README.md, model/umpire/**/tests/**, model/umpire/**/Cargo.toml, model/umpire/dev/fixtures/*.rs, model/umpire/Cargo.toml, model/umpire/.cargo/config.toml, model/Cargo.toml, model/.cargo/config.toml]
 
 ### Approach
 - Per crate: move `tests/<name>.rs` to `tests/main/<name>.rs` modules under one `tests/main.rs`. Keep trybuild and test files that rely on process-global state (env vars, `set_hook`, statics) as separate binaries; list each exception and why.
-- Snapshot paths (insta) and fixture-relative paths must keep resolving; fix `include!`/`#[path]` users.
+- Snapshot paths (insta) and fixture-relative paths must keep resolving; fix `include!`/`#[path]` users. Keep the Kettle README test-target command accurate after its target migration; this is an admitted documentation consequence of consolidation.
 - Inventory explicit `[[test]]` targets and `autotests=false` crate manifests, including root-level `dev/fixtures/fixtures.rs` and `interpreted.rs`; do not assume every integration test is under `tests/`. Preserve dedicated gate filters and process-global isolation. Check a durable bijection of old/new package/target/name/ignored identities, including unchanged snapshots and UI-case mappings.
 - Capture the exact pre-change inventory in this task; .1 now supplies historical timing references rather than new executable inventory. The timing-baseline waiver does not waive these correctness controls. Report historical compile/link attribution as unknown where unavailable, alongside actual post-change measurements.
 - Profile: `[profile.test] debug = "line-tables-only"` (and `[profile.dev]` if it helps the build), keeping `overflow-checks = true` (fn-210 R11).
